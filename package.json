@@ -1,0 +1,30 @@
+{
+  "name": "solito-blank",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "web": "npm run dev --workspace=apps/web",
+    "native": "npm run start --workspace=apps/mobile",
+    "android": "npm run android --workspace=apps/mobile",
+    "ios": "npm run ios --workspace=apps/mobile"
+  },
+  "packageManager": "npm@10.2.0",
+  "eslintConfig": {
+    "extends": "next",
+    "settings": {
+      "next": {
+        "rootDir": "apps/web/"
+      }
+    },
+    "root": true
+  },
+  "prettier": {
+    "semi": false,
+    "useTabs": false,
+    "tabWidth": 2,
+    "singleQuote": true
+  }
+}
