@@ -27,6 +27,12 @@
     "paths": {
       "app/*": [
         "../../packages/app/*"
+      ],
+      "components/*": [
+        "../../packages/components/*"
+      ],
+      "assets/*": [
+        "../../packages/assets/*"
       ]
     }
   },
