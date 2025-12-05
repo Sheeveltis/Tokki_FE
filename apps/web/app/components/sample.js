@@ -59,7 +59,7 @@ const demoCardsType3 = [
 
 const SECTION_GAP = 32
 const BLOCK_GAP = 16
-const PAGE_MAX_WIDTH = 960
+const PAGE_MAX_WIDTH = '100%';
 
 const PageHeader = () => (
   <View style={{ alignItems: 'center' }}>
