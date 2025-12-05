@@ -4,6 +4,11 @@ import './globals.css'
 export const metadata = {
   title: 'Tooki',
   description: 'Tooki is a platform for learning Korean',
+  icons: {
+    icon: '/icon.ico',
+    shortcut: '/icon.ico',
+    apple: '/icon.ico',
+  },
 }
 
 export default function RootLayout({
@@ -14,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Next.js tự động inject icon từ metadata, không cần link tag thủ công */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
