@@ -64,7 +64,7 @@ const BLOCK_GAP = 16
 const PAGE_MAX_WIDTH = '100%';
 
 const PageHeader = () => (
-  <View style={{ alignItems: 'center' }}>
+  <View style={{ alignItems: 'center', padding:0, margin:0 }}>
     <Text
       style={{
         fontSize: 28,
