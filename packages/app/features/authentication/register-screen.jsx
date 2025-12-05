@@ -5,7 +5,7 @@ import { AuthLayout } from './components/auth-layout'
 import { LoginHero } from './components/login-hero'
 import { RegisterPanel } from './components/register-form'
 import LoginHeroImage from '../../../assets/background1.png'
-import LoginHeroImage2 from '../../../assets/logo.png'
+import LoginHeroImage2 from '../../../assets/registerBackground.png'
 
 /**
  * @param {{

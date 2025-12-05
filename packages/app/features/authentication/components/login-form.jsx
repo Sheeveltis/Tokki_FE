@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
 import { TextInput } from '../../../../components/textInput'
 import { Button } from '../../../../components/button'
 import { login } from '../api'
+import BigfootImage from '../../../../assets/bigfoot.png'
 
 /**
  * LoginPanel: toàn bộ cột bên phải của màn đăng nhập (tiêu đề + form + ghi chú)
@@ -17,6 +18,18 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+
+  // Chuẩn hoá source để hỗ trợ cả import module (Next/webpack) lẫn require/uri
+  const normalizeImageSource = (src) => {
+    if (!src) return null
+    if (typeof src === 'number' || typeof src === 'string') return src
+    if (src.uri) return src
+    if (src.src) return { uri: src.src }
+    if (src.default) return src.default
+    return src
+  }
+
+  const bigfootSource = normalizeImageSource(BigfootImage)
 
   const handleSubmit = async () => {
     if (loading) return
@@ -36,6 +49,12 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
 
   return (
     <View style={styles.container}>
+      <View style={styles.logoContainer}>
+        <Text style={styles.logoText}>Tooki</Text>
+        {bigfootSource && (
+          <Image source={bigfootSource} style={styles.logoImage} />
+        )}
+      </View>
       <View style={styles.content}>
         <View style={styles.headerBlock}>
           <Text style={styles.title}>Đăng nhập</Text>
@@ -107,6 +126,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 32,
     paddingVertical: 32,
+    position: 'relative',
+  },
+  logoContainer: {
+    position: 'absolute',
+    top: 32,
+    left: 32,
+    zIndex: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  logoText: {
+    fontSize: 30,
+    fontWeight: '700',
+    fontFamily: 'Lexend, sans-serif',
+    color: '#000',
+  },
+  logoImage: {
+    width: 80,
+    height: 80,
+    resizeMode: 'contain',
+    position: 'absolute',
+    top: -30,
+    left: 80,
+    zIndex: 10,
   },
   content: {
     width: '100%',
@@ -185,7 +229,7 @@ const styles = StyleSheet.create({
   signupHighlight: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#000',
+    color: '#D4060A',
     fontFamily: 'Epilogue, sans-serif',
   },
 })

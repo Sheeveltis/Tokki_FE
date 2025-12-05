@@ -60,8 +60,18 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
   overlayImage: {
-    width: '60%',
-    height: '60%',
+    width: '120%',
+    height: '120%',
     resizeMode: 'contain',
+    // iOS shadow - glow effect
+    shadowColor: '#F4900C',
+    shadowOffset: {
+      width: 20,
+      height: 20,
+    },
+    shadowOpacity: 1,
+    shadowRadius: 20,
+    // Android shadow
+    elevation: 8,
   },
 })
