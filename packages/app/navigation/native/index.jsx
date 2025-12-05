@@ -24,6 +24,11 @@ export function NativeNavigation() {
         component={RegisterScreen}
         options={{ title: 'Đăng ký' }}
       />
+      <Stack.Screen
+        name="homepage"
+        component={HomeScreen}
+        options={{ title: 'Trang chủ' }}
+      />
       
     </Stack.Navigator>
   )

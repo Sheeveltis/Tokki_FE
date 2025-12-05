@@ -10,6 +10,8 @@ import { Button } from 'components/button'
 import { ButtonV2 } from 'components/buttonV2'
 import CardType3Image from '../../../../packages/assets/Sticker4.png'
 import CardType4Image from '../../../../packages/assets/Sticker3.png'
+import { Navbar } from 'components/navbar'
+import { Footer } from 'components/footer'
 
 const demoCardsType1 = [
   {
@@ -471,6 +473,8 @@ export default function ComponentsShowcasePage() {
         <ButtonSection />
         <ButtonV2Header />
         <ButtonV2Section />
+        <Navbar />
+        <Footer />
       </View>
     </View>
   )
