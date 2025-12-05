@@ -26,5 +26,8 @@
     "useTabs": false,
     "tabWidth": 2,
     "singleQuote": true
+  },
+  "dependencies": {
+    "antd": "^6.0.1"
   }
 }
