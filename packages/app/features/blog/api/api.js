@@ -58,9 +58,55 @@ export const getAllBlogs = async ({ pageNumber, pageSize, categoryId, status } =
 }
 
 /**
+ * Extract ID từ slug
+ * Slug format: "10-quy-tac-bat-di-bat-dich-abc123"
+ * ID là phần cuối cùng sau dấu gạch ngang cuối cùng: "abc123"
+ */
+const extractIdFromSlug = (slug) => {
+  if (!slug) return null
+  // Tách slug bằng dấu gạch ngang và lấy phần cuối cùng
+  const parts = slug.split('-')
+  return parts[parts.length - 1]
+}
+
+/**
+ * Xử lý response từ API blog detail
+ * Format: { isSuccess: true, data: {...}, errors: null, message: '...', statusCode: 200 }
+ */
+const parseBlogDetailResponse = (response) => {
+  // Lấy data từ response.data
+  if (response?.data) {
+    return response.data
+  }
+  // Fallback: trả về response nếu không có format chuẩn
+  return response
+}
+
+/**
  * Lấy blog theo ID
+ * @param {string} id - ID của blog
+ * @returns {Promise<Object>} Blog data
  */
 export const getBlogById = async (id) => {
   const res = await apiClient.get(ENDPOINTS.BLOG.GET_BY_ID(id))
-  return res.data
+  // Response format: { isSuccess: true, data: {...}, errors: null, message: '...', statusCode: 200 }
+  const response = res.data
+  return parseBlogDetailResponse(response)
 }
+
+/**
+ * Lấy blog theo slug
+ * Tự động extract ID từ slug (phần cuối cùng) và gọi getBlogById
+ * @param {string} slug - Slug của blog (ví dụ: "10-quy-tac-bat-di-bat-dich-abc123")
+ * @returns {Promise<Object>} Blog data
+ */
+export const getBlogBySlug = async (slug) => {
+  const id = extractIdFromSlug(slug)
+  if (!id) {
+    throw new Error('Không thể extract ID từ slug')
+  }
+  return getBlogById(id)
+}
+
+// Alias để tương thích với code cũ
+export const getBlogDetail = getBlogBySlug

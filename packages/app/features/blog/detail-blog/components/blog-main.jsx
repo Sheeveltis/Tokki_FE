@@ -1,32 +1,81 @@
 import React from 'react'
 import { View, Text, Image, StyleSheet } from 'react-native'
-import { HtmlViewer } from './html-viewer' 
+import { HtmlViewer } from './html-viewer'
+import { BlogAuthor } from './blog-author'
+import { BlogTags } from './blog-tags'
+import { BlogComments } from './blog-comments'
 
 export function BlogMainContent({ data }) {
   return (
     <View>
-      <View style={styles.badge}><Text style={styles.badgeText}>{data.category}</Text></View>
-      <Text style={styles.title}>{data.title}</Text>
-      <View style={styles.meta}>
-        <Text>📅 {data.date} • 👁️ {data.views}</Text>
+      {/* Category Badge */}
+      <View style={styles.badge}>
+        <Text style={styles.badgeText}>{data.categoryName || data.category}</Text>
       </View>
 
-      <Image 
-        source={{ uri: data.thumbnail }} 
-        style={styles.image} 
-        resizeMode="cover"
+      {/* Title */}
+      <Text style={styles.title}>{data.title}</Text>
+
+      {/* Thumbnail */}
+      {data.thumbnailUrl && (
+        <Image 
+          source={{ uri: data.thumbnailUrl }} 
+          style={styles.image} 
+          resizeMode="cover"
+        />
+      )}
+
+      {/* Content */}
+      <HtmlViewer html={data.content} />
+
+      {/* Tags */}
+      {data.tags && data.tags.length > 0 && (
+        <BlogTags tags={data.tags} />
+      )}
+
+      {/* Author Info - Đặt dưới content, trên comments */}
+      <BlogAuthor 
+        authorId={data.authorId}
+        createdAt={data.createdAt}
+        viewCount={data.viewCount}
       />
 
-      <HtmlViewer html={data.content} />
-      
+      {/* Comments */}
+      <BlogComments blogId={data.id} />
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  badge: { backgroundColor: 'blue', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, marginBottom: 10 },
-  badgeText: { color: 'white', fontSize: 12, fontWeight: 'bold' },
-  title: { fontSize: 26, fontWeight: 'bold', marginBottom: 10, lineHeight: 34 },
-  meta: { marginBottom: 15, opacity: 0.6 },
-  image: { width: '100%', height: 250, borderRadius: 10, marginBottom: 20 },
+  badge: {
+    backgroundColor: '#ff4d4f', // Màu đỏ
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 4,
+    marginBottom: 16,
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    lineHeight: 42,
+    color: '#1a1a1a',
+    letterSpacing: -0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  image: {
+    width: '100%',
+    height: 400,
+    borderRadius: 12,
+    marginBottom: 24,
+    backgroundColor: '#f0f0f0',
+  },
 })
