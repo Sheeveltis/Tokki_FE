@@ -13,6 +13,17 @@ const MOCK_HOME_DATA = {
   title: 'Chào Mừng Đến Với Tokki',
   subtitle: 'Nền tảng học tiếng Hàn hiệu quả',
   content: 'Tokki là ứng dụng học tiếng Hàn được thiết kế để giúp bạn nắm vững ngôn ngữ một cách dễ dàng và thú vị. Khám phá các bài học, từ vựng, và bài tập thực hành ngay hôm nay!',
+  marketingContent: {
+    headline: 'Muốn có người yêu Hàn Quốc? Tải Tokki trước đã!',
+    intro: 'Người ta nói "Yêu nhau mấy núi cũng trèo", còn muốn hiểu Oppa nói gì thì phải leo vào Tokki ngay và luôn!',
+    timeCommitment: 'Chỉ 15p mỗi ngày (bằng thời gian lướt TikTok thôi à), bạn sẽ nhận được gì?',
+    benefits: [
+      'Một "chiếc" app giao diện cute xỉu, nhìn là muốn học.',
+      'Một lộ trình từ A đến Z, cân mọi kèo từ Sơ cấp đến TOPIK.',
+      'Một người bạn AI kiên nhẫn, sửa lỗi phát âm 24/7 không biết mệt.',
+    ],
+    closing: 'Tokki không hứa giúp bạn có người yêu, nhưng hứa giúp bạn "over hợp" với tiếng Hàn!',
+  },
   items: [
     {
       title: 'Bài Học Mới',
