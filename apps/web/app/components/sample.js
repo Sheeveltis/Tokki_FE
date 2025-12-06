@@ -19,6 +19,8 @@ import {
   showAdminSuccess,
 } from 'components/HelperAdmin'
 import { Loading, LoadingWithContainer } from 'components/Loading'
+import { FlipCard } from 'components/FlipCard'
+import colors from '../../../../packages/app/color.js'
 
 const demoCardsType1 = [
   {
@@ -672,27 +674,6 @@ const LoadingSection = () => {
         padding: '20px',
       }}
     >
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '24px',
-          alignItems: 'center',
-          width: '100%',
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 18,
-            fontWeight: '600',
-            fontFamily: 'Epilogue, sans-serif',
-            color: '#333',
-          }}
-        >
-          Kích thước mặc định:
-        </Text>
-        <Loading />
-      </div>
 
       <div
         style={{
@@ -711,53 +692,87 @@ const LoadingSection = () => {
             color: '#333',
           }}
         >
-          Kích thước tùy chỉnh:
-        </Text>
-        <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-            <Loading size={32} color="#5E794C" shadowColor="#5E794C50" />
-            <Text style={{ fontSize: 12, color: '#666', fontFamily: 'Epilogue, sans-serif' }}>
-              Small (32px)
-            </Text>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-            <Loading size={64} color="#88A455" shadowColor="#88A45550" />
-            <Text style={{ fontSize: 12, color: '#666', fontFamily: 'Epilogue, sans-serif' }}>
-              Large (64px)
-            </Text>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-            <Loading size={80} color="#DC9C9E" shadowColor="#DC9C9E50" />
-            <Text style={{ fontSize: 12, color: '#666', fontFamily: 'Epilogue, sans-serif' }}>
-              XL (80px)
-            </Text>
-          </div>
-        </div>
-      </div>
-
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '24px',
-          alignItems: 'center',
-          width: '100%',
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 18,
-            fontWeight: '600',
-            fontFamily: 'Epilogue, sans-serif',
-            color: '#333',
-          }}
-        >
-          Với text:
         </Text>
         <LoadingWithContainer
           size={48}
           text="Đang tải dữ liệu..."
           style={{ padding: '40px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}
+        />
+      </div>
+    </div>
+  )
+}
+
+const FlipCardHeader = () => (
+  <View style={{ alignItems: 'center' }}>
+    <Text
+      style={{
+        marginTop: SECTION_GAP * 2,
+        fontSize: 28,
+        fontWeight: '700',
+        textAlign: 'center',
+        fontFamily: 'Lexend, sans-serif',
+      }}
+    >
+      FlipCard - Flashcard Component
+    </Text>
+    <Text
+      style={{
+        marginTop: 8,
+        color: '#555',
+        fontSize: 16,
+        textAlign: 'center',
+        fontFamily: 'Epilogue, sans-serif',
+      }}
+    >
+      Component flashcard với animation flip 3D khi hover hoặc click
+    </Text>
+  </View>
+)
+
+const FlipCardSection = () => {
+  return (
+    <div
+      style={{
+        width: '100%',
+        maxWidth: 800,
+        margin: '0 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '32px',
+        alignItems: 'center',
+        padding: '20px',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px',
+          alignItems: 'center',
+          width: '100%',
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: '600',
+            fontFamily: 'Epilogue, sans-serif',
+            color: '#333',
+          }}
+        >
+          FlipCard lớn với hình ảnh:
+        </Text>
+        <FlipCard
+          word="한국어"
+          meaning="Tiếng Hàn Quốc"
+          image="https://puolotrip.com/images/pro/package-media-han-quoc-cover-2202.jpg"
+          width={700}
+          height={400}
+          frontColor={colors.Mustard}
+          backColor={colors.primaryLight}
+          borderWidth={15}
+          borderRadius={20}
         />
       </div>
     </div>
@@ -801,6 +816,8 @@ export default function ComponentsShowcasePage() {
         <HelperAdminSection />
         <LoadingHeader />
         <LoadingSection />
+        <FlipCardHeader />
+        <FlipCardSection />
         <Navbar />
         <Footer />
       </View>
