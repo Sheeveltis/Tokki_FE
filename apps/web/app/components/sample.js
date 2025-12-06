@@ -5,6 +5,7 @@ import { Card as CardType1 } from 'components/cardType1'
 import { Card as CardType2 } from 'components/cardType2'
 import { Card as CardType3 } from 'components/cardType3'
 import { Card as CardType4 } from 'components/cardType4'
+import { Card as CardType5 } from 'components/cardType5'
 import { TextInput } from 'components/textInput'
 import { Button } from 'components/button'
 import { ButtonV2 } from 'components/buttonV2'
@@ -655,6 +656,7 @@ export default function ComponentsShowcasePage() {
         <CardType3Section />
         <CardType4Header />
         <CardType4Section />
+        <CardType5 />
         <TextInputHeader />
         <TextInputSection />
         <ButtonHeader />
