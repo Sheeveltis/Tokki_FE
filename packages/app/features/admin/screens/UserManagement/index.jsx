@@ -7,8 +7,8 @@ import { EyeOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { statusUser } from '../../../../string.js'
 import { fetchUsers } from '../../api'
-import ManagementTable from '../../components/common/ManagementTable'
-import DetailDrawer from '../../components/common/DetailDrawer'
+import ManagementTable from '../../../../../components/ManagementTable'
+import DetailDrawer from '../../../../../components/DetailDrawer'
 
 /**
  * UserManagement: hiển thị danh sách user; mode=admin chỉ lọc Admin/Staff.
