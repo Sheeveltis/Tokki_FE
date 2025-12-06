@@ -3,7 +3,7 @@ import { Text, ActivityIndicator, View } from 'react-native'
 import { useParams } from 'solito/navigation'
 
 import { BlogLayout } from './components/blog-layout'
-import { getBlogDetail } from './api' 
+import { getBlogDetail } from '../api/api' 
 
 import { BlogMainContent } from './components/blog-main'
 
