@@ -13,6 +13,12 @@ import CardType3Image from '../../../../packages/assets/Sticker4.png'
 import CardType4Image from '../../../../packages/assets/Sticker3.png'
 import { Navbar } from 'components/navbar'
 import { Footer } from 'components/footer'
+import {
+  showAdminNotification,
+  showAdminError,
+  showAdminSuccess,
+} from 'components/HelperAdmin'
+import { Loading, LoadingWithContainer } from 'components/Loading'
 
 const demoCardsType1 = [
   {
@@ -442,6 +448,322 @@ const CardType4Section = () => (
   </View>
 )
 
+const HelperAdminHeader = () => (
+  <View style={{ alignItems: 'center' }}>
+    <Text
+      style={{
+        marginTop: SECTION_GAP * 2,
+        fontSize: 28,
+        fontWeight: '700',
+        textAlign: 'center',
+        fontFamily: 'Lexend, sans-serif',
+      }}
+    >
+      HelperAdmin - Thông báo Admin & Staff
+    </Text>
+    <Text
+      style={{
+        marginTop: 8,
+        color: '#555',
+        fontSize: 16,
+        textAlign: 'center',
+        fontFamily: 'Epilogue, sans-serif',
+      }}
+    >
+      Component xử lý hiển thị thông báo lỗi và thành công từ API response.
+    </Text>
+  </View>
+)
+
+const HelperAdminSection = () => {
+  // Demo response lỗi 404
+  const handleError404 = () => {
+    const errorResponse = {
+      isSuccess: false,
+      data: null,
+      errors: [
+        {
+          code: 'Blog.NotFound',
+          description: 'Bài viết không tìm thấy.',
+        },
+      ],
+      message: 'Bài viết không tồn tại hoặc đã bị xóa.',
+      statusCode: 404,
+    }
+    showAdminNotification(errorResponse)
+  }
+
+  // Demo response lỗi 400
+  const handleError400 = () => {
+    const errorResponse = {
+      isSuccess: false,
+      data: null,
+      errors: [
+        {
+          code: 'Validation.Error',
+          description: 'Dữ liệu không hợp lệ.',
+        },
+        {
+          code: 'Field.Required',
+          description: 'Trường bắt buộc còn thiếu.',
+        },
+      ],
+      message: 'Yêu cầu không hợp lệ.',
+      statusCode: 400,
+    }
+    showAdminNotification(errorResponse)
+  }
+
+  // Demo response lỗi 500
+  const handleError500 = () => {
+    const errorResponse = {
+      isSuccess: false,
+      data: null,
+      errors: [],
+      message: 'Lỗi máy chủ nội bộ.',
+      statusCode: 500,
+    }
+    showAdminNotification(errorResponse)
+  }
+
+  // Demo response thành công
+  const handleSuccess = () => {
+    const successResponse = {
+      isSuccess: true,
+      data: { id: 1, name: 'Test' },
+      errors: null,
+      message: 'Thao tác thành công!',
+      statusCode: 200,
+    }
+    showAdminNotification(successResponse)
+  }
+
+  // Demo helper function showAdminError
+  const handleDirectError = () => {
+    showAdminError('Đã xảy ra lỗi không xác định', 500)
+  }
+
+  // Demo helper function showAdminSuccess
+  const handleDirectSuccess = () => {
+    showAdminSuccess('Dữ liệu đã được lưu thành công!')
+  }
+
+  return (
+    <View
+      style={{
+        width: '100%',
+        maxWidth: 600,
+        alignSelf: 'center',
+        rowGap: 16,
+        alignItems: 'center',
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 18,
+          fontWeight: '600',
+          marginBottom: 8,
+          fontFamily: 'Epilogue, sans-serif',
+          color: '#333',
+        }}
+      >
+        Test với API Response:
+      </Text>
+      <View
+        style={{
+          width: '100%',
+          rowGap: 12,
+          alignItems: 'center',
+        }}
+      >
+        <Button
+          title="Lỗi 404 - Không tìm thấy"
+          color="dustyRose"
+          onPress={handleError404}
+        />
+        <Button
+          title="Lỗi 400 - Dữ liệu không hợp lệ"
+          color="dustyRose"
+          onPress={handleError400}
+        />
+        <Button
+          title="Lỗi 500 - Lỗi máy chủ"
+          color="dustyRose"
+          onPress={handleError500}
+        />
+        <Button
+          title="Thành công - 200"
+          color="lightGreen"
+          onPress={handleSuccess}
+        />
+      </View>
+      <Text
+        style={{
+          fontSize: 18,
+          fontWeight: '600',
+          marginTop: 24,
+          marginBottom: 8,
+          fontFamily: 'Epilogue, sans-serif',
+          color: '#333',
+        }}
+      >
+        Test với Helper Functions:
+      </Text>
+      <View
+        style={{
+          width: '100%',
+          rowGap: 12,
+          alignItems: 'center',
+        }}
+      >
+        <Button
+          title="showAdminError()"
+          color="dustyRose"
+          onPress={handleDirectError}
+        />
+        <Button
+          title="showAdminSuccess()"
+          color="lightGreen"
+          onPress={handleDirectSuccess}
+        />
+      </View>
+    </View>
+  )
+}
+
+const LoadingHeader = () => (
+  <View style={{ alignItems: 'center' }}>
+    <Text
+      style={{
+        marginTop: SECTION_GAP * 2,
+        fontSize: 28,
+        fontWeight: '700',
+        textAlign: 'center',
+        fontFamily: 'Lexend, sans-serif',
+      }}
+    >
+      Loading Component
+    </Text>
+    <Text
+      style={{
+        marginTop: 8,
+        color: '#555',
+        fontSize: 16,
+        textAlign: 'center',
+        fontFamily: 'Epilogue, sans-serif',
+      }}
+    >
+      Component hiển thị loading với animation từ Uiverse.io
+    </Text>
+  </View>
+)
+
+const LoadingSection = () => {
+  return (
+    <div
+      style={{
+        width: '100%',
+        maxWidth: 600,
+        margin: '0 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '32px',
+        alignItems: 'center',
+        padding: '20px',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px',
+          alignItems: 'center',
+          width: '100%',
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: '600',
+            fontFamily: 'Epilogue, sans-serif',
+            color: '#333',
+          }}
+        >
+          Kích thước mặc định:
+        </Text>
+        <Loading />
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px',
+          alignItems: 'center',
+          width: '100%',
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: '600',
+            fontFamily: 'Epilogue, sans-serif',
+            color: '#333',
+          }}
+        >
+          Kích thước tùy chỉnh:
+        </Text>
+        <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <Loading size={32} color="#5E794C" shadowColor="#5E794C50" />
+            <Text style={{ fontSize: 12, color: '#666', fontFamily: 'Epilogue, sans-serif' }}>
+              Small (32px)
+            </Text>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <Loading size={64} color="#88A455" shadowColor="#88A45550" />
+            <Text style={{ fontSize: 12, color: '#666', fontFamily: 'Epilogue, sans-serif' }}>
+              Large (64px)
+            </Text>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <Loading size={80} color="#DC9C9E" shadowColor="#DC9C9E50" />
+            <Text style={{ fontSize: 12, color: '#666', fontFamily: 'Epilogue, sans-serif' }}>
+              XL (80px)
+            </Text>
+          </div>
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px',
+          alignItems: 'center',
+          width: '100%',
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: '600',
+            fontFamily: 'Epilogue, sans-serif',
+            color: '#333',
+          }}
+        >
+          Với text:
+        </Text>
+        <LoadingWithContainer
+          size={48}
+          text="Đang tải dữ liệu..."
+          style={{ padding: '40px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}
+        />
+      </div>
+    </div>
+  )
+}
+
 export default function ComponentsShowcasePage() {
   return (
     <View
@@ -475,6 +797,10 @@ export default function ComponentsShowcasePage() {
         <ButtonSection />
         <ButtonV2Header />
         <ButtonV2Section />
+        <HelperAdminHeader />
+        <HelperAdminSection />
+        <LoadingHeader />
+        <LoadingSection />
         <Navbar />
         <Footer />
       </View>
