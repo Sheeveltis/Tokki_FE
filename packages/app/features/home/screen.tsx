@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react'
-import { ActivityIndicator, View, Text } from 'react-native'
+  import { useEffect, useState } from 'react'
+import { View, Text } from 'react-native'
 
 // Import layout - React Native bundler sẽ tự động chọn .web.jsx hoặc .native.jsx
 // TypeScript cần import cụ thể, nhưng runtime sẽ resolve đúng platform
 import { HomeLayout } from './components/home-layout.web'
 import { HomeMain } from './components/home-main'
 import { getSidebarData } from './api'
+import { LoadingWithContainer } from '../../../components/Loading'
 
 /**
  * HomeScreen: Trang chủ chính
@@ -45,6 +46,21 @@ export function HomeScreen({
 
     fetchSidebarData()
   }, [])
+
+  if (sidebarLoading) {
+    return (
+      <LoadingWithContainer
+        size={48}
+        color="#5E794C"
+        shadowColor="#5E794C50"
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      />
+    )
+  }
 
   return (
     <HomeLayout
