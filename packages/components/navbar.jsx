@@ -9,7 +9,7 @@ import FlashcardIcon from '../assets/flashcard.png'
 import BlogIcon from '../assets/blog.png'
 import ProfileIcon from '../assets/user.png'
 import SmallFoot from '../assets/smallfoot.png'
-
+import { useRouter } from 'solito/navigation'
 /**
  * Normalize image source so it works with:
  * - require('...png') / numeric ids
@@ -62,6 +62,49 @@ export const Navbar = ({
   onProfilePress,
   style,
 }) => {
+  const router = useRouter()
+
+  // Handler functions với fallback routing
+  const handleHomePress = () => {
+    if (onHomePress) {
+      onHomePress()
+    } else {
+      router.push('/homepage')
+    }
+  }
+
+  const handleRoadmapPress = () => {
+    if (onRoadmapPress) {
+      onRoadmapPress()
+    } else {
+      router.push('/roadmap')
+    }
+  }
+
+  const handleFlashcardPress = () => {
+    if (onFlashcardPress) {
+      onFlashcardPress()
+    } else {
+      router.push('/flashcard')
+    }
+  }
+
+  const handleBlogPress = () => {
+    if (onBlogPress) {
+      onBlogPress()
+    } else {
+      router.push('/blog')
+    }
+  }
+
+  const handleProfilePress = () => {
+    if (onProfilePress) {
+      onProfilePress()
+    } else {
+      router.push('/profile')
+    }
+  }
+
   return (
     <View
       style={[
@@ -157,7 +200,7 @@ export const Navbar = ({
       >
         {/* Trang Chủ */}
         <TouchableOpacity
-          onPress={onHomePress}
+          onPress={handleHomePress}
           style={{
             alignItems: 'center',
           }}
@@ -184,7 +227,7 @@ export const Navbar = ({
 
         {/* Lộ Trình */}
         <TouchableOpacity
-          onPress={onRoadmapPress}
+          onPress={handleRoadmapPress}
           style={{
             alignItems: 'center',
           }}
@@ -211,7 +254,7 @@ export const Navbar = ({
 
         {/* Flashcard */}
         <TouchableOpacity
-          onPress={onFlashcardPress}
+          onPress={handleFlashcardPress}
           style={{
             alignItems: 'center',
           }}
@@ -238,7 +281,7 @@ export const Navbar = ({
 
         {/* Blog */}
         <TouchableOpacity
-          onPress={onBlogPress}
+          onPress={handleBlogPress}
           style={{
             alignItems: 'center',
           }}
@@ -284,7 +327,7 @@ export const Navbar = ({
           안녕하세요
         </Text>
         <TouchableOpacity
-          onPress={onProfilePress}
+          onPress={handleProfilePress}
           style={{
             width: 40,
             height: 40,
