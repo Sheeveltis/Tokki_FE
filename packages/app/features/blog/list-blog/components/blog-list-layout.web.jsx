@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { View, Text, StyleSheet, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { Navbar } from 'components/navbar'
 import { Footer } from 'components/footer'
 import { BlogSidebar } from './blog-sidebar'
@@ -12,8 +12,14 @@ import { useRouter } from 'solito/navigation'
  * BlogListLayout (Web): Layout cho trang danh sách blog
  * Tự động bao gồm Navbar và Footer
  * Layout: 4/5 content + 1/5 sidebar
+ * 
+ * @param {Object} props
+ * @param {Array} props.blogs - Danh sách blog
+ * @param {boolean} props.loading - Đang load thêm blog
+ * @param {boolean} props.hasMore - Còn blog để load
+ * @param {Function} props.onLoadMore - Callback khi click "Load More"
  */
-export function BlogListLayout({ blogs = [] }) {
+export function BlogListLayout({ blogs = [], loading = false, hasMore = false, onLoadMore }) {
   const router = useRouter()
   
   // --- STATE QUẢN LÝ BỘ LỌC ---
@@ -40,7 +46,8 @@ export function BlogListLayout({ blogs = [] }) {
         if (!hasMatchingTag) return false
       }
       return true
-    }).slice(0, 10) // Giới hạn tối đa 10 blog
+    })
+    // Không slice ở đây nữa vì pagination đã xử lý ở index.jsx
   }, [blogs, selectedCategory, selectedTags])
 
   // Lấy blog mới nhất cho sidebar (sắp xếp theo createdAt)
@@ -80,11 +87,28 @@ export function BlogListLayout({ blogs = [] }) {
                 onPress={() => router.push(`/blog/${item.slug}`)}
               />
             ))}
-            {filteredBlogs.length === 0 && (
+            {filteredBlogs.length === 0 && !loading && (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyText}>
                   Không tìm thấy bài viết phù hợp.
                 </Text>
+              </View>
+            )}
+            
+            {/* Load More Button */}
+            {hasMore && filteredBlogs.length > 0 && (
+              <View style={styles.loadMoreContainer}>
+                {loading ? (
+                  <ActivityIndicator size="small" color="#1890ff" />
+                ) : (
+                  <TouchableOpacity
+                    style={styles.loadMoreButton}
+                    onPress={onLoadMore}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.loadMoreText}>Xem thêm</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             )}
           </ScrollView>
@@ -140,6 +164,24 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#999',
+    textAlign: 'center',
+  },
+  loadMoreContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadMoreButton: {
+    backgroundColor: '#1890ff',
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 6,
+    minWidth: 120,
+  },
+  loadMoreText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
     textAlign: 'center',
   },
 })
