@@ -775,3 +775,56 @@ export const paymentMethodLabels = {
   e_wallet: 'Ví điện tử',
 }
 
+// Mock data cho Báo cáo thống kê dữ liệu A.I
+export const mockAIStatistics = {
+  overview: {
+    totalQueries: 125430,
+    totalUsers: 3420,
+    averageResponseTime: 1.2,
+    accuracyRate: 94.5,
+    totalTokensUsed: 2450000,
+  },
+  usageByFeature: [
+    { feature: 'Dịch thuật', count: 45230, percentage: 36.1 },
+    { feature: 'Giải thích ngữ pháp', count: 38120, percentage: 30.4 },
+    { feature: 'Tạo bài tập', count: 22450, percentage: 17.9 },
+    { feature: 'Chấm điểm phát âm', count: 12890, percentage: 10.3 },
+    { feature: 'Tư vấn học tập', count: 6740, percentage: 5.4 },
+  ],
+  usageByDay: [
+    { date: '2024-05-01', queries: 3420, users: 890 },
+    { date: '2024-05-02', queries: 3850, users: 920 },
+    { date: '2024-05-03', queries: 4120, users: 950 },
+    { date: '2024-05-04', queries: 3980, users: 910 },
+    { date: '2024-05-05', queries: 4250, users: 980 },
+    { date: '2024-05-06', queries: 4680, users: 1020 },
+    { date: '2024-05-07', queries: 4520, users: 990 },
+    { date: '2024-05-08', queries: 4390, users: 970 },
+    { date: '2024-05-09', queries: 4560, users: 1000 },
+    { date: '2024-05-10', queries: 4720, users: 1030 },
+    { date: '2024-05-11', queries: 4890, users: 1050 },
+    { date: '2024-05-12', queries: 5010, users: 1080 },
+  ],
+  accuracyByFeature: [
+    { feature: 'Dịch thuật', accuracy: 96.8, totalQueries: 45230 },
+    { feature: 'Giải thích ngữ pháp', accuracy: 95.2, totalQueries: 38120 },
+    { feature: 'Tạo bài tập', accuracy: 93.5, totalQueries: 22450 },
+    { feature: 'Chấm điểm phát âm', accuracy: 91.8, totalQueries: 12890 },
+    { feature: 'Tư vấn học tập', accuracy: 89.4, totalQueries: 6740 },
+  ],
+  topUsers: [
+    { userId: 'u1', userName: 'Alice Admin', queries: 1250, lastUsed: '2024-05-12 14:30' },
+    { userId: 'u6', userName: 'Frank Lee', queries: 980, lastUsed: '2024-05-12 13:15' },
+    { userId: 'u10', userName: 'Jack Wang', queries: 850, lastUsed: '2024-05-12 12:45' },
+    { userId: 'u12', userName: 'Liam Brown', queries: 720, lastUsed: '2024-05-12 11:20' },
+    { userId: 'u16', userName: 'Paul Martinez', queries: 680, lastUsed: '2024-05-12 10:10' },
+  ],
+  costAnalysis: [
+    { month: 'Tháng 1', tokens: 1800000, cost: 5400000, queries: 98500 },
+    { month: 'Tháng 2', tokens: 1950000, cost: 5850000, queries: 102300 },
+    { month: 'Tháng 3', tokens: 2100000, cost: 6300000, queries: 108900 },
+    { month: 'Tháng 4', tokens: 2280000, cost: 6840000, queries: 115600 },
+    { month: 'Tháng 5', tokens: 2450000, cost: 7350000, queries: 125430 },
+  ],
+}
+

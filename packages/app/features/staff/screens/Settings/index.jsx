@@ -12,7 +12,7 @@ export function Settings() {
         <Title level={4} style={{ fontFamily: 'Epilogue, sans-serif' }}>
           Cài đặt
         </Title>
-        <Text type="secondary">Hiện chưa có tuỳ chọn thay đổi theme.</Text>
+        <Text type="secondary">Cài đặt cho Staff Panel.</Text>
       </Card>
     </Space>
   )
