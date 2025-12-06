@@ -7,7 +7,6 @@ import HomeIcon from '../assets/homepage.png'
 import RoadmapIcon from '../assets/roadmap.png'
 import FlashcardIcon from '../assets/flashcard.png'
 import BlogIcon from '../assets/blog.png'
-import ProfileIcon from '../assets/user.png'
 import SmallFoot from '../assets/smallfoot.png'
 import { useRouter } from 'solito/navigation'
 /**
@@ -43,23 +42,22 @@ const normalizeImageSource = (src) => {
  *   onRoadmapPress?: () => void;
  *   onFlashcardPress?: () => void;
  *   onBlogPress?: () => void;
- *   onProfilePress?: () => void;
+ *   onLoginPress?: () => void;
+ *   onRegisterPress?: () => void;
  *   style?: any;
  * }} props
  */
 export const Navbar = ({
-  logoImage,
-  pawPrintImage,
   homeIcon,
   roadmapIcon,
   flashcardIcon,
   blogIcon,
-  profileIcon,
   onHomePress,
   onRoadmapPress,
   onFlashcardPress,
   onBlogPress,
-  onProfilePress,
+  onLoginPress,
+  onRegisterPress,
   style,
 }) => {
   const router = useRouter()
@@ -97,11 +95,19 @@ export const Navbar = ({
     }
   }
 
-  const handleProfilePress = () => {
-    if (onProfilePress) {
-      onProfilePress()
+  const handleLoginPress = () => {
+    if (onLoginPress) {
+      onLoginPress()
     } else {
-      router.push('/profile')
+      router.push('/login')
+    }
+  }
+
+  const handleRegisterPress = () => {
+    if (onRegisterPress) {
+      onRegisterPress()
+    } else {
+      router.push('/register')
     }
   }
 
@@ -141,13 +147,13 @@ export const Navbar = ({
         source={normalizeImageSource(SmallFoot)}
         style={{
           position: 'absolute',
-          top: -20,
-          right: -50,
+          top: -5,
+          right: 100,
           width: 200,
           height: 150,
           resizeMode: 'contain',
           opacity: 0.5,
-          transform: [{ rotate: '-70deg' }],
+          transform: [{ rotate: '-10deg' }],
         }}
       />
 
@@ -307,44 +313,65 @@ export const Navbar = ({
         </TouchableOpacity>
       </View>
 
-      {/* Right section: Greeting and Profile */}
+      {/* Right section: Login and Register buttons */}
       <View
         style={{
-          flexDirection: 'row',
+          flexDirection: 'column',
           alignItems: 'center',
-          gap: 12,
+          gap: 8,
           zIndex: 1,
         }}
       >
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: '500',
-            color: '#333',
-            fontFamily: 'Epilogue, sans-serif',
-          }}
-        >
-          안녕하세요
-        </Text>
+        {/* Đăng Nhập button */}
         <TouchableOpacity
-          onPress={handleProfilePress}
+          onPress={handleLoginPress}
           style={{
-            width: 40,
-            height: 40,
+            paddingHorizontal: 24,
+            paddingVertical: 10,
             borderRadius: 20,
-            backgroundColor: '#FFB84D',
+            backgroundColor: '#8B9A6B',
+            borderWidth: 2,
+            borderColor: '#4A90E2',
             alignItems: 'center',
             justifyContent: 'center',
+            minWidth: 120,
           }}
         >
-          <Image
-            source={normalizeImageSource(profileIcon || ProfileIcon)}
+          <Text
             style={{
-              width: 50,
-              height: 50,
-              resizeMode: 'contain',
+              fontSize: 14,
+              fontWeight: 'bold',
+              color: '#FFFFFF',
+              fontFamily: 'Epilogue, sans-serif',
             }}
-          />
+          >
+            Đăng Nhập
+          </Text>
+        </TouchableOpacity>
+
+        {/* Đăng Ký button */}
+        <TouchableOpacity
+          onPress={handleRegisterPress}
+          style={{
+            paddingHorizontal: 24,
+            paddingVertical: 10,
+            borderRadius: 20,
+            backgroundColor: '#6B7A4B',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minWidth: 120,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: 'bold',
+              color: '#FFFFFF',
+              fontFamily: 'Epilogue, sans-serif',
+            }}
+          >
+            Đăng Ký
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
