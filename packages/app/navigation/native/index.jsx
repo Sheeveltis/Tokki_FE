@@ -15,6 +15,11 @@ export function NativeNavigation() {
       initialRouteName="login" 
     >
       <Stack.Screen
+        name="homepage"
+        component={screen}
+        options={{ title: 'Trang Chủ' }}
+      />
+      <Stack.Screen
         name="login"
         component={LoginScreen}
         options={{ title: 'Đăng nhập' }}
