@@ -3,29 +3,25 @@
 import React, { useEffect, useState, useMemo, useTransition } from 'react'
 import { Spin } from 'antd'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { AdminLayout } from './components/admin-layout.web'
+import { StaffLayout } from './components/staff-layout.web'
 import {
-  fetchUsers,
+  fetchRegularUsers,
   fetchLessons,
   fetchVocabularies,
   fetchArticles,
-  fetchSystemLogs,
 } from './api'
+// Reuse screens từ admin
+import { LessonManagement } from '../admin/screens/LessonManagement'
+import { VocabularyManagement } from '../admin/screens/VocabularyManagement'
+import { BlogManagement } from '../admin/screens/BlogManagement'
+import { ChatSupport } from '../admin/screens/ChatSupport'
+import { AutoEmail } from '../admin/screens/AutoEmail'
+import { FeedbackInbox } from '../admin/screens/FeedbackInbox'
+// Staff-specific screens
 import { UserManagement } from './screens/UserManagement'
-import { LessonManagement } from './screens/LessonManagement'
-import { VocabularyManagement } from './screens/VocabularyManagement'
-import { BlogManagement } from './screens/BlogManagement'
-import { ChatSupport } from './screens/ChatSupport'
-import { AutoEmail } from './screens/AutoEmail'
-import { FeedbackInbox } from './screens/FeedbackInbox'
-import { MembershipPackage } from './screens/MembershipPackage'
-import { PaymentManagement } from './screens/PaymentManagement'
-import { RevenueReport } from './screens/RevenueReport'
-import { SystemLog } from './screens/SystemLog'
-import { AIStatisticsReport } from './screens/AIStatisticsReport'
 import { Settings } from './screens/Settings'
 
-export function AdminScreen() {
+export function StaffScreen() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const tab = searchParams?.get('tab')
@@ -37,29 +33,25 @@ export function AdminScreen() {
     lessons: null,
     vocab: null,
     articles: null,
-    logs: null,
   })
 
   useEffect(() => {
     let mounted = true
     const loadAll = async () => {
       try {
-        const [users, lessons, vocab, articles, logs] = await Promise.all([
-          fetchUsers(),
+        const [users, lessons, vocab, articles] = await Promise.all([
+          fetchRegularUsers(),
           fetchLessons(),
           fetchVocabularies(),
           fetchArticles(),
-          fetchSystemLogs(),
         ])
         if (mounted) {
-          setInitialData({ users, lessons, vocab, articles, logs })
+          setInitialData({ users, lessons, vocab, articles })
         }
       } catch (error) {
-        // Error đã được xử lý trong api/index.js với apiErrors
-        console.error('Lỗi tải dữ liệu admin:', error.message)
-        // Có thể thêm Alert hoặc message.error để hiển thị lỗi cho user
+        console.error('Lỗi tải dữ liệu staff:', error.message)
         if (mounted) {
-          setInitialData({ users: [], lessons: [], vocab: [], articles: [], logs: [] })
+          setInitialData({ users: [], lessons: [], vocab: [], articles: [] })
         }
       } finally {
         if (mounted) setBootLoading(false)
@@ -72,31 +64,23 @@ export function AdminScreen() {
   }, [])
 
   // Memoize screens để tránh tạo lại components mỗi lần render
-  // Phải đặt TRƯỚC early return để tuân thủ Rules of Hooks
   const screens = useMemo(
     () => ({
-      'users-admin': <UserManagement mode="admin" initialData={initialData.users} />,
-      'users-all': <UserManagement mode="all" initialData={initialData.users} />,
+      users: <UserManagement initialData={initialData.users} />,
       lessons: <LessonManagement initialData={initialData.lessons} />,
       vocab: <VocabularyManagement initialData={initialData.vocab} />,
       blog: <BlogManagement initialData={initialData.articles} />,
       'chat-support': <ChatSupport initialData={initialData.users} />,
       'auto-email': <AutoEmail />,
       'feedback-inbox': <FeedbackInbox />,
-      'membership-package': <MembershipPackage />,
-      'payment-management': <PaymentManagement />,
-      'revenue-report': <RevenueReport />,
-      'system-log': <SystemLog initialData={initialData.logs} />,
-      'ai-statistics': <AIStatisticsReport />,
       settings: <Settings />,
     }),
     [initialData],
   )
 
   const handleNavigate = (key) => {
-    // Sử dụng startTransition để navigation không block UI
     startTransition(() => {
-      router.push(`/admin?tab=${key}`)
+      router.push(`/staff?tab=${key}`)
     })
   }
 
@@ -116,12 +100,11 @@ export function AdminScreen() {
   }
 
   return (
-    <AdminLayout
+    <StaffLayout
       screens={screens}
-      defaultKey={tab || 'users-all'}
+      defaultKey={tab || 'users'}
       onNavigate={handleNavigate}
       onLogout={() => {
-        // TODO: nối vào luồng auth thực tế
         console.log('Đăng xuất')
         router.push('/login')
       }}
@@ -129,5 +112,5 @@ export function AdminScreen() {
   )
 }
 
-export default AdminScreen
+export default StaffScreen
 

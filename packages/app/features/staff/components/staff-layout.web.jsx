@@ -4,7 +4,6 @@ import React, { createContext, useContext, useMemo, useState, useEffect, useTran
 import { Layout, Menu, ConfigProvider, theme as antdTheme } from 'antd'
 import {
   UserOutlined,
-  TeamOutlined,
   BookOutlined,
   FileTextOutlined,
   SettingOutlined,
@@ -14,10 +13,6 @@ import {
   MessageOutlined,
   MailOutlined,
   InboxOutlined,
-  DollarOutlined,
-  PieChartOutlined,
-  ShopOutlined,
-  ThunderboltOutlined,
 } from '@ant-design/icons'
 
 const ThemeContext = createContext({
@@ -28,16 +23,17 @@ const ThemeContext = createContext({
 export const useTheme = () => useContext(ThemeContext)
 
 /**
- * AdminLayout (web): wrapper cho Sider + Content, quản lý menu và theme.
+ * StaffLayout (web): wrapper cho Sider + Content, quản lý menu và theme.
+ * Staff có quyền hạn giới hạn hơn admin.
  * @param {{
  *  screens: Record<string, React.ReactNode>;
  *  defaultKey?: string;
  *  onLogout?: () => void;
  * }} props
  */
-export function AdminLayout({
+export function StaffLayout({
   screens = {},
-  defaultKey = 'users-all',
+  defaultKey = 'users',
   onLogout = () => {},
   onNavigate,
   children,
@@ -59,7 +55,7 @@ export function AdminLayout({
     [],
   )
 
-  // Size chữ toàn admin mặc định
+  // Size chữ toàn staff mặc định
   const themeTokens = useMemo(
     () => ({
       fontSize: 18,
@@ -89,15 +85,12 @@ export function AdminLayout({
     return children || screens[selectedKey] || screens[defaultKey] || null
   }, [children, screens, selectedKey, defaultKey])
 
+  // Menu items cho Staff - giới hạn quyền hạn hơn Admin
   const menuItems = [
     {
       key: 'users',
       icon: <UserOutlined />,
       label: 'Quản lý Người dùng',
-      children: [
-        { key: 'users-admin', icon: <TeamOutlined />, label: 'Admin & Staff' },
-        { key: 'users-all', icon: <UserOutlined />, label: 'Tất cả Users' },
-      ],
     },
     {
       key: 'content',
@@ -119,18 +112,6 @@ export function AdminLayout({
         { key: 'feedback-inbox', icon: <InboxOutlined />, label: 'Hòm thư feedback' },
       ],
     },
-    {
-      key: 'revenue',
-      icon: <DollarOutlined />,
-      label: 'Quản lý doanh thu',
-      children: [
-        { key: 'membership-package', icon: <ShopOutlined />, label: 'Quản lý gói thành viên' },
-        { key: 'payment-management', icon: <DollarOutlined />, label: 'Quản lý thanh toán' },
-        { key: 'revenue-report', icon: <PieChartOutlined />, label: 'Báo cáo doanh thu' },
-      ],
-    },
-    { key: 'ai-statistics', icon: <ThunderboltOutlined />, label: 'Báo cáo thống kê A.I' },
-    { key: 'system-log', icon: <DatabaseOutlined />, label: 'System Log' },
     { key: 'settings', icon: <SettingOutlined />, label: 'Cài đặt' },
     {
       type: 'divider',
@@ -170,13 +151,13 @@ export function AdminLayout({
                 letterSpacing: 0.5,
               }}
             >
-              {collapsed ? 'ADM' : 'Admin Panel'}
+              {collapsed ? 'STF' : 'Staff Panel'}
             </div>
             <Menu
               theme="dark"
               mode="inline"
               selectedKeys={[selectedKey]}
-              defaultOpenKeys={['users', 'content', 'customer-service', 'revenue']}
+              defaultOpenKeys={['content', 'customer-service']}
               onClick={handleMenuClick}
               items={menuItems}
             />
@@ -216,5 +197,5 @@ export function AdminLayout({
   )
 }
 
-export default AdminLayout
+export default StaffLayout
 

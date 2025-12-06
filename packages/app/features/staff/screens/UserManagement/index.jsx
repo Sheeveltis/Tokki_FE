@@ -3,17 +3,19 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Tag, Input, Space } from 'antd'
-import { EyeOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons'
+import { EyeOutlined, SearchOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { statusUser } from '../../../../string.js'
-import { fetchUsers } from '../../api'
+import { fetchRegularUsers } from '../../api'
 import ManagementTable from '../../../../../components/ManagementTable'
 import DetailDrawer from '../../../../../components/DetailDrawer'
+import { message } from 'antd'
+import { handleApiError } from '../../api'
 
 /**
- * UserManagement: hiển thị danh sách user; mode=admin chỉ lọc Admin/Staff.
+ * UserManagement cho Staff: chỉ hiển thị users thường, không có Admin/Staff
  */
-export function UserManagement({ mode = 'all', initialData = null }) {
+export function UserManagement({ initialData = null }) {
   const router = useRouter()
   const [data, setData] = useState(initialData || [])
   const [loading, setLoading] = useState(!initialData)
@@ -25,12 +27,10 @@ export function UserManagement({ mode = 'all', initialData = null }) {
     const load = async () => {
       try {
         setLoading(true)
-        const res = await fetchUsers()
+        const res = await fetchRegularUsers()
         setData(res)
-      } catch (error) {
-        // Error đã được xử lý trong api/index.js với apiErrors
-        console.error('Lỗi tải danh sách người dùng:', error.message)
-        // Có thể thêm message.error(error.message) nếu cần hiển thị toast
+      } catch (err) {
+        message.error(handleApiError(err, 'Không thể tải danh sách người dùng.'))
       } finally {
         setLoading(false)
       }
@@ -39,26 +39,39 @@ export function UserManagement({ mode = 'all', initialData = null }) {
   }, [initialData])
 
   const filteredData = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    const base = mode === 'admin'
-      ? data.filter((u) => ['Admin', 'Staff'].includes(u.role))
-      : data
-    if (!q) return base
-    return base.filter(
-      (u) =>
-        u.name.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q) ||
-        (u.role || '').toLowerCase().includes(q) ||
-        (u.status || '').toLowerCase().includes(q),
+    if (!search) return data
+    const lowerSearch = search.toLowerCase()
+    return data.filter(
+      (item) =>
+        item.name?.toLowerCase().includes(lowerSearch) ||
+        item.email?.toLowerCase().includes(lowerSearch) ||
+        item.role?.toLowerCase().includes(lowerSearch) ||
+        item.status?.toLowerCase().includes(lowerSearch),
     )
-  }, [data, mode, search])
-
-  const tabKey = mode === 'admin' ? 'users-admin' : 'users-all'
+  }, [data, search])
 
   const columns = [
-    { title: 'Tên', dataIndex: 'name', key: 'name' },
-    { title: 'Email', dataIndex: 'email', key: 'email' },
-    { title: 'Role', dataIndex: 'role', key: 'role' },
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 80,
+    },
+    {
+      title: 'Tên',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Email',
+      dataIndex: 'email',
+      key: 'email',
+    },
+    {
+      title: 'Role',
+      dataIndex: 'role',
+      key: 'role',
+    },
     {
       title: 'Trạng thái',
       dataIndex: 'status',
@@ -79,7 +92,7 @@ export function UserManagement({ mode = 'all', initialData = null }) {
         <div
           onClick={(e) => {
             e?.stopPropagation?.()
-            router.push(`/admin/users/${record.id}?tab=${tabKey}`)
+            router.push(`/staff/users/${record.id}?tab=users`)
           }}
           style={{
             display: 'flex',
@@ -95,11 +108,6 @@ export function UserManagement({ mode = 'all', initialData = null }) {
     },
   ]
 
-  const handleSave = async () => {
-    if (!drawerItem) return
-    // navigation only now
-  }
-
   return (
     <>
       <Space style={{ marginBottom: 12, width: '100%', justifyContent: 'space-between' }}>
@@ -110,13 +118,6 @@ export function UserManagement({ mode = 'all', initialData = null }) {
           style={{ maxWidth: 360 }}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-        />
-        <ButtonV2
-          title="Thêm"
-          color="#F1BE4B"
-          onPress={() => router.push(mode === 'admin' ? '/admin/users/create-admin-staff' : '/admin/users/create')}
-          style={{ minWidth: 80, paddingVertical: 10 }}
-          textStyle={{ fontSize: 14 }}
         />
       </Space>
       <ManagementTable

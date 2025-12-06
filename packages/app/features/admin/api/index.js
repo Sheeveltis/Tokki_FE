@@ -10,6 +10,7 @@ import {
   mockPayments,
   mockFeedbacks,
   mockMembershipPackages,
+  mockAIStatistics,
 } from '../mockData.js'
 import { apiErrors } from '../../../string.js'
 
@@ -358,3 +359,16 @@ export async function sendEmail(payload) {
     handleApiError(error, 'Không thể gửi email')
   }
 }
+
+// AI Statistics APIs
+export async function fetchAIStatistics() {
+  try {
+    await delay()
+    return mockAIStatistics
+  } catch (error) {
+    handleApiError(error, 'Không thể tải thống kê A.I')
+  }
+}
+
+// Export handleApiError để các screen có thể sử dụng
+export { handleApiError }

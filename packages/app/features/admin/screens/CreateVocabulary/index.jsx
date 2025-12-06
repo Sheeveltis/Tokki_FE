@@ -108,3 +108,15 @@ export function CreateVocabularyScreen() {
 export default CreateVocabularyScreen
 
 
+
+
+
+
+
+
+
+
+
+
+
+

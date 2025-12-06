@@ -6,8 +6,8 @@ import { Input, Space } from 'antd'
 import { EyeOutlined, SearchOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { fetchSystemLogs } from '../../api'
-import ManagementTable from '../../components/common/ManagementTable'
-import DetailDrawer from '../../components/common/DetailDrawer'
+import ManagementTable from '../../../../../components/ManagementTable'
+import DetailDrawer from '../../../../../components/DetailDrawer'
 
 export function SystemLog({ initialData = null }) {
   const router = useRouter()
