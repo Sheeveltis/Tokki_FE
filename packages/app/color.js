@@ -17,6 +17,7 @@ export const colors = {
   DarkGreen: '#5E794E',
   LightGreen: '#89A455',
   Pink: '#EDC4C8',
+  LightPink: '#F08080',
   DarkPink: '#DD9B9D',
   Mustard: '#F1BE4B',
 
