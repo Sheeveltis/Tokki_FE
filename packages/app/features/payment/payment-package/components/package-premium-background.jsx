@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Text, Image } from 'react-native'
 import CheckedIcon from '../../../../../assets/checked.png'
+import BackgroundImage from '../../../../../assets/background1.png'
 import LogoImage from '../../../../../assets/logo-prem.png'
 
 /**
@@ -22,17 +23,20 @@ const normalizeImageSource = (src) => {
 }
 
 /**
- * Card Type 5: Premium Package Card (without background)
+ * Card Type 5: Premium Package Card with Background
+ * - Background with carrots pattern (background1.png)
  * - Large red title "GÓI PREMIUM"
  * - Subtitle question
  * - Dashed line separator
  * - List of benefits with checkmarks
  * - Rabbit logo (logo-prem.png) bottom-right
+ * - Price label bottom-left
  *
  * @param {{
  *   title?: string;
  *   subtitle?: string;
  *   benefits?: string[];
+ *   priceLabel?: string;
  *   style?: any;
  * }} props
  */
@@ -55,16 +59,35 @@ export const Card = ({
           width: 400,
           height: 500,
           borderRadius: 32,
-          backgroundColor: 'transparent',
+          backgroundColor: '#FFE4B5', // Light creamy orange background
           paddingHorizontal: 30,
           paddingTop: 24,
           paddingBottom: 20,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.16,
+          shadowRadius: 8,
+          elevation: 4,
           overflow: 'hidden',
           position: 'relative',
         },
         style,
       ]}
     >
+      {/* Background image */}
+      <Image
+        source={normalizeImageSource(BackgroundImage)}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          resizeMode: 'cover',
+          opacity: 0.4,
+        }}
+      />
+
       <View style={{ zIndex: 1, flex: 1 }}>
         {/* Title */}
         <View style={{ alignItems: 'center', marginBottom: 8 }}>
@@ -171,5 +194,6 @@ export const Card = ({
     </View>
   )
 }
+
 
 

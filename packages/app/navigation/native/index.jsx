@@ -6,6 +6,7 @@ import { UserDetailScreen } from 'app/features/user/detail-screen'
 import { BlogDetailScreen } from 'app/features/blog/detail-screen'
 import { LoginScreen } from 'app/features/authentication/login-screen'
 import { RegisterScreen } from 'app/features/authentication/register-screen'
+import { PremiumScreen } from 'app/features/payment/payment-package/premium-screen'
 
 const Stack = createNativeStackNavigator()
 
@@ -29,8 +30,11 @@ export function NativeNavigation() {
         component={RegisterScreen}
         options={{ title: 'Đăng ký' }}
       />
-      
-      
+      <Stack.Screen
+        name="package-premium"
+        component={PremiumScreen}
+        options={{ title: 'Chọn gói Premium' }}
+      />
     </Stack.Navigator>
   )
 }

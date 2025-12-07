@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet } from 'react-native'
 import { Navbar } from 'components/navbar'
 import { Footer } from 'components/footer'
 import { Card as PackageFree } from './package-free'
-import { Card as PackagePremium } from './package-premium'
+import { Card as PackagePremium } from './package-premium-background'
 import { BackButton } from 'components/backbtn'
 import { ViewDetailPackageButton } from './view-detail-package-btn'
 
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   buttonContainerRight: {
     marginTop: 24,
     alignItems: 'flex-end',
-    left: 290,
+    right: 75,
     width: '100%',
   },
 })

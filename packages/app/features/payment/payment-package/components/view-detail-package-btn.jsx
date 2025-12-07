@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, Text, TouchableOpacity } from 'react-native'
+import { useRouter } from 'solito/navigation'
 
 /**
  * View Detail Package Button Component
@@ -13,11 +14,14 @@ import { View, Text, TouchableOpacity } from 'react-native'
  * }} props
  */
 export const ViewDetailPackageButton = ({ onPress, style, textStyle }) => {
+  const router = useRouter()
+
   const handlePress = () => {
     if (onPress) {
       onPress()
+    } else {
+      router.push('/package-premium')
     }
-    // Link navigation will be implemented later
   }
 
   return (
