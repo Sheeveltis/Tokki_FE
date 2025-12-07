@@ -1,7 +1,12 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
+import { useRouter } from 'solito/navigation'
 import { TextInput } from '../../../../components/textInput'
+import { DatePicker } from '../../../components/datePicker'
 import { Button } from '../../../../components/button'
+import { register } from '../api'
+import { showApiNotification } from '../helpers/notification'
+import { HelperAdmin } from '../../../../components/HelperAdmin'
 import BigfootImage from '../../../../assets/bigfoot.png'
 
 /**
@@ -14,12 +19,16 @@ import BigfootImage from '../../../../assets/bigfoot.png'
  * }} props
  */
 export function RegisterPanel({ onPressLogin }) {
+  const router = useRouter()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [dateOfBirth, setDateOfBirth] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [apiResponse, setApiResponse] = useState(null)
 
   // Chuẩn hoá source để hỗ trợ cả import module (Next/webpack) lẫn require/uri
   const normalizeImageSource = (src) => {
@@ -37,7 +46,7 @@ export function RegisterPanel({ onPressLogin }) {
     if (loading) return
 
     // Validation đơn giản trên FE
-    if (!fullName || !email || !password || !confirmPassword) {
+    if (!fullName || !email || !phoneNumber || !password || !confirmPassword || !dateOfBirth) {
       setError('Vui lòng nhập đầy đủ thông tin.')
       return
     }
@@ -49,12 +58,60 @@ export function RegisterPanel({ onPressLogin }) {
     try {
       setLoading(true)
       setError(null)
-      // TODO: gọi API đăng ký thật sự
-      console.log('Register payload:', { fullName, email, password, confirmPassword })
-      await new Promise((resolve) => setTimeout(resolve, 800))
+      setApiResponse(null)
+      
+      // Gọi API register
+      const response = await register({
+        email,
+        phoneNumber,
+        password,
+        fullName,
+        dateOfBirth,
+      })
+      
+      // Lưu response để hiển thị HelperAdmin
+      setApiResponse(response)
+      
+      // Xử lý khi đăng ký thành công
+      if (response.isSuccess && response.data) {
+        const userId = response.data
+        
+        console.log('Đăng ký thành công:', {
+          userId,
+        })
+        
+        // Chuyển trang đến homepage sau khi hiển thị thông báo
+        setTimeout(() => {
+          router.push('/homepage')
+        }, 500) // Delay nhỏ để user thấy thông báo
+      } else {
+        // Hiển thị lỗi trong form nếu cần
+        if (response.errors && response.errors.length > 0) {
+          setError(response.errors[0].description || response.message)
+        } else {
+          setError(response.message || 'Đăng ký thất bại, vui lòng thử lại.')
+        }
+        // Vẫn hiển thị thông báo lỗi bằng React Native Alert
+        showApiNotification(response)
+      }
     } catch (err) {
-      console.error(err)
-      setError(err.message || 'Đăng ký thất bại, vui lòng thử lại.')
+      console.error('Register error:', err)
+      // Xử lý lỗi không mong đợi
+      const errorResponse = {
+        isSuccess: false,
+        data: null,
+        errors: [
+          {
+            code: 'Error.Unknown',
+            description: err.message || 'Đăng ký thất bại, vui lòng thử lại.',
+          },
+        ],
+        message: err.message || 'Đăng ký thất bại, vui lòng thử lại.',
+        statusCode: 500,
+      }
+      setApiResponse(errorResponse)
+      showApiNotification(errorResponse)
+      setError(errorResponse.message)
     } finally {
       setLoading(false)
     }
@@ -62,6 +119,10 @@ export function RegisterPanel({ onPressLogin }) {
 
   return (
     <View style={styles.container}>
+      {/* HelperAdmin để hiển thị thông báo từ API (chỉ hiển thị khi thành công) */}
+      {apiResponse && apiResponse.isSuccess && (
+        <HelperAdmin response={apiResponse} type="success" hideStatusCode hideErrorCode />
+      )}
       <View style={styles.logoContainer}>
         <Text style={styles.logoText}>Tooki</Text>
         {bigfootSource && (
@@ -92,6 +153,13 @@ export function RegisterPanel({ onPressLogin }) {
             autoCapitalize="none"
           />
           <TextInput
+            label="Số điện thoại"
+            placeholder="Ví dụ: 0585204417"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            keyboardType="phone-pad"
+          />
+          <TextInput
             label="Mật khẩu"
             placeholder="Nhập mật khẩu"
             value={password}
@@ -104,6 +172,12 @@ export function RegisterPanel({ onPressLogin }) {
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
+          />
+          <DatePicker
+            label="Ngày sinh"
+            placeholder="Chọn ngày sinh"
+            value={dateOfBirth}
+            onChange={setDateOfBirth}
           />
         </View>
 
