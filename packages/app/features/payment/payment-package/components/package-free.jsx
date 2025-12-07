@@ -1,7 +1,9 @@
 import React from 'react'
 import { View, Text, Image } from 'react-native'
-import CheckedIcon from '../assets/checked.png'
-import IncorrectIcon from '../assets/incorrect.png'
+import CheckedIcon from '../../../../../assets/checked.png'
+import IncorrectIcon from '../../../../../assets/incorrect.png'
+import FreeBackground from '../../../../../assets/freebackground.png'
+import LogoImage from '../../../../../assets/logo-free.png'
 
 /**
  * Normalize image source so it works with:
@@ -68,20 +70,18 @@ export const Card = ({
         ...style,
       }}
     >
-      {backgroundImageSource ? (
-        <Image
-          source={normalizeImageSource(backgroundImageSource)}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            resizeMode: 'cover',
-            opacity: 0.35,
-          }}
-        />
-      ) : null}
+      <Image
+        source={normalizeImageSource(backgroundImageSource || FreeBackground)}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          resizeMode: 'cover',
+          opacity: 0.35,
+        }}
+      />
 
       <View style={{ zIndex: 1, flex: 1 }}>
         {/* Title + subtitle */}
@@ -91,7 +91,7 @@ export const Card = ({
               fontSize: 34,
               fontWeight: '800',
               fontFamily: 'Lexend, sans-serif',
-              color: '#222',
+              color: '#5E794C', // Green color for free package
               textAlign: 'center',
             }}
           >
@@ -179,6 +179,24 @@ export const Card = ({
             }}
           />
         ) : null}
+      </View>
+
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 20,
+          right: 20,
+          zIndex: 2,
+        }}
+      >
+        <Image
+          source={normalizeImageSource(LogoImage)}
+          style={{
+            width: 180,
+            height: 180,
+            resizeMode: 'contain',
+          }}
+        />
       </View>
 
       {priceLabel ? (

@@ -1,8 +1,8 @@
 import React from 'react'
 import { View, Text, Image } from 'react-native'
-import CheckedIcon from '../assets/checked.png'
-import BackgroundImage from '../assets/background1.png'
-import LogoImage from '../assets/logo.png'
+import CheckedIcon from '../../../../../assets/checked.png'
+import BackgroundImage from '../../../../../assets/background1.png'
+import LogoImage from '../../../../../assets/logo-prem.png'
 
 /**
  * Normalize image source so it works with:
@@ -23,13 +23,13 @@ const normalizeImageSource = (src) => {
 }
 
 /**
- * Card Type 5: Premium Package Card
+ * Card Type 5: Premium Package Card with Background
  * - Background with carrots pattern (background1.png)
  * - Large red title "GÓI PREMIUM"
  * - Subtitle question
  * - Dashed line separator
  * - List of benefits with checkmarks
- * - Rabbit logo (logo.png) bottom-right
+ * - Rabbit logo (logo-prem.png) bottom-right
  * - Price label bottom-left
  *
  * @param {{
@@ -50,7 +50,6 @@ export const Card = ({
     'Sử dụng AI trong các bài học không giới hạn',
     'Sở hữu huy hiệu đặc biệt',
   ],
-  priceLabel = '50.000đ/Tháng',
   style,
 }) => {
   return (
@@ -183,36 +182,18 @@ export const Card = ({
         <Image
           source={normalizeImageSource(LogoImage)}
           style={{
-            width: 180,
-            height: 180,
+            width: 210,
+            height: 210,
             resizeMode: 'contain',
+            left: 20,
+            top: 10,
           }}
         />
       </View>
 
-      {/* Price label bottom-left */}
-      {priceLabel ? (
-        <View
-          style={{
-            position: 'absolute',
-            left: 20,
-            bottom: 20,
-            zIndex: 2,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: '700',
-              fontFamily: 'Lexend, sans-serif',
-              color: '#222',
-            }}
-          >
-            {priceLabel}
-          </Text>
-        </View>
-      ) : null}
     </View>
   )
 }
+
+
 
