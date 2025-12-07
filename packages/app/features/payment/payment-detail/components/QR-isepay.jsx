@@ -36,14 +36,53 @@ export const QRIsepay = ({ paymentId, style }) => {
   const [loading, setLoading] = useState(false)
   const [qrUrl, setQrUrl] = useState(null)
   const [error, setError] = useState(null)
+  const [timeLeft, setTimeLeft] = useState(600) // 10 minutes in seconds
   const intervalRef = useRef(null)
+  const timerIntervalRef = useRef(null)
   const hasNavigatedRef = useRef(false)
+  const hasNavigatedToFailedRef = useRef(false)
 
   useEffect(() => {
     if (paymentId) {
       fetchQRCode()
+      // Reset timer when paymentId changes
+      setTimeLeft(600)
     }
   }, [paymentId])
+
+  // Countdown timer - 10 minutes
+  useEffect(() => {
+    if (!paymentId) return
+
+    // Start countdown timer
+    timerIntervalRef.current = setInterval(() => {
+      setTimeLeft((prevTime) => {
+        if (prevTime <= 1) {
+          // Time's up, navigate to payment-failed
+          if (!hasNavigatedToFailedRef.current && !hasNavigatedRef.current) {
+            hasNavigatedToFailedRef.current = true
+            // Clear all intervals before navigating
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current)
+            }
+            if (timerIntervalRef.current) {
+              clearInterval(timerIntervalRef.current)
+            }
+            router.push('/payment-failed')
+          }
+          return 0
+        }
+        return prevTime - 1
+      })
+    }, 1000)
+
+    // Cleanup timer on unmount
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current)
+      }
+    }
+  }, [paymentId, router])
 
   // Poll payment status every 2 seconds
   useEffect(() => {
@@ -58,11 +97,14 @@ export const QRIsepay = ({ paymentId, style }) => {
           const status = response.data.status
 
           // If status changes from 0 to 1, navigate to success page
-          if (status === 1 && !hasNavigatedRef.current) {
+          if (status === 1 && !hasNavigatedRef.current && !hasNavigatedToFailedRef.current) {
             hasNavigatedRef.current = true
-            // Clear interval before navigating
+            // Clear all intervals before navigating
             if (intervalRef.current) {
               clearInterval(intervalRef.current)
+            }
+            if (timerIntervalRef.current) {
+              clearInterval(timerIntervalRef.current)
             }
             router.push('/payment-success')
           }
@@ -86,6 +128,13 @@ export const QRIsepay = ({ paymentId, style }) => {
       }
     }
   }, [paymentId, router])
+
+  // Format time from seconds to MM:SS
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
 
   const fetchQRCode = async () => {
     try {
@@ -135,6 +184,14 @@ export const QRIsepay = ({ paymentId, style }) => {
           <Text style={styles.placeholderText}>Chọn gói để hiển thị mã QR</Text>
         )}
       </View>
+
+      {/* Countdown Timer */}
+      {qrUrl && !error && (
+        <View style={styles.timerContainer}>
+          <Text style={styles.timerLabel}>Thời gian còn lại:</Text>
+          <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
+        </View>
+      )}
     </View>
   )
 }
@@ -196,6 +253,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Epilogue, sans-serif',
   },
-  
+  timerContainer: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  timerLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
+    marginBottom: 4,
+  },
+  timerText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#DC143C',
+    fontFamily: 'Lexend, sans-serif',
+  },
 })
 
