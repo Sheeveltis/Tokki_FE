@@ -1,6 +1,35 @@
 import axios from 'axios'
 import { API_BASE_URL } from './endpoints'
 
+// Lưu token đơn giản: ưu tiên localStorage, fallback bộ nhớ tạm
+const TOKEN_KEY = 'tooki_admin_token'
+let inMemoryToken = null
+
+export const setAuthToken = (token) => {
+  inMemoryToken = token || null
+  if (typeof localStorage !== 'undefined') {
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token)
+    } else {
+      localStorage.removeItem(TOKEN_KEY)
+    }
+  }
+}
+
+export const clearAuthToken = () => setAuthToken(null)
+
+export const getAuthToken = () => {
+  if (inMemoryToken) return inMemoryToken
+  if (typeof localStorage !== 'undefined') {
+    const stored = localStorage.getItem(TOKEN_KEY)
+    if (stored) {
+      inMemoryToken = stored
+      return stored
+    }
+  }
+  return null
+}
+
 /**
  * API Client sử dụng axios
  * Tự động thêm base URL và xử lý request/response
@@ -13,14 +42,13 @@ export const apiClient = axios.create({
   },
 })
 
-// Request interceptor - có thể thêm token, logging, etc.
+// Request interceptor - tự động thêm token
 apiClient.interceptors.request.use(
   (config) => {
-    // Có thể thêm token vào đây nếu cần
-    // const token = getToken()
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`
-    // }
+    const token = getAuthToken()
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
     return config
   },
   (error) => {

@@ -4,6 +4,7 @@ import { useRouter } from 'solito/navigation'
 import { TextInput } from '../../../../components/textInput'
 import { Button } from '../../../../components/button'
 import { login } from '../api'
+import { setAuthToken } from '../../../provider/api/client'
 import { showApiNotification } from '../helpers/notification'
 import { HelperAdmin } from '../../../../components/HelperAdmin'
 import BigfootImage from '../../../../assets/bigfoot.png'
@@ -53,8 +54,9 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
       if (response.isSuccess && response.data) {
         const { token, fullName, role, avatarUrl } = response.data
         
-        // TODO: Lưu token vào context / storage
-        // TODO: Lưu thông tin user vào context / storage
+        // Lưu token để dùng cho các request authorize
+        setAuthToken(token)
+        // TODO: Lưu thông tin user vào context / storage nếu cần
         console.log('Đăng nhập thành công:', {
           token,
           fullName,
