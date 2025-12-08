@@ -15,6 +15,9 @@ import { View, Text, TextInput as RNTextInput } from 'react-native'
  *   style?: any;
  *   inputStyle?: any;
  *   label?: string;
+ *   secureTextEntry?: boolean;
+ *   keyboardType?: string;
+ *   autoCapitalize?: string;
  * }} props
  */
 export const TextInput = ({
@@ -28,6 +31,9 @@ export const TextInput = ({
   style,
   inputStyle,
   label,
+  secureTextEntry = false,
+  keyboardType,
+  autoCapitalize,
 }) => {
   const [text, setText] = useState(value || '')
 
@@ -68,6 +74,9 @@ export const TextInput = ({
           maxLength={maxLength}
           multiline={multiline}
           numberOfLines={numberOfLines}
+          secureTextEntry={secureTextEntry}
+          keyboardType={keyboardType}
+          autoCapitalize={autoCapitalize}
           style={[
             {
               backgroundColor: '#F3F3F3',

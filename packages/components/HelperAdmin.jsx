@@ -15,6 +15,8 @@ import { notification } from 'antd'
  *   type?: 'error' | 'success' | 'info' | 'warning';
  *   duration?: number;
  *   placement?: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
+ *   hideStatusCode?: boolean; // Ẩn statusCode khi dùng cho user
+ *   hideErrorCode?: boolean; // Ẩn error code trong description khi dùng cho user
  * }} props
  */
 export function HelperAdmin({
@@ -22,6 +24,8 @@ export function HelperAdmin({
   type = 'error',
   duration = 4.5,
   placement = 'topRight',
+  hideStatusCode = false,
+  hideErrorCode = false,
 }) {
   useEffect(() => {
     // Nếu không có response, không hiển thị gì
@@ -35,14 +39,14 @@ export function HelperAdmin({
     // Lấy message từ response
     const message = response.message || 'Đã xảy ra lỗi'
 
-    // Lấy statusCode
-    const statusCode = response.statusCode
+    // Lấy statusCode (chỉ hiển thị nếu không ẩn)
+    const statusCode = hideStatusCode ? null : response.statusCode
 
     // Tạo description từ errors nếu có
     let description = ''
     if (response.errors && response.errors.length > 0) {
       description = response.errors
-        .map((err) => `${err.code}: ${err.description}`)
+        .map((err) => hideErrorCode ? err.description : `${err.code}: ${err.description}`)
         .join('\n')
     }
 

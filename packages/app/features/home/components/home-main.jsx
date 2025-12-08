@@ -1,6 +1,24 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, Image } from 'react-native'
 import { getHomeData } from '../api'
+import { Loading } from '../../../../components/Loading.jsx'
+import { colors } from '../../../color.js'
+import BigFootImage from '../../../../assets/bigfoot.png'
+import SmallFootImage from '../../../../assets/smallfoot.png'
+
+/**
+ * Normalize image source so it works with:
+ * - require('...png') / numeric ids
+ * - { uri: '...' }
+ * - Next/webpack static imports: { src: '...' }
+ */
+const normalizeImageSource = (src) => {
+  if (!src) return null
+  if (typeof src === 'number' || src.uri) return src
+  if (src.src) return { uri: src.src }
+  if (typeof src === 'string') return { uri: src }
+  return src
+}
 
 /**
  * HomeMain: Component chứa logic và giao diện chính của trang Home
@@ -38,18 +56,24 @@ export function HomeMain({ onItemClick }) {
     fetchData()
   }, [])
 
+  // Render content dựa trên state
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#5E794C" />
-        <Text style={styles.loadingText}>Đang tải dữ liệu...</Text>
+      <View style={styles.loadingContainer}>
+        <Loading
+          size={48}
+          color="#5E794C"
+          shadowColor="#5E794C50"
+          text="Đang tải dữ liệu..."
+          style={styles.loading}
+        />
       </View>
     )
   }
 
   if (error) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Lỗi: {error}</Text>
       </View>
     )
@@ -68,6 +92,31 @@ export function HomeMain({ onItemClick }) {
       {data.content && (
         <View style={styles.content}>
           <Text style={styles.contentText}>{data.content}</Text>
+        </View>
+      )}
+
+      {/* Marketing Content Section */}
+      {data.marketingContent && (
+        <View style={styles.marketingSection}>
+          {/* Background Images */}
+          <Image source={normalizeImageSource(BigFootImage)} style={styles.bigFootBackground} resizeMode="contain" />
+          <Image source={normalizeImageSource(SmallFootImage)} style={styles.smallFootBackground1} resizeMode="contain" />          
+          {/* Content Layer */}
+          <View style={styles.marketingContentLayer}>
+            <Text style={styles.marketingHeadline}>{data.marketingContent.headline}</Text>
+            <Text style={styles.marketingIntro}>{data.marketingContent.intro}</Text>
+            <Text style={styles.marketingTimeCommitment}>{data.marketingContent.timeCommitment}</Text>
+            {data.marketingContent.benefits && data.marketingContent.benefits.length > 0 && (
+              <View style={styles.benefitsList}>
+                {data.marketingContent.benefits.map((benefit, index) => (
+                  <View key={index} style={styles.benefitRow}>
+                    <Text style={styles.benefitText}>{benefit}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            <Text style={styles.marketingClosing}>{data.marketingContent.closing}</Text>
+          </View>
         </View>
       )}
 
@@ -92,6 +141,26 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     gap: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    minHeight: 400,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loading: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    minHeight: 400,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
   },
   centerContainer: {
     flex: 1,
@@ -154,5 +223,98 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
   },
+  // Marketing Section
+  marketingSection: {
+    marginTop: 32,
+    padding: 24,
+    backgroundColor: '#FFF9E6',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#FFE066',
+    position: 'relative',
+    overflow: 'hidden',
+    minHeight: 400,
+  },
+  // Background Images
+  bigFootBackground: {
+    position: 'absolute',
+    top: -30,
+    right: 670,
+    width: 150,
+    height: 150,
+    opacity: 0.5,
+    zIndex: 0,
+    tintColor: colors.LightGreen,
+  },
+  smallFootBackground1: {
+    position: 'absolute',
+    bottom: 70,
+    left: 670,
+    width: 150,
+    height: 150,
+    opacity: 0.4,
+    zIndex: 0,
+  },
+  // Content Layer
+  marketingContentLayer: {
+    position: 'relative',
+    zIndex: 1,
+    gap: 16,
+  },
+  marketingHeadline: {
+    fontSize: 24,
+    fontWeight: '700',
+    fontFamily: 'Lexend, sans-serif',
+    color: colors.Mustard,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  marketingIntro: {
+    fontSize: 17,
+    lineHeight: 26,
+    color: colors.neutralDark,
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  marketingTimeCommitment: {
+    fontSize: 18,
+    fontWeight: '600',
+    fontFamily: 'Epilogue, sans-serif',
+    color: colors.DarkPink,
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  benefitsList: {
+    marginTop: 12,
+    marginBottom: 12,
+    gap: 12,
+  },
+  benefitRow: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'flex-start',
+  },
+  benefitText: {
+    flex: 1,
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.neutralDark,
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  marketingClosing: {
+    fontSize: 17,
+    fontWeight: '600',
+    lineHeight: 26,
+    color: colors.DarkPink,
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: 8,
+  },
 })
+
+
+
 

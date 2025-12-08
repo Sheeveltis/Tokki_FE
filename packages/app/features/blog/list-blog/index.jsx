@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { BlogListLayout } from './components/blog-list-layout'
 import { getAllBlogs } from '../api/api'
+import { LoadingWithContainer } from '../../../../components/Loading'
 
 const PAGE_SIZE = 10 // 10 blog mỗi trang
 
@@ -58,12 +59,17 @@ export function BlogListScreen() {
   // Render loading state
   if (loading && blogs.length === 0) {
     return (
-      <BlogListLayout blogs={[]}>
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#1890ff" />
-          <Text style={styles.loadingText}>Đang tải danh sách blog...</Text>
-        </View>
-      </BlogListLayout>
+      <LoadingWithContainer
+        size={48}
+        color="#5E794C"
+        shadowColor="#5E794C50"
+        text="Đang tải danh sách blog..."
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      />
     )
   }
 

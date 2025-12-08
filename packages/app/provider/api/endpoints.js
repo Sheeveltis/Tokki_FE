@@ -14,4 +14,10 @@ export const ENDPOINTS = {
       GET_QR_BY_ID: (id) => `/Payment/${id}/qr`,
       GET_BY_ID: (id) => `/Payment/${id}`,
     },
+    ACCOUNT: {
+      LOGIN: '/Account/login',
+      REGISTER: '/Account/register',
+      FORGOT_PASSWORD_RESET: '/Account/forgot-password/reset',
+      PROFILE: '/Account/profile',
+    },
   }

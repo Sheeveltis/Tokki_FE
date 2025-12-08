@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import { Navbar } from 'components/navbar'
 import { Footer } from 'components/footer'
 import { BlogSidebar } from './blog-sidebar'
@@ -7,6 +7,7 @@ import { CategoryFilter } from './category-filter'
 import { TagFilter } from './tag-filter'
 import { BlogCard } from './blog-card'
 import { useRouter } from 'solito/navigation'
+import { Loading } from '../../../../../components/Loading'
 
 /**
  * BlogListLayout (Web): Layout cho trang danh sách blog
@@ -99,7 +100,7 @@ export function BlogListLayout({ blogs = [], loading = false, hasMore = false, o
             {hasMore && filteredBlogs.length > 0 && (
               <View style={styles.loadMoreContainer}>
                 {loading ? (
-                  <ActivityIndicator size="small" color="#1890ff" />
+                  <Loading size={24} color="#5E794C" shadowColor="#5E794C50" />
                 ) : (
                   <TouchableOpacity
                     style={styles.loadMoreButton}

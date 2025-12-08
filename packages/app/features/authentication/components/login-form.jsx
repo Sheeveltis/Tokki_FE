@@ -1,8 +1,11 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
+import { useRouter } from 'solito/navigation'
 import { TextInput } from '../../../../components/textInput'
 import { Button } from '../../../../components/button'
 import { login } from '../api'
+import { showApiNotification } from '../helpers/notification'
+import { HelperAdmin } from '../../../../components/HelperAdmin'
 import BigfootImage from '../../../../assets/bigfoot.png'
 
 /**
@@ -14,10 +17,12 @@ import BigfootImage from '../../../../assets/bigfoot.png'
  * }} props
  */
 export function LoginPanel({ onPressSignUp, onPressGoogle }) {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [apiResponse, setApiResponse] = useState(null)
 
   // Chuẩn hoá source để hỗ trợ cả import module (Next/webpack) lẫn require/uri
   const normalizeImageSource = (src) => {
@@ -36,12 +41,53 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
     try {
       setLoading(true)
       setError(null)
-      const result = await login({ email, password })
-      // TODO: gắn token vào context / storage
-      console.log('Đăng nhập thành công:', result)
+      setApiResponse(null)
+      
+      // Gọi API login
+      const response = await login({ email, password })
+      
+      // Lưu response để hiển thị HelperAdmin
+      setApiResponse(response)
+      
+      // Xử lý khi đăng nhập thành công
+      if (response.isSuccess && response.data) {
+        const { token, fullName, role, avatarUrl } = response.data
+        
+        // TODO: Lưu token vào context / storage
+        // TODO: Lưu thông tin user vào context / storage
+        console.log('Đăng nhập thành công:', {
+          token,
+          fullName,
+          role,
+          avatarUrl,
+        })
+        
+        // Chuyển trang đến homepage sau khi hiển thị thông báo
+        setTimeout(() => {
+          router.push('/homepage')
+        }, 500) // Delay nhỏ để user thấy thông báo
+      } else {
+        // Chỉ hiển thị thông báo lỗi bằng React Native Alert, không hiển thị text lỗi ở dưới form
+        showApiNotification(response)
+      }
     } catch (err) {
-      console.error(err)
-      setError(err.message || 'Đăng nhập thất bại, vui lòng thử lại.')
+      console.error('Login error:', err)
+      // Xử lý lỗi không mong đợi
+      const errorResponse = {
+        isSuccess: false,
+        data: null,
+        errors: [
+          {
+            code: 'Error.Unknown',
+            description: err.message || 'Đăng nhập thất bại, vui lòng thử lại.',
+          },
+        ],
+        message: err.message || 'Đăng nhập thất bại, vui lòng thử lại.',
+        statusCode: 500,
+      }
+      setApiResponse(errorResponse)
+      showApiNotification(errorResponse)
+      setError(errorResponse.message)
     } finally {
       setLoading(false)
     }
@@ -49,6 +95,10 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
 
   return (
     <View style={styles.container}>
+      {/* HelperAdmin để hiển thị thông báo từ API (chỉ hiển thị khi thành công) */}
+      {apiResponse && apiResponse.isSuccess && (
+        <HelperAdmin response={apiResponse} type="success" hideStatusCode hideErrorCode />
+      )}
       <View style={styles.logoContainer}>
         <Text style={styles.logoText}>Tooki</Text>
         {bigfootSource && (

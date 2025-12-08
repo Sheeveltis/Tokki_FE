@@ -1,42 +1,138 @@
-// Fake login API for demo. Replace with real HTTP call when backend is ready.
+/**
+ * Authentication API: Xử lý logic nghiệp vụ và gọi API để đăng nhập, đăng ký, etc.
+ * 
+ * Nguyên tắc:
+ * - Chứa các hàm gọi API để xử lý authentication
+ * - Định dạng dữ liệu trả về từ API
+ * - Xử lý lỗi và format response
+ * - KHÔNG chứa mã giao diện (JSX)
+ */
 
-// Tài khoản mẫu để test login trên FE
-export const MOCK_USER = {
-  email: 'user@test.com',
-  password: 'test123', // ít nhất 6 ký tự
-  id: 'u_demo_001',
-  name: 'Người dùng Demo',
+import { apiClient } from '../../../provider/api/client'
+import { ENDPOINTS } from '../../../provider/api/endpoints'
+
+/**
+ * Đăng nhập
+ * 
+ * @param {Object} credentials - Thông tin đăng nhập
+ * @param {string} credentials.email - Email người dùng
+ * @param {string} credentials.password - Mật khẩu
+ * @returns {Promise<Object>} Response từ API với format:
+ *   - Success: { isSuccess: true, data: { token, fullName, role, avatarUrl }, message, statusCode: 200 }
+ *   - Error: { isSuccess: false, data: null, errors: [...], message, statusCode: 400 }
+ */
+export const login = async ({ email, password }) => {
+  try {
+    // Validate input
+    if (!email || !password) {
+      return {
+        isSuccess: false,
+        data: null,
+        errors: [
+          {
+            code: 'Error.Validation',
+            description: 'Email và mật khẩu không được để trống.',
+          },
+        ],
+        message: 'Email và mật khẩu không được để trống.',
+        statusCode: 400,
+      }
+    }
+
+    // Gọi API
+    const response = await apiClient.post(ENDPOINTS.ACCOUNT.LOGIN, {
+      email,
+      password,
+    })
+
+    // Trả về response từ API (đã được format sẵn)
+    return response.data
+  } catch (error) {
+    // Xử lý lỗi từ API
+    if (error.response?.data) {
+      // Response có format chuẩn từ backend
+      return error.response.data
+    }
+
+    // Lỗi network hoặc lỗi khác
+    return {
+      isSuccess: false,
+      data: null,
+      errors: [
+        {
+          code: 'Error.Network',
+          description: error.message || 'Không thể kết nối đến server. Vui lòng thử lại sau.',
+        },
+      ],
+      message: error.message || 'Đăng nhập thất bại, vui lòng thử lại.',
+      statusCode: error.response?.status || 500,
+    }
+  }
 }
 
-export const login = async ({ email, password }) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (!email || !password) {
-        reject(new Error('Email và mật khẩu không được để trống.'))
-        return
+/**
+ * Đăng ký
+ * 
+ * @param {Object} userData - Thông tin đăng ký
+ * @param {string} userData.email - Email người dùng
+ * @param {string} userData.phoneNumber - Số điện thoại
+ * @param {string} userData.password - Mật khẩu
+ * @param {string} userData.fullName - Họ và tên
+ * @param {string} userData.dateOfBirth - Ngày sinh (format: YYYY-MM-DD)
+ * @returns {Promise<Object>} Response từ API với format:
+ *   - Success: { isSuccess: true, data: userId, message, statusCode: 201 }
+ *   - Error: { isSuccess: false, data: null, errors: [...], message, statusCode: 400 }
+ */
+export const register = async ({ email, phoneNumber, password, fullName, dateOfBirth }) => {
+  try {
+    // Validate input
+    if (!email || !phoneNumber || !password || !fullName || !dateOfBirth) {
+      return {
+        isSuccess: false,
+        data: null,
+        errors: [
+          {
+            code: 'Error.Validation',
+            description: 'Vui lòng nhập đầy đủ thông tin.',
+          },
+        ],
+        message: 'Vui lòng nhập đầy đủ thông tin.',
+        statusCode: 400,
       }
+    }
 
-      if (password.length < 6) {
-        reject(new Error('Mật khẩu phải có ít nhất 6 ký tự.'))
-        return
-      }
+    // Gọi API
+    const response = await apiClient.post(ENDPOINTS.ACCOUNT.REGISTER, {
+      email,
+      phoneNumber,
+      password,
+      fullName,
+      dateOfBirth,
+    })
 
-      // Chỉ cho phép đăng nhập bằng tài khoản mẫu
-      if (email !== MOCK_USER.email || password !== MOCK_USER.password) {
-        reject(new Error('Tài khoản hoặc mật khẩu không đúng. Vui lòng dùng tài khoản test.'))
-        return
-      }
+    // Trả về response từ API (đã được format sẵn)
+    return response.data
+  } catch (error) {
+    // Xử lý lỗi từ API
+    if (error.response?.data) {
+      // Response có format chuẩn từ backend
+      return error.response.data
+    }
 
-      resolve({
-        token: 'mock-token-123',
-        user: {
-          id: MOCK_USER.id,
-          email: MOCK_USER.email,
-          name: MOCK_USER.name,
+    // Lỗi network hoặc lỗi khác
+    return {
+      isSuccess: false,
+      data: null,
+      errors: [
+        {
+          code: 'Error.Network',
+          description: error.message || 'Không thể kết nối đến server. Vui lòng thử lại sau.',
         },
-      })
-    }, 600)
-  })
+      ],
+      message: error.message || 'Đăng ký thất bại, vui lòng thử lại.',
+      statusCode: error.response?.status || 500,
+    }
+  }
 }
 
 
