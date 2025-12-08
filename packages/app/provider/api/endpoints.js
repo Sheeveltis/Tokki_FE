@@ -9,6 +9,9 @@ export const ENDPOINTS = {
       UPDATE: (id) => `/Blog/${id}`,    
       DELETE: (id) => `/Blog/${id}`,     
     },
+    CATEGORY: {
+      GET_ALL: '/Category',
+    },
     PAYMENT: {
       CREATE: '/Payment',
       GET_QR_BY_ID: (id) => `/Payment/${id}/qr`,

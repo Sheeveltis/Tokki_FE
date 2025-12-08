@@ -4,13 +4,14 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, Form, Typography, message, Space } from 'antd'
 import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
-import { createArticle } from 'app/features/admin/api'
+import { createBlog } from 'app/features/blog/api/api'
 
-// Import các mảnh ghép đã tách
-import { BlogEditor } from 'app/features/blog/admin-create-blog/components/blog-editor'
-import { BlogGeneralInfo } from 'app/features/blog/admin-create-blog/components/blog-general-info'
-import { BlogMetaInfo } from 'app/features/blog/admin-create-blog/components/blog-meta-info'
-import { BlogFormActions } from 'app/features/blog/admin-create-blog/components/blog-form-actions'
+import { BlogEditor } from './components/blog-editor'
+import { BlogGeneralInfo } from './components/blog-general-info'
+import { BlogMetaInfo } from './components/blog-meta-info'
+import { BlogFormActions } from './components/blog-form-actions'
+// 👇 Import Modal Preview
+import { BlogPreviewModal } from './components/blog-preview-modal'
 
 const { Title } = Typography
 
@@ -18,9 +19,28 @@ export function CreateBlogScreen() {
   const router = useRouter()
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
+  
+  // 👇 State quản lý Preview
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewData, setPreviewData] = useState(null)
 
-  // Logic xử lý Submit
+  // Hàm xử lý khi ấn nút "Xem trước"
+  const handlePreview = () => {
+    // Lấy dữ liệu hiện tại từ form (kể cả khi chưa validate xong cũng lấy được)
+    const values = form.getFieldsValue()
+    
+    // Validate sơ bộ: Ít nhất phải có tiêu đề hoặc nội dung mới cho xem
+    if (!values.title && !values.content) {
+      message.warning('Vui lòng nhập ít nhất Tiêu đề hoặc Nội dung để xem trước')
+      return
+    }
+
+    setPreviewData(values)
+    setPreviewOpen(true)
+  }
+
   const handleSubmit = async (values) => {
+    // ... (Giữ nguyên logic submit cũ)
     try {
       setLoading(true)
       const payload = {
@@ -33,7 +53,7 @@ export function CreateBlogScreen() {
         tags: values.tags || [],
       }
       
-      await createArticle(payload)
+      await createBlog(payload)
       message.success('Đã tạo bài viết mới thành công')
       router.push('/admin?tab=blog')
     } catch (error) {
@@ -57,29 +77,35 @@ export function CreateBlogScreen() {
               form={form}
               layout="vertical"
               onFinish={handleSubmit}
+              initialValues={{ isPublished: false, tags: [] }}
             >
-              {/* 1. Thông tin chung */}
               <BlogGeneralInfo />
-
-              {/* 2. Soạn thảo nội dung */}
+              
               <BlogEditor 
                 name="content" 
                 label="Nội dung chi tiết"
                 rules={[{ required: true, message: 'Vui lòng nhập nội dung' }]}
               />
 
-              {/* 3. Thông tin meta (Tags, Status) */}
               <BlogMetaInfo />
 
-              {/* 4. Nút bấm Action */}
               <BlogFormActions 
                 loading={loading} 
                 onCancel={() => router.push('/admin?tab=blog')}
+                onPreview={handlePreview} // 👈 Truyền hàm preview vào
                 onSubmit={() => form.submit()}
               />
             </Form>
           </Space>
         </Card>
+
+        {/* 👇 Render Modal Preview (Nó ẩn mặc định) */}
+        <BlogPreviewModal 
+          open={previewOpen}
+          onCancel={() => setPreviewOpen(false)}
+          data={previewData}
+        />
+        
       </div>
     </AdminLayout>
   )
