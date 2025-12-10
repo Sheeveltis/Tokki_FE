@@ -11,6 +11,7 @@ import { Button } from 'components/button'
 import { ButtonV2 } from 'components/buttonV2'
 import { LoginRequest } from 'components/loginRequest'
 import { NotiContinueLesson } from 'components/notiContinueLesson'
+import { Report } from 'components/report'
 import CardType3Image from '../../../../packages/assets/bunny/3.png'
 import CardType4Image from '../../../../packages/assets/bunny/3.png'
 import { Navbar } from 'components/navbar'
@@ -440,6 +441,25 @@ const NotiContinueLessonSection = () => (
   </View>
 )
 
+const ReportSection = () => (
+  <View
+    style={{
+      width: '100%',
+      alignItems: 'center',
+    }}
+  >
+    <View
+      style={{
+        maxWidth: 720,
+        width: '100%',
+        alignItems: 'center',
+      }}
+    >
+      <Report />
+    </View>
+  </View>
+)
+
 const CardType4Header = () => (
   <View style={{ alignItems: 'center' }}>
     <Text
@@ -845,6 +865,7 @@ export default function ComponentsShowcasePage() {
         <CardType3Section />
         <LoginRequestSection />
         <NotiContinueLessonSection />
+        <ReportSection />
         <CardType4Header />
         <CardType4Section />
         <CardType5 />
