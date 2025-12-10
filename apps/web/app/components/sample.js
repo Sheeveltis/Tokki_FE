@@ -9,6 +9,8 @@ import { Card as CardType5 } from 'app/features/payment/payment-package/componen
 import { TextInput } from 'components/textInput'
 import { Button } from 'components/button'
 import { ButtonV2 } from 'components/buttonV2'
+import { LoginRequest } from 'components/loginRequest'
+import { NotiContinueLesson } from 'components/notiContinueLesson'
 import CardType3Image from '../../../../packages/assets/bunny/3.png'
 import CardType4Image from '../../../../packages/assets/bunny/3.png'
 import { Navbar } from 'components/navbar'
@@ -396,6 +398,44 @@ const CardType3Section = () => (
           titleStyle={undefined}
         />
       ))}
+    </View>
+  </View>
+)
+
+const LoginRequestSection = () => (
+  <View
+    style={{
+      width: '100%',
+      alignItems: 'center',
+    }}
+  >
+    <View
+      style={{
+        maxWidth: 720,
+        width: '100%',
+        alignItems: 'center',
+      }}
+    >
+      <LoginRequest />
+    </View>
+  </View>
+)
+
+const NotiContinueLessonSection = () => (
+  <View
+    style={{
+      width: '100%',
+      alignItems: 'center',
+    }}
+  >
+    <View
+      style={{
+        maxWidth: 720,
+        width: '100%',
+        alignItems: 'center',
+      }}
+    >
+      <NotiContinueLesson />
     </View>
   </View>
 )
@@ -803,6 +843,8 @@ export default function ComponentsShowcasePage() {
         <CardType2Section />
         <CardType3Header />
         <CardType3Section />
+        <LoginRequestSection />
+        <NotiContinueLessonSection />
         <CardType4Header />
         <CardType4Section />
         <CardType5 />
