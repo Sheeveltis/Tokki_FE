@@ -2,7 +2,7 @@ import React from 'react'
 import { View, Text, Image, TouchableOpacity } from 'react-native'
 
 import BackgroundImage from '../assets/background1.png'
-import BunnySticker from '../assets/Sticker4.png'
+import BunnySticker from '../assets/bunny/3.png'
 import FacebookIcon from '../assets/facebook.png'
 import GmailIcon from '../assets/gmail.png'
 import TwitterIcon from '../assets/twitter.png'
