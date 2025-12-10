@@ -3,10 +3,10 @@ import { View, Text, Image, TouchableOpacity } from 'react-native'
 import BackgroundImage from '../assets/background1.png'
 import LogoImage from '../assets/logo.png'
 import BigFoot from '../assets/bigfoot.png'
-import HomeIcon from '../assets/homepage.png'
+import HomeIcon from '../assets/icon/icon-mainflow/home.svg'
 import RoadmapIcon from '../assets/roadmap.png'
-import FlashcardIcon from '../assets/flashcard.png'
-import BlogIcon from '../assets/blog.png'
+import FlashcardIcon from '../assets/icon/icon-mainflow/bookmark.svg'
+import BlogIcon from '../assets/icon/icon-mainflow/say.svg'
 import SmallFoot from '../assets/smallfoot.png'
 import { useRouter } from 'solito/navigation'
 /**
@@ -138,25 +138,10 @@ export const Navbar = ({
           width: '100%',
           height: '100%',
           resizeMode: 'cover',
-          opacity: 0.5,
+          opacity: 0.3,
         }}
       />
-
-      {/* Small foot decoration in top right corner */}
-      <Image
-        source={normalizeImageSource(SmallFoot)}
-        style={{
-          position: 'absolute',
-          top: -5,
-          right: 100,
-          width: 200,
-          height: 150,
-          resizeMode: 'contain',
-          opacity: 0.5,
-          transform: [{ rotate: '-10deg' }],
-        }}
-      />
-
+      
       {/* Left section: Logo */}
       <View
         style={{
@@ -176,9 +161,9 @@ export const Navbar = ({
         />
         <Text
           style={{
-            fontSize: 28,
-            fontWeight: '600',
-            color: '#FFB84D',
+            fontSize: 35,
+            fontWeight: 'bold',
+            color: '#FFDC9C',
             fontFamily: 'Epilogue, sans-serif',
             letterSpacing: 0.5,
           }}
@@ -191,9 +176,26 @@ export const Navbar = ({
             width: 60,
             height: 60,
             resizeMode: 'contain',
+            right: 20,
+            bottom: 20,
           }}
         />
       </View>
+
+      {/* Small foot decoration in top right corner */}
+      <Image
+        source={normalizeImageSource(SmallFoot)}
+        style={{
+          position: 'absolute',
+          top: -5,
+          right: 100,
+          width: 200,
+          height: 150,
+          resizeMode: 'contain',
+          opacity: 0.5,
+          transform: [{ rotate: '-10deg' }],
+        }}
+      />
 
       {/* Center section: Navigation items */}
       <View
@@ -214,15 +216,16 @@ export const Navbar = ({
           <Image
             source={normalizeImageSource(homeIcon || HomeIcon)}
             style={{
-              width: 70,
-              height: 50,
+              width: 40,
+              height: 40,
               resizeMode: 'contain',
             }}
           />
           <Text
             style={{
-              fontSize: 12,
-              fontWeight: '500',
+              top: 11,
+              fontSize: 15,
+              fontWeight: 'bold',
               color: '#333',
               fontFamily: 'Epilogue, sans-serif',
             }}
@@ -241,15 +244,15 @@ export const Navbar = ({
           <Image
             source={normalizeImageSource(roadmapIcon || RoadmapIcon)}
             style={{
-              width: 30,
-              height: 50,
+              width: 65,
+              height: 62,
               resizeMode: 'contain',
             }}
           />
           <Text
             style={{
-              fontSize: 12,
-              fontWeight: '500',
+              fontSize: 15,
+              fontWeight: 'bold',
               color: '#333',
               fontFamily: 'Epilogue, sans-serif',
             }}
@@ -268,15 +271,15 @@ export const Navbar = ({
           <Image
             source={normalizeImageSource(flashcardIcon || FlashcardIcon)}
             style={{
-              width: 30,
-              height: 50,
+              width: 45,
+              height: 60,
               resizeMode: 'contain',
             }}
           />
           <Text
             style={{
-              fontSize: 12,
-              fontWeight: '500',
+              fontSize: 15,
+              fontWeight: 'bold',
               color: '#333',
               fontFamily: 'Epilogue, sans-serif',
             }}
@@ -295,15 +298,15 @@ export const Navbar = ({
           <Image
             source={normalizeImageSource(blogIcon || BlogIcon)}
             style={{
-              width: 30,
-              height: 50,
+              width: 40,
+              height: 60,
               resizeMode: 'contain',
             }}
           />
           <Text
             style={{
-              fontSize: 12,
-              fontWeight: '500',
+              fontSize: 15,
+              fontWeight: 'bold',
               color: '#333',
               fontFamily: 'Epilogue, sans-serif',
             }}
