@@ -16,6 +16,11 @@ import CardType3Image from '../../../../packages/assets/bunny/3.png'
 import CardType4Image from '../../../../packages/assets/bunny/3.png'
 import { Navbar } from 'components/navbar'
 import { Footer } from 'components/footer'
+import { UserDashboard } from 'app/features/user/profile/components/user-dashboard'
+import { UserAvatarCard } from 'app/features/user/profile/components/user-avt'
+import { BasicInfo } from 'app/features/user/profile/components/basic-info'
+import { SecurityInfo } from 'app/features/user/profile/components/security-info'
+import { UserInformation } from 'app/features/user/profile/components/user-information'
 import {
   showAdminNotification,
   showAdminError,
@@ -399,6 +404,82 @@ const CardType3Section = () => (
           titleStyle={undefined}
         />
       ))}
+    </View>
+  </View>
+)
+
+const UserDashboardSection = () => (
+  <View
+    style={{
+      width: '100%',
+      alignItems: 'center',
+    }}
+  >
+    <UserDashboard />
+  </View>
+)
+
+const UserAvatarSection = () => (
+  <View
+    style={{
+      width: '100%',
+      alignItems: 'center',
+    }}
+  >
+    <UserAvatarCard />
+  </View>
+)
+
+const BasicInfoSection = () => (
+  <View
+    style={{
+      width: '100%',
+      alignItems: 'center',
+    }}
+  >
+    <View
+      style={{
+        width: '100%',
+        maxWidth: 560,
+      }}
+    >
+      <BasicInfo />
+    </View>
+  </View>
+)
+
+const SecurityInfoSection = () => (
+  <View
+    style={{
+      width: '100%',
+      alignItems: 'center',
+    }}
+  >
+    <View
+      style={{
+        width: '100%',
+        maxWidth: 760,
+      }}
+    >
+      <SecurityInfo />
+    </View>
+  </View>
+)
+
+const UserInformationSection = () => (
+  <View
+    style={{
+      width: '100%',
+      alignItems: 'center',
+    }}
+  >
+    <View
+      style={{
+        width: '100%',
+        maxWidth: 1024,
+      }}
+    >
+      <UserInformation />
     </View>
   </View>
 )
@@ -863,6 +944,11 @@ export default function ComponentsShowcasePage() {
         <CardType2Section />
         <CardType3Header />
         <CardType3Section />
+        <UserInformationSection />
+        <UserDashboardSection />
+        <UserAvatarSection />
+        <BasicInfoSection />
+        <SecurityInfoSection />
         <LoginRequestSection />
         <NotiContinueLessonSection />
         <ReportSection />

@@ -31,6 +31,18 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [showOtpModal, setShowOtpModal] = useState(false)
 
+  // fuwy thêm token để check login
+  const setToken = (token) => {
+    if (typeof window === 'undefined') return
+    if (token) {
+      window.localStorage.setItem('token', token)
+    } else {
+      window.localStorage.removeItem('token')
+    }
+    // thông báo cho navbar/khác biết token đổi
+    window.dispatchEvent(new Event('token-changed'))
+  }
+
   // Chuẩn hoá source để hỗ trợ cả import module (Next/webpack) lẫn require/uri
   const normalizeImageSource = (src) => {
     if (!src) return null
@@ -94,8 +106,9 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
       if (response.isSuccess && response.data) {
         const { token, fullName, role, avatarUrl } = response.data
         
-        // TODO: Lưu token vào context / storage
-        // TODO: Lưu thông tin user vào context / storage
+        // Lưu token vào localStorage
+        setToken(token)
+        // TODO: Lưu thông tin user vào context / storage nếu cần
         console.log('Đăng nhập thành công:', {
           token,
           fullName,
@@ -108,6 +121,8 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
           router.push('/homepage')
         }, 500) // Delay nhỏ để user thấy thông báo
       } else {
+        // Clear token nếu thất bại
+        setToken(null)
         // Chỉ hiển thị thông báo lỗi bằng React Native Alert, không hiển thị text lỗi ở dưới form
         showApiNotification(response)
       }
@@ -136,6 +151,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
       setNotifyResponse(errorResponse)
       showApiNotification(errorResponse)
       setError(errorResponse.message)
+      setToken(null)
     } finally {
       setLoading(false)
     }
