@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, Text, Image, TouchableOpacity } from 'react-native'
 import BackgroundImage from '../assets/background1.png'
 import LogoImage from '../assets/logo.png'
@@ -9,6 +9,7 @@ import FlashcardIcon from '../assets/icon/icon-mainflow/bookmark.svg'
 import BlogIcon from '../assets/icon/icon-mainflow/say.svg'
 import SmallFoot from '../assets/smallfoot.png'
 import { useRouter } from 'solito/navigation'
+import UserIcon from '../assets/user.png'
 /**
  * Normalize image source so it works with:
  * - require('...png') / numeric ids
@@ -61,6 +62,29 @@ export const Navbar = ({
   style,
 }) => {
   const router = useRouter()
+  const [hasToken, setHasToken] = useState(false)
+
+  // Detect token in localStorage (web)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const checkToken = () => {
+      const token = window.localStorage?.getItem('token')
+      setHasToken(!!token)
+    }
+    checkToken()
+    const onStorage = (e) => {
+      if (e.key === 'token') {
+        checkToken()
+      }
+    }
+    const onTokenChanged = () => checkToken()
+    window.addEventListener('storage', onStorage)
+    window.addEventListener('token-changed', onTokenChanged)
+    return () => {
+      window.removeEventListener('storage', onStorage)
+      window.removeEventListener('token-changed', onTokenChanged)
+    }
+  }, [])
 
   // Handler functions với fallback routing
   const handleHomePress = () => {
@@ -109,6 +133,13 @@ export const Navbar = ({
     } else {
       router.push('/register')
     }
+  }
+
+  const handleProfilePress = () => {
+    if (typeof window === 'undefined') return
+    const storedId = window.localStorage?.getItem('userId')
+    const targetId = storedId && storedId.length > 0 ? storedId : 'me'
+    router.push(`/users/${targetId}`)
   }
 
   return (
@@ -325,57 +356,76 @@ export const Navbar = ({
           zIndex: 1,
         }}
       >
-        {/* Đăng Nhập button */}
-        <TouchableOpacity
-          onPress={handleLoginPress}
-          style={{
-            paddingHorizontal: 24,
-            paddingVertical: 10,
-            borderRadius: 20,
-            backgroundColor: '#8B9A6B',
-            borderWidth: 2,
-            borderColor: '#4A90E2',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minWidth: 120,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 14,
-              fontWeight: 'bold',
-              color: '#FFFFFF',
-              fontFamily: 'Epilogue, sans-serif',
-            }}
+        {hasToken ? (
+          <TouchableOpacity
+            onPress={handleProfilePress}
+            activeOpacity={0.8}
+            
           >
-            Đăng Nhập
-          </Text>
-        </TouchableOpacity>
+            <Image
+              source={normalizeImageSource(UserIcon)}
+              style={{
+                width: 70,
+                height: 70,
+                right: 30,
+              }}
+            />
+          </TouchableOpacity>
+        ) : (
+          <>
+            {/* Đăng Nhập button */}
+            <TouchableOpacity
+              onPress={handleLoginPress}
+              style={{
+                paddingHorizontal: 24,
+                paddingVertical: 10,
+                borderRadius: 20,
+                backgroundColor: '#8B9A6B',
+                borderWidth: 2,
+                borderColor: '#4A90E2',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: 120,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: 'bold',
+                  color: '#FFFFFF',
+                  fontFamily: 'Epilogue, sans-serif',
+                }}
+              >
+                Đăng Nhập
+              </Text>
+            </TouchableOpacity>
 
-        {/* Đăng Ký button */}
-        <TouchableOpacity
-          onPress={handleRegisterPress}
-          style={{
-            paddingHorizontal: 24,
-            paddingVertical: 10,
-            borderRadius: 20,
-            backgroundColor: '#6B7A4B',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minWidth: 120,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 14,
-              fontWeight: 'bold',
-              color: '#FFFFFF',
-              fontFamily: 'Epilogue, sans-serif',
-            }}
-          >
-            Đăng Ký
-          </Text>
-        </TouchableOpacity>
+            {/* Đăng Ký button */}
+            <TouchableOpacity
+              onPress={handleRegisterPress}
+              style={{
+                paddingHorizontal: 24,
+                paddingVertical: 10,
+                borderRadius: 20,
+                backgroundColor: '#6B7A4B',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: 120,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: 'bold',
+                  color: '#FFFFFF',
+                  fontFamily: 'Epilogue, sans-serif',
+                }}
+              >
+                Đăng Ký
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </View>
   )

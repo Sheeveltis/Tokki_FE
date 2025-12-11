@@ -29,4 +29,8 @@ export const ENDPOINTS = {
       FORGOT_PASSWORD_RESET: '/Account/forgot-password/reset',
       PROFILE: '/Account/profile',
     },
+    OTP: {
+      SEND_FORGOT_PASSWORD: '/Otp/forgot-password/send-otp',
+      VERIFY_FORGOT_PASSWORD: '/Otp/forgot-password/verify',
+    },
   }

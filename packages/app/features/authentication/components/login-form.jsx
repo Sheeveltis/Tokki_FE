@@ -9,6 +9,8 @@ import { showApiNotification } from '../helpers/notification'
 import { HelperAdmin } from '../../../../components/HelperAdmin'
 import LogoImage from '../../../../assets/logo-text.png'
 import HomeIcon from '../../../../assets/icon/icon-mainflow/home.svg'
+import { InputEmail } from '../forgot-password/components/input-Email'
+import { InputOTP } from '../forgot-password/components/input-OTP'
 
 /**
  * LoginPanel: toàn bộ cột bên phải của màn đăng nhập (tiêu đề + form + ghi chú)
@@ -26,6 +28,21 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
   const [error, setError] = useState(null)
   const [apiResponse, setApiResponse] = useState(null)
   const [notifyResponse, setNotifyResponse] = useState(null)
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [showOtpModal, setShowOtpModal] = useState(false)
+
+  // fuwy thêm token để check login
+  const setToken = (token) => {
+    if (typeof window === 'undefined') return
+    if (token) {
+      window.localStorage.setItem('token', token)
+    } else {
+      window.localStorage.removeItem('token')
+    }
+    // thông báo cho navbar/khác biết token đổi
+    window.dispatchEvent(new Event('token-changed'))
+  }
 
   // Chuẩn hoá source để hỗ trợ cả import module (Next/webpack) lẫn require/uri
   const normalizeImageSource = (src) => {
@@ -105,6 +122,8 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
           router.push('/homepage')
         }, 500) // Delay nhỏ để user thấy thông báo
       } else {
+        // Clear token nếu thất bại
+        setToken(null)
         // Chỉ hiển thị thông báo lỗi bằng React Native Alert, không hiển thị text lỗi ở dưới form
         showApiNotification(response)
       }
@@ -133,8 +152,29 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
       setNotifyResponse(errorResponse)
       showApiNotification(errorResponse)
       setError(errorResponse.message)
+      setToken(null)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleForgotPassword = () => {
+    setShowEmailModal(true)
+  }
+
+  const handleEmailSuccess = (_resp, enteredEmail) => {
+    setForgotEmail(enteredEmail)
+    setShowEmailModal(false)
+    setShowOtpModal(true)
+  }
+
+  const handleOtpSuccess = () => {
+    setShowOtpModal(false)
+    // chuyển sang trang tạo mật khẩu mới, kèm email
+    if (forgotEmail) {
+      router.push(`/authentication/forgot-password?email=${encodeURIComponent(forgotEmail)}`)
+    } else {
+      router.push('/authentication/forgot-password')
     }
   }
 
@@ -186,7 +226,9 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        <Text style={styles.forgotText}>Quên mật khẩu?</Text>
+        <TouchableOpacity onPress={handleForgotPassword} activeOpacity={0.8}>
+          <Text style={styles.forgotText}>Quên mật khẩu?</Text>
+        </TouchableOpacity>
 
         <Button
           title={loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
@@ -218,6 +260,21 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Modal nhập Email */}
+      <InputEmail
+        visible={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        onSuccess={handleEmailSuccess}
+      />
+
+      {/* Modal nhập OTP */}
+      <InputOTP
+        visible={showOtpModal}
+        email={forgotEmail}
+        onClose={() => setShowOtpModal(false)}
+        onSuccess={handleOtpSuccess}
+      />
     </View>
   )
 }
