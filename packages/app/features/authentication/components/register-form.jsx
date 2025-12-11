@@ -7,7 +7,8 @@ import { Button } from '../../../../components/button'
 import { register } from '../api'
 import { showApiNotification } from '../helpers/notification'
 import { HelperAdmin } from '../../../../components/HelperAdmin'
-import BigfootImage from '../../../../assets/bigfoot.png'
+import LogoImage from '../../../../assets/logo-text.png'
+import HomeIcon from '../../../../assets/icon/icon-luồng/home.svg'
 
 /**
  * RegisterPanel: cột bên phải cho màn Đăng ký
@@ -29,6 +30,7 @@ export function RegisterPanel({ onPressLogin }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [apiResponse, setApiResponse] = useState(null)
+  const [notifyResponse, setNotifyResponse] = useState(null)
 
   // Chuẩn hoá source để hỗ trợ cả import module (Next/webpack) lẫn require/uri
   const normalizeImageSource = (src) => {
@@ -40,18 +42,41 @@ export function RegisterPanel({ onPressLogin }) {
     return src
   }
 
-  const bigfootSource = normalizeImageSource(BigfootImage)
+  const logoSource = normalizeImageSource(LogoImage)
+  const homeIconSource = normalizeImageSource(HomeIcon)
 
   const handleSubmit = async () => {
     if (loading) return
 
     // Validation đơn giản trên FE
     if (!fullName || !email || !phoneNumber || !password || !confirmPassword || !dateOfBirth) {
-      setError('Vui lòng nhập đầy đủ thông tin.')
+      const msg = 'Vui lòng nhập đầy đủ thông tin.'
+      setError(msg)
+      setNotifyResponse({
+        isSuccess: false,
+        message: msg,
+        statusCode: 400,
+      })
+      return
+    }
+    if (email && !password) {
+      const msg = 'Vui lòng nhập mật khẩu.'
+      setError(msg)
+      setNotifyResponse({
+        isSuccess: false,
+        message: msg,
+        statusCode: 400,
+      })
       return
     }
     if (password !== confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp.')
+      const msg = 'Mật khẩu xác nhận không khớp.'
+      setError(msg)
+      setNotifyResponse({
+        isSuccess: false,
+        message: msg,
+        statusCode: 400,
+      })
       return
     }
 
@@ -59,6 +84,7 @@ export function RegisterPanel({ onPressLogin }) {
       setLoading(true)
       setError(null)
       setApiResponse(null)
+      setNotifyResponse(null)
       
       // Gọi API register
       const response = await register({
@@ -97,19 +123,26 @@ export function RegisterPanel({ onPressLogin }) {
     } catch (err) {
       console.error('Register error:', err)
       // Xử lý lỗi không mong đợi
+      const fallbackMsg = 'Lỗi hệ thống. Vui lòng thử lại sau.'
+      const errMsg = (typeof err?.message === 'string' && err.message) || ''
+      const lowerMsg = errMsg.toLowerCase()
+      const isConnRefused = lowerMsg.includes('err_connection_refused')
+      const isNetworkError = lowerMsg.includes('network error')
+      const finalMsg = isConnRefused || isNetworkError ? fallbackMsg : errMsg || fallbackMsg
       const errorResponse = {
         isSuccess: false,
         data: null,
         errors: [
           {
             code: 'Error.Unknown',
-            description: err.message || 'Đăng ký thất bại, vui lòng thử lại.',
+            description: finalMsg,
           },
         ],
-        message: err.message || 'Đăng ký thất bại, vui lòng thử lại.',
+        message: finalMsg,
         statusCode: 500,
       }
       setApiResponse(errorResponse)
+      setNotifyResponse(errorResponse)
       showApiNotification(errorResponse)
       setError(errorResponse.message)
     } finally {
@@ -119,15 +152,23 @@ export function RegisterPanel({ onPressLogin }) {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.backHome}
+        onPress={() => router.push('/homepage')}
+        activeOpacity={0.8}
+      >
+        {homeIconSource ? <Image source={homeIconSource} style={styles.backIcon} /> : null}
+        <Text style={styles.backText}>Trang chủ</Text>
+      </TouchableOpacity>
       {/* HelperAdmin để hiển thị thông báo từ API (chỉ hiển thị khi thành công) */}
+      {notifyResponse && (
+        <HelperAdmin response={notifyResponse} type="error" hideStatusCode hideErrorCode />
+      )}
       {apiResponse && apiResponse.isSuccess && (
         <HelperAdmin response={apiResponse} type="success" hideStatusCode hideErrorCode />
       )}
       <View style={styles.logoContainer}>
-        <Text style={styles.logoText}>Tooki</Text>
-        {bigfootSource && (
-          <Image source={bigfootSource} style={styles.logoImage} />
-        )}
+        {logoSource && <Image source={logoSource} style={styles.logoImage} />}
       </View>
       <View style={styles.content}>
         <View style={styles.headerBlock}>
@@ -214,27 +255,41 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     position: 'absolute',
-    top: 32,
-    left: 32,
+    top: 24, // căn cùng hàng với nút Trang chủ
+    right: 24, // logo nằm sát phải
     zIndex: 10,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  logoText: {
-    fontSize: 30,
-    fontWeight: '700',
-    fontFamily: 'Lexend, sans-serif',
-    color: '#000',
+  backHome: {
+    position: 'absolute',
+    top: 24,
+    left: 24, // nút Trang chủ sát cạnh trái
+    zIndex: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+  },
+  backIcon: {
+    width: 20,
+    height: 20,
+    resizeMode: 'contain',
+  },
+  backText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111',
+    fontFamily: 'Epilogue, sans-serif',
   },
   logoImage: {
-    width: 80,
-    height: 80,
+    width: 160,
+    height: 48, // chiều cao nhỏ để cùng hàng với nút
     resizeMode: 'contain',
-    position: 'absolute',
-    top: -30,
-    left: 80,
-    zIndex: 10,
   },
   content: {
     width: '100%',

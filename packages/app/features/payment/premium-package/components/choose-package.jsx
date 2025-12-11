@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
 import { useRouter } from 'solito/navigation'
-import { createPayment } from '../api/api'
+import { createPayment } from '../../payment-package/api/api'
 import BigFoot from '../../../../../assets/bigfoot.png'
 
 /**
@@ -41,7 +41,7 @@ export const ChoosePackage = ({ onSelectPackage, style }) => {
     {
       id: '1-month',
       duration: '1 tháng',
-      totalPrice: '50.000',
+      totalPrice: '10.000',
       pricePerMonth: '50.000',
       badge: null,
     },
@@ -79,7 +79,7 @@ export const ChoosePackage = ({ onSelectPackage, style }) => {
 
       if (response.isSuccess && response.data?.paymentId) {
         // Navigate to payment detail page with paymentId
-        router.push(`/payment-detail?paymentId=${response.data.paymentId}`)
+        router.push(`/payment/detail?paymentId=${response.data.paymentId}`)
       } else {
         console.error('Failed to create payment:', response)
       }

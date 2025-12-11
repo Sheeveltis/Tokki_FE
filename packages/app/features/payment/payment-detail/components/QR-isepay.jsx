@@ -68,7 +68,7 @@ export const QRIsepay = ({ paymentId, style }) => {
             if (timerIntervalRef.current) {
               clearInterval(timerIntervalRef.current)
             }
-            router.push('/payment-failed')
+            router.push('/payment/failed')
           }
           return 0
         }
@@ -106,7 +106,7 @@ export const QRIsepay = ({ paymentId, style }) => {
             if (timerIntervalRef.current) {
               clearInterval(timerIntervalRef.current)
             }
-            router.push('/payment-success')
+            router.push('/payment/success')
           }
         }
       } catch (error) {
