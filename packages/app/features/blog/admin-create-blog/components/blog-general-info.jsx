@@ -1,10 +1,32 @@
 'use client'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Form, Input, Select, Row, Col } from 'antd'
+import { getAllCategories } from '../../api/api'
 
 const { TextArea } = Input
 
 export function BlogGeneralInfo() {
+  const [categories, setCategories] = useState([])
+  const [loadingCategories, setLoadingCategories] = useState(true)
+
+  useEffect(() => {
+    let mounted = true
+    const fetchCategories = async () => {
+      try {
+        const data = await getAllCategories()
+        if (mounted) setCategories(data)
+      } catch (err) {
+        console.error('Không thể tải danh mục:', err)
+      } finally {
+        if (mounted) setLoadingCategories(false)
+      }
+    }
+    fetchCategories()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   return (
     <>
       {/* Hàng 1: Tiêu đề + Danh mục */}
@@ -24,10 +46,17 @@ export function BlogGeneralInfo() {
             name="categoryId"
             rules={[{ required: true, message: 'Chọn danh mục' }]}
           >
-            <Select placeholder="Chọn danh mục" size="large">
-              <Select.Option value="cat_korea_culture">Văn hóa Hàn Quốc</Select.Option>
-              <Select.Option value="cat_topik_exam">Luyện thi TOPIK</Select.Option>
-              <Select.Option value="cat_fashion">Thời trang</Select.Option>
+            <Select
+              placeholder="Chọn danh mục"
+              size="large"
+              loading={loadingCategories}
+              disabled={loadingCategories}
+            >
+              {categories.map((cat) => (
+                <Select.Option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </Select.Option>
+              ))}
             </Select>
           </Form.Item>
         </Col>

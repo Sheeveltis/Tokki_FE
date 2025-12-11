@@ -110,3 +110,34 @@ export const getBlogBySlug = async (slug) => {
 
 // Alias để tương thích với code cũ
 export const getBlogDetail = getBlogBySlug
+
+/**
+ * Lấy tất cả danh mục blog
+ * @returns {Promise<Array>} Danh sách category
+ */
+export const getAllCategories = async () => {
+  const res = await apiClient.get(ENDPOINTS.CATEGORY.GET_ALL)
+  const data = res?.data?.data
+  return Array.isArray(data) ? data : []
+}
+
+/**
+ * Tạo bài viết blog mới
+ * @param {Object} payload - Dữ liệu bài viết
+ * @param {string} payload.title - Tiêu đề
+ * @param {string} payload.thumbnailUrl - Link ảnh bìa
+ * @param {string} payload.content - Nội dung HTML
+ * @param {string} payload.shortDescription - Mô tả ngắn
+ * @param {number} payload.status - Trạng thái (0: Draft, 1: Published, etc.)
+ * @param {string} payload.categoryId - ID danh mục
+ * @param {string[]} payload.tags - Mảng các tag
+ * @returns {Promise<Object>} Response data
+ */
+export const createBlog = async (payload) => {
+  const res = await apiClient.post(ENDPOINTS.BLOG.CREATE, payload)
+  // Response format: { isSuccess: true, data: {...}, errors: null, message: '...', statusCode: 200 }
+  return res.data
+}
+
+// Alias to match the import in CreateBlogScreen (if you want to keep using createArticle)
+export const createArticle = createBlog
