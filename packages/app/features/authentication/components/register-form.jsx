@@ -8,7 +8,7 @@ import { register } from '../api'
 import { showApiNotification } from '../helpers/notification'
 import { HelperAdmin } from '../../../../components/HelperAdmin'
 import LogoImage from '../../../../assets/logo-text.png'
-import HomeIcon from '../../../../assets/icon/icon-luồng/home.svg'
+import HomeIcon from '../../../../assets/icon/icon-mainflow/home.svg'
 
 /**
  * RegisterPanel: cột bên phải cho màn Đăng ký

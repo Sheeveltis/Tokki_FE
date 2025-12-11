@@ -1,6 +1,6 @@
 import { StylesProvider } from './styles-provider'
 import './globals.css'
-
+import { StyledComponentsRegistry } from '../lib/antd-registry.jsx'
 export const metadata = {
   title: 'Tooki',
   description: 'Tooki is a platform for learning Korean',
@@ -28,7 +28,7 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <StylesProvider>{children}</StylesProvider>
+      <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
       </body>
     </html>
   )
