@@ -112,6 +112,58 @@ export const getBlogBySlug = async (slug) => {
 export const getBlogDetail = getBlogBySlug
 
 /**
+ * Lấy thống kê sơ bộ blog (totalBlogs, totalViews, totalPublished)
+ */
+export const getBlogSummary = async () => {
+  const res = await apiClient.get(ENDPOINTS.STATISTIC_BLOG.DASHBOARD)
+  return res?.data?.data || { totalBlogs: 0, totalViews: 0, totalPublished: 0 }
+}
+
+/**
+ * Top blog nhiều lượt xem
+ */
+export const getTopBlogsByViews = async (count = 5) => {
+  const res = await apiClient.get(ENDPOINTS.STATISTIC_BLOG.TOP_BLOGS(count))
+  const data = res?.data?.data
+  return Array.isArray(data) ? data : []
+}
+
+/**
+ * Top người đăng bài nổi bật
+ */
+export const getTopAuthors = async (count = 5) => {
+  const res = await apiClient.get(ENDPOINTS.STATISTIC_BLOG.TOP_AUTHORS(count))
+  const data = res?.data?.data
+  return Array.isArray(data) ? data : []
+}
+
+/**
+ * Danh sách blog cho admin với pagination
+ */
+export const getBlogsAdmin = async ({ pageNumber = 1, pageSize = 10, status } = {}) => {
+  const params = { PageNumber: pageNumber, PageSize: pageSize }
+  if (status !== undefined && status !== null && status !== '') {
+    params.Status = status
+  }
+  const res = await apiClient.get(ENDPOINTS.BLOG.ADMIN_LIST, { params })
+  const data = res?.data?.data || {}
+  const items = Array.isArray(data.items) ? data.items.map((item) => ({
+    ...item,
+    // Chuẩn hóa để bảng hiển thị
+    authorName: item.authorName || item.authorId,
+  })) : []
+  console.log('items', items)
+  console.log('data', data)
+  return {
+    items,
+    totalPages: data.totalPages || 1,
+    totalCount: data.totalCount || (data.items?.length || 0),
+    pageNumber: data.pageNumber || pageNumber,
+    pageSize: data.pageSize || pageSize,
+  }
+}
+
+/**
  * Lấy tất cả danh mục blog
  * @returns {Promise<Array>} Danh sách category
  */

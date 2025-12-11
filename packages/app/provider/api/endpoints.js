@@ -8,6 +8,12 @@ export const ENDPOINTS = {
       CREATE: '/Blog',                // POST: Tạo mới
       UPDATE: (id) => `/Blog/${id}`,    
       DELETE: (id) => `/Blog/${id}`,     
+      ADMIN_LIST: '/Blog', // same endpoint, nhưng dùng kèm query pageNumber/pageSize
+    },
+    STATISTIC_BLOG: {
+      DASHBOARD: '/StatisticBlog/dashboard',
+      TOP_BLOGS: (count = 5) => `/StatisticBlog/top-blogs?count=${count}`,
+      TOP_AUTHORS: (count = 5) => `/StatisticBlog/top-authors?count=${count}`,
     },
     CATEGORY: {
       GET_ALL: '/Category',
