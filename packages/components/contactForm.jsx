@@ -17,7 +17,7 @@ export const ContactForm = ({ onSubmit }) => {
   return (
     <View
       style={{
-        gap: 20,
+        gap: 10,
         width: '100%',
       }}
     >
@@ -27,7 +27,6 @@ export const ContactForm = ({ onSubmit }) => {
         value={fullName}
         onChangeText={setFullName}
         inputStyle={{
-          borderRadius: 12,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.1,
@@ -44,7 +43,6 @@ export const ContactForm = ({ onSubmit }) => {
         keyboardType="email-address"
         autoCapitalize="none"
         inputStyle={{
-          borderRadius: 12,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.1,
@@ -61,7 +59,6 @@ export const ContactForm = ({ onSubmit }) => {
         multiline={true}
         numberOfLines={11}
         inputStyle={{
-          borderRadius: 12,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.1,
