@@ -14,7 +14,7 @@ import {
 import { UserManagement } from './screens/UserManagement'
 import { LessonManagement } from './screens/LessonManagement'
 import { VocabularyManagement } from './screens/VocabularyManagement'
-import { BlogManagement } from './screens/BlogManagement'
+import { BlogManagement } from '../blog/blog-management'
 import { ChatSupport } from './screens/ChatSupport'
 import { AutoEmail } from './screens/AutoEmail'
 import { FeedbackInbox } from './screens/FeedbackInbox'
@@ -100,20 +100,6 @@ export function AdminScreen() {
     })
   }
 
-  if (bootLoading) {
-    return (
-      <div
-        style={{
-          minHeight: '60vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Spin size="large" tip="Đang tải dữ liệu..." />
-      </div>
-    )
-  }
 
   return (
     <AdminLayout
@@ -121,7 +107,6 @@ export function AdminScreen() {
       defaultKey={tab || 'users-all'}
       onNavigate={handleNavigate}
       onLogout={() => {
-        // TODO: nối vào luồng auth thực tế
         console.log('Đăng xuất')
         router.push('/login')
       }}
