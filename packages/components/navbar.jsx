@@ -1,12 +1,19 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  Pressable,
+  Platform,
+} from 'react-native'
+import { colors } from '../app/color'
 import BackgroundImage from '../assets/background1.png'
-import LogoImage from '../assets/logo.png'
-import BigFoot from '../assets/bigfoot.png'
-import HomeIcon from '../assets/icon/icon-mainflow/home.svg'
-import RoadmapIcon from '../assets/roadmap.png'
-import FlashcardIcon from '../assets/icon/icon-mainflow/bookmark.svg'
-import BlogIcon from '../assets/icon/icon-mainflow/say.svg'
+import LogoImage from '../assets/logo-text.png'
+import HomeIcon from '../assets/icon/navigate-app/home.svg'
+import RoadmapIcon from '../assets/icon/navigate-app/book.svg'
+import FlashcardIcon from '../assets/icon/navigate-app/folder.svg'
+import BlogIcon from '../assets/icon/navigate-app/chat.svg'
 import SmallFoot from '../assets/smallfoot.png'
 import { useRouter } from 'solito/navigation'
 import UserIcon from '../assets/user.png'
@@ -63,6 +70,10 @@ export const Navbar = ({
 }) => {
   const router = useRouter()
   const [hasToken, setHasToken] = useState(false)
+  const [homeHover, setHomeHover] = useState(false)
+  const [roadmapHover, setRoadmapHover] = useState(false)
+  const [flashcardHover, setFlashcardHover] = useState(false)
+  const [blogHover, setBlogHover] = useState(false)
 
   // Detect token in localStorage (web)
   useEffect(() => {
@@ -142,20 +153,46 @@ export const Navbar = ({
     router.push(`/users/${targetId}`)
   }
 
+  const stickyPositionStyle =
+    Platform.OS === 'web'
+      ? {
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 999,
+        }
+      : {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 999,
+        }
+
+  const interactiveAnimationStyle =
+    Platform.OS === 'web'
+      ? {
+          transitionProperty: 'transform, opacity',
+          transitionDuration: '180ms',
+          transitionTimingFunction: 'ease-out',
+        }
+      : {}
+
   return (
     <View
       style={[
         {
           width: '100%',
-          paddingHorizontal: 24,
-          paddingVertical: 16,
+          paddingHorizontal: 16,
+          paddingVertical: 5,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          position: 'relative',
           backgroundColor: '#FFF8E7',
           overflow: 'hidden',
         },
+        stickyPositionStyle,
         style,
       ]}
     >
@@ -169,7 +206,7 @@ export const Navbar = ({
           width: '100%',
           height: '100%',
           resizeMode: 'cover',
-          opacity: 0.3,
+          opacity: 0.2,
         }}
       />
       
@@ -185,30 +222,10 @@ export const Navbar = ({
         <Image
           source={normalizeImageSource(LogoImage)}
           style={{
-            width: 60,
-            height: 60,
+            width: 120,
+            height: 40,
             resizeMode: 'contain',
-          }}
-        />
-        <Text
-          style={{
-            fontSize: 35,
-            fontWeight: 'bold',
-            color: '#FFDC9C',
-            fontFamily: 'Epilogue, sans-serif',
-            letterSpacing: 0.5,
-          }}
-        >
-          Tokki
-        </Text>
-        <Image
-          source={normalizeImageSource(BigFoot)}
-          style={{
-            width: 60,
-            height: 60,
-            resizeMode: 'contain',
-            right: 20,
-            bottom: 20,
+            transform: [{ scale: 2 }, { translateX: 30 }],
           }}
         />
       </View>
@@ -233,15 +250,23 @@ export const Navbar = ({
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          gap: 32,
+          gap: 72,
           zIndex: 1,
         }}
       >
         {/* Trang Chủ */}
-        <TouchableOpacity
+        <Pressable
           onPress={handleHomePress}
-          style={{
-            alignItems: 'center',
+          onHoverIn={() => Platform.OS === 'web' && setHomeHover(true)}
+          onHoverOut={() => Platform.OS === 'web' && setHomeHover(false)}
+          style={({ pressed }) => {
+            const active = pressed || homeHover
+            return {
+              alignItems: 'center',
+              opacity: active ? 0.85 : 1,
+              transform: [{ translateY: active ? -3 : 0 }],
+              ...interactiveAnimationStyle,
+            }
           }}
         >
           <Image
@@ -250,6 +275,7 @@ export const Navbar = ({
               width: 40,
               height: 40,
               resizeMode: 'contain',
+              tintColor: colors.DarkGreen,
             }}
           />
           <Text
@@ -261,23 +287,32 @@ export const Navbar = ({
               fontFamily: 'Epilogue, sans-serif',
             }}
           >
-            Trang Chủ
+            {/* Trang Chủ */}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Lộ Trình */}
-        <TouchableOpacity
+        <Pressable
           onPress={handleRoadmapPress}
-          style={{
-            alignItems: 'center',
+          onHoverIn={() => Platform.OS === 'web' && setRoadmapHover(true)}
+          onHoverOut={() => Platform.OS === 'web' && setRoadmapHover(false)}
+          style={({ pressed }) => {
+            const active = pressed || roadmapHover
+            return {
+              alignItems: 'center',
+              opacity: active ? 0.85 : 1,
+              transform: [{ translateY: active ? -3 : 0 }],
+              ...interactiveAnimationStyle,
+            }
           }}
         >
           <Image
             source={normalizeImageSource(roadmapIcon || RoadmapIcon)}
             style={{
-              width: 65,
-              height: 62,
+              width: 48,
+              height: 48,
               resizeMode: 'contain',
+              tintColor: colors.primaryLight,
             }}
           />
           <Text
@@ -288,15 +323,23 @@ export const Navbar = ({
               fontFamily: 'Epilogue, sans-serif',
             }}
           >
-            Lộ Trình
+            {/* Lộ Trình */}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Flashcard */}
-        <TouchableOpacity
+        <Pressable
           onPress={handleFlashcardPress}
-          style={{
-            alignItems: 'center',
+          onHoverIn={() => Platform.OS === 'web' && setFlashcardHover(true)}
+          onHoverOut={() => Platform.OS === 'web' && setFlashcardHover(false)}
+          style={({ pressed }) => {
+            const active = pressed || flashcardHover
+            return {
+              alignItems: 'center',
+              opacity: active ? 0.85 : 1,
+              transform: [{ translateY: active ? -3 : 0 }],
+              ...interactiveAnimationStyle,
+            }
           }}
         >
           <Image
@@ -305,6 +348,7 @@ export const Navbar = ({
               width: 45,
               height: 60,
               resizeMode: 'contain',
+              tintColor: colors.Pink,
             }}
           />
           <Text
@@ -315,15 +359,23 @@ export const Navbar = ({
               fontFamily: 'Epilogue, sans-serif',
             }}
           >
-            Flashcard
+            {/* Flashcard */}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Blog */}
-        <TouchableOpacity
+        <Pressable
           onPress={handleBlogPress}
-          style={{
-            alignItems: 'center',
+          onHoverIn={() => Platform.OS === 'web' && setBlogHover(true)}
+          onHoverOut={() => Platform.OS === 'web' && setBlogHover(false)}
+          style={({ pressed }) => {
+            const active = pressed || blogHover
+            return {
+              alignItems: 'center',
+              opacity: active ? 0.85 : 1,
+              transform: [{ translateY: active ? -3 : 0 }],
+              ...interactiveAnimationStyle,
+            }
           }}
         >
           <Image
@@ -332,6 +384,7 @@ export const Navbar = ({
               width: 40,
               height: 60,
               resizeMode: 'contain',
+              tintColor: colors.Mustard,
             }}
           />
           <Text
@@ -342,17 +395,17 @@ export const Navbar = ({
               fontFamily: 'Epilogue, sans-serif',
             }}
           >
-            Blog
+            {/* Blog */}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {/* Right section: Login and Register buttons */}
       <View
         style={{
-          flexDirection: 'column',
+          flexDirection: 'row',
           alignItems: 'center',
-          gap: 8,
+          gap: 12,
           zIndex: 1,
         }}
       >
@@ -400,30 +453,6 @@ export const Navbar = ({
               </Text>
             </TouchableOpacity>
 
-            {/* Đăng Ký button */}
-            <TouchableOpacity
-              onPress={handleRegisterPress}
-              style={{
-                paddingHorizontal: 24,
-                paddingVertical: 10,
-                borderRadius: 20,
-                backgroundColor: '#6B7A4B',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minWidth: 120,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: 'bold',
-                  color: '#FFFFFF',
-                  fontFamily: 'Epilogue, sans-serif',
-                }}
-              >
-                Đăng Ký
-              </Text>
-            </TouchableOpacity>
           </>
         )}
       </View>
