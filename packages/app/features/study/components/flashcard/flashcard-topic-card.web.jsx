@@ -1,0 +1,167 @@
+import React, { useState } from 'react'
+import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
+import { normalizeImageSource } from '../../api'
+
+/**
+ * FlashcardTopicCard: hiển thị một chủ đề flashcard
+ */
+export function FlashcardTopicCard({
+  icon,
+  title,
+  subtitle,
+  badgeText = '펀',
+  highlight,
+  muted,
+  onPress,
+  compact = false,
+  showBadge = true,
+}) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onHoverIn={() => Platform.OS === 'web' && setHovered(true)}
+      onHoverOut={() => Platform.OS === 'web' && setHovered(false)}
+      style={({ pressed }) => [
+        styles.card,
+        compact && styles.cardCompact,
+        highlight && styles.cardHighlight,
+        muted && styles.cardMuted,
+        (pressed || hovered) && styles.cardActive,
+      ]}
+    >
+      <View style={[styles.left, compact && styles.leftCompact]}>
+        <Image
+          source={normalizeImageSource(icon)}
+          style={[styles.avatar, compact && styles.avatarCompact]}
+          resizeMode="contain"
+        />
+      </View>
+      <View style={[styles.divider, compact && styles.dividerCompact]} />
+      <View style={[styles.middle, compact && styles.middleCompact]}>
+        <Text style={[styles.title, compact && styles.titleCompact]}>{title}</Text>
+        <Text style={[styles.subtitle, compact && styles.subtitleCompact]}>{subtitle}</Text>
+      </View>
+      {showBadge && !compact ? (
+        <View style={styles.right}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{badgeText}</Text>
+          </View>
+        </View>
+      ) : null}
+    </Pressable>
+  )
+}
+
+const styles = StyleSheet.create({
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 22,
+    paddingHorizontal: 20,
+    backgroundColor: '#FDEEB9',
+    borderRadius: 80,
+    shadowColor: '#F1BE4B',
+    shadowOpacity: 1,
+    shadowRadius: 1,
+    shadowOffset: { width: 0, height: 6 },
+    ...(Platform.OS === 'web' && {
+      transitionProperty: 'transform, box-shadow, background-color, border-color',
+      transitionDuration: '150ms',
+      cursor: 'pointer',
+    }),
+  },
+  cardHighlight: {
+    backgroundColor: '#FDEEB9',
+    borderColor: '#F1BE4B',
+  },
+  cardCompact: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    shadowOffset: { width: 0, height: 3 },
+  },
+  cardMuted: {
+    opacity: 0.85,
+  },
+  cardActive: {
+    transform: [{ translateY: -2 }],
+    shadowOpacity: 0.22,
+    backgroundColor: '#F1BE4B',
+    borderColor: '#F1BE4B',
+  },
+  left: {
+    width: 90,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  leftCompact: {
+    width: 60,
+  },
+  avatar: {
+    width: 100,
+    height: 100,
+  },
+  avatarCompact: {
+    width: 48,
+    height: 48,
+  },
+  divider: {
+    width: 2,
+    height: 80,
+    backgroundColor: '#F1BE4B',
+    marginHorizontal: 16,
+  },
+  dividerCompact: {
+    height: 50,
+    marginHorizontal: 12,
+  },
+  middle: {
+    flex: 1,
+    gap: 6,
+  },
+  middleCompact: {
+    gap: 2,
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: '700',
+    color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  titleCompact: {
+    fontSize: 16,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: '#333',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  subtitleCompact: {
+    fontSize: 13,
+  },
+  right: {
+    width: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badge: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: '#C45A32',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FDE7D4',
+  },
+  badgeText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#C45A32',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+})
+
+

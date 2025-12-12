@@ -8,11 +8,6 @@ export default function HomePage() {
 
   return (
     <HomeScreen
-      onHomePress={() => router.push('/homepage')}
-      onRoadmapPress={() => router.push('/roadmap')}
-      onFlashcardPress={() => router.push('/flashcard')}
-      onBlogPress={() => router.push('/blog')}
-      onProfilePress={() => router.push('/profile')}
     />
   )
 }

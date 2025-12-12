@@ -8,7 +8,7 @@ import { setAuthToken } from '../../../provider/api/client'
 import { showApiNotification } from '../helpers/notification'
 import { HelperAdmin } from '../../../../components/HelperAdmin'
 import LogoImage from '../../../../assets/logo-text.png'
-import HomeIcon from '../../../../assets/icon/icon-mainflow/home.svg'
+import { NavigationPill } from '../../../../components/navigation-pill'
 import { InputEmail } from '../forgot-password/components/input-Email'
 import { InputOTP } from '../forgot-password/components/input-OTP'
 
@@ -55,7 +55,6 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
   }
 
   const logoSource = normalizeImageSource(LogoImage)
-  const homeIconSource = normalizeImageSource(HomeIcon)
 
   const handleSubmit = async () => {
     if (loading) return
@@ -109,6 +108,8 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
         
         // Lưu token để dùng cho các request authorize
         setAuthToken(token)
+        // Lưu token vào localStorage để navbar nhận biết đã đăng nhập
+        setToken(token)
         // TODO: Lưu thông tin user vào context / storage nếu cần
         console.log('Đăng nhập thành công:', {
           token,
@@ -180,14 +181,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.backHome}
-        onPress={() => router.push('/homepage')}
-        activeOpacity={0.8}
-      >
-        {homeIconSource ? <Image source={homeIconSource} style={styles.backIcon} /> : null}
-        <Text style={styles.backText}>Trang chủ</Text>
-      </TouchableOpacity>
+      <NavigationPill style={styles.backHome} label="Trang chủ" to="/homepage" />
       {/* HelperAdmin để hiển thị thông báo từ API (chỉ hiển thị khi thành công) */}
       {notifyResponse && (
         <HelperAdmin response={notifyResponse} type="error" hideStatusCode hideErrorCode />
@@ -309,17 +303,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 999,
     backgroundColor: 'rgba(0,0,0,0.05)',
-  },
-  backIcon: {
-    width: 20,
-    height: 20,
-    resizeMode: 'contain',
-  },
-  backText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111',
-    fontFamily: 'Epilogue, sans-serif',
   },
   logoImage: {
     width: 160,
