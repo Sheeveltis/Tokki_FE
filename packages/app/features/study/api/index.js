@@ -21,14 +21,28 @@ export const normalizeImageSource = (src) => {
 
 /**
  * Lấy danh sách flashcard topics
- * @param {string} levelId - Level ID
- * @returns {Promise<Array>}
+ * @param {string} levelId - Level ID (optional)
+ * @returns {Promise<Array>} Danh sách flashcard topics
  */
 export const getFlashcardTopics = async (levelId) => {
-  // TODO: Replace with actual API call
-  // const response = await fetch(`/api/flashcard/topics?level=${levelId}`)
-  // return response.json()
-  return Promise.resolve([])
+  try {
+    // TODO: Thêm endpoint vào ENDPOINTS khi backend sẵn sàng
+    // const { apiClient } = await import('../../../provider/api/client')
+    // const { ENDPOINTS } = await import('../../../provider/api/endpoints')
+    // const params = levelId ? { levelId } : {}
+    // const res = await apiClient.get(ENDPOINTS.FLASHCARD?.TOPICS || '/Flashcard/topics', { params })
+    // const data = res?.data?.data || res?.data
+    // return Array.isArray(data) ? data : []
+    
+    // Fallback về mock data nếu API chưa sẵn sàng
+    const { FLASHCARD_TOPICS } = await import('../mockData')
+    return Promise.resolve(FLASHCARD_TOPICS)
+  } catch (error) {
+    console.error('Error fetching flashcard topics:', error)
+    // Fallback về mock data khi có lỗi
+    const { FLASHCARD_TOPICS } = await import('../mockData')
+    return FLASHCARD_TOPICS
+  }
 }
 
 /**
