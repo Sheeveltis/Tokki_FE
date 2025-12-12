@@ -53,6 +53,7 @@ const normalizeImageSource = (src) => {
  *   onLoginPress?: () => void;
  *   onRegisterPress?: () => void;
  *   style?: any;
+ *   position?: 'fixed' | 'relative' | 'absolute';
  * }} props
  */
 export const Navbar = ({
@@ -67,6 +68,7 @@ export const Navbar = ({
   onLoginPress,
   onRegisterPress,
   style,
+  position = 'fixed',
 }) => {
   const router = useRouter()
   const [hasToken, setHasToken] = useState(false)
@@ -74,6 +76,7 @@ export const Navbar = ({
   const [roadmapHover, setRoadmapHover] = useState(false)
   const [flashcardHover, setFlashcardHover] = useState(false)
   const [blogHover, setBlogHover] = useState(false)
+  const [userHover, setUserHover] = useState(false)
 
   // Detect token in localStorage (web)
   useEffect(() => {
@@ -110,7 +113,7 @@ export const Navbar = ({
     if (onRoadmapPress) {
       onRoadmapPress()
     } else {
-      router.push('/roadmap')
+      router.push('/study')
     }
   }
 
@@ -154,16 +157,21 @@ export const Navbar = ({
   }
 
   const stickyPositionStyle =
-    Platform.OS === 'web'
+    position === 'relative'
       ? {
-          position: 'fixed',
+          position: 'relative',
+          width: '100%',
+        }
+      : Platform.OS === 'web'
+      ? {
+          position: position || 'fixed',
           top: 0,
           left: 0,
           right: 0,
           zIndex: 999,
         }
       : {
-          position: 'absolute',
+          position: position || 'absolute',
           top: 0,
           left: 0,
           right: 0,
@@ -179,23 +187,28 @@ export const Navbar = ({
         }
       : {}
 
+  // Tự động thêm spacer khi navbar là fixed để tránh đè nội dung
+  const needsSpacer = position === 'fixed' || (position === undefined && Platform.OS === 'web')
+  const navbarHeight = 90 // Chiều cao ước tính của navbar
+
   return (
-    <View
-      style={[
-        {
-          width: '100%',
-          paddingHorizontal: 16,
-          paddingVertical: 5,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          backgroundColor: '#FFF8E7',
-          overflow: 'hidden',
-        },
-        stickyPositionStyle,
-        style,
-      ]}
-    >
+    <>
+      <View
+        style={[
+          {
+            width: '100%',
+            paddingHorizontal: 16,
+            paddingVertical: 5,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: '#FFF8E7',
+            overflow: 'hidden',
+          },
+          stickyPositionStyle,
+          style,
+        ]}
+      >
       {/* Background image with 50% opacity */}
       <Image
         source={normalizeImageSource(BackgroundImage)}
@@ -410,20 +423,30 @@ export const Navbar = ({
         }}
       >
         {hasToken ? (
-          <TouchableOpacity
+          <Pressable
             onPress={handleProfilePress}
-            activeOpacity={0.8}
-            
+            onHoverIn={() => Platform.OS === 'web' && setUserHover(true)}
+            onHoverOut={() => Platform.OS === 'web' && setUserHover(false)}
+            style={({ pressed }) => {
+              const active = pressed || userHover
+              return {
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: active ? 0.85 : 1,
+                transform: [{ scale: active ? 0.95 : 1 }],
+                ...interactiveAnimationStyle,
+              }
+            }}
           >
             <Image
               source={normalizeImageSource(UserIcon)}
               style={{
-                width: 70,
-                height: 70,
-                right: 30,
+                width: 50,
+                height: 50,
+                resizeMode: 'contain',
               }}
             />
-          </TouchableOpacity>
+          </Pressable>
         ) : (
           <>
             {/* Đăng Nhập button */}
@@ -456,7 +479,17 @@ export const Navbar = ({
           </>
         )}
       </View>
-    </View>
+      </View>
+      {/* Spacer để tránh navbar fixed đè lên nội dung */}
+      {needsSpacer && (
+        <View
+          style={{
+            height: navbarHeight,
+            width: '100%',
+          }}
+        />
+      )}
+    </>
   )
 }
 

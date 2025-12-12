@@ -3,6 +3,8 @@ export const colors = {
   // Màu chủ đạo
   primary: '#5E794C',
   primaryLight: '#88A455',
+  //Background
+  background: '#F4900C',
 
   // Màu phụ
   warning: '#F87218',
