@@ -19,25 +19,29 @@ export function SkillModulesGrid({ levelId, onModulePress }) {
             module.isImageModule && (pressed || hoveredItem === module.id) && styles.imageModulePressed,
           ]}
         >
-          {module.isImageModule ? (
+          {/* Header - luôn hiển thị cho tất cả modules */}
+          <View style={styles.moduleHeader}>
             <Image
               source={normalizeImageSource(module.icon)}
-              style={styles.fullImage}
-              resizeMode="cover"
+              style={styles.moduleIcon}
+              resizeMode={module.isImageModule ? 'cover' : 'contain'}
             />
-          ) : (
-            <>
-              {/* Header */}
-              <View style={styles.moduleHeader}>
-                <Image
-                  source={normalizeImageSource(module.icon)}
-                  style={styles.moduleIcon}
-                  resizeMode="contain"
-                />
-                <Text style={styles.moduleTitle}>{module.title}</Text>
-              </View>
+            <Text style={styles.moduleTitle}>{module.title}</Text>
+          </View>
 
-              {/* Items */}
+          {/* Content */}
+          {module.isImageModule ? (
+            // Hiển thị hình ảnh trong card cho image modules
+            <View style={styles.imageContentContainer}>
+              <Image
+                source={normalizeImageSource(module.icon)}
+                style={styles.moduleImage}
+                resizeMode="cover"
+              />
+            </View>
+          ) : (
+            // Hiển thị items cho các module thông thường
+            <>
               {module.items.length > 0 ? (
                 <View style={styles.itemsContainer}>
                   {module.items.map((item, index) => {
@@ -112,12 +116,16 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.98 }],
     shadowOpacity: 0.15,
   },
-  fullImage: {
+  imageContentContainer: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: 8,
+  },
+  moduleImage: {
     width: '100%',
     height: '100%',
-    position: 'absolute',
-    top: 0,
-    left: 0,
   },
   moduleHeader: {
     flexDirection: 'row',
@@ -130,6 +138,7 @@ const styles = StyleSheet.create({
   moduleIcon: {
     width: 32,
     height: 32,
+    borderRadius: 4,
   },
   moduleTitle: {
     fontSize: 20,

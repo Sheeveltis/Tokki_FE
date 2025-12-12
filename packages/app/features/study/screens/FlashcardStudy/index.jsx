@@ -7,7 +7,7 @@ import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
 import BookmarkIcon from '../../../../../assets/icon/icon-mainflow/bookmark.svg'
 import StarIcon from '../../../../../assets/icon/icon-mainflow/star.svg'
-import { FlashcardTopicCard } from '../../components/flashcard'
+import { FlashcardActionButton, FlashcardVocabularyList } from '../../components/flashcard'
 import { FlipCard } from 'components/FlipCard'
 import BunnyStudy from '../../../../../assets/bunny/14.png'
 import BunnyTest from '../../../../../assets/bunny/15.png'
@@ -36,6 +36,11 @@ export function FlashcardStudyScreen({
     const handlePrev = () => {
         setIsFlipped(false)
         setIndex((prev) => (prev - 1 + FLASHCARDS.length) % FLASHCARDS.length)
+    }
+
+    const handleSelectFlashcard = (newIndex) => {
+        setIsFlipped(false)
+        setIndex(newIndex)
     }
 
     const toggleFavorite = () => {
@@ -73,20 +78,14 @@ export function FlashcardStudyScreen({
 
                 {/* Action buttons */}
                 <View style={styles.actions}>
-                    <FlashcardTopicCard
+                    <FlashcardActionButton
                         icon={BunnyStudy}
                         title="Học"
-                        subtitle=""
-                        compact
-                        showBadge={false}
                         onPress={onLearnPress}
                     />
-                    <FlashcardTopicCard
+                    <FlashcardActionButton
                         icon={BunnyTest}
                         title="Kiểm tra"
-                        subtitle=""
-                        compact
-                        showBadge={false}
                         onPress={onTestPress}
                     />
                 </View>
@@ -123,6 +122,14 @@ export function FlashcardStudyScreen({
                         <Image source={normalizeImageSource(ArrowIcon)} style={styles.navIcon} resizeMode="contain" />
                     </Pressable>
                 </View>
+
+                {/* Vocabulary List */}
+                <FlashcardVocabularyList
+                    flashcards={FLASHCARDS}
+                    currentIndex={index}
+                    favorites={favorites}
+                    onSelectFlashcard={handleSelectFlashcard}
+                />
             </View>
         </View>
     )
