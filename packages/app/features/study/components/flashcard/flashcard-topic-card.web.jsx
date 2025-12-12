@@ -77,10 +77,11 @@ const styles = StyleSheet.create({
     borderColor: '#F1BE4B',
   },
   cardCompact: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    shadowOffset: { width: 0, height: 3 },
+    paddingVertical: 10,
+    paddingHorizontal: 50,
+    borderRadius: 100,
+    shadowOffset: { width: 0, height: 6 },
+    backgroundColor: '#F1BE4B',
   },
   cardMuted: {
     opacity: 0.85,
