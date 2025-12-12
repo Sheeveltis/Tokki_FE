@@ -42,6 +42,16 @@ export const FLASHCARDS = [
   { word: '친구', meaning: 'Bạn bè' },
   { word: '가족', meaning: 'Gia đình' },
   { word: '음식', meaning: 'Đồ ăn' },
+  { word: '회사', meaning: 'Công ty' },
+  { word: '선생님', meaning: 'Giáo viên' },
+  { word: '학생', meaning: 'Học sinh' },
+  { word: '책', meaning: 'Sách' },
+  { word: '시간', meaning: 'Thời gian' },
+  { word: '도서관', meaning: 'Thư viện' },
+  { word: '운동', meaning: 'Thể dục' },
+  { word: '집', meaning: 'Nhà' },
+  { word: '물', meaning: 'Nước' },
+  { word: '돈', meaning: 'Tiền' },
 ]
 
 /**
