@@ -1,11 +1,18 @@
 'use client'
 
 import React from 'react'
-import { StudyLayout } from '../../components/study-layout.web'
-import { StudyMain } from '../../components/study-main.web'
+import { Platform } from 'react-native'
+import { useStudySelection } from './useStudySelection'
+import { 
+  StudySelectionLayout as WebLayout,
+  StudySelectionMain as WebMain,
+  StudySelectionLayoutMobile as MobileLayout,
+  StudySelectionMainMobile as MobileMain
+} from '../../components/study-selection'
 
 /**
  * StudySelection: Trang chọn lộ trình học dựa trên các level
+ * Điều phối giữa web và mobile layout
  * - Hiển thị menu 6 level
  * - Hỗ trợ callback khi chọn level
  * @param {{
@@ -15,17 +22,35 @@ import { StudyMain } from '../../components/study-main.web'
  *   streakDays?: number
  * }} props
  */
-export function StudySelection({ onSelectLevel, onQuickTestPress, lessonsLearned, streakDays }) {
+export function StudySelection({ 
+  onSelectLevel, 
+  onQuickTestPress, 
+  lessonsLearned, 
+  streakDays 
+}) {
+  const {
+    hoveredLevel,
+    handleHoverIn,
+    handleHoverOut,
+  } = useStudySelection()
+
+  const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
+  const Main = Platform.OS === 'web' ? WebMain : MobileMain
+
   return (
-    <StudyLayout
+    <Layout
       onQuickTestPress={onQuickTestPress}
       lessonsLearned={lessonsLearned}
       streakDays={streakDays}
     >
-      <StudyMain onSelectLevel={onSelectLevel} />
-    </StudyLayout>
+      <Main
+        onSelectLevel={onSelectLevel}
+        hoveredLevel={hoveredLevel}
+        onHoverIn={handleHoverIn}
+        onHoverOut={handleHoverOut}
+      />
+    </Layout>
   )
 }
 
 export default StudySelection
-

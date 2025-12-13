@@ -1,195 +1,35 @@
 'use client'
 
 import React from 'react'
-import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
-import { Navbar } from 'components/navbar'
-import { NavigationPill } from 'components/navigation-pill'
-import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
-import { normalizeImageSource } from '../../api'
-import { studyStyles } from '../../styles'
-import BunnyStudy from '../../../../../assets/bunny/14.png'
+import { Platform } from 'react-native'
+import { 
+  AlphabetSelectModeLayout as WebLayout,
+  AlphabetSelectModeMain as WebMain,
+  AlphabetSelectModeLayoutMobile as MobileLayout,
+  AlphabetSelectModeMainMobile as MobileMain
+} from '../../components/alphabet/alphabet-select-mode'
 
 /**
  * AlphabetSelectModeScreen: Màn hình chọn học phần (chữ cái hoặc ghép âm)
+ * Điều phối giữa web và mobile layout
  */
 export function AlphabetSelectModeScreen({
   onBackPress,
   onLettersPress,
   onSyllablesPress,
 }) {
+  const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
+  const Main = Platform.OS === 'web' ? WebMain : MobileMain
+
   return (
-    <View style={styles.root}>
-      <Navbar />
-
-      <View style={styles.contentWrapper}>
-        {/* Header */}
-        <View style={styles.header}>
-          <NavigationPill
-            label="Trở lại"
-            to={undefined}
-            icon={ArrowIcon}
-            iconStyle={{ transform: [{ scaleX: -1 }] }}
-            onPress={onBackPress}
-            textStyle={{ fontWeight: '700' }}
-          />
-        </View>
-
-        <Text style={styles.title}>Học Chữ Cái Hàn Quốc</Text>
-        <Text style={styles.subtitle}>Chọn phần bạn muốn học</Text>
-
-        {/* Mode Selection Cards */}
-        <View style={styles.modesContainer}>
-          <Pressable
-            style={styles.modeCard}
-            onPress={onLettersPress}
-          >
-            <View style={styles.modeIconContainer}>
-              <Image
-                source={normalizeImageSource(BunnyStudy)}
-                style={styles.modeIcon}
-                resizeMode="contain"
+    <Layout>
+      <Main
+        onBackPress={onBackPress}
+        onLettersPress={onLettersPress}
+        onSyllablesPress={onSyllablesPress}
               />
-            </View>
-            <Text style={styles.modeTitle}>Học Chữ Cái</Text>
-            <Text style={styles.modeDescription}>
-              Học các chữ cái đơn lẻ trong bảng chữ cái Hàn Quốc
-            </Text>
-            <View style={styles.modeBadge}>
-              <Text style={styles.modeBadgeText}>Cơ bản</Text>
-            </View>
-          </Pressable>
-
-          <Pressable
-            style={styles.modeCard}
-            onPress={onSyllablesPress}
-          >
-            <View style={styles.modeIconContainer}>
-              <Image
-                source={normalizeImageSource(BunnyStudy)}
-                style={styles.modeIcon}
-                resizeMode="contain"
-              />
-            </View>
-            <Text style={styles.modeTitle}>Học Ghép Âm</Text>
-            <Text style={styles.modeDescription}>
-              Học cách ghép các chữ cái thành âm tiết hoàn chỉnh
-            </Text>
-            <View style={styles.modeBadge}>
-              <Text style={styles.modeBadgeText}>Nâng cao</Text>
-            </View>
-          </Pressable>
-        </View>
-      </View>
-    </View>
+    </Layout>
   )
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: '#FFD7D0',
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  contentWrapper: {
-    width: '70%',
-    maxWidth: 1200,
-    gap: 24,
-    alignItems: 'center',
-    backgroundColor: '#F5F0DD',
-    paddingVertical: 32,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-  },
-  header: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: 12,
-  },
-  title: {
-    ...studyStyles.pageTitle,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#666',
-    fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
-    marginTop: -8,
-  },
-  modesContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    gap: 24,
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-  },
-  modeCard: {
-    flex: 1,
-    minWidth: 300,
-    maxWidth: 400,
-    padding: 24,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    alignItems: 'center',
-    gap: 16,
-    borderWidth: 3,
-    borderColor: '#79964E',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    ...(Platform.OS === 'web' && {
-      cursor: 'pointer',
-      transition: 'all 0.2s',
-    }),
-  },
-  modeIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#F5F0DD',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: '#F1BE4B',
-  },
-  modeIcon: {
-    width: 80,
-    height: 80,
-  },
-  modeTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1F1F1F',
-    fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
-  },
-  modeDescription: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#666',
-    fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  modeBadge: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    backgroundColor: '#F1BE4B',
-    borderRadius: 20,
-    marginTop: 4,
-  },
-  modeBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#1F1F1F',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-})
-
 export default AlphabetSelectModeScreen
-

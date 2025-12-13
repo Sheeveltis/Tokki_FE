@@ -1,11 +1,19 @@
 'use client'
 
 import React from 'react'
-import { MenuStudyLayout, MenuStudyMain } from '../../components/menu-study'
+import { Platform } from 'react-native'
 import { useRouter } from 'next/navigation'
+import { useMenuStudy } from './useMenuStudy'
+import { 
+  MenuStudyLayout as WebLayout,
+  MenuStudyMain as WebMain,
+  MenuStudyLayoutMobile as MobileLayout,
+  MenuStudyMainMobile as MobileMain
+} from '../../components/menu-study'
 
 /**
  * MenuStudy: Trang menu học tập cho từng level
+ * Điều phối giữa web và mobile layout
  * @param {{
  *   levelId?: number
  *   onBackPress?: () => void
@@ -22,30 +30,33 @@ export function MenuStudy({
   streakDays,
 }) {
   const router = useRouter()
+  const {
+    showLoginRequest,
+    setShowLoginRequest,
+    handleModulePress,
+    handleAlphabetPress,
+  } = useMenuStudy(router)
 
-  const handleModulePress = (moduleId) => {
-    if (moduleId === 'vocabulary') {
-      router.push('/flashcard')
-      return
-    }
-    if (moduleId === 'alphabet') {
-      router.push('/alphabet')
-      return
-    }
-  }
+  const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
+  const Main = Platform.OS === 'web' ? WebMain : MobileMain
 
   return (
-    <MenuStudyLayout
+    <Layout
       levelId={levelId}
       onBackPress={onBackPress}
       onQuickTestPress={onQuickTestPress}
       lessonsLearned={lessonsLearned}
       streakDays={streakDays}
     >
-      <MenuStudyMain levelId={levelId} onModulePress={handleModulePress} />
-    </MenuStudyLayout>
+      <Main
+        levelId={levelId}
+        onModulePress={handleModulePress}
+        showLoginRequest={showLoginRequest}
+        onCloseLoginRequest={() => setShowLoginRequest(false)}
+        onAlphabetPress={handleAlphabetPress}
+      />
+    </Layout>
   )
 }
 
 export default MenuStudy
-
