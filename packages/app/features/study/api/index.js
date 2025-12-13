@@ -48,13 +48,26 @@ export const getFlashcardTopics = async (levelId) => {
 /**
  * Lấy danh sách flashcards theo topic
  * @param {string} topicId - Topic ID
- * @returns {Promise<Array>}
+ * @returns {Promise<Array>} Danh sách flashcards
  */
 export const getFlashcardsByTopic = async (topicId) => {
-  // TODO: Replace with actual API call
-  // const response = await fetch(`/api/flashcard/${topicId}`)
-  // return response.json()
-  return Promise.resolve([])
+  try {
+    // TODO: Thêm endpoint vào ENDPOINTS khi backend sẵn sàng
+    // const { apiClient } = await import('../../../provider/api/client')
+    // const { ENDPOINTS } = await import('../../../provider/api/endpoints')
+    // const res = await apiClient.get(ENDPOINTS.FLASHCARD?.BY_TOPIC?.(topicId) || `/Flashcard/topic/${topicId}`)
+    // const data = res?.data?.data || res?.data
+    // return Array.isArray(data) ? data : []
+    
+    // Fallback về mock data nếu API chưa sẵn sàng
+    const { FLASHCARDS } = await import('../mockData')
+    return Promise.resolve(FLASHCARDS)
+  } catch (error) {
+    console.error('Error fetching flashcards by topic:', error)
+    // Fallback về mock data khi có lỗi
+    const { FLASHCARDS } = await import('../mockData')
+    return FLASHCARDS
+  }
 }
 
 /**
