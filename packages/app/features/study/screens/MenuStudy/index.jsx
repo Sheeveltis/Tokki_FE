@@ -28,6 +28,10 @@ export function MenuStudy({
       router.push('/flashcard')
       return
     }
+    if (moduleId === 'alphabet') {
+      router.push('/alphabet')
+      return
+    }
   }
 
   return (

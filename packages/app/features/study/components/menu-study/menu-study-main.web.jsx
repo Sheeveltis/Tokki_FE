@@ -18,10 +18,24 @@ export function MenuStudyMain({ levelId, onModulePress }) {
     onModulePress?.(moduleId)
   }
 
+  const handleAlphabetPress = () => {
+    onModulePress?.('alphabet')
+  }
+
   return (
     <View style={styles.container}>
+
+      {/* Banner Học chữ cái - chỉ hiển thị cho level 1 */}
+      {levelId === 1 && (
+        <TopikBanner
+          title="HỌC CHỮ CÁI"
+          onPress={handleAlphabetPress}
+        />
+      )}
+
       {/* Banner TOPIK Learning Path */}
       <TopikBanner levelId={levelId} />
+      
 
       {/* Grid các skill modules */}
       <SkillModulesGrid levelId={levelId} onModulePress={handleModulePress} />
@@ -49,7 +63,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#00000055',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 20,
