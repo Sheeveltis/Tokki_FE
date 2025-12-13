@@ -22,6 +22,9 @@ import React from 'react'
  *   flipOnHover?: boolean; - Flip khi hover (mặc định true)
  *   isFlipped?: boolean; - Control flip từ bên ngoài (optional)
  *   onFlip?: (flipped: boolean) => void; - Callback khi flip
+ *   starIcon?: React.ReactNode | string; - Icon star để hiển thị ở góc trên phải
+ *   isFavorite?: boolean; - Trạng thái yêu thích
+ *   onToggleFavorite?: () => void; - Callback khi click vào star
  *   className?: string; - Custom className
  *   style?: React.CSSProperties; - Custom styles
  * }} props
@@ -39,8 +42,12 @@ export function FlipCard({
   borderWidth = 10,
   borderRadius = 10,
   flipOnHover = false,
+  flipDirection = 'x', // 'y' = lật ngang, 'x' = lật dọc
   isFlipped: controlledFlipped,
   onFlip,
+  starIcon,
+  isFavorite = false,
+  onToggleFavorite,
   className = '',
   style,
 }) {
@@ -65,20 +72,26 @@ export function FlipCard({
     width: widthValue,
     height: heightValue,
     perspective: '1000px',
+    position: 'relative',
     ...style,
   }
+
+  const axis = flipDirection === 'x' ? 'X' : 'Y'
 
   const cardInnerStyle = {
     width: '100%',
     height: '100%',
     position: 'relative',
     transformStyle: 'preserve-3d',
-    transition: 'transform 0.6s',
-    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+    transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+    transform: isFlipped ? `rotate${axis}(180deg)` : `rotate${axis}(0deg)`,
+    willChange: 'transform',
   }
 
   const cardFaceStyle = {
     position: 'absolute',
+    top: 0,
+    left: 0,
     width: '100%',
     height: '100%',
     backfaceVisibility: 'hidden',
@@ -88,20 +101,22 @@ export function FlipCard({
     fontSize: '24px',
     color: '#fff',
     borderRadius: `${borderRadius}px`,
+    boxSizing: 'border-box',
+    overflow: 'hidden',
   }
 
   const cardFrontStyle = {
     ...cardFaceStyle,
     backgroundColor: frontColor,
     border: `${borderWidth}px solid ${frontColor}`,
-    transform: 'rotateY(0deg)',
+    transform: `rotate${axis}(0deg)`,
   }
 
   const cardBackStyle = {
     ...cardFaceStyle,
     backgroundColor: backColor,
     border: `${borderWidth}px solid ${backColor}`,
-    transform: 'rotateY(180deg)',
+    transform: `rotate${axis}(180deg)`,
   }
 
   const hoverClass = flipOnHover ? 'flip-card-hover' : ''
@@ -199,6 +214,78 @@ export function FlipCard({
 
   const content = renderFlashcardContent()
 
+  // Render star icon nếu có
+  const renderStarIcon = () => {
+    if (!starIcon || !onToggleFavorite) return null
+    
+    const starStyle = {
+      position: 'absolute',
+      top: '8px',
+      right: '8px',
+      zIndex: 10,
+      cursor: 'pointer',
+      padding: '8px',
+      borderRadius: '20px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '44px',
+      height: '44px',
+    }
+
+    const iconStyle = {
+      width: '28px',
+      height: '28px',
+      transition: 'filter 0.2s',
+    }
+
+    // Nếu starIcon là React component hoặc element
+    if (React.isValidElement(starIcon)) {
+      return (
+        <div 
+          style={starStyle} 
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          {React.cloneElement(starIcon, { 
+            style: { 
+              ...iconStyle, 
+              filter: isFavorite 
+                ? 'brightness(0) saturate(100%) invert(85%) sepia(50%) saturate(2000%) hue-rotate(5deg) brightness(1.1)' 
+                : 'opacity(0.5)',
+              ...starIcon.props?.style 
+            } 
+          })}
+        </div>
+      )
+    }
+
+    // Nếu starIcon là string (URL) hoặc object
+    const starSrc = typeof starIcon === 'string' ? starIcon : (starIcon?.src || starIcon?.uri)
+    if (starSrc) {
+      return (
+        <div 
+          style={starStyle} 
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <img 
+            src={starSrc} 
+            alt="Favorite" 
+            style={{
+              ...iconStyle,
+              filter: isFavorite 
+                ? 'brightness(0) saturate(100%) invert(85%) sepia(50%) saturate(2000%) hue-rotate(5deg) brightness(1.1)' 
+                : 'opacity(0.5)',
+            }}
+          />
+        </div>
+      )
+    }
+
+    return null
+  }
+
   return (
     <>
       <style>{`
@@ -217,9 +304,11 @@ export function FlipCard({
         <div className="flip-card-inner" style={cardInnerStyle}>
           <div className="flip-card-front" style={cardFrontStyle}>
             {content.front}
+            {renderStarIcon()}
           </div>
           <div className="flip-card-back" style={cardBackStyle}>
             {content.back}
+            {renderStarIcon()}
           </div>
         </div>
       </div>

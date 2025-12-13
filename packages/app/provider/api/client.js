@@ -2,7 +2,7 @@ import axios from 'axios'
 import { API_BASE_URL } from './endpoints'
 
 // Lưu token đơn giản: ưu tiên localStorage, fallback bộ nhớ tạm
-const TOKEN_KEY = 'tooki_admin_token'
+const TOKEN_KEY = 'token'
 let inMemoryToken = null
 
 export const setAuthToken = (token) => {

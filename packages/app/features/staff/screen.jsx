@@ -13,7 +13,7 @@ import {
 // Reuse screens từ admin
 import { LessonManagement } from '../admin/screens/LessonManagement'
 import { VocabularyManagement } from '../admin/screens/VocabularyManagement'
-import { BlogManagement } from '../admin/screens/BlogManagement'
+import { BlogManagement } from '../blog/blog-management'
 import { ChatSupport } from '../admin/screens/ChatSupport'
 import { AutoEmail } from '../admin/screens/AutoEmail'
 import { FeedbackInbox } from '../admin/screens/FeedbackInbox'
