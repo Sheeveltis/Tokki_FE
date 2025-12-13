@@ -1,5 +1,6 @@
 'use client'
 
+import React, { useState } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 import { Card as CardType1 } from 'components/cardType1'
 import { Card as CardType2 } from 'components/cardType2'
@@ -28,6 +29,8 @@ import {
 } from 'components/HelperAdmin'
 import { Loading, LoadingWithContainer } from 'components/Loading'
 import { FlipCard } from 'components/FlipCard'
+import { RoadmapTestQuestion } from 'app/features/roadmap/roadmap-test/components/roadmap-test-question'
+import { RoadmapTestDashboard } from 'app/features/roadmap/roadmap-test/components/roadmap-test-dashboard'
 import colors from '../../../../packages/app/color.js'
 
 const demoCardsType1 = [
@@ -920,6 +923,141 @@ const FlipCardSection = () => {
   )
 }
 
+const RoadmapTestQuestionHeader = () => (
+  <View style={{ alignItems: 'center' }}>
+    <Text
+      style={{
+        marginTop: SECTION_GAP * 2,
+        fontSize: 28,
+        fontWeight: '700',
+        textAlign: 'center',
+        fontFamily: 'Lexend, sans-serif',
+      }}
+    >
+      Roadmap Test Question
+    </Text>
+    <Text
+      style={{
+        marginTop: 8,
+        color: '#555',
+        fontSize: 16,
+        textAlign: 'center',
+        fontFamily: 'Epilogue, sans-serif',
+      }}
+    >
+      Component câu hỏi test với audio player hoặc text question
+    </Text>
+  </View>
+)
+
+const RoadmapTestQuestionSection = () => {
+  const [selectedAnswer1, setSelectedAnswer1] = useState(null)
+  const [selectedAnswer2, setSelectedAnswer2] = useState(null)
+
+  return (
+    <View
+      style={{
+        width: '100%',
+        alignItems: 'center',
+      }}
+    >
+      <View
+        style={{
+          width: '100%',
+          maxWidth: 800,
+          gap: 24,
+        }}
+      >
+        {/* Audio Question Example */}
+        <RoadmapTestQuestion
+          questionNumber={1}
+          type="audio"
+          options={['매일 일해요.', '매일 일해요.', '매일 일해요.', '매일 일해요.']}
+          selectedAnswer={selectedAnswer1}
+          onAnswerSelect={setSelectedAnswer1}
+        />
+
+        {/* Text Question Example */}
+        <RoadmapTestQuestion
+          questionNumber={2}
+          type="text"
+          questionText="Chọn câu trả lời đúng cho câu hỏi này?"
+          options={['Đáp án A', 'Đáp án B', 'Đáp án C', 'Đáp án D']}
+          selectedAnswer={selectedAnswer2}
+          onAnswerSelect={setSelectedAnswer2}
+        />
+      </View>
+    </View>
+  )
+}
+
+const RoadmapTestDashboardHeader = () => (
+  <View style={{ alignItems: 'center' }}>
+    <Text
+      style={{
+        marginTop: SECTION_GAP * 2,
+        fontSize: 28,
+        fontWeight: '700',
+        textAlign: 'center',
+        fontFamily: 'Lexend, sans-serif',
+      }}
+    >
+      Roadmap Test Dashboard
+    </Text>
+    <Text
+      style={{
+        marginTop: 8,
+        color: '#555',
+        fontSize: 16,
+        textAlign: 'center',
+        fontFamily: 'Epilogue, sans-serif',
+      }}
+    >
+      Dashboard hiển thị grid câu hỏi với phân trang (10 câu/trang)
+    </Text>
+  </View>
+)
+
+const RoadmapTestDashboardSection = () => {
+  const [answers, setAnswers] = useState({})
+
+  const handleAnswerSelect = (questionNum, answerIndex) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [questionNum]: answerIndex,
+    }))
+  }
+
+  const handleSubmit = () => {
+    console.log('Submitted answers:', answers)
+    alert('Đã nộp bài!')
+  }
+
+  return (
+    <View
+      style={{
+        width: '100%',
+        alignItems: 'center',
+      }}
+    >
+      <View
+        style={{
+          width: '100%',
+          maxWidth: 800,
+        }}
+      >
+        <RoadmapTestDashboard
+          totalQuestions={15}
+          timeRemaining="08 : 00"
+          answers={answers}
+          onAnswerSelect={handleAnswerSelect}
+          onSubmit={handleSubmit}
+        />
+      </View>
+    </View>
+  )
+}
+
 export default function ComponentsShowcasePage() {
   return (
     <View
@@ -967,6 +1105,10 @@ export default function ComponentsShowcasePage() {
         <LoadingSection />
         <FlipCardHeader />
         <FlipCardSection />
+        <RoadmapTestQuestionHeader />
+        <RoadmapTestQuestionSection />
+        <RoadmapTestDashboardHeader />
+        <RoadmapTestDashboardSection />
         <Navbar />
         <Footer />
       </View>
