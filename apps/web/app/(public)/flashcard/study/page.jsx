@@ -15,10 +15,10 @@ export default function FlashcardStudyPage() {
       title={topicTitle}
       onBackPress={() => router.push('/flashcard')}
       onLearnPress={() => {
-        /* có thể mở chế độ học chi tiết */
+        router.push(`/flashcard/learn?topic=${topicId}`)
       }}
       onTestPress={() => {
-        /* có thể chuyển sang chế độ kiểm tra */
+        router.push(`/flashcard/test?topic=${topicId}`)
       }}
     />
   )
