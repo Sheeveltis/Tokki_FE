@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import TestScreen from 'app/features/study/screens/Test'
+import TestScreen from 'app/features/study/screens/FlashcardTest'
 import { STUDY_PAGE_TITLES, TOPIC_TITLES } from 'app/features/study/constants'
 
 export default function FlashcardTestPage() {

@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
-import { QuestionCard } from '../../test/question-card.web'
+import { QuestionCard } from '../../flashcard/flashcard-test/question-card.web'
 
 /**
  * QuestionsList: Danh sách câu hỏi
