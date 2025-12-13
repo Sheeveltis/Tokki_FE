@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
 import { normalizeImageSource } from '../../../api'
-import PlayIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
+import PlayIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
 
 /**
  * PlayButton: Nút phát âm

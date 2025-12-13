@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
 import { normalizeImageSource } from '../../../api'
-import CloseIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
+import CloseIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
 
 /**
  * TestProgressHeader: Header với progress và nút close

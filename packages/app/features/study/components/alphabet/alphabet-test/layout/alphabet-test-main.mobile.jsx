@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
-import { LoadingWithContainer } from '../../../../../../components/Loading'
+import { LoadingWithContainer } from '../../../../../../../components/Loading'
 import {
   TestProgressHeader,
   QuestionsList,
