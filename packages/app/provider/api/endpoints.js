@@ -33,4 +33,8 @@ export const ENDPOINTS = {
       SEND_FORGOT_PASSWORD: '/Otp/forgot-password/send-otp',
       VERIFY_FORGOT_PASSWORD: '/Otp/forgot-password/verify',
     },
+    COMMENT: {
+      CREATE: '/Comment',
+      GET_BY_BLOG: (blogId) => `/Comment/blog/${blogId}`,
+    },
   }
