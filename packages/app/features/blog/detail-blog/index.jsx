@@ -3,7 +3,7 @@ import { Text, View, StyleSheet } from 'react-native'
 import { useParams } from 'solito/navigation'
 
 import { BlogLayout } from './components/blog-layout'
-import { getBlogDetail } from '../api/api'
+import { getBlogDetail, getAllBlogs } from '../api/api'
 import { Loading } from '../../../../components/Loading' 
 
 import { BlogMainContent } from './components/blog-main'
@@ -15,6 +15,7 @@ export function BlogDetailScreen() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [latestBlogs, setLatestBlogs] = useState([])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,8 +24,13 @@ export function BlogDetailScreen() {
       setError(null)
 
       try {
-        const result = await getBlogDetail(slug)
+        // Load blog detail và latest blogs song song
+        const [result, latest] = await Promise.all([
+          getBlogDetail(slug),
+          getAllBlogs({ pageNumber: 1, pageSize: 4, status: 1 }),
+        ])
         setData(result)
+        setLatestBlogs(latest.blogs || [])
       } catch (err) {
         console.error(err)
         setError(err.message)
@@ -68,7 +74,7 @@ export function BlogDetailScreen() {
   }
 
   return (
-    <BlogLayout relatedPosts={data?.relatedPosts || []}>
+    <BlogLayout relatedPosts={latestBlogs}>
       {renderContent()}
     </BlogLayout>
   )

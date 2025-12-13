@@ -150,11 +150,9 @@ export const getBlogsAdmin = async ({ pageNumber = 1, pageSize = 10, status } = 
   const items = Array.isArray(data.items) ? data.items.map((item) => ({
     ...item,
     // Chuẩn hóa để bảng hiển thị
-    authorName: item.authorName || item.authorId,
-  })) : []
-  console.log('items', items)
-  console.log('data', data)
-  return {
+      authorName: item.authorName || item.authorId,
+    })) : []
+    return {
     items,
     totalPages: data.totalPages || 1,
     totalCount: data.totalCount || (data.items?.length || 0),
@@ -193,3 +191,35 @@ export const createBlog = async (payload) => {
 
 // Alias to match the import in CreateBlogScreen (if you want to keep using createArticle)
 export const createArticle = createBlog
+
+/**
+ * Lấy danh sách comments của một blog
+ * @param {string} blogId - ID của blog
+ * @returns {Promise<Array>} Danh sách comments (đã có replies sẵn trong mỗi comment)
+ */
+export const getCommentsByBlog = async (blogId) => {
+  const res = await apiClient.get(ENDPOINTS.COMMENT.GET_BY_BLOG(blogId))
+  const data = res?.data?.data
+  // API đã trả về comments với replies sẵn, chỉ cần filter top-level comments (parentId = null)
+  if (Array.isArray(data)) {
+    return data.filter(c => !c.parentId) // Chỉ lấy comments gốc, replies đã có trong replies array
+  }
+  return []
+}
+
+/**
+ * Tạo comment mới hoặc reply comment
+ * @param {Object} payload - Dữ liệu comment
+ * @param {string} payload.blogId - ID của blog
+ * @param {string} payload.content - Nội dung comment
+ * @param {string|null} payload.parentId - ID của comment cha (null nếu là comment gốc)
+ * @returns {Promise<Object>} Response data
+ */
+export const createComment = async ({ blogId, content, parentId = null }) => {
+  const res = await apiClient.post(ENDPOINTS.COMMENT.CREATE, {
+    blogId,
+    content,
+    parentId: parentId || null,
+  })
+  return res.data
+}

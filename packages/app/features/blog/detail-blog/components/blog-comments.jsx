@@ -1,43 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native'
-
-/**
- * Mock data cho comments với avatar URLs thực tế
- */
-const MOCK_COMMENTS = [
-  {
-    id: 'comment-1',
-    authorName: 'Nguyễn Văn A',
-    authorAvatar: 'https://banobagi.vn/wp-content/uploads/2025/06/avatar-bua-2.jpg',
-    content: 'Bài viết rất hay và hữu ích! Cảm ơn tác giả đã chia sẻ.',
-    createdAt: '2025-11-28T10:30:00+00:00',
-    likes: 5,
-  },
-  {
-    id: 'comment-2',
-    authorName: 'Trần Thị B',
-    authorAvatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRne4izmLRyAgZg4kHx3xDUtrFZrNPdd8XLHQ&s',
-    content: 'Mình đã áp dụng một số quy tắc này khi đi ăn với đồng nghiệp Hàn Quốc, họ rất ấn tượng!',
-    createdAt: '2025-11-28T14:20:00+00:00',
-    likes: 3,
-  },
-  {
-    id: 'comment-3',
-    authorName: 'Lê Văn C',
-    authorAvatar: 'https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/482740eMe/anh-mo-ta.png',
-    content: 'Quy tắc về vị trí đũa mình chưa biết, cảm ơn bạn đã nhắc nhở!',
-    createdAt: '2025-11-29T09:15:00+00:00',
-    likes: 2,
-  },
-  {
-    id: 'comment-4',
-    authorName: 'Phạm Thị D',
-    authorAvatar: 'https://i.pravatar.cc/150?img=9',
-    content: 'Rất thích bài viết này! Mình sẽ chia sẻ cho bạn bè.',
-    createdAt: '2025-11-29T15:45:00+00:00',
-    likes: 1,
-  },
-]
+import { getCommentsByBlog, createComment } from '../../api/api'
 
 /**
  * BlogComments: Component hiển thị và quản lý comments
@@ -45,30 +8,78 @@ const MOCK_COMMENTS = [
  * @param {string} props.blogId - ID của blog
  */
 export function BlogComments({ blogId }) {
-  const [comments, setComments] = useState(MOCK_COMMENTS)
+  const [comments, setComments] = useState([])
   const [newComment, setNewComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [replyingTo, setReplyingTo] = useState(null)
+  const [replyContent, setReplyContent] = useState('')
+
+  // Load comments khi blogId thay đổi
+  useEffect(() => {
+    const loadComments = async () => {
+      if (!blogId) return
+      try {
+        setLoading(true)
+        // API đã trả về comments với replies sẵn trong mỗi comment
+        const data = await getCommentsByBlog(blogId)
+        setComments(data)
+      } catch (err) {
+        console.error('Error loading comments:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadComments()
+  }, [blogId])
 
   const handleSubmitComment = async () => {
-    if (!newComment.trim()) return
+    if (!newComment.trim() || !blogId) return
 
     setIsSubmitting(true)
-    
-    // Mock: Thêm comment mới
-    // Sau này sẽ gọi API: createComment(blogId, newComment)
-    setTimeout(() => {
-      const comment = {
-        id: `comment-${Date.now()}`,
-        authorName: 'Bạn',
-        authorAvatar: 'https://i.pravatar.cc/150?img=33',
+    try {
+      const response = await createComment({
+        blogId,
         content: newComment,
-        createdAt: new Date().toISOString(),
-        likes: 0,
+        parentId: null,
+      })
+      
+      if (response.isSuccess) {
+        // Reload comments sau khi tạo thành công
+        const data = await getCommentsByBlog(blogId)
+        setComments(data)
+        setNewComment('')
       }
-      setComments(prev => [comment, ...prev])
-      setNewComment('')
+    } catch (err) {
+      console.error('Error submitting comment:', err)
+    } finally {
       setIsSubmitting(false)
-    }, 500)
+    }
+  }
+
+  const handleSubmitReply = async (parentId) => {
+    if (!replyContent.trim() || !blogId || !parentId) return
+
+    setIsSubmitting(true)
+    try {
+      const response = await createComment({
+        blogId,
+        content: replyContent,
+        parentId,
+      })
+      
+      if (response.isSuccess) {
+        // Reload comments sau khi reply thành công
+        const data = await getCommentsByBlog(blogId)
+        setComments(data)
+        setReplyContent('')
+        setReplyingTo(null)
+      }
+    } catch (err) {
+      console.error('Error submitting reply:', err)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const formatDate = (dateString) => {
@@ -86,9 +97,11 @@ export function BlogComments({ blogId }) {
     return date.toLocaleDateString('vi-VN')
   }
 
+  const totalComments = comments.reduce((sum, c) => sum + 1 + (c.replies?.length || 0), 0)
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bình luận ({comments.length})</Text>
+      <Text style={styles.title}>Bình luận ({totalComments})</Text>
 
       {/* Form thêm comment mới */}
       <View style={styles.commentForm}>
@@ -112,31 +125,96 @@ export function BlogComments({ blogId }) {
       </View>
 
       {/* Danh sách comments */}
-      <ScrollView style={styles.commentsList}>
-        {comments.map((comment) => (
-          <View key={comment.id} style={styles.commentItem}>
-            <Image 
-              source={{ uri: comment.authorAvatar }} 
-              style={styles.commentAvatar}
-            />
-            <View style={styles.commentContent}>
-              <View style={styles.commentHeader}>
-                <Text style={styles.commentAuthor}>{comment.authorName}</Text>
-                <Text style={styles.commentDate}>{formatDate(comment.createdAt)}</Text>
+      {loading ? (
+        <Text style={styles.loadingText}>Đang tải bình luận...</Text>
+      ) : (
+        <ScrollView style={styles.commentsList}>
+          {comments.length === 0 ? (
+            <Text style={styles.emptyText}>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</Text>
+          ) : (
+            comments.map((comment) => (
+              <View key={comment.id}>
+                <View style={styles.commentItem}>
+                  <Image 
+                    source={{ uri: comment.authorAvatar || 'https://i.pravatar.cc/150?img=33' }} 
+                    style={styles.commentAvatar}
+                  />
+                  <View style={styles.commentContent}>
+                    <View style={styles.commentHeader}>
+                      <Text style={styles.commentAuthor}>{comment.authorName || 'Người dùng'}</Text>
+                      <Text style={styles.commentDate}>{formatDate(comment.createdAt)}</Text>
+                    </View>
+                    <Text style={styles.commentText}>{comment.content}</Text>
+                    <View style={styles.commentActions}>
+                      <TouchableOpacity 
+                        style={styles.actionButton}
+                        onPress={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                      >
+                        <Text style={styles.actionText}>Trả lời</Text>
+                      </TouchableOpacity>
+                    </View>
+                    
+                    {/* Form reply */}
+                    {replyingTo === comment.id && (
+                      <View style={styles.replyForm}>
+                        <TextInput
+                          style={styles.replyInput}
+                          placeholder="Viết phản hồi..."
+                          value={replyContent}
+                          onChangeText={setReplyContent}
+                          multiline
+                          numberOfLines={2}
+                        />
+                        <View style={styles.replyActions}>
+                          <TouchableOpacity
+                            style={styles.cancelButton}
+                            onPress={() => {
+                              setReplyingTo(null)
+                              setReplyContent('')
+                            }}
+                          >
+                            <Text style={styles.cancelButtonText}>Hủy</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[styles.replyButton, (!replyContent.trim() || isSubmitting) && styles.submitButtonDisabled]}
+                            onPress={() => handleSubmitReply(comment.id)}
+                            disabled={!replyContent.trim() || isSubmitting}
+                          >
+                            <Text style={styles.replyButtonText}>
+                              {isSubmitting ? 'Đang gửi...' : 'Gửi'}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Hiển thị replies */}
+                    {comment.replies && comment.replies.length > 0 && (
+                      <View style={styles.repliesContainer}>
+                        {comment.replies.map((reply) => (
+                          <View key={reply.id} style={styles.replyItem}>
+                            <Image 
+                              source={{ uri: reply.authorAvatar || 'https://i.pravatar.cc/150?img=33' }} 
+                              style={styles.replyAvatar}
+                            />
+                            <View style={styles.replyContent}>
+                              <View style={styles.commentHeader}>
+                                <Text style={styles.commentAuthor}>{reply.authorName || 'Người dùng'}</Text>
+                                <Text style={styles.commentDate}>{formatDate(reply.createdAt)}</Text>
+                              </View>
+                              <Text style={styles.commentText}>{reply.content}</Text>
+                            </View>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                </View>
               </View>
-              <Text style={styles.commentText}>{comment.content}</Text>
-              <View style={styles.commentActions}>
-                <TouchableOpacity style={styles.actionButton}>
-                  <Text style={styles.actionText}>👍 {comment.likes}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
-                  <Text style={styles.actionText}>Trả lời</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        ))}
-      </ScrollView>
+            ))
+          )}
+        </ScrollView>
+      )}
     </View>
   )
 }
@@ -234,6 +312,77 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 12,
     color: '#666',
+  },
+  replyForm: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  replyInput: {
+    borderWidth: 1,
+    borderColor: '#d0d0d0',
+    borderRadius: 6,
+    padding: 8,
+    fontSize: 14,
+    minHeight: 60,
+    marginBottom: 8,
+    textAlignVertical: 'top',
+  },
+  replyActions: {
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'flex-end',
+  },
+  cancelButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  cancelButtonText: {
+    fontSize: 12,
+    color: '#666',
+  },
+  replyButton: {
+    backgroundColor: '#1890ff',
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 4,
+  },
+  replyButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  repliesContainer: {
+    marginTop: 12,
+    paddingLeft: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: '#e0e0e0',
+  },
+  replyItem: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  replyAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 8,
+    backgroundColor: '#e0e0e0',
+  },
+  replyContent: {
+    flex: 1,
+  },
+  loadingText: {
+    textAlign: 'center',
+    color: '#999',
+    padding: 20,
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#999',
+    padding: 40,
+    fontStyle: 'italic',
   },
 })
 
