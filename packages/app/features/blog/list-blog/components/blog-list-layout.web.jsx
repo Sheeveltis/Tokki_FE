@@ -134,12 +134,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   mainContent: {
-    flex: 1,
-    flexDirection: 'row',
-    width: '100%',
-    maxWidth: 1400,
-    alignSelf: 'center',
+    width: '70%',
+    maxWidth: 1200,
     paddingHorizontal: 16,
+    flexDirection: 'row',
+    gap: 40,
+    alignItems: 'flex-start',
+    alignSelf: 'center',
     paddingVertical: 20,
   },
   contentArea: {
