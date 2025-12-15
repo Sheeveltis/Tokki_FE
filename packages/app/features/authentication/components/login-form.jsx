@@ -90,22 +90,22 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
       return
     }
 
+    setLoading(true)
+    setError(null)
+    setApiResponse(null)
+    setNotifyResponse(null)
+
     try {
-      setLoading(true)
-      setError(null)
-      setApiResponse(null)
-      setNotifyResponse(null)
-      
-      // Gọi API login
+      // Gọi API login (toàn bộ xử lý lỗi network / format response nằm trong tầng API)
       const response = await login({ email, password })
-      
+
       // Lưu response để hiển thị HelperAdmin
       setApiResponse(response)
-      
+
       // Xử lý khi đăng nhập thành công
       if (response.isSuccess && response.data) {
         const { token, fullName, role, avatarUrl } = response.data
-        
+
         // Lưu token để dùng cho các request authorize
         setAuthToken(token)
         // Lưu token vào localStorage để navbar nhận biết đã đăng nhập
@@ -117,7 +117,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
           role,
           avatarUrl,
         })
-        
+
         // Chuyển trang đến homepage sau khi hiển thị thông báo
         setTimeout(() => {
           router.push('/homepage')
@@ -125,36 +125,23 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
       } else {
         // Clear token nếu thất bại
         setToken(null)
-        // Chỉ hiển thị thông báo lỗi bằng React Native Alert, không hiển thị text lỗi ở dưới form
+
+        // Lưu response cho HelperAdmin và dòng lỗi dưới form
+        setNotifyResponse(response)
+
+        // Lấy message lỗi ưu tiên theo backend trả về
+        const msg =
+          (response && response.message) ||
+          (response && response.errors && response.errors[0]?.description) ||
+          'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
+
+        setError(msg)
+
+        // Vẫn hiển thị notification (Alert / toast) nếu hàm đã được dùng ở nơi khác
         showApiNotification(response)
       }
-    } catch (err) {
-      console.error('Login error:', err)
-      // Xử lý lỗi không mong đợi
-      const fallbackMsg = 'Lỗi hệ thống. Vui lòng thử lại sau.'
-      const errMsg = (typeof err?.message === 'string' && err.message) || ''
-      const lowerMsg = errMsg.toLowerCase()
-      const isConnRefused = lowerMsg.includes('err_connection_refused')
-      const isNetworkError = lowerMsg.includes('network error')
-      const finalMsg = isConnRefused || isNetworkError ? fallbackMsg : errMsg || fallbackMsg
-      const errorResponse = {
-        isSuccess: false,
-        data: null,
-        errors: [
-          {
-            code: 'Error.Unknown',
-            description: finalMsg,
-          },
-        ],
-        message: finalMsg,
-        statusCode: 500,
-      }
-      setApiResponse(errorResponse)
-      setNotifyResponse(errorResponse)
-      showApiNotification(errorResponse)
-      setError(errorResponse.message)
-      setToken(null)
     } finally {
+      // Đảm bảo luôn tắt trạng thái loading kể cả khi login ném lỗi ngoài ý muốn
       setLoading(false)
     }
   }

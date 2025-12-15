@@ -4,7 +4,6 @@
 import {
   mockUsers,
   mockLessons,
-  mockVocabularies,
   mockArticles,
   mockSystemLogs,
   mockPayments,
@@ -97,15 +96,6 @@ export async function fetchLessons() {
   }
 }
 
-export async function fetchVocabularies() {
-  try {
-    await delay()
-    return mockVocabularies
-  } catch (error) {
-    handleApiError(error, 'Không thể tải danh sách từ vựng')
-  }
-}
-
 export async function fetchArticles() {
   try {
     await delay()
@@ -140,15 +130,6 @@ export async function updateLesson(payload) {
     return { ...payload }
   } catch (error) {
     handleApiError(error, 'Không thể cập nhật bài học')
-  }
-}
-
-export async function updateVocabulary(payload) {
-  try {
-    await delay()
-    return { ...payload }
-  } catch (error) {
-    handleApiError(error, 'Không thể cập nhật từ vựng')
   }
 }
 

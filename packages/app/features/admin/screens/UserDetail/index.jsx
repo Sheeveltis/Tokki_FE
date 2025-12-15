@@ -19,13 +19,14 @@ import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
 import {
   fetchUsers,
   fetchLessons,
-  fetchVocabularies,
   fetchArticles,
   fetchSystemLogs,
 } from 'app/features/admin/api'
+import { fetchVocabularies, fetchFlashcardTopics } from 'app/features/vocabulary/api'
 import { UserManagement } from 'app/features/admin/screens/UserManagement'
 import { LessonManagement } from 'app/features/admin/screens/LessonManagement'
-import { VocabularyManagement } from 'app/features/admin/screens/VocabularyManagement'
+import { VocabularyManagement } from 'app/features/vocabulary/screens/VocabularyManagement'
+import { FlashcardTopicManagement } from 'app/features/vocabulary/screens/FlashcardTopicManagement'
 import { BlogManagement } from 'app/features/blog/blog-management'
 import { ChatSupport } from 'app/features/admin/screens/ChatSupport'
 import { AutoEmail } from 'app/features/admin/screens/AutoEmail'
@@ -45,7 +46,13 @@ export function UserDetailScreen() {
   const params = useParams()
   const searchParams = useSearchParams()
   const userId = params?.id
-  const defaultTab = searchParams?.get('tab') || 'users-all'
+  const tabParam = searchParams?.get('tab')
+  const defaultTab =
+    tabParam === 'vocab'
+      ? 'vocabulary-words'
+      : tabParam === 'vocab-topics'
+        ? 'vocabulary-topics'
+        : tabParam || 'users-all'
   const [isPending, startTransition] = useTransition()
 
   const [loading, setLoading] = useState(true)
@@ -54,6 +61,7 @@ export function UserDetailScreen() {
     users: [],
     lessons: [],
     vocab: [],
+    vocabTopics: [],
     articles: [],
     logs: [],
   })
@@ -65,15 +73,16 @@ export function UserDetailScreen() {
     let mounted = true
     const load = async () => {
       try {
-        const [users, lessons, vocab, articles, logs] = await Promise.all([
+        const [users, lessons, vocab, vocabTopics, articles, logs] = await Promise.all([
           fetchUsers(),
           fetchLessons(),
           fetchVocabularies(),
+          fetchFlashcardTopics(),
           fetchArticles(),
           fetchSystemLogs(),
         ])
         if (mounted) {
-          setInitialData({ users: users || [], lessons, vocab, articles, logs })
+          setInitialData({ users: users || [], lessons, vocab, vocabTopics, articles, logs })
         }
       } catch (err) {
         // Error message đã được xử lý trong api/index.js với apiErrors
@@ -223,7 +232,8 @@ export function UserDetailScreen() {
       // Khi đang ở trang chi tiết, cả hai tab Users nên hiển thị chi tiết để tránh nhảy về bảng.
       'users-admin': detailContent,
       lessons: <LessonManagement initialData={initialData.lessons} />,
-      vocab: <VocabularyManagement initialData={initialData.vocab} />,
+      'vocabulary-words': <VocabularyManagement initialData={initialData.vocab} />,
+      'vocabulary-topics': <FlashcardTopicManagement initialData={initialData.vocabTopics} />,
       blog: <BlogManagement initialData={initialData.articles} />,
       'chat-support': <ChatSupport initialData={initialData.users} />,
       'auto-email': <AutoEmail />,

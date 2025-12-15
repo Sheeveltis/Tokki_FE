@@ -89,6 +89,12 @@ export function AdminLayout({
     return children || screens[selectedKey] || screens[defaultKey] || null
   }, [children, screens, selectedKey, defaultKey])
 
+  const scrollHideStyles = `
+    .sider-scroll-hidden::-webkit-scrollbar {
+      display: none;
+    }
+  `
+
   const menuItems = [
     {
       key: 'users',
@@ -105,8 +111,16 @@ export function AdminLayout({
       label: 'Quản lý Nội dung',
       children: [
         { key: 'lessons', icon: <BookOutlined />, label: 'Bài học' },
-        { key: 'vocab', icon: <DatabaseOutlined />, label: 'Từ vựng' },
         { key: 'blog', icon: <FileTextOutlined />, label: 'Bài viết' },
+      ],
+    },
+    {
+      key: 'vocabulary',
+      icon: <DatabaseOutlined />,
+      label: 'Quản lý Từ vựng',
+      children: [
+        { key: 'vocabulary-words', icon: <DatabaseOutlined />, label: 'Quản lý từ vựng' },
+        { key: 'vocabulary-topics', icon: <BookOutlined />, label: 'Quản lý chủ đề' },
       ],
     },
     {
@@ -150,13 +164,21 @@ export function AdminLayout({
         toggleTheme: () => {},
       }}
     >
+      <style>{scrollHideStyles}</style>
       <ConfigProvider theme={{ algorithm, token: themeTokens }}>
         <Layout style={{ minHeight: '100vh' }}>
           <Layout.Sider
+            className="sider-scroll-hidden"
             collapsible
             collapsed={collapsed}
             onCollapse={(val) => setCollapsed(val)}
             width={240}
+            style={{
+              overflow: 'auto',
+              height: '100vh',
+              position: 'sticky',
+              top: 0,
+            }}
           >
             <div
               style={{
@@ -176,7 +198,7 @@ export function AdminLayout({
               theme="dark"
               mode="inline"
               selectedKeys={[selectedKey]}
-              defaultOpenKeys={['users', 'content', 'customer-service', 'revenue']}
+              defaultOpenKeys={['users', 'content', 'vocabulary', 'customer-service', 'revenue']}
               onClick={handleMenuClick}
               items={menuItems}
             />

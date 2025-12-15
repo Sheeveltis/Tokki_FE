@@ -18,22 +18,18 @@ export function NativeNavigation() {
       <Stack.Screen
         name="homepage"
         component={screen}
-        options={{ title: 'Trang Chủ' }}
       />
       <Stack.Screen
         name="login"
         component={LoginScreen}
-        options={{ title: 'Đăng nhập' }}
       />
       <Stack.Screen
         name="register"
         component={RegisterScreen}
-        options={{ title: 'Đăng ký' }}
       />
       <Stack.Screen
         name="package-premium"
         component={PremiumScreen}
-        options={{ title: 'Chọn gói Premium' }}
       />
     </Stack.Navigator>
   )

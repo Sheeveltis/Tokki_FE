@@ -10,9 +10,10 @@ import { verifyForgotPasswordOtp } from '../api/api'
  *  - visible: boolean - Hiển thị/ẩn modal
  *  - email: string - Email đã nhập từ InputEmail
  *  - onClose: () => void - Callback khi đóng modal
+ *  - verifyFn?: (email: string, otp: string) => Promise<any> - hàm verify tuỳ biến
  *  - onSuccess: (data) => void - Callback khi xác thực OTP thành công
  */
-export const InputOTP = ({ visible, email, onClose, onSuccess }) => {
+export const InputOTP = ({ visible, email, onClose, onSuccess, verifyFn }) => {
   const [otpCode, setOtpCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -32,7 +33,8 @@ export const InputOTP = ({ visible, email, onClose, onSuccess }) => {
     try {
       setLoading(true)
       setError('')
-      const response = await verifyForgotPasswordOtp(email, otpCode.trim())
+      const verify = verifyFn || verifyForgotPasswordOtp
+      const response = await verify(email, otpCode.trim())
       
       if (onSuccess) {
         onSuccess(response)

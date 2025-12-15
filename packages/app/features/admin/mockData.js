@@ -50,37 +50,6 @@ export const mockLessons = [
   { id: 'l22', title: 'Lesson 22: Festivals and Holidays', author: 'Truong Thi M', updatedAt: '2024-05-01' },
 ]
 
-export const mockVocabularies = [
-  { id: 'v1', word: '안녕하세요', meaning: 'Xin chào', level: 'Sơ cấp' },
-  { id: 'v2', word: '감사합니다', meaning: 'Cảm ơn', level: 'Sơ cấp' },
-  { id: 'v3', word: '죄송합니다', meaning: 'Xin lỗi', level: 'Sơ cấp' },
-  { id: 'v4', word: '안녕히 가세요', meaning: 'Tạm biệt (người ở lại nói)', level: 'Sơ cấp' },
-  { id: 'v5', word: '안녕히 계세요', meaning: 'Tạm biệt (người rời đi nói)', level: 'Sơ cấp' },
-  { id: 'v6', word: '주세요', meaning: 'Làm ơn / Vui lòng cho', level: 'Sơ cấp' },
-  { id: 'v7', word: '괜찮아요', meaning: 'Không sao / Ổn', level: 'Sơ cấp' },
-  { id: 'v8', word: '사랑', meaning: 'Tình yêu', level: 'Sơ cấp' },
-  { id: 'v9', word: '행복', meaning: 'Hạnh phúc', level: 'Sơ cấp' },
-  { id: 'v10', word: '친구', meaning: 'Bạn bè', level: 'Sơ cấp' },
-  { id: 'v11', word: '아침', meaning: 'Buổi sáng', level: 'Sơ cấp' },
-  { id: 'v12', word: '점심', meaning: 'Buổi trưa', level: 'Sơ cấp' },
-  { id: 'v13', word: '저녁', meaning: 'Buổi tối', level: 'Sơ cấp' },
-  { id: 'v14', word: '학교', meaning: 'Trường học', level: 'Sơ cấp' },
-  { id: 'v15', word: '회사', meaning: 'Công ty', level: 'Sơ cấp' },
-  { id: 'v16', word: '맛있다', meaning: 'Ngon', level: 'Sơ cấp' },
-  { id: 'v17', word: '어려워요', meaning: 'Khó', level: 'Trung cấp' },
-  { id: 'v18', word: '중요하다', meaning: 'Quan trọng', level: 'Trung cấp' },
-  { id: 'v19', word: '재미있다', meaning: 'Thú vị', level: 'Trung cấp' },
-  { id: 'v20', word: '도와주다', meaning: 'Giúp đỡ', level: 'Trung cấp' },
-  { id: 'v21', word: '이해하다', meaning: 'Hiểu', level: 'Trung cấp' },
-  { id: 'v22', word: '성공', meaning: 'Thành công', level: 'Trung cấp' },
-  { id: 'v23', word: '도전', meaning: 'Thử thách', level: 'Trung cấp' },
-  { id: 'v24', word: '효율적이다', meaning: 'Hiệu quả', level: 'Trung cấp' },
-  { id: 'v25', word: '모호하다', meaning: 'Mơ hồ', level: 'Cao cấp' },
-  { id: 'v26', word: '정교하다', meaning: 'Tinh vi / Tinh xảo', level: 'Cao cấp' },
-  { id: 'v27', word: '보편적이다', meaning: 'Phổ biến', level: 'Cao cấp' },
-  { id: 'v28', word: '패러다임', meaning: 'Mô hình / Paradigm', level: 'Cao cấp' },
-]
-
 export const mockArticles = [
   { id: 'a1', title: 'Học tiếng Anh hiệu quả', author: 'Content Team', published: true },
   { id: 'a2', title: 'Mẹo phát âm chuẩn', author: 'Linguist', published: false },

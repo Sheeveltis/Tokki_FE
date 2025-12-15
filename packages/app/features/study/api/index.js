@@ -35,12 +35,12 @@ export const getFlashcardTopics = async (levelId) => {
     // return Array.isArray(data) ? data : []
     
     // Fallback về mock data nếu API chưa sẵn sàng
-    const { FLASHCARD_TOPICS } = await import('../mockData')
+    const { FLASHCARD_TOPICS } = await import('../../vocabulary/mockData')
     return Promise.resolve(FLASHCARD_TOPICS)
   } catch (error) {
     console.error('Error fetching flashcard topics:', error)
     // Fallback về mock data khi có lỗi
-    const { FLASHCARD_TOPICS } = await import('../mockData')
+    const { FLASHCARD_TOPICS } = await import('../../vocabulary/mockData')
     return FLASHCARD_TOPICS
   }
 }
@@ -60,12 +60,12 @@ export const getFlashcardsByTopic = async (topicId) => {
     // return Array.isArray(data) ? data : []
     
     // Fallback về mock data nếu API chưa sẵn sàng
-    const { FLASHCARDS } = await import('../mockData')
+    const { FLASHCARDS } = await import('../../vocabulary/mockData')
     return Promise.resolve(FLASHCARDS)
   } catch (error) {
     console.error('Error fetching flashcards by topic:', error)
     // Fallback về mock data khi có lỗi
-    const { FLASHCARDS } = await import('../mockData')
+    const { FLASHCARDS } = await import('../../vocabulary/mockData')
     return FLASHCARDS
   }
 }

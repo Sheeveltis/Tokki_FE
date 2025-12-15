@@ -1,10 +1,3 @@
-import Bunny1 from '../../../assets/bunny/14.png'
-import Bunny2 from '../../../assets/bunny/15.png'
-import Bunny3 from '../../../assets/bunny/13.png'
-import Bunny4 from '../../../assets/bunny/12.png'
-import Bunny5 from '../../../assets/bunny/11.png'
-import Bunny6 from '../../../assets/bunny/10.png'
-
 import HeadphoneIcon from '../../../assets/icon/icon-mainflow/headphone.svg'
 import RadioIcon from '../../../assets/icon/icon-mainflow/radio.svg'
 import PodcastIcon from '../../../assets/icon/icon-mainflow/podcast.svg'
@@ -22,38 +15,7 @@ import FolderIcon from '../../../assets/icon/icon-mainflow/folder.svg'
 import GameIcon from '../../../assets/icon/icon-mainflow/game.svg'
 import WriteIcon from '../../../assets/icon/icon-mainflow/write.svg'
 
-/**
- * Mock data cho flashcard topics
- */
-export const FLASHCARD_TOPICS = [
-  { id: 'hobby', title: '취미', subtitle: 'Sở thích', icon: Bunny1 },
-  { id: 'family', title: '가족', subtitle: 'Gia đình', icon: Bunny2 },
-  { id: 'job', title: '직업', subtitle: 'Công việc', icon: Bunny3 },
-  { id: 'school', title: '학교', subtitle: 'Trường học', icon: Bunny4 },
-  { id: 'life', title: '생활', subtitle: 'Đời sống sinh hoạt', icon: Bunny5 },
-  { id: 'sport', title: '스포츠', subtitle: 'Thể thao', icon: Bunny6, muted: true },
-]
-
-/**
- * Mock data cho flashcards
- */
-export const FLASHCARDS = [
-  { word: '한국어', meaning: 'Tiếng Hàn' },
-  { word: '학교', meaning: 'Trường học' },
-  { word: '친구', meaning: 'Bạn bè' },
-  { word: '가족', meaning: 'Gia đình' },
-  { word: '음식', meaning: 'Đồ ăn' },
-  { word: '회사', meaning: 'Công ty' },
-  { word: '선생님', meaning: 'Giáo viên' },
-  { word: '학생', meaning: 'Học sinh' },
-  { word: '책', meaning: 'Sách' },
-  { word: '시간', meaning: 'Thời gian' },
-  { word: '도서관', meaning: 'Thư viện' },
-  { word: '운동', meaning: 'Thể dục' },
-  { word: '집', meaning: 'Nhà' },
-  { word: '물', meaning: 'Nước' },
-  { word: '돈', meaning: 'Tiền' },
-]
+export { FLASHCARD_TOPICS, FLASHCARDS } from '../vocabulary/mockData'
 
 /**
  * Mock data cho chữ cái Hàn Quốc (Hangul)

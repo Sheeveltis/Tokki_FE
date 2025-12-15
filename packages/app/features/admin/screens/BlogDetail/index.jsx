@@ -9,13 +9,14 @@ import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
 import {
   fetchUsers,
   fetchLessons,
-  fetchVocabularies,
   fetchArticles,
   fetchSystemLogs,
 } from 'app/features/admin/api'
+import { fetchVocabularies, fetchFlashcardTopics } from 'app/features/vocabulary/api'
 import { UserManagement } from 'app/features/admin/screens/UserManagement'
 import { LessonManagement } from 'app/features/admin/screens/LessonManagement'
-import { VocabularyManagement } from 'app/features/admin/screens/VocabularyManagement'
+import { VocabularyManagement } from 'app/features/vocabulary/screens/VocabularyManagement'
+import { FlashcardTopicManagement } from 'app/features/vocabulary/screens/FlashcardTopicManagement'
 import { BlogManagement } from 'app/features/blog/blog-management'
 import { ChatSupport } from 'app/features/admin/screens/ChatSupport'
 import { AutoEmail } from 'app/features/admin/screens/AutoEmail'
@@ -33,7 +34,13 @@ export function BlogDetailScreen() {
   const params = useParams()
   const searchParams = useSearchParams()
   const blogId = params?.id
-  const defaultTab = searchParams?.get('tab') || 'blog'
+  const tabParam = searchParams?.get('tab')
+  const defaultTab =
+    tabParam === 'vocab'
+      ? 'vocabulary-words'
+      : tabParam === 'vocab-topics'
+        ? 'vocabulary-topics'
+        : tabParam || 'blog'
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -41,6 +48,7 @@ export function BlogDetailScreen() {
     users: [],
     lessons: [],
     vocab: [],
+    vocabTopics: [],
     articles: [],
     logs: [],
   })
@@ -50,15 +58,16 @@ export function BlogDetailScreen() {
     let mounted = true
     const load = async () => {
       try {
-        const [users, lessons, vocab, articles, logs] = await Promise.all([
+        const [users, lessons, vocab, vocabTopics, articles, logs] = await Promise.all([
           fetchUsers(),
           fetchLessons(),
           fetchVocabularies(),
+          fetchFlashcardTopics(),
           fetchArticles(),
           fetchSystemLogs(),
         ])
         if (mounted) {
-          setInitialData({ users: users || [], lessons, vocab, articles, logs })
+          setInitialData({ users: users || [], lessons, vocab, vocabTopics, articles, logs })
         }
       } catch (err) {
         if (mounted) setError(err?.message || 'Không thể tải dữ liệu bài viết.')
@@ -166,7 +175,8 @@ export function BlogDetailScreen() {
     'users-all': <UserManagement mode="all" initialData={initialData.users} />,
     'users-admin': <UserManagement mode="admin" initialData={initialData.users} />,
     lessons: <LessonManagement initialData={initialData.lessons} />,
-    vocab: <VocabularyManagement initialData={initialData.vocab} />,
+    'vocabulary-words': <VocabularyManagement initialData={initialData.vocab} />,
+    'vocabulary-topics': <FlashcardTopicManagement initialData={initialData.vocabTopics} />,
     blog: detailContent,
     'chat-support': <ChatSupport initialData={initialData.users} />,
     'auto-email': <AutoEmail />,

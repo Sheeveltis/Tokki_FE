@@ -2,19 +2,15 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Card, Space, Typography, Descriptions, Spin, Alert } from 'antd'
+import { Space, Typography, Spin, Alert } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
-import {
-  fetchUsers,
-  fetchLessons,
-  fetchVocabularies,
-  fetchArticles,
-  fetchSystemLogs,
-} from 'app/features/admin/api'
+import { fetchUsers, fetchLessons, fetchArticles, fetchSystemLogs } from 'app/features/admin/api'
+import { fetchVocabularies, fetchFlashcardTopics, updateVocabulary } from '../../api'
 import { UserManagement } from 'app/features/admin/screens/UserManagement'
 import { LessonManagement } from 'app/features/admin/screens/LessonManagement'
-import { VocabularyManagement } from 'app/features/admin/screens/VocabularyManagement'
+import { VocabularyManagement } from '../VocabularyManagement'
+import { FlashcardTopicManagement } from '../FlashcardTopicManagement'
 import { BlogManagement } from 'app/features/blog/blog-management'
 import { ChatSupport } from 'app/features/admin/screens/ChatSupport'
 import { AutoEmail } from 'app/features/admin/screens/AutoEmail'
@@ -24,6 +20,9 @@ import { PaymentManagement } from 'app/features/admin/screens/PaymentManagement'
 import { RevenueReport } from 'app/features/admin/screens/RevenueReport'
 import { SystemLog } from 'app/features/admin/screens/SystemLog'
 import { Settings } from 'app/features/admin/screens/Settings'
+import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
+import VocabularyEditModal from './components/vocabulary-edit-modal'
+import VocabularyInfoCard from './components/vocabulary-info-card'
 
 const { Title, Text } = Typography
 
@@ -32,7 +31,13 @@ export function VocabularyDetailScreen() {
   const params = useParams()
   const searchParams = useSearchParams()
   const vocabId = params?.id
-  const defaultTab = searchParams?.get('tab') || 'vocab'
+  const tabParam = searchParams?.get('tab')
+  const defaultTab =
+    tabParam === 'vocab'
+      ? 'vocabulary-words'
+      : tabParam === 'vocab-topics'
+        ? 'vocabulary-topics'
+        : tabParam || 'vocabulary-words'
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -40,24 +45,28 @@ export function VocabularyDetailScreen() {
     users: [],
     lessons: [],
     vocab: [],
+    vocabTopics: [],
     articles: [],
     logs: [],
   })
   const [detailVocab, setDetailVocab] = useState(null)
+  const [editOpen, setEditOpen] = useState(false)
+  const [editLoading, setEditLoading] = useState(false)
 
   useEffect(() => {
     let mounted = true
     const load = async () => {
       try {
-        const [users, lessons, vocab, articles, logs] = await Promise.all([
+        const [users, lessons, vocab, vocabTopics, articles, logs] = await Promise.all([
           fetchUsers(),
           fetchLessons(),
           fetchVocabularies(),
+          fetchFlashcardTopics(),
           fetchArticles(),
           fetchSystemLogs(),
         ])
         if (mounted) {
-          setInitialData({ users: users || [], lessons, vocab, articles, logs })
+          setInitialData({ users: users || [], lessons, vocab, vocabTopics, articles, logs })
         }
       } catch (err) {
         if (mounted) setError(err?.message || 'Không thể tải dữ liệu từ vựng.')
@@ -72,7 +81,7 @@ export function VocabularyDetailScreen() {
   }, [])
 
   const vocabItem = useMemo(
-    () => (initialData.vocab || []).find((v) => v.id === vocabId),
+    () => (initialData.vocab || []).find((v) => v.vocabularyId === vocabId || v.id === vocabId),
     [initialData.vocab, vocabId],
   )
 
@@ -85,6 +94,26 @@ export function VocabularyDetailScreen() {
   const handleNavigate = (key) => {
     if (key) {
       router.push(`/admin?tab=${key}`)
+    }
+  }
+
+  const handleUpdate = async (values) => {
+    try {
+      setEditLoading(true)
+      const payload = {
+        ...detailVocab,
+        ...values,
+        vocabularyId: detailVocab?.vocabularyId || detailVocab?.id,
+        id: detailVocab?.vocabularyId || detailVocab?.id,
+      }
+      const updated = await updateVocabulary(payload)
+      showAdminSuccess('Đã cập nhật từ vựng')
+      setDetailVocab(updated)
+      setEditOpen(false)
+    } catch (err) {
+      showAdminError('Cập nhật từ vựng thất bại')
+    } finally {
+      setEditLoading(false)
     }
   }
 
@@ -104,11 +133,7 @@ export function VocabularyDetailScreen() {
       return (
         <div style={{ padding: 24 }}>
           <Alert type="error" message="Lỗi" description={error} />
-          <ButtonV2
-            title="Quay lại Admin"
-            style={{ marginTop: 10, minWidth: 120 }}
-            onPress={() => router.push('/admin')}
-          />
+          <ButtonV2 title="Quay lại Admin" style={{ marginTop: 10, minWidth: 120 }} onPress={() => router.push('/admin')} />
         </div>
       )
     }
@@ -120,7 +145,7 @@ export function VocabularyDetailScreen() {
           <ButtonV2
             title="Quay lại danh sách"
             style={{ marginTop: 12, minWidth: 140 }}
-            onPress={() => router.push('/admin?tab=vocab')}
+            onPress={() => router.push('/admin?tab=vocabulary-words')}
           />
         </div>
       )
@@ -134,26 +159,43 @@ export function VocabularyDetailScreen() {
               <Title level={3} style={{ marginBottom: 4 }}>
                 Chi tiết từ vựng
               </Title>
-              <Text type="secondary">ID: {detailVocab.id}</Text>
+              <Text type="secondary">ID: {detailVocab.vocabularyId || detailVocab.id}</Text>
             </div>
             <Space>
               <ButtonV2
+                title="Chỉnh sửa"
+                color="poppy"
+                onPress={() => setEditOpen(true)}
+                style={{ minWidth: 110, paddingVertical: 10 }}
+                textStyle={{ fontSize: 14 }}
+              />
+              <ButtonV2
+                title="Xóa"
+                color="charcoal"
+                onPress={() => {
+                  // TODO: hook up delete API/confirm
+                }}
+                style={{ minWidth: 90, paddingVertical: 10 }}
+                textStyle={{ fontSize: 14 }}
+              />
+              <ButtonV2
                 title="Quay lại"
                 color="mint"
-                onPress={() => router.push('/admin?tab=vocab')}
+                onPress={() => router.push('/admin?tab=vocabulary-words')}
                 style={{ minWidth: 100, paddingVertical: 10 }}
                 textStyle={{ fontSize: 14 }}
               />
             </Space>
           </Space>
 
-          <Card>
-            <Descriptions column={1} bordered size="middle">
-              <Descriptions.Item label="Từ">{detailVocab.word || '-'}</Descriptions.Item>
-              <Descriptions.Item label="Nghĩa">{detailVocab.meaning || '-'}</Descriptions.Item>
-              <Descriptions.Item label="Level">{detailVocab.level || '-'}</Descriptions.Item>
-            </Descriptions>
-          </Card>
+          <VocabularyInfoCard vocab={detailVocab} />
+          <VocabularyEditModal
+            open={editOpen}
+            loading={editLoading}
+            initialValues={detailVocab || {}}
+            onCancel={() => setEditOpen(false)}
+            onSubmit={handleUpdate}
+          />
         </Space>
       </div>
     )
@@ -163,7 +205,8 @@ export function VocabularyDetailScreen() {
     'users-all': <UserManagement mode="all" initialData={initialData.users} />,
     'users-admin': <UserManagement mode="admin" initialData={initialData.users} />,
     lessons: <LessonManagement initialData={initialData.lessons} />,
-    vocab: detailContent,
+    'vocabulary-words': detailContent,
+    'vocabulary-topics': <FlashcardTopicManagement initialData={initialData.vocabTopics} />,
     blog: <BlogManagement initialData={initialData.articles} />,
     'chat-support': <ChatSupport initialData={initialData.users} />,
     'auto-email': <AutoEmail />,
@@ -186,5 +229,4 @@ export function VocabularyDetailScreen() {
 }
 
 export default VocabularyDetailScreen
-
 

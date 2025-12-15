@@ -8,13 +8,14 @@ import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
 import {
   fetchUsers,
   fetchLessons,
-  fetchVocabularies,
   fetchArticles,
   fetchSystemLogs,
 } from 'app/features/admin/api'
+import { fetchVocabularies, fetchFlashcardTopics } from 'app/features/vocabulary/api'
 import { UserManagement } from 'app/features/admin/screens/UserManagement'
 import { LessonManagement } from 'app/features/admin/screens/LessonManagement'
-import { VocabularyManagement } from 'app/features/admin/screens/VocabularyManagement'
+import { VocabularyManagement } from 'app/features/vocabulary/screens/VocabularyManagement'
+import { FlashcardTopicManagement } from 'app/features/vocabulary/screens/FlashcardTopicManagement'
 import { BlogManagement } from 'app/features/blog/blog-management'
 import { ChatSupport } from 'app/features/admin/screens/ChatSupport'
 import { AutoEmail } from 'app/features/admin/screens/AutoEmail'
@@ -32,7 +33,13 @@ export function LessonDetailScreen() {
   const params = useParams()
   const searchParams = useSearchParams()
   const lessonId = params?.id
-  const defaultTab = searchParams?.get('tab') || 'lessons'
+  const tabParam = searchParams?.get('tab')
+  const defaultTab =
+    tabParam === 'vocab'
+      ? 'vocabulary-words'
+      : tabParam === 'vocab-topics'
+        ? 'vocabulary-topics'
+        : tabParam || 'lessons'
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -40,6 +47,7 @@ export function LessonDetailScreen() {
     users: [],
     lessons: [],
     vocab: [],
+    vocabTopics: [],
     articles: [],
     logs: [],
   })
@@ -49,15 +57,16 @@ export function LessonDetailScreen() {
     let mounted = true
     const load = async () => {
       try {
-        const [users, lessons, vocab, articles, logs] = await Promise.all([
+        const [users, lessons, vocab, vocabTopics, articles, logs] = await Promise.all([
           fetchUsers(),
           fetchLessons(),
           fetchVocabularies(),
+          fetchFlashcardTopics(),
           fetchArticles(),
           fetchSystemLogs(),
         ])
         if (mounted) {
-          setInitialData({ users: users || [], lessons, vocab, articles, logs })
+          setInitialData({ users: users || [], lessons, vocab, vocabTopics, articles, logs })
         }
       } catch (err) {
         if (mounted) setError(err?.message || 'Không thể tải dữ liệu bài học.')
@@ -161,7 +170,8 @@ export function LessonDetailScreen() {
     'users-all': <UserManagement mode="all" initialData={initialData.users} />,
     'users-admin': <UserManagement mode="admin" initialData={initialData.users} />,
     lessons: detailContent,
-    vocab: <VocabularyManagement initialData={initialData.vocab} />,
+    'vocabulary-words': <VocabularyManagement initialData={initialData.vocab} />,
+    'vocabulary-topics': <FlashcardTopicManagement initialData={initialData.vocabTopics} />,
     blog: <BlogManagement initialData={initialData.articles} />,
     'chat-support': <ChatSupport initialData={initialData.users} />,
     'auto-email': <AutoEmail />,

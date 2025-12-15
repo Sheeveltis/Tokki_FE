@@ -8,11 +8,13 @@ import {
   fetchRegularUsers,
   fetchLessons,
   fetchVocabularies,
+  fetchFlashcardTopics,
   fetchArticles,
 } from './api'
 // Reuse screens từ admin
 import { LessonManagement } from '../admin/screens/LessonManagement'
-import { VocabularyManagement } from '../admin/screens/VocabularyManagement'
+import { VocabularyManagement } from '../vocabulary/screens/VocabularyManagement'
+import { FlashcardTopicManagement } from '../vocabulary/screens/FlashcardTopicManagement'
 import { BlogManagement } from '../blog/blog-management'
 import { ChatSupport } from '../admin/screens/ChatSupport'
 import { AutoEmail } from '../admin/screens/AutoEmail'
@@ -32,6 +34,7 @@ export function StaffScreen() {
     users: null,
     lessons: null,
     vocab: null,
+    vocabTopics: null,
     articles: null,
   })
 
@@ -39,19 +42,20 @@ export function StaffScreen() {
     let mounted = true
     const loadAll = async () => {
       try {
-        const [users, lessons, vocab, articles] = await Promise.all([
+        const [users, lessons, vocab, vocabTopics, articles] = await Promise.all([
           fetchRegularUsers(),
           fetchLessons(),
           fetchVocabularies(),
+          fetchFlashcardTopics(),
           fetchArticles(),
         ])
         if (mounted) {
-          setInitialData({ users, lessons, vocab, articles })
+          setInitialData({ users, lessons, vocab, vocabTopics, articles })
         }
       } catch (error) {
         console.error('Lỗi tải dữ liệu staff:', error.message)
         if (mounted) {
-          setInitialData({ users: [], lessons: [], vocab: [], articles: [] })
+          setInitialData({ users: [], lessons: [], vocab: [], vocabTopics: [], articles: [] })
         }
       } finally {
         if (mounted) setBootLoading(false)
@@ -68,7 +72,8 @@ export function StaffScreen() {
     () => ({
       users: <UserManagement initialData={initialData.users} />,
       lessons: <LessonManagement initialData={initialData.lessons} />,
-      vocab: <VocabularyManagement initialData={initialData.vocab} />,
+      'vocabulary-words': <VocabularyManagement initialData={initialData.vocab} />,
+      'vocabulary-topics': <FlashcardTopicManagement initialData={initialData.vocabTopics} />,
       blog: <BlogManagement initialData={initialData.articles} />,
       'chat-support': <ChatSupport initialData={initialData.users} />,
       'auto-email': <AutoEmail />,
@@ -102,7 +107,13 @@ export function StaffScreen() {
   return (
     <StaffLayout
       screens={screens}
-      defaultKey={tab || 'users'}
+      defaultKey={
+        (tab === 'vocab'
+          ? 'vocabulary-words'
+          : tab === 'vocab-topics'
+            ? 'vocabulary-topics'
+            : tab) || 'users'
+      }
       onNavigate={handleNavigate}
       onLogout={() => {
         console.log('Đăng xuất')

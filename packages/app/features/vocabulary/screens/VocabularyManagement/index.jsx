@@ -33,18 +33,18 @@ export function VocabularyManagement({ initialData = null }) {
   const filteredData = useMemo(() => {
     const q = search.trim().toLowerCase()
     if (!q) return data
-    return data.filter(
-      (item) =>
-        item.word.toLowerCase().includes(q) ||
-        (item.meaning || '').toLowerCase().includes(q) ||
-        (item.level || '').toLowerCase().includes(q),
-    )
+    return data.filter((item) => {
+      const inText = (item.text || '').toLowerCase().includes(q)
+      const inPronounce = (item.pronunciation || '').toLowerCase().includes(q)
+      const inDef = (item.definition || '').toLowerCase().includes(q)
+      return inText || inPronounce || inDef
+    })
   }, [data, search])
 
   const columns = [
-    { title: 'Từ', dataIndex: 'word', key: 'word' },
-    { title: 'Nghĩa', dataIndex: 'meaning', key: 'meaning' },
-    { title: 'Level', dataIndex: 'level', key: 'level' },
+    { title: 'Từ', dataIndex: 'text', key: 'text' },
+    { title: 'Phiên âm', dataIndex: 'pronunciation', key: 'pronunciation' },
+    { title: 'Nghĩa', dataIndex: 'definition', key: 'definition' },
     {
       title: 'Xem',
       key: 'actions',
@@ -54,7 +54,7 @@ export function VocabularyManagement({ initialData = null }) {
         <div
           onClick={(e) => {
             e?.stopPropagation?.()
-            router.push(`/admin/vocab/${record.id}`)
+            router.push(`/admin/vocab/${record.vocabularyId || record.id}`)
           }}
           style={{
             display: 'flex',
@@ -87,6 +87,7 @@ export function VocabularyManagement({ initialData = null }) {
           onPress={() => router.push('/admin/vocab/create')}
           style={{ minWidth: 80, paddingVertical: 10 }}
           textStyle={{ fontSize: 14 }}
+          icon={<PlusOutlined />}
         />
       </Space>
       <ManagementTable

@@ -15,24 +15,25 @@ export const showApiNotification = (response) => {
     return
   }
 
-  const title = response.isSuccess ? 'Thành công' : 'Lỗi'
-  // Chỉ hiển thị message, không hiển thị statusCode cho user
-  const message = response.message || (response.isSuccess ? 'Thành công' : 'Đã xảy ra lỗi')
+  // Title lấy từ message (yêu cầu: message là title)
+  const title = response.message || (response.isSuccess ? 'Thành công' : 'Thất bại')
 
-  // Chỉ hiển thị description từ errors (không hiển thị code)
+  // Description:
+  // - Nếu thành công: ưu tiên data (string) để hiển thị nội dung thông báo
+  // - Nếu lỗi: lấy errors[].description
   let description = ''
-  if (response.errors && response.errors.length > 0) {
+  if (response.isSuccess && typeof response.data === 'string') {
+    description = response.data
+  } else if (response.errors && response.errors.length > 0) {
     description = response.errors
-      .map((err) => err.description) // Chỉ lấy description, bỏ code
+      .map((err) => err.description)
       .join('\n')
   }
 
-  // Hiển thị Alert
-  Alert.alert(
-    title,
-    description ? `${message}\n\n${description}` : message,
-    [{ text: 'OK' }]
-  )
+  // Nếu không có description, fallback dùng title làm nội dung
+  const body = description || title
+
+  Alert.alert(title, body, [{ text: 'OK' }])
 }
 
 /**
@@ -52,6 +53,6 @@ export const showSuccess = (message) => {
  */
 export const showError = (message, statusCode = null) => {
   // Không hiển thị statusCode cho user, chỉ hiển thị message
-  Alert.alert('Lỗi', message, [{ text: 'OK' }])
+  Alert.alert('Thất bại', message, [{ text: 'OK' }])
 }
 

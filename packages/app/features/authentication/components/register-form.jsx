@@ -4,11 +4,12 @@ import { useRouter } from 'solito/navigation'
 import { TextInput } from '../../../../components/textInput'
 import { DatePicker } from '../../../components/datePicker'
 import { Button } from '../../../../components/button'
-import { register } from '../api'
+import { register, sendEmailVerificationOtp, verifyEmailOtp } from '../api'
 import { showApiNotification } from '../helpers/notification'
 import { HelperAdmin } from '../../../../components/HelperAdmin'
 import LogoImage from '../../../../assets/logo-text.png'
 import HomeIcon from '../../../../assets/icon/icon-mainflow/home.svg'
+import { InputOTP } from '../forgot-password/components/input-OTP'
 
 /**
  * RegisterPanel: cột bên phải cho màn Đăng ký
@@ -31,6 +32,9 @@ export function RegisterPanel({ onPressLogin }) {
   const [error, setError] = useState(null)
   const [apiResponse, setApiResponse] = useState(null)
   const [notifyResponse, setNotifyResponse] = useState(null)
+  const [showOtpModal, setShowOtpModal] = useState(false)
+  const [isEmailVerified, setIsEmailVerified] = useState(false)
+  const [otpSending, setOtpSending] = useState(false)
 
   // Chuẩn hoá source để hỗ trợ cả import module (Next/webpack) lẫn require/uri
   const normalizeImageSource = (src) => {
@@ -44,6 +48,85 @@ export function RegisterPanel({ onPressLogin }) {
 
   const logoSource = normalizeImageSource(LogoImage)
   const homeIconSource = normalizeImageSource(HomeIcon)
+
+  const handleOpenOtpModal = async () => {
+    if (otpSending) return
+    // Kiểm tra email trước khi cho nhập OTP
+    if (!email || !email.trim()) {
+      const msg = 'Vui lòng nhập email trước khi xác thực.'
+      setError(msg)
+      setNotifyResponse({
+        isSuccess: false,
+        message: msg,
+        statusCode: 400,
+      })
+      return
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email.trim())) {
+      const msg = 'Email không hợp lệ.'
+      setError(msg)
+      setNotifyResponse({
+        isSuccess: false,
+        message: msg,
+        statusCode: 400,
+      })
+      return
+    }
+
+    // Reset trạng thái xác thực mỗi khi thay đổi email
+    setIsEmailVerified(false)
+
+    try {
+      setOtpSending(true)
+      // Gửi OTP xác thực email
+      const resp = await sendEmailVerificationOtp(email.trim())
+
+      if (resp?.isSuccess) {
+        // Thông báo thành công và mở modal nhập OTP
+        setApiResponse(resp)
+        setNotifyResponse(null)
+        showApiNotification({
+          ...resp,
+          message: resp.message || 'Đã gửi OTP tới email.',
+        })
+        setShowOtpModal(true)
+      } else {
+        // Lưu để HelperAdmin hiển thị lỗi
+        setNotifyResponse(resp)
+        setApiResponse(null)
+        const msg =
+          (resp && resp.message) ||
+          (resp && resp.errors && resp.errors[0]?.description) ||
+          'Gửi OTP thất bại.'
+        setError(msg)
+        showApiNotification(resp)
+      }
+    } finally {
+      setOtpSending(false)
+    }
+  }
+
+  const handleOtpSuccess = (resp) => {
+    if (resp && resp.isSuccess) {
+      setIsEmailVerified(true)
+      setError(null)
+      setNotifyResponse(null)
+      setApiResponse(resp)
+      showApiNotification(resp)
+    } else if (resp) {
+      setIsEmailVerified(false)
+      setApiResponse(null)
+      setNotifyResponse(resp)
+      const msg =
+        resp.message ||
+        (resp.errors && resp.errors[0]?.description) ||
+        'Xác thực OTP thất bại.'
+      setError(msg)
+      showApiNotification(resp)
+    }
+  }
 
   const handleSubmit = async () => {
     if (loading) return
@@ -85,6 +168,19 @@ export function RegisterPanel({ onPressLogin }) {
       setError(null)
       setApiResponse(null)
       setNotifyResponse(null)
+      
+      // Bắt buộc người dùng xác thực email trước khi đăng ký
+      if (!isEmailVerified) {
+        const msg = 'Vui lòng xác thực email bằng OTP trước khi đăng ký.'
+        setError(msg)
+        setNotifyResponse({
+          isSuccess: false,
+          message: msg,
+          statusCode: 400,
+        })
+        setLoading(false)
+        return
+      }
       
       // Gọi API register
       const response = await register({
@@ -185,14 +281,50 @@ export function RegisterPanel({ onPressLogin }) {
             value={fullName}
             onChangeText={setFullName}
           />
-          <TextInput
-            label="Email"
-            placeholder="Ví dụ: an@example.com"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+
+          {/* Email + nút xác thực nằm trong ô nhập */}
+          <View style={styles.emailField}>
+            <TextInput
+              label="Email"
+              placeholder="Ví dụ: an@example.com"
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text)
+                // Khi người dùng đổi email thì coi như chưa xác thực
+                if (isEmailVerified) {
+                  setIsEmailVerified(false)
+                }
+              }}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              inputStyle={styles.emailInputWithButton}
+            />
+            <TouchableOpacity
+              style={[
+                styles.verifyEmailButton,
+                isEmailVerified && styles.verifyEmailButtonSuccess,
+                otpSending && styles.verifyEmailButtonDisabled,
+              ]}
+              onPress={handleOpenOtpModal}
+              activeOpacity={0.8}
+              disabled={otpSending}
+            >
+              <Text
+                style={[
+                  styles.verifyEmailText,
+                  isEmailVerified && styles.verifyEmailTextSuccess,
+                  otpSending && styles.verifyEmailTextDisabled,
+                ]}
+              >
+                {otpSending
+                  ? 'ĐANG GỬI...'
+                  : isEmailVerified
+                    ? 'ĐÃ XÁC THỰC'
+                    : 'XÁC THỰC'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           <TextInput
             label="Số điện thoại"
             placeholder="Ví dụ: 0585204417"
@@ -240,6 +372,15 @@ export function RegisterPanel({ onPressLogin }) {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Modal nhập OTP để xác thực email */}
+      <InputOTP
+        visible={showOtpModal}
+        email={email}
+        onClose={() => setShowOtpModal(false)}
+        onSuccess={handleOtpSuccess}
+        verifyFn={verifyEmailOtp}
+      />
     </View>
   )
 }
@@ -313,6 +454,44 @@ const styles = StyleSheet.create({
   },
   formBlock: {
     gap: 12,
+  },
+  emailField: {
+    position: 'relative',
+  },
+  emailInputWithButton: {
+    paddingRight: 110, // chừa chỗ cho nút xác thực
+  },
+  verifyEmailButton: {
+    position: 'absolute',
+    right: 12,
+    top: '65%',
+    transform: [{ translateY: -18 }], // canh giữa theo chiều dọc
+    paddingHorizontal: 12,
+    height: 36,
+    justifyContent: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#D4060A',
+    backgroundColor: '#FFF',
+  },
+  verifyEmailButtonSuccess: {
+    borderColor: '#2E7D32',
+    backgroundColor: 'rgba(46,125,50,0.08)',
+  },
+  verifyEmailButtonDisabled: {
+    opacity: 0.6,
+  },
+  verifyEmailText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#D4060A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  verifyEmailTextSuccess: {
+    color: '#2E7D32',
+  },
+  verifyEmailTextDisabled: {
+    color: '#888',
   },
   errorText: {
     color: '#E53935',
