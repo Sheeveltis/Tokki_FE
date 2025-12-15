@@ -1,0 +1,215 @@
+/* Vị trí bubble chat */
+.bubble-chat-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Nút bubble chỉ hiển thị icon gốc, không chỉnh màu/bo tròn icon */
+.chat-bubble-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-icon {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ff4444;
+  color: #fff;
+  border-radius: 50%;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+}
+
+/* Chat window */
+.chat-window {
+  position: absolute;
+  bottom: 78px;
+  right: 0;
+  width: 360px;
+  height: 520px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chat-header-info h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.chat-status {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-queue-status {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 8px 12px;
+  font-size: 13px;
+  text-align: center;
+  border-bottom: 1px solid #ffeeba;
+  animation: fadeIn 0.5s;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  background: #f7f7f9;
+}
+
+.welcome-message {
+  text-align: center;
+  color: #555;
+  padding: 24px 12px;
+  line-height: 1.5;
+}
+
+.chat-input-container {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.send-btn,
+.start-chat-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.send-btn:disabled,
+.start-chat-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- Nhóm tin nhắn (Grouping) --- */
+.message {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 4px;
+}
+
+.message.first-of-group {
+  margin-top: 10px;
+}
+
+.message-sent {
+  align-items: flex-end;
+}
+
+.message-received {
+  align-items: flex-start;
+}
+
+.message-avatar {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.message-bubble {
+  padding: 10px 12px;
+  border-radius: 16px;
+  max-width: 80%;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+}
+
+.message-sent .message-bubble {
+  background: #667eea;
+  color: #fff;
+  border: none;
+}
+
+.message.middle-of-group .message-bubble {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+.message.middle-of-group.message-sent .message-bubble {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+}
+
+.message-time {
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.message.middle-of-group .message-time {
+  display: none;
+}
+
+.message-content {
+  word-break: break-word;
+}

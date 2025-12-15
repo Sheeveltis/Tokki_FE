@@ -44,5 +44,6 @@ export const ENDPOINTS = {
       REQUEST_SUPPORT: '/Chat/support/request',
       GET_PENDING_SUPPORT: '/Chat/support/pending',
       JOIN_SUPPORT: (roomId) => `/Chat/support/${roomId}/join`,
+      GET_HISTORY: (roomId) => `/Chat/${roomId}/history`,
     },
   }
