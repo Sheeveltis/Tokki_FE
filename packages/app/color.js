@@ -3,9 +3,14 @@ export const colors = {
   // Màu chủ đạo
   primary: '#5E794C',
   primaryLight: '#88A455',
+
   //Background
   background: '#F4900C',
 
+ //Correct
+  correct: '#00C00A',
+ //Wrong
+  wrong: '#D80102',
   // Màu phụ
   warning: '#F87218',
   accentYellow: '#F1BE4B',
