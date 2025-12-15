@@ -25,12 +25,19 @@ export function FlashcardStudyScreen({
     index,
     isFlipped,
     favorites,
+    learned,
+    unlearnedFlashcards,
     current,
+    currentIndex,
     isFavorite,
+    isLearned,
     handleNext,
     handlePrev,
     handleSelectFlashcard,
     toggleFavorite,
+    markAsLearned,
+    markAsNeedReview,
+    resetAllLearned,
     setIsFlipped,
   } = useFlashcardStudy()
 
@@ -42,10 +49,12 @@ export function FlashcardStudyScreen({
       <Main
         title={title}
         current={current}
-        currentIndex={index}
+        currentIndex={currentIndex}
         total={FLASHCARDS.length}
+        unlearnedCount={unlearnedFlashcards.length}
         isFlipped={isFlipped}
         isFavorite={isFavorite}
+        isLearned={isLearned}
         favorites={favorites}
         onBackPress={onBackPress}
         onLearnPress={onLearnPress}
@@ -55,6 +64,9 @@ export function FlashcardStudyScreen({
         onNext={handleNext}
         onPrev={handlePrev}
         onSelectFlashcard={handleSelectFlashcard}
+        onMarkAsLearned={markAsLearned}
+        onMarkAsNeedReview={markAsNeedReview}
+        onResetAllLearned={resetAllLearned}
       />
     </Layout>
   )

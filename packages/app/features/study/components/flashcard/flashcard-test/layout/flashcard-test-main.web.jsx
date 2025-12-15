@@ -1,7 +1,9 @@
 import React from 'react'
-import { View, Text, StyleSheet, Pressable, Image, ScrollView, Platform } from 'react-native'
+import { View, Text, StyleSheet, Pressable, Image, ScrollView, Platform, TouchableOpacity } from 'react-native'
 import CloseIcon from '../../../../../../../assets/icon/icon-mainflow/arrow.svg'
-import { QuestionCard } from '../index'
+import RandomIcon from '../../../../../../../assets/icon/icon-mainflow/random.svg'
+import SettingIcon from '../../../../../../../assets/icon/icon-mainflow/setting.svg'
+import { QuestionCard, TypeAnswerCard, SettingsModal } from '../index'
 import { normalizeImageSource } from '../../../../api'
 import { LoadingWithContainer } from '../../../../../../../components/Loading'
 
@@ -10,7 +12,10 @@ import { LoadingWithContainer } from '../../../../../../../components/Loading'
  */
 export function FlashcardTestMain({
   questions,
+  currentQuestion,
+  currentQuestionIndex,
   selectedAnswers,
+  showResults,
   progress,
   isSubmitted,
   score,
@@ -20,8 +25,20 @@ export function FlashcardTestMain({
   onClose,
   onAnswerSelect,
   onSubmit,
+  onNextQuestion,
+  onPreviousQuestion,
   onRetry,
   onBackPress,
+  onShuffle,
+  isShuffled,
+  questionMode,
+  answerMode,
+  showSettings,
+  onOpenSettings,
+  onCloseSettings,
+  onSettingsChange,
+  typedAnswers,
+  onTypedAnswer,
 }) {
   // Render loading state
   if (loading) {
@@ -61,68 +78,97 @@ export function FlashcardTestMain({
   }
 
   return (
-    <>
+    <View style={styles.mainContainer}>
       {/* Header với progress và close button */}
       <View style={styles.topHeader}>
         <View style={styles.progressContainer}>
-          <Text style={styles.progressText}>
-            {Object.keys(selectedAnswers).length} / {questions.length} câu đã trả lời
-          </Text>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${progress}%` }]} />
+          <View style={styles.progressHeader}>
+            <Text style={styles.progressNumber}>{currentQuestionIndex + 1}</Text>
+            <View style={styles.progressBar}>
+              <View style={[styles.progressFill, { width: `${progress}%` }]} />
+            </View>
+            <Text style={styles.progressNumber}>{questions.length}</Text>
           </View>
         </View>
-        {onClose && (
-          <Pressable style={styles.closeButton} onPress={onClose}>
-            <Image
-              source={normalizeImageSource(CloseIcon)}
-              style={styles.closeIcon}
-              resizeMode="contain"
-            />
-          </Pressable>
-        )}
+        <View style={styles.headerActions}>
+          {onShuffle && (
+            <TouchableOpacity
+              style={[
+                styles.randomButton,
+                isShuffled && styles.randomButtonActive
+              ]}
+              onPress={onShuffle}
+            >
+              <Image
+                source={normalizeImageSource(RandomIcon)}
+                style={styles.randomIcon}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          )}
+          {onOpenSettings && (
+            <TouchableOpacity
+              style={styles.settingButton}
+              onPress={onOpenSettings}
+            >
+              <Image
+                source={normalizeImageSource(SettingIcon)}
+                style={styles.settingIcon}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          )}
+          {onClose && (
+            <Pressable style={styles.closeButton} onPress={onClose}>
+              <Text style={styles.closeButtonText}>✕</Text>
+            </Pressable>
+          )}
+        </View>
       </View>
 
-      {/* Questions List */}
-      <ScrollView 
-        style={styles.questionsList}
-        contentContainerStyle={styles.questionsListContent}
-        showsVerticalScrollIndicator={true}
-      >
-        {questions.map((question, index) => (
-          <View key={question.id} style={styles.questionItem}>
-            <View style={styles.questionNumber}>
-              <Text style={styles.questionNumberText}>Câu {index + 1}</Text>
-            </View>
-            <QuestionCard
-              question={question.question}
-              options={question.options}
-              correctAnswerId={question.correctAnswerId}
-              imageUrl={question.imageUrl}
-              onAnswerSelect={(answerId, isCorrect) => 
-                onAnswerSelect(question.id, answerId, isCorrect)
+      {/* Current Question */}
+      {currentQuestion && (
+        <View style={styles.questionContainer}>
+          {answerMode === 'typeAnswer' ? (
+            <TypeAnswerCard
+              question={currentQuestion.question}
+              correctAnswer={currentQuestion.correctAnswer}
+              imageUrl={currentQuestion.imageUrl}
+              onAnswerSubmit={(typedText) => 
+                onTypedAnswer(currentQuestion.id, typedText)
               }
-              showResult={isSubmitted}
-              disabled={isSubmitted}
-              selectedAnswerId={selectedAnswers[question.id]}
+              showResult={showResults[currentQuestion.id] || false}
+              disabled={!!typedAnswers[currentQuestion.id]}
+              typedAnswer={typedAnswers[currentQuestion.id] || ''}
             />
-          </View>
-        ))}
-      </ScrollView>
+          ) : (
+            <QuestionCard
+              question={currentQuestion.question}
+              options={currentQuestion.options}
+              correctAnswerId={currentQuestion.correctAnswerId}
+              imageUrl={currentQuestion.imageUrl}
+              onAnswerSelect={(answerId, isCorrect) => 
+                onAnswerSelect(currentQuestion.id, answerId, isCorrect)
+              }
+              showResult={showResults[currentQuestion.id] || false}
+              selectedAnswerId={selectedAnswers[currentQuestion.id]}
+            />
+          )}
+        </View>
+      )}
 
-      {/* Submit Button hoặc Score */}
-      {!isSubmitted ? (
-        <Pressable
-          style={[
-            styles.submitButton,
-            Object.keys(selectedAnswers).length < questions.length && styles.submitButtonDisabled,
-          ]}
-          onPress={onSubmit}
-          disabled={Object.keys(selectedAnswers).length < questions.length}
-        >
-          <Text style={styles.submitButtonText}>Nộp bài</Text>
-        </Pressable>
-      ) : (
+      {/* Settings Modal */}
+      <SettingsModal
+        visible={showSettings}
+        questionMode={questionMode}
+        answerMode={answerMode}
+        onClose={onCloseSettings}
+        onSave={onSettingsChange}
+      />
+
+
+      {/* Score Display */}
+      {isSubmitted && (
         <View style={styles.scoreContainer}>
           <Text style={styles.scoreText}>
             Điểm: {score} / {questions.length}
@@ -135,11 +181,16 @@ export function FlashcardTestMain({
           </Pressable>
         </View>
       )}
-    </>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    width: '100%',
+    flexDirection: 'column',
+    gap: 16,
+  },
   topHeader: {
     width: '100%',
     flexDirection: 'row',
@@ -148,16 +199,22 @@ const styles = StyleSheet.create({
   },
   progressContainer: {
     flex: 1,
-    gap: 8,
   },
-  progressText: {
+  progressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  progressNumber: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#F1BE4B',
+    color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
+    minWidth: 30,
+    textAlign: 'center',
   },
   progressBar: {
-    width: '100%',
+    flex: 1,
     height: 8,
     backgroundColor: '#E0E0E0',
     borderRadius: 4,
@@ -168,46 +225,65 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1BE4B',
     borderRadius: 4,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  randomButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F1BE4B',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+    }),
+  },
+  randomButtonActive: {
+    backgroundColor: '#79964E', // Màu xanh lá khi đang random
+  },
+  randomIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#1F1F1F',
+  },
+  settingButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F1BE4B',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+    }),
+  },
+  settingIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#1F1F1F',
+  },
   closeButton: {
     width: 32,
     height: 32,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent',
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
     }),
   },
-  closeIcon: {
-    width: 20,
-    height: 20,
-    tintColor: '#1F1F1F',
-  },
-  questionsList: {
-    width: '100%',
-    flex: 1,
-  },
-  questionsListContent: {
-    gap: 24,
-    paddingBottom: 16,
-  },
-  questionItem: {
-    width: '100%',
-    gap: 12,
-  },
-  questionNumber: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#F1BE4B',
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  questionNumberText: {
-    fontSize: 14,
-    fontWeight: '700',
+  closeButtonText: {
+    fontSize: 24,
+    fontWeight: '400',
     color: '#1F1F1F',
-    fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 24,
+  },
+  questionContainer: {
+    width: '100%',
   },
   finishButton: {
     paddingVertical: 12,
@@ -228,8 +304,45 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontFamily: 'Epilogue, sans-serif',
   },
-  submitButton: {
+  navigationContainer: {
     width: '100%',
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  navButton: {
+    flex: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+    }),
+  },
+  navButtonPrimary: {
+    backgroundColor: '#F5F5F5',
+    borderColor: '#E0E0E0',
+  },
+  navButtonDisabled: {
+    opacity: 0.6,
+    backgroundColor: '#F5F5F5',
+    borderColor: '#E0E0E0',
+    ...(Platform.OS === 'web' && {
+      cursor: 'not-allowed',
+    }),
+  },
+  navButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666666',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  submitButton: {
+    flex: 1,
     paddingVertical: 16,
     paddingHorizontal: 32,
     backgroundColor: '#79964E',

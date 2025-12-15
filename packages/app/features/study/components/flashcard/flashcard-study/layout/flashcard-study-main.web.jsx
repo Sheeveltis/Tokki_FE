@@ -1,5 +1,5 @@
-import React from 'react'
-import { View, Text, StyleSheet, Pressable, Image } from 'react-native'
+import React, { useEffect } from 'react'
+import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
 import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from '../../../../../../../assets/icon/icon-mainflow/arrow.svg'
 import StarIcon from '../../../../../../../assets/icon/icon-mainflow/star.svg'
@@ -19,8 +19,10 @@ export function FlashcardStudyMain({
   current,
   currentIndex,
   total,
+  unlearnedCount,
   isFlipped,
   isFavorite,
+  isLearned,
   favorites,
   onBackPress,
   onLearnPress,
@@ -30,7 +32,91 @@ export function FlashcardStudyMain({
   onNext,
   onPrev,
   onSelectFlashcard,
+  onMarkAsLearned,
+  onMarkAsNeedReview,
+  onResetAllLearned,
 }) {
+  // Xử lý phím bàn phím: Space để flip, mũi tên để chuyển card
+  useEffect(() => {
+    if (Platform.OS !== 'web') return
+
+    const handleKeyPress = (event) => {
+      // Space: Flip card
+      if (event.key === ' ' || event.code === 'Space') {
+        event.preventDefault()
+        onFlip(!isFlipped)
+        return
+      }
+
+      // Mũi tên trái: Card trước
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault()
+        onPrev()
+        return
+      }
+
+      // Mũi tên phải: Card tiếp theo
+      if (event.key === 'ArrowRight') {
+        event.preventDefault()
+        onNext()
+        return
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyPress)
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress)
+    }
+  }, [isFlipped, onFlip, onNext, onPrev])
+
+  // Hiển thị thông báo khi tất cả thẻ đã học xong
+  if (unlearnedCount === 0 && total > 0) {
+    return (
+      <>
+        <View style={styles.header}>
+          <NavigationPill
+            label="Trở lại"
+            to={undefined}
+            icon={ArrowIcon}
+            iconStyle={{ transform: [{ scaleX: -1 }] }}
+            onPress={onBackPress}
+            textStyle={{ fontWeight: '700' }}
+          />
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>Chúc mừng! Bạn đã hoàn thành tất cả từ vựng!</Text>
+          <Pressable 
+            style={styles.resetButton}
+            onPress={onResetAllLearned}
+          >
+            <Text style={styles.resetButtonText}>Học lại từ đầu</Text>
+          </Pressable>
+        </View>
+      </>
+    )
+  }
+
+  // Hiển thị thông báo khi chưa có thẻ nào
+  if (total === 0) {
+    return (
+      <>
+        <View style={styles.header}>
+          <NavigationPill
+            label="Trở lại"
+            to={undefined}
+            icon={ArrowIcon}
+            iconStyle={{ transform: [{ scaleX: -1 }] }}
+            onPress={onBackPress}
+            textStyle={{ fontWeight: '700' }}
+          />
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>Chưa có từ vựng nào</Text>
+        </View>
+      </>
+    )
+  }
+
   return (
     <>
       {/* Header with back and title */}
@@ -82,6 +168,19 @@ export function FlashcardStudyMain({
         />
       </View>
 
+      {/* Mark as Learned Button */}
+      <View style={styles.learnedButtonContainer}>
+        {isLearned ? (
+          <Pressable style={styles.learnedButton} onPress={onMarkAsNeedReview}>
+            <Text style={styles.learnedButtonText}>Cần ôn lại</Text>
+          </Pressable>
+        ) : (
+          <Pressable style={styles.learnedButton} onPress={onMarkAsLearned}>
+            <Text style={styles.learnedButtonText}>Đánh dấu đã học</Text>
+          </Pressable>
+        )}
+      </View>
+
       {/* Pagination */}
       <View style={styles.pagination}>
         <Pressable style={styles.navBtn} onPress={onPrev}>
@@ -92,7 +191,7 @@ export function FlashcardStudyMain({
           />
         </Pressable>
         <Text style={styles.pageText}>
-          {currentIndex + 1} / {total}
+          {currentIndex + 1} / {unlearnedCount} (Tổng: {total})
         </Text>
         <Pressable style={styles.navBtn} onPress={onNext}>
           <Image 
@@ -162,6 +261,57 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  learnedButtonContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  learnedButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    backgroundColor: '#79964E',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+    }),
+  },
+  learnedButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  emptyContainer: {
+    width: '100%',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  resetButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    backgroundColor: '#79964E',
+    marginTop: 16,
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+    }),
+  },
+  resetButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
     fontFamily: 'Epilogue, sans-serif',
   },
 })

@@ -10,7 +10,10 @@ import { LoadingWithContainer } from '../../../../../../../components/Loading'
  */
 export function FlashcardTestMain({
   questions,
+  currentQuestion,
+  currentQuestionIndex,
   selectedAnswers,
+  showResults,
   progress,
   isSubmitted,
   score,
@@ -20,6 +23,8 @@ export function FlashcardTestMain({
   onClose,
   onAnswerSelect,
   onSubmit,
+  onNextQuestion,
+  onPreviousQuestion,
   onRetry,
   onBackPress,
 }) {
@@ -66,7 +71,7 @@ export function FlashcardTestMain({
       <View style={styles.topHeader}>
         <View style={styles.progressContainer}>
           <Text style={styles.progressText}>
-            {Object.keys(selectedAnswers).length} / {questions.length} câu đã trả lời
+            Câu {currentQuestionIndex + 1} / {questions.length}
           </Text>
           <View style={styles.progressBar}>
             <View style={[styles.progressFill, { width: `${progress}%` }]} />
@@ -83,46 +88,70 @@ export function FlashcardTestMain({
         )}
       </View>
 
-      {/* Questions List */}
-      <ScrollView 
-        style={styles.questionsList}
-        contentContainerStyle={styles.questionsListContent}
-        showsVerticalScrollIndicator={true}
-      >
-        {questions.map((question, index) => (
-          <View key={question.id} style={styles.questionItem}>
-            <View style={styles.questionNumber}>
-              <Text style={styles.questionNumberText}>Câu {index + 1}</Text>
-            </View>
-            <QuestionCard
-              question={question.question}
-              options={question.options}
-              correctAnswerId={question.correctAnswerId}
-              imageUrl={question.imageUrl}
-              onAnswerSelect={(answerId, isCorrect) => 
-                onAnswerSelect(question.id, answerId, isCorrect)
-              }
-              showResult={isSubmitted}
-              disabled={isSubmitted}
-              selectedAnswerId={selectedAnswers[question.id]}
-            />
+      {/* Current Question */}
+      {currentQuestion && (
+        <View style={styles.questionContainer}>
+          <View style={styles.questionNumber}>
+            <Text style={styles.questionNumberText}>Câu {currentQuestionIndex + 1}</Text>
           </View>
-        ))}
-      </ScrollView>
+          <QuestionCard
+            question={currentQuestion.question}
+            options={currentQuestion.options}
+            correctAnswerId={currentQuestion.correctAnswerId}
+            imageUrl={currentQuestion.imageUrl}
+            onAnswerSelect={(answerId, isCorrect) => 
+              onAnswerSelect(currentQuestion.id, answerId, isCorrect)
+            }
+            showResult={showResults[currentQuestion.id] || false}
+            disabled={!!selectedAnswers[currentQuestion.id]}
+            selectedAnswerId={selectedAnswers[currentQuestion.id]}
+          />
+        </View>
+      )}
 
-      {/* Submit Button hoặc Score */}
-      {!isSubmitted ? (
-        <Pressable
-          style={[
-            styles.submitButton,
-            Object.keys(selectedAnswers).length < questions.length && styles.submitButtonDisabled,
-          ]}
-          onPress={onSubmit}
-          disabled={Object.keys(selectedAnswers).length < questions.length}
-        >
-          <Text style={styles.submitButtonText}>Nộp bài</Text>
-        </Pressable>
-      ) : (
+      {/* Navigation Buttons */}
+      {!isSubmitted && (
+        <View style={styles.navigationContainer}>
+          <Pressable
+            style={[
+              styles.navButton,
+              currentQuestionIndex === 0 && styles.navButtonDisabled,
+            ]}
+            onPress={onPreviousQuestion}
+            disabled={currentQuestionIndex === 0}
+          >
+            <Text style={styles.navButtonText}>Câu trước</Text>
+          </Pressable>
+          
+          {currentQuestionIndex < questions.length - 1 ? (
+            <Pressable
+              style={[
+                styles.navButton,
+                styles.navButtonPrimary,
+                !selectedAnswers[currentQuestion?.id] && styles.navButtonDisabled,
+              ]}
+              onPress={onNextQuestion}
+              disabled={!selectedAnswers[currentQuestion?.id]}
+            >
+              <Text style={styles.navButtonText}>Câu tiếp theo</Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              style={[
+                styles.submitButton,
+                !selectedAnswers[currentQuestion?.id] && styles.submitButtonDisabled,
+              ]}
+              onPress={onSubmit}
+              disabled={!selectedAnswers[currentQuestion?.id]}
+            >
+              <Text style={styles.submitButtonText}>Nộp bài</Text>
+            </Pressable>
+          )}
+        </View>
+      )}
+
+      {/* Score Display */}
+      {isSubmitted && (
         <View style={styles.scoreContainer}>
           <Text style={styles.scoreText}>
             Điểm: {score} / {questions.length}
@@ -181,16 +210,9 @@ const styles = StyleSheet.create({
     height: 20,
     tintColor: '#1F1F1F',
   },
-  questionsList: {
+  questionContainer: {
     width: '100%',
     flex: 1,
-  },
-  questionsListContent: {
-    gap: 24,
-    paddingBottom: 16,
-  },
-  questionItem: {
-    width: '100%',
     gap: 12,
   },
   questionNumber: {
@@ -222,8 +244,43 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontFamily: 'Epilogue, sans-serif',
   },
-  submitButton: {
+  navigationContainer: {
     width: '100%',
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  navButton: {
+    flex: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+  },
+  navButtonPrimary: {
+    backgroundColor: '#79964E',
+    borderColor: '#79964E',
+    shadowColor: '#79964E',
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  navButtonDisabled: {
+    opacity: 0.5,
+    backgroundColor: '#F5F5F5',
+    borderColor: '#E0E0E0',
+  },
+  navButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  submitButton: {
+    flex: 1,
     paddingVertical: 16,
     paddingHorizontal: 32,
     backgroundColor: '#79964E',

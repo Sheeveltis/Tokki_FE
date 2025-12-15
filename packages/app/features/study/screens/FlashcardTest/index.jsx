@@ -31,6 +31,7 @@ export function FlashcardTestScreen({
     flashcards,
     questions,
     selectedAnswers,
+    typedAnswers,
     showResults,
     score,
     loading,
@@ -38,9 +39,21 @@ export function FlashcardTestScreen({
     allAnswered,
     isSubmitted,
     progress,
+    currentQuestionIndex,
+    currentQuestion,
+    isShuffled,
+    questionMode,
+    answerMode,
+    showSettings,
     handleAnswerSelect,
+    handleTypedAnswer,
     handleSubmit,
+    handleNextQuestion,
+    handlePreviousQuestion,
     fetchFlashcards,
+    toggleShuffle,
+    setShowSettings,
+    handleSettingsChange,
   } = useFlashcardTest(topicId)
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
@@ -50,7 +63,10 @@ export function FlashcardTestScreen({
     <Layout>
       <Main
         questions={questions}
+        currentQuestion={currentQuestion}
+        currentQuestionIndex={currentQuestionIndex}
         selectedAnswers={selectedAnswers}
+        showResults={showResults}
         progress={progress}
         isSubmitted={isSubmitted}
         score={score}
@@ -60,8 +76,20 @@ export function FlashcardTestScreen({
         onClose={onClose}
         onAnswerSelect={handleAnswerSelect}
         onSubmit={handleSubmit}
+        onNextQuestion={handleNextQuestion}
+        onPreviousQuestion={handlePreviousQuestion}
         onRetry={fetchFlashcards}
         onBackPress={onBackPress}
+        onShuffle={toggleShuffle}
+        isShuffled={isShuffled}
+        questionMode={questionMode}
+        answerMode={answerMode}
+        showSettings={showSettings}
+        onOpenSettings={() => setShowSettings(true)}
+        onCloseSettings={() => setShowSettings(false)}
+        onSettingsChange={handleSettingsChange}
+        typedAnswers={typedAnswers}
+        onTypedAnswer={handleTypedAnswer}
       />
     </Layout>
   )
