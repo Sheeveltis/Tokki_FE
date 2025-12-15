@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Text, Image, TouchableOpacity } from 'react-native'
 import SmallFoot from '../assets/smallfoot.png'
+import Bunny9 from '../assets/bunny/9.png'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -20,7 +21,7 @@ const normalizeImageSource = (src) => {
  * @param {Object} props
  * @param {string} props.title - Tiêu đề chính (bắt buộc)
  * @param {string} [props.message] - Nội dung thông báo (tùy chọn)
- * @param {any} [props.image] - Hình ảnh chính (tùy chọn, có thể là require(), uri string, hoặc object)
+ * @param {any} [props.image] - Hình ảnh chính (tùy chọn, có thể là require(), uri string, hoặc object). Mặc định: bunny 9.
  * @param {any} [props.decorationImage] - Hình ảnh trang trí ở góc (tùy chọn, mặc định là SmallFoot)
  * @param {string} [props.buttonText] - Text của nút hành động (mặc định: "Xác nhận")
  * @param {Function} [props.onButtonPress] - Callback khi nhấn nút hành động
@@ -35,7 +36,7 @@ const normalizeImageSource = (src) => {
 export const MessageModal = ({
   title,
   message,
-  image,
+  image = Bunny9,
   decorationImage = SmallFoot,
   buttonText = 'Xác nhận',
   onButtonPress,
@@ -66,12 +67,13 @@ export const MessageModal = ({
         borderRadius: 30,
         paddingVertical: 32,
         paddingHorizontal: 28,
-        minWidth: 520,
-        minHeight: 360,
+        minWidth: '30%',
+        minHeight: '30%',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         position: 'relative',
         overflow: 'hidden',
+        gap: 12,
         ...containerStyle,
       }}
     >
@@ -121,77 +123,92 @@ export const MessageModal = ({
         />
       )}
 
-      {/* Main image */}
-      {image && (
-        <Image
-          source={normalizeImageSource(image)}
-          style={{
-            width: 200,
-            height: 200,
-            resizeMode: 'contain',
-            marginBottom: 12,
-            ...imageStyle,
-          }}
-        />
-      )}
+      <View
+        style={{
+          width: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexGrow: 1,
+          gap: 12,
+        }}
+      >
+        {/* Main image */}
+        {image && (
+          <Image
+            source={normalizeImageSource(image)}
+            style={{
+              width: 200,
+              height: 200,
+              resizeMode: 'contain',
+              ...imageStyle,
+            }}
+          />
+        )}
 
-      {/* Title */}
-      {title && (
-        <Text
-          style={{
-            fontSize: 22,
-            fontWeight: '800',
-            color: '#222',
-            fontFamily: 'Epilogue, sans-serif',
-            textAlign: 'center',
-            marginBottom: 8,
-          }}
-        >
-          {title}
-        </Text>
-      )}
-
-      {/* Message */}
-      {message && (
-        <Text
-          style={{
-            fontSize: 15,
-            color: '#555',
-            fontFamily: 'Epilogue, sans-serif',
-            textAlign: 'center',
-            marginBottom: 20,
-          }}
-        >
-          {message}
-        </Text>
-      )}
-
-      {/* Action button */}
-      {showButton && onButtonPress && (
-        <TouchableOpacity
-          onPress={handleButtonPress}
-          style={{
-            backgroundColor: buttonColor,
-            paddingVertical: 14,
-            paddingHorizontal: 32,
-            borderRadius: 22,
-            minWidth: 180,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          activeOpacity={0.85}
-        >
+        {/* Title */}
+        {title && (
           <Text
             style={{
-              fontSize: 16,
-              fontWeight: '700',
-              color: '#FFFFFF',
+              fontSize: 22,
+              fontWeight: '800',
+              color: '#222',
               fontFamily: 'Epilogue, sans-serif',
+              textAlign: 'center',
             }}
           >
-            {buttonText}
+            {title}
           </Text>
-        </TouchableOpacity>
+        )}
+
+        {/* Message */}
+        {message && (
+          <Text
+            style={{
+              fontSize: 15,
+              color: '#555',
+              fontFamily: 'Epilogue, sans-serif',
+              textAlign: 'center',
+            }}
+          >
+            {message}
+          </Text>
+        )}
+      </View>
+
+      {/* Action button pinned to bottom */}
+      {showButton && onButtonPress && (
+        <View
+          style={{
+            alignSelf: 'stretch',
+            marginTop: 'auto',
+            alignItems: 'center',
+          }}
+        >
+          <TouchableOpacity
+            onPress={handleButtonPress}
+            style={{
+              backgroundColor: buttonColor,
+              paddingVertical: 14,
+              paddingHorizontal: 32,
+              borderRadius: 22,
+              minWidth: 180,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            activeOpacity={0.85}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '700',
+                color: '#FFFFFF',
+                fontFamily: 'Epilogue, sans-serif',
+              }}
+            >
+              {buttonText}
+            </Text>
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   )

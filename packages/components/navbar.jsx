@@ -17,6 +17,8 @@ import BlogIcon from '../assets/icon/navigate-app/chat.svg'
 import SmallFoot from '../assets/smallfoot.png'
 import { useRouter } from 'solito/navigation'
 import UserIcon from '../assets/user.png'
+import LogoutIcon from '../assets/icon/icon-mainflow/logout.svg'
+import { MessageModal } from './MessageModal'
 /**
  * Normalize image source so it works with:
  * - require('...png') / numeric ids
@@ -77,6 +79,8 @@ export const Navbar = ({
   const [flashcardHover, setFlashcardHover] = useState(false)
   const [blogHover, setBlogHover] = useState(false)
   const [userHover, setUserHover] = useState(false)
+  const [logoutHover, setLogoutHover] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   // Detect token in localStorage (web)
   useEffect(() => {
@@ -154,6 +158,24 @@ export const Navbar = ({
     const storedId = window.localStorage?.getItem('userId')
     const targetId = storedId && storedId.length > 0 ? storedId : 'me'
     router.push(`/users/${targetId}`)
+  }
+
+  const handleLogoutPress = () => {
+    setShowLogoutConfirm(true)
+  }
+
+  const handleConfirmLogout = () => {
+    if (typeof window !== 'undefined') {
+      window.localStorage?.removeItem('token')
+      window.localStorage?.removeItem('userId')
+      window.dispatchEvent(new Event('token-changed'))
+    }
+    setShowLogoutConfirm(false)
+    router.push('/login')
+  }
+
+  const handleCancelLogout = () => {
+    setShowLogoutConfirm(false)
   }
 
   const stickyPositionStyle =
@@ -423,30 +445,57 @@ export const Navbar = ({
         }}
       >
         {hasToken ? (
-          <Pressable
-            onPress={handleProfilePress}
-            onHoverIn={() => Platform.OS === 'web' && setUserHover(true)}
-            onHoverOut={() => Platform.OS === 'web' && setUserHover(false)}
-            style={({ pressed }) => {
-              const active = pressed || userHover
-              return {
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: active ? 0.85 : 1,
-                transform: [{ scale: active ? 0.95 : 1 }],
-                ...interactiveAnimationStyle,
-              }
-            }}
-          >
-            <Image
-              source={normalizeImageSource(UserIcon)}
-              style={{
-                width: 50,
-                height: 50,
-                resizeMode: 'contain',
+          <>
+            <Pressable
+              onPress={handleLogoutPress}
+              onHoverIn={() => Platform.OS === 'web' && setLogoutHover(true)}
+              onHoverOut={() => Platform.OS === 'web' && setLogoutHover(false)}
+              style={({ pressed }) => {
+                const active = pressed || logoutHover
+                return {
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: active ? 0.85 : 1,
+                  transform: [{ scale: active ? 0.95 : 1 }],
+                  ...interactiveAnimationStyle,
+                }
               }}
-            />
-          </Pressable>
+            >
+              <Image
+                source={normalizeImageSource(LogoutIcon)}
+                style={{
+                  width: 44,
+                  height: 44,
+                  resizeMode: 'contain',
+                  tintColor: '#d9534f',
+                }}
+              />
+            </Pressable>
+            <Pressable
+              onPress={handleProfilePress}
+              onHoverIn={() => Platform.OS === 'web' && setUserHover(true)}
+              onHoverOut={() => Platform.OS === 'web' && setUserHover(false)}
+              style={({ pressed }) => {
+                const active = pressed || userHover
+                return {
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: active ? 0.85 : 1,
+                  transform: [{ scale: active ? 0.95 : 1 }],
+                  ...interactiveAnimationStyle,
+                }
+              }}
+            >
+              <Image
+                source={normalizeImageSource(UserIcon)}
+                style={{
+                  width: 50,
+                  height: 50,
+                  resizeMode: 'contain',
+                }}
+              />
+            </Pressable>
+          </>
         ) : (
           <>
             {/* Đăng Nhập button */}
@@ -488,6 +537,31 @@ export const Navbar = ({
             width: '100%',
           }}
         />
+      )}
+      {showLogoutConfirm && (
+        <View
+          style={{
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.35)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+            zIndex: 2000,
+          }}
+          pointerEvents="box-none"
+        >
+          <MessageModal
+            title="Xác nhận đăng xuất"
+            message="Bạn có chắc chắn muốn đăng xuất khỏi Tokki?"
+            buttonText="Đăng xuất"
+            onButtonPress={handleConfirmLogout}
+            onClose={handleCancelLogout}
+          />
+        </View>
       )}
     </>
   )
