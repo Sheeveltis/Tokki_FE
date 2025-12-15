@@ -9,7 +9,7 @@ import {
   MenuStudyMain as WebMain,
   MenuStudyLayoutMobile as MobileLayout,
   MenuStudyMainMobile as MobileMain
-} from '../../components/menu-study'
+} from './components'
 
 /**
  * MenuStudy: Trang menu học tập cho từng level

@@ -1,7 +1,7 @@
 import React from 'react'
-import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
-import { colors } from '../../../../../color'
-import { studyStyles } from '../../../../styles'
+import { View, Text, StyleSheet, Pressable, Image } from 'react-native'
+import { colors } from '../../../../color'
+import { studyStyles } from '../../../styles'
 import BunnyReading from '../../../../../../assets/bunny/4.png'
 
 const LEVELS = [
@@ -14,7 +14,7 @@ const LEVELS = [
 ]
 
 /**
- * StudySelectionMain (Web): Nội dung chính của trang chọn lộ trình học
+ * StudySelectionMain (Mobile): Nội dung chính của trang chọn lộ trình học
  */
 export function StudySelectionMain({ 
   onSelectLevel,
@@ -35,21 +35,14 @@ export function StudySelectionMain({
           {rows.map((row, rowIndex) => (
             <View key={rowIndex} style={styles.levelRow}>
               {row.map((level) => {
-                const isHovered = hoveredLevel === level.id
                 return (
                   <View key={level.id} style={styles.levelCardWrapper}>
                     <Pressable
                       style={({ pressed }) => [
                         styles.levelCard,
-                        isHovered && [
-                          styles.levelCardHovered,
-                          { borderColor: level.hoverColor, backgroundColor: `${level.hoverColor}20` },
-                        ],
                         pressed && styles.levelCardPressed,
                       ]}
                       onPress={() => onSelectLevel?.(level.id)}
-                      onHoverIn={() => onHoverIn(level.id)}
-                      onHoverOut={onHoverOut}
                     >
                       <Text style={[styles.levelNumber, { color: level.color }]}>{level.id}</Text>
                     </Pressable>
@@ -82,11 +75,10 @@ const styles = StyleSheet.create({
   },
   mainCard: {
     width: '100%',
-    maxWidth: 900,
     backgroundColor: '#F6F2E2',
     borderRadius: 16,
     paddingVertical: 32,
-    paddingHorizontal: 32,
+    paddingHorizontal: 24,
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#F4B8AF',
@@ -96,22 +88,23 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
   },
   levelGrid: {
-    gap: 60,
+    gap: 40,
     width: '100%',
     alignItems: 'center',
   },
   levelRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 60,
+    gap: 30,
+    flexWrap: 'wrap',
   },
   levelCardWrapper: {
     alignItems: 'center',
     gap: 8,
   },
   levelCard: {
-    width: 130,
-    height: 130,
+    width: 100,
+    height: 100,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     alignItems: 'center',
@@ -123,29 +116,13 @@ const styles = StyleSheet.create({
     elevation: 3,
     borderWidth: 1,
     borderColor: '#F1F1F1',
-    ...(Platform.OS === 'web' && {
-      transitionProperty: 'transform, shadowOpacity, shadowRadius, borderColor, backgroundColor',
-      transitionDuration: '200ms',
-      transitionTimingFunction: 'ease-out',
-      cursor: 'pointer',
-    }),
-  },
-  levelCardHovered: {
-    transform: [{ scale: 1.08 }],
-    borderWidth: 2,
-    shadowOpacity: 0,
-    ...(Platform.OS === 'web' && {
-      transitionProperty: 'transform, borderColor, backgroundColor',
-      transitionDuration: '200ms',
-      transitionTimingFunction: 'ease-out',
-    }),
   },
   levelCardPressed: {
     transform: [{ scale: 1.05 }],
     opacity: 0.9,
   },
   levelNumber: {
-    fontSize: 42,
+    fontSize: 36,
     fontWeight: '800',
     fontFamily: 'Epilogue, sans-serif',
   },
@@ -158,8 +135,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
   },
   bunny: {
-    width: 210,
-    height: 210,
+    width: 180,
+    height: 180,
   },
 })
 

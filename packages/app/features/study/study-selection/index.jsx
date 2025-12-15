@@ -8,7 +8,7 @@ import {
   StudySelectionMain as WebMain,
   StudySelectionLayoutMobile as MobileLayout,
   StudySelectionMainMobile as MobileMain
-} from '../../components/study-selection'
+} from './components'
 
 /**
  * StudySelection: Trang chọn lộ trình học dựa trên các level

@@ -1,8 +1,8 @@
 import React from 'react'
 import { View, StyleSheet, ScrollView, Platform } from 'react-native'
 import { Navbar } from 'components/navbar'
-import { QuickLevelTestButton } from '../../quick-level-test-button.web'
-import { StudyStatsCards } from '../../study-stats-cards.web'
+import { QuickLevelTestButton } from '../../../components/quick-level-test-button.web'
+import { StudyStatsCards } from '../../../components/study-stats-cards.web'
 
 /**
  * StudySelectionLayout (Web): Bố cục trang chọn lộ trình học với button bên trái và stats bên phải
