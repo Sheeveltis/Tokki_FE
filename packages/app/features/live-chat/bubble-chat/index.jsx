@@ -36,6 +36,7 @@ const BubbleChat = () => {
     isOpen,
     setIsOpen,
     isQueueing,
+    hasSupporter,
     roomId,
     inputMessage,
     setInputMessage,
@@ -58,7 +59,11 @@ const BubbleChat = () => {
             <div className="chat-header-info">
               <h3>CSKH Tokki</h3>
               <span className="chat-status" style={{color: isConnected ? '#4caf50' : '#f44336'}}>
-                {isConnected ? '● Trực tuyến' : '○ Mất kết nối'}
+                {isConnected
+                  ? hasSupporter
+                    ? '● Đang được hỗ trợ'
+                    : '● Đang chờ nhân viên'
+                  : '○ Mất kết nối'}
               </span>
             </div>
             <div style={{display: 'flex', gap: '5px'}}>
@@ -71,9 +76,10 @@ const BubbleChat = () => {
             </div>
           </div>
 
-          {isQueueing && isConnected && (
+          {isQueueing && isConnected && !hasSupporter && (
             <div className="chat-queue-status">
               Đang kết nối nhân viên tư vấn... <br/>
+              Bạn có thể để lại lời nhắn, nhân viên sẽ trả lời ngay khi vào phòng.
             </div>
           )}
 

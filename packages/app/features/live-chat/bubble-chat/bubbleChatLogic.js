@@ -18,6 +18,7 @@ export const getUserIdFromToken = (token) => {
 export const useBubbleChatLogic = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isQueueing, setIsQueueing] = useState(false)
+  const [hasSupporter, setHasSupporter] = useState(false) // Đã có nhân viên tham gia
   const [roomId, setRoomId] = useState(
     typeof window !== 'undefined' ? localStorage.getItem('curr_chat_room') || null : null
   )
@@ -37,6 +38,7 @@ export const useBubbleChatLogic = () => {
     setRoomId(null)
     setMessages([])
     setIsQueueing(false)
+    setHasSupporter(false)
   }
 
   // Join lại room + load history khi mở lại
@@ -61,6 +63,18 @@ export const useBubbleChatLogic = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isOpen, isQueueing])
+
+  // Khi có tin nhắn từ staff -> đánh dấu đã có người hỗ trợ, tắt trạng thái queue
+  useEffect(() => {
+    if (!currentUserId || !messages?.length) return
+    const hasStaffMessage = messages.some(
+      (m) => m.senderId && m.senderId !== currentUserId
+    )
+    if (hasStaffMessage) {
+      setHasSupporter(true)
+      setIsQueueing(false)
+    }
+  }, [messages, currentUserId])
 
   const handleLoadHistory = async (id) => {
     setLoadingHistory(true)
@@ -163,6 +177,7 @@ export const useBubbleChatLogic = () => {
     isOpen,
     setIsOpen,
     isQueueing,
+    hasSupporter,
     roomId,
     inputMessage,
     setInputMessage,
