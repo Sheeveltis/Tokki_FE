@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import FlashcardListScreen from 'app/features/study/screens/FlashcardList'
+import FlashcardListScreen from 'app/features/study/flashcard-list'
 import { STUDY_PAGE_TITLES } from 'app/features/study/constants'
 
 export default function FlashcardPage() {

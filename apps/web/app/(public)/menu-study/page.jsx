@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { MenuStudy } from 'app/features/study/screens/MenuStudy'
+import { MenuStudy } from 'app/features/study/menu-study'
 
 export default function MenuStudyPage() {
   const router = useRouter()

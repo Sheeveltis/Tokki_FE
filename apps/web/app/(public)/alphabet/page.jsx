@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import AlphabetSelectModeScreen from 'app/features/study/screens/AlphabetSelectMode'
+import AlphabetSelectModeScreen from 'app/features/study/alphabet-select-mode'
 
 export default function AlphabetPage() {
   const router = useRouter()

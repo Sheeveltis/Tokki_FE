@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import AlphabetStudyScreen from 'app/features/study/screens/AlphabetStudy'
+import AlphabetStudyScreen from 'app/features/study/alphabet-study'
 
 export default function AlphabetSyllablesPage() {
   const router = useRouter()

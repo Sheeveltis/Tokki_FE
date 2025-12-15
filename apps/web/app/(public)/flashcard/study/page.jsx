@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import FlashcardStudyScreen from 'app/features/study/screens/FlashcardStudy'
+import FlashcardStudyScreen from 'app/features/study/flashcard-study'
 import { STUDY_PAGE_TITLES, TOPIC_TITLES } from 'app/features/study/constants'
 
 export default function FlashcardStudyPage() {
