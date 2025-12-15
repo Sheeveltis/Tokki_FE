@@ -19,18 +19,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFD7D0',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 16,
+    paddingHorizontal: 16,
   },
   contentWrapper: {
     width: '70%',
     maxWidth: 1200,
-    gap: 24,
-    alignItems: 'center',
+    gap: 16,
+    alignItems: 'stretch',
     backgroundColor: '#F5F0DD',
     paddingVertical: 24,
     paddingHorizontal: 24,
     borderRadius: 16,
-    flex: 1,
+    flexDirection: 'column',
   },
 })
 

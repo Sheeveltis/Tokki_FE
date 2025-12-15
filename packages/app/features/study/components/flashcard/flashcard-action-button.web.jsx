@@ -22,14 +22,18 @@ export function FlashcardActionButton({
         (pressed || hovered) && styles.buttonActive,
       ]}
     >
-      <View style={styles.left}>
-        <Image
-          source={normalizeImageSource(icon)}
-          style={styles.icon}
-          resizeMode="contain"
-        />
-      </View>
-      <View style={styles.divider} />
+      {icon && (
+        <>
+          <View style={styles.left}>
+            <Image
+              source={normalizeImageSource(icon)}
+              style={styles.icon}
+              resizeMode="contain"
+            />
+          </View>
+          <View style={styles.divider} />
+        </>
+      )}
       <View style={styles.middle}>
         <Text style={styles.title}>{title}</Text>
       </View>
@@ -43,7 +47,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 50,
-    backgroundColor: '#F1BE4B',
+    backgroundColor: '#FDEEB9',
     borderRadius: 100,
     shadowColor: '#F1BE4B',
     shadowOpacity: 1,
@@ -58,7 +62,7 @@ const styles = StyleSheet.create({
   buttonActive: {
     transform: [{ translateY: -2 }],
     shadowOpacity: 0.22,
-    backgroundColor: '#E5A93D',
+    backgroundColor: '#F1BE4B',
   },
   left: {
     width: 60,
