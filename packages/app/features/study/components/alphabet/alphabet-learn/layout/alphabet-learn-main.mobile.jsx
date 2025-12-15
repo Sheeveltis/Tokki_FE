@@ -1,5 +1,5 @@
-import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import React, { useEffect, useRef } from 'react'
+import { View, Text, StyleSheet, Animated } from 'react-native'
 import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from '../../../../../../../assets/icon/icon-mainflow/arrow.svg'
 import StarIcon from '../../../../../../../assets/icon/icon-mainflow/star.svg'
@@ -7,7 +7,7 @@ import { FlipCard } from 'components/FlipCard'
 import { normalizeImageSource } from '../../../../api'
 import { studyStyles } from '../../../../styles'
 import { ALPHABET_LETTERS } from '../../../../mockData'
-import { ProgressBar, PronunciationDisplay, LearnedButton } from '../index'
+import { ProgressBar, PronunciationDisplay, StudyActionButtons } from '../index'
 import { PaginationControls } from '../../alphabet-typing'
 
 /**
@@ -22,13 +22,52 @@ export function AlphabetLearnMain({
   progress,
   learnedCount,
   total,
+  slideDirection,
   onBackPress,
   onFlip,
   onToggleFavorite,
   onMarkAsLearned,
+  onMarkAsNeedReview,
   onNext,
   onPrev,
 }) {
+  const slideAnim = useRef(new Animated.Value(0)).current
+  const opacityAnim = useRef(new Animated.Value(1)).current
+
+  useEffect(() => {
+    if (slideDirection) {
+      // Bắt đầu animation
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: slideDirection === 'left' ? -1 : 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        // Reset sau khi animation hoàn thành
+        slideAnim.setValue(0)
+        opacityAnim.setValue(1)
+      })
+    }
+  }, [slideDirection, slideAnim, opacityAnim])
+
+  const cardAnimatedStyle = {
+    transform: [
+      {
+        translateX: slideAnim.interpolate({
+          inputRange: [-1, 0, 1],
+          outputRange: [-1000, 0, 1000],
+        }),
+      },
+    ],
+    opacity: opacityAnim,
+  }
+
   if (ALPHABET_LETTERS.length === 0) {
     return (
       <>
@@ -74,29 +113,39 @@ export function AlphabetLearnMain({
 
       {/* Flashcard */}
       <View style={styles.cardContainer}>
-        <FlipCard
-          word={current.word || ''}
-          meaning={current.meaning || ''}
-          width="100%"
-          height={500}
-          frontColor="#79964E"
-          backColor="#79964E"
-          borderWidth={12}
-          borderRadius={12}
-          flipOnHover={false}
-          isFlipped={isFlipped}
-          onFlip={onFlip}
-          starIcon={normalizeImageSource(StarIcon)}
-          isFavorite={isFavorite}
-          onToggleFavorite={onToggleFavorite}
-        />
+        <Animated.View 
+          style={[
+            styles.cardWrapper,
+            cardAnimatedStyle,
+          ]}
+        >
+          <FlipCard
+            word={current.word || ''}
+            meaning={current.meaning || ''}
+            width="100%"
+            height={500}
+            frontColor="#79964E"
+            backColor="#79964E"
+            borderWidth={12}
+            borderRadius={12}
+            flipOnHover={false}
+            isFlipped={isFlipped}
+            onFlip={onFlip}
+            starIcon={normalizeImageSource(StarIcon)}
+            isFavorite={isFavorite}
+            onToggleFavorite={onToggleFavorite}
+          />
+        </Animated.View>
       </View>
 
       {/* Pronunciation */}
       <PronunciationDisplay pronunciation={current.pronunciation} />
 
       {/* Action Buttons */}
-      <LearnedButton isLearned={isLearned} onPress={onMarkAsLearned} />
+      <StudyActionButtons 
+        onMarkAsNeedReview={onMarkAsNeedReview}
+        onMarkAsLearned={onMarkAsLearned}
+      />
 
       {/* Pagination */}
       <PaginationControls
@@ -122,10 +171,15 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     width: '100%',
-    height: 524, // 500 + 12*2 (border)
+    height: '40%',
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  cardWrapper: {
+    width: '100%',
+    height: '100%',
   },
   emptyContainer: {
     padding: 40,

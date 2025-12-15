@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ALPHABET_LETTERS } from '../../mockData'
 
 /**
@@ -9,44 +9,73 @@ export function useAlphabetLearn() {
   const [isFlipped, setIsFlipped] = useState(false)
   const [favorites, setFavorites] = useState(new Set())
   const [learned, setLearned] = useState(new Set())
+  const [showInstructions, setShowInstructions] = useState(false)
 
-  const current = ALPHABET_LETTERS[index % ALPHABET_LETTERS.length] || {}
-  const isFavorite = favorites.has(index)
-  const isLearned = learned.has(index)
+  // Filter flashcards: chỉ lấy những card chưa học
+  const unlearnedIndices = ALPHABET_LETTERS
+    .map((_, idx) => idx)
+    .filter((idx) => !learned.has(idx))
+
+  // Map index trong unlearned list về index gốc trong ALPHABET_LETTERS
+  const originalIndex = unlearnedIndices[index % unlearnedIndices.length]
+  const current = ALPHABET_LETTERS[originalIndex] || {}
+  const isFavorite = originalIndex !== undefined ? favorites.has(originalIndex) : false
+  const isLearned = originalIndex !== undefined ? learned.has(originalIndex) : false
   const progress = ALPHABET_LETTERS.length > 0 ? Math.round((learned.size / ALPHABET_LETTERS.length) * 100) : 0
+
+  // Reset index nếu vượt quá số lượng card chưa học
+  useEffect(() => {
+    if (unlearnedIndices.length > 0 && index >= unlearnedIndices.length) {
+      setIndex(0)
+    }
+  }, [unlearnedIndices.length, index])
 
   const handleNext = () => {
     setIsFlipped(false)
-    setIndex((prev) => (prev + 1) % ALPHABET_LETTERS.length)
+    if (unlearnedIndices.length > 0) {
+      setIndex((prev) => (prev + 1) % unlearnedIndices.length)
+    }
   }
 
   const handlePrev = () => {
     setIsFlipped(false)
-    setIndex((prev) => (prev - 1 + ALPHABET_LETTERS.length) % ALPHABET_LETTERS.length)
+    if (unlearnedIndices.length > 0) {
+      setIndex((prev) => (prev - 1 + unlearnedIndices.length) % unlearnedIndices.length)
+    }
   }
 
   const toggleFavorite = () => {
-    setFavorites((prev) => {
-      const next = new Set(prev)
-      if (next.has(index)) {
-        next.delete(index)
-      } else {
-        next.add(index)
-      }
-      return next
-    })
+    if (originalIndex !== undefined) {
+      setFavorites((prev) => {
+        const next = new Set(prev)
+        if (next.has(originalIndex)) {
+          next.delete(originalIndex)
+        } else {
+          next.add(originalIndex)
+        }
+        return next
+      })
+    }
   }
 
   const markAsLearned = () => {
-    setLearned((prev) => {
-      const next = new Set(prev)
-      if (next.has(index)) {
-        next.delete(index)
-      } else {
-        next.add(index)
-      }
-      return next
-    })
+    if (originalIndex !== undefined) {
+      setLearned((prev) => {
+        const next = new Set(prev)
+        next.add(originalIndex)
+        return next
+      })
+    }
+  }
+
+  const markAsNeedReview = () => {
+    if (originalIndex !== undefined) {
+      setLearned((prev) => {
+        const next = new Set(prev)
+        next.delete(originalIndex)
+        return next
+      })
+    }
   }
 
   return {
@@ -54,15 +83,19 @@ export function useAlphabetLearn() {
     isFlipped,
     favorites,
     learned,
+    unlearnedCount: unlearnedIndices.length,
     current,
     isFavorite,
     isLearned,
     progress,
+    showInstructions,
     handleNext,
     handlePrev,
     toggleFavorite,
     markAsLearned,
+    markAsNeedReview,
     setIsFlipped,
+    setShowInstructions,
   }
 }
 
