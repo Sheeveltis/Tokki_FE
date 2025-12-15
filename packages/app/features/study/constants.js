@@ -10,6 +10,7 @@ export const STUDY_PAGE_TITLES = {
   MENU_STUDY: (levelId) => `LEVEL ${levelId}`,
   FLASHCARD_LIST: 'Từ Vựng',
   FLASHCARD_STUDY: 'Học Từ Vựng',
+  ALPHABET_LEARN: 'Học Chữ Cái',
 }
 
 /**

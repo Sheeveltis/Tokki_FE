@@ -1,4 +1,5 @@
 import React from 'react'
+import SoundIcon from '../assets/icon/icon-mainflow/sound.svg'
 
 /**
  * Component FlipCard - Flashcard với animation flip 3D
@@ -25,6 +26,7 @@ import React from 'react'
  *   starIcon?: React.ReactNode | string; - Icon star để hiển thị ở góc trên phải
  *   isFavorite?: boolean; - Trạng thái yêu thích
  *   onToggleFavorite?: () => void; - Callback khi click vào star
+ *   onPlaySound?: () => void; - Callback khi click vào icon sound
  *   className?: string; - Custom className
  *   style?: React.CSSProperties; - Custom styles
  * }} props
@@ -48,6 +50,7 @@ export function FlipCard({
   starIcon,
   isFavorite = false,
   onToggleFavorite,
+  onPlaySound,
   className = '',
   style,
 }) {
@@ -214,6 +217,73 @@ export function FlipCard({
 
   const content = renderFlashcardContent()
 
+  // Render sound icon nếu có
+  const renderSoundIcon = () => {
+    // Hiển thị icon sound khi có star icon (nút lưu) hoặc có onPlaySound
+    if (!starIcon && !onToggleFavorite && !onPlaySound) return null
+    
+    const soundStyle = {
+      position: 'absolute',
+      top: '8px',
+      right: starIcon && onToggleFavorite ? '52px' : '8px',
+      zIndex: 10,
+      cursor: 'pointer',
+      padding: '8px',
+      borderRadius: '20px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '44px',
+      height: '44px',
+      transition: 'opacity 0.2s',
+    }
+
+    const iconStyle = {
+      width: '28px',
+      height: '28px',
+      filter: 'opacity(0.5)',
+      transition: 'filter 0.2s',
+    }
+
+    // Xử lý SoundIcon - có thể là string URL, object với src/uri/default
+    const soundSrc = typeof SoundIcon === 'string' 
+      ? SoundIcon 
+      : (SoundIcon?.src || SoundIcon?.uri || SoundIcon?.default)
+    
+    if (!soundSrc) return null
+
+    return (
+      <div 
+        style={soundStyle} 
+        onClick={(e) => { 
+          e.stopPropagation(); 
+          if (onPlaySound) {
+            onPlaySound(); 
+          }
+        }}
+        onMouseDown={(e) => e.stopPropagation()}
+        onMouseEnter={(e) => { 
+          const img = e.currentTarget.querySelector('img')
+          if (img) {
+            img.style.filter = 'opacity(1)'
+          }
+        }}
+        onMouseLeave={(e) => { 
+          const img = e.currentTarget.querySelector('img')
+          if (img) {
+            img.style.filter = 'opacity(0.5)'
+          }
+        }}
+      >
+        <img 
+          src={soundSrc} 
+          alt="Play sound" 
+          style={iconStyle}
+        />
+      </div>
+    )
+  }
+
   // Render star icon nếu có
   const renderStarIcon = () => {
     if (!starIcon || !onToggleFavorite) return null
@@ -304,10 +374,12 @@ export function FlipCard({
         <div className="flip-card-inner" style={cardInnerStyle}>
           <div className="flip-card-front" style={cardFrontStyle}>
             {content.front}
+            {renderSoundIcon()}
             {renderStarIcon()}
           </div>
           <div className="flip-card-back" style={cardBackStyle}>
             {content.back}
+            {renderSoundIcon()}
             {renderStarIcon()}
           </div>
         </div>
