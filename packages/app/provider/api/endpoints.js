@@ -1,6 +1,8 @@
 const DOMAIN = 'http://localhost:5031'
 const PREFIX = '/api'
+
 export const API_BASE_URL = `${DOMAIN}${PREFIX}`
+
 export const ENDPOINTS = {
     BLOG: {
       GET_ALL: '/Blog',              
@@ -39,5 +41,12 @@ export const ENDPOINTS = {
     COMMENT: {
       CREATE: '/Comment',
       GET_BY_BLOG: (blogId) => `/Comment/blog/${blogId}`,
+    },
+    LIVE_CHAT: {
+      GET_MY_ROOMS: '/Chat/my-rooms',
+      REQUEST_SUPPORT: '/Chat/support/request',
+      GET_PENDING_SUPPORT: '/Chat/support/pending',
+      JOIN_SUPPORT: (roomId) => `/Chat/support/${roomId}/join`,
+      GET_HISTORY: (roomId) => `/Chat/${roomId}/history`,
     },
   }

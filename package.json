@@ -28,9 +28,11 @@
     "singleQuote": true
   },
   "dependencies": {
+    "@microsoft/signalr": "^10.0.0",
     "antd": "^6.0.1",
     "axios": "^1.13.2",
     "i": "^0.3.7",
+    "jwt-decode": "^4.0.0",
     "react-quill": "^2.0.0",
     "recharts": "^3.5.1"
   }

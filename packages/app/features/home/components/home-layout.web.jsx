@@ -3,6 +3,7 @@ import { View, ScrollView, StyleSheet } from 'react-native'
 import { Navbar } from 'components/navbar'
 import { Footer } from 'components/footer'
 import { HomeSidebar } from './home-sidebar'
+import BubbleChat from '../../live-chat/bubble-chat'
 
 /**
  * HomeLayout (Web): Bố cục trang Home cho màn hình desktop
@@ -55,6 +56,9 @@ export function HomeLayout({
 
       {/* Footer ở cuối trang */}
       <Footer style={{}} />
+
+      {/* Bubble chat hỗ trợ */}
+      <BubbleChat />
     </View>
   )
 }
