@@ -11,7 +11,8 @@ export default function StudyPage() {
     <StudyScreen
       title={STUDY_PAGE_TITLES.STUDY}
       onSelectLevel={(levelId) => {
-        router.push(`/menu-study?level=${levelId}`)
+        // Truyền level qua state, không dùng query trên URL
+        router.push('/menu-study', { state: { levelId } })
       }}
       onQuickTestPress={() => {
         router.push('/test')
