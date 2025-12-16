@@ -31,6 +31,7 @@ import { Loading, LoadingWithContainer } from 'components/Loading'
 import { FlipCard } from 'components/FlipCard'
 import { RoadmapTestQuestion } from 'app/features/roadmap/roadmap-test/components/roadmap-test-question'
 import { RoadmapTestDashboard } from 'app/features/roadmap/roadmap-test/components/roadmap-test-dashboard'
+import { MatchingCardBanner } from 'app/features/minigame/matching-card/components/matching-card-banner'
 import colors from '../../../../packages/app/color.js'
 
 const demoCardsType1 = [
@@ -1058,6 +1059,44 @@ const RoadmapTestDashboardSection = () => {
   )
 }
 
+const MinigameCardHeader = () => (
+  <View style={{ alignItems: 'center' }}>
+    <Text
+      style={{
+        marginTop: SECTION_GAP * 2,
+        fontSize: 28,
+        fontWeight: '700',
+        textAlign: 'center',
+        fontFamily: 'Lexend, sans-serif',
+      }}
+    >
+      Minigame - Lật thẻ bài từ vựng
+    </Text>
+    <Text
+      style={{
+        marginTop: 8,
+        color: '#555',
+        fontSize: 16,
+        textAlign: 'center',
+        fontFamily: 'Epilogue, sans-serif',
+      }}
+    >
+      Thẻ minigame với bunny, nền cà rốt và hiệu ứng vui nhộn.
+    </Text>
+  </View>
+)
+
+const MinigameCardSection = () => (
+  <View
+    style={{
+      width: '100%',
+      alignItems: 'center',
+    }}
+  >
+    <MatchingCardBanner />
+  </View>
+)
+
 export default function ComponentsShowcasePage() {
   return (
     <View
@@ -1109,6 +1148,8 @@ export default function ComponentsShowcasePage() {
         <RoadmapTestQuestionSection />
         <RoadmapTestDashboardHeader />
         <RoadmapTestDashboardSection />
+        <MinigameCardHeader />
+        <MinigameCardSection />
         <Navbar />
         <Footer />
       </View>
