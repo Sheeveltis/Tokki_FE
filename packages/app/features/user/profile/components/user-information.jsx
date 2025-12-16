@@ -1,7 +1,10 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Image, StyleSheet, Text, View } from 'react-native'
 
 import Carrot from '../../../../../assets/carrot.png'
+import UserIcon from '../../../../../assets/user.png'
+import { getCurrentUser, updateBasicInfo, updateSecurityInfo, uploadAvatar } from '../api/api'
+import { showAdminSuccess } from '../../../../../components/HelperAdmin'
 import { BasicInfo } from './basic-info'
 import { SecurityInfo } from './security-info'
 import { UserAvatarCard } from './user-avt'
@@ -14,7 +17,150 @@ const normalizeImageSource = (src) => {
   return src
 }
 
+/**
+ * Split fullName into firstName and lastName
+ * If fullName has space, split by space; otherwise use fullName as lastName
+ */
+const splitFullName = (fullName) => {
+  if (!fullName) return { firstName: '', lastName: '' }
+  const parts = fullName.trim().split(/\s+/)
+  if (parts.length === 1) {
+    return { firstName: '', lastName: parts[0] }
+  }
+  const lastName = parts.pop()
+  const firstName = parts.join(' ')
+  return { firstName, lastName }
+}
+
 export function UserInformation() {
+  const [userData, setUserData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true)
+        const data = await getCurrentUser()
+        setUserData(data)
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching user data:', err)
+        setError(err.message || 'Không thể tải thông tin người dùng')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUserData()
+  }, [])
+
+  const handleBasicInfoSubmit = async ({ firstName, lastName }) => {
+    try {
+      const fullName = `${firstName} ${lastName}`.trim()
+      const updatedData = await updateBasicInfo({ fullName })
+      setUserData(updatedData)
+      showAdminSuccess('Cập nhật thông tin cơ bản thành công')
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          window.location.reload()
+        }, 1000)
+      }
+    } catch (err) {
+      console.error('Error updating basic info:', err)
+      alert(err.message || 'Không thể cập nhật thông tin')
+    }
+  }
+
+  const handleSecurityInfoUpdate = async ({ phone }) => {
+    try {
+      const updatedData = await updateSecurityInfo({ phoneNumber: phone })
+      setUserData(updatedData)
+      showAdminSuccess('Cập nhật số điện thoại thành công')
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          window.location.reload()
+        }, 1000)
+      }
+    } catch (err) {
+      console.error('Error updating security info:', err)
+      alert(err.message || 'Không thể cập nhật thông tin bảo mật')
+    }
+  }
+
+  const handleChangePassword = () => {
+    // TODO: Implement change password flow
+    alert('Chức năng đổi mật khẩu sẽ được triển khai sau')
+  }
+
+  const handleAvatarUpload = async (fileOrUrl) => {
+    try {
+      let avatarData = fileOrUrl
+
+      // Nếu là file trên web: convert to base64 data URL rồi gửi avatarUrl
+      if (typeof window !== 'undefined' && fileOrUrl instanceof File) {
+        avatarData = await new Promise((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result)
+          reader.onerror = reject
+          reader.readAsDataURL(fileOrUrl)
+        })
+      }
+
+      const updatedData = await uploadAvatar(avatarData)
+      setUserData(updatedData)
+      showAdminSuccess('Cập nhật avatar thành công')
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          window.location.reload()
+        }, 1000)
+      }
+    } catch (err) {
+      console.error('Error uploading avatar:', err)
+      alert(err.message || 'Không thể upload avatar')
+    }
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>Đang tải thông tin...</Text>
+      </View>
+    )
+  }
+
+  if (error || !userData) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error || 'Không thể tải thông tin người dùng'}</Text>
+      </View>
+    )
+  }
+
+  // Prepare data for child components
+  const { firstName, lastName } = splitFullName(userData.fullName || '')
+  const avatarSource =
+    userData.avatarUrl && userData.avatarUrl !== 'null' && userData.avatarUrl !== null
+      ? { uri: userData.avatarUrl }
+      : UserIcon
+
+  const userAvatarData = {
+    name: userData.fullName || '',
+    phone: userData.phoneNumber || '',
+    avatar: avatarSource,
+  }
+
+  const basicInfoData = {
+    firstName: '',
+    lastName: userData.fullName || '',
+  }
+
+  const securityInfoData = {
+    email: userData.email || '',
+    password: '**********', 
+    phone: userData.phoneNumber || '',
+  }
+
   return (
     <View style={styles.container}>
       <Image source={normalizeImageSource(Carrot)} style={styles.carrot} resizeMode="contain" />
@@ -28,15 +174,19 @@ export function UserInformation() {
 
       <View style={styles.topRow}>
         <View style={styles.avatarWrap}>
-          <UserAvatarCard />
+          <UserAvatarCard user={userAvatarData} onAvatarPress={handleAvatarUpload} />
         </View>
         <View style={styles.basicWrap}>
-          <BasicInfo />
+          <BasicInfo initialInfo={basicInfoData} onSubmit={handleBasicInfoSubmit} />
         </View>
       </View>
 
       <View style={styles.securityWrap}>
-        <SecurityInfo />
+        <SecurityInfo
+          initialData={securityInfoData}
+          onUpdate={handleSecurityInfoUpdate}
+          onChangePassword={handleChangePassword}
+        />
       </View>
     </View>
   )
@@ -91,6 +241,20 @@ const styles = StyleSheet.create({
   },
   securityWrap: {
     width: '100%',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    paddingVertical: 40,
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#E74C3C',
+    textAlign: 'center',
+    paddingVertical: 40,
+    fontFamily: 'Epilogue, sans-serif',
   },
 })
 

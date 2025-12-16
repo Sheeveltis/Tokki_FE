@@ -13,7 +13,7 @@ export function SecurityInfo({ initialData = DEFAULT_SECURITY, onUpdate, onChang
   const [phone, setPhone] = useState(initialData.phone)
 
   const handleUpdate = () => {
-    if (onUpdate) onUpdate({ email, password, phone })
+    if (onUpdate) onUpdate({ phone })
   }
 
   return (
@@ -24,21 +24,23 @@ export function SecurityInfo({ initialData = DEFAULT_SECURITY, onUpdate, onChang
         <View style={styles.field}>
           <TextInput
             value={email}
-            onChangeText={setEmail}
             style={styles.input}
             placeholder="Email"
             placeholderTextColor="#8F8F8F"
             keyboardType="email-address"
+            editable={false}
+            selectTextOnFocus={false}
           />
         </View>
         <View style={styles.field}>
           <TextInput
             value={password}
-            onChangeText={setPassword}
             style={styles.input}
             placeholder="Mật khẩu"
             placeholderTextColor="#8F8F8F"
             secureTextEntry
+            editable={false}
+            selectTextOnFocus={false}
           />
         </View>
         <View style={styles.field}>
