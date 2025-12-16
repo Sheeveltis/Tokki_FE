@@ -30,6 +30,7 @@ export const ENDPOINTS = {
       REGISTER: '/Account/register',
       FORGOT_PASSWORD_RESET: '/Account/forgot-password/reset',
       PROFILE: '/Account/profile',
+      ME: '/Account/me',
     },
     OTP: {
       SEND_EMAIL_VERIFICATION: '/Otp/send-otp-for-email-verification',

@@ -1,5 +1,5 @@
-import React from 'react'
-import { Image, StyleSheet, Text, View } from 'react-native'
+import React, { useRef } from 'react'
+import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import UserIcon from '../../../../../assets/user.png'
 
@@ -17,12 +17,51 @@ const MOCK_USER = {
   avatar: UserIcon,
 }
 
-export function UserAvatarCard({ user = MOCK_USER }) {
+export function UserAvatarCard({ user = MOCK_USER, onAvatarPress }) {
+  const fileInputRef = useRef(null)
+
+  const handleAvatarPress = () => {
+    if (!onAvatarPress) return
+
+    if (Platform.OS === 'web') {
+      // Trigger file input click
+      if (fileInputRef.current) {
+        fileInputRef.current.click()
+      }
+    } else {
+      // For native, call the handler directly (you might need to implement image picker)
+      onAvatarPress()
+    }
+  }
+
+  const handleFileChange = (event) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const file = event.target.files[0]
+      if (onAvatarPress && file) {
+        onAvatarPress(file)
+      }
+      // Reset input để có thể chọn lại cùng file
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
   return (
     <View style={styles.card}>
-      <View style={styles.avatarWrap}>
-        <Image source={normalizeImageSource(user.avatar)} style={styles.avatar} resizeMode="contain" />
-      </View>
+      <Pressable onPress={handleAvatarPress} style={styles.avatarPressable}>
+        <View style={styles.avatarWrap}>
+          <Image source={normalizeImageSource(user.avatar)} style={styles.avatar} resizeMode="cover" />
+          {Platform.OS === 'web' &&
+            React.createElement('input', {
+              ref: fileInputRef,
+              type: 'file',
+              accept: 'image/*',
+              style: styles.hiddenInput,
+              onChange: handleFileChange,
+            })}
+        </View>
+      </Pressable>
 
       <Text style={styles.name}>{user.name}</Text>
       <Text style={styles.phone}>{user.phone}</Text>
@@ -48,6 +87,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E3DC',
   },
+  avatarPressable: {
+    cursor: 'pointer',
+  },
   avatarWrap: {
     width: 84,
     height: 84,
@@ -55,10 +97,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#D9D9D9',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   avatar: {
     width: 60,
     height: 60,
+  },
+  hiddenInput: {
+    display: 'none',
   },
   name: {
     marginTop: 6,
