@@ -15,6 +15,7 @@ import RoadmapIcon from '../assets/icon/navigate-app/book.svg'
 import FlashcardIcon from '../assets/icon/navigate-app/folder.svg'
 import BlogIcon from '../assets/icon/navigate-app/chat.svg'
 import SmallFoot from '../assets/smallfoot.png'
+import RoadmapImage from '../assets/roadmap.png'
 import { useRouter } from 'solito/navigation'
 import UserIcon from '../assets/user.png'
 import LogoutIcon from '../assets/icon/icon-mainflow/logout.svg'
@@ -80,6 +81,7 @@ export const Navbar = ({
   const [blogHover, setBlogHover] = useState(false)
   const [userHover, setUserHover] = useState(false)
   const [logoutHover, setLogoutHover] = useState(false)
+  const [roadmapInfoHover, setRoadmapInfoHover] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   // Detect token in localStorage (web)
@@ -119,6 +121,10 @@ export const Navbar = ({
     } else {
       router.push('/study')
     }
+  }
+
+  const handleRoadmapInfoPress = () => {
+    router.push('/roadmap/info')
   }
 
   const handleFlashcardPress = () => {
@@ -360,6 +366,31 @@ export const Navbar = ({
           >
             {/* Lộ Trình */}
           </Text>
+        </Pressable>
+
+        {/* Roadmap Intro (roadmap/info) */}
+        <Pressable
+          onPress={handleRoadmapInfoPress}
+          onHoverIn={() => Platform.OS === 'web' && setRoadmapInfoHover(true)}
+          onHoverOut={() => Platform.OS === 'web' && setRoadmapInfoHover(false)}
+          style={({ pressed }) => {
+            const active = pressed || roadmapInfoHover
+            return {
+              alignItems: 'center',
+              opacity: active ? 0.9 : 1,
+              transform: [{ translateY: active ? -3 : 0 }],
+              ...interactiveAnimationStyle,
+            }
+          }}
+        >
+          <Image
+            source={normalizeImageSource(RoadmapImage)}
+            style={{
+              width: 42,
+              height: 42,
+              resizeMode: 'contain',
+            }}
+          />
         </Pressable>
 
         {/* Flashcard */}

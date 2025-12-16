@@ -5,6 +5,7 @@ import { RoadmapTestDashboard } from './roadmap-test-dashboard'
 import { RoadmapTestButton } from './roadmap-test-button'
 import { getTestQuestions, getTestConfig, formatTime } from '../api/api'
 import CarrotImage from '../../../../../assets/carrot.png'
+import { NavigationPill } from '../../../../../components/navigation-pill'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -108,6 +109,7 @@ export function RoadmapTestLayout({ level = 1 }) {
       <View style={styles.contentRow}>
         {/* Left: Question */}
         <View style={styles.questionContainer}>
+          <NavigationPill style={styles.backHome} label="Trang chủ" to="/homepage" />
           {currentQuestionData && (
             <RoadmapTestQuestion
               questionNumber={currentQuestionData.questionNumber}
@@ -175,6 +177,10 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 16,
     top: 30,
+  },
+  backHome: {
+    alignSelf: 'flex-start',
+    marginBottom: 8,
   },
   navigationButtons: {
     flexDirection: 'row',
