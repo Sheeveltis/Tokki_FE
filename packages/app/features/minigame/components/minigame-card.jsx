@@ -1,5 +1,5 @@
-import React from 'react'
-import { Image, StyleSheet, View } from 'react-native'
+import React, { useState } from 'react'
+import { Image, StyleSheet, View, Pressable, Platform } from 'react-native'
 
 import BackgroundImage from '../../../../assets/background3.png'
 import CarrotImage from '../../../../assets/carrot.png'
@@ -50,6 +50,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     width: '100%',
     height: '100%',
+    opacity: 0.5,
   },
   content: {
     paddingVertical: 24,
