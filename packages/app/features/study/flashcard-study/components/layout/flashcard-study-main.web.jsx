@@ -7,15 +7,16 @@ import { FlashcardActionButton, FlashcardVocabularyList } from '../../../compone
 import { FlipCard } from 'components/FlipCard'
 import BunnyStudy from '../../../../../../assets/bunny/14.png'
 import BunnyTest from '../../../../../../assets/bunny/15.png'
-import { FLASHCARDS } from '../../../mockData'
 import { normalizeImageSource } from '../../../api'
 import { studyStyles } from '../../../styles'
+import { LoadingWithContainer } from '../../../../../../components/Loading'
 
 /**
  * FlashcardStudyMain (Web): Nội dung chính của trang học flashcard trên web
  */
 export function FlashcardStudyMain({
   title,
+  flashcards,
   current,
   currentIndex,
   total,
@@ -35,6 +36,9 @@ export function FlashcardStudyMain({
   onMarkAsLearned,
   onMarkAsNeedReview,
   onResetAllLearned,
+  loading,
+  error,
+  onRetry,
 }) {
   // Xử lý phím bàn phím: Space để flip, mũi tên để chuyển card
   useEffect(() => {
@@ -68,6 +72,68 @@ export function FlashcardStudyMain({
       window.removeEventListener('keydown', handleKeyPress)
     }
   }, [isFlipped, onFlip, onNext, onPrev])
+
+  // Loading state
+  if (loading) {
+    return (
+      <LoadingWithContainer
+        size={48}
+        color="#F1BE4B"
+        shadowColor="#F1BE4B50"
+        text="Đang tải từ vựng..."
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      />
+    )
+  }
+
+  // Error state
+  if (error && flashcards.length === 0) {
+    return (
+      <>
+        <View style={styles.header}>
+          <NavigationPill
+            label="Trở lại"
+            to={undefined}
+            icon={ArrowIcon}
+            iconStyle={{ transform: [{ scaleX: -1 }] }}
+            onPress={onBackPress}
+            textStyle={{ fontWeight: '700' }}
+          />
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>{error}</Text>
+          <Pressable style={styles.resetButton} onPress={onRetry}>
+            <Text style={styles.resetButtonText}>Thử lại</Text>
+          </Pressable>
+        </View>
+      </>
+    )
+  }
+
+  // Không có từ vựng
+  if (!flashcards || flashcards.length === 0) {
+    return (
+      <>
+        <View style={styles.header}>
+          <NavigationPill
+            label="Trở lại"
+            to={undefined}
+            icon={ArrowIcon}
+            iconStyle={{ transform: [{ scaleX: -1 }] }}
+            onPress={onBackPress}
+            textStyle={{ fontWeight: '700' }}
+          />
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>Chưa có từ vựng nào</Text>
+        </View>
+      </>
+    )
+  }
 
   // Hiển thị thông báo khi tất cả thẻ đã học xong
   if (unlearnedCount === 0 && total > 0) {
@@ -204,7 +270,7 @@ export function FlashcardStudyMain({
 
       {/* Vocabulary List */}
       <FlashcardVocabularyList
-        flashcards={FLASHCARDS}
+        flashcards={flashcards}
         currentIndex={currentIndex}
         favorites={favorites}
         onSelectFlashcard={onSelectFlashcard}

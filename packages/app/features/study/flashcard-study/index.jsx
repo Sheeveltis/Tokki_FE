@@ -3,7 +3,6 @@
 import React from 'react'
 import { Platform } from 'react-native'
 import { useFlashcardStudy } from './useFlashcardStudy'
-import { FLASHCARDS } from '../mockData'
 import { 
   FlashcardStudyLayout as WebLayout,
   FlashcardStudyMain as WebMain,
@@ -20,8 +19,10 @@ export function FlashcardStudyScreen({
   onBackPress,
   onLearnPress,
   onTestPress,
+  topicId,
 }) {
   const {
+    flashcards,
     index,
     isFlipped,
     favorites,
@@ -39,7 +40,10 @@ export function FlashcardStudyScreen({
     markAsNeedReview,
     resetAllLearned,
     setIsFlipped,
-  } = useFlashcardStudy()
+    loading,
+    error,
+    fetchFlashcards,
+  } = useFlashcardStudy(topicId)
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
@@ -48,9 +52,10 @@ export function FlashcardStudyScreen({
     <Layout>
       <Main
         title={title}
+        flashcards={flashcards}
         current={current}
         currentIndex={currentIndex}
-        total={FLASHCARDS.length}
+        total={flashcards.length}
         unlearnedCount={unlearnedFlashcards.length}
         isFlipped={isFlipped}
         isFavorite={isFavorite}
@@ -67,6 +72,9 @@ export function FlashcardStudyScreen({
         onMarkAsLearned={markAsLearned}
         onMarkAsNeedReview={markAsNeedReview}
         onResetAllLearned={resetAllLearned}
+        loading={loading}
+        error={error}
+        onRetry={fetchFlashcards}
       />
     </Layout>
   )

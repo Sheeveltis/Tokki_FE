@@ -5,7 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Card, Space, Typography, Spin, Alert } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
-import { fetchFlashcardTopics, fetchVocabularies } from '../../api'
+import { fetchFlashcardTopicDetail, fetchVocabularies } from '../../api'
 import TopicInfoCard from './components/topic-info-card'
 import TopicVocabSection from './components/topic-vocab-section'
 
@@ -21,7 +21,6 @@ export function FlashcardTopicDetailScreen() {
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [topics, setTopics] = useState([])
   const [vocabList, setVocabList] = useState([])
   const [topicVocabIds, setTopicVocabIds] = useState([])
   const [selecting, setSelecting] = useState([])
@@ -32,10 +31,12 @@ export function FlashcardTopicDetailScreen() {
     let mounted = true
     const load = async () => {
       try {
-        const [resTopics, resVocab] = await Promise.all([fetchFlashcardTopics(), fetchVocabularies()])
-        if (mounted) {
-          setTopics(resTopics || [])
-          setVocabList(resVocab || [])
+        const resDetail = await fetchFlashcardTopicDetail(topicId)
+        if (mounted && resDetail?.topic) {
+          setDetailTopic(resDetail.topic)
+          setTopicVocabIds(resDetail.topic.vocabIds || [])
+          setVocabList(resDetail.vocabularies || [])
+          setSelecting([])
         }
       } catch (err) {
         if (mounted) setError(err?.message || 'Không thể tải chủ đề.')
@@ -47,17 +48,7 @@ export function FlashcardTopicDetailScreen() {
     return () => {
       mounted = false
     }
-  }, [])
-
-  const topicItem = useMemo(() => topics.find((t) => t.id === topicId), [topics, topicId])
-
-  useEffect(() => {
-    if (topicItem) {
-      setDetailTopic(topicItem)
-      setTopicVocabIds(topicItem.vocabIds || [])
-      setSelecting([])
-    }
-  }, [topicItem])
+  }, [topicId])
 
   const availableOptions = useMemo(
     () =>

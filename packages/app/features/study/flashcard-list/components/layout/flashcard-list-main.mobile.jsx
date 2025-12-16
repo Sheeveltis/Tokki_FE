@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Pressable, Platform } from 'react-native'
 import { FlashcardTopicCard } from '../../../components/shared'
 import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
@@ -14,6 +14,11 @@ export function FlashcardListMain({
   topics,
   loading,
   error,
+  searchTerm,
+  onSearchChange,
+  onSearchSubmit,
+  selectedLevel,
+  onLevelChange,
   onBackPress,
   onTopicPress,
   onRetry,
@@ -78,6 +83,46 @@ export function FlashcardListMain({
         <Text style={styles.title}>{title}</Text>
       </View>
 
+      <View style={styles.searchContainer}>
+        <TextInput
+          value={searchTerm}
+          placeholder="Tìm kiếm chủ đề..."
+          onChangeText={onSearchChange}
+          onSubmitEditing={onSearchSubmit}
+          style={styles.searchInput}
+          returnKeyType="search"
+        />
+        <TouchableOpacity style={styles.searchButton} onPress={onSearchSubmit}>
+          <Text style={styles.searchButtonText}>Tìm</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.levelContainer}>
+        {[1, 2, 3, 4, 5, 6].map((level) => {
+          const isActive = Number(selectedLevel) === level
+          return (
+            <Pressable
+              key={level}
+              onPress={() => onLevelChange?.(level)}
+              style={({ pressed }) => [
+                styles.levelButton,
+                isActive && styles.levelButtonActive,
+                pressed && styles.levelButtonPressed,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.levelButtonText,
+                  isActive && styles.levelButtonTextActive,
+                ]}
+              >
+                {level}
+              </Text>
+            </Pressable>
+          )
+        })}
+      </View>
+
       <View style={styles.listContainer}>
         {topics.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -113,6 +158,75 @@ const styles = StyleSheet.create({
   },
   title: {
     ...studyStyles.pageTitle,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    width: '100%',
+    marginTop: 8,
+    marginBottom: 16,
+    paddingHorizontal: 16,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    fontSize: 14,
+  },
+  searchButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#F1BE4B',
+  },
+  searchButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1F1F1F',
+  },
+  levelContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
+    width: '100%',
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  levelButton: {
+    minWidth: 42,
+    height: 36,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+      transitionProperty: 'background-color, border-color, color',
+      transitionDuration: '120ms',
+    }),
+  },
+  levelButtonActive: {
+    backgroundColor: '#F1BE4B',
+    borderColor: '#D39A1C',
+  },
+  levelButtonPressed: {
+    opacity: 0.85,
+  },
+  levelButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1F1F1F',
+  },
+  levelButtonTextActive: {
+    color: '#1F1F1F',
   },
   listContainer: {
     width: '100%',
