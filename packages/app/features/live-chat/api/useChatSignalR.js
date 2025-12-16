@@ -127,17 +127,6 @@ export const useChatSignalR = (token) => {
       try {
         // Lưu ý: Backend method 'SendMessage' thường nhận (roomId, message)
         await connection.invoke(CHAT_HUB.METHODS.SEND_MESSAGE, roomId, message);
-        
-        // Optimistic UI update: Hiện tin nhắn ngay lập tức cho người gửi
-        setMessages((prev) => [
-          ...prev, 
-          { 
-            content: message, 
-            isFromCurrentUser: true, 
-            timestamp: new Date().toISOString(),
-            senderName: "Me" // Tạm thời
-          }
-        ]);
       } catch (err) {
         console.error('SendMessage failed:', err);
         throw err;
