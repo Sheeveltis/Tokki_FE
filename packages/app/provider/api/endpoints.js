@@ -49,4 +49,16 @@ export const ENDPOINTS = {
       JOIN_SUPPORT: (roomId) => `/Chat/support/${roomId}/join`,
       GET_HISTORY: (roomId) => `/Chat/${roomId}/history`,
     },
+    TOPIC: {
+      ADMIN_GET_ALL: '/Topics/admin/get-all',
+      USER_GET_ALL: '/Topics/user/get-all',
+      GET_BY_ID: (id) => `/Topics/${id}`,
+      DELETE: (id) => `/Topics/${id}`,
+    },
+    VOCABULARY: {
+      ADD_VOCABULARY_LIST: '/Vocabulary/bulk',
+      FLASH_CARD_TOPIC: '/Vocabulary/flash-card',
+      GET_BY_ID: (id) => `/Vocabulary/{vocabularyId}`,
+      DELETE: (id) => `/Vocabularies/${id}`,
+    }
   }

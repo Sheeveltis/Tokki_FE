@@ -35,7 +35,7 @@ export function MenuStudy({
     setShowLoginRequest,
     handleModulePress,
     handleAlphabetPress,
-  } = useMenuStudy(router)
+  } = useMenuStudy(router, levelId)
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain

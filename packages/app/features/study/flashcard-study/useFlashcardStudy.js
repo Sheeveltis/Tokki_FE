@@ -1,26 +1,61 @@
-import { useState, useEffect } from 'react'
-import { FLASHCARDS } from '../mockData'
+import { useState, useEffect, useCallback } from 'react'
+import { getFlashcardsByTopic } from '../api'
 
 /**
  * Hook xử lý logic cho FlashcardStudyScreen
  */
-export function useFlashcardStudy() {
+export function useFlashcardStudy(topicId) {
+  const [flashcards, setFlashcards] = useState([])
   const [index, setIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
   const [favorites, setFavorites] = useState(new Set())
   const [learned, setLearned] = useState(new Set())
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  const fetchFlashcards = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await getFlashcardsByTopic(topicId)
+      const flashcardsArray = Array.isArray(data) ? data : []
+      setFlashcards(flashcardsArray)
+      setIndex(0)
+      setIsFlipped(false)
+      setFavorites(new Set())
+      setLearned(new Set())
+    } catch (err) {
+      console.error('Error fetching flashcards:', err)
+      setError(err.message || 'Không thể tải danh sách từ vựng')
+      setFlashcards([])
+    } finally {
+      setLoading(false)
+    }
+  }, [topicId])
+
+  useEffect(() => {
+    if (!topicId) {
+      setFlashcards([])
+      setLoading(false)
+      setError('Thiếu thông tin chủ đề')
+      return
+    }
+    fetchFlashcards()
+  }, [fetchFlashcards, topicId])
 
   // Filter flashcards: chỉ lấy những card chưa học
-  const unlearnedFlashcards = FLASHCARDS.filter((_, idx) => !learned.has(idx))
-  const unlearnedIndices = FLASHCARDS
+  const unlearnedFlashcards = flashcards.filter((_, idx) => !learned.has(idx))
+  const unlearnedIndices = flashcards
     .map((_, idx) => idx)
     .filter((idx) => !learned.has(idx))
 
   // Map index trong unlearned list về index gốc trong FLASHCARDS
-  const originalIndex = unlearnedIndices.length > 0 
-    ? unlearnedIndices[index % unlearnedIndices.length] 
-    : undefined
-  const current = originalIndex !== undefined ? FLASHCARDS[originalIndex] || {} : {}
+  const originalIndex =
+    unlearnedIndices.length > 0
+      ? unlearnedIndices[index % unlearnedIndices.length]
+      : undefined
+  const current =
+    originalIndex !== undefined ? flashcards[originalIndex] || {} : {}
   const isFavorite = originalIndex !== undefined ? favorites.has(originalIndex) : false
   const isLearned = originalIndex !== undefined ? learned.has(originalIndex) : false
 
@@ -96,6 +131,7 @@ export function useFlashcardStudy() {
   }
 
   return {
+    flashcards,
     index,
     isFlipped,
     favorites,
@@ -114,6 +150,9 @@ export function useFlashcardStudy() {
     markAsNeedReview,
     resetAllLearned,
     setIsFlipped,
+    loading,
+    error,
+    fetchFlashcards,
   }
 }
 

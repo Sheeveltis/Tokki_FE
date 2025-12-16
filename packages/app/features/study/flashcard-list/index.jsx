@@ -25,6 +25,11 @@ export function FlashcardListScreen({
     loading,
     error,
     fetchTopics,
+    searchTerm,
+    handleSearchChange,
+    handleSearchSubmit,
+    selectedLevel,
+    handleLevelChange,
   } = useFlashcardList(levelId)
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
@@ -37,6 +42,11 @@ export function FlashcardListScreen({
         topics={topics}
         loading={loading}
         error={error}
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        onSearchSubmit={handleSearchSubmit}
+        selectedLevel={selectedLevel}
+        onLevelChange={handleLevelChange}
         onBackPress={onBackPress}
         onTopicPress={onTopicPress}
         onRetry={fetchTopics}

@@ -13,6 +13,7 @@ export default function FlashcardStudyPage() {
   return (
     <FlashcardStudyScreen
       title={topicTitle}
+      topicId={topicId}
       onBackPress={() => router.push('/flashcard')}
       onLearnPress={() => {
         router.push(`/flashcard/learn?topic=${topicId}`)
