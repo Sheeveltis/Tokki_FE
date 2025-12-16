@@ -42,7 +42,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
   }, [data, search])
 
   const columns = [
-    { title: 'Mã', dataIndex: 'id', key: 'id', width: 120 },
+    { title: 'Mã', dataIndex: 'id', key: 'id', width: 200 },
     { title: 'Tiêu đề', dataIndex: 'title', key: 'title' },
     { title: 'Mô tả', dataIndex: 'subtitle', key: 'subtitle' },
     { title: 'Level', dataIndex: 'level', key: 'level', width: 120 },
