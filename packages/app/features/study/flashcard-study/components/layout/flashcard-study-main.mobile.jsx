@@ -7,15 +7,16 @@ import { FlashcardActionButton, FlashcardVocabularyList } from '../../../compone
 import { FlipCard } from 'components/FlipCard'
 import BunnyStudy from '../../../../../../assets/bunny/14.png'
 import BunnyTest from '../../../../../../assets/bunny/15.png'
-import { FLASHCARDS } from '../../../mockData'
 import { normalizeImageSource } from '../../../api'
 import { studyStyles } from '../../../styles'
+import { LoadingWithContainer } from '../../../../../../components/Loading'
 
 /**
  * FlashcardStudyMain (Mobile): Nội dung chính của trang học flashcard trên mobile
  */
 export function FlashcardStudyMain({
   title,
+  flashcards,
   current,
   currentIndex,
   total,
@@ -30,7 +31,69 @@ export function FlashcardStudyMain({
   onNext,
   onPrev,
   onSelectFlashcard,
+  loading,
+  error,
+  onRetry,
 }) {
+  if (loading) {
+    return (
+      <LoadingWithContainer
+        size={40}
+        color="#F1BE4B"
+        shadowColor="#F1BE4B50"
+        text="Đang tải từ vựng..."
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      />
+    )
+  }
+
+  if (error && (!flashcards || flashcards.length === 0)) {
+    return (
+      <>
+        <View style={styles.header}>
+          <NavigationPill
+            label="Trở lại"
+            to={undefined}
+            icon={ArrowIcon}
+            iconStyle={{ transform: [{ scaleX: -1 }] }}
+            onPress={onBackPress}
+            textStyle={{ fontWeight: '700' }}
+          />
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>{error}</Text>
+          <Pressable style={styles.resetButton} onPress={onRetry}>
+            <Text style={styles.resetButtonText}>Thử lại</Text>
+          </Pressable>
+        </View>
+      </>
+    )
+  }
+
+  if (!flashcards || flashcards.length === 0) {
+    return (
+      <>
+        <View style={styles.header}>
+          <NavigationPill
+            label="Trở lại"
+            to={undefined}
+            icon={ArrowIcon}
+            iconStyle={{ transform: [{ scaleX: -1 }] }}
+            onPress={onBackPress}
+            textStyle={{ fontWeight: '700' }}
+          />
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>Chưa có từ vựng nào</Text>
+        </View>
+      </>
+    )
+  }
+
   return (
     <>
       {/* Header with back and title */}
@@ -105,7 +168,7 @@ export function FlashcardStudyMain({
 
       {/* Vocabulary List */}
       <FlashcardVocabularyList
-        flashcards={FLASHCARDS}
+        flashcards={flashcards}
         currentIndex={currentIndex}
         favorites={favorites}
         onSelectFlashcard={onSelectFlashcard}
@@ -162,6 +225,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  emptyContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  resetButton: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    backgroundColor: '#79964E',
+  },
+  resetButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
     fontFamily: 'Epilogue, sans-serif',
   },
 })
