@@ -57,15 +57,17 @@ export function VocabularyDetailScreen() {
     let mounted = true
     const load = async () => {
       try {
-        const [users, lessons, vocab, vocabTopics, articles, logs] = await Promise.all([
+        const [users, lessons, vocabResult, vocabTopics, articles, logs] = await Promise.all([
           fetchUsers(),
           fetchLessons(),
-          fetchVocabularies(),
+          fetchVocabularies({ pageNumber: 1, pageSize: 1000 }), // Lấy nhiều items để tìm kiếm
           fetchFlashcardTopics(),
           fetchArticles(),
           fetchSystemLogs(),
         ])
         if (mounted) {
+          // fetchVocabularies trả về object { items, ... }, cần lấy items
+          const vocab = Array.isArray(vocabResult?.items) ? vocabResult.items : []
           setInitialData({ users: users || [], lessons, vocab, vocabTopics, articles, logs })
         }
       } catch (err) {
@@ -80,10 +82,10 @@ export function VocabularyDetailScreen() {
     }
   }, [])
 
-  const vocabItem = useMemo(
-    () => (initialData.vocab || []).find((v) => v.vocabularyId === vocabId || v.id === vocabId),
-    [initialData.vocab, vocabId],
-  )
+  const vocabItem = useMemo(() => {
+    const vocabList = Array.isArray(initialData.vocab) ? initialData.vocab : []
+    return vocabList.find((v) => v.vocabularyId === vocabId || v.id === vocabId)
+  }, [initialData.vocab, vocabId])
 
   useEffect(() => {
     if (vocabItem) {
@@ -100,18 +102,49 @@ export function VocabularyDetailScreen() {
   const handleUpdate = async (values) => {
     try {
       setEditLoading(true)
-      const payload = {
-        ...detailVocab,
-        ...values,
-        vocabularyId: detailVocab?.vocabularyId || detailVocab?.id,
-        id: detailVocab?.vocabularyId || detailVocab?.id,
+      const vocabularyId = detailVocab?.vocabularyId || detailVocab?.id
+      if (!vocabularyId) {
+        showAdminError('Không tìm thấy ID từ vựng')
+        return
       }
+
+      // Chỉ gửi các field mà API yêu cầu
+      const payload = {
+        vocabularyId,
+        text: values?.text || '',
+        pronunciation: values?.pronunciation || '',
+        definition: values?.definition || '',
+        imgURL: values?.imgURL || null,
+      }
+
+      // Đảm bảo definition không rỗng
+      if (!payload.definition) {
+        showAdminError('Vui lòng nhập định nghĩa')
+        return
+      }
+
       const updated = await updateVocabulary(payload)
-      showAdminSuccess('Đã cập nhật từ vựng')
-      setDetailVocab(updated)
+      
+      // Cập nhật state với dữ liệu mới
+      setDetailVocab({
+        ...detailVocab,
+        ...updated,
+        vocabularyId: updated?.vocabularyId || vocabularyId,
+        id: updated?.vocabularyId || vocabularyId,
+      })
+      
+      showAdminSuccess('Đã cập nhật từ vựng thành công')
       setEditOpen(false)
     } catch (err) {
-      showAdminError('Cập nhật từ vựng thất bại')
+      // err có thể là response object từ API hoặc error object
+      if (err?.isSuccess === false || err?.errors) {
+        // Là response từ API với lỗi
+        const errorMessage = err?.message || err?.errors?.[0]?.description || 'Cập nhật từ vựng thất bại'
+        showAdminError(errorMessage, err?.statusCode)
+      } else {
+        // Là error khác
+        showAdminError(err?.message || 'Cập nhật từ vựng thất bại')
+      }
     } finally {
       setEditLoading(false)
     }

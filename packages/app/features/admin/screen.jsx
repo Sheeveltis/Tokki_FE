@@ -46,15 +46,17 @@ export function AdminScreen() {
     let mounted = true
     const loadAll = async () => {
       try {
-        const [users, lessons, vocab, vocabTopics, articles, logs] = await Promise.all([
+        const [users, lessons, vocabResult, vocabTopics, articles, logs] = await Promise.all([
           fetchUsers(),
           fetchLessons(),
-          fetchVocabularies(),
+          fetchVocabularies({ pageNumber: 1, pageSize: 1000 }), // Lấy nhiều items
           fetchFlashcardTopics(),
           fetchArticles(),
           fetchSystemLogs(),
         ])
         if (mounted) {
+          // fetchVocabularies trả về object { items, ... }, cần lấy items
+          const vocab = Array.isArray(vocabResult?.items) ? vocabResult.items : []
           setInitialData({ users, lessons, vocab, vocabTopics, articles, logs })
         }
       } catch (error) {

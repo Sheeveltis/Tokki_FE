@@ -1,32 +1,22 @@
 'use client'
 
 import React from 'react'
-import { Modal, Form, Input, Upload, message } from 'antd'
+import { Modal, Form, Input, InputNumber, Upload, message } from 'antd'
 
 /**
- * Modal chỉnh sửa từ vựng
+ * Modal tạo mới chủ đề flashcard
  */
-export function VocabularyEditModal({ open, loading, initialValues = {}, onCancel, onSubmit }) {
+export function FlashcardTopicCreateModal({ open, loading, onCancel, onSubmit }) {
   const [form] = Form.useForm()
-  const [previewUrl, setPreviewUrl] = React.useState(initialValues?.imgURL || '')
+  const [previewUrl, setPreviewUrl] = React.useState('')
 
-  // Sync initial values when open changes
+  // Reset form khi modal đóng
   React.useEffect(() => {
-    if (open) {
-      form.setFieldsValue({
-        text: initialValues?.text || '',
-        pronunciation: initialValues?.pronunciation || '',
-        definition: initialValues?.definition || '',
-        exampleSentence: initialValues?.exampleSentence || '',
-        imgURL: initialValues?.imgURL || '',
-      })
-      setPreviewUrl(initialValues?.imgURL || '')
-    } else {
-      // Reset form when modal closes
+    if (!open) {
       form.resetFields()
       setPreviewUrl('')
     }
-  }, [open, initialValues, form])
+  }, [open, form])
 
   const toBase64 = (file) =>
     new Promise((resolve, reject) => {
@@ -39,7 +29,7 @@ export function VocabularyEditModal({ open, loading, initialValues = {}, onCance
   const handleBeforeUpload = async (file) => {
     try {
       const dataUrl = await toBase64(file)
-      form?.setFieldsValue({ imgURL: dataUrl })
+      form?.setFieldsValue({ imgUrl: dataUrl })
       setPreviewUrl(dataUrl)
       message.success('Đã chọn ảnh')
     } catch (err) {
@@ -59,11 +49,11 @@ export function VocabularyEditModal({ open, loading, initialValues = {}, onCance
 
   return (
     <Modal
-      title="Chỉnh sửa từ vựng"
+      title="Thêm chủ đề flashcard"
       open={open}
       onCancel={onCancel}
       onOk={handleOk}
-      okText="Lưu"
+      okText="Tạo"
       cancelText="Hủy"
       confirmLoading={loading}
       destroyOnClose
@@ -74,27 +64,39 @@ export function VocabularyEditModal({ open, loading, initialValues = {}, onCance
       }}
     >
       <Form form={form} layout="vertical">
-        <Form.Item label="Từ" name="text" rules={[{ required: true, message: 'Vui lòng nhập từ' }]}>
-          <Input placeholder="VD: 은행" size="large" style={{ fontSize: 16 }} />
+        <Form.Item
+          label="Tên chủ đề"
+          name="topicName"
+          rules={[{ required: true, message: 'Vui lòng nhập tên chủ đề' }]}
+        >
+          <Input placeholder="VD: Từ vựng cơ bản" size="large" style={{ fontSize: 16 }} />
         </Form.Item>
         <Form.Item
-          label="Phiên âm"
-          name="pronunciation"
-          rules={[{ required: true, message: 'Vui lòng nhập phiên âm' }]}
+          label="Mô tả"
+          name="description"
+          rules={[{ required: true, message: 'Vui lòng nhập mô tả' }]}
         >
-          <Input placeholder="VD: eunhaeng" size="large" style={{ fontSize: 16 }} />
+          <Input.TextArea
+            rows={3}
+            placeholder="VD: Các từ vựng cơ bản cho người mới bắt đầu"
+            style={{ fontSize: 16 }}
+          />
         </Form.Item>
         <Form.Item
-          label="Định nghĩa"
-          name="definition"
-          rules={[{ required: true, message: 'Vui lòng nhập nghĩa/định nghĩa' }]}
+          label="Level"
+          name="level"
+          rules={[{ required: true, message: 'Vui lòng nhập level' }]}
+          initialValue={1}
         >
-          <Input placeholder="VD: Ngân hàng" size="large" style={{ fontSize: 16 }} />
+          <InputNumber
+            min={1}
+            max={10}
+            placeholder="VD: 1"
+            size="large"
+            style={{ width: '100%', fontSize: 16 }}
+          />
         </Form.Item>
-        <Form.Item label="Câu ví dụ" name="exampleSentence">
-          <Input.TextArea rows={3} placeholder="VD: Tôi đi ngân hàng mỗi thứ Hai." style={{ fontSize: 16 }} />
-        </Form.Item>
-        <Form.Item label="Ảnh minh họa" name="imgURL">
+        <Form.Item label="Ảnh minh họa" name="imgUrl">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <Upload.Dragger
               multiple={false}
@@ -106,7 +108,7 @@ export function VocabularyEditModal({ open, loading, initialValues = {}, onCance
               <p className="ant-upload-drag-icon" style={{ fontWeight: 600 }}>
                 Kéo thả hoặc bấm để chọn ảnh
               </p>
-              <p className="ant-upload-text">Ảnh sẽ được cập nhật cho từ vựng</p>
+              <p className="ant-upload-text">Ảnh sẽ được sử dụng cho chủ đề</p>
             </Upload.Dragger>
             {previewUrl ? (
               <div style={{ border: '1px solid #f0f0f0', borderRadius: 6, padding: 8, textAlign: 'center' }}>
@@ -124,5 +126,6 @@ export function VocabularyEditModal({ open, loading, initialValues = {}, onCance
   )
 }
 
-export default VocabularyEditModal
+export default FlashcardTopicCreateModal
+
 

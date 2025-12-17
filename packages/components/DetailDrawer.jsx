@@ -9,10 +9,10 @@ export function DetailDrawer({ open, onClose, title, data = {}, footerActions })
   return (
     <Drawer
       title={title}
-      width={620}
+      size="large"
       onClose={onClose}
       open={open}
-      destroyOnHidden
+      destroyOnClose
       extra={
         <Button type="text" onClick={onClose}>
           Đóng
