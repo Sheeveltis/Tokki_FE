@@ -1,11 +1,10 @@
-  import { useEffect, useState } from 'react'
-import { View, Text } from 'react-native'
+import { View } from 'react-native'
 
 // Import layout - React Native bundler sẽ tự động chọn .web.jsx hoặc .native.jsx
 // TypeScript cần import cụ thể, nhưng runtime sẽ resolve đúng platform
 import { HomeLayout } from './components/home-layout.web'
 import { HomeMain } from './components/home-main'
-import { getSidebarData } from './api'
+import { useSidebarData } from './api/useHomeQueries'
 import { LoadingWithContainer } from '../../../components/Loading'
 
 /**
@@ -29,23 +28,7 @@ export function HomeScreen({
   onBlogPress,
   onProfilePress,
 }) {
-  const [sidebarData, setSidebarData] = useState(null)
-  const [sidebarLoading, setSidebarLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchSidebarData = async () => {
-      try {
-        const data = await getSidebarData()
-        setSidebarData(data)
-      } catch (err) {
-        console.error('Không thể tải sidebar data:', err)
-      } finally {
-        setSidebarLoading(false)
-      }
-    }
-
-    fetchSidebarData()
-  }, [])
+  const { data: sidebarData, isLoading: sidebarLoading, error } = useSidebarData()
 
   if (sidebarLoading) {
     return (
