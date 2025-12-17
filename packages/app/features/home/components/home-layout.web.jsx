@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, ScrollView, StyleSheet } from 'react-native'
-import { Navbar } from 'components/navbar'
-import { Footer } from 'components/footer'
+import { Navbar } from '../../../../components/navbar'
+import { Footer } from '../../../../components/footer'
 import { HomeSidebar } from './home-sidebar'
 
 /**
