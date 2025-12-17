@@ -5,30 +5,65 @@ import { Input, Space, Tag } from 'antd'
 import { EyeOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { fetchFlashcardTopics } from '../../api'
+import { fetchFlashcardTopics, createFlashcardTopic } from '../../api'
+import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import ManagementTable from '../../../../../components/ManagementTable'
 import DetailDrawer from '../../../../../components/DetailDrawer'
+import FlashcardTopicCreateModal from './components/flashcard-topic-create-modal'
 
 export function FlashcardTopicManagement({ initialData = null }) {
   const router = useRouter()
   const [data, setData] = useState(initialData || [])
   const [loading, setLoading] = useState(!initialData)
   const [drawerItem, setDrawerItem] = useState(null)
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [createLoading, setCreateLoading] = useState(false)
   const [search, setSearch] = useState('')
 
-  useEffect(() => {
-    if (initialData) return
-    const load = async () => {
-      try {
-        setLoading(true)
-        const res = await fetchFlashcardTopics()
-        setData(res)
-      } finally {
-        setLoading(false)
-      }
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      const res = await fetchFlashcardTopics()
+      setData(res)
+    } catch (error) {
+      console.error('Error loading flashcard topics:', error)
+    } finally {
+      setLoading(false)
     }
-    load()
+  }
+
+  useEffect(() => {
+    if (initialData) {
+      setData(Array.isArray(initialData) ? initialData : [])
+      return
+    }
+    loadData()
   }, [initialData])
+
+  const handleCreate = async (values) => {
+    try {
+      setCreateLoading(true)
+      const newTopic = await createFlashcardTopic(values)
+      
+      // Thêm topic mới vào danh sách
+      setData((prev) => [newTopic, ...prev])
+      
+      showAdminSuccess('Đã tạo chủ đề flashcard thành công')
+      setCreateModalOpen(false)
+    } catch (err) {
+      // err có thể là response object từ API hoặc error object
+      if (err?.isSuccess === false || err?.errors) {
+        // Là response từ API với lỗi
+        const errorMessage = err?.message || err?.errors?.[0]?.description || 'Tạo chủ đề flashcard thất bại'
+        showAdminError(errorMessage, err?.statusCode)
+      } else {
+        // Là error khác
+        showAdminError(err?.message || 'Tạo chủ đề flashcard thất bại')
+      }
+    } finally {
+      setCreateLoading(false)
+    }
+  }
 
   const filteredData = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -95,7 +130,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
         <ButtonV2
           title="Thêm chủ đề"
           color="#F1BE4B"
-          onPress={() => setDrawerItem({})}
+          onPress={() => setCreateModalOpen(true)}
           style={{ minWidth: 140, paddingVertical: 10 }}
           textStyle={{ fontSize: 14 }}
           icon={<PlusOutlined />}
@@ -103,10 +138,16 @@ export function FlashcardTopicManagement({ initialData = null }) {
       </Space>
       <ManagementTable columns={columns} dataSource={filteredData} loading={loading} onRowClick={(record) => setDrawerItem(record)} />
       <DetailDrawer
-        open={!!drawerItem}
+        open={!!drawerItem && !createModalOpen}
         onClose={() => setDrawerItem(null)}
         title="Chi tiết chủ đề flashcard"
         data={drawerItem || {}}
+      />
+      <FlashcardTopicCreateModal
+        open={createModalOpen}
+        loading={createLoading}
+        onCancel={() => setCreateModalOpen(false)}
+        onSubmit={handleCreate}
       />
     </>
   )
