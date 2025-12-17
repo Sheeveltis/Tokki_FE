@@ -33,6 +33,8 @@ export const ENDPOINTS = {
       ME: '/Account/me',
       GET_ALL: '/Account/get-all',
       DETAIL: (id) => `/Account/detail/${id}`,
+      CREATE_ACCOUNT: '/Account/create-account',
+      UPDATE_USER: '/Account/update-user',
     },
     OTP: {
       SEND_EMAIL_VERIFICATION: '/Otp/send-otp-for-email-verification',

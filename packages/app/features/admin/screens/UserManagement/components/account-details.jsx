@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Card, Descriptions, Space, Spin, Typography, Tag, message, Button, Input } from 'antd'
+import { Card, Descriptions, Space, Spin, Typography, Tag, message, Button, Input, Select } from 'antd'
 import { fetchUserDetail, updateUserProfile } from '../../UserDetail/api/api'
 import PopupConfirm from './popup-confirm'
 import { showAdminSuccess, showAdminError } from 'components/HelperAdmin'
@@ -46,6 +46,8 @@ export default function AccountDetails({ userId }) {
     phoneNumber: '',
     dateOfBirth: '',
     avatarUrl: '',
+    role: 0,
+    status: 0,
   })
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -76,6 +78,8 @@ export default function AccountDetails({ userId }) {
             phoneNumber: detail.phoneNumber || '',
             dateOfBirth: detail.dateOfBirth ? String(detail.dateOfBirth).slice(0, 10) : '',
             avatarUrl: detail.avatarUrl || '',
+            role: Number(detail.role ?? 0),
+            status: Number(detail.status ?? 0),
           })
         }
       } catch (err) {
@@ -106,7 +110,15 @@ export default function AccountDetails({ userId }) {
   const handleConfirmUpdate = async () => {
     try {
       setSaving(true)
-      await updateUserProfile(form)
+      await updateUserProfile({
+        targetUserId: user.userId || user.id,
+        fullName: form.fullName,
+        phoneNumber: form.phoneNumber,
+        dateOfBirth: form.dateOfBirth,
+        avatarUrl: form.avatarUrl,
+        role: form.role,
+        status: form.status,
+      })
       showAdminSuccess('Đã cập nhật tài khoản thành công')
       setEditing(false)
       setConfirmOpen(false)
@@ -210,11 +222,40 @@ export default function AccountDetails({ userId }) {
                 fmt(user.avatarUrl)
               )}
             </Descriptions.Item>
-            <Descriptions.Item label="Role">{getRoleLabel(user.role)}</Descriptions.Item>
+            <Descriptions.Item label="Role">
+              {editing ? (
+                <Select
+                  value={form.role}
+                  onChange={(value) => setForm((f) => ({ ...f, role: value }))}
+                  style={{ width: '100%' }}
+                  options={[
+                    { value: 0, label: 'Người dùng' },
+                    { value: 1, label: 'Quản trị viên' },
+                    { value: 2, label: 'Nhân viên' },
+                    { value: 3, label: 'Thành viên VIP' },
+                  ]}
+                />
+              ) : (
+                getRoleLabel(user.role)
+              )}
+            </Descriptions.Item>
             <Descriptions.Item label="Trạng thái">
-              <Tag color={Number(user.status) === 1 ? 'green' : Number(user.status) === 2 ? 'red' : 'default'}>
-                {getStatusLabel(user.status)}
-              </Tag>
+              {editing ? (
+                <Select
+                  value={form.status}
+                  onChange={(value) => setForm((f) => ({ ...f, status: value }))}
+                  style={{ width: '100%' }}
+                  options={[
+                    { value: 0, label: 'Vô hiệu hóa' },
+                    { value: 1, label: 'Hoạt động' },
+                    { value: 2, label: 'Đã bị khóa' },
+                  ]}
+                />
+              ) : (
+                <Tag color={Number(user.status) === 1 ? 'green' : Number(user.status) === 2 ? 'red' : 'default'}>
+                  {getStatusLabel(user.status)}
+                </Tag>
+              )}
             </Descriptions.Item>
             <Descriptions.Item label="VIP hết hạn">{fmtDate(user.vipExpirationDate)}</Descriptions.Item>
             <Descriptions.Item label="Current streak">{fmt(user.currentStreak)}</Descriptions.Item>

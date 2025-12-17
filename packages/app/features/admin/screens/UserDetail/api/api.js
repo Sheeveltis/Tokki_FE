@@ -14,10 +14,10 @@ export const fetchUserDetail = async (userId) => {
 }
 
 /**
- * Cập nhật thông tin tài khoản (profile)
- * Body: { fullName, phoneNumber, dateOfBirth, avatarUrl }
+ * Cập nhật thông tin tài khoản (update-user)
+ * Body: { targetUserId, fullName, phoneNumber, dateOfBirth, avatarUrl, role, status }
  */
 export const updateUserProfile = async (payload) => {
-  const res = await apiClient.put(ENDPOINTS.ACCOUNT.PROFILE, payload)
+  const res = await apiClient.put(ENDPOINTS.ACCOUNT.UPDATE_USER, payload)
   return res?.data
 }
