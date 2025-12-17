@@ -1,11 +1,12 @@
 'use client'
 
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Card, Table, Space, Typography, Tag, Select, DatePicker, Input, Button } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { statusPayment } from '../../../../string.js'
 import { paymentStatusColors, paymentMethodLabels } from '../../mockData.js'
-import { fetchPayments, approvePayment, rejectPayment } from '../../api'
+import { approvePayment, rejectPayment } from '../../api'
+import { usePaymentsQuery } from '../../api/useAdminQueries'
 import { EyeOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 
@@ -16,18 +17,10 @@ const { Search } = Input
 
 export function PaymentManagement() {
   const router = useRouter()
-  const [payments, setPayments] = useState([])
+  const { data: payments = [], isLoading } = usePaymentsQuery()
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateRange, setDateRange] = useState(null)
   const [search, setSearch] = useState('')
-
-  useEffect(() => {
-    const loadPayments = async () => {
-      const data = await fetchPayments()
-      setPayments(data)
-    }
-    loadPayments()
-  }, [])
 
   const filteredPayments = useMemo(() => {
     let filtered = payments
@@ -244,6 +237,7 @@ export function PaymentManagement() {
             rowKey="id"
             pagination={{ pageSize: 10 }}
             scroll={{ x: 1200 }}
+            loading={isLoading}
           />
         </Card>
       </Space>

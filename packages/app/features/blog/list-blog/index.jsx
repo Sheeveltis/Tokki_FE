@@ -1,58 +1,37 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useMemo } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { BlogListLayout } from './components/blog-list-layout'
-import { getAllBlogs } from '../api/api'
+import { useBlogsInfinite } from '../api/useBlogQueries'
 import { LoadingWithContainer } from '../../../../components/Loading'
 
 const PAGE_SIZE = 10 // 10 blog mỗi trang
 
 export function BlogListScreen() {
-  const [blogs, setBlogs] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    error,
+  } = useBlogsInfinite({
+    pageSize: PAGE_SIZE,
+    status: 1, // Chỉ lấy blog đã publish
+  })
 
-  // Fetch blogs từ API
-  const fetchBlogs = useCallback(async (page = 1, append = false) => {
-    try {
-      setLoading(true)
-      setError(null)
+  // Flatten tất cả blogs từ các pages
+  const blogs = useMemo(() => {
+    if (!data?.pages) return []
+    return data.pages.flatMap((page) => page.blogs || [])
+  }, [data])
 
-      const { blogs: newBlogs, totalPages: total } = await getAllBlogs({
-        pageNumber: page,
-        pageSize: PAGE_SIZE,
-        status: 1, // Chỉ lấy blog đã publish
-      })
-
-      if (append) {
-        setBlogs(prev => [...prev, ...newBlogs])
-      } else {
-        setBlogs(newBlogs)
-      }
-
-      setTotalPages(total)
-      setCurrentPage(page)
-      setHasMore(newBlogs.length === PAGE_SIZE || page < total)
-    } catch (err) {
-      console.error('Error fetching blogs:', err)
-      setError(err.message || 'Không thể tải danh sách blog')
-      setBlogs([])
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  // Load initial data
-  useEffect(() => {
-    fetchBlogs(1, false)
-  }, [fetchBlogs])
+  const hasMore = hasNextPage || false
+  const loading = isLoading
 
   // Load more blogs
   const handleLoadMore = () => {
-    if (!loading && hasMore) {
-      fetchBlogs(currentPage + 1, true)
+    if (!isFetchingNextPage && hasNextPage) {
+      fetchNextPage()
     }
   }
 
@@ -78,10 +57,12 @@ export function BlogListScreen() {
     return (
       <BlogListLayout blogs={[]}>
         <View style={styles.centerContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.errorText}>
+            {error?.message || 'Không thể tải danh sách blog'}
+          </Text>
           <TouchableOpacity
             style={styles.retryButton}
-            onPress={() => fetchBlogs(1, false)}
+            onPress={() => window.location.reload()}
           >
             <Text style={styles.retryButtonText}>Thử lại</Text>
           </TouchableOpacity>
@@ -93,7 +74,7 @@ export function BlogListScreen() {
   return (
     <BlogListLayout 
       blogs={blogs}
-      loading={loading}
+      loading={isFetchingNextPage}
       hasMore={hasMore}
       onLoadMore={handleLoadMore}
     />

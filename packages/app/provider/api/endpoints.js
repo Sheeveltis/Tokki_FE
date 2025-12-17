@@ -31,6 +31,8 @@ export const ENDPOINTS = {
       FORGOT_PASSWORD_RESET: '/Account/forgot-password/reset',
       PROFILE: '/Account/profile',
       ME: '/Account/me',
+      GET_ALL: '/Account/get-all',
+      DETAIL: (id) => `/Account/detail/${id}`,
     },
     OTP: {
       SEND_EMAIL_VERIFICATION: '/Otp/send-otp-for-email-verification',

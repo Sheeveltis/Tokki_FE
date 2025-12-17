@@ -7,7 +7,7 @@ const POPULAR_TAGS = [
   "Du lịch Seoul", "Ẩm thực", "Ngữ pháp sơ cấp"
 ]
 
-export function TagFilter({ selectedTags = [], onToggle }) {
+export const TagFilter = React.memo(function TagFilter({ selectedTags = [], onToggle }) {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Lọc theo thẻ (Chọn nhiều):</Text>
@@ -31,7 +31,7 @@ export function TagFilter({ selectedTags = [], onToggle }) {
       </View>
     </View>
   )
-}
+})
 
 const styles = StyleSheet.create({
   container: { paddingHorizontal: 16, marginBottom: 10 },

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import {
   View,
   Text,
@@ -106,58 +106,28 @@ export const Navbar = ({
     }
   }, [])
 
+  // Prefetch các route chính để giảm độ trễ khi điều hướng (web)
+  useEffect(() => {
+    if (!router?.prefetch) return
+    const routesToPrefetch = ['/homepage', '/study', '/flashcard', '/blog', '/roadmap/info', '/login', '/register']
+    routesToPrefetch.forEach((r) => {
+      router.prefetch(r).catch(() => {})
+    })
+  }, [router])
+
   // Handler functions với fallback routing
-  const handleHomePress = () => {
-    if (onHomePress) {
-      onHomePress()
-    } else {
-      router.push('/homepage')
-    }
-  }
+  const go = useCallback((path, fallback) => {
+    if (path) return () => router.push(path)
+    return fallback
+  }, [router])
 
-  const handleRoadmapPress = () => {
-    if (onRoadmapPress) {
-      onRoadmapPress()
-    } else {
-      router.push('/study')
-    }
-  }
-
-  const handleRoadmapInfoPress = () => {
-    router.push('/roadmap/info')
-  }
-
-  const handleFlashcardPress = () => {
-    if (onFlashcardPress) {
-      onFlashcardPress()
-    } else {
-      router.push('/flashcard')
-    }
-  }
-
-  const handleBlogPress = () => {
-    if (onBlogPress) {
-      onBlogPress()
-    } else {
-      router.push('/blog')
-    }
-  }
-
-  const handleLoginPress = () => {
-    if (onLoginPress) {
-      onLoginPress()
-    } else {
-      router.push('/login')
-    }
-  }
-
-  const handleRegisterPress = () => {
-    if (onRegisterPress) {
-      onRegisterPress()
-    } else {
-      router.push('/register')
-    }
-  }
+  const handleHomePress = onHomePress || go('/homepage')
+  const handleRoadmapPress = onRoadmapPress || go('/study')
+  const handleRoadmapInfoPress = go('/roadmap/info')
+  const handleFlashcardPress = onFlashcardPress || go('/flashcard')
+  const handleBlogPress = onBlogPress || go('/blog')
+  const handleLoginPress = onLoginPress || go('/login')
+  const handleRegisterPress = onRegisterPress || go('/register')
 
   const handleProfilePress = () => {
     if (typeof window === 'undefined') return
@@ -295,175 +265,78 @@ export const Navbar = ({
           zIndex: 1,
         }}
       >
-        {/* Trang Chủ */}
-        <Pressable
-          onPress={handleHomePress}
-          onHoverIn={() => Platform.OS === 'web' && setHomeHover(true)}
-          onHoverOut={() => Platform.OS === 'web' && setHomeHover(false)}
-          style={({ pressed }) => {
-            const active = pressed || homeHover
-            return {
-              alignItems: 'center',
-              opacity: active ? 0.85 : 1,
-              transform: [{ translateY: active ? -3 : 0 }],
-              ...interactiveAnimationStyle,
-            }
-          }}
-        >
-          <Image
-            source={normalizeImageSource(homeIcon || HomeIcon)}
-            style={{
-              width: 40,
-              height: 40,
-              resizeMode: 'contain',
-              tintColor: colors.DarkGreen,
-            }}
-          />
-          <Text
-            style={{
-              top: 11,
-              fontSize: 15,
-              fontWeight: 'bold',
-              color: '#333',
-              fontFamily: 'Epilogue, sans-serif',
-            }}
-          >
-            {/* Trang Chủ */}
-          </Text>
-        </Pressable>
-
-        {/* Lộ Trình */}
-        <Pressable
-          onPress={handleRoadmapPress}
-          onHoverIn={() => Platform.OS === 'web' && setRoadmapHover(true)}
-          onHoverOut={() => Platform.OS === 'web' && setRoadmapHover(false)}
-          style={({ pressed }) => {
-            const active = pressed || roadmapHover
-            return {
-              alignItems: 'center',
-              opacity: active ? 0.85 : 1,
-              transform: [{ translateY: active ? -3 : 0 }],
-              ...interactiveAnimationStyle,
-            }
-          }}
-        >
-          <Image
-            source={normalizeImageSource(roadmapIcon || RoadmapIcon)}
-            style={{
-              width: 48,
-              height: 48,
-              resizeMode: 'contain',
-              tintColor: colors.primaryLight,
-            }}
-          />
-          <Text
-            style={{
-              fontSize: 15,
-              fontWeight: 'bold',
-              color: '#333',
-              fontFamily: 'Epilogue, sans-serif',
+        {[
+          {
+            key: 'home',
+            icon: homeIcon || HomeIcon,
+            onPress: handleHomePress,
+            hover: homeHover,
+            setHover: setHomeHover,
+            size: 40,
+            tint: colors.DarkGreen,
+          },
+          {
+            key: 'roadmap',
+            icon: roadmapIcon || RoadmapIcon,
+            onPress: handleRoadmapPress,
+            hover: roadmapHover,
+            setHover: setRoadmapHover,
+            size: 48,
+            tint: colors.primaryLight,
+          },
+          {
+            key: 'roadmap-info',
+            icon: RoadmapImage,
+            onPress: handleRoadmapInfoPress,
+            hover: roadmapInfoHover,
+            setHover: setRoadmapInfoHover,
+            size: 42,
+          },
+          {
+            key: 'flashcard',
+            icon: flashcardIcon || FlashcardIcon,
+            onPress: handleFlashcardPress,
+            hover: flashcardHover,
+            setHover: setFlashcardHover,
+            size: 60,
+            tint: colors.Pink,
+          },
+          {
+            key: 'blog',
+            icon: blogIcon || BlogIcon,
+            onPress: handleBlogPress,
+            hover: blogHover,
+            setHover: setBlogHover,
+            size: 60,
+            tint: colors.Mustard,
+          },
+        ].map((item) => (
+          <Pressable
+            key={item.key}
+            onPress={item.onPress}
+            onHoverIn={() => Platform.OS === 'web' && item.setHover(true)}
+            onHoverOut={() => Platform.OS === 'web' && item.setHover(false)}
+            style={({ pressed }) => {
+              const active = pressed || item.hover
+              return {
+                alignItems: 'center',
+                opacity: active ? 0.85 : 1,
+                transform: [{ translateY: active ? -3 : 0 }],
+                ...interactiveAnimationStyle,
+              }
             }}
           >
-            {/* Lộ Trình */}
-          </Text>
-        </Pressable>
-
-        {/* Roadmap Intro (roadmap/info) */}
-        <Pressable
-          onPress={handleRoadmapInfoPress}
-          onHoverIn={() => Platform.OS === 'web' && setRoadmapInfoHover(true)}
-          onHoverOut={() => Platform.OS === 'web' && setRoadmapInfoHover(false)}
-          style={({ pressed }) => {
-            const active = pressed || roadmapInfoHover
-            return {
-              alignItems: 'center',
-              opacity: active ? 0.9 : 1,
-              transform: [{ translateY: active ? -3 : 0 }],
-              ...interactiveAnimationStyle,
-            }
-          }}
-        >
-          <Image
-            source={normalizeImageSource(RoadmapImage)}
-            style={{
-              width: 42,
-              height: 42,
-              resizeMode: 'contain',
-            }}
-          />
-        </Pressable>
-
-        {/* Flashcard */}
-        <Pressable
-          onPress={handleFlashcardPress}
-          onHoverIn={() => Platform.OS === 'web' && setFlashcardHover(true)}
-          onHoverOut={() => Platform.OS === 'web' && setFlashcardHover(false)}
-          style={({ pressed }) => {
-            const active = pressed || flashcardHover
-            return {
-              alignItems: 'center',
-              opacity: active ? 0.85 : 1,
-              transform: [{ translateY: active ? -3 : 0 }],
-              ...interactiveAnimationStyle,
-            }
-          }}
-        >
-          <Image
-            source={normalizeImageSource(flashcardIcon || FlashcardIcon)}
-            style={{
-              width: 45,
-              height: 60,
-              resizeMode: 'contain',
-              tintColor: colors.Pink,
-            }}
-          />
-          <Text
-            style={{
-              fontSize: 15,
-              fontWeight: 'bold',
-              color: '#333',
-              fontFamily: 'Epilogue, sans-serif',
-            }}
-          >
-            {/* Flashcard */}
-          </Text>
-        </Pressable>
-
-        {/* Blog */}
-        <Pressable
-          onPress={handleBlogPress}
-          onHoverIn={() => Platform.OS === 'web' && setBlogHover(true)}
-          onHoverOut={() => Platform.OS === 'web' && setBlogHover(false)}
-          style={({ pressed }) => {
-            const active = pressed || blogHover
-            return {
-              alignItems: 'center',
-              opacity: active ? 0.85 : 1,
-              transform: [{ translateY: active ? -3 : 0 }],
-              ...interactiveAnimationStyle,
-            }
-          }}
-        >
-          <Image
-            source={normalizeImageSource(blogIcon || BlogIcon)}
-            style={{
-              width: 40,
-              height: 60,
-              resizeMode: 'contain',
-              tintColor: colors.Mustard,
-            }}
-          />
-          <Text
-            style={{
-              fontSize: 15,
-              fontWeight: 'bold',
-              color: '#333',
-              fontFamily: 'Epilogue, sans-serif',
-            }}
-          >
-            {/* Blog */}
-          </Text>
-        </Pressable>
+            <Image
+              source={normalizeImageSource(item.icon)}
+              style={{
+                width: item.size,
+                height: item.size,
+                resizeMode: 'contain',
+                tintColor: item.tint,
+              }}
+            />
+          </Pressable>
+        ))}
       </View>
 
       {/* Right section: Login and Register buttons */}

@@ -56,6 +56,27 @@ apiClient.interceptors.request.use(
   }
 )
 
+/**
+ * Helper function để tự động logout khi token hết hạn
+ */
+const handleTokenExpired = () => {
+  // Clear token
+  clearAuthToken()
+  
+  // Clear from localStorage
+  if (typeof window !== 'undefined') {
+    window.localStorage?.removeItem('token')
+    window.localStorage?.removeItem('userId')
+    // Dispatch event để navbar cập nhật
+    window.dispatchEvent(new Event('token-changed'))
+    
+    // Redirect to login page
+    if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+      window.location.href = '/login'
+    }
+  }
+}
+
 // Response interceptor - xử lý error chung
 apiClient.interceptors.response.use(
   (response) => {
@@ -64,6 +85,12 @@ apiClient.interceptors.response.use(
   (error) => {
     // Xử lý error chung ở đây
     console.error('API Error:', error.response?.data || error.message)
+    
+    // Nếu token hết hạn (401 Unauthorized), tự động logout
+    if (error.response?.status === 401) {
+      handleTokenExpired()
+    }
+    
     return Promise.reject(error)
   }
 )

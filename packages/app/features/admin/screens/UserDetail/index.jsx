@@ -2,19 +2,8 @@
 
 import React, { useEffect, useMemo, useState, useTransition } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import {
-  Card,
-  Space,
-  Typography,
-  Tag,
-  Descriptions,
-  Spin,
-  Alert,
-  Popconfirm,
-  message,
-} from 'antd'
+import { Space, Typography, Spin, Alert, message } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { statusUser } from '../../../../string.js'
 import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
 import {
   fetchUsers,
@@ -38,6 +27,7 @@ import { SystemLog } from 'app/features/admin/screens/SystemLog'
 import { Settings } from 'app/features/admin/screens/Settings'
 import { UpdateUserDetail } from './modal/UpdateUserDetail'
 import { DeleteUserConfirm } from './modal/DeleteUserConfirm'
+import AccountDetails from '../UserManagement/components/account-details'
 
 const { Title, Text } = Typography
 
@@ -165,66 +155,7 @@ export function UserDetailScreen() {
       )
     }
 
-    return (
-      <div style={{ padding: 24 }}>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <Space style={{ justifyContent: 'space-between', width: '100%' }}>
-            <div>
-              <Title level={3} style={{ marginBottom: 4 }}>
-                Chi tiết người dùng
-              </Title>
-              <Text type="secondary">ID: {detailUser.id}</Text>
-            </div>
-            <Space>
-              <ButtonV2
-                title="Sửa"
-                onPress={() => setShowUpdate(true)}
-                color="poppy"
-                style={{ minWidth: 80, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
-              <ButtonV2
-                title="Xóa"
-                color="charcoal"
-                style={{ minWidth: 80, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-                onPress={() => setShowDelete(true)}
-              />
-              <ButtonV2
-                title="Quay lại"
-                color="mint"
-                onPress={() => {
-                  startTransition(() => {
-                    router.push('/admin')
-                  })
-                }}
-                style={{ minWidth: 80, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
-            </Space>
-          </Space>
-
-          <Card>
-            <Descriptions column={1} bordered size="middle">
-              <Descriptions.Item label="Tên">
-                {detailUser.name || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="Email">
-                {detailUser.email || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="Role">
-                {detailUser.role || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="Trạng thái">
-                <Tag color={detailUser.status === 'Active' ? 'green' : 'red'} style={{ fontSize: '12px', padding: '2px 8px' }}>
-                  {statusUser[detailUser.status] || detailUser.status || '-'}
-                </Tag>
-              </Descriptions.Item>
-            </Descriptions>
-          </Card>
-        </Space>
-      </div>
-    )
+    return <AccountDetails userId={userId} />
   })()
 
   // Memoize screens để tránh re-render không cần thiết

@@ -3,7 +3,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import BunnyIcon from '../../../../../assets/user.png'
 import InfoIcon from '../../../../../assets/userInfo.png'
-import RoadmapIcon from '../../../../../assets/roadmap.png'
+import RoadmapIcon from '../../../../../assets/roadmap2.png'
 import PaymentIcon from '../../../../../assets/paymentHistory.png'
 import LogoutIcon from '../../../../../assets/logout.png'
 
@@ -22,8 +22,8 @@ const DASHBOARD_ACTIONS = [
   { key: 'logout', label: 'Đăng xuất', icon: LogoutIcon },
 ]
 
-export function UserDashboard({ onActionPress, initialActive = null }) {
-  const [active, setActive] = useState(initialActive)
+export function UserDashboard({ onActionPress, initialActive = 'profile' }) {
+  const [active, setActive] = useState(initialActive || 'profile')
 
   const handlePress = (key) => {
     setActive(key)

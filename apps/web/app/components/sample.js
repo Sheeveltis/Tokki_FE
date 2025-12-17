@@ -31,7 +31,7 @@ import { Loading, LoadingWithContainer } from 'components/Loading'
 import { FlipCard } from 'components/FlipCard'
 import { RoadmapTestQuestion } from 'app/features/roadmap/roadmap-test/components/roadmap-test-question'
 import { RoadmapTestDashboard } from 'app/features/roadmap/roadmap-test/components/roadmap-test-dashboard'
-import { MatchingCardBanner } from 'app/features/minigame/matching-card/components/matching-card-banner'
+import { MatchingCardBanner } from 'app/features/minigame/matching-card/matching-card-play/components/matching-card-banner'
 import colors from '../../../../packages/app/color.js'
 
 const demoCardsType1 = [

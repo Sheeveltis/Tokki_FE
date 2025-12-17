@@ -6,7 +6,7 @@ import { useRouter } from 'solito/navigation'
  * BlogSidebar: Sidebar hiển thị blog mới nhất
  * Chiếm 1/5 chiều rộng
  */
-export function BlogSidebar({ latestBlogs }) {
+export const BlogSidebar = React.memo(function BlogSidebar({ latestBlogs }) {
   const router = useRouter()
 
   if (!latestBlogs || latestBlogs.length === 0) {
@@ -42,7 +42,7 @@ export function BlogSidebar({ latestBlogs }) {
       </ScrollView>
     </View>
   )
-}
+})
 
 const styles = StyleSheet.create({
   container: {

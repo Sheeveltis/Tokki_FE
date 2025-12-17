@@ -1,11 +1,12 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Card, List, Avatar, Tag, Space, Typography, Input, Select, Button } from 'antd'
 import { UserOutlined, MessageOutlined, SearchOutlined, FilterOutlined } from '@ant-design/icons'
 import { statusFeedback } from '../../../../string.js'
 import { feedbackStatusColors, feedbackCategoryLabels } from '../../mockData.js'
-import { fetchFeedbacks, updateFeedbackStatus } from '../../api'
+import { updateFeedbackStatus } from '../../api'
+import { useFeedbacksQuery } from '../../api/useAdminQueries'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 
 const { Title, Text } = Typography
@@ -13,19 +14,11 @@ const { Search } = Input
 const { Option } = Select
 
 export function FeedbackInbox() {
-  const [feedbacks, setFeedbacks] = useState([])
+  const { data: feedbacks = [], isLoading } = useFeedbacksQuery()
   const [selectedFeedback, setSelectedFeedback] = useState(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
-
-  useEffect(() => {
-    const loadFeedbacks = async () => {
-      const data = await fetchFeedbacks()
-      setFeedbacks(data)
-    }
-    loadFeedbacks()
-  }, [])
 
   const filteredFeedbacks = feedbacks.filter((fb) => {
     const matchesSearch =
@@ -100,6 +93,7 @@ export function FeedbackInbox() {
         <List
           dataSource={filteredFeedbacks}
           style={{ maxHeight: 'calc(100vh - 400px)', overflowY: 'auto' }}
+          loading={isLoading}
           renderItem={(feedback) => (
             <List.Item
               style={{
