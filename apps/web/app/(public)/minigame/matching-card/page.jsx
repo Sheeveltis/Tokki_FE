@@ -6,5 +6,6 @@ import MatchingCardScreen from 'app/features/minigame/matching-card/matching-car
 export default function MatchingCardPage({ searchParams }) {
   const topicId = searchParams?.topic || 'life'
   const topicName = searchParams?.topicName
-  return <MatchingCardScreen topicId={topicId} topicName={topicName} />
+  const levelId = searchParams?.level || 'medium'
+  return <MatchingCardScreen topicId={topicId} topicName={topicName} levelId={levelId} />
 }

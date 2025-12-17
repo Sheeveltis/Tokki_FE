@@ -15,6 +15,7 @@ import { MatchingCardBanner } from '../matching-card/matching-card-play/componen
 import { MinigameCard } from './minigame-card'
 import { MinigamePopupRule } from './minigame-popup-rule'
 import { MinigameTopic } from './minigame-topic'
+import { MinigameLevel } from './minigame-level'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -28,16 +29,28 @@ export function MinigameLayout() {
   const [showRule, setShowRule] = useState(false)
   const [showTopic, setShowTopic] = useState(false)
   const [selectedTopic, setSelectedTopic] = useState(null)
+  const [showLevel, setShowLevel] = useState(false)
+  const [selectedLevel, setSelectedLevel] = useState(null)
   const router = useRouter()
 
   const handleConfirmTopic = (topic) => {
     setSelectedTopic(topic)
     setShowTopic(false)
-    const topicId = topic?.id || 'life'
-    const topicName = topic?.titleKo
+    setShowLevel(true)
+  }
+
+  const handleConfirmLevel = (level) => {
+    setSelectedLevel(level)
+    setShowLevel(false)
+
+    const topicId = selectedTopic?.id || 'life'
+    const topicName = selectedTopic?.titleKo
+    const levelId = level?.id || 'medium'
+
     const query = new URLSearchParams()
     query.set('topic', topicId)
     if (topicName) query.set('topicName', topicName)
+    query.set('level', levelId)
     router.push(`/minigame/matching-card?${query.toString()}`)
   }
 
@@ -117,6 +130,13 @@ export function MinigameLayout() {
         onClose={() => setShowTopic(false)}
         onConfirm={handleConfirmTopic}
         selectedId={selectedTopic?.id}
+      />
+
+      <MinigameLevel
+        visible={showLevel}
+        onClose={() => setShowLevel(false)}
+        onConfirm={handleConfirmLevel}
+        selectedId={selectedLevel?.id}
       />
     </ImageBackground>
   )
