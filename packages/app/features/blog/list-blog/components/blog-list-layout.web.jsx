@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import { Navbar } from 'components/navbar'
 import { Footer } from 'components/footer'
@@ -28,13 +28,15 @@ export function BlogListLayout({ blogs = [], loading = false, hasMore = false, o
   const [selectedTags, setSelectedTags] = useState([])
 
   // --- HÀM TOGGLE TAG ---
-  const handleToggleTag = (tag) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(prev => prev.filter(t => t !== tag))
-    } else {
-      setSelectedTags(prev => [...prev, tag])
-    }
-  }
+  const handleToggleTag = useCallback((tag) => {
+    setSelectedTags(prev => {
+      if (prev.includes(tag)) {
+        return prev.filter(t => t !== tag)
+      } else {
+        return [...prev, tag]
+      }
+    })
+  }, [])
 
   // --- LOGIC LỌC DỮ LIỆU ---
   const filteredBlogs = useMemo(() => {
