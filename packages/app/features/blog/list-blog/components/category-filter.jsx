@@ -9,7 +9,7 @@ const CATEGORIES = [
   { id: 'cat_duhoc', name: 'Du học' },
 ]
 
-export function CategoryFilter({ selectedId, onSelect }) {
+export const CategoryFilter = React.memo(function CategoryFilter({ selectedId, onSelect }) {
   return (
     <ScrollView 
       horizontal 
@@ -32,7 +32,7 @@ export function CategoryFilter({ selectedId, onSelect }) {
       })}
     </ScrollView>
   )
-}
+})
 
 const styles = StyleSheet.create({
   container: { paddingHorizontal: 16, paddingVertical: 10, gap: 10 },

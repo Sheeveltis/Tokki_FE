@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, Text, Image, TouchableOpacity, StyleSheet, Platform } from 'react-native'
 
-export function BlogCard({ item, onPress }) {
+export const BlogCard = React.memo(function BlogCard({ item, onPress }) {
   const formattedDate = new Date(item.createdAt).toLocaleDateString('vi-VN')
   
   // Mock author data - sau này sẽ lấy từ API
@@ -52,7 +52,7 @@ export function BlogCard({ item, onPress }) {
       </View>
     </TouchableOpacity>
   )
-}
+})
 
 const styles = StyleSheet.create({
   card: {

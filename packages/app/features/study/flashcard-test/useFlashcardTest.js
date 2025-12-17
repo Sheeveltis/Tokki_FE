@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { getFlashcardsByTopic } from '../api'
 import KoreanImage from '../../../../assets/icon/icon-mainflow/korean.png'
 
@@ -23,6 +23,19 @@ export function useFlashcardTest(topicId) {
   const [questionMode, setQuestionMode] = useState('vietnamese') // 'vietnamese' | 'korean' | 'mix'
   const [answerMode, setAnswerMode] = useState('multipleChoice') // 'multipleChoice' | 'typeAnswer'
   const [showSettings, setShowSettings] = useState(false)
+
+  // Ref để lưu timers và cleanup khi cần
+  const timersRef = useRef([])
+
+  // Cleanup tất cả timers khi component unmount
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach((timer) => {
+        if (timer) clearTimeout(timer)
+      })
+      timersRef.current = []
+    }
+  }, [])
 
   // Fetch flashcards từ API
   const fetchFlashcards = useCallback(async () => {
@@ -127,9 +140,15 @@ export function useFlashcardTest(topicId) {
     ? questions[currentQuestionIndex]
     : null
 
-  const handleAnswerSelect = (questionId, answerId, isCorrect) => {
+  const handleAnswerSelect = useCallback((questionId, answerId, isCorrect) => {
     // Chỉ cho phép chọn một lần và chưa nộp bài
     if (selectedAnswers[questionId] || isSubmitted) return
+
+    // Clear timers cũ trước khi tạo timer mới
+    timersRef.current.forEach((timer) => {
+      if (timer) clearTimeout(timer)
+    })
+    timersRef.current = []
 
     setSelectedAnswers((prev) => ({
       ...prev,
@@ -143,18 +162,30 @@ export function useFlashcardTest(topicId) {
     }))
 
     // Tự động chuyển câu sau 3 giây (cả đúng và sai)
-    setTimeout(() => {
-      if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex((prev) => prev + 1)
-      } else {
-        // Nếu là câu cuối, tự động nộp bài
-        setIsSubmitted(true)
-      }
+    const timer = setTimeout(() => {
+      setCurrentQuestionIndex((prev) => {
+        if (prev < questions.length - 1) {
+          return prev + 1
+        } else {
+          // Nếu là câu cuối, tự động nộp bài
+          setIsSubmitted(true)
+          return prev
+        }
+      })
     }, 3000)
-  }
 
-  const handleTypedAnswer = (questionId, typedText) => {
+    // Lưu timer vào ref để cleanup sau
+    timersRef.current.push(timer)
+  }, [selectedAnswers, isSubmitted, questions.length])
+
+  const handleTypedAnswer = useCallback((questionId, typedText) => {
     if (isSubmitted) return
+
+    // Clear timers cũ trước khi tạo timer mới
+    timersRef.current.forEach((timer) => {
+      if (timer) clearTimeout(timer)
+    })
+    timersRef.current = []
 
     setTypedAnswers((prev) => ({
       ...prev,
@@ -172,15 +203,21 @@ export function useFlashcardTest(topicId) {
       }))
 
       // Tự động chuyển câu sau 3 giây (cả đúng và sai)
-      setTimeout(() => {
-        if (currentQuestionIndex < questions.length - 1) {
-          setCurrentQuestionIndex((prev) => prev + 1)
-        } else {
-          setIsSubmitted(true)
-        }
+      const timer = setTimeout(() => {
+        setCurrentQuestionIndex((prev) => {
+          if (prev < questions.length - 1) {
+            return prev + 1
+          } else {
+            setIsSubmitted(true)
+            return prev
+          }
+        })
       }, 3000)
+
+      // Lưu timer vào ref để cleanup sau
+      timersRef.current.push(timer)
     }
-  }
+  }, [isSubmitted, questions, currentQuestionIndex])
 
   // Tính lại điểm mỗi khi selectedAnswers hoặc typedAnswers thay đổi
   useEffect(() => {
