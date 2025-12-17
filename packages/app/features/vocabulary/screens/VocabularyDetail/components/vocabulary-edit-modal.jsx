@@ -14,13 +14,17 @@ export function VocabularyEditModal({ open, loading, initialValues = {}, onCance
   React.useEffect(() => {
     if (open) {
       form.setFieldsValue({
-        text: initialValues.text,
-        pronunciation: initialValues.pronunciation,
-        definition: initialValues.definition,
-        exampleSentence: initialValues.exampleSentence,
-        imgURL: initialValues.imgURL,
+        text: initialValues?.text || '',
+        pronunciation: initialValues?.pronunciation || '',
+        definition: initialValues?.definition || '',
+        exampleSentence: initialValues?.exampleSentence || '',
+        imgURL: initialValues?.imgURL || '',
       })
-      setPreviewUrl(initialValues.imgURL || '')
+      setPreviewUrl(initialValues?.imgURL || '')
+    } else {
+      // Reset form when modal closes
+      form.resetFields()
+      setPreviewUrl('')
     }
   }, [open, initialValues, form])
 
