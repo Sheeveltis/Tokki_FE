@@ -40,15 +40,18 @@ export const ENDPOINTS = {
       GET_BY_BLOG: (blogId) => `/Comment/blog/${blogId}`,
     },
     TOPIC: {
+      CREATE: '/Topics',
       ADMIN_GET_ALL: '/Topics/admin/get-all',
       USER_GET_ALL: '/Topics/user/get-all',
       GET_BY_ID: (id) => `/Topics/${id}`,
       DELETE: (id) => `/Topics/${id}`,
     },
     VOCABULARY: {
+      ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
       ADD_VOCABULARY_LIST: '/Vocabulary/bulk',
       FLASH_CARD_TOPIC: '/Vocabulary/flash-card',
-      GET_BY_ID: (id) => `/Vocabulary/{vocabularyId}`,
+      GET_BY_ID: (id) => `/Vocabulary/${id}`,
+      UPDATE: (id) => `/Vocabulary/${id}`,
       DELETE: (id) => `/Vocabularies/${id}`,
     }
   }
