@@ -1,28 +1,21 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Card, Table, Space, Typography, Tag, Button, Modal, Form, Input, InputNumber, message } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { statusPackage } from '../../../../string.js'
-import { fetchPackages, createPackage, updatePackage, deletePackage } from '../../api'
+import { createPackage, updatePackage, deletePackage } from '../../api'
+import { usePackagesQuery } from '../../api/useAdminQueries'
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 
 const { Title, Text } = Typography
 const { TextArea } = Input
 
 export function MembershipPackage() {
-  const [packages, setPackages] = useState([])
+  const { data: packages = [], isLoading, refetch } = usePackagesQuery()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingPackage, setEditingPackage] = useState(null)
   const [form] = Form.useForm()
-
-  useEffect(() => {
-    const loadPackages = async () => {
-      const data = await fetchPackages()
-      setPackages(data)
-    }
-    loadPackages()
-  }, [])
 
   const handleAdd = () => {
     setEditingPackage(null)
@@ -153,6 +146,7 @@ export function MembershipPackage() {
             dataSource={packages}
             rowKey="id"
             pagination={{ pageSize: 10 }}
+            loading={isLoading}
             expandable={{
               expandedRowRender: (record) => (
                 <div style={{ padding: '16px 0' }}>

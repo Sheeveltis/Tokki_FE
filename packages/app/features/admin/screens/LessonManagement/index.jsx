@@ -1,34 +1,19 @@
 'use client'
 
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Input, Space } from 'antd'
 import { EyeOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { fetchLessons } from '../../api'
+import { useLessonsQuery } from '../../api/useAdminQueries'
 import ManagementTable from '../../../../../components/ManagementTable'
 import DetailDrawer from '../../../../../components/DetailDrawer'
 
 export function LessonManagement({ initialData = null }) {
   const router = useRouter()
-  const [data, setData] = useState(initialData || [])
-  const [loading, setLoading] = useState(!initialData)
+  const { data = initialData || [], isLoading } = useLessonsQuery(initialData)
   const [drawerItem, setDrawerItem] = useState(null)
   const [search, setSearch] = useState('')
-
-  useEffect(() => {
-    if (initialData) return
-    const load = async () => {
-      try {
-        setLoading(true)
-        const res = await fetchLessons()
-        setData(res)
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [initialData])
 
   const filteredData = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -92,7 +77,7 @@ export function LessonManagement({ initialData = null }) {
       <ManagementTable
         columns={columns}
         dataSource={filteredData}
-        loading={loading}
+        loading={isLoading && !initialData}
         onRowClick={(record) => setDrawerItem(record)}
       />
       <DetailDrawer

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Card, Space, Typography, Row, Col, Statistic, Table, Tag } from 'antd'
 import {
   LineChart,
@@ -17,7 +17,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
-import { fetchAIStatistics, handleApiError } from '../../api'
+import { handleApiError } from '../../api'
+import { useAIStatisticsQuery } from '../../api/useAdminQueries'
 import { message } from 'antd'
 
 const { Title, Text } = Typography
@@ -118,25 +119,13 @@ const costColumns = [
 ]
 
 export function AIStatisticsReport() {
-  const [loading, setLoading] = useState(true)
-  const [data, setData] = useState(null)
+  const { data, isLoading, error } = useAIStatisticsQuery()
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true)
-        const result = await fetchAIStatistics()
-        setData(result)
-      } catch (error) {
-        message.error(handleApiError(error, 'Không thể tải thống kê A.I'))
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [])
+  if (error) {
+    message.error(error.message || 'Không thể tải thống kê A.I')
+  }
 
-  if (loading || !data) {
+  if (isLoading || !data) {
     return (
       <div style={{ padding: 24, textAlign: 'center' }}>
         <Text>Đang tải dữ liệu...</Text>

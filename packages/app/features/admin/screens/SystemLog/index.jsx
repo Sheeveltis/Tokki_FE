@@ -1,34 +1,19 @@
 'use client'
 
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Input, Space } from 'antd'
 import { EyeOutlined, SearchOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { fetchSystemLogs } from '../../api'
+import { useSystemLogsQuery } from '../../api/useAdminQueries'
 import ManagementTable from '../../../../../components/ManagementTable'
 import DetailDrawer from '../../../../../components/DetailDrawer'
 
 export function SystemLog({ initialData = null }) {
   const router = useRouter()
-  const [data, setData] = useState(initialData || [])
-  const [loading, setLoading] = useState(!initialData)
+  const { data = initialData || [], isLoading } = useSystemLogsQuery(initialData)
   const [search, setSearch] = useState('')
   const [drawerItem, setDrawerItem] = useState(null)
-
-  useEffect(() => {
-    if (initialData) return
-    const load = async () => {
-      try {
-        setLoading(true)
-        const res = await fetchSystemLogs()
-        setData(res)
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [initialData])
 
   const filteredData = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -86,7 +71,7 @@ export function SystemLog({ initialData = null }) {
       <ManagementTable
         columns={columns}
         dataSource={filteredData}
-        loading={loading}
+        loading={isLoading && !initialData}
         onRowClick={(record) => setDrawerItem(record)}
       />
       <DetailDrawer

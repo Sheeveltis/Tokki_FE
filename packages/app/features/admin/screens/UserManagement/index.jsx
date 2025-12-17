@@ -1,12 +1,12 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Tag, Input, Space } from 'antd'
 import { EyeOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { statusUser } from '../../../../string.js'
-import { fetchUsers } from '../../api'
+import { useUsersQuery } from '../../api/useAdminQueries'
 import ManagementTable from '../../../../../components/ManagementTable'
 import DetailDrawer from '../../../../../components/DetailDrawer'
 
@@ -15,34 +15,15 @@ import DetailDrawer from '../../../../../components/DetailDrawer'
  */
 export function UserManagement({ mode = 'all', initialData = null }) {
   const router = useRouter()
-  const [data, setData] = useState(initialData || [])
-  const [loading, setLoading] = useState(!initialData)
+  const { data: users = initialData || [], isLoading } = useUsersQuery(initialData)
   const [drawerItem, setDrawerItem] = useState(null)
   const [search, setSearch] = useState('')
-
-  useEffect(() => {
-    if (initialData) return
-    const load = async () => {
-      try {
-        setLoading(true)
-        const res = await fetchUsers()
-        setData(res)
-      } catch (error) {
-        // Error đã được xử lý trong api/index.js với apiErrors
-        console.error('Lỗi tải danh sách người dùng:', error.message)
-        // Có thể thêm message.error(error.message) nếu cần hiển thị toast
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [initialData])
 
   const filteredData = useMemo(() => {
     const q = search.trim().toLowerCase()
     const base = mode === 'admin'
-      ? data.filter((u) => ['Admin', 'Staff'].includes(u.role))
-      : data
+      ? users.filter((u) => ['Admin', 'Staff'].includes(u.role))
+      : users
     if (!q) return base
     return base.filter(
       (u) =>
@@ -51,7 +32,7 @@ export function UserManagement({ mode = 'all', initialData = null }) {
         (u.role || '').toLowerCase().includes(q) ||
         (u.status || '').toLowerCase().includes(q),
     )
-  }, [data, mode, search])
+  }, [users, mode, search])
 
   const tabKey = mode === 'admin' ? 'users-admin' : 'users-all'
 
@@ -122,7 +103,7 @@ export function UserManagement({ mode = 'all', initialData = null }) {
       <ManagementTable
         columns={columns}
         dataSource={filteredData}
-        loading={loading}
+        loading={isLoading && !initialData}
         onRowClick={(record) => setDrawerItem(record)}
       />
       <DetailDrawer
