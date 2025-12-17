@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Image, StyleSheet, Text, View } from 'react-native'
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
 import { normalizeImageSource } from '../../../../study/api'
 
 import GameCardIcon from '../../../../../../assets/icon/icon-mainflow/game-card.svg'
@@ -24,6 +24,10 @@ const TOPIC_NAMES = {
  *  score?: number
  *  onTimeUp?: () => void
  *  onFinish?: () => void
+ *  onBack?: () => void
+ *  onTick?: (seconds: number) => void
+ *  staticMode?: boolean
+ *  showControls?: boolean
  * }} props
  */
 export function MatchingCardHeader({
@@ -33,32 +37,60 @@ export function MatchingCardHeader({
   score = 0,
   onTimeUp,
   onFinish,
+  onBack,
+  onTick,
+  staticMode = false,
+  showControls = true,
 }) {
   const [seconds, setSeconds] = useState(initialSeconds)
   const timerRef = useRef(null)
+  const onTimeUpRef = useRef(onTimeUp)
+  const onTickRef = useRef(onTick)
+
+  useEffect(() => {
+    onTimeUpRef.current = onTimeUp
+  }, [onTimeUp])
+
+  useEffect(() => {
+    onTickRef.current = onTick
+  }, [onTick])
 
   const displayTopic = useMemo(() => topicName || TOPIC_NAMES[topicId] || 'Minigame', [topicId, topicName])
 
   useEffect(() => {
     setSeconds(initialSeconds)
+    if (typeof onTickRef.current === 'function') {
+      onTickRef.current(initialSeconds)
+    }
+
     if (timerRef.current) clearInterval(timerRef.current)
+
+    if (staticMode) {
+      // Không chạy interval trong chế độ static (trang result)
+      return
+    }
 
     timerRef.current = setInterval(() => {
       setSeconds((prev) => {
-        if (prev <= 1) {
+        const next = prev <= 1 ? 0 : prev - 1
+        if (typeof onTickRef.current === 'function') {
+          onTickRef.current(next)
+        }
+
+        if (next === 0) {
           clearInterval(timerRef.current)
           timerRef.current = null
-          if (typeof onTimeUp === 'function') onTimeUp()
-          return 0
+          if (typeof onTimeUpRef.current === 'function') onTimeUpRef.current()
         }
-        return prev - 1
+
+        return next
       })
     }, 1000)
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [initialSeconds, onTimeUp])
+  }, [initialSeconds, staticMode])
 
   const formattedTime = useMemo(() => {
     const m = Math.floor(seconds / 60)
@@ -80,7 +112,16 @@ export function MatchingCardHeader({
       <View style={styles.scoreBox}>
         <Text style={styles.label}>{score} Điểm</Text>
         <Image source={normalizeImageSource(CarrotImage)} style={styles.carrot} resizeMode="contain" />
-        <FinishButton onPress={onFinish} />
+        {showControls && (
+          <>
+            {typeof onBack === 'function' && (
+              <Pressable onPress={onBack} style={styles.backBtn}>
+                <Text style={styles.backText}>Quay lại</Text>
+              </Pressable>
+            )}
+            <FinishButton onPress={onFinish} />
+          </>
+        )}
       </View>
     </View>
   )
@@ -130,5 +171,16 @@ const styles = StyleSheet.create({
   carrot: {
     width: 28,
     height: 28,
+  },
+  backBtn: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 14,
+    backgroundColor: '#CCCCCC',
+  },
+  backText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1C1C1C',
   },
 })

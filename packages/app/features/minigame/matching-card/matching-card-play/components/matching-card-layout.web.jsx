@@ -5,6 +5,7 @@ import { MatchingCardHeader } from './matching-card-header'
 import { MatchingCard } from './matching-card'
 import { getMatchingWords } from '../api/api'
 import { BackButton } from '../../../../../../components/backbtn'
+import { showAdminSuccess } from 'components/HelperAdmin'
 
 const shuffle = (list = []) => {
   const arr = [...list]
@@ -15,7 +16,13 @@ const shuffle = (list = []) => {
   return arr
 }
 
-export function MatchingCardLayout({ topicId = 'life', topicName, onBack }) {
+const LEVEL_CONFIG = {
+  easy: { pairs: 5, size: 'large' },
+  medium: { pairs: 10, size: 'medium' },
+  hard: { pairs: 18, size: 'small' },
+}
+
+export function MatchingCardLayout({ topicId = 'life', topicName, levelId = 'medium', onBack }) {
   const [cards, setCards] = useState([])
   const [flipped, setFlipped] = useState([])
   const [matchedIds, setMatchedIds] = useState([])
@@ -23,6 +30,10 @@ export function MatchingCardLayout({ topicId = 'life', topicName, onBack }) {
   const [loading, setLoading] = useState(false)
   const [finished, setFinished] = useState(false)
   const router = useRouter()
+
+  const levelConfig = LEVEL_CONFIG[levelId] || LEVEL_CONFIG.medium
+  const pairCount = levelConfig.pairs
+  const [secondsLeft, setSecondsLeft] = useState(600)
 
   const matchedSet = useMemo(() => new Set(matchedIds), [matchedIds])
 
@@ -35,7 +46,9 @@ export function MatchingCardLayout({ topicId = 'life', topicName, onBack }) {
       setScore(0)
       const list = await getMatchingWords(topicId)
       if (!mounted) return
-      const pairs = (list || []).flatMap((item) => [
+      const base = shuffle(list || [])
+      const selected = base.slice(0, pairCount)
+      const pairs = selected.flatMap((item) => [
         { id: `${item.id}-ko`, pairId: item.id, ko: item.ko, vi: item.vi, face: 'ko' },
         { id: `${item.id}-vi`, pairId: item.id, ko: item.ko, vi: item.vi, face: 'vi' },
       ])
@@ -71,6 +84,15 @@ export function MatchingCardLayout({ topicId = 'life', topicName, onBack }) {
     return () => clearTimeout(timeout)
   }, [flipped])
 
+  useEffect(() => {
+    if (!cards.length) return
+    if (finished) return
+    if (matchedIds.length && matchedIds.length === cards.length) {
+      showAdminSuccess('Bạn đã thành công vượt qua thử thách!')
+      goToResult()
+    }
+  }, [matchedIds, cards.length, finished])
+
   const goToResult = () => {
     if (finished) return
     setFinished(true)
@@ -78,6 +100,7 @@ export function MatchingCardLayout({ topicId = 'life', topicName, onBack }) {
     if (topicId) query.set('topic', topicId)
     if (topicName) query.set('topicName', topicName)
     query.set('score', String(score))
+    query.set('time', String(secondsLeft))
     query.set('top', '5')
     router.push(`/minigame/matching-card/matching-card-result?${query.toString()}`)
   }
@@ -96,6 +119,8 @@ export function MatchingCardLayout({ topicId = 'life', topicName, onBack }) {
           score={score}
           onTimeUp={handleTimeUp}
           onFinish={goToResult}
+          onTick={setSecondsLeft}
+          onBack={onBack}
         />
         <View style={styles.rankSpacer} />
       </View>
@@ -109,6 +134,12 @@ export function MatchingCardLayout({ topicId = 'life', topicName, onBack }) {
           {cards.map((card) => {
             const isFlipped = flipped.some((c) => c.id === card.id)
             const isMatched = matchedSet.has(card.id)
+            const sizeStyle =
+              levelConfig.size === 'large'
+                ? styles.cardLarge
+                : levelConfig.size === 'small'
+                ? styles.cardSmall
+                : styles.cardMedium
             return (
               <MatchingCard
                 key={card.id}
@@ -116,6 +147,7 @@ export function MatchingCardLayout({ topicId = 'life', topicName, onBack }) {
                 face={card.face}
                 flipped={isFlipped || isMatched}
                 matched={isMatched}
+                style={sizeStyle}
                 onFlip={() => handleFlipCard(card)}
               />
             )
@@ -138,6 +170,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingLeft: 90,
   },
   backWrap: {
     width: 80,
@@ -154,6 +187,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 16,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+  },
+  cardLarge: {
+    transform: [{ scale: 1.5 }],
+    margin: 60,
+  },
+  cardMedium: {
+    transform: [{ scale: 1.3 }],
+    margin: 25,
+  },
+  cardSmall: {
+    transform: [{ scale: 0.9 }],
+    margin: 0,
   },
 })
