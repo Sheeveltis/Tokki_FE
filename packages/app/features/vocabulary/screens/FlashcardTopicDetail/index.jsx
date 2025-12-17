@@ -50,33 +50,38 @@ export function FlashcardTopicDetailScreen() {
     }
   }, [topicId])
 
-  const availableOptions = useMemo(
-    () =>
-      (vocabList || []).map((v) => ({
-        label: `${v.text} - ${v.definition || ''}`,
-        value: v.vocabularyId || v.id,
-      })),
-    [vocabList],
-  )
+  const availableOptions = useMemo(() => {
+    const safeVocabList = Array.isArray(vocabList) ? vocabList : []
+    return safeVocabList.map((v) => ({
+      label: `${v.text} - ${v.definition || ''}`,
+      value: v.vocabularyId || v.id,
+    }))
+  }, [vocabList])
 
   const handleSearchVocab = async (keyword) => {
     setSearching(true)
     try {
-      const res = await fetchVocabularies(keyword)
-      setVocabList(res || [])
+      const res = await fetchVocabularies({
+        pageNumber: 1,
+        pageSize: 1000,
+        searchText: keyword,
+      })
+      // fetchVocabularies trả về object { items, ... }, cần lấy items
+      const items = Array.isArray(res?.items) ? res.items : []
+      setVocabList(items)
     } finally {
       setSearching(false)
     }
   }
 
-  const topicVocabData = useMemo(
-    () =>
-      topicVocabIds
-        .map((id) => (vocabList || []).find((v) => v.vocabularyId === id || v.id === id))
-        .filter(Boolean)
-        .map((v) => ({ key: v.vocabularyId || v.id, ...v })),
-    [topicVocabIds, vocabList],
-  )
+  const topicVocabData = useMemo(() => {
+    const safeVocabList = Array.isArray(vocabList) ? vocabList : []
+    const safeTopicVocabIds = Array.isArray(topicVocabIds) ? topicVocabIds : []
+    return safeTopicVocabIds
+      .map((id) => safeVocabList.find((v) => v.vocabularyId === id || v.id === id))
+      .filter(Boolean)
+      .map((v) => ({ key: v.vocabularyId || v.id, ...v }))
+  }, [topicVocabIds, vocabList])
 
   const handleAddVocab = () => {
     if (!selecting?.length) return
