@@ -14,6 +14,7 @@ import MatchingCardResultContent from './matching-card-result-content'
  *  topicName?: string
  *  score?: number
  *  topPercent?: number
+ *  timeLeft?: number
  *  onReplay?: () => void
  *  onBack?: () => void
  * }} props
@@ -23,6 +24,7 @@ export function MatchingCardResultLayout({
   topicName,
   score = 0,
   topPercent = 5,
+  timeLeft = 0,
   onReplay,
   onBack,
 }) {
@@ -33,13 +35,14 @@ export function MatchingCardResultLayout({
           topicId={topicId}
           topicName={topicName}
           score={score}
-          initialSeconds={0}
-          onTimeUp={() => {}}
+          initialSeconds={timeLeft}
+          staticMode
+          showControls={false}
         />
       </View>
 
       <View style={styles.contentWrapper}>
-        <MatchingCardResultContent score={score} topPercent={topPercent} onReplay={onReplay} />
+        <MatchingCardResultContent score={score} topPercent={topPercent} timeLeft={timeLeft} onReplay={onReplay} />
       </View>
 
       <Image
@@ -55,23 +58,22 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     backgroundColor: '#F3EEDC',
-    alignItems: 'center',
-    justifyContent: 'space-between',
   },
   headerWrapper: {
-    width: '100%',
+    width: '30%',
     paddingTop: 16,
     paddingHorizontal: 32,
+    left: 535,
   },
   contentWrapper: {
-    flex: 1,
+    flex: 0.9,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
   carrotGround: {
     width: '100%',
-    height: 140,
+    height: 190,
   },
 })
 

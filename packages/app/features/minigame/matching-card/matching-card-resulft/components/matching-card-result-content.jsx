@@ -12,10 +12,14 @@ import CarrotImage from '../../../../../../assets/carrot.png'
  * @param {{
  *  score?: number
  *  topPercent?: number
+ *  timeLeft?: number
  *  onReplay?: () => void
  * }} props
  */
-export function MatchingCardResultContent({ score = 0, topPercent = 5, onReplay }) {
+export function MatchingCardResultContent({ score = 0, topPercent = 5, timeLeft = 0, onReplay }) {
+  const minutes = Math.floor(timeLeft / 60)
+  const seconds = timeLeft % 60
+  const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
   return (
     <View style={styles.overlay}>
       <View style={styles.card}>
@@ -32,6 +36,8 @@ export function MatchingCardResultContent({ score = 0, topPercent = 5, onReplay 
           <Text style={styles.scoreText}>{score} Điểm</Text>
           <Image source={normalizeImageSource(CarrotImage)} style={styles.carrot} resizeMode="contain" />
         </View>
+
+        <Text style={styles.timeText}>Thời gian còn lại: {formattedTime}</Text>
 
         <Pressable onPress={onReplay} style={styles.button}>
           <Text style={styles.buttonText}>Chơi lại</Text>
@@ -96,6 +102,12 @@ const styles = StyleSheet.create({
   carrot: {
     width: 40,
     height: 40,
+  },
+  timeText: {
+    fontSize: 14,
+    color: '#555555',
+    marginTop: 4,
+    marginBottom: 6,
   },
   button: {
     marginTop: 4,

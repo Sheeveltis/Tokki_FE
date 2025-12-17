@@ -11,12 +11,10 @@ export default function MatchingCardResultPage({ searchParams }) {
   const topicName = searchParams?.topicName
   const score = Number(searchParams?.score || 0)
   const topPercent = Number(searchParams?.top || 5)
+  const timeLeft = Number(searchParams?.time || 0)
 
   const handleReplay = () => {
-    const query = new URLSearchParams()
-    if (topicId) query.set('topic', topicId)
-    if (topicName) query.set('topicName', topicName)
-    router.push(`/minigame/matching-card?${query.toString()}`)
+    router.push('/minigame')
   }
 
   return (
@@ -25,6 +23,7 @@ export default function MatchingCardResultPage({ searchParams }) {
       topicName={topicName}
       score={score}
       topPercent={topPercent}
+      timeLeft={timeLeft}
       onBack={handleReplay}
     />
   )
