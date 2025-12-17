@@ -1,6 +1,8 @@
 import { StylesProvider } from './styles-provider'
 import './globals.css'
 import { StyledComponentsRegistry } from '../lib/antd-registry.jsx'
+import { QueryProvider } from 'app/provider/query/query-client'
+
 export const metadata = {
   title: 'Tooki',
   description: 'Tooki is a platform for learning Korean',
@@ -28,7 +30,9 @@ export default function RootLayout({
         />
       </head>
       <body>
-      <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
+        <QueryProvider>
+          <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
+        </QueryProvider>
       </body>
     </html>
   )
