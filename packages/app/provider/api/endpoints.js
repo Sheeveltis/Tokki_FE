@@ -35,6 +35,7 @@ export const ENDPOINTS = {
       DETAIL: (id) => `/Account/detail/${id}`,
       CREATE_ACCOUNT: '/Account/create-account',
       UPDATE_USER: '/Account/update-user',
+      DELETE: (id) => `/Account/${id}`,
     },
     OTP: {
       SEND_EMAIL_VERIFICATION: '/Otp/send-otp-for-email-verification',
