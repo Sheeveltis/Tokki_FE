@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Modal, Pressable, StyleSheet, Text, View, Image, ScrollView, Platform } from 'react-native'
-import { normalizeImageSource } from '../../study/api'
+import { normalizeImageSource, getFlashcardTopics } from '../../study/api'
 
 import Bunny1 from '../../../../assets/bunny/1.png'
 import Bunny9 from '../../../../assets/bunny/9.png'
@@ -19,6 +19,7 @@ const DEFAULT_TOPICS = [
  * Popup chọn chủ đề minigame
  * @param {{
  *  visible: boolean
+ *  levelId?: string | number
  *  topics?: Array<{ id: string, titleKo: string, titleVi: string, icon: any }>
  *  selectedId?: string
  *  onSelect?: (id: string) => void
@@ -26,8 +27,94 @@ const DEFAULT_TOPICS = [
  *  onClose?: () => void
  * }} props
  */
-export function MinigameTopic({ visible, topics = DEFAULT_TOPICS, selectedId, onSelect, onConfirm, onClose }) {
+export function MinigameTopic({
+  visible,
+  levelId,
+  topics = DEFAULT_TOPICS,
+  selectedId,
+  onSelect,
+  onConfirm,
+  onClose,
+}) {
+  const [apiTopics, setApiTopics] = useState(null)
+  const [loading, setLoading] = useState(false)
   const [current, setCurrent] = useState(selectedId || topics?.[0]?.id)
+
+  // Lấy danh sách topic từ API theo levelId (sử dụng TOPIC.USER_GET_ALL)
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchTopics = async () => {
+      console.log('MinigameTopic/fetchTopics:', { levelId })
+      // Nếu không có levelId thì dùng topics truyền vào (hoặc DEFAULT_TOPICS)
+      if (!levelId) {
+        if (isMounted) {
+          setApiTopics(null)
+          setLoading(false)
+        }
+        return
+      }
+
+      try {
+        setLoading(true)
+        const list = await getFlashcardTopics(levelId)
+
+        if (!isMounted) return
+
+        // Debug: xem hàm getFlashcardTopics trả về gì
+        console.log('MinigameTopic/getFlashcardTopics result:', {
+          levelId,
+          rawList: list,
+        })
+
+        // Map về shape mà MinigameTopic đang dùng, theo đúng data backend:
+        // topicName -> tiêu đề, description -> mô tả
+        const mapped =
+          Array.isArray(list) && list.length
+            ? list.map((item) => ({
+                id: item.id, // = topicId
+                titleKo: item._raw?.topicName || item.title, // hiển thị tên chủ đề
+                titleVi: item._raw?.description || item.subtitle || '', // mô tả tiếng Việt
+                icon: item.icon,
+              }))
+            : null
+
+        // Debug: xem data sau khi map để render popup
+        console.log('MinigameTopic/mappedTopics:', mapped)
+
+        setApiTopics(mapped)
+      } catch (error) {
+        console.error('Error fetching minigame topics by level:', error)
+        if (isMounted) {
+          setApiTopics(null)
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    if (visible) {
+      fetchTopics()
+    }
+
+    return () => {
+      isMounted = false
+    }
+  }, [visible, levelId])
+
+  // Data cuối cùng dùng để render: ưu tiên API theo level, fallback sang props/default
+  const dataSource = Array.isArray(apiTopics) && apiTopics.length ? apiTopics : topics
+
+  // Khi danh sách topic hoặc selectedId thay đổi thì cập nhật current
+  useEffect(() => {
+    if (selectedId) {
+      setCurrent(selectedId)
+    } else if (dataSource?.[0]?.id) {
+      setCurrent(dataSource[0].id)
+    }
+  }, [selectedId, dataSource])
 
   const handleSelect = (id) => {
     setCurrent(id)
@@ -51,7 +138,7 @@ export function MinigameTopic({ visible, topics = DEFAULT_TOPICS, selectedId, on
           <Text style={styles.title}>Chủ đề</Text>
 
           <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
-            {topics.map((topic) => {
+            {dataSource.map((topic) => {
               const active = topic.id === current
               return (
                 <Pressable
