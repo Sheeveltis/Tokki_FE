@@ -33,6 +33,9 @@ export const ENDPOINTS = {
       ME: '/Account/me',
       GET_ALL: '/Account/get-all',
       DETAIL: (id) => `/Account/detail/${id}`,
+      CREATE_ACCOUNT: '/Account/create-account',
+      UPDATE_USER: '/Account/update-user',
+      DELETE: (id) => `/Account/${id}`,
     },
     OTP: {
       SEND_EMAIL_VERIFICATION: '/Otp/send-otp-for-email-verification',
@@ -52,15 +55,18 @@ export const ENDPOINTS = {
       GET_HISTORY: (roomId) => `/Chat/${roomId}/history`,
     },
     TOPIC: {
+      CREATE: '/Topics',
       ADMIN_GET_ALL: '/Topics/admin/get-all',
       USER_GET_ALL: '/Topics/user/get-all',
       GET_BY_ID: (id) => `/Topics/${id}`,
       DELETE: (id) => `/Topics/${id}`,
     },
     VOCABULARY: {
+      ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
       ADD_VOCABULARY_LIST: '/Vocabulary/bulk',
       FLASH_CARD_TOPIC: '/Vocabulary/flash-card',
-      GET_BY_ID: (id) => `/Vocabulary/{vocabularyId}`,
+      GET_BY_ID: (id) => `/Vocabulary/${id}`,
+      UPDATE: (id) => `/Vocabulary/${id}`,
       DELETE: (id) => `/Vocabularies/${id}`,
     }
   }

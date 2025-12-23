@@ -281,7 +281,7 @@ export const Navbar = ({
             onPress: handleRoadmapPress,
             hover: roadmapHover,
             setHover: setRoadmapHover,
-            size: 48,
+            size: 40,
             tint: colors.primaryLight,
           },
           {
@@ -290,7 +290,7 @@ export const Navbar = ({
             onPress: handleRoadmapInfoPress,
             hover: roadmapInfoHover,
             setHover: setRoadmapInfoHover,
-            size: 42,
+            size: 40,
           },
           {
             key: 'flashcard',
@@ -298,7 +298,7 @@ export const Navbar = ({
             onPress: handleFlashcardPress,
             hover: flashcardHover,
             setHover: setFlashcardHover,
-            size: 60,
+            size: 40,
             tint: colors.Pink,
           },
           {
@@ -307,7 +307,7 @@ export const Navbar = ({
             onPress: handleBlogPress,
             hover: blogHover,
             setHover: setBlogHover,
-            size: 60,
+            size: 40,
             tint: colors.Mustard,
           },
         ].map((item) => (
@@ -368,8 +368,8 @@ export const Navbar = ({
               <Image
                 source={normalizeImageSource(LogoutIcon)}
                 style={{
-                  width: 44,
-                  height: 44,
+                  width: 30,
+                  height: 30,
                   resizeMode: 'contain',
                   tintColor: '#d9534f',
                 }}

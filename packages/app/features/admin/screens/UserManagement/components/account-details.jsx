@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Card, Descriptions, Space, Spin, Typography, Tag, message, Button, Input } from 'antd'
+import { Card, Descriptions, Space, Spin, Typography, Tag, message, Button, Input, Select } from 'antd'
 import { fetchUserDetail, updateUserProfile } from '../../UserDetail/api/api'
 import PopupConfirm from './popup-confirm'
+import DeleteUserConfirm from '../../UserDetail/modal/DeleteUserConfirm'
 import { showAdminSuccess, showAdminError } from 'components/HelperAdmin'
 
 const { Title, Text } = Typography
@@ -36,7 +37,7 @@ const getStatusLabel = (val) => {
   }
 }
 
-export default function AccountDetails({ userId }) {
+export default function AccountDetails({ userId, onAfterChange }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [user, setUser] = useState(null)
@@ -46,9 +47,12 @@ export default function AccountDetails({ userId }) {
     phoneNumber: '',
     dateOfBirth: '',
     avatarUrl: '',
+    role: 0,
+    status: 0,
   })
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   const fmt = (val) => {
     if (val === null || val === undefined || val === '') return 'N/A'
@@ -76,6 +80,8 @@ export default function AccountDetails({ userId }) {
             phoneNumber: detail.phoneNumber || '',
             dateOfBirth: detail.dateOfBirth ? String(detail.dateOfBirth).slice(0, 10) : '',
             avatarUrl: detail.avatarUrl || '',
+            role: Number(detail.role ?? 0),
+            status: Number(detail.status ?? 0),
           })
         }
       } catch (err) {
@@ -91,7 +97,7 @@ export default function AccountDetails({ userId }) {
   }, [userId])
 
   const handleDisable = () => {
-    message.info('TODO: Gọi API vô hiệu hóa tài khoản.')
+    setDeleteOpen(true)
   }
 
   const handleUpdateClick = () => {
@@ -106,12 +112,21 @@ export default function AccountDetails({ userId }) {
   const handleConfirmUpdate = async () => {
     try {
       setSaving(true)
-      await updateUserProfile(form)
+      await updateUserProfile({
+        targetUserId: user.userId || user.id,
+        fullName: form.fullName,
+        phoneNumber: form.phoneNumber,
+        dateOfBirth: form.dateOfBirth,
+        avatarUrl: form.avatarUrl,
+        role: form.role,
+        status: form.status,
+      })
       showAdminSuccess('Đã cập nhật tài khoản thành công')
       setEditing(false)
       setConfirmOpen(false)
       // cập nhật lại local user
       setUser((prev) => (prev ? { ...prev, ...form } : prev))
+      onAfterChange?.()
     } catch (err) {
       console.error(err)
       showAdminError?.(err?.message || 'Cập nhật tài khoản thất bại')
@@ -157,9 +172,11 @@ export default function AccountDetails({ userId }) {
             <Text type="secondary">ID: {user.userId || user.id}</Text>
           </div>
           <Space>
-            <Button danger onClick={handleDisable}>
-              Vô hiệu hóa
-            </Button>
+            {Number(user.status) !== 0 && (
+              <Button danger onClick={handleDisable}>
+                Vô hiệu hóa
+              </Button>
+            )}
             <Button type="primary" onClick={handleUpdateClick}>
               {editing ? 'Xác nhận cập nhật' : 'Cập nhật'}
             </Button>
@@ -210,11 +227,40 @@ export default function AccountDetails({ userId }) {
                 fmt(user.avatarUrl)
               )}
             </Descriptions.Item>
-            <Descriptions.Item label="Role">{getRoleLabel(user.role)}</Descriptions.Item>
+            <Descriptions.Item label="Role">
+              {editing ? (
+                <Select
+                  value={form.role}
+                  onChange={(value) => setForm((f) => ({ ...f, role: value }))}
+                  style={{ width: '100%' }}
+                  options={[
+                    { value: 0, label: 'Người dùng' },
+                    { value: 1, label: 'Quản trị viên' },
+                    { value: 2, label: 'Nhân viên' },
+                    { value: 3, label: 'Thành viên VIP' },
+                  ]}
+                />
+              ) : (
+                getRoleLabel(user.role)
+              )}
+            </Descriptions.Item>
             <Descriptions.Item label="Trạng thái">
-              <Tag color={Number(user.status) === 1 ? 'green' : Number(user.status) === 2 ? 'red' : 'default'}>
-                {getStatusLabel(user.status)}
-              </Tag>
+              {editing ? (
+                <Select
+                  value={form.status}
+                  onChange={(value) => setForm((f) => ({ ...f, status: value }))}
+                  style={{ width: '100%' }}
+                  options={[
+                    { value: 0, label: 'Vô hiệu hóa' },
+                    { value: 1, label: 'Hoạt động' },
+                    { value: 2, label: 'Đã bị khóa' },
+                  ]}
+                />
+              ) : (
+                <Tag color={Number(user.status) === 1 ? 'green' : Number(user.status) === 2 ? 'red' : 'default'}>
+                  {getStatusLabel(user.status)}
+                </Tag>
+              )}
             </Descriptions.Item>
             <Descriptions.Item label="VIP hết hạn">{fmtDate(user.vipExpirationDate)}</Descriptions.Item>
             <Descriptions.Item label="Current streak">{fmt(user.currentStreak)}</Descriptions.Item>
@@ -232,6 +278,15 @@ export default function AccountDetails({ userId }) {
         confirmLoading={saving}
         onOk={handleConfirmUpdate}
         onCancel={() => setConfirmOpen(false)}
+      />
+      <DeleteUserConfirm
+        open={deleteOpen}
+        user={user}
+        onConfirm={() => {
+          setDeleteOpen(false)
+          onAfterChange?.()
+        }}
+        onCancel={() => setDeleteOpen(false)}
       />
     </div>
   )

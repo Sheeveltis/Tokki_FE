@@ -2,11 +2,11 @@
 
 import React, { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, Form, Input, Select, Space, Typography, message } from 'antd'
+import { Card, Form, Input, Select, Space, Typography, message, DatePicker } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { statusUser } from '../../../../string.js'
 import { AdminLayout } from '../../components/admin-layout.web'
-import { createUser } from '../../api'
+import { createAdminStaff } from './api/api'
 
 const { Title } = Typography
 
@@ -19,12 +19,16 @@ export function CreateAdminStaffScreen() {
   const handleSubmit = async (values) => {
     try {
       setLoading(true)
-      // Đảm bảo role chỉ là Admin hoặc Staff
-      if (!['Admin', 'Staff'].includes(values.role)) {
-        message.error('Vai trò phải là Admin hoặc Staff')
-        return
+      // Map role text -> enum number
+      const roleEnum = values.role === 'Admin' ? 1 : 2 // Staff = 2
+      const payload = {
+        email: values.email,
+        fullName: values.fullName,
+        phoneNumber: values.phoneNumber,
+        dateOfBirth: values.dateOfBirth?.format('YYYY-MM-DD'),
+        role: roleEnum,
       }
-      await createUser(values)
+      await createAdminStaff(payload)
       message.success('Đã tạo Admin/Staff mới thành công')
       router.push('/admin?tab=users-admin')
     } catch (error) {
@@ -66,7 +70,7 @@ export function CreateAdminStaffScreen() {
             >
               <Form.Item
                 label="Tên"
-                name="name"
+                name="fullName"
                 rules={[{ required: true, message: 'Vui lòng nhập tên' }]}
               >
                 <Input placeholder="Tên Admin/Staff" size="large" />
@@ -81,6 +85,22 @@ export function CreateAdminStaffScreen() {
                 ]}
               >
                 <Input placeholder="email@example.com" size="large" />
+              </Form.Item>
+
+              <Form.Item
+                label="Số điện thoại"
+                name="phoneNumber"
+                rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
+              >
+                <Input placeholder="Số điện thoại" size="large" />
+              </Form.Item>
+
+              <Form.Item
+                label="Ngày sinh"
+                name="dateOfBirth"
+                rules={[{ required: true, message: 'Vui lòng chọn ngày sinh' }]}
+              >
+                <DatePicker format="YYYY-MM-DD" size="large" style={{ width: '100%' }} />
               </Form.Item>
 
               <Form.Item

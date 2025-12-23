@@ -42,14 +42,16 @@ export function StaffScreen() {
     let mounted = true
     const loadAll = async () => {
       try {
-        const [users, lessons, vocab, vocabTopics, articles] = await Promise.all([
+        const [users, lessons, vocabResult, vocabTopics, articles] = await Promise.all([
           fetchRegularUsers(),
           fetchLessons(),
-          fetchVocabularies(),
+          fetchVocabularies({ pageNumber: 1, pageSize: 1000 }),
           fetchFlashcardTopics(),
           fetchArticles(),
         ])
         if (mounted) {
+          // fetchVocabularies trả về object { items, ... }, cần lấy items
+          const vocab = Array.isArray(vocabResult?.items) ? vocabResult.items : []
           setInitialData({ users, lessons, vocab, vocabTopics, articles })
         }
       } catch (error) {

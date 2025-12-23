@@ -57,15 +57,17 @@ export function LessonDetailScreen() {
     let mounted = true
     const load = async () => {
       try {
-        const [users, lessons, vocab, vocabTopics, articles, logs] = await Promise.all([
+        const [users, lessons, vocabResult, vocabTopics, articles, logs] = await Promise.all([
           fetchUsers(),
           fetchLessons(),
-          fetchVocabularies(),
+          fetchVocabularies({ pageNumber: 1, pageSize: 1000 }),
           fetchFlashcardTopics(),
           fetchArticles(),
           fetchSystemLogs(),
         ])
         if (mounted) {
+          // fetchVocabularies trả về object { items, ... }, cần lấy items
+          const vocab = Array.isArray(vocabResult?.items) ? vocabResult.items : []
           setInitialData({ users: users || [], lessons, vocab, vocabTopics, articles, logs })
         }
       } catch (err) {

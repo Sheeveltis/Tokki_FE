@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { getMenuStudyRoute, isLoginRequiredModule } from './menuStudyRoutes'
 
 /**
  * Hook xử lý logic cho MenuStudyScreen
@@ -8,23 +9,17 @@ import { useState } from 'react'
 export function useMenuStudy(router, levelId) {
   const [showLoginRequest, setShowLoginRequest] = useState(false)
 
-  const handleModulePress = (moduleId) => {
-    if (moduleId === 'vocabulary') {
-      // Đi tới trang flashcard kèm theo level hiện tại
-      if (levelId) {
-        router.push(`/flashcard?level=${levelId}`)
-      } else {
-        router.push('/flashcard')
-      }
-      return
-    }
-    if (moduleId === 'alphabet') {
-      router.push('/alphabet')
-      return
-    }
-    if (moduleId === 'speaking' || moduleId === 'writing') {
+  const handleModulePress = (moduleId, itemLabel) => {
+    // Các module yêu cầu đăng nhập
+    if (isLoginRequiredModule(moduleId)) {
       setShowLoginRequest(true)
       return
+    }
+
+    // Lấy route tương ứng và điều hướng nếu có
+    const route = getMenuStudyRoute({ moduleId, itemLabel, levelId })
+    if (route) {
+      router.push(route)
     }
   }
 

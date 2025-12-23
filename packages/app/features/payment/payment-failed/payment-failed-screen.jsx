@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, ScrollView, StyleSheet, Image } from 'react-native'
-import { Navbar } from 'components/navbar'
-import { Footer } from 'components/footer'
+import { Navbar } from '../../../../components/navbar'
+import { Footer } from '../../../../components/footer'
 import { PaymentFailedLayout } from './components/payment-failed-layout.web'
 import BackgroundImage from '../../../../assets/background1.png'
 
