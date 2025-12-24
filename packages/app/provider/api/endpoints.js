@@ -68,5 +68,8 @@ export const ENDPOINTS = {
       GET_BY_ID: (id) => `/Vocabulary/${id}`,
       UPDATE: (id) => `/Vocabulary/${id}`,
       DELETE: (id) => `/Vocabularies/${id}`,
+    },
+    MINIGAME: {
+      MATCHING_CARDS: '/minigame/matching-cards',
     }
   }
