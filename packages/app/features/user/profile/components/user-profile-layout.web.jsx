@@ -2,7 +2,7 @@ import React from 'react'
 import { ImageBackground, ScrollView, StyleSheet, View } from 'react-native'
 
 import BgPattern from '../../../../../assets/background2.png'
-import { Navbar } from 'components/navbar'
+import { Navbar } from '../../../../../components/navbar'
 import { UserDashboard } from './user-dashboard'
 import { UserInformation } from './user-information'
 

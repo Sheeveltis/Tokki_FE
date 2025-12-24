@@ -1,8 +1,7 @@
 import { View } from 'react-native'
 
-// Import layout - React Native bundler sẽ tự động chọn .web.jsx hoặc .native.jsx
-// TypeScript cần import cụ thể, nhưng runtime sẽ resolve đúng platform
-import { HomeLayout } from './components/home-layout.web'
+// HomeLayout wrapper: bundler sẽ tự động chọn .native.jsx cho mobile, .web.jsx cho web
+import { HomeLayout } from './components/home-layout'
 import { HomeMain } from './components/home-main'
 import { useSidebarData } from './api/useHomeQueries'
 import { LoadingWithContainer } from '../../../components/Loading'

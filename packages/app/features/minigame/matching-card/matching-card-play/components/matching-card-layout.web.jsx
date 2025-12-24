@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { MatchingCardHeader } from './matching-card-header'
 import { MatchingCard } from './matching-card'
 import { getMatchingWords } from '../api/api'
-import { BackButton } from '../../../../../../components/backbtn'
+import { BackButton } from '../../../../../../components/backBtn'
 import { showAdminSuccess } from 'components/HelperAdmin'
 
 const shuffle = (list = []) => {

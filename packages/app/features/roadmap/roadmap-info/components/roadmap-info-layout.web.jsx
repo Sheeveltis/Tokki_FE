@@ -1,7 +1,7 @@
 import React from 'react'
 import { Image, ImageBackground, StyleSheet, View } from 'react-native'
 
-import { Navbar } from 'components/navbar'
+import { Navbar } from '../../../../../components/navbar'
 import BunnyImage from '../../../../../assets/bunny/1.png'
 import CarrotGround from '../../../../../assets/carrot-ground.png'
 import { RoadmapInfo } from './roadmap-info'

@@ -2,7 +2,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
 import { HomeScreen } from 'app/features/home/screen'
-import { UserDetailScreen } from 'app/features/user/detail-screen'
 import { BlogDetailScreen } from 'app/features/blog/detail-blog'
 import { LoginScreen } from 'app/features/authentication/login-screen'
 import { RegisterScreen } from 'app/features/authentication/register-screen'
@@ -21,7 +20,7 @@ const Stack = createNativeStackNavigator()
 export function NativeNavigation() {
   return (
     <Stack.Navigator 
-      initialRouteName="login" 
+      initialRouteName="homepage"
     >
       <Stack.Screen
         name="homepage"
@@ -38,10 +37,6 @@ export function NativeNavigation() {
       <Stack.Screen
         name="forgot-password"
         component={ForgotPasswordScreen}
-      />
-      <Stack.Screen
-        name="user-detail"
-        component={UserDetailScreen}
       />
       <Stack.Screen
         name="blog-detail"
