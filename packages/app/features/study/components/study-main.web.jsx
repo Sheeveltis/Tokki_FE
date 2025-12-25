@@ -1,10 +1,13 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
+import { View, Text, StyleSheet, Pressable, Image, Platform, TouchableOpacity } from 'react-native'
 import { colors } from '../../../color'
 import { normalizeImageSource } from '../api'
 import { studyStyles } from '../styles'
+import { MessageModal } from 'components/MessageModal'
+import { useRouter } from 'solito/navigation'
 
 import BunnyReading from '../../../../assets/bunny/4.png'
+import Bunny2 from '../../../../assets/bunny/2.png'
 import BackgroundPattern from '../../../../assets/background2.png'
 
 const LEVELS = [
@@ -19,50 +22,61 @@ const LEVELS = [
 /**
  * StudyMain (Web): Nội dung chính của trang chọn lộ trình học
  */
-export function StudyMain({ onSelectLevel }) {
+export function StudyMain({ onSelectLevel, onShowModal, modalState }) {
+  const router = useRouter()
   const rows = [LEVELS.slice(0, 3), LEVELS.slice(3)]
   const [hoveredLevel, setHoveredLevel] = useState(null)
+  const [hoveredButton, setHoveredButton] = useState(null)
+
+  const handleLevelPress = (levelId) => {
+    if (onShowModal) {
+      onShowModal(levelId)
+    }
+  }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.mainCard}>
-        <View style={styles.header}>
-          <Text style={styles.title}>MENU HỌC</Text>
+    <>
+      <View style={styles.container}>
+        <View style={styles.mainCard}>
+          <View style={styles.header}>
+            <Text style={styles.title}>MENU HỌC</Text>
+          </View>
+
+          <View style={styles.levelGrid}>
+            {rows.map((row, rowIndex) => (
+              <View key={rowIndex} style={styles.levelRow}>
+                {row.map((level) => {
+                  const isHovered = hoveredLevel === level.id
+                  return (
+                    <View key={level.id} style={styles.levelCardWrapper}>
+                      <Pressable
+                        style={({ pressed }) => [
+                          styles.levelCard,
+                          isHovered && [
+                            styles.levelCardHovered,
+                            { borderColor: level.hoverColor, backgroundColor: `${level.hoverColor}20` },
+                          ],
+                          pressed && styles.levelCardPressed,
+                        ]}
+                        onPress={() => handleLevelPress(level.id)}
+                        onHoverIn={() => Platform.OS === 'web' && setHoveredLevel(level.id)}
+                        onHoverOut={() => Platform.OS === 'web' && setHoveredLevel(null)}
+                      >
+                        <Text style={[styles.levelNumber, { color: level.color }]}>{level.id}</Text>
+                      </Pressable>
+                      <Text style={styles.levelLabel}>{`LEVEL ${level.id}`}</Text>
+                    </View>
+                  )
+                })}
+              </View>
+            ))}
+          </View>
         </View>
 
-        <View style={styles.levelGrid}>
-          {rows.map((row, rowIndex) => (
-            <View key={rowIndex} style={styles.levelRow}>
-              {row.map((level) => {
-                const isHovered = hoveredLevel === level.id
-                return (
-                  <View key={level.id} style={styles.levelCardWrapper}>
-                    <Pressable
-                      style={({ pressed }) => [
-                        styles.levelCard,
-                        isHovered && [
-                          styles.levelCardHovered,
-                          { borderColor: level.hoverColor, backgroundColor: `${level.hoverColor}20` },
-                        ],
-                        pressed && styles.levelCardPressed,
-                      ]}
-                      onPress={() => onSelectLevel?.(level.id)}
-                      onHoverIn={() => Platform.OS === 'web' && setHoveredLevel(level.id)}
-                      onHoverOut={() => Platform.OS === 'web' && setHoveredLevel(null)}
-                    >
-                      <Text style={[styles.levelNumber, { color: level.color }]}>{level.id}</Text>
-                    </Pressable>
-                    <Text style={styles.levelLabel}>{`LEVEL ${level.id}`}</Text>
-                  </View>
-                )
-              })}
-            </View>
-          ))}
-        </View>
+        <Image source={BunnyReading} style={styles.bunny} resizeMode="contain" />
       </View>
 
-      <Image source={BunnyReading} style={styles.bunny} resizeMode="contain" />
-    </View>
+    </>
   )
 }
 
@@ -144,12 +158,12 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   levelNumber: {
-    fontSize: 42,
+    fontSize: 40,
     fontWeight: '800',
   },
   levelLabel: {
     marginTop: 8,
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: '700',
     color: '#3C3C3C',
     letterSpacing: 0.4,
