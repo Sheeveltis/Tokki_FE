@@ -60,6 +60,7 @@ export const ENDPOINTS = {
       USER_GET_ALL: '/Topics/user/get-all',
       GET_BY_ID: (id) => `/Topics/${id}`,
       DELETE: (id) => `/Topics/${id}`,
+      ADD_VOCABULARIES: '/Topics/vocabularies',
     },
     VOCABULARY: {
       ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
