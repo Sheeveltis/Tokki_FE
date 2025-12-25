@@ -21,6 +21,9 @@ export default function FlashcardStudyPage() {
       onTestPress={() => {
         router.push(`/flashcard/test?topic=${topicId}`)
       }}
+      onFavoritesPress={() => {
+        router.push('/flashcard/favorites')
+      }}
     />
   )
 }

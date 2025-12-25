@@ -23,20 +23,15 @@ export function FlashcardActionButton({
       ]}
     >
       {icon && (
-        <>
-          <View style={styles.left}>
-            <Image
-              source={normalizeImageSource(icon)}
-              style={styles.icon}
-              resizeMode="contain"
-            />
-          </View>
-          <View style={styles.divider} />
-        </>
+        <View style={styles.left}>
+          <Image
+            source={normalizeImageSource(icon)}
+            style={styles.icon}
+            resizeMode="contain"
+          />
+        </View>
       )}
-      <View style={styles.middle}>
-        <Text style={styles.title}>{title}</Text>
-      </View>
+      <Text style={styles.title}>{title}</Text>
     </Pressable>
   )
 }
@@ -45,48 +40,31 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
     paddingVertical: 10,
-    paddingHorizontal: 50,
-    backgroundColor: '#FDEEB9',
-    borderRadius: 100,
-    shadowColor: '#F1BE4B',
-    shadowOpacity: 1,
-    shadowRadius: 1,
-    shadowOffset: { width: 0, height: 6 },
+    paddingHorizontal: 16,
+    backgroundColor: '#F1BE4B',
+    borderRadius: 12,
     ...(Platform.OS === 'web' && {
-      transitionProperty: 'transform, box-shadow, background-color',
-      transitionDuration: '150ms',
       cursor: 'pointer',
+      transitionProperty: 'opacity, background-color',
+      transitionDuration: '150ms',
     }),
   },
   buttonActive: {
-    transform: [{ translateY: -2 }],
-    shadowOpacity: 0.22,
-    backgroundColor: '#F1BE4B',
+    opacity: 0.85,
   },
   left: {
-    width: 60,
     alignItems: 'center',
     justifyContent: 'center',
   },
   icon: {
-    width: 48,
-    height: 48,
-  },
-  divider: {
-    width: 2,
-    height: 50,
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 12,
-    opacity: 0.3,
-  },
-  middle: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 20,
+    height: 20,
+    tintColor: '#1F1F1F',
   },
   title: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
