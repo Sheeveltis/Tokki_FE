@@ -191,7 +191,7 @@ export const Navbar = ({
 
   // Tự động thêm spacer khi navbar là fixed để tránh đè nội dung
   const needsSpacer = position === 'fixed' || (position === undefined && Platform.OS === 'web')
-  const navbarHeight = 90 // Chiều cao ước tính của navbar
+  const navbarHeight = 60 // Chiều cao ước tính của navbar
 
   return (
     <>
@@ -199,7 +199,7 @@ export const Navbar = ({
         style={[
           {
             width: '100%',
-            paddingHorizontal: 16,
+            paddingHorizontal: 20,
             paddingVertical: 5,
             flexDirection: 'row',
             alignItems: 'center',
