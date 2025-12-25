@@ -69,5 +69,12 @@ export const ENDPOINTS = {
       GET_BY_ID: (id) => `/Vocabulary/${id}`,
       UPDATE: (id) => `/Vocabulary/${id}`,
       DELETE: (id) => `/Vocabularies/${id}`,
+    },
+    FAVORITES: {
+      ADD: '/Favorites',      // POST: Thêm vào danh sách yêu thích
+      REMOVE: '/Favorites',    // DELETE: Xóa khỏi danh sách yêu thích
+    },
+    SPACED_REPETITION: {
+      SUBMIT: '/spaced-repetition/submit',  // POST: Submit kết quả học tập
     }
   }
