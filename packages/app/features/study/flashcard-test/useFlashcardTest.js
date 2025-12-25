@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { getFlashcardsByTopic } from '../api'
+import { getFlashcardsByTopic, submitSpacedRepetition } from '../api'
 import KoreanImage from '../../../../assets/icon/icon-mainflow/korean.png'
 
 /**
@@ -113,7 +113,8 @@ export function useFlashcardTest(topicId) {
         }
 
         return {
-          id: `question-${index}`,
+          id: flashcard.id || `question-${index}`, // Sử dụng flashcard.id nếu có, fallback về question-${index}
+          vocabularyId: flashcard.id, // Lưu vocabularyId để dễ truy cập
           question: questionText,
           correctAnswer: correctAnswerText,
           correctAnswerId: correctAnswerId,
@@ -132,15 +133,21 @@ export function useFlashcardTest(topicId) {
     }
   }, [flashcards, questionMode, answerMode])
 
+  // Tính số câu đã làm (đã trả lời)
+  const answeredCount = answerMode === 'multipleChoice'
+    ? Object.keys(selectedAnswers).length
+    : Object.keys(typedAnswers).filter(id => typedAnswers[id]?.trim()).length
+
+  // Progress tính dựa trên số câu đã làm, không phải số câu đã xem
   const progress = questions.length > 0 
-    ? Math.round(((currentQuestionIndex + 1) / questions.length) * 100) 
+    ? Math.round((answeredCount / questions.length) * 100) 
     : 0
 
   const currentQuestion = questions.length > 0 && currentQuestionIndex < questions.length
     ? questions[currentQuestionIndex]
     : null
 
-  const handleAnswerSelect = useCallback((questionId, answerId, isCorrect) => {
+  const handleAnswerSelect = useCallback(async (questionId, answerId, isCorrect) => {
     // Chỉ cho phép chọn một lần và chưa nộp bài
     if (selectedAnswers[questionId] || isSubmitted) return
 
@@ -161,14 +168,32 @@ export function useFlashcardTest(topicId) {
       [questionId]: true,
     }))
 
+    // Gọi API spaced repetition
+    const question = questions.find(q => q.id === questionId)
+    if (question?.vocabularyId) {
+      try {
+        // QualityVocab: 0 (Again) nếu sai, 2 (Easy) nếu đúng
+        const quality = isCorrect ? 2 : 0
+        await submitSpacedRepetition(question.vocabularyId, quality)
+      } catch (error) {
+        console.error('Error submitting spaced repetition:', error)
+        // Không block UI nếu API thất bại
+      }
+    }
+
     // Tự động chuyển câu sau 3 giây (cả đúng và sai)
     const timer = setTimeout(() => {
       setCurrentQuestionIndex((prev) => {
         if (prev < questions.length - 1) {
           return prev + 1
         } else {
-          // Nếu là câu cuối, tự động nộp bài
+          // Nếu là câu cuối, tự động nộp bài và hiển thị kết quả cho tất cả câu hỏi
           setIsSubmitted(true)
+          const allResults = {}
+          questions.forEach((question) => {
+            allResults[question.id] = true
+          })
+          setShowResults(allResults)
           return prev
         }
       })
@@ -176,9 +201,9 @@ export function useFlashcardTest(topicId) {
 
     // Lưu timer vào ref để cleanup sau
     timersRef.current.push(timer)
-  }, [selectedAnswers, isSubmitted, questions.length])
+  }, [selectedAnswers, isSubmitted, questions])
 
-  const handleTypedAnswer = useCallback((questionId, typedText) => {
+  const handleTypedAnswer = useCallback(async (questionId, typedText) => {
     if (isSubmitted) return
 
     // Clear timers cũ trước khi tạo timer mới
@@ -202,13 +227,31 @@ export function useFlashcardTest(topicId) {
         [questionId]: true,
       }))
 
+      // Gọi API spaced repetition
+      if (question.vocabularyId) {
+        try {
+          // QualityVocab: 0 (Again) nếu sai, 2 (Easy) nếu đúng hoàn toàn
+          const quality = isCorrect ? 2 : 0
+          await submitSpacedRepetition(question.vocabularyId, quality)
+        } catch (error) {
+          console.error('Error submitting spaced repetition:', error)
+          // Không block UI nếu API thất bại
+        }
+      }
+
       // Tự động chuyển câu sau 3 giây (cả đúng và sai)
       const timer = setTimeout(() => {
         setCurrentQuestionIndex((prev) => {
           if (prev < questions.length - 1) {
             return prev + 1
           } else {
+            // Nếu là câu cuối, tự động nộp bài và hiển thị kết quả cho tất cả câu hỏi
             setIsSubmitted(true)
+            const allResults = {}
+            questions.forEach((question) => {
+              allResults[question.id] = true
+            })
+            setShowResults(allResults)
             return prev
           }
         })
@@ -217,7 +260,7 @@ export function useFlashcardTest(topicId) {
       // Lưu timer vào ref để cleanup sau
       timersRef.current.push(timer)
     }
-  }, [isSubmitted, questions, currentQuestionIndex])
+  }, [isSubmitted, questions])
 
   // Tính lại điểm mỗi khi selectedAnswers hoặc typedAnswers thay đổi
   useEffect(() => {
@@ -255,6 +298,12 @@ export function useFlashcardTest(topicId) {
   const handleSubmit = () => {
     if (isSubmitted) return
     setIsSubmitted(true)
+    // Hiển thị kết quả cho tất cả câu hỏi sau khi nộp bài
+    const allResults = {}
+    questions.forEach((question) => {
+      allResults[question.id] = true
+    })
+    setShowResults(allResults)
   }
 
   // Kiểm tra xem đã trả lời hết chưa
@@ -315,6 +364,7 @@ export function useFlashcardTest(topicId) {
     allAnswered,
     isSubmitted,
     progress,
+    answeredCount,
     currentQuestionIndex,
     currentQuestion,
     isShuffled,

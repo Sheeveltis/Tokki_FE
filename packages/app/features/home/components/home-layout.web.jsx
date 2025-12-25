@@ -4,6 +4,7 @@ import { Navbar } from '../../../../components/navbar'
 import { Footer } from '../../../../components/footer'
 import { HomeSidebar } from './home-sidebar'
 import BubbleChat from '../../live-chat/bubble-chat'
+import { AppShow } from '../../../../components/appShow'
 
 /**
  * HomeLayout (Web): Bố cục trang Home cho màn hình desktop
@@ -57,7 +58,17 @@ export function HomeLayout({
       {/* Footer ở cuối trang */}
       <Footer style={{}} />
 
-      {/* Bubble chat hỗ trợ */}
+      {/* Icon ứng dụng học (fixed) - dùng danh sách app mặc định trong AppShow */}
+      <AppShow
+        style={{
+          position: 'fixed',
+          right: 20,
+          bottom: 20, // nằm dưới bubble chat, thẳng hàng bên phải
+          zIndex: 1000,
+        }}
+      />
+
+      {/* Bubble chat hỗ trợ (tự fixed bằng CSS) */}
       <BubbleChat />
     </View>
   )

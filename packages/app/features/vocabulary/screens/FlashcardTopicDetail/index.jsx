@@ -1,11 +1,12 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Card, Space, Typography, Spin, Alert } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
-import { fetchFlashcardTopicDetail, fetchVocabularies } from '../../api'
+import { fetchFlashcardTopicDetail, searchVocabulariesForTopic, addVocabulariesToTopicAndReload } from '../../api'
+import { HelperAdmin } from '../../../../../components/HelperAdmin.jsx'
 import TopicInfoCard from './components/topic-info-card'
 import TopicVocabSection from './components/topic-vocab-section'
 
@@ -21,11 +22,15 @@ export function FlashcardTopicDetailScreen() {
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [vocabList, setVocabList] = useState([])
+  const [searchVocabList, setSearchVocabList] = useState([]) // Danh sách từ vựng từ API search (để thêm vào chủ đề)
+  const [topicVocabularies, setTopicVocabularies] = useState([]) // Danh sách từ vựng đã có trong chủ đề
   const [topicVocabIds, setTopicVocabIds] = useState([])
   const [selecting, setSelecting] = useState([])
   const [searching, setSearching] = useState(false)
   const [detailTopic, setDetailTopic] = useState(null)
+  const [adding, setAdding] = useState(false)
+  const [apiResponse, setApiResponse] = useState(null)
+  const searchTimeoutRef = useRef(null)
 
   useEffect(() => {
     let mounted = true
@@ -35,7 +40,8 @@ export function FlashcardTopicDetailScreen() {
         if (mounted && resDetail?.topic) {
           setDetailTopic(resDetail.topic)
           setTopicVocabIds(resDetail.topic.vocabIds || [])
-          setVocabList(resDetail.vocabularies || [])
+          setTopicVocabularies(resDetail.vocabularies || []) // Lưu danh sách từ vựng đã có trong chủ đề
+          setSearchVocabList([]) // Reset danh sách search
           setSelecting([])
         }
       } catch (err) {
@@ -51,42 +57,98 @@ export function FlashcardTopicDetailScreen() {
   }, [topicId])
 
   const availableOptions = useMemo(() => {
-    const safeVocabList = Array.isArray(vocabList) ? vocabList : []
-    return safeVocabList.map((v) => ({
+    // Chỉ hiển thị các từ vựng từ kết quả search (không phải từ vựng đã có trong chủ đề)
+    const safeSearchVocabList = Array.isArray(searchVocabList) ? searchVocabList : []
+    return safeSearchVocabList.map((v) => ({
       label: `${v.text} - ${v.definition || ''}`,
       value: v.vocabularyId || v.id,
     }))
-  }, [vocabList])
+  }, [searchVocabList])
 
   const handleSearchVocab = async (keyword) => {
-    setSearching(true)
-    try {
-      const res = await fetchVocabularies({
-        pageNumber: 1,
-        pageSize: 1000,
-        searchText: keyword,
-      })
-      // fetchVocabularies trả về object { items, ... }, cần lấy items
-      const items = Array.isArray(res?.items) ? res.items : []
-      setVocabList(items)
-    } finally {
-      setSearching(false)
+    // Clear timeout trước đó nếu có
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+
+    // Debounce: đợi 300ms sau khi người dùng ngừng gõ
+    searchTimeoutRef.current = setTimeout(async () => {
+      setSearching(true)
+      try {
+        // Sử dụng function API đã được tách ra
+        const items = await searchVocabulariesForTopic(keyword, { pageSize: 10 })
+        // Cập nhật danh sách từ vựng từ API search (để hiển thị trong Select)
+        setSearchVocabList(items)
+      } catch (err) {
+        console.error('Error searching vocabularies:', err)
+        setSearchVocabList([])
+      } finally {
+        setSearching(false)
+      }
+    }, 300)
+  }
+
+  // Tự động load 10 từ vựng đầu tiên khi focus vào Select
+  const handleSelectFocus = () => {
+    // Chỉ load nếu danh sách đang trống
+    if (searchVocabList.length === 0 && !searching) {
+      handleSearchVocab('')
     }
   }
 
+  // Cleanup timeout khi component unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [])
+
   const topicVocabData = useMemo(() => {
-    const safeVocabList = Array.isArray(vocabList) ? vocabList : []
+    // Sử dụng topicVocabularies (danh sách từ vựng đã có trong chủ đề) thay vì searchVocabList
+    const safeTopicVocabularies = Array.isArray(topicVocabularies) ? topicVocabularies : []
     const safeTopicVocabIds = Array.isArray(topicVocabIds) ? topicVocabIds : []
+    
+    // Lọc và map các từ vựng theo topicVocabIds
     return safeTopicVocabIds
-      .map((id) => safeVocabList.find((v) => v.vocabularyId === id || v.id === id))
+      .map((id) => safeTopicVocabularies.find((v) => v.vocabularyId === id || v.id === id))
       .filter(Boolean)
       .map((v) => ({ key: v.vocabularyId || v.id, ...v }))
-  }, [topicVocabIds, vocabList])
+  }, [topicVocabIds, topicVocabularies])
 
-  const handleAddVocab = () => {
-    if (!selecting?.length) return
-    setTopicVocabIds((prev) => Array.from(new Set([...prev, ...selecting])))
-    setSelecting([])
+  const handleAddVocab = async () => {
+    if (!selecting?.length || !topicId) return
+    
+    setAdding(true)
+    setApiResponse(null)
+    
+    try {
+      // Sử dụng function API đã được tách ra với logic reload
+      const { response, topicDetail } = await addVocabulariesToTopicAndReload(topicId, selecting)
+      setApiResponse(response)
+      
+      // Nếu thành công và có topicDetail, cập nhật state
+      if (response?.isSuccess && topicDetail?.topic) {
+        setDetailTopic(topicDetail.topic)
+        setTopicVocabIds(topicDetail.topic.vocabIds || [])
+        setTopicVocabularies(topicDetail.vocabularies || [])
+        
+        // Reset selection và danh sách search
+        setSelecting([])
+        setSearchVocabList([])
+      }
+    } catch (err) {
+      console.error('Error adding vocabularies:', err)
+      setApiResponse({
+        isSuccess: false,
+        message: err?.message || 'Không thể thêm từ vựng vào chủ đề',
+        errors: err?.errors || [],
+        statusCode: err?.statusCode || 500,
+      })
+    } finally {
+      setAdding(false)
+    }
   }
 
   const handleNavigate = (key) => {
@@ -148,14 +210,17 @@ export function FlashcardTopicDetailScreen() {
             </Space>
           </Space>
 
+          <HelperAdmin response={apiResponse} />
           <TopicInfoCard topic={detailTopic} />
           <TopicVocabSection
             selecting={selecting}
             onSelectingChange={setSelecting}
             availableOptions={availableOptions}
             onSearch={handleSearchVocab}
+            onFocus={handleSelectFocus}
             searching={searching}
             onAdd={handleAddVocab}
+            adding={adding}
             dataSource={topicVocabData}
           />
         </Space>

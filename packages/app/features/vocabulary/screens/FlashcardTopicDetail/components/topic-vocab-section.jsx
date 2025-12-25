@@ -8,8 +8,10 @@ export function TopicVocabSection({
   onSelectingChange,
   availableOptions,
   onSearch,
+  onFocus,
   searching,
   onAdd,
+  adding,
   dataSource,
   selectStyle,
 }) {
@@ -36,13 +38,20 @@ export function TopicVocabSection({
           options={availableOptions}
           onChange={onSelectingChange}
           onSearch={onSearch}
+          onFocus={onFocus}
           showSearch
           filterOption={false}
           loading={searching}
           size="middle"
           optionFilterProp="label"
         />
-        <Button type="primary" onClick={onAdd} disabled={!selecting.length} size="middle">
+        <Button 
+          type="primary" 
+          onClick={onAdd} 
+          disabled={!selecting.length || adding} 
+          loading={adding}
+          size="middle"
+        >
           Thêm vào chủ đề
         </Button>
       </Space>

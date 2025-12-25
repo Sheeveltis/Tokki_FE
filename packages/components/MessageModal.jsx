@@ -32,6 +32,7 @@ const normalizeImageSource = (src) => {
  * @param {string} [props.buttonColor] - Màu nút hành động (mặc định: '#89A455')
  * @param {Object} [props.containerStyle] - Style tùy chỉnh cho container
  * @param {Object} [props.imageStyle] - Style tùy chỉnh cho hình ảnh chính
+ * @param {React.ReactNode} [props.customButtons] - Custom buttons để render thay cho nút mặc định
  */
 export const MessageModal = ({
   title,
@@ -47,6 +48,7 @@ export const MessageModal = ({
   buttonColor = '#89A455',
   containerStyle,
   imageStyle,
+  customButtons,
 }) => {
   const handleClose = () => {
     if (onClose) {
@@ -67,8 +69,8 @@ export const MessageModal = ({
         borderRadius: 30,
         paddingVertical: 32,
         paddingHorizontal: 28,
-        minWidth: '30%',
-        minHeight: '30%',
+        width: '40%',
+        height: '50%',
         alignItems: 'center',
         justifyContent: 'flex-start',
         position: 'relative',
@@ -137,8 +139,8 @@ export const MessageModal = ({
           <Image
             source={normalizeImageSource(image)}
             style={{
-              width: 200,
-              height: 200,
+              width: '60%',
+              height: '60%',
               resizeMode: 'contain',
               ...imageStyle,
             }}
@@ -149,7 +151,7 @@ export const MessageModal = ({
         {title && (
           <Text
             style={{
-              fontSize: 22,
+              fontSize: '2vw',
               fontWeight: '800',
               color: '#222',
               fontFamily: 'Epilogue, sans-serif',
@@ -163,12 +165,13 @@ export const MessageModal = ({
         {/* Message */}
         {message && (
           <Text
-            style={{
-              fontSize: 15,
-              color: '#555',
-              fontFamily: 'Epilogue, sans-serif',
-              textAlign: 'center',
-            }}
+          style={{
+            fontSize: '1vw',
+            color: '#555',
+            fontFamily: 'Epilogue, sans-serif',
+            textAlign: 'center',
+            lineHeight: '1.6', // Thêm dòng này
+          }}
           >
             {message}
           </Text>
@@ -176,7 +179,7 @@ export const MessageModal = ({
       </View>
 
       {/* Action button pinned to bottom */}
-      {showButton && onButtonPress && (
+      {customButtons ? (
         <View
           style={{
             alignSelf: 'stretch',
@@ -184,31 +187,43 @@ export const MessageModal = ({
             alignItems: 'center',
           }}
         >
-          <TouchableOpacity
-            onPress={handleButtonPress}
-            style={{
-              backgroundColor: buttonColor,
-              paddingVertical: 14,
-              paddingHorizontal: 32,
-              borderRadius: 22,
-              minWidth: 180,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            activeOpacity={0.85}
-          >
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '700',
-                color: '#FFFFFF',
-                fontFamily: 'Epilogue, sans-serif',
-              }}
-            >
-              {buttonText}
-            </Text>
-          </TouchableOpacity>
+          {customButtons}
         </View>
+      ) : (
+        showButton && onButtonPress && (
+          <View
+            style={{
+              alignSelf: 'stretch',
+              marginTop: 'auto',
+              alignItems: 'center',
+            }}
+          >
+            <TouchableOpacity
+              onPress={handleButtonPress}
+              style={{
+                backgroundColor: buttonColor,
+                paddingVertical: 14,
+                paddingHorizontal: 32,
+                borderRadius: 22,
+                minWidth: 180,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              activeOpacity={0.85}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '700',
+                  color: '#FFFFFF',
+                  fontFamily: 'Epilogue, sans-serif',
+                }}
+              >
+                {buttonText}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )
       )}
     </View>
   )

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getFlashcardsByTopic } from '../api'
+import { getFlashcardsByTopic, addFavorite, removeFavorite } from '../api'
 
 /**
  * Hook xử lý logic cho FlashcardStudyScreen
@@ -89,18 +89,34 @@ export function useFlashcardStudy(topicId) {
     }
   }
 
-  const toggleFavorite = () => {
-    if (originalIndex === undefined) return
-    setFavorites((prev) => {
-      const next = new Set(prev)
-      if (next.has(originalIndex)) {
-        next.delete(originalIndex)
+  const toggleFavorite = useCallback(async () => {
+    if (originalIndex === undefined || !current?.id) return
+    
+    const isCurrentlyFavorite = favorites.has(originalIndex)
+    
+    try {
+      if (isCurrentlyFavorite) {
+        // Xóa khỏi danh sách yêu thích
+        await removeFavorite(current.id)
+        setFavorites((prev) => {
+          const next = new Set(prev)
+          next.delete(originalIndex)
+          return next
+        })
       } else {
-        next.add(originalIndex)
+        // Thêm vào danh sách yêu thích
+        await addFavorite(current.id)
+        setFavorites((prev) => {
+          const next = new Set(prev)
+          next.add(originalIndex)
+          return next
+        })
       }
-      return next
-    })
-  }
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+      // Có thể hiển thị thông báo lỗi cho người dùng ở đây
+    }
+  }, [current, originalIndex, favorites])
 
   const markAsLearned = () => {
     if (originalIndex !== undefined) {

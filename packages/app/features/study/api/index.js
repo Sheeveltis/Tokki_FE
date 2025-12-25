@@ -122,11 +122,13 @@ export const getFlashcardsByTopic = async (topicId) => {
 
     const items = Array.isArray(payload?.data) ? payload.data : []
 
-    // Map về shape dùng trong FE: { word, meaning, imageUrl }
+    // Map về shape dùng trong FE: { id, word, meaning, imageUrl, audioUrl }
     return items.map((item) => ({
+      id: item.vocabularyId,
       word: item.text,
       meaning: item.definition,
       imageUrl: item.imgURL || null,
+      audioUrl: item.audioUrl || null,
       _raw: item,
     }))
   } catch (error) {
@@ -145,15 +147,56 @@ export const getFlashcardsByTopic = async (topicId) => {
 }
 
 /**
- * Lưu flashcard vào danh sách yêu thích
- * @param {string} flashcardId - Flashcard ID
+ * Thêm từ vựng vào danh sách yêu thích
+ * @param {string} vocabularyId - Vocabulary ID
  * @returns {Promise<boolean>}
  */
-export const toggleFavoriteFlashcard = async (flashcardId) => {
-  // TODO: Replace with actual API call
-  // const response = await fetch(`/api/flashcard/${flashcardId}/favorite`, { method: 'POST' })
-  // return response.json()
-  return Promise.resolve(true)
+export const addFavorite = async (vocabularyId) => {
+  try {
+    const res = await apiClient.post(ENDPOINTS.FAVORITES.ADD, {
+      vocabularyId,
+    })
+    return res?.data?.isSuccess || false
+  } catch (error) {
+    console.error('Error adding favorite:', error)
+    throw error
+  }
+}
+
+/**
+ * Xóa từ vựng khỏi danh sách yêu thích
+ * @param {string} vocabularyId - Vocabulary ID
+ * @returns {Promise<boolean>}
+ */
+export const removeFavorite = async (vocabularyId) => {
+  try {
+    const res = await apiClient.delete(ENDPOINTS.FAVORITES.REMOVE, {
+      data: { vocabularyId },
+    })
+    return res?.data?.isSuccess || false
+  } catch (error) {
+    console.error('Error removing favorite:', error)
+    throw error
+  }
+}
+
+/**
+ * Submit kết quả spaced repetition
+ * @param {string} vocabularyId - Vocabulary ID
+ * @param {number} quality - QualityVocab enum: 0 (Again), 1 (Good), 2 (Easy)
+ * @returns {Promise<{vocabularyId: string, isMastered: boolean}>}
+ */
+export const submitSpacedRepetition = async (vocabularyId, quality) => {
+  try {
+    const res = await apiClient.post(ENDPOINTS.SPACED_REPETITION.SUBMIT, {
+      vocabularyId,
+      quality,
+    })
+    return res?.data?.data || { vocabularyId, isMastered: false }
+  } catch (error) {
+    console.error('Error submitting spaced repetition:', error)
+    throw error
+  }
 }
 
 /**

@@ -15,6 +15,7 @@ export function FlashcardTestMain({
   selectedAnswers,
   showResults,
   progress,
+  answeredCount,
   isSubmitted,
   score,
   loading,
@@ -71,7 +72,7 @@ export function FlashcardTestMain({
       <View style={styles.topHeader}>
         <View style={styles.progressContainer}>
           <Text style={styles.progressText}>
-            Câu {currentQuestionIndex + 1} / {questions.length}
+            Đã làm: {answeredCount || 0} / {questions.length}
           </Text>
           <View style={styles.progressBar}>
             <View style={[styles.progressFill, { width: `${progress}%` }]} />
