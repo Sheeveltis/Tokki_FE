@@ -1,12 +1,13 @@
 import React from 'react'
 import { TouchableOpacity, Text } from 'react-native'
 
-export const ErrorBtn = ({ onPress }) => {
+export const ErrorBtn = ({ onPress, disabled = false }) => {
   return (
     <TouchableOpacity
       onPress={onPress}
+      disabled={disabled}
       style={{
-        backgroundColor: '#941C28',
+        backgroundColor: disabled ? '#CCCCCC' : '#941C28',
         paddingVertical: 14,
         paddingHorizontal: 32,
         borderRadius: 14,
@@ -17,11 +18,12 @@ export const ErrorBtn = ({ onPress }) => {
         minWidth: 200,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.2,
+        shadowOpacity: disabled ? 0 : 0.2,
         shadowRadius: 5,
-        elevation: 4,
+        elevation: disabled ? 0 : 4,
+        opacity: disabled ? 0.6 : 1,
       }}
-      activeOpacity={0.85}
+      activeOpacity={disabled ? 1 : 0.85}
     >
       <Text
         style={{
@@ -31,7 +33,7 @@ export const ErrorBtn = ({ onPress }) => {
           fontFamily: 'Epilogue, sans-serif',
         }}
       >
-        Gửi báo cáo
+        {disabled ? 'Đang gửi...' : 'Gửi báo cáo'}
       </Text>
     </TouchableOpacity>
   )

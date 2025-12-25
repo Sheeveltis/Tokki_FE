@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native'
 
 const MOCK_TYPES = ['Lỗi giao diện', 'Không bấm được nút', 'Lỗi nội dung', 'Khác']
 
-export const ErrorType = ({ type, isOpen, onToggle, onSelect, options = MOCK_TYPES }) => {
+export const ErrorType = ({ type, isOpen, onToggle, onSelect, options = MOCK_TYPES, placeholder = 'Loại' }) => {
   return (
     <View style={{ position: 'relative', zIndex: 20 }}>
       <TouchableOpacity
@@ -28,7 +28,7 @@ export const ErrorType = ({ type, isOpen, onToggle, onSelect, options = MOCK_TYP
             fontFamily: 'Epilogue, sans-serif',
           }}
         >
-          {type || 'Loại'}
+          {type || placeholder}
         </Text>
         <Text style={{ fontSize: 18, color: '#f7941d' }}>⌄</Text>
       </TouchableOpacity>

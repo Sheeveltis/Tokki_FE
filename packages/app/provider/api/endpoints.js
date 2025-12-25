@@ -71,5 +71,8 @@ export const ENDPOINTS = {
     },
     MINIGAME: {
       MATCHING_CARDS: '/minigame/matching-cards',
+    },
+    REPORT: {
+      CREATE: '/Report',
     }
   }

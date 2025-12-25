@@ -36,9 +36,9 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
 
   // Reset game state when topicId or levelId changes
   useEffect(() => {
-    setFlipped([])
-    setMatchedIds([])
-    setScore(0)
+      setFlipped([])
+      setMatchedIds([])
+      setScore(0)
     setFinished(false)
     setCardsCount(0)
     setSecondsLeft(INITIAL_SECONDS)
