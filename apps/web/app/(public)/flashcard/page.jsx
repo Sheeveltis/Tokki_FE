@@ -17,6 +17,9 @@ export default function FlashcardPage() {
         router.push(`/flashcard/study?topic=${topicId}`)
       }}
       onBackPress={() => router.push(`/menu-study?level=${levelId}`)}
+      onFavoritesPress={() => {
+        router.push('/flashcard/favorites')
+      }}
       title={STUDY_PAGE_TITLES.FLASHCARD_LIST}
     />
   )
