@@ -18,11 +18,13 @@ export function FlashcardListScreen({
   onTopicPress, 
   onBackPress, 
   title = 'Flashcard', 
-  levelId 
+  levelId,
+  onFavoritesPress,
 }) {
   const {
     topics,
     loading,
+    isInitialLoading,
     error,
     fetchTopics,
     searchTerm,
@@ -41,6 +43,7 @@ export function FlashcardListScreen({
         title={title}
         topics={topics}
         loading={loading}
+        isInitialLoading={isInitialLoading}
         error={error}
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
@@ -50,6 +53,7 @@ export function FlashcardListScreen({
         onBackPress={onBackPress}
         onTopicPress={onTopicPress}
         onRetry={fetchTopics}
+        onFavoritesPress={onFavoritesPress}
       />
     </Layout>
   )
