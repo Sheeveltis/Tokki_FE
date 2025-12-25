@@ -20,6 +20,9 @@ export function QuestionCard({
   onToggleFavorite,
 }) {
   const handleAnswerPress = (answerId) => {
+    // Không cho chọn khi đã disabled (đã nộp bài)
+    if (disabled) return
+    
     // Cho phép chọn lại nếu chưa chọn hoặc đã chọn sai
     if (selectedAnswerId && selectedAnswerId === correctAnswerId) return // Đã chọn đúng rồi, không cho chọn lại
     
@@ -118,7 +121,7 @@ export function QuestionCard({
               pressed && !disabled && !showResult && styles.answerPressed,
             ]}
             onPress={() => handleAnswerPress(option.id)}
-            disabled={selectedAnswerId === correctAnswerId} // Chỉ disable khi đã chọn đúng
+            disabled={disabled || selectedAnswerId === correctAnswerId} // Disable khi đã nộp bài hoặc đã chọn đúng
           >
             {/* Số thứ tự ở góc trên bên trái */}
             <View style={styles.optionNumber}>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
 import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
@@ -40,6 +40,44 @@ export function FlashcardStudyMain({
   error,
   onRetry,
 }) {
+  const audioRef = useRef(null)
+
+  // Hàm phát âm thanh từ audioUrl
+  const handlePlaySound = () => {
+    if (!current?.audioUrl) {
+      return
+    }
+
+    // Dừng âm thanh cũ nếu đang phát
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+    }
+
+    // Tạo audio element mới và phát
+    const audio = new Audio(current.audioUrl)
+    audioRef.current = audio
+    
+    audio.play().catch((error) => {
+      console.error('Error playing audio:', error)
+    })
+
+    // Cleanup khi audio kết thúc
+    audio.addEventListener('ended', () => {
+      audioRef.current = null
+    })
+  }
+
+  // Cleanup audio khi component unmount hoặc current thay đổi
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [current])
+
   // Xử lý phím bàn phím: Space để flip, mũi tên để chuyển card
   useEffect(() => {
     if (Platform.OS !== 'web') return
@@ -231,6 +269,7 @@ export function FlashcardStudyMain({
           starIcon={normalizeImageSource(StarIcon)}
           isFavorite={isFavorite}
           onToggleFavorite={onToggleFavorite}
+          onPlaySound={current?.audioUrl ? handlePlaySound : undefined}
         />
       </View>
 

@@ -20,6 +20,7 @@ import { useRouter } from 'solito/navigation'
 import UserIcon from '../assets/user.png'
 import LogoutIcon from '../assets/icon/icon-mainflow/logout.svg'
 import { MessageModal } from './MessageModal'
+import { getAuthToken, clearAuthToken, getCurrentUserId } from '../app/provider/api/client'
 /**
  * Normalize image source so it works with:
  * - require('...png') / numeric ids
@@ -84,11 +85,12 @@ export const Navbar = ({
   const [roadmapInfoHover, setRoadmapInfoHover] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
-  // Detect token in localStorage (web)
+  // Detect token in localStorage (web) - sử dụng getAuthToken để tự động giải mã
   useEffect(() => {
     if (typeof window === 'undefined') return
     const checkToken = () => {
-      const token = window.localStorage?.getItem('token')
+      // Sử dụng getAuthToken để tự động giải mã token
+      const token = getAuthToken()
       setHasToken(!!token)
     }
     checkToken()
@@ -131,8 +133,9 @@ export const Navbar = ({
 
   const handleProfilePress = () => {
     if (typeof window === 'undefined') return
-    const storedId = window.localStorage?.getItem('userId')
-    const targetId = storedId && storedId.length > 0 ? storedId : 'me'
+    // Lấy userId từ token thay vì localStorage
+    const userId = getCurrentUserId()
+    const targetId = userId && userId.length > 0 ? userId : 'me'
     router.push(`/users/${targetId}`)
   }
 
@@ -142,7 +145,8 @@ export const Navbar = ({
 
   const handleConfirmLogout = () => {
     if (typeof window !== 'undefined') {
-      window.localStorage?.removeItem('token')
+      // Sử dụng clearAuthToken để xóa token đã mã hóa
+      clearAuthToken()
       window.localStorage?.removeItem('userId')
       window.dispatchEvent(new Event('token-changed'))
     }

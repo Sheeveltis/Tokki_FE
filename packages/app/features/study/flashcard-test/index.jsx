@@ -39,6 +39,7 @@ export function FlashcardTestScreen({
     allAnswered,
     isSubmitted,
     progress,
+    answeredCount,
     currentQuestionIndex,
     currentQuestion,
     isShuffled,
@@ -68,6 +69,7 @@ export function FlashcardTestScreen({
         selectedAnswers={selectedAnswers}
         showResults={showResults}
         progress={progress}
+        answeredCount={answeredCount}
         isSubmitted={isSubmitted}
         score={score}
         loading={loading}

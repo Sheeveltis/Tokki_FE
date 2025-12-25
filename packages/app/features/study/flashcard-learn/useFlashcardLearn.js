@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getFlashcardsByTopic } from '../api'
+import { getFlashcardsByTopic, addFavorite, removeFavorite, submitSpacedRepetition } from '../api'
 
 /**
  * Hook xử lý logic cho FlashcardLearnScreen
@@ -74,37 +74,78 @@ export function useFlashcardLearn(topicId) {
     }
   }
 
-  const toggleFavorite = () => {
-    setFavorites((prev) => {
-      const next = new Set(prev)
-      if (next.has(index)) {
-        next.delete(index)
+  const toggleFavorite = useCallback(async () => {
+    if (!current?.id) return
+    
+    const isCurrentlyFavorite = favorites.has(originalIndex)
+    
+    try {
+      if (isCurrentlyFavorite) {
+        // Xóa khỏi danh sách yêu thích
+        await removeFavorite(current.id)
+        setFavorites((prev) => {
+          const next = new Set(prev)
+          next.delete(originalIndex)
+          return next
+        })
       } else {
-        next.add(index)
+        // Thêm vào danh sách yêu thích
+        await addFavorite(current.id)
+        setFavorites((prev) => {
+          const next = new Set(prev)
+          next.add(originalIndex)
+          return next
+        })
       }
-      return next
-    })
-  }
-
-  const markAsLearned = () => {
-    if (originalIndex !== undefined) {
-      setLearned((prev) => {
-        const next = new Set(prev)
-        next.add(originalIndex)
-        return next
-      })
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+      // Có thể hiển thị thông báo lỗi cho người dùng ở đây
     }
-  }
+  }, [current, originalIndex, favorites])
 
-  const markAsNeedReview = () => {
-    if (originalIndex !== undefined) {
-      setLearned((prev) => {
-        const next = new Set(prev)
-        next.delete(originalIndex)
-        return next
-      })
+  const markAsLearned = useCallback(async () => {
+    if (originalIndex !== undefined && current?.id) {
+      try {
+        // QualityVocab: 2 (Easy) - Nhớ lại dễ dàng
+        await submitSpacedRepetition(current.id, 2)
+        setLearned((prev) => {
+          const next = new Set(prev)
+          next.add(originalIndex)
+          return next
+        })
+      } catch (error) {
+        console.error('Error submitting spaced repetition:', error)
+        // Vẫn cập nhật UI nếu API thất bại
+        setLearned((prev) => {
+          const next = new Set(prev)
+          next.add(originalIndex)
+          return next
+        })
+      }
     }
-  }
+  }, [current, originalIndex])
+
+  const markAsNeedReview = useCallback(async () => {
+    if (originalIndex !== undefined && current?.id) {
+      try {
+        // QualityVocab: 0 (Again) - Chưa nhớ lại được
+        await submitSpacedRepetition(current.id, 0)
+        setLearned((prev) => {
+          const next = new Set(prev)
+          next.delete(originalIndex)
+          return next
+        })
+      } catch (error) {
+        console.error('Error submitting spaced repetition:', error)
+        // Vẫn cập nhật UI nếu API thất bại
+        setLearned((prev) => {
+          const next = new Set(prev)
+          next.delete(originalIndex)
+          return next
+        })
+      }
+    }
+  }, [current, originalIndex])
 
   // Hàm toggle giữa random và restore
   const toggleShuffle = useCallback(() => {

@@ -60,6 +60,7 @@ export const ENDPOINTS = {
       USER_GET_ALL: '/Topics/user/get-all',
       GET_BY_ID: (id) => `/Topics/${id}`,
       DELETE: (id) => `/Topics/${id}`,
+      ADD_VOCABULARIES: '/Topics/vocabularies',
     },
     VOCABULARY: {
       ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
@@ -74,5 +75,12 @@ export const ENDPOINTS = {
     },
     REPORT: {
       CREATE: '/Report',
+    },
+    FAVORITES: {
+      ADD: '/Favorites',      // POST: Thêm vào danh sách yêu thích
+      REMOVE: '/Favorites',    // DELETE: Xóa khỏi danh sách yêu thích
+    },
+    SPACED_REPETITION: {
+      SUBMIT: '/spaced-repetition/submit',  // POST: Submit kết quả học tập
     }
   }
