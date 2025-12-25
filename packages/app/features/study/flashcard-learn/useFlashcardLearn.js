@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getFlashcardsByTopic, addFavorite, removeFavorite, submitSpacedRepetition } from '../api'
+import { getFlashcardsByTopic, getFavoriteVocabularies, addFavorite, removeFavorite, submitSpacedRepetition } from '../api'
 
 /**
  * Hook xử lý logic cho FlashcardLearnScreen
+ * @param {string|null} topicId - Topic ID hoặc null nếu là chế độ favorites
+ * @param {boolean} isFavoritesMode - Nếu true, sẽ fetch từ vựng yêu thích thay vì theo topic
  */
-export function useFlashcardLearn(topicId) {
+export function useFlashcardLearn(topicId, isFavoritesMode = false) {
   const [flashcards, setFlashcards] = useState([])
   const [originalFlashcards, setOriginalFlashcards] = useState([]) // Lưu thứ tự ban đầu
   const [isShuffled, setIsShuffled] = useState(false) // Track trạng thái random
@@ -21,11 +23,31 @@ export function useFlashcardLearn(topicId) {
     try {
       setLoading(true)
       setError(null)
-      const data = await getFlashcardsByTopic(topicId)
+      
+      let data
+      if (isFavoritesMode) {
+        // Fetch từ vựng yêu thích
+        data = await getFavoriteVocabularies()
+      } else {
+        // Fetch từ vựng theo topic
+        if (!topicId) {
+          setFlashcards([])
+          setOriginalFlashcards([])
+          setLoading(false)
+          setError('Thiếu thông tin chủ đề')
+          return
+        }
+        data = await getFlashcardsByTopic(topicId)
+      }
+      
       const flashcardsArray = Array.isArray(data) ? data : []
       setFlashcards(flashcardsArray)
       setOriginalFlashcards(flashcardsArray) // Lưu thứ tự ban đầu
       setIsShuffled(false) // Reset trạng thái random
+      // Trong chế độ favorites, tất cả đều là favorite
+      if (isFavoritesMode) {
+        setFavorites(new Set(flashcardsArray.map((_, idx) => idx)))
+      }
     } catch (err) {
       console.error('Error fetching flashcards:', err)
       setError(err.message || 'Không thể tải danh sách từ vựng')
@@ -34,17 +56,21 @@ export function useFlashcardLearn(topicId) {
     } finally {
       setLoading(false)
     }
-  }, [topicId])
+  }, [topicId, isFavoritesMode])
 
   useEffect(() => {
     fetchFlashcards()
   }, [fetchFlashcards])
 
-  // Filter flashcards: chỉ lấy những card chưa học
-  const unlearnedFlashcards = flashcards.filter((_, idx) => !learned.has(idx))
-  const unlearnedIndices = flashcards
-    .map((_, idx) => idx)
-    .filter((idx) => !learned.has(idx))
+  // Filter flashcards: chỉ lấy những card chưa học (trừ khi là chế độ favorites)
+  const unlearnedFlashcards = isFavoritesMode
+    ? flashcards
+    : flashcards.filter((_, idx) => !learned.has(idx))
+  const unlearnedIndices = isFavoritesMode
+    ? flashcards.map((_, idx) => idx)
+    : flashcards
+        .map((_, idx) => idx)
+        .filter((idx) => !learned.has(idx))
 
   // Map index trong unlearned list về index gốc trong flashcards
   const originalIndex = unlearnedIndices[index % unlearnedIndices.length]
@@ -83,11 +109,33 @@ export function useFlashcardLearn(topicId) {
       if (isCurrentlyFavorite) {
         // Xóa khỏi danh sách yêu thích
         await removeFavorite(current.id)
-        setFavorites((prev) => {
-          const next = new Set(prev)
-          next.delete(originalIndex)
-          return next
-        })
+        
+        if (isFavoritesMode) {
+          // Trong chế độ favorites, xóa từ vựng khỏi danh sách
+          const newFlashcards = flashcards.filter((_, idx) => idx !== originalIndex)
+          setFlashcards(newFlashcards)
+          setOriginalFlashcards(newFlashcards)
+          setFavorites(new Set(newFlashcards.map((_, idx) => idx)))
+          // Reset index nếu cần
+          if (newFlashcards.length > 0) {
+            const currentIndexInUnlearned = unlearnedIndices.findIndex(idx => idx === originalIndex)
+            if (currentIndexInUnlearned !== -1) {
+              if (currentIndexInUnlearned >= newFlashcards.length) {
+                setIndex(Math.max(0, newFlashcards.length - 1))
+              } else {
+                setIndex(currentIndexInUnlearned)
+              }
+            }
+          } else {
+            setIndex(0)
+          }
+        } else {
+          setFavorites((prev) => {
+            const next = new Set(prev)
+            next.delete(originalIndex)
+            return next
+          })
+        }
       } else {
         // Thêm vào danh sách yêu thích
         await addFavorite(current.id)
@@ -101,7 +149,7 @@ export function useFlashcardLearn(topicId) {
       console.error('Error toggling favorite:', error)
       // Có thể hiển thị thông báo lỗi cho người dùng ở đây
     }
-  }, [current, originalIndex, favorites])
+  }, [current, originalIndex, favorites, isFavoritesMode, flashcards, unlearnedIndices])
 
   const markAsLearned = useCallback(async () => {
     if (originalIndex !== undefined && current?.id) {

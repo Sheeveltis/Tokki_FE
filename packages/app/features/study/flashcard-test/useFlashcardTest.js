@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { getFlashcardsByTopic, submitSpacedRepetition } from '../api'
+import { getFlashcardsByTopic, getFavoriteVocabularies, submitSpacedRepetition } from '../api'
 import KoreanImage from '../../../../assets/icon/icon-mainflow/korean.png'
 
 /**
  * Hook xử lý logic cho FlashcardTestScreen
+ * @param {string|null} topicId - Topic ID hoặc null nếu là chế độ favorites
+ * @param {boolean} isFavoritesMode - Nếu true, sẽ fetch từ vựng yêu thích thay vì theo topic
  */
-export function useFlashcardTest(topicId) {
+export function useFlashcardTest(topicId, isFavoritesMode = false) {
   const [flashcards, setFlashcards] = useState([])
   const [originalFlashcards, setOriginalFlashcards] = useState([]) // Lưu thứ tự ban đầu
   const [isShuffled, setIsShuffled] = useState(false) // Track trạng thái random
@@ -42,7 +44,23 @@ export function useFlashcardTest(topicId) {
     try {
       setLoading(true)
       setError(null)
-      const data = await getFlashcardsByTopic(topicId)
+      
+      let data
+      if (isFavoritesMode) {
+        // Fetch từ vựng yêu thích
+        data = await getFavoriteVocabularies()
+      } else {
+        // Fetch từ vựng theo topic
+        if (!topicId) {
+          setFlashcards([])
+          setOriginalFlashcards([])
+          setLoading(false)
+          setError('Thiếu thông tin chủ đề')
+          return
+        }
+        data = await getFlashcardsByTopic(topicId)
+      }
+      
       const flashcardsArray = Array.isArray(data) ? data : []
       setFlashcards(flashcardsArray)
       setOriginalFlashcards(flashcardsArray) // Lưu thứ tự ban đầu
@@ -62,7 +80,7 @@ export function useFlashcardTest(topicId) {
     } finally {
       setLoading(false)
     }
-  }, [topicId])
+  }, [topicId, isFavoritesMode])
 
   // Tạo câu hỏi từ flashcards dựa trên questionMode
   useEffect(() => {
