@@ -71,6 +71,7 @@ export const ENDPOINTS = {
       DELETE: (id) => `/Vocabularies/${id}`,
     },
     FAVORITES: {
+      GET_ALL: '/Favorites/favorites',   // GET: Lấy danh sách từ vựng yêu thích (có pagination và search)
       ADD: '/Favorites',      // POST: Thêm vào danh sách yêu thích
       REMOVE: '/Favorites',    // DELETE: Xóa khỏi danh sách yêu thích
     },
