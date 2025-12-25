@@ -6,6 +6,7 @@ import { Button } from '../../../../components/button'
 import { login } from '../api'
 import { setAuthToken } from '../../../provider/api/client'
 import { showApiNotification } from '../helpers/notification'
+import { encryptToken, decryptToken } from '../helpers/token-encryption'
 import { HelperAdmin } from '../../../../components/HelperAdmin'
 import LogoImage from '../../../../assets/logo-text.png'
 import { NavigationPill } from '../../../../components/navigation-pill'
@@ -32,11 +33,13 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [showOtpModal, setShowOtpModal] = useState(false)
 
-  // fuwy thêm token để check login
+  // fuwy thêm token để check login (đã mã hóa)
   const setToken = (token) => {
     if (typeof window === 'undefined') return
     if (token) {
-      window.localStorage.setItem('token', token)
+      // Mã hóa token trước khi lưu vào localStorage
+      const encryptedToken = encryptToken(token)
+      window.localStorage.setItem('token', encryptedToken)
     } else {
       window.localStorage.removeItem('token')
     }
