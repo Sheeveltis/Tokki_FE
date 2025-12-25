@@ -17,6 +17,7 @@ export function FlashcardTestMain({
   selectedAnswers,
   showResults,
   progress,
+  answeredCount,
   isSubmitted,
   score,
   loading,
@@ -83,7 +84,7 @@ export function FlashcardTestMain({
       <View style={styles.topHeader}>
         <View style={styles.progressContainer}>
           <View style={styles.progressHeader}>
-            <Text style={styles.progressNumber}>{currentQuestionIndex + 1}</Text>
+            <Text style={styles.progressNumber}>{answeredCount || 0}</Text>
             <View style={styles.progressBar}>
               <View style={[styles.progressFill, { width: `${progress}%` }]} />
             </View>
@@ -126,6 +127,18 @@ export function FlashcardTestMain({
         </View>
       </View>
 
+      {/* Score Display - Hiển thị ở trên cùng khi đã nộp bài */}
+      {isSubmitted && (
+        <View style={styles.scoreContainer}>
+          <Text style={styles.scoreText}>
+            Điểm: {score} / {questions.length}
+          </Text>
+          <Text style={styles.scorePercentage}>
+            ({Math.round((score / questions.length) * 100)}%)
+          </Text>
+        </View>
+      )}
+
       {/* Current Question */}
       {currentQuestion && (
         <View style={styles.questionContainer}>
@@ -137,8 +150,8 @@ export function FlashcardTestMain({
               onAnswerSubmit={(typedText) => 
                 onTypedAnswer(currentQuestion.id, typedText)
               }
-              showResult={showResults[currentQuestion.id] || false}
-              disabled={!!typedAnswers[currentQuestion.id]}
+              showResult={showResults[currentQuestion.id] || isSubmitted}
+              disabled={!!typedAnswers[currentQuestion.id] || isSubmitted}
               typedAnswer={typedAnswers[currentQuestion.id] || ''}
             />
           ) : (
@@ -150,10 +163,46 @@ export function FlashcardTestMain({
               onAnswerSelect={(answerId, isCorrect) => 
                 onAnswerSelect(currentQuestion.id, answerId, isCorrect)
               }
-              showResult={showResults[currentQuestion.id] || false}
+              showResult={showResults[currentQuestion.id] || isSubmitted}
               selectedAnswerId={selectedAnswers[currentQuestion.id]}
+              disabled={isSubmitted}
             />
           )}
+        </View>
+      )}
+
+      {/* Navigation Buttons - Hiển thị khi đã nộp bài để xem lại */}
+      {isSubmitted && questions.length > 1 && (
+        <View style={styles.navigationContainer}>
+          <Pressable 
+            style={[
+              styles.navButton,
+              currentQuestionIndex === 0 && styles.navButtonDisabled
+            ]} 
+            onPress={onPreviousQuestion}
+            disabled={currentQuestionIndex === 0}
+          >
+            <Text style={styles.navButtonText}>← Câu trước</Text>
+          </Pressable>
+          <Pressable 
+            style={[
+              styles.navButton,
+              currentQuestionIndex === questions.length - 1 && styles.navButtonDisabled
+            ]} 
+            onPress={onNextQuestion}
+            disabled={currentQuestionIndex === questions.length - 1}
+          >
+            <Text style={styles.navButtonText}>Câu sau →</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {/* Finish Button - Chỉ hiển thị khi đã nộp bài */}
+      {isSubmitted && (
+        <View style={styles.finishButtonContainer}>
+          <Pressable style={styles.finishButton} onPress={onBackPress}>
+            <Text style={styles.finishButtonText}>Hoàn thành</Text>
+          </Pressable>
         </View>
       )}
 
@@ -165,22 +214,6 @@ export function FlashcardTestMain({
         onClose={onCloseSettings}
         onSave={onSettingsChange}
       />
-
-
-      {/* Score Display */}
-      {isSubmitted && (
-        <View style={styles.scoreContainer}>
-          <Text style={styles.scoreText}>
-            Điểm: {score} / {questions.length}
-          </Text>
-          <Text style={styles.scorePercentage}>
-            ({Math.round((score / questions.length) * 100)}%)
-          </Text>
-          <Pressable style={styles.finishButton} onPress={onBackPress}>
-            <Text style={styles.finishButtonText}>Hoàn thành</Text>
-          </Pressable>
-        </View>
-      )}
     </View>
   )
 }
@@ -378,6 +411,12 @@ const styles = StyleSheet.create({
     gap: 8,
     borderWidth: 2,
     borderColor: '#F1BE4B',
+    marginBottom: 8,
+  },
+  finishButtonContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 8,
   },
   scoreText: {
     fontSize: 24,
