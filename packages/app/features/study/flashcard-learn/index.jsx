@@ -23,6 +23,7 @@ export function LearnScreen({
   topicId,
   title = 'Học Từ Vựng',
   onBackPress,
+  isFavoritesMode = false,
 }) {
   const [slideDirection, setSlideDirection] = useState(null) // 'left' | 'right' | null
   
@@ -49,7 +50,7 @@ export function LearnScreen({
     fetchFlashcards,
     toggleShuffle,
     isShuffled,
-  } = useFlashcardLearn(topicId)
+  } = useFlashcardLearn(topicId, isFavoritesMode)
 
   const handleMarkAsLearned = useCallback(() => {
     setSlideDirection('right')

@@ -26,6 +26,7 @@ export function FlashcardTestScreen({
   title = 'Kiểm Tra Từ Vựng',
   onBackPress,
   onClose,
+  isFavoritesMode = false,
 }) {
   const {
     flashcards,
@@ -55,7 +56,7 @@ export function FlashcardTestScreen({
     toggleShuffle,
     setShowSettings,
     handleSettingsChange,
-  } = useFlashcardTest(topicId)
+  } = useFlashcardTest(topicId, isFavoritesMode)
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain

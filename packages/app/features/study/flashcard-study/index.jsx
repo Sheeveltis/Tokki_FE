@@ -19,7 +19,9 @@ export function FlashcardStudyScreen({
   onBackPress,
   onLearnPress,
   onTestPress,
+  onFavoritesPress,
   topicId,
+  isFavoritesMode = false,
 }) {
   const {
     flashcards,
@@ -43,7 +45,7 @@ export function FlashcardStudyScreen({
     loading,
     error,
     fetchFlashcards,
-  } = useFlashcardStudy(topicId)
+  } = useFlashcardStudy(topicId, isFavoritesMode)
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
@@ -64,6 +66,7 @@ export function FlashcardStudyScreen({
         onBackPress={onBackPress}
         onLearnPress={onLearnPress}
         onTestPress={onTestPress}
+        onFavoritesPress={onFavoritesPress}
         onFlip={setIsFlipped}
         onToggleFavorite={toggleFavorite}
         onNext={handleNext}
@@ -75,6 +78,7 @@ export function FlashcardStudyScreen({
         loading={loading}
         error={error}
         onRetry={fetchFlashcards}
+        isFavoritesMode={isFavoritesMode}
       />
     </Layout>
   )

@@ -28,6 +28,7 @@ export function FlashcardStudyMain({
   onBackPress,
   onLearnPress,
   onTestPress,
+  onFavoritesPress,
   onFlip,
   onToggleFavorite,
   onNext,
@@ -39,6 +40,7 @@ export function FlashcardStudyMain({
   loading,
   error,
   onRetry,
+  isFavoritesMode = false,
 }) {
   const audioRef = useRef(null)
 
@@ -233,6 +235,16 @@ export function FlashcardStudyMain({
           onPress={onBackPress}
           textStyle={{ fontWeight: '700' }}
         />
+        {onFavoritesPress && (
+          <Pressable style={styles.favoritesButton} onPress={onFavoritesPress}>
+            <Image
+              source={normalizeImageSource(StarIcon)}
+              style={styles.favoritesIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.favoritesButtonText}>Từ vựng yêu thích</Text>
+          </Pressable>
+        )}
       </View>
       <View>
         <Text style={styles.title}>{title}</Text>
@@ -273,18 +285,7 @@ export function FlashcardStudyMain({
         />
       </View>
 
-      {/* Mark as Learned Button */}
-      <View style={styles.learnedButtonContainer}>
-        {isLearned ? (
-          <Pressable style={styles.learnedButton} onPress={onMarkAsNeedReview}>
-            <Text style={styles.learnedButtonText}>Cần ôn lại</Text>
-          </Pressable>
-        ) : (
-          <Pressable style={styles.learnedButton} onPress={onMarkAsLearned}>
-            <Text style={styles.learnedButtonText}>Đánh dấu đã học</Text>
-          </Pressable>
-        )}
-      </View>
+      {/* Mark as Learned Button - Đã ẩn */}
 
       {/* Pagination */}
       <View style={styles.pagination}>
@@ -296,7 +297,7 @@ export function FlashcardStudyMain({
           />
         </Pressable>
         <Text style={styles.pageText}>
-          {currentIndex + 1} / {unlearnedCount} (Tổng: {total})
+          {currentIndex + 1} / {unlearnedCount}
         </Text>
         <Pressable style={styles.navBtn} onPress={onNext}>
           <Image 
@@ -325,6 +326,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
+  },
+  favoritesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#F1BE4B',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+    }),
+  },
+  favoritesIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#1F1F1F',
+  },
+  favoritesButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
   },
   title: {
     ...studyStyles.pageTitle,
