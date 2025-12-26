@@ -30,8 +30,8 @@ export function FlashcardListMain({
   // Thêm style cho select element khi component mount (chỉ trên web)
   useEffect(() => {
     if (Platform.OS === 'web') {
-      const style = document.createElement('style')
-      style.textContent = `
+      const styleElement = document.createElement('style')
+      styleElement.textContent = `
         .level-select {
           height: 40px;
           padding: 8px 16px;
@@ -69,9 +69,9 @@ export function FlashcardListMain({
           font-weight: 700;
         }
       `
-      document.head.appendChild(style)
+      document.head.appendChild(styleElement)
       return () => {
-        document.head.removeChild(style)
+        document.head.removeChild(styleElement)
       }
     }
   }, [])

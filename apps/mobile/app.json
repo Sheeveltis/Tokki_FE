@@ -4,6 +4,7 @@
     "slug": "solito-blank",
     "version": "1.0.0",
     "scheme": "solito-blank",
+    "main": "index.js",
     "platforms": [
       "ios",
       "android"

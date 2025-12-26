@@ -34,46 +34,6 @@ export function NativeNavigation() {
         name="register"
         component={RegisterScreen}
       />
-      <Stack.Screen
-        name="forgot-password"
-        component={ForgotPasswordScreen}
-      />
-      <Stack.Screen
-        name="blog-detail"
-        component={BlogDetailScreen}
-      />
-      <Stack.Screen
-        name="premium-package"
-        component={PremiumScreen}
-      />
-      <Stack.Screen
-        name="payment-detail"
-        component={PaymentScreen}
-      />
-      <Stack.Screen
-        name="payment-success"
-        component={PaymentSuccessScreen}
-      />
-      <Stack.Screen
-        name="payment-failed"
-        component={PaymentFailedScreen}
-      />
-      <Stack.Screen
-        name="roadmap-info"
-        component={RoadmapInfoScreen}
-      />
-      <Stack.Screen
-        name="roadmap-test"
-        component={RoadmapTestScreen}
-      />
-      <Stack.Screen
-        name="user-profile"
-        component={UserProfileScreen}
-      />
-      <Stack.Screen
-        name="error"
-        component={ErrorScreen}
-      />
     </Stack.Navigator>
   )
 }
