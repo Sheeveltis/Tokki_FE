@@ -44,6 +44,26 @@ export const colors = {
   borderLight: '#e5e5e5',
   borderLighter: '#eee',
   shadowBase: '#00000020',
+
+
+
+  // Hover Color
+  hoverColor: '#F4900C',
+
+  // Floating action backgrounds (App icon + Bubble chat)
+  floatingBg: '#FFF8E7',
+
+  // Theme default
+  themeDefault: '#F4900C',
+  themeBackground: "#DC9C9E",
+  themeText: "#000000",
+  themeTextSecondary: "#666666",
+  themeTextTertiary: "#999999",
+  themeTextQuaternary: "#CCCCCC",
+  themeTextQuinary: "#EEEEEE",
+  themeTextSenary: "#FFFFFF",
+  themeTextSeptenary: "#000000",
+  themeTextOctonary: "#111111",
 };
 
 export default colors;

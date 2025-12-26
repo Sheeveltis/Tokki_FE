@@ -122,11 +122,13 @@ export const getFlashcardsByTopic = async (topicId) => {
 
     const items = Array.isArray(payload?.data) ? payload.data : []
 
-    // Map về shape dùng trong FE: { word, meaning, imageUrl }
+    // Map về shape dùng trong FE: { id, word, meaning, imageUrl, audioUrl }
     return items.map((item) => ({
+      id: item.vocabularyId,
       word: item.text,
       meaning: item.definition,
       imageUrl: item.imgURL || null,
+      audioUrl: item.audioUrl || null,
       _raw: item,
     }))
   } catch (error) {
@@ -145,15 +147,112 @@ export const getFlashcardsByTopic = async (topicId) => {
 }
 
 /**
- * Lưu flashcard vào danh sách yêu thích
- * @param {string} flashcardId - Flashcard ID
+ * Lấy danh sách từ vựng yêu thích
+ * @param {Object} [options]
+ * @param {number} [options.pageNumber=1] - Số trang
+ * @param {number} [options.pageSize=100] - Số lượng từ vựng mỗi trang
+ * @param {string} [options.searchTerm] - Từ khóa tìm kiếm
+ * @returns {Promise<Array>} Danh sách từ vựng yêu thích
+ */
+export const getFavoriteVocabularies = async ({ pageNumber = 1, pageSize = 100, searchTerm } = {}) => {
+  try {
+    const params = {
+      PageNumber: pageNumber,
+      PageSize: pageSize,
+    }
+
+    if (searchTerm) {
+      params.SearchTerm = searchTerm
+    }
+
+    const res = await apiClient.get(ENDPOINTS.FAVORITES.GET_ALL, { params })
+    const payload = res?.data
+
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể tải danh sách từ vựng yêu thích'
+      throw new Error(message)
+    }
+
+    const pagingData = payload?.data
+    const items = Array.isArray(pagingData?.items) ? pagingData.items : []
+
+    // Map về shape dùng trong FE: { id, word, meaning, imageUrl, audioUrl }
+    return items.map((item) => ({
+      id: item.vocabularyId || item.id,
+      word: item.text || item.word,
+      meaning: item.definition || item.meaning,
+      imageUrl: item.imgURL || item.imageUrl || null,
+      audioUrl: item.audioURL || item.audioUrl || null, // API trả về audioURL
+      _raw: item,
+    }))
+  } catch (error) {
+    console.error('Error fetching favorite vocabularies:', error)
+    if (error?.response?.data) {
+      const data = error.response.data
+      const message =
+        data?.message ||
+        (Array.isArray(data?.errors) && data.errors[0]?.description) ||
+        'Không thể tải danh sách từ vựng yêu thích'
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+/**
+ * Thêm từ vựng vào danh sách yêu thích
+ * @param {string} vocabularyId - Vocabulary ID
  * @returns {Promise<boolean>}
  */
-export const toggleFavoriteFlashcard = async (flashcardId) => {
-  // TODO: Replace with actual API call
-  // const response = await fetch(`/api/flashcard/${flashcardId}/favorite`, { method: 'POST' })
-  // return response.json()
-  return Promise.resolve(true)
+export const addFavorite = async (vocabularyId) => {
+  try {
+    const res = await apiClient.post(ENDPOINTS.FAVORITES.ADD, {
+      vocabularyId,
+    })
+    return res?.data?.isSuccess || false
+  } catch (error) {
+    console.error('Error adding favorite:', error)
+    throw error
+  }
+}
+
+/**
+ * Xóa từ vựng khỏi danh sách yêu thích
+ * @param {string} vocabularyId - Vocabulary ID
+ * @returns {Promise<boolean>}
+ */
+export const removeFavorite = async (vocabularyId) => {
+  try {
+    const res = await apiClient.delete(ENDPOINTS.FAVORITES.REMOVE, {
+      data: { vocabularyId },
+    })
+    return res?.data?.isSuccess || false
+  } catch (error) {
+    console.error('Error removing favorite:', error)
+    throw error
+  }
+}
+
+/**
+ * Submit kết quả spaced repetition
+ * @param {string} vocabularyId - Vocabulary ID
+ * @param {number} quality - QualityVocab enum: 0 (Again), 1 (Good), 2 (Easy)
+ * @returns {Promise<{vocabularyId: string, isMastered: boolean}>}
+ */
+export const submitSpacedRepetition = async (vocabularyId, quality) => {
+  try {
+    const res = await apiClient.post(ENDPOINTS.SPACED_REPETITION.SUBMIT, {
+      vocabularyId,
+      quality,
+    })
+    return res?.data?.data || { vocabularyId, isMastered: false }
+  } catch (error) {
+    console.error('Error submitting spaced repetition:', error)
+    throw error
+  }
 }
 
 /**

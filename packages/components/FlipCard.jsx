@@ -219,8 +219,8 @@ export function FlipCard({
 
   // Render sound icon nếu có
   const renderSoundIcon = () => {
-    // Hiển thị icon sound khi có star icon (nút lưu) hoặc có onPlaySound
-    if (!starIcon && !onToggleFavorite && !onPlaySound) return null
+    // Hiển thị icon sound khi có onPlaySound
+    if (!onPlaySound) return null
     
     const soundStyle = {
       position: 'absolute',

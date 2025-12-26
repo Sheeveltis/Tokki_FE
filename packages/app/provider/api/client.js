@@ -1,5 +1,14 @@
 import axios from 'axios'
 import { API_BASE_URL } from './endpoints'
+import { encryptToken, decryptToken } from '../../features/authentication/helpers/token-encryption'
+import {
+  getUserInfoFromToken,
+  getUserIdFromToken,
+  getEmailFromToken,
+  getFullNameFromToken,
+  getRoleFromToken,
+  isTokenExpired,
+} from '../../features/authentication/helpers/token-decoder'
 
 // Lưu token đơn giản: ưu tiên localStorage, fallback bộ nhớ tạm
 const TOKEN_KEY = 'token'
@@ -9,7 +18,9 @@ export const setAuthToken = (token) => {
   inMemoryToken = token || null
   if (typeof localStorage !== 'undefined') {
     if (token) {
-      localStorage.setItem(TOKEN_KEY, token)
+      // Mã hóa token trước khi lưu vào localStorage
+      const encryptedToken = encryptToken(token)
+      localStorage.setItem(TOKEN_KEY, encryptedToken)
     } else {
       localStorage.removeItem(TOKEN_KEY)
     }
@@ -23,11 +34,75 @@ export const getAuthToken = () => {
   if (typeof localStorage !== 'undefined') {
     const stored = localStorage.getItem(TOKEN_KEY)
     if (stored) {
-      inMemoryToken = stored
-      return stored
+      // Giải mã token từ localStorage
+      const decryptedToken = decryptToken(stored)
+      if (decryptedToken) {
+        inMemoryToken = decryptedToken
+        return decryptedToken
+      }
     }
   }
   return null
+}
+
+/**
+ * Lấy thông tin user từ token đã lưu
+ * @returns {Object|null} - Object chứa thông tin user (userId, email, fullName, role, v.v.) hoặc null
+ */
+export const getCurrentUserInfo = () => {
+  const token = getAuthToken()
+  if (!token) return null
+  return getUserInfoFromToken(token)
+}
+
+/**
+ * Lấy userId từ token đã lưu
+ * @returns {string|null} - UserId hoặc null
+ */
+export const getCurrentUserId = () => {
+  const token = getAuthToken()
+  if (!token) return null
+  return getUserIdFromToken(token)
+}
+
+/**
+ * Lấy email từ token đã lưu
+ * @returns {string|null} - Email hoặc null
+ */
+export const getCurrentUserEmail = () => {
+  const token = getAuthToken()
+  if (!token) return null
+  return getEmailFromToken(token)
+}
+
+/**
+ * Lấy fullName từ token đã lưu
+ * @returns {string|null} - FullName hoặc null
+ */
+export const getCurrentUserFullName = () => {
+  const token = getAuthToken()
+  if (!token) return null
+  return getFullNameFromToken(token)
+}
+
+/**
+ * Lấy role từ token đã lưu
+ * @returns {string|null} - Role hoặc null
+ */
+export const getCurrentUserRole = () => {
+  const token = getAuthToken()
+  if (!token) return null
+  return getRoleFromToken(token)
+}
+
+/**
+ * Kiểm tra token hiện tại có hết hạn không
+ * @returns {boolean} - true nếu token đã hết hạn, false nếu còn hiệu lực
+ */
+export const isCurrentTokenExpired = () => {
+  const token = getAuthToken()
+  if (!token) return true
+  return isTokenExpired(token)
 }
 
 /**

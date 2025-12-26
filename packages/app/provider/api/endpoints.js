@@ -35,6 +35,7 @@ export const ENDPOINTS = {
       DETAIL: (id) => `/Account/detail/${id}`,
       CREATE_ACCOUNT: '/Account/create-account',
       UPDATE_USER: '/Account/update-user',
+      DELETE: (id) => `/Account/${id}`,
     },
     OTP: {
       SEND_EMAIL_VERIFICATION: '/Otp/send-otp-for-email-verification',
@@ -59,6 +60,7 @@ export const ENDPOINTS = {
       USER_GET_ALL: '/Topics/user/get-all',
       GET_BY_ID: (id) => `/Topics/${id}`,
       DELETE: (id) => `/Topics/${id}`,
+      ADD_VOCABULARIES: '/Topics/vocabularies',
     },
     VOCABULARY: {
       ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
@@ -67,5 +69,22 @@ export const ENDPOINTS = {
       GET_BY_ID: (id) => `/Vocabulary/${id}`,
       UPDATE: (id) => `/Vocabulary/${id}`,
       DELETE: (id) => `/Vocabularies/${id}`,
+    },
+    MINIGAME: {
+      MATCHING_CARDS: '/minigame/matching-cards',
+    },
+    REPORT: {
+      CREATE: '/Report',
+    },
+    FAVORITES: {
+      GET_ALL: '/Favorites/favorites',   // GET: Lấy danh sách từ vựng yêu thích (có pagination và search)
+      ADD: '/Favorites',      // POST: Thêm vào danh sách yêu thích
+      REMOVE: '/Favorites',    // DELETE: Xóa khỏi danh sách yêu thích
+    },
+    SPACED_REPETITION: {
+      SUBMIT: '/spaced-repetition/submit',  // POST: Submit kết quả học tập
+    },
+    GAMIFICATION: {
+      HEARTBEAT: '/Gamification/heartbeat',  // POST: Heartbeat để track thời gian học tập
     }
   }

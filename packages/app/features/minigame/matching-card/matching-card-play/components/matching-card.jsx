@@ -1,16 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Image, Pressable, StyleSheet, Text, View, Platform, Animated } from 'react-native'
 import { normalizeImageSource } from '../../../../study/api'
-import { getMatchingWords } from '../api/api'
 
 import BunnyFront from '../../../../../../assets/bunny/1.png'
 
 /**
- * Matching card – can work in uncontrolled mode (random vocab by topic)
- * or controlled mode (pass `word`, `face`, `flipped`, `matched`, `onFlip`).
+ * Matching card component - controlled mode only
+ * Requires `word`, `face`, `flipped`, `matched`, `onFlip` props
  */
 export function MatchingCard({
-  topicId = 'hobby',
   frontImage = BunnyFront,
   style,
   word,
@@ -19,36 +17,15 @@ export function MatchingCard({
   matched = false,
   onFlip,
 }) {
-  const controlled = !!word || typeof flippedProp === 'boolean'
-  const [vocabList, setVocabList] = useState([])
   const [current, setCurrent] = useState(word || null)
-  const [flippedState, setFlippedState] = useState(false)
   const [fade] = useState(new Animated.Value(1))
   const [flipAnim] = useState(new Animated.Value(0))
 
-  const flipped = typeof flippedProp === 'boolean' ? flippedProp : flippedState
+  const flipped = typeof flippedProp === 'boolean' ? flippedProp : false
 
   useEffect(() => {
     if (word) setCurrent(word)
   }, [word])
-
-  useEffect(() => {
-    if (controlled) return
-    let mounted = true
-    setFlippedState(false)
-    setCurrent(null)
-
-    getMatchingWords(topicId).then((data) => {
-      if (!mounted) return
-      const list = Array.isArray(data) ? data : []
-      setVocabList(list)
-      if (list.length) setCurrent(list[0])
-    })
-
-    return () => {
-      mounted = false
-    }
-  }, [topicId, controlled])
 
   useEffect(() => {
     if (matched) {
@@ -67,31 +44,11 @@ export function MatchingCard({
     }).start()
   }, [flipped, flipAnim])
 
-  const pickRandomWord = useMemo(
-    () => (list) => {
-      if (!list?.length) return null
-      const idx = Math.floor(Math.random() * list.length)
-      return list[idx]
-    },
-    []
-  )
-
   const handlePress = () => {
     if (matched) return
     if (typeof onFlip === 'function') {
       onFlip()
-      return
     }
-
-    // uncontrolled fallback
-    if (!vocabList.length) return
-    if (flippedState) {
-      setFlippedState(false)
-      return
-    }
-    const w = pickRandomWord(vocabList)
-    setCurrent(w)
-    setFlippedState(true)
   }
 
   const backLabelKo = current?.ko || '...'

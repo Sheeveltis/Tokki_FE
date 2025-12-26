@@ -1,150 +1,33 @@
-// Mock vocab data for matching card minigame
-// 20 words per topic with KO + VI
-
-const MATCHING_VOCABS = {
-  hobby: [
-    { id: 'hobby-1', ko: '독서', vi: 'Đọc sách' },
-    { id: 'hobby-2', ko: '여행', vi: 'Du lịch' },
-    { id: 'hobby-3', ko: '사진 찍기', vi: 'Chụp ảnh' },
-    { id: 'hobby-4', ko: '요리', vi: 'Nấu ăn' },
-    { id: 'hobby-5', ko: '등산', vi: 'Leo núi' },
-    { id: 'hobby-6', ko: '자전거 타기', vi: 'Đi xe đạp' },
-    { id: 'hobby-7', ko: '수영', vi: 'Bơi lội' },
-    { id: 'hobby-8', ko: '게임', vi: 'Chơi game' },
-    { id: 'hobby-9', ko: '그림 그리기', vi: 'Vẽ tranh' },
-    { id: 'hobby-10', ko: '악기 연주', vi: 'Chơi nhạc cụ' },
-    { id: 'hobby-11', ko: '춤', vi: 'Nhảy' },
-    { id: 'hobby-12', ko: '노래 부르기', vi: 'Hát' },
-    { id: 'hobby-13', ko: '정원 가꾸기', vi: 'Làm vườn' },
-    { id: 'hobby-14', ko: '캠핑', vi: 'Cắm trại' },
-    { id: 'hobby-15', ko: '낚시', vi: 'Câu cá' },
-    { id: 'hobby-16', ko: '공예', vi: 'Thủ công' },
-    { id: 'hobby-17', ko: '필라테스', vi: 'Pilates' },
-    { id: 'hobby-18', ko: '요가', vi: 'Yoga' },
-    { id: 'hobby-19', ko: '볼링', vi: 'Bowling' },
-    { id: 'hobby-20', ko: '봉사 활동', vi: 'Tình nguyện' },
-  ],
-  family: [
-    { id: 'family-1', ko: '가족', vi: 'Gia đình' },
-    { id: 'family-2', ko: '부모님', vi: 'Ba mẹ' },
-    { id: 'family-3', ko: '아버지', vi: 'Cha' },
-    { id: 'family-4', ko: '어머니', vi: 'Mẹ' },
-    { id: 'family-5', ko: '형제', vi: 'Anh em trai' },
-    { id: 'family-6', ko: '자매', vi: 'Chị em gái' },
-    { id: 'family-7', ko: '형', vi: 'Anh trai' },
-    { id: 'family-8', ko: '누나', vi: 'Chị gái' },
-    { id: 'family-9', ko: '동생', vi: 'Em' },
-    { id: 'family-10', ko: '할아버지', vi: 'Ông' },
-    { id: 'family-11', ko: '할머니', vi: 'Bà' },
-    { id: 'family-12', ko: '삼촌', vi: 'Chú/Bác' },
-    { id: 'family-13', ko: '이모', vi: 'Dì' },
-    { id: 'family-14', ko: '조카', vi: 'Cháu' },
-    { id: 'family-15', ko: '사촌', vi: 'Anh/em họ' },
-    { id: 'family-16', ko: '부부', vi: 'Vợ chồng' },
-    { id: 'family-17', ko: '남편', vi: 'Chồng' },
-    { id: 'family-18', ko: '아내', vi: 'Vợ' },
-    { id: 'family-19', ko: '아들', vi: 'Con trai' },
-    { id: 'family-20', ko: '딸', vi: 'Con gái' },
-  ],
-  job: [
-    { id: 'job-1', ko: '직장', vi: 'Nơi làm việc' },
-    { id: 'job-2', ko: '회사원', vi: 'Nhân viên công ty' },
-    { id: 'job-3', ko: '교사', vi: 'Giáo viên' },
-    { id: 'job-4', ko: '의사', vi: 'Bác sĩ' },
-    { id: 'job-5', ko: '간호사', vi: 'Y tá' },
-    { id: 'job-6', ko: '엔지니어', vi: 'Kỹ sư' },
-    { id: 'job-7', ko: '디자이너', vi: 'Nhà thiết kế' },
-    { id: 'job-8', ko: '요리사', vi: 'Đầu bếp' },
-    { id: 'job-9', ko: '경찰관', vi: 'Cảnh sát' },
-    { id: 'job-10', ko: '소방관', vi: 'Lính cứu hỏa' },
-    { id: 'job-11', ko: '운전기사', vi: 'Tài xế' },
-    { id: 'job-12', ko: '판매원', vi: 'Nhân viên bán hàng' },
-    { id: 'job-13', ko: '비서', vi: 'Thư ký' },
-    { id: 'job-14', ko: '통역사', vi: 'Thông dịch viên' },
-    { id: 'job-15', ko: '기자', vi: 'Phóng viên' },
-    { id: 'job-16', ko: '프로그래머', vi: 'Lập trình viên' },
-    { id: 'job-17', ko: '마케터', vi: 'Marketing' },
-    { id: 'job-18', ko: '연구원', vi: 'Nhà nghiên cứu' },
-    { id: 'job-19', ko: '회계사', vi: 'Kế toán' },
-    { id: 'job-20', ko: '창업가', vi: 'Khởi nghiệp' },
-  ],
-  school: [
-    { id: 'school-1', ko: '학교', vi: 'Trường học' },
-    { id: 'school-2', ko: '학생', vi: 'Học sinh' },
-    { id: 'school-3', ko: '교실', vi: 'Lớp học' },
-    { id: 'school-4', ko: '선생님', vi: 'Thầy cô' },
-    { id: 'school-5', ko: '교과서', vi: 'Sách giáo khoa' },
-    { id: 'school-6', ko: '숙제', vi: 'Bài tập về nhà' },
-    { id: 'school-7', ko: '시험', vi: 'Kỳ thi' },
-    { id: 'school-8', ko: '점수', vi: 'Điểm số' },
-    { id: 'school-9', ko: '급식', vi: 'Cơm trưa trường' },
-    { id: 'school-10', ko: '도서관', vi: 'Thư viện' },
-    { id: 'school-11', ko: '운동장', vi: 'Sân vận động' },
-    { id: 'school-12', ko: '동아리', vi: 'Câu lạc bộ' },
-    { id: 'school-13', ko: '졸업', vi: 'Tốt nghiệp' },
-    { id: 'school-14', ko: '입학', vi: 'Nhập học' },
-    { id: 'school-15', ko: '과목', vi: 'Môn học' },
-    { id: 'school-16', ko: '수업', vi: 'Tiết học' },
-    { id: 'school-17', ko: '친구', vi: 'Bạn bè' },
-    { id: 'school-18', ko: '연필', vi: 'Bút chì' },
-    { id: 'school-19', ko: '공책', vi: 'Vở' },
-    { id: 'school-20', ko: '시험지', vi: 'Đề thi' },
-  ],
-  life: [
-    { id: 'life-1', ko: '생활', vi: 'Đời sống' },
-    { id: 'life-2', ko: '시장', vi: 'Chợ' },
-    { id: 'life-3', ko: '마트', vi: 'Siêu thị' },
-    { id: 'life-4', ko: '집', vi: 'Nhà' },
-    { id: 'life-5', ko: '이웃', vi: 'Hàng xóm' },
-    { id: 'life-6', ko: '청소', vi: 'Dọn dẹp' },
-    { id: 'life-7', ko: '요금', vi: 'Hóa đơn' },
-    { id: 'life-8', ko: '교통', vi: 'Giao thông' },
-    { id: 'life-9', ko: '버스', vi: 'Xe buýt' },
-    { id: 'life-10', ko: '지하철', vi: 'Tàu điện ngầm' },
-    { id: 'life-11', ko: '약국', vi: 'Hiệu thuốc' },
-    { id: 'life-12', ko: '병원', vi: 'Bệnh viện' },
-    { id: 'life-13', ko: '우체국', vi: 'Bưu điện' },
-    { id: 'life-14', ko: '은행', vi: 'Ngân hàng' },
-    { id: 'life-15', ko: '공원', vi: 'Công viên' },
-    { id: 'life-16', ko: '식당', vi: 'Nhà hàng' },
-    { id: 'life-17', ko: '카페', vi: 'Quán cà phê' },
-    { id: 'life-18', ko: '예약', vi: 'Đặt chỗ' },
-    { id: 'life-19', ko: '주문', vi: 'Gọi món' },
-    { id: 'life-20', ko: '할인', vi: 'Giảm giá' },
-  ],
-  sport: [
-    { id: 'sport-1', ko: '스포츠', vi: 'Thể thao' },
-    { id: 'sport-2', ko: '축구', vi: 'Bóng đá' },
-    { id: 'sport-3', ko: '농구', vi: 'Bóng rổ' },
-    { id: 'sport-4', ko: '야구', vi: 'Bóng chày' },
-    { id: 'sport-5', ko: '배구', vi: 'Bóng chuyền' },
-    { id: 'sport-6', ko: '테니스', vi: 'Tennis' },
-    { id: 'sport-7', ko: '배드민턴', vi: 'Cầu lông' },
-    { id: 'sport-8', ko: '수영', vi: 'Bơi lội' },
-    { id: 'sport-9', ko: '골프', vi: 'Golf' },
-    { id: 'sport-10', ko: '달리기', vi: 'Chạy bộ' },
-    { id: 'sport-11', ko: '체육관', vi: 'Phòng gym' },
-    { id: 'sport-12', ko: '코치', vi: 'Huấn luyện viên' },
-    { id: 'sport-13', ko: '선수', vi: 'Vận động viên' },
-    { id: 'sport-14', ko: '경기', vi: 'Trận đấu' },
-    { id: 'sport-15', ko: '응원', vi: 'Cổ vũ' },
-    { id: 'sport-16', ko: '훈련', vi: 'Luyện tập' },
-    { id: 'sport-17', ko: '득점', vi: 'Ghi điểm' },
-    { id: 'sport-18', ko: '심판', vi: 'Trọng tài' },
-    { id: 'sport-19', ko: '체력', vi: 'Thể lực' },
-    { id: 'sport-20', ko: '라켓', vi: 'Vợt' },
-  ],
-}
+import { apiClient } from '../../../../../provider/api/client'
+import { ENDPOINTS } from '../../../../../provider/api/endpoints'
 
 /**
- * Get vocab list by topic id
- * @param {string} topicId
+ * Get matching cards from API
+ * @param {string} topicId - Topic ID
+ * @param {number} quantity - Number of pairs (5 for easy, 10 for medium, 18 for hard)
  * @returns {Promise<Array<{id:string, ko:string, vi:string}>>}
  */
-export const getMatchingWords = async (topicId) => {
-  const list = MATCHING_VOCABS[topicId] || MATCHING_VOCABS.hobby || []
-  return Promise.resolve(list)
+export const getMatchingCards = async (topicId, quantity) => {
+  try {
+    const response = await apiClient.get(ENDPOINTS.MINIGAME.MATCHING_CARDS, {
+      params: {
+        topicId,
+        quantity,
+      },
+    })
+    
+    // API returns { isSuccess: true, data: [...] }
+    // Each item has: vocabularyId, text, pronunciation, definition, imgURL, audioURL
+    const apiData = response.data?.data || []
+    
+    // Map API response to component format
+    return apiData.map((item) => ({
+      id: item.vocabularyId,
+      ko: item.text,
+      vi: item.definition,
+    }))
+  } catch (error) {
+    console.error('Error fetching matching cards:', error)
+    throw error
+  }
 }
-
-export const MATCHING_TOPICS = Object.keys(MATCHING_VOCABS)
-

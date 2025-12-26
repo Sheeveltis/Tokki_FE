@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Card, Descriptions, Space, Spin, Typography, Tag, message, Button, Input, Select } from 'antd'
 import { fetchUserDetail, updateUserProfile } from '../../UserDetail/api/api'
 import PopupConfirm from './popup-confirm'
+import DeleteUserConfirm from '../../UserDetail/modal/DeleteUserConfirm'
 import { showAdminSuccess, showAdminError } from 'components/HelperAdmin'
 
 const { Title, Text } = Typography
@@ -36,7 +37,7 @@ const getStatusLabel = (val) => {
   }
 }
 
-export default function AccountDetails({ userId }) {
+export default function AccountDetails({ userId, onAfterChange }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [user, setUser] = useState(null)
@@ -51,6 +52,7 @@ export default function AccountDetails({ userId }) {
   })
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   const fmt = (val) => {
     if (val === null || val === undefined || val === '') return 'N/A'
@@ -95,7 +97,7 @@ export default function AccountDetails({ userId }) {
   }, [userId])
 
   const handleDisable = () => {
-    message.info('TODO: Gọi API vô hiệu hóa tài khoản.')
+    setDeleteOpen(true)
   }
 
   const handleUpdateClick = () => {
@@ -124,6 +126,7 @@ export default function AccountDetails({ userId }) {
       setConfirmOpen(false)
       // cập nhật lại local user
       setUser((prev) => (prev ? { ...prev, ...form } : prev))
+      onAfterChange?.()
     } catch (err) {
       console.error(err)
       showAdminError?.(err?.message || 'Cập nhật tài khoản thất bại')
@@ -169,9 +172,11 @@ export default function AccountDetails({ userId }) {
             <Text type="secondary">ID: {user.userId || user.id}</Text>
           </div>
           <Space>
-            <Button danger onClick={handleDisable}>
-              Vô hiệu hóa
-            </Button>
+            {Number(user.status) !== 0 && (
+              <Button danger onClick={handleDisable}>
+                Vô hiệu hóa
+              </Button>
+            )}
             <Button type="primary" onClick={handleUpdateClick}>
               {editing ? 'Xác nhận cập nhật' : 'Cập nhật'}
             </Button>
@@ -273,6 +278,15 @@ export default function AccountDetails({ userId }) {
         confirmLoading={saving}
         onOk={handleConfirmUpdate}
         onCancel={() => setConfirmOpen(false)}
+      />
+      <DeleteUserConfirm
+        open={deleteOpen}
+        user={user}
+        onConfirm={() => {
+          setDeleteOpen(false)
+          onAfterChange?.()
+        }}
+        onCancel={() => setDeleteOpen(false)}
       />
     </div>
   )

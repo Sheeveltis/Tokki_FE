@@ -327,3 +327,125 @@ export async function updateFlashcardTopic(id, payload) {
   }
 }
 
+/**
+ * Tìm kiếm từ vựng để thêm vào chủ đề
+ * @param {string} keyword - Từ khóa tìm kiếm (có thể rỗng để lấy 10 từ đầu tiên)
+ * @param {Object} options - Tùy chọn
+ * @param {number} options.pageSize - Số lượng kết quả (mặc định: 10)
+ * @returns {Promise<Array>} - Mảng các từ vựng
+ */
+export async function searchVocabulariesForTopic(keyword = '', options = {}) {
+  try {
+    const { pageSize = 10 } = options
+    const trimmedKeyword = keyword?.trim() || ''
+    
+    const params = {
+      pageNumber: 1,
+      pageSize,
+      status: 1,
+    }
+    
+    // Chỉ thêm searchText nếu có từ khóa
+    if (trimmedKeyword) {
+      params.searchText = trimmedKeyword
+    }
+    
+    const res = await fetchVocabularies(params)
+    // Trả về items từ kết quả
+    return Array.isArray(res?.items) ? res.items : []
+  } catch (error) {
+    console.error('Error searching vocabularies for topic:', error)
+    return []
+  }
+}
+
+/**
+ * Thêm từ vựng vào chủ đề flashcard
+ * @param {string} topicId - ID của chủ đề
+ * @param {string[]} vocabularyIds - Mảng các ID từ vựng cần thêm
+ * @returns {Promise<Object>} - Response từ API { isSuccess, data, message, errors, statusCode }
+ */
+export async function addVocabulariesToTopic(topicId, vocabularyIds) {
+  try {
+    if (!topicId) {
+      throw { status: 400, message: 'TopicId là bắt buộc' }
+    }
+
+    if (!Array.isArray(vocabularyIds) || vocabularyIds.length === 0) {
+      throw { status: 400, message: 'Danh sách từ vựng không được để trống' }
+    }
+
+    const payload = {
+      topicId,
+      vocabularyIds,
+    }
+
+    const res = await apiClient.post(ENDPOINTS.TOPIC.ADD_VOCABULARIES, payload)
+
+    const responseData = res?.data
+    // Trả về toàn bộ response để component có thể xử lý và hiển thị thông báo
+    return responseData
+  } catch (error) {
+    console.error('Error adding vocabularies to topic:', error)
+    // Nếu error có response data, trả về nó
+    if (error?.response?.data) {
+      return error.response.data
+    }
+    // Nếu không, tạo response error format
+    throw {
+      isSuccess: false,
+      message: error?.message || 'Không thể thêm từ vựng vào chủ đề',
+      errors: error?.errors || [],
+      statusCode: error?.status || 500,
+    }
+  }
+}
+
+/**
+ * Thêm từ vựng vào chủ đề và reload lại dữ liệu chủ đề
+ * @param {string} topicId - ID của chủ đề
+ * @param {string[]} vocabularyIds - Mảng các ID từ vựng cần thêm
+ * @returns {Promise<Object>} - { response, topicDetail } - Response từ API và chi tiết chủ đề đã reload
+ */
+export async function addVocabulariesToTopicAndReload(topicId, vocabularyIds) {
+  try {
+    // Thêm từ vựng vào chủ đề
+    const response = await addVocabulariesToTopic(topicId, vocabularyIds)
+    
+    // Nếu thành công, reload lại chi tiết chủ đề
+    let topicDetail = null
+    if (response?.isSuccess) {
+      try {
+        topicDetail = await fetchFlashcardTopicDetail(topicId)
+      } catch (reloadError) {
+        console.error('Error reloading topic detail after adding vocabularies:', reloadError)
+        // Không throw error, vì việc thêm đã thành công
+      }
+    }
+    
+    return {
+      response,
+      topicDetail,
+    }
+  } catch (error) {
+    console.error('Error in addVocabulariesToTopicAndReload:', error)
+    // Nếu error có response data, trả về nó
+    if (error?.response?.data) {
+      return {
+        response: error.response.data,
+        topicDetail: null,
+      }
+    }
+    // Nếu không, tạo response error format
+    return {
+      response: {
+        isSuccess: false,
+        message: error?.message || 'Không thể thêm từ vựng vào chủ đề',
+        errors: error?.errors || [],
+        statusCode: error?.status || 500,
+      },
+      topicDetail: null,
+    }
+  }
+}
+

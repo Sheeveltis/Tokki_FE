@@ -1,21 +1,19 @@
 'use client'
 
-import React, { useState } from 'react'
-import { View, Text, StyleSheet, Image, ImageBackground } from 'react-native'
-import { useRouter } from 'next/navigation'
+import React from 'react'
+import { View, Text, StyleSheet, Image, Pressable } from 'react-native'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Navbar } from 'components/navbar'
 
-import Background2 from '../../../../assets/background2.png'
 import GameCardIcon from '../../../../assets/icon/icon-mainflow/game-card.svg'
 import BunnyDeveloping from '../../../../assets/bunny/9.png'
-import { BackButton } from '../../../../components/backBtn'
+import { NavigationPill } from 'components/navigation-pill'
 import { MinigameHappy } from './minigame-happy'
 import { MinigameRankingButton } from './minigame-ranking-button'
 import { MinigameBanner } from './minigame-banner'
-import { MatchingCardBanner } from '../matching-card/matching-card-play/components/matching-card-banner'
-import { MinigameCard } from './minigame-card'
-import { MinigamePopupRule } from './minigame-popup-rule'
-import { MinigameTopic } from './minigame-topic'
-import { MinigameLevel } from './minigame-level'
+import { MatchingCardBanner } from '../matching-card/matching-card-play/components/matching-card-play-banner'
+import { MinigameMatchingCard } from './minigame-matching-card'
+import ArrowIcon from '../../../../assets/icon/icon-mainflow/arrow.svg'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -26,41 +24,26 @@ const normalizeImageSource = (src) => {
 }
 
 export function MinigameLayout() {
-  const [showRule, setShowRule] = useState(false)
-  const [showTopic, setShowTopic] = useState(false)
-  const [selectedTopic, setSelectedTopic] = useState(null)
-  const [showLevel, setShowLevel] = useState(false)
-  const [selectedLevel, setSelectedLevel] = useState(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const levelId = searchParams?.get('level') || ''
 
-  const handleConfirmTopic = (topic) => {
-    setSelectedTopic(topic)
-    setShowTopic(false)
-    setShowLevel(true)
-  }
-
-  const handleConfirmLevel = (level) => {
-    setSelectedLevel(level)
-    setShowLevel(false)
-
-    const topicId = selectedTopic?.id || 'life'
-    const topicName = selectedTopic?.titleKo
-    const levelId = level?.id || 'medium'
-
+  const goToMatchingCardRule = () => {
     const query = new URLSearchParams()
-    query.set('topic', topicId)
-    if (topicName) query.set('topicName', topicName)
-    query.set('level', levelId)
-    router.push(`/minigame/matching-card?${query.toString()}`)
+    if (levelId) {
+      query.set('level', levelId)
+    }
+    const url =
+      query.toString().length > 0
+        ? `/minigame/matching-card/matching-card-rule?${query.toString()}`
+        : '/minigame/matching-card/matching-card-rule'
+    router.push(url)
   }
 
   return (
-    <ImageBackground
-      source={normalizeImageSource(Background2)}
-      resizeMode="cover"
-      style={styles.page}
-      imageStyle={styles.backgroundImage}
-    >
+    <View style={styles.page}>
+      <Navbar />
+
       <View style={styles.inner}>
         <View style={styles.sideLeft}>
           <MinigameHappy />
@@ -69,7 +52,14 @@ export function MinigameLayout() {
         <View style={styles.centerCardWrapper}>
           <View style={styles.centerCard}>
             <View style={styles.headerRow}>
-              <BackButton style={styles.backButton} />
+              <NavigationPill
+                label="Quay lại"
+                icon={ArrowIcon}
+                onPress={() => router.back()}
+                style={styles.backPill}
+                textStyle={styles.backPillText}
+                iconStyle={styles.backPillIcon}
+              />
 
               <View style={styles.titleRow}>
                 <Image
@@ -89,14 +79,13 @@ export function MinigameLayout() {
 
             <View style={styles.cardsRow}>
               <View style={styles.cardCol}>
-                <MatchingCardBanner onStart={() => setShowRule(true)} />
+                <MatchingCardBanner onStart={goToMatchingCardRule} />
               </View>
 
               <View style={styles.cardCol}>
-                <MinigameCard
-                  header={
-                    <Text style={styles.soonTitle}>Tính năng đang được phát triển thêm</Text>
-                  }
+                <MinigameMatchingCard
+                  header={<Text style={styles.soonTitle}>Tính năng đang được phát triển thêm</Text>}
+                  onPress={goToMatchingCardRule}
                 >
                   <View style={styles.soonBody}>
                     <Image
@@ -105,7 +94,7 @@ export function MinigameLayout() {
                       resizeMode="contain"
                     />
                   </View>
-                </MinigameCard>
+                </MinigameMatchingCard>
               </View>
             </View>
           </View>
@@ -115,30 +104,7 @@ export function MinigameLayout() {
           <MinigameRankingButton />
         </View>
       </View>
-
-      <MinigamePopupRule
-        visible={showRule}
-        onClose={() => setShowRule(false)}
-        onSelectTopic={() => {
-          setShowRule(false)
-          setShowTopic(true)
-        }}
-      />
-
-      <MinigameTopic
-        visible={showTopic}
-        onClose={() => setShowTopic(false)}
-        onConfirm={handleConfirmTopic}
-        selectedId={selectedTopic?.id}
-      />
-
-      <MinigameLevel
-        visible={showLevel}
-        onClose={() => setShowLevel(false)}
-        onConfirm={handleConfirmLevel}
-        selectedId={selectedLevel?.id}
-      />
-    </ImageBackground>
+    </View>
   )
 }
 
@@ -146,23 +112,21 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     width: '100%',
-    height: '110vh',
+    minHeight: '100vh',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingVertical: 32,
-  },
-  backgroundImage: {
-    opacity: 0.5,
+    paddingBottom: 24,
+    backgroundColor: '#FFD7D0',
   },
   inner: {
     width: '100%',
     maxWidth: 1200,
-    height: '100%',
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'stretch',
     justifyContent: 'space-between',
-    paddingHorizontal: 50,
-    paddingVertical: 32,
+    paddingHorizontal: 40,
+    paddingVertical: 24,
   },
   sideLeft: {
     flex: 0.6,
@@ -178,6 +142,7 @@ const styles = StyleSheet.create({
   centerCardWrapper: {
     flex: 3,
     paddingHorizontal: 16,
+    height: '100%',
   },
   centerCard: {
     backgroundColor: '#F5F0DD',
@@ -188,8 +153,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 6 },
-    height: '100vh',
     minHeight: 520,
+    flex: 1,
     opacity: 0.9,
   },
   headerRow: {
@@ -198,9 +163,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 20,
   },
-  backButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+  backPill: {
+    backgroundColor: '#FFFFFF',
+  },
+  backPillText: {
+    fontWeight: '700',
+  },
+  backPillIcon: {
+    transform: [{ scaleX: -1 }],
   },
   titleRow: {
     flexDirection: 'row',
@@ -247,6 +217,9 @@ const styles = StyleSheet.create({
   soonImage: {
     width: '100%',
     height: '100%',
+  },
+  cardPressable: {
+    width: '100%',
   },
 })
 

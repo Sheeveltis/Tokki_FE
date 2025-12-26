@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderWidth: 3,
     borderColor: '#6DAB1D', // viền xanh lá đậm
-    minWidth: 220,
+    minWidth: 150,
     position: 'relative',
     shadowColor: '#00000010',
     shadowOpacity: 0.1,

@@ -246,4 +246,33 @@ export const register = async ({ email, phoneNumber, password, fullName, dateOfB
   }
 }
 
+/**
+ * Gửi heartbeat để track thời gian học tập
+ * @param {string} userId - ID của người dùng
+ * @param {number} durationInSeconds - Thời gian học tập tính bằng giây (mặc định 300)
+ * @returns {Promise<Object>} Response từ API
+ */
+export const sendHeartbeat = async (userId, durationInSeconds = 300) => {
+  try {
+    if (!userId) {
+      console.warn('sendHeartbeat: userId is required')
+      return { isSuccess: false, message: 'UserId không được để trống' }
+    }
+
+    const response = await apiClient.post(ENDPOINTS.GAMIFICATION.HEARTBEAT, {
+      userId,
+      durationInSeconds,
+    })
+    return response.data
+  } catch (error) {
+    // Không throw error để tránh làm gián đoạn flow chính
+    // Chỉ log để debug
+    console.error('Error sending heartbeat:', error)
+    return {
+      isSuccess: false,
+      message: error.response?.data?.message || error.message || 'Không thể gửi heartbeat',
+    }
+  }
+}
+
 

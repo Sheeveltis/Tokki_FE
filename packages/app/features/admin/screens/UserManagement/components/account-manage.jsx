@@ -182,12 +182,18 @@ export default function AccountManage({ mode = 'all', initialData = null }) {
           <ButtonV2
             title="Quay lại danh sách"
             color="mint"
-            onPress={() => setShowDetail(false)}
+            onPress={() => {
+              setShowDetail(false)
+              loadUsers({ page: pageNumber, size: pageSize, q: search })
+            }}
             style={{ minWidth: 140, paddingVertical: 10 }}
             textStyle={{ fontSize: 14 }}
           />
         </Space>
-        <AccountDetails userId={selectedUserId} />
+        <AccountDetails
+          userId={selectedUserId}
+          onAfterChange={() => loadUsers({ page: pageNumber, size: pageSize, q: search })}
+        />
       </div>
     )
   }

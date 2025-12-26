@@ -1,11 +1,11 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
-import { MatchingCardLayout } from './components/matching-card-layout.web'
+import { MatchingCardLayout } from './components/matching-card-play-layout.web'
 
-export function MatchingCardScreen({ topicId = 'life', topicName, levelId = 'medium', onBack }) {
+export function MatchingCardScreen({ topicId, topicName, levelId = 'medium', quantity, onBack }) {
   return (
     <View style={styles.container}>
-      <MatchingCardLayout topicId={topicId} topicName={topicName} levelId={levelId} onBack={onBack} />
+      <MatchingCardLayout topicId={topicId} topicName={topicName} levelId={levelId} quantity={quantity} onBack={onBack} />
     </View>
   )
 }

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
 import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
@@ -28,6 +28,7 @@ export function FlashcardStudyMain({
   onBackPress,
   onLearnPress,
   onTestPress,
+  onFavoritesPress,
   onFlip,
   onToggleFavorite,
   onNext,
@@ -39,7 +40,46 @@ export function FlashcardStudyMain({
   loading,
   error,
   onRetry,
+  isFavoritesMode = false,
 }) {
+  const audioRef = useRef(null)
+
+  // Hàm phát âm thanh từ audioUrl
+  const handlePlaySound = () => {
+    if (!current?.audioUrl) {
+      return
+    }
+
+    // Dừng âm thanh cũ nếu đang phát
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+    }
+
+    // Tạo audio element mới và phát
+    const audio = new Audio(current.audioUrl)
+    audioRef.current = audio
+    
+    audio.play().catch((error) => {
+      console.error('Error playing audio:', error)
+    })
+
+    // Cleanup khi audio kết thúc
+    audio.addEventListener('ended', () => {
+      audioRef.current = null
+    })
+  }
+
+  // Cleanup audio khi component unmount hoặc current thay đổi
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [current])
+
   // Xử lý phím bàn phím: Space để flip, mũi tên để chuyển card
   useEffect(() => {
     if (Platform.OS !== 'web') return
@@ -195,6 +235,16 @@ export function FlashcardStudyMain({
           onPress={onBackPress}
           textStyle={{ fontWeight: '700' }}
         />
+        {onFavoritesPress && (
+          <Pressable style={styles.favoritesButton} onPress={onFavoritesPress}>
+            <Image
+              source={normalizeImageSource(StarIcon)}
+              style={styles.favoritesIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.favoritesButtonText}>Từ vựng yêu thích</Text>
+          </Pressable>
+        )}
       </View>
       <View>
         <Text style={styles.title}>{title}</Text>
@@ -231,21 +281,11 @@ export function FlashcardStudyMain({
           starIcon={normalizeImageSource(StarIcon)}
           isFavorite={isFavorite}
           onToggleFavorite={onToggleFavorite}
+          onPlaySound={current?.audioUrl ? handlePlaySound : undefined}
         />
       </View>
 
-      {/* Mark as Learned Button */}
-      <View style={styles.learnedButtonContainer}>
-        {isLearned ? (
-          <Pressable style={styles.learnedButton} onPress={onMarkAsNeedReview}>
-            <Text style={styles.learnedButtonText}>Cần ôn lại</Text>
-          </Pressable>
-        ) : (
-          <Pressable style={styles.learnedButton} onPress={onMarkAsLearned}>
-            <Text style={styles.learnedButtonText}>Đánh dấu đã học</Text>
-          </Pressable>
-        )}
-      </View>
+      {/* Mark as Learned Button - Đã ẩn */}
 
       {/* Pagination */}
       <View style={styles.pagination}>
@@ -257,7 +297,7 @@ export function FlashcardStudyMain({
           />
         </Pressable>
         <Text style={styles.pageText}>
-          {currentIndex + 1} / {unlearnedCount} (Tổng: {total})
+          {currentIndex + 1} / {unlearnedCount}
         </Text>
         <Pressable style={styles.navBtn} onPress={onNext}>
           <Image 
@@ -286,6 +326,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
+  },
+  favoritesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#F1BE4B',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+    }),
+  },
+  favoritesIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#1F1F1F',
+  },
+  favoritesButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
   },
   title: {
     ...studyStyles.pageTitle,

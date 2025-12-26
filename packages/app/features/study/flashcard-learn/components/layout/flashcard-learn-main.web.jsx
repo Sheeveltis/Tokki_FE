@@ -47,6 +47,43 @@ export function FlashcardLearnMain({
 }) {
   const slideAnim = useRef(new Animated.Value(0)).current
   const opacityAnim = useRef(new Animated.Value(1)).current
+  const audioRef = useRef(null)
+
+  // Hàm phát âm thanh từ audioUrl
+  const handlePlaySound = () => {
+    if (!current?.audioUrl) {
+      return
+    }
+
+    // Dừng âm thanh cũ nếu đang phát
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+    }
+
+    // Tạo audio element mới và phát
+    const audio = new Audio(current.audioUrl)
+    audioRef.current = audio
+    
+    audio.play().catch((error) => {
+      console.error('Error playing audio:', error)
+    })
+
+    // Cleanup khi audio kết thúc
+    audio.addEventListener('ended', () => {
+      audioRef.current = null
+    })
+  }
+
+  // Cleanup audio khi component unmount hoặc current thay đổi
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [current])
 
   useEffect(() => {
     if (slideDirection) {
@@ -252,6 +289,7 @@ export function FlashcardLearnMain({
                 starIcon={normalizeImageSource(StarIcon)}
                 isFavorite={isFavorite}
                 onToggleFavorite={onToggleFavorite}
+                onPlaySound={current?.audioUrl ? handlePlaySound : undefined}
               />
             </Animated.View>
           </View>
@@ -272,6 +310,7 @@ export function FlashcardLearnMain({
               starIcon={normalizeImageSource(StarIcon)}
               isFavorite={isFavorite}
               onToggleFavorite={onToggleFavorite}
+              onPlaySound={current?.audioUrl ? handlePlaySound : undefined}
             />
           </View>
         )}

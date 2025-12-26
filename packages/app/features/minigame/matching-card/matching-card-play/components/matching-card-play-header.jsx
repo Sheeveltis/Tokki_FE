@@ -155,12 +155,12 @@ const styles = StyleSheet.create({
     left: 100,
   },
   label: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '800',
     color: '#1C1C1C',
   },
   topicText: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '800',
     color: '#1C1C1C',
   },

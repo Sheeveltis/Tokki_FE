@@ -8,6 +8,9 @@ import { showAdminSuccess } from '../../../../../components/HelperAdmin'
 import { BasicInfo } from './basic-info'
 import { SecurityInfo } from './security-info'
 import { UserAvatarCard } from './user-avt'
+import { UserExp } from './user-exp'
+import { UserStreak } from './user-streak'
+import { UserTitle } from './user-title'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -181,6 +184,27 @@ export function UserInformation() {
         </View>
       </View>
 
+      <View style={styles.expStreakRow}>
+        <View style={styles.leftColumn}>
+          <View style={styles.expWrap}>
+            <UserExp totalXP={userData.totalXP || 0} level={userData.level || 1} />
+          </View>
+          <View style={styles.titleWrap}>
+            <UserTitle 
+              title={userData.currentTitle || null}
+              icon={userData.titleIcon || '🏆'}
+              description={userData.titleDescription || ''}
+            />
+          </View>
+        </View>
+        <View style={styles.streakWrap}>
+          <UserStreak 
+            currentStreak={userData.currentStreak || 0} 
+            maxStreak={userData.maxStreak || 0} 
+          />
+        </View>
+      </View>
+
       <View style={styles.securityWrap}>
         <SecurityInfo
           initialData={securityInfoData}
@@ -238,6 +262,25 @@ const styles = StyleSheet.create({
   avatarWrap: {
     width: 220,
     minHeight: 200,
+  },
+  expStreakRow: {
+    flexDirection: 'row',
+    gap: 16,
+    width: '100%',
+    alignItems: 'stretch',
+  },
+  leftColumn: {
+    flex: 1,
+    gap: 16,
+  },
+  expWrap: {
+    width: '100%',
+  },
+  titleWrap: {
+    width: '100%',
+  },
+  streakWrap: {
+    flex: 1,
   },
   securityWrap: {
     width: '100%',

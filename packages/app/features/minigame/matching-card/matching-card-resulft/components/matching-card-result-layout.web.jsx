@@ -3,7 +3,7 @@ import { Image, StyleSheet, View } from 'react-native'
 import { normalizeImageSource } from '../../../../study/api'
 
 import CarrotGround from '../../../../../../assets/carrot-ground.png'
-import { MatchingCardHeader } from '../../matching-card-play/components/matching-card-header'
+import { MatchingCardHeader } from '../../matching-card-play/components/matching-card-play-header'
 import MatchingCardResultContent from './matching-card-result-content'
 
 /**

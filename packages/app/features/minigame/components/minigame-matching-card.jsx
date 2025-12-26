@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
-import { Image, StyleSheet, View, Pressable, Platform } from 'react-native'
+import React from 'react'
+import { Image, StyleSheet, View, Text, Pressable, Platform } from 'react-native'
 
 import BackgroundImage from '../../../../assets/background3.png'
 import CarrotImage from '../../../../assets/carrot.png'
+import BunnyDeveloping from '../../../../assets/bunny/9.png'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -12,28 +13,45 @@ const normalizeImageSource = (src) => {
   return src
 }
 
-// Generic minigame card container with background + rounded header box.
-// Header content & body content được truyền từ component cha.
-export function MinigameCard({ header, children }) {
-  return (
+/**
+ * Thẻ minigame Matching Card với background cà rốt.
+ * Cho phép truyền header và children để tái sử dụng.
+ * @param {{ header?: React.ReactNode, children?: React.ReactNode, onPress?: () => void }} props
+ */
+export function MinigameMatchingCard({ header, children, onPress }) {
+  const content = (
     <View style={styles.wrapper}>
-      {/* Background pattern */}
       <Image source={normalizeImageSource(BackgroundImage)} style={styles.background} resizeMode="cover" />
 
       <View style={styles.content}>
-        <View style={styles.headerBox}>{header}</View>
-        <View style={styles.body}>{children}</View>
+        <View style={styles.headerBox}>{header ?? <Text style={styles.title}>Tính năng đang được phát triển thêm</Text>}</View>
 
-        {/* Carrots decorations (always in card container) */}
+        <View style={styles.body}>{children ?? renderDefaultBody()}</View>
+
         <Image source={normalizeImageSource(CarrotImage)} style={[styles.carrot, styles.carrotTopRight]} />
         <Image source={normalizeImageSource(CarrotImage)} style={[styles.carrot, styles.carrotMidLeft]} />
         <Image source={normalizeImageSource(CarrotImage)} style={[styles.carrot, styles.carrotBottomRight]} />
+
       </View>
     </View>
   )
+
+  if (onPress) {
+    return (
+      <Pressable onPress={onPress} style={styles.pressable}>
+        {content}
+      </Pressable>
+    )
+  }
+
+  return content
 }
 
 const styles = StyleSheet.create({
+  pressable: {
+    width: '100%',
+    ...(Platform.OS === 'web' && { cursor: 'pointer' }),
+  },
   wrapper: {
     width: '100%',
     maxWidth: 640,
@@ -63,8 +81,23 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
   },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+  },
   body: {
     marginTop: 8,
+  },
+  imageContainer: {
+    height: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
   },
   carrot: {
     position: 'absolute',
@@ -85,4 +118,11 @@ const styles = StyleSheet.create({
     right: 80,
   },
 })
+
+const renderDefaultBody = () => (
+  <View style={styles.imageContainer}>
+    <Image source={normalizeImageSource(BunnyDeveloping)} style={styles.image} resizeMode="contain" />
+  </View>
+)
+
 
