@@ -187,7 +187,7 @@ export function UserInformation() {
       <View style={styles.expStreakRow}>
         <View style={styles.leftColumn}>
           <View style={styles.expWrap}>
-            <UserExp currentExp={userData.exp || 0} maxExp={userData.maxExp || 100} />
+            <UserExp totalXP={userData.totalXP || 0} level={userData.level || 1} />
           </View>
           <View style={styles.titleWrap}>
             <UserTitle 

@@ -4,13 +4,19 @@ import { Animated, StyleSheet, Text, View } from 'react-native'
 /**
  * Component hiển thị thanh kinh nghiệm (EXP) của người dùng
  * @param {Object} props
- * @param {number} props.currentExp - Kinh nghiệm hiện tại
- * @param {number} props.maxExp - Kinh nghiệm tối đa (mặc định 100)
+ * @param {number} props.totalXP - Tổng kinh nghiệm hiện tại (từ API)
+ * @param {number} props.level - Cấp độ hiện tại (từ API)
  * @param {string} props.label - Label hiển thị (mặc định "Kinh nghiệm")
  */
-export function UserExp({ currentExp = 0, maxExp = 100, label = 'Kinh nghiệm' }) {
+export function UserExp({ totalXP = 0, level = 1, label = 'Kinh nghiệm' }) {
+  // Tính maxExp dựa trên level: mỗi level cần 100 XP để lên cấp
+  // Level 1: 0-100, Level 2: 100-200, Level 3: 200-300, ...
+  const maxExp = level * 100
+  // Tính currentExp trong level hiện tại (XP còn lại trong level)
+  const currentExp = totalXP % 100
+  
   const progressAnim = useRef(new Animated.Value(0)).current
-  const percentage = Math.min((currentExp / maxExp) * 100, 100)
+  const percentage = Math.min((currentExp / 100) * 100, 100)
 
   useEffect(() => {
     Animated.timing(progressAnim, {
@@ -29,9 +35,15 @@ export function UserExp({ currentExp = 0, maxExp = 100, label = 'Kinh nghiệm' 
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.label}>{label}</Text>
-        <Text style={styles.expText}>
-          {currentExp} / {maxExp}
-        </Text>
+        <View style={styles.headerRight}>
+          <View style={styles.levelBadge}>
+            <Text style={styles.levelLabel}>Cấp</Text>
+            <Text style={styles.levelValue}>{level}</Text>
+          </View>
+          <Text style={styles.expText}>
+            {currentExp} / 100
+          </Text>
+        </View>
       </View>
 
       <View style={styles.progressContainer}>
@@ -41,6 +53,7 @@ export function UserExp({ currentExp = 0, maxExp = 100, label = 'Kinh nghiệm' 
       </View>
 
       <View style={styles.footer}>
+        <Text style={styles.totalXPText}>Tổng: {totalXP} XP</Text>
         <Text style={styles.percentageText}>{Math.round(percentage)}%</Text>
       </View>
     </View>
@@ -74,6 +87,34 @@ const styles = StyleSheet.create({
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  levelBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF4E6',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFDCAA',
+    gap: 4,
+  },
+  levelLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#8B6914',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  levelValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#D97706',
+    fontFamily: 'Epilogue, sans-serif',
+  },
   expText: {
     fontSize: 14,
     fontWeight: '600',
@@ -102,7 +143,15 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
   },
   footer: {
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  totalXPText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#8F8F8F',
+    fontFamily: 'Epilogue, sans-serif',
   },
   percentageText: {
     fontSize: 12,

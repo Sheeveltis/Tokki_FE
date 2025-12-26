@@ -82,5 +82,8 @@ export const ENDPOINTS = {
     },
     SPACED_REPETITION: {
       SUBMIT: '/spaced-repetition/submit',  // POST: Submit kết quả học tập
+    },
+    GAMIFICATION: {
+      HEARTBEAT: '/Gamification/heartbeat',  // POST: Heartbeat để track thời gian học tập
     }
   }
