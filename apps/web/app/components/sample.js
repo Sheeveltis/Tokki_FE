@@ -12,7 +12,7 @@ import { Button } from 'components/button'
 import { ButtonV2 } from 'components/buttonV2'
 import { LoginRequest } from 'components/loginRequest'
 import { NotiContinueLesson } from 'components/notiContinueLesson'
-import { Report } from 'components/report'
+// import { Report } from 'components/report'
 import CardType3Image from '../../../../packages/assets/bunny/3.png'
 import CardType4Image from '../../../../packages/assets/bunny/3.png'
 import { Navbar } from 'components/navbar'
@@ -31,7 +31,7 @@ import { Loading, LoadingWithContainer } from 'components/Loading'
 import { FlipCard } from 'components/FlipCard'
 import { RoadmapTestQuestion } from '@tokki/app/features/roadmap/roadmap-test/components/roadmap-test-question'
 import { RoadmapTestDashboard } from '@tokki/app/features/roadmap/roadmap-test/components/roadmap-test-dashboard'
-import { MatchingCardBanner } from '@tokki/app/features/minigame/matching-card/matching-card-play/components/matching-card-banner'
+// import { MatchingCardBanner } from '@tokki/app/features/minigame/matching-card/matching-card-play/components/matching-card-banner'
 import colors from '../../../../packages/app/color.js'
 
 const demoCardsType1 = [
@@ -533,7 +533,7 @@ const ReportSection = () => (
       alignItems: 'center',
     }}
   >
-    <View
+    {/* <View
       style={{
         maxWidth: 720,
         width: '100%',
@@ -541,7 +541,7 @@ const ReportSection = () => (
       }}
     >
       <Report />
-    </View>
+    </View> */}
   </View>
 )
 
@@ -1086,16 +1086,16 @@ const MinigameCardHeader = () => (
   </View>
 )
 
-const MinigameCardSection = () => (
-  <View
-    style={{
-      width: '100%',
-      alignItems: 'center',
-    }}
-  >
-    <MatchingCardBanner />
-  </View>
-)
+// const MinigameCardSection = () => (
+//   <View
+//     style={{
+//       width: '100%',
+//       alignItems: 'center',
+//     }}
+//   >
+//     <MatchingCardBanner />
+//   </View>
+// )
 
 export default function ComponentsShowcasePage() {
   return (
@@ -1149,7 +1149,7 @@ export default function ComponentsShowcasePage() {
         <RoadmapTestDashboardHeader />
         <RoadmapTestDashboardSection />
         <MinigameCardHeader />
-        <MinigameCardSection />
+        {/* <MinigameCardSection /> */}
         <Navbar />
         <Footer />
       </View>
