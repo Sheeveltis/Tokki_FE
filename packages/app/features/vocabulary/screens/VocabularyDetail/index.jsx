@@ -1,25 +1,11 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Space, Typography, Spin, Alert } from 'antd'
+import { Space, Typography, Spin, Alert, Modal } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
-import { fetchUsers, fetchLessons, fetchArticles, fetchSystemLogs } from 'app/features/admin/api'
-import { fetchVocabularies, fetchFlashcardTopics, updateVocabulary } from '../../api'
-import { UserManagement } from 'app/features/admin/screens/UserManagement'
-import { LessonManagement } from 'app/features/admin/screens/LessonManagement'
-import { VocabularyManagement } from '../VocabularyManagement'
-import { FlashcardTopicManagement } from '../FlashcardTopicManagement'
-import { BlogManagement } from 'app/features/blog/blog-management'
-import { ChatSupport } from '../../../live-chat/bubble-chat'
-import { AutoEmail } from 'app/features/admin/screens/AutoEmail'
-import { FeedbackInbox } from 'app/features/admin/screens/FeedbackInbox'
-import { MembershipPackage } from 'app/features/admin/screens/MembershipPackage'
-import { PaymentManagement } from 'app/features/admin/screens/PaymentManagement'
-import { RevenueReport } from 'app/features/admin/screens/RevenueReport'
-import { SystemLog } from 'app/features/admin/screens/SystemLog'
-import { Settings } from 'app/features/admin/screens/Settings'
+import { updateVocabulary, fetchVocabularyDetail, uploadVocabularyImageToCloudinary, deleteVocabulary } from '../../api'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import VocabularyEditModal from './components/vocabulary-edit-modal'
 import VocabularyInfoCard from './components/vocabulary-info-card'
@@ -32,71 +18,89 @@ export function VocabularyDetailScreen() {
   const searchParams = useSearchParams()
   const vocabId = params?.id
   const tabParam = searchParams?.get('tab')
-  const defaultTab =
-    tabParam === 'vocab'
-      ? 'vocabulary-words'
-      : tabParam === 'vocab-topics'
-        ? 'vocabulary-topics'
-        : tabParam || 'vocabulary-words'
+  const defaultTab = tabParam || 'vocabulary-words'
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [initialData, setInitialData] = useState({
-    users: [],
-    lessons: [],
-    vocab: [],
-    vocabTopics: [],
-    articles: [],
-    logs: [],
-  })
   const [detailVocab, setDetailVocab] = useState(null)
   const [editOpen, setEditOpen] = useState(false)
   const [editLoading, setEditLoading] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
+  // Load chi tiết từ vựng khi có vocabId
   useEffect(() => {
+    if (!vocabId) {
+      setError('Không tìm thấy ID từ vựng')
+      setLoading(false)
+      return
+    }
+
     let mounted = true
-    const load = async () => {
+    const loadDetail = async () => {
       try {
-        const [users, lessons, vocabResult, vocabTopics, articles, logs] = await Promise.all([
-          fetchUsers(),
-          fetchLessons(),
-          fetchVocabularies({ pageNumber: 1, pageSize: 1000 }), // Lấy nhiều items để tìm kiếm
-          fetchFlashcardTopics(),
-          fetchArticles(),
-          fetchSystemLogs(),
-        ])
+        setLoading(true)
+        setError('')
+        const detail = await fetchVocabularyDetail(vocabId)
         if (mounted) {
-          // fetchVocabularies trả về object { items, ... }, cần lấy items
-          const vocab = Array.isArray(vocabResult?.items) ? vocabResult.items : []
-          setInitialData({ users: users || [], lessons, vocab, vocabTopics, articles, logs })
+          setDetailVocab(detail)
         }
       } catch (err) {
-        if (mounted) setError(err?.message || 'Không thể tải dữ liệu từ vựng.')
+        if (mounted) {
+          setError(err?.message || 'Không thể tải chi tiết từ vựng.')
+        }
       } finally {
-        if (mounted) setLoading(false)
+        if (mounted) {
+          setLoading(false)
+        }
       }
     }
-    load()
+
+    loadDetail()
     return () => {
       mounted = false
     }
-  }, [])
-
-  const vocabItem = useMemo(() => {
-    const vocabList = Array.isArray(initialData.vocab) ? initialData.vocab : []
-    return vocabList.find((v) => v.vocabularyId === vocabId || v.id === vocabId)
-  }, [initialData.vocab, vocabId])
-
-  useEffect(() => {
-    if (vocabItem) {
-      setDetailVocab(vocabItem)
-    }
-  }, [vocabItem])
+  }, [vocabId])
 
   const handleNavigate = (key) => {
     if (key) {
       router.push(`/admin?tab=${key}`)
     }
+  }
+
+  const handleDelete = () => {
+    const vocabularyId = detailVocab?.vocabularyId || detailVocab?.id
+    if (!vocabularyId) {
+      showAdminError('Không tìm thấy ID từ vựng')
+      return
+    }
+
+    Modal.confirm({
+      title: 'Xác nhận xóa từ vựng',
+      content: `Bạn chắc chắn muốn xóa từ vựng "${detailVocab?.text || vocabularyId}"?`,
+      okText: 'Xóa',
+      cancelText: 'Hủy',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          setDeleteLoading(true)
+          await deleteVocabulary(vocabularyId)
+          showAdminSuccess('Đã xóa từ vựng thành công')
+          router.push('/admin?tab=vocabulary-words')
+        } catch (err) {
+          // err có thể là response object từ API hoặc error object
+          if (err?.isSuccess === false || err?.errors) {
+            // Là response từ API với lỗi
+            const errorMessage = err?.message || err?.errors?.[0]?.description || 'Xóa từ vựng thất bại'
+            showAdminError(errorMessage, err?.statusCode)
+          } else {
+            // Là error khác
+            showAdminError(err?.message || 'Xóa từ vựng thất bại')
+          }
+        } finally {
+          setDeleteLoading(false)
+        }
+      },
+    })
   }
 
   const handleUpdate = async (values) => {
@@ -108,30 +112,46 @@ export function VocabularyDetailScreen() {
         return
       }
 
+      // Đảm bảo definition không rỗng
+      if (!values?.definition) {
+        showAdminError('Vui lòng nhập định nghĩa')
+        return
+      }
+
+      // Nếu có file ảnh mới, upload lên Cloudinary trước
+      let imgURL = values?.imgURL || null
+      if (values?.imageFile) {
+        try {
+          imgURL = await uploadVocabularyImageToCloudinary(values.imageFile)
+          if (!imgURL) {
+            showAdminError('Không thể upload ảnh lên Cloudinary')
+            return
+          }
+        } catch (err) {
+          showAdminError(err?.message || 'Không thể upload ảnh lên Cloudinary')
+          return
+        }
+      }
+
       // Chỉ gửi các field mà API yêu cầu
       const payload = {
         vocabularyId,
         text: values?.text || '',
         pronunciation: values?.pronunciation || '',
         definition: values?.definition || '',
-        imgURL: values?.imgURL || null,
+        imgURL: imgURL,
       }
 
-      // Đảm bảo definition không rỗng
-      if (!payload.definition) {
-        showAdminError('Vui lòng nhập định nghĩa')
-        return
-      }
-
-      const updated = await updateVocabulary(payload)
+      await updateVocabulary(payload)
       
-      // Cập nhật state với dữ liệu mới
-      setDetailVocab({
-        ...detailVocab,
-        ...updated,
-        vocabularyId: updated?.vocabularyId || vocabularyId,
-        id: updated?.vocabularyId || vocabularyId,
-      })
+      // Reload lại chi tiết từ vựng từ API để hiển thị dữ liệu mới nhất
+      try {
+        const refreshedDetail = await fetchVocabularyDetail(vocabularyId)
+        setDetailVocab(refreshedDetail)
+      } catch (reloadError) {
+        console.error('Error reloading vocabulary detail:', reloadError)
+        // Vẫn hiển thị success message dù reload fail
+      }
       
       showAdminSuccess('Đã cập nhật từ vựng thành công')
       setEditOpen(false)
@@ -196,26 +216,25 @@ export function VocabularyDetailScreen() {
             </div>
             <Space>
               <ButtonV2
-                title="Chỉnh sửa"
-                color="poppy"
-                onPress={() => setEditOpen(true)}
-                style={{ minWidth: 110, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
-              <ButtonV2
-                title="Xóa"
-                color="charcoal"
-                onPress={() => {
-                  // TODO: hook up delete API/confirm
-                }}
-                style={{ minWidth: 90, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
-              <ButtonV2
                 title="Quay lại"
                 color="mint"
                 onPress={() => router.push('/admin?tab=vocabulary-words')}
                 style={{ minWidth: 100, paddingVertical: 10 }}
+                textStyle={{ fontSize: 14 }}
+              />
+              <ButtonV2
+                title={deleteLoading ? 'Đang xóa...' : 'Xóa'}
+                color="charcoal"
+                onPress={handleDelete}
+                disabled={deleteLoading}
+                style={{ minWidth: 90, paddingVertical: 10 }}
+                textStyle={{ fontSize: 14 }}
+              />
+              <ButtonV2
+                title="Chỉnh sửa"
+                color="poppy"
+                onPress={() => setEditOpen(true)}
+                style={{ minWidth: 110, paddingVertical: 10 }}
                 textStyle={{ fontSize: 14 }}
               />
             </Space>
@@ -235,20 +254,7 @@ export function VocabularyDetailScreen() {
   })()
 
   const screens = {
-    'users-all': <UserManagement mode="all" initialData={initialData.users} />,
-    'users-admin': <UserManagement mode="admin" initialData={initialData.users} />,
-    lessons: <LessonManagement initialData={initialData.lessons} />,
     'vocabulary-words': detailContent,
-    'vocabulary-topics': <FlashcardTopicManagement initialData={initialData.vocabTopics} />,
-    blog: <BlogManagement initialData={initialData.articles} />,
-    'chat-support': <ChatSupport initialData={initialData.users} />,
-    'auto-email': <AutoEmail />,
-    'feedback-inbox': <FeedbackInbox />,
-    'membership-package': <MembershipPackage />,
-    'payment-management': <PaymentManagement />,
-    'revenue-report': <RevenueReport />,
-    'system-log': <SystemLog initialData={initialData.logs} />,
-    settings: <Settings />,
   }
 
   return (
