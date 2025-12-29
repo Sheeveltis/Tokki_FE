@@ -19,6 +19,7 @@ export function FlashcardStudyScreen({
   onBackPress,
   onLearnPress,
   onTestPress,
+  onQuizPress,
   onFavoritesPress,
   topicId,
   isFavoritesMode = false,
@@ -66,6 +67,7 @@ export function FlashcardStudyScreen({
         onBackPress={onBackPress}
         onLearnPress={onLearnPress}
         onTestPress={onTestPress}
+        onQuizPress={onQuizPress}
         onFavoritesPress={onFavoritesPress}
         onFlip={setIsFlipped}
         onToggleFavorite={toggleFavorite}
