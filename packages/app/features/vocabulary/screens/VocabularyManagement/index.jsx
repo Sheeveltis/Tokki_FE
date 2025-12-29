@@ -24,7 +24,7 @@ export function VocabularyManagement({ initialData = null }) {
   const [loading, setLoading] = useState(!initialData)
   const [drawerItem, setDrawerItem] = useState(null)
   const [search, setSearch] = useState('')
-  const [status, setStatus] = useState(undefined)
+  const [status, setStatus] = useState(1)
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 20,
