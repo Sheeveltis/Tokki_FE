@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { Card, Descriptions, Space, Spin, Typography, Tag, message, Button, Input, Select } from 'antd'
+import { Card, Descriptions, Space, Spin, Typography, Tag, message, Input, Select } from 'antd'
 import { fetchUserDetail, updateUserProfile } from '../../UserDetail/api/api'
 import PopupConfirm from './popup-confirm'
 import DeleteUserConfirm from '../../UserDetail/modal/DeleteUserConfirm'
 import { showAdminSuccess, showAdminError } from 'components/HelperAdmin'
+import { ButtonV2 } from 'components/buttonV2.jsx'
 
 const { Title, Text } = Typography
 
@@ -173,13 +174,21 @@ export default function AccountDetails({ userId, onAfterChange }) {
           </div>
           <Space>
             {Number(user.status) !== 0 && (
-              <Button danger onClick={handleDisable}>
-                Vô hiệu hóa
-              </Button>
+              <ButtonV2
+                title="Vô hiệu hóa"
+                color="charcoal"
+                onPress={handleDisable}
+                style={{ minWidth: 140, paddingVertical: 10 }}
+                textStyle={{ fontSize: 14 }}
+              />
             )}
-            <Button type="primary" onClick={handleUpdateClick}>
-              {editing ? 'Xác nhận cập nhật' : 'Cập nhật'}
-            </Button>
+            <ButtonV2
+              title={editing ? 'Xác nhận cập nhật' : 'Cập nhật'}
+              color="poppy"
+              onPress={handleUpdateClick}
+              style={{ minWidth: 140, paddingVertical: 10 }}
+              textStyle={{ fontSize: 14 }}
+            />
           </Space>
         </Space>
 
