@@ -20,16 +20,29 @@ export function TopicVocabSection({
   removing,
   dataSource,
   selectStyle,
+  onQuickAdd,
 }) {
   const router = useRouter()
   const { Text } = Typography
   const [removeMode, setRemoveMode] = useState(false)
+  const [pageSize, setPageSize] = useState(10)
+  const [currentPage, setCurrentPage] = useState(1)
 
   const selectedOptions = useMemo(() => {
     if (!Array.isArray(selecting) || !Array.isArray(availableOptions)) return []
     const valueSet = new Set(selecting)
     return availableOptions.filter((opt) => valueSet.has(opt.value))
   }, [selecting, availableOptions])
+
+  // Client-side pagination cho danh sách từ vựng
+  const paginatedDataSource = useMemo(() => {
+    if (!Array.isArray(dataSource)) return []
+    const startIndex = (currentPage - 1) * pageSize
+    const endIndex = startIndex + pageSize
+    return dataSource.slice(startIndex, endIndex)
+  }, [dataSource, currentPage, pageSize])
+
+  const totalItems = Array.isArray(dataSource) ? dataSource.length : 0
 
   const columns = [
     {
@@ -90,14 +103,27 @@ export function TopicVocabSection({
               Đã chọn <Text strong>{selecting?.length || 0}</Text> từ vựng để thêm vào chủ đề
             </Text>
           </div>
-          <ButtonV2
-            title={adding ? 'Đang thêm...' : 'Thêm vào chủ đề'}
-            onPress={onAdd}
-            disabled={!selecting?.length || adding}
-            color="mint"
-            style={{ marginLeft: 12, minWidth: 180, paddingVertical: 10 }}
-            textStyle={{ fontSize: 14 }}
-          />
+          <Space>
+           
+            {onQuickAdd && (
+              <ButtonV2
+                title="Tạo từ vựng nhanh"
+                onPress={onQuickAdd}
+                color="#F1BE4B"
+                style={{ minWidth: 160, paddingVertical: 10 }}
+                textStyle={{ fontSize: 14 }}
+              />
+            )}
+
+            <ButtonV2
+              title={adding ? 'Đang thêm...' : 'Thêm vào chủ đề'}
+              onPress={onAdd}
+              disabled={!selecting?.length || adding}
+              color="mint"
+              style={{ minWidth: 180, paddingVertical: 10 }}
+              textStyle={{ fontSize: 14 }}
+            />
+          </Space>
         </Space>
 
         {selectedOptions.length > 0 && (
@@ -137,7 +163,12 @@ export function TopicVocabSection({
       </Space>
       <Space style={{ width: '100%', marginBottom: 8, justifyContent: 'space-between' }}>
         <Space direction="vertical" size={2}>
-          <Text strong>Từ vựng hiện có trong chủ đề</Text>
+          <Space align="center">
+            <Text strong>Từ vựng hiện có trong chủ đề</Text>
+            <Text type="secondary" style={{ fontSize: 13 }}>
+              (Tổng: <Text strong>{totalItems}</Text> từ vựng)
+            </Text>
+          </Space>
           {removeMode && (
             <Text type="secondary" style={{ fontSize: 12 }}>
               Đang ở chế độ chọn để gỡ. Tick vào các từ vựng muốn gỡ rồi bấm "Gỡ từ vựng đã chọn".
@@ -145,6 +176,24 @@ export function TopicVocabSection({
           )}
         </Space>
         <Space>
+          <Space align="center">
+            <Text type="secondary" style={{ fontSize: 13 }}>Hiển thị:</Text>
+            <Select
+              value={pageSize}
+              onChange={(value) => {
+                setPageSize(value)
+                setCurrentPage(1) // Reset về trang đầu khi đổi pageSize
+              }}
+              style={{ width: 100 }}
+              options={[
+                { label: '5', value: 5 },
+                { label: '10', value: 10 },
+                { label: '20', value: 20 },
+                { label: '50', value: 50 },
+                { label: '100', value: 100 },
+              ]}
+            />
+          </Space>
           <ButtonV2
             title={removeMode ? 'Hủy chọn xóa' : 'Chọn từ để gỡ'}
             onPress={() => {
@@ -189,8 +238,16 @@ export function TopicVocabSection({
             : undefined
         }
         columns={columns}
-        dataSource={dataSource}
-        pagination={{ pageSize: 5 }}
+        dataSource={paginatedDataSource}
+        pagination={{
+          current: currentPage,
+          pageSize: pageSize,
+          total: totalItems,
+          showSizeChanger: false, // Đã có Select riêng ở trên
+          showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} từ vựng`,
+          onChange: (page) => setCurrentPage(page),
+          pageSizeOptions: ['5', '10', '20', '50', '100'],
+        }}
         locale={{ emptyText: 'Chưa có từ vựng trong chủ đề' }}
         rowKey={(record) => record.vocabularyId || record.id}
       />
