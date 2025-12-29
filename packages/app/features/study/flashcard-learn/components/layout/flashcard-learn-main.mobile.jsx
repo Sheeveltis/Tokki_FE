@@ -125,6 +125,7 @@ export function FlashcardLearnMain({
         <FlipCard
           word={current.word || ''}
           meaning={current.meaning || ''}
+          image={current.imageUrl || undefined}
           width="100%"
           height={500}
           frontColor="#79964E"
