@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Modal, Form, Input, Upload, message } from 'antd'
+import { Modal, Form, Input, Upload, message, Select } from 'antd'
 
 /**
  * Modal chỉnh sửa từ vựng
@@ -19,6 +19,7 @@ export function VocabularyEditModal({ open, loading, initialValues = {}, onCance
         pronunciation: initialValues?.pronunciation || '',
         definition: initialValues?.definition || '',
         imgURL: initialValues?.imgURL || '',
+        status: initialValues?.status !== undefined ? initialValues.status : 1,
       })
       setPreviewUrl(initialValues?.imgURL || '')
       setSelectedFile(null)
@@ -131,6 +132,13 @@ export function VocabularyEditModal({ open, loading, initialValues = {}, onCance
               </div>
             ) : null}
           </div>
+        </Form.Item>
+        <Form.Item label="Trạng thái" name="status" rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}>
+          <Select size="large" style={{ fontSize: 16 }}>
+            <Select.Option value={0}>Bản nháp</Select.Option>
+            <Select.Option value={1}>Hoạt động</Select.Option>
+            <Select.Option value={2}>Đã xóa</Select.Option>
+          </Select>
         </Form.Item>
       </Form>
     </Modal>
