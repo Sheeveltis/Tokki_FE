@@ -1,9 +1,46 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useBubbleChatLogic } from './bubbleChatLogic'
 import ChatboxIcon from '../../../../assets/icon/icon-mainflow/chatbox.svg'
 import './BubbleChat.css'
+import { LoginRequest } from '../../../../components/loginRequest'
+import { getAuthToken } from '../../../provider/api/client'
 
 const BubbleChat = () => {
+  const [showLoginRequest, setShowLoginRequest] = useState(false)
+
+  const {
+    isOpen,
+    setIsOpen,
+    isQueueing,
+    hasSupporter,
+    roomId,
+    inputMessage,
+    setInputMessage,
+    loadingHistory,
+    messages,
+    messagesEndRef,
+    isConnected,
+    currentUserId,
+    clearCurrentSession,
+    handleStartConsultation,
+    handleSendMessage,
+    handleKeyPress,
+  } = useBubbleChatLogic()
+
+  const handleToggleChat = () => {
+    if (isOpen) {
+      setIsOpen(false)
+      return
+    }
+
+    const token = getAuthToken()
+    if (token) {
+      setIsOpen(true)
+    } else {
+      setShowLoginRequest(true)
+    }
+  }
+
   const renderMessageList = () => {
     return messages.map((msg, index) => {
       const isMine = msg.isFromCurrentUser || (currentUserId && msg.senderId === currentUserId)
@@ -32,27 +69,30 @@ const BubbleChat = () => {
     })
   }
 
-  const {
-    isOpen,
-    setIsOpen,
-    isQueueing,
-    hasSupporter,
-    roomId,
-    inputMessage,
-    setInputMessage,
-    loadingHistory,
-    messages,
-    messagesEndRef,
-    isConnected,
-    currentUserId,
-    clearCurrentSession,
-    handleStartConsultation,
-    handleSendMessage,
-    handleKeyPress,
-  } = useBubbleChatLogic()
-
   return (
     <div className="bubble-chat-container">
+      {showLoginRequest && (
+        <div 
+          style={{
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            width: '100vw', 
+            height: '100vh', 
+            backgroundColor: 'rgba(0,0,0,0.5)', 
+            zIndex: 99999, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center'
+          }}
+          onClick={() => setShowLoginRequest(false)} 
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+             <LoginRequest onClose={() => setShowLoginRequest(false)} />
+          </div>
+        </div>
+      )}
+
       {isOpen && (
         <div className="chat-window">
           <div className="chat-header">
@@ -127,14 +167,16 @@ const BubbleChat = () => {
         </div>
       )}
 
-      <button className="chat-bubble-btn" onClick={() => setIsOpen(!isOpen)}>
-        {/* ChatboxIcon có thể là string URL hoặc object (Next static import) */}
+      <button 
+        className="chat-bubble-btn" 
+        onClick={handleToggleChat}
+      >
         <img
           src={typeof ChatboxIcon === 'string' ? ChatboxIcon : ChatboxIcon?.src}
           alt="Chat"
           className="chat-icon"
         />
-        {!isOpen && messages.length > 0 && (
+        {!isOpen && messages && messages.length > 0 && (
           <span className="notification-badge">{messages.length}</span>
         )}
       </button>
