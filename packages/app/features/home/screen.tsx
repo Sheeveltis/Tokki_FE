@@ -1,33 +1,25 @@
 import { View } from 'react-native'
-
-// Import layout - React Native bundler sẽ tự động chọn .web.jsx hoặc .native.jsx
-// TypeScript cần import cụ thể, nhưng runtime sẽ resolve đúng platform
 import { HomeLayout } from './components/home-layout.web'
 import { HomeMain } from './components/home-main'
 import { useSidebarData } from './api/useHomeQueries'
 import { LoadingWithContainer } from '../../../components/Loading'
 
-/**
- * HomeScreen: Trang chủ chính
- * 
- * Sử dụng HomeLayout để render giao diện phù hợp với môi trường (Web/Native)
- * HomeLayout sẽ tự động chọn .web.jsx hoặc .native.jsx
- * 
- * @param {{
- *   onHomePress?: () => void
- *   onRoadmapPress?: () => void
- *   onFlashcardPress?: () => void
- *   onBlogPress?: () => void
- *   onProfilePress?: () => void
- * }} props
- */
+interface HomeScreenProps {
+  onHomePress?: () => void;      
+  onRoadmapPress?: () => void;
+  onFlashcardPress?: () => void;
+  onBlogPress?: () => void;
+  onProfilePress?: () => void;
+}
+
 export function HomeScreen({
   onHomePress,
   onRoadmapPress,
   onFlashcardPress,
   onBlogPress,
   onProfilePress,
-}) {
+}: HomeScreenProps) {
+
   const { data: sidebarData, isLoading: sidebarLoading, error } = useSidebarData()
 
   if (sidebarLoading) {
