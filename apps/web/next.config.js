@@ -19,7 +19,7 @@ const nextConfig = {
     'moti',
     'react-native-gesture-handler',
     
-    'app', 
+    '@tokki/app',
 
     'react-native-render-html',
     'hp-xml-parser', 
