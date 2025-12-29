@@ -5,10 +5,12 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Space, Typography, Spin, Alert, Modal } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
-import { updateVocabulary, fetchVocabularyDetail, uploadVocabularyImageToCloudinary, deleteVocabulary } from '../../api'
+import { updateVocabulary, fetchVocabularyDetail, uploadVocabularyImageToCloudinary, deleteVocabulary, addExampleToVocabulary, updateExample, deleteExample } from '../../api'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import VocabularyEditModal from './components/vocabulary-edit-modal'
 import VocabularyInfoCard from './components/vocabulary-info-card'
+import ExampleAddModal from './components/example-add-modal'
+import ExampleEditModal from './components/example-edit-modal'
 
 const { Title, Text } = Typography
 
@@ -26,6 +28,12 @@ export function VocabularyDetailScreen() {
   const [editOpen, setEditOpen] = useState(false)
   const [editLoading, setEditLoading] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [exampleAddOpen, setExampleAddOpen] = useState(false)
+  const [exampleAddLoading, setExampleAddLoading] = useState(false)
+  const [exampleEditOpen, setExampleEditOpen] = useState(false)
+  const [exampleEditLoading, setExampleEditLoading] = useState(false)
+  const [editingExample, setEditingExample] = useState(null)
+  const [deletingExampleId, setDeletingExampleId] = useState(null)
 
   // Load chi tiết từ vựng khi có vocabId
   useEffect(() => {
@@ -140,6 +148,7 @@ export function VocabularyDetailScreen() {
         pronunciation: values?.pronunciation || '',
         definition: values?.definition || '',
         imgURL: imgURL,
+        status: values?.status !== undefined ? values.status : 1,
       }
 
       await updateVocabulary(payload)
@@ -168,6 +177,150 @@ export function VocabularyDetailScreen() {
     } finally {
       setEditLoading(false)
     }
+  }
+
+  const handleAddExample = async (values) => {
+    try {
+      setExampleAddLoading(true)
+      const vocabularyId = detailVocab?.vocabularyId || detailVocab?.id
+      if (!vocabularyId) {
+        showAdminError('Không tìm thấy ID từ vựng')
+        return
+      }
+
+      if (!values?.sentence) {
+        showAdminError('Vui lòng nhập câu mẫu')
+        return
+      }
+
+      await addExampleToVocabulary(vocabularyId, {
+        sentence: values.sentence || '',
+        translation: values.translation || '',
+      })
+
+      // Reload lại chi tiết từ vựng từ API để hiển thị dữ liệu mới nhất
+      try {
+        const refreshedDetail = await fetchVocabularyDetail(vocabularyId)
+        setDetailVocab(refreshedDetail)
+      } catch (reloadError) {
+        console.error('Error reloading vocabulary detail:', reloadError)
+        // Vẫn hiển thị success message dù reload fail
+      }
+
+      showAdminSuccess('Đã thêm câu mẫu thành công')
+      setExampleAddOpen(false)
+    } catch (err) {
+      // err có thể là response object từ API hoặc error object
+      if (err?.isSuccess === false || err?.errors) {
+        // Là response từ API với lỗi
+        const errorMessage = err?.message || err?.errors?.[0]?.description || 'Thêm câu mẫu thất bại'
+        showAdminError(errorMessage, err?.statusCode)
+      } else {
+        // Là error khác
+        showAdminError(err?.message || 'Thêm câu mẫu thất bại')
+      }
+    } finally {
+      setExampleAddLoading(false)
+    }
+  }
+
+  const handleEditExample = (example) => {
+    setEditingExample(example)
+    setExampleEditOpen(true)
+  }
+
+  const handleUpdateExample = async (values) => {
+    try {
+      setExampleEditLoading(true)
+      const exampleId = editingExample?.exampleId
+      if (!exampleId) {
+        showAdminError('Không tìm thấy ID câu mẫu')
+        return
+      }
+
+      if (!values?.sentence) {
+        showAdminError('Vui lòng nhập câu mẫu')
+        return
+      }
+
+      const vocabularyId = detailVocab?.vocabularyId || detailVocab?.id
+
+      await updateExample(exampleId, {
+        sentence: values.sentence || '',
+        translation: values.translation || '',
+        status: values.status !== undefined ? values.status : 1,
+      })
+
+      // Reload lại chi tiết từ vựng từ API để hiển thị dữ liệu mới nhất
+      try {
+        const refreshedDetail = await fetchVocabularyDetail(vocabularyId)
+        setDetailVocab(refreshedDetail)
+      } catch (reloadError) {
+        console.error('Error reloading vocabulary detail:', reloadError)
+        // Vẫn hiển thị success message dù reload fail
+      }
+
+      showAdminSuccess('Đã cập nhật câu mẫu thành công')
+      setExampleEditOpen(false)
+      setEditingExample(null)
+    } catch (err) {
+      // err có thể là response object từ API hoặc error object
+      if (err?.isSuccess === false || err?.errors) {
+        // Là response từ API với lỗi
+        const errorMessage = err?.message || err?.errors?.[0]?.description || 'Cập nhật câu mẫu thất bại'
+        showAdminError(errorMessage, err?.statusCode)
+      } else {
+        // Là error khác
+        showAdminError(err?.message || 'Cập nhật câu mẫu thất bại')
+      }
+    } finally {
+      setExampleEditLoading(false)
+    }
+  }
+
+  const handleDeleteExample = (example) => {
+    const exampleId = example?.exampleId
+    if (!exampleId) {
+      showAdminError('Không tìm thấy ID câu mẫu')
+      return
+    }
+
+    Modal.confirm({
+      title: 'Xác nhận xóa câu mẫu',
+      content: `Bạn chắc chắn muốn xóa câu mẫu "${example?.sentence || exampleId}"?`,
+      okText: 'Xóa',
+      cancelText: 'Hủy',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          setDeletingExampleId(exampleId)
+          await deleteExample(exampleId)
+
+          // Reload lại chi tiết từ vựng từ API để hiển thị dữ liệu mới nhất
+          const vocabularyId = detailVocab?.vocabularyId || detailVocab?.id
+          try {
+            const refreshedDetail = await fetchVocabularyDetail(vocabularyId)
+            setDetailVocab(refreshedDetail)
+          } catch (reloadError) {
+            console.error('Error reloading vocabulary detail:', reloadError)
+          }
+
+          showAdminSuccess('Đã xóa câu mẫu thành công')
+        } catch (err) {
+          // err có thể là response object từ API hoặc error object
+          if (err?.isSuccess === false || err?.errors) {
+            // Là response từ API với lỗi
+            const errorMessage = err?.message || err?.errors?.[0]?.description || 'Xóa câu mẫu thất bại'
+            showAdminError(errorMessage, err?.statusCode)
+          } else {
+            // Là error khác
+            showAdminError(err?.message || 'Xóa câu mẫu thất bại')
+          }
+        } finally {
+          setDeletingExampleId(null)
+        }
+      },
+    })
   }
 
   const detailContent = (() => {
@@ -240,13 +393,35 @@ export function VocabularyDetailScreen() {
             </Space>
           </Space>
 
-          <VocabularyInfoCard vocab={detailVocab} />
+          <VocabularyInfoCard
+            vocab={detailVocab}
+            onAddExample={() => setExampleAddOpen(true)}
+            onEditExample={handleEditExample}
+            onDeleteExample={handleDeleteExample}
+            deletingExampleId={deletingExampleId}
+          />
           <VocabularyEditModal
             open={editOpen}
             loading={editLoading}
             initialValues={detailVocab || {}}
             onCancel={() => setEditOpen(false)}
             onSubmit={handleUpdate}
+          />
+          <ExampleAddModal
+            open={exampleAddOpen}
+            loading={exampleAddLoading}
+            onCancel={() => setExampleAddOpen(false)}
+            onSubmit={handleAddExample}
+          />
+          <ExampleEditModal
+            open={exampleEditOpen}
+            loading={exampleEditLoading}
+            initialValues={editingExample || {}}
+            onCancel={() => {
+              setExampleEditOpen(false)
+              setEditingExample(null)
+            }}
+            onSubmit={handleUpdateExample}
           />
         </Space>
       </div>

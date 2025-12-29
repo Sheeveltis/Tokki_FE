@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Card, Space, Typography, Spin, Alert } from 'antd'
+import { Card, Space, Typography, Spin, Alert, Modal } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
 import {
@@ -10,10 +10,16 @@ import {
   searchVocabulariesForTopic,
   addVocabulariesToTopicAndReload,
   removeVocabulariesFromTopicAndReload,
+  publishTopic,
+  updateFlashcardTopic,
+  deleteTopic,
+  uploadTopicImageToCloudinary,
 } from '../../api'
-import { HelperAdmin } from '../../../../../components/HelperAdmin.jsx'
+import { HelperAdmin, showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import TopicInfoCard from './components/topic-info-card'
 import TopicVocabSection from './components/topic-vocab-section'
+import FlashcardTopicEditModal from './components/flashcard-topic-edit-modal'
+import QuickAddVocabularyModal from './components/quick-add-vocabulary-modal'
 
 const { Title, Text } = Typography
 
@@ -36,7 +42,12 @@ export function FlashcardTopicDetailScreen() {
   const [detailTopic, setDetailTopic] = useState(null)
   const [adding, setAdding] = useState(false)
   const [removing, setRemoving] = useState(false)
+  const [publishing, setPublishing] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [editLoading, setEditLoading] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
   const [apiResponse, setApiResponse] = useState(null)
+  const [quickAddModalOpen, setQuickAddModalOpen] = useState(false)
   const searchTimeoutRef = useRef(null)
 
   useEffect(() => {
@@ -73,14 +84,13 @@ export function FlashcardTopicDetailScreen() {
     }))
   }, [searchVocabList])
 
-  const handleSearchVocab = async (keyword) => {
+  const handleSearchVocab = async (keyword, immediate = false) => {
     // Clear timeout trước đó nếu có
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current)
     }
 
-    // Debounce: đợi 300ms sau khi người dùng ngừng gõ
-    searchTimeoutRef.current = setTimeout(async () => {
+    const performSearch = async () => {
       setSearching(true)
       try {
         // Sử dụng function API đã được tách ra
@@ -93,14 +103,23 @@ export function FlashcardTopicDetailScreen() {
       } finally {
         setSearching(false)
       }
-    }, 300)
+    }
+
+    // Nếu immediate = true, gọi ngay lập tức (không debounce)
+    if (immediate) {
+      performSearch()
+    } else {
+      // Debounce: đợi 300ms sau khi người dùng ngừng gõ
+      searchTimeoutRef.current = setTimeout(performSearch, 300)
+    }
   }
 
   // Tự động load 10 từ vựng đầu tiên khi focus vào Select
   const handleSelectFocus = () => {
-    // Chỉ load nếu danh sách đang trống
+    // Chỉ load nếu danh sách đang trống và không đang searching
     if (searchVocabList.length === 0 && !searching) {
-      handleSearchVocab('')
+      // Gọi search ngay lập tức (không debounce) khi focus lần đầu
+      handleSearchVocab('', true)
     }
   }
 
@@ -201,6 +220,156 @@ export function FlashcardTopicDetailScreen() {
     if (key) router.push(`/admin?tab=${key}`)
   }
 
+  const handleDelete = () => {
+    const topicId = detailTopic?.id || detailTopic?._raw?.topicId
+    if (!topicId) {
+      showAdminError('Không tìm thấy ID chủ đề')
+      return
+    }
+
+    Modal.confirm({
+      title: 'Xác nhận xóa chủ đề',
+      content: `Bạn chắc chắn muốn xóa chủ đề "${detailTopic?.title || detailTopic?._raw?.topicName || topicId}"?`,
+      okText: 'Xóa',
+      cancelText: 'Hủy',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          setDeleteLoading(true)
+          await deleteTopic(topicId)
+          showAdminSuccess('Đã xóa chủ đề thành công')
+          router.push('/admin?tab=vocabulary-topics')
+        } catch (err) {
+          // err có thể là response object từ API hoặc error object
+          if (err?.isSuccess === false || err?.errors) {
+            // Là response từ API với lỗi
+            const errorMessage = err?.message || err?.errors?.[0]?.description || 'Xóa chủ đề thất bại'
+            showAdminError(errorMessage, err?.statusCode)
+          } else {
+            // Là error khác
+            showAdminError(err?.message || 'Xóa chủ đề thất bại')
+          }
+        } finally {
+          setDeleteLoading(false)
+        }
+      },
+    })
+  }
+
+  const handleUpdate = async (values) => {
+    try {
+      setEditLoading(true)
+      const topicId = detailTopic?.id || detailTopic?._raw?.topicId
+      if (!topicId) {
+        showAdminError('Không tìm thấy ID chủ đề')
+        return
+      }
+
+      if (!values?.topicName || !values?.description) {
+        showAdminError('Vui lòng nhập đầy đủ thông tin')
+        return
+      }
+
+      // Nếu có file ảnh mới, upload lên Cloudinary trước
+      let imgUrl = values?.imgUrl || null
+      if (values?.imageFile) {
+        try {
+          imgUrl = await uploadTopicImageToCloudinary(values.imageFile)
+          if (!imgUrl) {
+            showAdminError('Không thể upload ảnh lên Cloudinary')
+            return
+          }
+        } catch (err) {
+          showAdminError(err?.message || 'Không thể upload ảnh lên Cloudinary')
+          return
+        }
+      }
+
+      await updateFlashcardTopic(topicId, {
+        topicName: values.topicName || '',
+        description: values.description || '',
+        level: values.level || 1,
+        status: values.status !== undefined ? values.status : 1,
+        imgUrl: imgUrl,
+      })
+
+      // Reload lại chi tiết chủ đề từ API để hiển thị dữ liệu mới nhất
+      try {
+        const refreshedDetail = await fetchFlashcardTopicDetail(topicId)
+        if (refreshedDetail?.topic) {
+          setDetailTopic(refreshedDetail.topic)
+          setTopicVocabIds(refreshedDetail.topic.vocabIds || [])
+          setTopicVocabularies(refreshedDetail.vocabularies || [])
+        }
+      } catch (reloadError) {
+        console.error('Error reloading topic detail:', reloadError)
+      }
+
+      showAdminSuccess('Đã cập nhật chủ đề thành công')
+      setEditOpen(false)
+    } catch (err) {
+      // err có thể là response object từ API hoặc error object
+      if (err?.isSuccess === false || err?.errors) {
+        // Là response từ API với lỗi
+        const errorMessage = err?.message || err?.errors?.[0]?.description || 'Cập nhật chủ đề thất bại'
+        showAdminError(errorMessage, err?.statusCode)
+      } else {
+        // Là error khác
+        showAdminError(err?.message || 'Cập nhật chủ đề thất bại')
+      }
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
+  const handlePublish = () => {
+    if (!topicId) return
+
+    Modal.confirm({
+      title: 'Xác nhận công khai chủ đề',
+      content: `Bạn chắc chắn muốn công khai chủ đề "${detailTopic?.title || detailTopic?._raw?.topicName || topicId}"?`,
+      okText: 'Công khai',
+      cancelText: 'Hủy',
+      okButtonProps: { type: 'primary' },
+      onOk: async () => {
+        try {
+          setPublishing(true)
+          setApiResponse(null)
+
+          await publishTopic(topicId)
+
+          // Reload lại chi tiết chủ đề từ API để hiển thị dữ liệu mới nhất
+          try {
+            const refreshedDetail = await fetchFlashcardTopicDetail(topicId)
+            if (refreshedDetail?.topic) {
+              setDetailTopic(refreshedDetail.topic)
+              setTopicVocabIds(refreshedDetail.topic.vocabIds || [])
+              setTopicVocabularies(refreshedDetail.vocabularies || [])
+            }
+          } catch (reloadError) {
+            console.error('Error reloading topic detail:', reloadError)
+          }
+
+          setApiResponse({
+            isSuccess: true,
+            message: 'Công khai chủ đề thành công',
+            statusCode: 200,
+          })
+        } catch (err) {
+          console.error('Error publishing topic:', err)
+          setApiResponse({
+            isSuccess: false,
+            message: err?.message || err?.errors?.[0]?.description || 'Công khai chủ đề thất bại',
+            errors: err?.errors || [],
+            statusCode: err?.statusCode || 500,
+          })
+        } finally {
+          setPublishing(false)
+        }
+      },
+    })
+  }
+
   const detailContent = (() => {
     if (loading) {
       return (
@@ -246,18 +415,69 @@ export function FlashcardTopicDetailScreen() {
               <Text type="secondary">ID: {detailTopic.id}</Text>
             </div>
             <Space>
-              <ButtonV2
-                title="Quay lại"
-                color="mint"
-                onPress={() => router.push('/admin?tab=vocabulary-topics')}
-                style={{ minWidth: 100, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
+              {(() => {
+                const topicStatus = detailTopic?._raw?.status ?? detailTopic?.status
+                const isDraft = topicStatus === 0
+                const isDeleted = topicStatus === 2
+
+                return (
+                  <>
+                    <ButtonV2
+                      title="Chỉnh sửa"
+                      color="poppy"
+                      onPress={() => setEditOpen(true)}
+                      disabled={isDeleted || editLoading}
+                      style={{ minWidth: 110, paddingVertical: 10 }}
+                      textStyle={{ fontSize: 14 }}
+                    />
+                    {isDraft && !isDeleted && (
+                      <ButtonV2
+                        title={publishing ? 'Đang công khai...' : 'Công khai'}
+                        color="sage"
+                        onPress={handlePublish}
+                        disabled={publishing}
+                        style={{ minWidth: 120, paddingVertical: 10 }}
+                        textStyle={{ fontSize: 14 }}
+                      />
+                    )}
+                    {!isDeleted && (
+                      <ButtonV2
+                        title={deleteLoading ? 'Đang xóa...' : 'Xóa'}
+                        color="charcoal"
+                        onPress={handleDelete}
+                        disabled={deleteLoading}
+                        style={{ minWidth: 90, paddingVertical: 10 }}
+                        textStyle={{ fontSize: 14 }}
+                      />
+                    )}
+                    <ButtonV2
+                      title="Quay lại"
+                      color="mint"
+                      onPress={() => router.push('/admin?tab=vocabulary-topics')}
+                      style={{ minWidth: 100, paddingVertical: 10 }}
+                      textStyle={{ fontSize: 14 }}
+                    />
+                  </>
+                )
+              })()}
             </Space>
           </Space>
 
           <HelperAdmin response={apiResponse} />
           <TopicInfoCard topic={detailTopic} />
+          <FlashcardTopicEditModal
+            open={editOpen}
+            loading={editLoading}
+            initialValues={{
+              topicName: detailTopic?.title || detailTopic?._raw?.topicName || '',
+              description: detailTopic?.subtitle || detailTopic?._raw?.description || '',
+              level: detailTopic?.level ?? detailTopic?._raw?.level ?? 1,
+              status: detailTopic?._raw?.status ?? detailTopic?.status ?? 1,
+              imgUrl: detailTopic?.imgUrl || detailTopic?._raw?.imgUrl || '',
+            }}
+            onCancel={() => setEditOpen(false)}
+            onSubmit={handleUpdate}
+          />
           <TopicVocabSection
             selecting={selecting}
             onSelectingChange={setSelecting}
@@ -272,6 +492,38 @@ export function FlashcardTopicDetailScreen() {
             onRemove={handleRemoveVocab}
             removing={removing}
             dataSource={topicVocabData}
+            onQuickAdd={() => setQuickAddModalOpen(true)}
+          />
+          <QuickAddVocabularyModal
+            open={quickAddModalOpen}
+            onCancel={() => setQuickAddModalOpen(false)}
+            topicId={topicId}
+            onAddToTopic={async (vocabIds) => {
+              try {
+                setApiResponse(null)
+                // Gọi API thêm vào topic
+                const { response, topicDetail } = await addVocabulariesToTopicAndReload(topicId, vocabIds)
+                setApiResponse(response)
+                
+                if (response?.isSuccess && topicDetail?.topic) {
+                  setDetailTopic(topicDetail.topic)
+                  setTopicVocabIds(topicDetail.topic.vocabIds || [])
+                  setTopicVocabularies(topicDetail.vocabularies || [])
+                  setSelecting([])
+                }
+                return { success: response?.isSuccess, response }
+              } catch (err) {
+                console.error('Error adding vocab to topic:', err)
+                return { success: false, error: err }
+              }
+            }}
+            onSuccess={(createdVocab) => {
+              // Reload lại danh sách từ vựng để hiển thị từ vựng mới
+              if (createdVocab?.vocabularyId) {
+                // Từ vựng đã được thêm vào topic trong onAddToTopic
+                // Không cần làm gì thêm
+              }
+            }}
           />
         </Space>
       </div>
