@@ -5,7 +5,12 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Card, Space, Typography, Spin, Alert } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
-import { fetchFlashcardTopicDetail, searchVocabulariesForTopic, addVocabulariesToTopicAndReload } from '../../api'
+import {
+  fetchFlashcardTopicDetail,
+  searchVocabulariesForTopic,
+  addVocabulariesToTopicAndReload,
+  removeVocabulariesFromTopicAndReload,
+} from '../../api'
 import { HelperAdmin } from '../../../../../components/HelperAdmin.jsx'
 import TopicInfoCard from './components/topic-info-card'
 import TopicVocabSection from './components/topic-vocab-section'
@@ -26,9 +31,11 @@ export function FlashcardTopicDetailScreen() {
   const [topicVocabularies, setTopicVocabularies] = useState([]) // Danh sách từ vựng đã có trong chủ đề
   const [topicVocabIds, setTopicVocabIds] = useState([])
   const [selecting, setSelecting] = useState([])
+  const [removingKeys, setRemovingKeys] = useState([])
   const [searching, setSearching] = useState(false)
   const [detailTopic, setDetailTopic] = useState(null)
   const [adding, setAdding] = useState(false)
+  const [removing, setRemoving] = useState(false)
   const [apiResponse, setApiResponse] = useState(null)
   const searchTimeoutRef = useRef(null)
 
@@ -43,6 +50,7 @@ export function FlashcardTopicDetailScreen() {
           setTopicVocabularies(resDetail.vocabularies || []) // Lưu danh sách từ vựng đã có trong chủ đề
           setSearchVocabList([]) // Reset danh sách search
           setSelecting([])
+          setRemovingKeys([])
         }
       } catch (err) {
         if (mounted) setError(err?.message || 'Không thể tải chủ đề.')
@@ -105,6 +113,35 @@ export function FlashcardTopicDetailScreen() {
     }
   }, [])
 
+  const handleRemoveVocab = async () => {
+    if (!removingKeys?.length || !topicId) return
+
+    setRemoving(true)
+    setApiResponse(null)
+
+    try {
+      const { response, topicDetail } = await removeVocabulariesFromTopicAndReload(topicId, removingKeys)
+      setApiResponse(response)
+
+      if (response?.isSuccess && topicDetail?.topic) {
+        setDetailTopic(topicDetail.topic)
+        setTopicVocabIds(topicDetail.topic.vocabIds || [])
+        setTopicVocabularies(topicDetail.vocabularies || [])
+        setRemovingKeys([])
+      }
+    } catch (err) {
+      console.error('Error removing vocabularies:', err)
+      setApiResponse({
+        isSuccess: false,
+        message: err?.message || 'Không thể gỡ từ vựng khỏi chủ đề',
+        errors: err?.errors || [],
+        statusCode: err?.statusCode || 500,
+      })
+    } finally {
+      setRemoving(false)
+    }
+  }
+
   const topicVocabData = useMemo(() => {
     // Sử dụng topicVocabularies (danh sách từ vựng đã có trong chủ đề) thay vì searchVocabList
     const safeTopicVocabularies = Array.isArray(topicVocabularies) ? topicVocabularies : []
@@ -150,6 +187,15 @@ export function FlashcardTopicDetailScreen() {
       setAdding(false)
     }
   }
+
+  // Cleanup timeout khi component unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const handleNavigate = (key) => {
     if (key) router.push(`/admin?tab=${key}`)
@@ -215,12 +261,16 @@ export function FlashcardTopicDetailScreen() {
           <TopicVocabSection
             selecting={selecting}
             onSelectingChange={setSelecting}
+            removingKeys={removingKeys}
+            onRemovingKeysChange={setRemovingKeys}
             availableOptions={availableOptions}
             onSearch={handleSearchVocab}
             onFocus={handleSelectFocus}
             searching={searching}
             onAdd={handleAddVocab}
             adding={adding}
+            onRemove={handleRemoveVocab}
+            removing={removing}
             dataSource={topicVocabData}
           />
         </Space>
@@ -243,4 +293,6 @@ export function FlashcardTopicDetailScreen() {
 }
 
 export default FlashcardTopicDetailScreen
+
+
 
