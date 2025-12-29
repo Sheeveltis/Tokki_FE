@@ -165,9 +165,19 @@ export function VocabularyManagement({ initialData = null }) {
             justifyContent: 'center',
             cursor: 'pointer',
             padding: '4px 8px',
+            borderRadius: 4,
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#f0f0f0'
+            e.currentTarget.style.transform = 'scale(1.1)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent'
+            e.currentTarget.style.transform = 'scale(1)'
           }}
         >
-          <EyeOutlined style={{ fontSize: 18, color: '#111' }} />
+          <EyeOutlined style={{ fontSize: 18, color: '#111', transition: 'color 0.2s ease' }} />
         </div>
       ),
     },
