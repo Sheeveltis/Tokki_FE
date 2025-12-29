@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Card, Descriptions, Tag } from 'antd'
+import { Card, Descriptions, Tag, Image } from 'antd'
 import { fetchUserDetail } from 'app/features/admin/screens/UserDetail/api/api'
 
 export function TopicInfoCard({ topic }) {
@@ -78,6 +78,22 @@ export function TopicInfoCard({ topic }) {
           <Tag color={isMuted ? 'default' : 'green'} style={{ fontSize: 12 }}>
             {isMuted ? 'Ẩn' : 'Hoạt động'}
           </Tag>
+        </Descriptions.Item>
+        <Descriptions.Item label="Ảnh minh họa">
+          {(() => {
+            const imgUrl = topic.imgUrl || topic._raw?.imgUrl
+            if (!imgUrl) return '-'
+            return (
+              <Image
+                src={imgUrl}
+                alt="Topic image"
+                style={{ maxWidth: 200, maxHeight: 200, objectFit: 'contain' }}
+                preview={{
+                  mask: 'Xem ảnh',
+                }}
+              />
+            )
+          })()}
         </Descriptions.Item>
         <Descriptions.Item label="Ngày tạo">
           {formatDate(topic._raw?.createDate || topic.createDate)}
