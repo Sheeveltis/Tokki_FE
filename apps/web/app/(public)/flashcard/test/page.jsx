@@ -14,6 +14,7 @@ export default function FlashcardTestPage() {
     <TestScreen
       topicId={topicId}
       title={`Kiểm tra ${topicTitle}`}
+      forceAnswerMode="mix"
       onBackPress={() => router.push(`/flashcard/study?topic=${topicId}`)}
       onClose={() => router.push(`/flashcard/study?topic=${topicId}`)}
     />

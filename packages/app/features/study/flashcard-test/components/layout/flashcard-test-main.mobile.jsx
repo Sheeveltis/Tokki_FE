@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, Text, StyleSheet, Pressable, Image, ScrollView } from 'react-native'
 import CloseIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
-import { QuestionCard } from '../index'
+import { QuestionCard, TypeAnswerCard } from '../index'
 import { normalizeImageSource } from '../../../api'
 import { LoadingWithContainer } from '../../../../../../components/Loading'
 
@@ -28,6 +28,19 @@ export function FlashcardTestMain({
   onPreviousQuestion,
   onRetry,
   onBackPress,
+  answerMode,
+  typedAnswers,
+  onTypedAnswer,
+  // Parts management
+  enableParts = false,
+  parts = [],
+  currentPart = 0,
+  totalParts = 1,
+  currentPartQuestions = [],
+  currentPartAnsweredCount = 0,
+  currentPartProgress = 0,
+  onPartChange,
+  allQuestions = [],
 }) {
   // Render loading state
   if (loading) {
@@ -71,12 +84,44 @@ export function FlashcardTestMain({
       {/* Header với progress và close button */}
       <View style={styles.topHeader}>
         <View style={styles.progressContainer}>
+          {/* Part Navigation - Hiển thị khi enableParts */}
+          {enableParts && totalParts > 1 && (
+            <View style={styles.partsContainer}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {parts.map((_, index) => (
+                  <Pressable
+                    key={index}
+                    style={[
+                      styles.partButton,
+                      currentPart === index && styles.partButtonActive,
+                    ]}
+                    onPress={() => onPartChange?.(index)}
+                  >
+                    <Text style={[
+                      styles.partButtonText,
+                      currentPart === index && styles.partButtonTextActive,
+                    ]}>
+                      Part {index + 1}
+                    </Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+          
           <Text style={styles.progressText}>
-            Đã làm: {answeredCount || 0} / {questions.length}
+            Đã làm: {enableParts ? currentPartAnsweredCount : answeredCount || 0} / {enableParts ? currentPartQuestions.length : questions.length}
           </Text>
           <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${progress}%` }]} />
+            <View style={[styles.progressFill, { width: `${enableParts ? currentPartProgress : progress}%` }]} />
           </View>
+          
+          {/* Tổng progress nếu có nhiều parts */}
+          {enableParts && totalParts > 1 && (
+            <Text style={styles.totalProgressText}>
+              Tổng: {answeredCount || 0} / {allQuestions.length} ({progress}%)
+            </Text>
+          )}
         </View>
         {onClose && (
           <Pressable style={styles.closeButton} onPress={onClose}>
@@ -95,18 +140,39 @@ export function FlashcardTestMain({
           <View style={styles.questionNumber}>
             <Text style={styles.questionNumberText}>Câu {currentQuestionIndex + 1}</Text>
           </View>
-          <QuestionCard
-            question={currentQuestion.question}
-            options={currentQuestion.options}
-            correctAnswerId={currentQuestion.correctAnswerId}
-            imageUrl={currentQuestion.imageUrl}
-            onAnswerSelect={(answerId, isCorrect) => 
-              onAnswerSelect(currentQuestion.id, answerId, isCorrect)
-            }
-            showResult={showResults[currentQuestion.id] || false}
-            disabled={!!selectedAnswers[currentQuestion.id]}
-            selectedAnswerId={selectedAnswers[currentQuestion.id]}
-          />
+          {(() => {
+            // Xác định loại câu trả lời cho câu hỏi hiện tại
+            const questionAnswerType = answerMode === 'mix' 
+              ? currentQuestion.answerType 
+              : answerMode
+
+            return questionAnswerType === 'typeAnswer' ? (
+              <TypeAnswerCard
+                question={currentQuestion.question}
+                correctAnswer={currentQuestion.correctAnswer}
+                imageUrl={currentQuestion.imageUrl}
+                onAnswerSubmit={(typedText) => 
+                  onTypedAnswer(currentQuestion.id, typedText)
+                }
+                showResult={showResults[currentQuestion.id] || isSubmitted}
+                disabled={!!typedAnswers[currentQuestion.id] || isSubmitted}
+                typedAnswer={typedAnswers[currentQuestion.id] || ''}
+              />
+            ) : (
+              <QuestionCard
+                question={currentQuestion.question}
+                options={currentQuestion.options}
+                correctAnswerId={currentQuestion.correctAnswerId}
+                imageUrl={currentQuestion.imageUrl}
+                onAnswerSelect={(answerId, isCorrect) => 
+                  onAnswerSelect(currentQuestion.id, answerId, isCorrect)
+                }
+                showResult={showResults[currentQuestion.id] || false}
+                disabled={!!selectedAnswers[currentQuestion.id]}
+                selectedAnswerId={selectedAnswers[currentQuestion.id]}
+              />
+            )
+          })()}
         </View>
       )}
 
@@ -129,10 +195,25 @@ export function FlashcardTestMain({
               style={[
                 styles.navButton,
                 styles.navButtonPrimary,
-                !selectedAnswers[currentQuestion?.id] && styles.navButtonDisabled,
+                (() => {
+                  const questionAnswerType = answerMode === 'mix' 
+                    ? currentQuestion?.answerType 
+                    : answerMode
+                  const isAnswered = questionAnswerType === 'typeAnswer'
+                    ? typedAnswers[currentQuestion?.id]?.trim()
+                    : selectedAnswers[currentQuestion?.id]
+                  return !isAnswered && styles.navButtonDisabled
+                })(),
               ]}
               onPress={onNextQuestion}
-              disabled={!selectedAnswers[currentQuestion?.id]}
+              disabled={(() => {
+                const questionAnswerType = answerMode === 'mix' 
+                  ? currentQuestion?.answerType 
+                  : answerMode
+                return questionAnswerType === 'typeAnswer'
+                  ? !typedAnswers[currentQuestion?.id]?.trim()
+                  : !selectedAnswers[currentQuestion?.id]
+              })()}
             >
               <Text style={styles.navButtonText}>Câu tiếp theo</Text>
             </Pressable>
@@ -140,10 +221,25 @@ export function FlashcardTestMain({
             <Pressable
               style={[
                 styles.submitButton,
-                !selectedAnswers[currentQuestion?.id] && styles.submitButtonDisabled,
+                (() => {
+                  const questionAnswerType = answerMode === 'mix' 
+                    ? currentQuestion?.answerType 
+                    : answerMode
+                  const isAnswered = questionAnswerType === 'typeAnswer'
+                    ? typedAnswers[currentQuestion?.id]?.trim()
+                    : selectedAnswers[currentQuestion?.id]
+                  return !isAnswered && styles.submitButtonDisabled
+                })(),
               ]}
               onPress={onSubmit}
-              disabled={!selectedAnswers[currentQuestion?.id]}
+              disabled={(() => {
+                const questionAnswerType = answerMode === 'mix' 
+                  ? currentQuestion?.answerType 
+                  : answerMode
+                return questionAnswerType === 'typeAnswer'
+                  ? !typedAnswers[currentQuestion?.id]?.trim()
+                  : !selectedAnswers[currentQuestion?.id]
+              })()}
             >
               <Text style={styles.submitButtonText}>Nộp bài</Text>
             </Pressable>
@@ -155,10 +251,10 @@ export function FlashcardTestMain({
       {isSubmitted && (
         <View style={styles.scoreContainer}>
           <Text style={styles.scoreText}>
-            Điểm: {score} / {questions.length}
+            Điểm: {score} / {enableParts ? allQuestions.length : questions.length}
           </Text>
           <Text style={styles.scorePercentage}>
-            ({Math.round((score / questions.length) * 100)}%)
+            ({Math.round((score / (enableParts ? allQuestions.length : questions.length)) * 100)}%)
           </Text>
           <Pressable style={styles.finishButton} onPress={onBackPress}>
             <Text style={styles.finishButtonText}>Hoàn thành</Text>
@@ -179,6 +275,39 @@ const styles = StyleSheet.create({
   progressContainer: {
     flex: 1,
     gap: 8,
+  },
+  partsContainer: {
+    marginBottom: 8,
+  },
+  partButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#FFFFFF',
+    marginRight: 8,
+  },
+  partButtonActive: {
+    borderColor: '#79964E',
+    backgroundColor: '#79964E20',
+  },
+  partButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  partButtonTextActive: {
+    color: '#79964E',
+    fontWeight: '700',
+  },
+  totalProgressText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#999',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
   },
   progressText: {
     fontSize: 18,
