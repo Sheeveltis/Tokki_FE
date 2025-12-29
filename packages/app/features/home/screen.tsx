@@ -24,16 +24,17 @@ export function HomeScreen({
 
   if (sidebarLoading) {
     return (
-      <LoadingWithContainer
-        size={48}
-        color="#5E794C"
-        shadowColor="#5E794C50"
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      />
+      <View style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+        <LoadingWithContainer
+          size={48}
+          color="#5E794C"
+          shadowColor="#5E794C50"
+        />
+      </View>
     )
   }
 
