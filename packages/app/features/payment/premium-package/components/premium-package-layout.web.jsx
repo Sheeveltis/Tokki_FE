@@ -1,11 +1,11 @@
 import React from 'react'
 import { View, ScrollView, StyleSheet, Image } from 'react-native'
-import { Navbar } from '@tokki/app/components/navbar'
-import { Footer } from '@tokki/app/components/footer'
+import { Navbar } from '../../../../../components/navbar'
+import { Footer } from '../../../../../components/footer'
 import { Card as PackagePremium } from '../../payment-package/components/package-premium'
 import { ChoosePackage } from './choose-package'
-import { BackButton } from '@tokki/app/components/backbtn'
-import BackgroundImage from '@tokki/app/assets/background1.png'
+import { BackButton } from '../../../../../components/backBtn'
+import BackgroundImage from '../../../../../assets/background1.png'
 
 /**
  * Normalize image source so it works with:

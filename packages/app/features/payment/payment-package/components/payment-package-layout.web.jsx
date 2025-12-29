@@ -4,7 +4,7 @@ import { Navbar } from 'components/navbar'
 import { Footer } from 'components/footer'
 import { Card as PackageFree } from './package-free'
 import { Card as PackagePremium } from './package-premium-background'
-import { BackButton } from '@tokki/app/components/backbtn'
+import { BackButton } from '../../../../../components/backBtn'
 import { ViewDetailPackageButton } from './view-detail-package-btn'
 
 export function PaymentPackageLayout() {

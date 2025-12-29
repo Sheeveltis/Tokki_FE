@@ -2,7 +2,7 @@ import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import { QRIsepay } from './QR-isepay'
 import { InformationBanking } from './Information-banking'
-import {BackButton} from '@tokki/app/components/backbtn'
+import {BackButton} from '../../../../../components/backBtn'
 
 /**
  * Payment Layout Component (Web)
