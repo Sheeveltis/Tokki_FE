@@ -1,8 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { StudyScreen } from 'app/features/study/screen'
-import { STUDY_PAGE_TITLES } from 'app/features/study/constants'
+import { StudyScreen } from '@tokki/app/features/study/screen'
+import { STUDY_PAGE_TITLES } from '@tokki/app/features/study/constants'
 
 export default function StudyPage() {
   const router = useRouter()

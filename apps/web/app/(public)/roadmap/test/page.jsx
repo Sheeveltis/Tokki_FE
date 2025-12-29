@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { RoadmapTestLayout } from 'app/features/roadmap/roadmap-test/components/roadmap-test-layout.web'
+import { RoadmapTestLayout } from '@tokki/app/features/roadmap/roadmap-test/components/roadmap-test-layout.web'
 
 export default function RoadmapTestPage() {
   const searchParams = useSearchParams()

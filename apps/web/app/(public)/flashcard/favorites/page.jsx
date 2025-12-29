@@ -1,8 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import FlashcardStudyScreen from 'app/features/study/flashcard-study'
-import { STUDY_PAGE_TITLES } from 'app/features/study/constants'
+import FlashcardStudyScreen from '@tokki/app/features/study/flashcard-study'
+import { STUDY_PAGE_TITLES } from '@tokki/app/features/study/constants'
 
 export default function FlashcardFavoritesPage() {
   const router = useRouter()

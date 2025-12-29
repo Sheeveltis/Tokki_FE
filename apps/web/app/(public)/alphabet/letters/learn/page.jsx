@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import AlphabetLearnScreen from 'app/features/study/alphabet-learn'
+import AlphabetLearnScreen from '@tokki/app/features/study/alphabet-learn'
 
 export default function AlphabetLettersLearnPage() {
   const router = useRouter()

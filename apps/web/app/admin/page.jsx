@@ -1,4 +1,4 @@
-import { AdminScreen } from 'app/features/admin/screen'
+import { AdminScreen } from '@tokki/app/features/admin/screen'
 
 export default function AdminPage() {
   return <AdminScreen />

@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { LoginScreen } from 'app/features/authentication/login-screen'
+import { LoginScreen } from '@tokki/app/features/authentication/login-screen'
 
 export default function LoginPage() {
   const router = useRouter()

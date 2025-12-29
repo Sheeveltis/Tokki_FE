@@ -2,9 +2,9 @@
 
 import React from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ForgotPasswordScreen } from 'app/features/authentication/forgot-password/forgot-password-screen'
-import { resetForgotPassword } from 'app/features/authentication/forgot-password/api/api'
-import { showApiNotification } from 'app/features/authentication/helpers/notification'
+import { ForgotPasswordScreen } from '@tokki/app/features/authentication/forgot-password/forgot-password-screen'
+import { resetForgotPassword } from '@tokki/app/features/authentication/forgot-password/api/api'
+import { showApiNotification } from '@tokki/app/features/authentication/helpers/notification'
 
 export default function ForgotPasswordPage() {
   const router = useRouter()

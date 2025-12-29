@@ -1,3 +1,3 @@
 'use client'
 
-export { HomeScreen as default } from 'app/features/home/screen'
+export { HomeScreen as default } from '@tokki/app/features/home/screen'

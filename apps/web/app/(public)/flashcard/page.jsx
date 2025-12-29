@@ -1,8 +1,8 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import FlashcardListScreen from 'app/features/study/flashcard-list'
-import { STUDY_PAGE_TITLES } from 'app/features/study/constants'
+import FlashcardListScreen from '@tokki/app/features/study/flashcard-list'
+import { STUDY_PAGE_TITLES } from '@tokki/app/features/study/constants'
 
 export default function FlashcardPage() {
   const router = useRouter()

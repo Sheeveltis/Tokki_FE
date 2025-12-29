@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { useRouter } from 'next/navigation'
-import MatchingCardResultScreen from 'app/features/minigame/matching-card/matching-card-resulft/matching-card-result-screen'
+import MatchingCardResultScreen from '@tokki/app/features/minigame/matching-card/matching-card-resulft/matching-card-result-screen'
 
 export default function MatchingCardResultPage({ searchParams }) {
   const router = useRouter()

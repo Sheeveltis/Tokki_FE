@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import AlphabetPronunciationScreen from 'app/features/study/alphabet-pronunciation'
+import AlphabetPronunciationScreen from '@tokki/app/features/study/alphabet-pronunciation'
 
 export default function AlphabetSyllablesPronunciationPage() {
   const router = useRouter()
