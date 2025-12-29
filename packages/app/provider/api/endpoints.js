@@ -61,14 +61,17 @@ export const ENDPOINTS = {
       GET_BY_ID: (id) => `/Topics/${id}`,
       DELETE: (id) => `/Topics/${id}`,
       ADD_VOCABULARIES: '/Topics/vocabularies',
+      ADMIN_REMOVE_VOCABULARIES: '/Topics/admin/vocabularies',
     },
     VOCABULARY: {
       ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
+      ADMIN_CREATE: '/Vocabulary/admin/create-a-vocabulary',
       ADD_VOCABULARY_LIST: '/Vocabulary/bulk',
       FLASH_CARD_TOPIC: '/Vocabulary/flash-card',
       GET_BY_ID: (id) => `/Vocabulary/${id}`,
+      USER_GET_DETAIL: (id) => `/Vocabulary/user/get-detail/${id}`,
       UPDATE: (id) => `/Vocabulary/${id}`,
-      DELETE: (id) => `/Vocabularies/${id}`,
+      DELETE: (id) => `/Vocabulary/${id}`,
     },
     MINIGAME: {
       MATCHING_CARDS: '/minigame/matching-cards',
@@ -86,5 +89,8 @@ export const ENDPOINTS = {
     },
     GAMIFICATION: {
       HEARTBEAT: '/Gamification/heartbeat',  // POST: Heartbeat để track thời gian học tập
+    },
+    CLOUDINARY: {
+      UPLOAD_VOCABULARY_IMAGE: '/cloudinary/vocabulary-image',  // POST: Upload ảnh từ vựng lên Cloudinary
     }
   }

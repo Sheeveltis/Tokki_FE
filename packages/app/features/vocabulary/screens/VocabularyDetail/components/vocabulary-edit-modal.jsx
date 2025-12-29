@@ -9,6 +9,7 @@ import { Modal, Form, Input, Upload, message } from 'antd'
 export function VocabularyEditModal({ open, loading, initialValues = {}, onCancel, onSubmit }) {
   const [form] = Form.useForm()
   const [previewUrl, setPreviewUrl] = React.useState(initialValues?.imgURL || '')
+  const [selectedFile, setSelectedFile] = React.useState(null)
 
   // Sync initial values when open changes
   React.useEffect(() => {
@@ -17,41 +18,56 @@ export function VocabularyEditModal({ open, loading, initialValues = {}, onCance
         text: initialValues?.text || '',
         pronunciation: initialValues?.pronunciation || '',
         definition: initialValues?.definition || '',
-        exampleSentence: initialValues?.exampleSentence || '',
         imgURL: initialValues?.imgURL || '',
       })
       setPreviewUrl(initialValues?.imgURL || '')
+      setSelectedFile(null)
     } else {
       // Reset form when modal closes
       form.resetFields()
       setPreviewUrl('')
+      setSelectedFile(null)
     }
   }, [open, initialValues, form])
 
-  const toBase64 = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = () => resolve(reader.result)
-      reader.onerror = (error) => reject(error)
-    })
-
-  const handleBeforeUpload = async (file) => {
-    try {
-      const dataUrl = await toBase64(file)
-      form?.setFieldsValue({ imgURL: dataUrl })
-      setPreviewUrl(dataUrl)
-      message.success('Đã chọn ảnh')
-    } catch (err) {
-      message.error('Không thể đọc ảnh')
+  const handleBeforeUpload = (file) => {
+    // Kiểm tra loại file
+    const isImage = file.type.startsWith('image/')
+    if (!isImage) {
+      message.error('Chỉ chấp nhận file ảnh!')
+      return false
     }
-    return false
+
+    // Kiểm tra kích thước file (tối đa 5MB)
+    const isLt5M = file.size / 1024 / 1024 < 5
+    if (!isLt5M) {
+      message.error('Ảnh phải nhỏ hơn 5MB!')
+      return false
+    }
+
+    // Lưu file để upload sau
+    setSelectedFile(file)
+    
+    // Tạo preview URL
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setPreviewUrl(e.target.result)
+    }
+    reader.readAsDataURL(file)
+    
+    message.success('Đã chọn ảnh')
+    return false // Ngăn upload tự động
   }
 
   const handleOk = async () => {
     try {
       const values = await form.validateFields()
-      onSubmit?.(values)
+      // Thêm file vào values nếu có
+      const submitValues = {
+        ...values,
+        imageFile: selectedFile, // Thêm file để upload
+      }
+      onSubmit?.(submitValues)
     } catch (err) {
       // ignore validation errors
     }
@@ -90,9 +106,6 @@ export function VocabularyEditModal({ open, loading, initialValues = {}, onCance
           rules={[{ required: true, message: 'Vui lòng nhập nghĩa/định nghĩa' }]}
         >
           <Input placeholder="VD: Ngân hàng" size="large" style={{ fontSize: 16 }} />
-        </Form.Item>
-        <Form.Item label="Câu ví dụ" name="exampleSentence">
-          <Input.TextArea rows={3} placeholder="VD: Tôi đi ngân hàng mỗi thứ Hai." style={{ fontSize: 16 }} />
         </Form.Item>
         <Form.Item label="Ảnh minh họa" name="imgURL">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

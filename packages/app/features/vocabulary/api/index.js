@@ -31,8 +31,9 @@ export async function fetchVocabularies(params = {}) {
       pageSize,
     }
 
-    // Thêm status nếu có
-    if (status !== undefined && status !== null) {
+    // Thêm status nếu có và không phải "all"
+    // Khi status là "all" thì không cần gửi attribute status trong query string
+    if (status !== undefined && status !== null && status !== 'all') {
       queryParams.status = status
     }
 
@@ -95,20 +96,121 @@ export async function fetchVocabularies(params = {}) {
   }
 }
 
-export async function createVocabulary(payload) {
+/**
+ * Lấy chi tiết từ vựng theo ID
+ * @param {string} vocabularyId - ID của từ vựng
+ * @returns {Promise<Object>} - Dữ liệu chi tiết từ vựng bao gồm topics
+ */
+export async function fetchVocabularyDetail(vocabularyId) {
   try {
-    await delay()
-    if (!payload?.text || !payload?.definition) {
-      throw { status: 400, message: apiErrors.invalidData }
+    if (!vocabularyId) {
+      throw new Error('VocabularyId là bắt buộc')
     }
-    const vocabularyId = payload.vocabularyId || `v${Date.now()}`
+
+    const res = await apiClient.get(ENDPOINTS.VOCABULARY.USER_GET_DETAIL(vocabularyId))
+
+    const payload = res?.data
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể tải chi tiết từ vựng'
+      throw new Error(message)
+    }
+
+    const data = payload?.data
+
+    // Map data để tương thích với component
     return {
-      vocabularyId,
-      id: vocabularyId,
-      ...payload,
+      ...data,
+      id: data?.vocabularyId || vocabularyId,
+      vocabularyId: data?.vocabularyId || vocabularyId,
     }
   } catch (error) {
+    console.error('Error fetching vocabulary detail:', error)
+    handleApiError(error, 'Không thể tải chi tiết từ vựng')
+    throw error
+  }
+}
+
+/**
+ * Tạo từ vựng mới
+ * @param {Object} payload - Dữ liệu từ vựng
+ * @param {string} payload.text - Từ vựng (tiếng Hàn)
+ * @param {string} payload.pronunciation - Phiên âm
+ * @param {string} payload.definition - Định nghĩa
+ * @param {string} payload.imgURL - URL ảnh minh họa
+ * @param {string} payload.exampleSentence - Câu ví dụ (sẽ được convert sang examples array)
+ * @param {Array} payload.examples - Mảng các ví dụ [{ sentence, translation }]
+ * @returns {Promise<Object>} - Dữ liệu từ vựng đã được tạo
+ */
+export async function createVocabulary(payload) {
+  try {
+    if (!payload?.text || !payload?.definition) {
+      throw { status: 400, message: 'Text và Definition là bắt buộc' }
+    }
+
+    // Chuẩn bị payload cho API
+    const apiPayload = {
+      text: payload.text || '',
+      pronunciation: payload.pronunciation || '',
+      definition: payload.definition || '',
+      imgURL: payload.imgURL || null,
+      examples: [],
+    }
+
+    // Xử lý examples: nếu có exampleSentence thì convert sang examples array
+    if (payload.examples && Array.isArray(payload.examples) && payload.examples.length > 0) {
+      apiPayload.examples = payload.examples
+    } else if (payload.exampleSentence) {
+      // Nếu có exampleSentence, tách thành sentence và translation nếu có format "sentence (translation)"
+      const exampleText = payload.exampleSentence.trim()
+      if (exampleText) {
+        // Tìm pattern: "sentence (translation)" hoặc chỉ có sentence
+        const match = exampleText.match(/^(.+?)\s*\((.+?)\)$/)
+        if (match) {
+          apiPayload.examples = [
+            {
+              sentence: match[1].trim(),
+              translation: match[2].trim(),
+            },
+          ]
+        } else {
+          apiPayload.examples = [
+            {
+              sentence: exampleText,
+              translation: '',
+            },
+          ]
+        }
+      }
+    }
+
+    const res = await apiClient.post(ENDPOINTS.VOCABULARY.ADMIN_CREATE, apiPayload)
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      const message =
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể tạo từ vựng mới'
+      throw { status: responseData?.statusCode || 400, message, response: responseData }
+    }
+
+    const createdData = responseData?.data
+    return {
+      ...createdData,
+      vocabularyId: createdData?.vocabularyId,
+      id: createdData?.vocabularyId,
+    }
+  } catch (error) {
+    console.error('Error creating vocabulary:', error)
     handleApiError(error, 'Không thể tạo từ vựng mới')
+    // Ném error để component có thể xử lý và hiển thị thông báo
+    if (error?.response) {
+      throw error.response
+    }
+    throw error
   }
 }
 
@@ -166,6 +268,136 @@ export async function updateVocabulary(payload) {
       throw error.response
     }
     throw error
+  }
+}
+
+/**
+ * Upload ảnh từ vựng lên Cloudinary
+ * @param {File} file - File ảnh cần upload
+ * @returns {Promise<string>} - URL của ảnh sau khi upload
+ */
+export async function uploadVocabularyImageToCloudinary(file) {
+  try {
+    if (!file) {
+      throw new Error('File ảnh là bắt buộc')
+    }
+
+    // Tạo FormData để gửi file
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const res = await apiClient.post(ENDPOINTS.CLOUDINARY.UPLOAD_VOCABULARY_IMAGE, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+
+    const payload = res?.data
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể upload ảnh'
+      throw new Error(message)
+    }
+
+    // Trả về URL của ảnh
+    return payload?.data || null
+  } catch (error) {
+    console.error('Error uploading vocabulary image to Cloudinary:', error)
+    handleApiError(error, 'Không thể upload ảnh lên Cloudinary')
+    throw error
+  }
+}
+
+/**
+ * Tìm kiếm topics với filter
+ * @param {Object} params - Tham số tìm kiếm
+ * @param {number} params.pageNumber - Số trang (mặc định: 1)
+ * @param {number} params.pageSize - Số item mỗi trang (mặc định: 10)
+ * @param {string} params.searchTerm - Từ khóa tìm kiếm
+ * @param {number} params.level - Lọc theo level
+ * @param {number|string} params.status - Lọc theo status (0: draft, 1: active, 2: deleted, 'all': tất cả)
+ * @returns {Promise<Object>} - { items, pageNumber, pageSize, totalCount, totalPages, hasNextPage, hasPreviousPage }
+ */
+export async function searchFlashcardTopics(params = {}) {
+  try {
+    const {
+      pageNumber = 1,
+      pageSize = 10,
+      searchTerm,
+      level,
+      status,
+    } = params
+
+    const queryParams = {
+      pageNumber,
+      pageSize,
+    }
+
+    // Thêm searchTerm nếu có
+    if (searchTerm) {
+      queryParams.searchTerm = searchTerm
+    }
+
+    // Thêm level nếu có
+    if (level !== undefined && level !== null) {
+      queryParams.level = level
+    }
+
+    // Thêm status nếu có và không phải "all"
+    if (status !== undefined && status !== null && status !== 'all') {
+      queryParams.status = status
+    }
+
+    const res = await apiClient.get(ENDPOINTS.TOPIC.ADMIN_GET_ALL, {
+      params: queryParams,
+    })
+
+    const payload = res?.data
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể tìm kiếm chủ đề flashcard'
+      throw new Error(message)
+    }
+
+    const pagingData = payload?.data
+    const items = Array.isArray(pagingData?.items) ? pagingData.items : []
+
+    return {
+      items: items.map((item) => ({
+        id: item.topicId,
+        topicId: item.topicId,
+        title: item.topicName,
+        subtitle: item.description || '',
+        level: item.level,
+        imgUrl: item.imgUrl,
+        vocabularyCount: item.vocabularyCount,
+        status: item.status,
+        muted: item.status === 0, // status 0 = draft = muted
+        _raw: item,
+      })),
+      pageNumber: pagingData?.pageNumber || pageNumber,
+      pageSize: pagingData?.pageSize || pageSize,
+      totalCount: pagingData?.totalCount || 0,
+      totalPages: pagingData?.totalPages || 0,
+      hasNextPage: pagingData?.hasNextPage || false,
+      hasPreviousPage: pagingData?.hasPreviousPage || false,
+    }
+  } catch (error) {
+    console.error('Error searching flashcard topics:', error)
+    handleApiError(error, 'Không thể tìm kiếm chủ đề flashcard')
+    return {
+      items: [],
+      pageNumber: params.pageNumber || 1,
+      pageSize: params.pageSize || 10,
+      totalCount: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    }
   }
 }
 
@@ -446,6 +678,123 @@ export async function addVocabulariesToTopicAndReload(topicId, vocabularyIds) {
       },
       topicDetail: null,
     }
+  }
+}
+
+/**
+ * Gỡ từ vựng khỏi chủ đề flashcard
+ * @param {string} topicId - ID của chủ đề
+ * @param {string[]} vocabularyIds - Mảng các ID từ vựng cần gỡ
+ * @returns {Promise<Object>} - Response từ API { isSuccess, data, message, errors, statusCode }
+ */
+export async function removeVocabulariesFromTopic(topicId, vocabularyIds) {
+  try {
+    if (!topicId) {
+      throw { status: 400, message: 'TopicId là bắt buộc' }
+    }
+
+    if (!Array.isArray(vocabularyIds) || vocabularyIds.length === 0) {
+      throw { status: 400, message: 'Danh sách từ vựng không được để trống' }
+    }
+
+    const payload = {
+      topicId,
+      vocabularyIds,
+    }
+
+    const res = await apiClient.delete(ENDPOINTS.TOPIC.ADMIN_REMOVE_VOCABULARIES, {
+      data: payload,
+    })
+
+    const responseData = res?.data
+    return responseData
+  } catch (error) {
+    console.error('Error removing vocabularies from topic:', error)
+    if (error?.response?.data) {
+      return error.response.data
+    }
+    throw {
+      isSuccess: false,
+      message: error?.message || 'Không thể gỡ từ vựng khỏi chủ đề',
+      errors: error?.errors || [],
+      statusCode: error?.status || 500,
+    }
+  }
+}
+
+/**
+ * Gỡ từ vựng khỏi chủ đề và reload lại dữ liệu chủ đề
+ * @param {string} topicId - ID của chủ đề
+ * @param {string[]} vocabularyIds - Mảng các ID từ vựng cần gỡ
+ * @returns {Promise<Object>} - { response, topicDetail } - Response từ API và chi tiết chủ đề đã reload
+ */
+export async function removeVocabulariesFromTopicAndReload(topicId, vocabularyIds) {
+  try {
+    const response = await removeVocabulariesFromTopic(topicId, vocabularyIds)
+
+    let topicDetail = null
+    if (response?.isSuccess) {
+      try {
+        topicDetail = await fetchFlashcardTopicDetail(topicId)
+      } catch (reloadError) {
+        console.error('Error reloading topic detail after removing vocabularies:', reloadError)
+      }
+    }
+
+    return {
+      response,
+      topicDetail,
+    }
+  } catch (error) {
+    console.error('Error in removeVocabulariesFromTopicAndReload:', error)
+    if (error?.response?.data) {
+      return {
+        response: error.response.data,
+        topicDetail: null,
+      }
+    }
+    return {
+      response: {
+        isSuccess: false,
+        message: error?.message || 'Không thể gỡ từ vựng khỏi chủ đề',
+        errors: error?.errors || [],
+        statusCode: error?.status || 500,
+      },
+      topicDetail: null,
+    }
+  }
+}
+
+/**
+ * Xóa từ vựng
+ * @param {string} vocabularyId - ID của từ vựng cần xóa
+ * @returns {Promise<boolean>} - true nếu xóa thành công
+ */
+export async function deleteVocabulary(vocabularyId) {
+  try {
+    if (!vocabularyId) {
+      throw new Error('VocabularyId là bắt buộc')
+    }
+
+    const res = await apiClient.delete(ENDPOINTS.VOCABULARY.DELETE(vocabularyId))
+
+    const payload = res?.data
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể xóa từ vựng'
+      throw { status: payload?.statusCode || 400, message, errors: payload?.errors, response: payload }
+    }
+
+    return true
+  } catch (error) {
+    console.error('Error deleting vocabulary:', error)
+    // Ném error để component có thể xử lý và hiển thị thông báo
+    if (error?.response) {
+      throw error.response
+    }
+    throw error
   }
 }
 
