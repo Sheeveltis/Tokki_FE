@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react'
 import { Input, Space, Tag, Select } from 'antd'
-import { EyeOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons'
+import { EyeOutlined, PlusOutlined, SearchOutlined, GlobalOutlined } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { searchFlashcardTopics, createFlashcardTopic } from '../../api'
@@ -15,7 +15,7 @@ const { Option } = Select
 
 const STATUS_OPTIONS = [
   { value: 'all', label: 'Tất cả' },
-  { value: 0, label: 'Draft' },
+  { value: 0, label: 'Nháp/Ẩn' },
   { value: 1, label: 'Hoạt động' },
   { value: 2, label: 'Đã xóa' },
 ]
@@ -29,7 +29,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
   const [createLoading, setCreateLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [level, setLevel] = useState(null)
-  const [status, setStatus] = useState('all')
+  const [status, setStatus] = useState(1)
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 20,
@@ -147,45 +147,75 @@ export function FlashcardTopicManagement({ initialData = null }) {
       align: 'center',
       render: (status) => {
         const statusMap = {
-          0: { label: 'Draft', color: 'default' },
+          0: { label: 'Nháp/Ẩn', color: 'default' },
           1: { label: 'Hoạt động', color: 'green' },
           2: { label: 'Đã xóa', color: 'red' },
         }
-        const statusInfo = statusMap[status] || { label: 'Không xác định', color: 'default' }
+        const statusInfo = statusMap[status]
+        if (!statusInfo) return '-'
         return <Tag color={statusInfo.color} style={{ fontSize: 12, padding: '2px 6px' }}>{statusInfo.label}</Tag>
       },
     },
     {
-      title: 'Xem',
+      title: 'Thao tác',
       key: 'actions',
       align: 'center',
-      width: 90,
+      width: 140,
       render: (_, record) => (
-        <div
-          onClick={(e) => {
-            e?.stopPropagation?.()
-            router.push(`/admin/vocab-topic/${record.id}`)
-          }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            padding: '4px 8px',
-            borderRadius: 4,
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#f0f0f0'
-            e.currentTarget.style.transform = 'scale(1.1)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent'
-            e.currentTarget.style.transform = 'scale(1)'
-          }}
-        >
-          <EyeOutlined style={{ fontSize: 18, color: '#111', transition: 'color 0.2s ease' }} />
-        </div>
+        <Space size="middle">
+          <div
+            onClick={(e) => {
+              e?.stopPropagation?.()
+              router.push(`/admin/vocab-topic/${record.id}`)
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              padding: '4px 8px',
+              borderRadius: 4,
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#f0f0f0'
+              e.currentTarget.style.transform = 'scale(1.1)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.transform = 'scale(1)'
+            }}
+            title="Xem chi tiết (Admin)"
+          >
+            <EyeOutlined style={{ fontSize: 18, color: '#111', transition: 'color 0.2s ease' }} />
+          </div>
+          <div
+            onClick={(e) => {
+              e?.stopPropagation?.()
+              window.open(`/flashcard/study?topic=${record.id}`, '_blank')
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              padding: '4px 8px',
+              borderRadius: 4,
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#e6f7ff'
+              e.currentTarget.style.transform = 'scale(1.1)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.transform = 'scale(1)'
+            }}
+            title="Xem trên web user"
+          >
+            <GlobalOutlined style={{ fontSize: 18, color: '#1890ff', transition: 'color 0.2s ease' }} />
+          </div>
+        </Space>
       ),
     },
   ]
