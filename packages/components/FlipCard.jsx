@@ -8,7 +8,7 @@ import SoundIcon from '../assets/icon/icon-mainflow/sound.svg'
  *   // Flashcard mode (ưu tiên)
  *   word?: string; - Từ vựng hiển thị mặt trước
  *   meaning?: string; - Nghĩa hiển thị mặt sau
- *   image?: string | { uri: string } | React.ReactNode; - Hình ảnh hiển thị trên mặt trước
+ *   image?: string | { uri: string } | React.ReactNode; - Hình ảnh hiển thị trên mặt sau (cùng với nghĩa)
  *   
  *   // Custom content mode (nếu không có word/meaning)
  *   frontContent?: React.ReactNode; - Nội dung mặt trước (custom)
@@ -135,6 +135,7 @@ export function FlipCard({
           : null
 
       return {
+        // Mặt trước: chỉ hiển thị từ (word)
         front: (
           <div style={{ 
             display: 'flex', 
@@ -145,31 +146,6 @@ export function FlipCard({
             width: '100%',
             height: '100%',
           }}>
-            {image && (
-              <div style={{ 
-                marginBottom: word ? '16px' : '0',
-                maxWidth: '80%',
-                maxHeight: '60%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                {typeof image === 'string' || (image && image.uri) ? (
-                  <img 
-                    src={imageSrc} 
-                    alt={word || 'Flashcard'} 
-                    style={{ 
-                      maxWidth: '100%', 
-                      maxHeight: '100%', 
-                      objectFit: 'contain',
-                      borderRadius: '8px',
-                    }} 
-                  />
-                ) : (
-                  image
-                )}
-              </div>
-            )}
             {word && (
               <p style={{ 
                 margin: 0, 
@@ -183,15 +159,42 @@ export function FlipCard({
             )}
           </div>
         ),
+        // Mặt sau: hình + nghĩa
         back: (
           <div style={{ 
             display: 'flex', 
+            flexDirection: 'column',
             alignItems: 'center', 
             justifyContent: 'center',
             padding: '20px',
             width: '100%',
             height: '100%',
           }}>
+            {image && (
+              <div style={{ 
+                marginBottom: meaning ? '16px' : '0',
+                maxWidth: '80%',
+                maxHeight: '60%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                {typeof image === 'string' || (image && image.uri) ? (
+                  <img 
+                    src={imageSrc} 
+                    alt={word || 'Flashcard'} 
+                    style={{ 
+                      width: '400px', 
+                      height: '300px', 
+                      objectFit: 'fill',
+                      borderRadius: '8px',
+                    }} 
+                  />
+                ) : (
+                  image
+                )}
+              </div>
+            )}
             {meaning && (
               <p style={{ 
                 margin: 0, 

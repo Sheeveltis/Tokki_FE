@@ -27,6 +27,9 @@ export function FlashcardTestScreen({
   onBackPress,
   onClose,
   isFavoritesMode = false,
+  forceAnswerMode,
+  enableParts = false,
+  questionsPerPart = 10,
 }) {
   const {
     flashcards,
@@ -56,7 +59,16 @@ export function FlashcardTestScreen({
     toggleShuffle,
     setShowSettings,
     handleSettingsChange,
-  } = useFlashcardTest(topicId, isFavoritesMode)
+    // Parts management
+    parts,
+    currentPart,
+    totalParts,
+    currentPartQuestions,
+    currentPartAnsweredCount,
+    currentPartProgress,
+    handlePartChange,
+    allQuestions,
+  } = useFlashcardTest(topicId, isFavoritesMode, { forceAnswerMode, enableParts, questionsPerPart })
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
@@ -86,13 +98,24 @@ export function FlashcardTestScreen({
         onShuffle={toggleShuffle}
         isShuffled={isShuffled}
         questionMode={questionMode}
-        answerMode={answerMode}
+        answerMode={forceAnswerMode || answerMode}
+        canChangeAnswerMode={!forceAnswerMode}
         showSettings={showSettings}
         onOpenSettings={() => setShowSettings(true)}
         onCloseSettings={() => setShowSettings(false)}
         onSettingsChange={handleSettingsChange}
         typedAnswers={typedAnswers}
         onTypedAnswer={handleTypedAnswer}
+        // Parts management
+        enableParts={enableParts}
+        parts={parts}
+        currentPart={currentPart}
+        totalParts={totalParts}
+        currentPartQuestions={currentPartQuestions}
+        currentPartAnsweredCount={currentPartAnsweredCount}
+        currentPartProgress={currentPartProgress}
+        onPartChange={handlePartChange}
+        allQuestions={allQuestions}
       />
     </Layout>
   )

@@ -3,7 +3,6 @@ import { getAuthToken } from '../../../provider/api/client'
 import { useChatSignalR } from '../api/useChatSignalR'
 import { useEffect, useRef, useState } from 'react'
 
-// Decode user id từ JWT
 export const getUserIdFromToken = (token) => {
   if (!token) return null
   try {
@@ -41,7 +40,6 @@ export const useBubbleChatLogic = () => {
     setHasSupporter(false)
   }
 
-  // Join lại room + load history khi mở lại
   useEffect(() => {
     const initRoom = async () => {
       if (roomId && isOpen && isConnected) {
@@ -55,7 +53,6 @@ export const useBubbleChatLogic = () => {
         }
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     initRoom()
   }, [roomId, isConnected, isOpen])
 
@@ -156,8 +153,6 @@ export const useBubbleChatLogic = () => {
     const content = inputMessage.trim()
 
     try {
-      // sendMessage trong useChatSignalR đã tự làm optimistic update,
-      // nên ở đây KHÔNG được push thêm vào messages để tránh duplicate.
       await sendMessage(roomId, content)
       setInputMessage('')
     } catch (err) {

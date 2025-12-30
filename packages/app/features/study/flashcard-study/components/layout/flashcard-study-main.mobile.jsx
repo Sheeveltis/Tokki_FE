@@ -26,6 +26,7 @@ export function FlashcardStudyMain({
   onBackPress,
   onLearnPress,
   onTestPress,
+  onQuizPress,
   onFlip,
   onToggleFavorite,
   onNext,
@@ -113,16 +114,27 @@ export function FlashcardStudyMain({
 
       {/* Action buttons */}
       <View style={styles.actions}>
-        <FlashcardActionButton
-          icon={BunnyStudy}
-          title="Học"
-          onPress={onLearnPress}
-        />
-        <FlashcardActionButton
-          icon={BunnyTest}
-          title="Kiểm tra"
-          onPress={onTestPress}
-        />
+        <View style={styles.actionsLeft}>
+          <FlashcardActionButton
+            icon={BunnyStudy}
+            title="Học thẻ ghi nhớ"
+            onPress={onLearnPress}
+          />
+          {onQuizPress && (
+            <FlashcardActionButton
+              icon={BunnyStudy}
+              title="Học trắc nghiệm"
+              onPress={onQuizPress}
+            />
+          )}
+        </View>
+        <View style={styles.actionsRight}>
+          <FlashcardActionButton
+            icon={BunnyTest}
+            title="Kiểm tra"
+            onPress={onTestPress}
+          />
+        </View>
       </View>
 
       {/* Flashcard */}
@@ -130,6 +142,7 @@ export function FlashcardStudyMain({
         <FlipCard
           word={current.word}
           meaning={current.meaning}
+          image={current.imageUrl || undefined}
           width="100%"
           height={500}
           frontColor="#79964E"
@@ -192,8 +205,18 @@ const styles = StyleSheet.create({
   actions: {
     width: '100%',
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
     gap: 16,
+  },
+  actionsLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  actionsRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   cardContainer: {
     width: '100%',

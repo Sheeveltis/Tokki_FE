@@ -10,6 +10,7 @@ export function SettingsModal({
   answerMode,
   onClose,
   onSave,
+  canChangeAnswerMode = true,
 }) {
   const [localQuestionMode, setLocalQuestionMode] = React.useState(questionMode)
   const [localAnswerMode, setLocalAnswerMode] = React.useState(answerMode)
@@ -86,39 +87,55 @@ export function SettingsModal({
           </View>
 
           {/* Answer Mode Selection */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Cách trả lời</Text>
-            <View style={styles.optionsContainer}>
-              <Pressable
-                style={[
-                  styles.option,
-                  localAnswerMode === 'multipleChoice' && styles.optionSelected,
-                ]}
-                onPress={() => setLocalAnswerMode('multipleChoice')}
-              >
-                <Text style={[
-                  styles.optionText,
-                  localAnswerMode === 'multipleChoice' && styles.optionTextSelected,
-                ]}>
-                  Trắc nghiệm
-                </Text>
-              </Pressable>
-              <Pressable
-                style={[
-                  styles.option,
-                  localAnswerMode === 'typeAnswer' && styles.optionSelected,
-                ]}
-                onPress={() => setLocalAnswerMode('typeAnswer')}
-              >
-                <Text style={[
-                  styles.optionText,
-                  localAnswerMode === 'typeAnswer' && styles.optionTextSelected,
-                ]}>
-                  Gõ đáp án
-                </Text>
-              </Pressable>
+          {canChangeAnswerMode && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Cách trả lời</Text>
+              <View style={styles.optionsContainer}>
+                <Pressable
+                  style={[
+                    styles.option,
+                    localAnswerMode === 'multipleChoice' && styles.optionSelected,
+                  ]}
+                  onPress={() => setLocalAnswerMode('multipleChoice')}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    localAnswerMode === 'multipleChoice' && styles.optionTextSelected,
+                  ]}>
+                    Trắc nghiệm
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.option,
+                    localAnswerMode === 'typeAnswer' && styles.optionSelected,
+                  ]}
+                  onPress={() => setLocalAnswerMode('typeAnswer')}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    localAnswerMode === 'typeAnswer' && styles.optionTextSelected,
+                  ]}>
+                    Gõ đáp án
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.option,
+                    localAnswerMode === 'mix' && styles.optionSelected,
+                  ]}
+                  onPress={() => setLocalAnswerMode('mix')}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    localAnswerMode === 'mix' && styles.optionTextSelected,
+                  ]}>
+                    Trộn
+                  </Text>
+                </Pressable>
+              </View>
             </View>
-          </View>
+          )}
 
           {/* Buttons */}
           <View style={styles.buttonContainer}>

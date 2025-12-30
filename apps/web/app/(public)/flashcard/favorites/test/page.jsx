@@ -12,6 +12,7 @@ export default function FlashcardFavoritesTestPage() {
       topicId={null}
       isFavoritesMode={true}
       title="Kiểm tra Từ Vựng Yêu Thích"
+      forceAnswerMode="mix"
       onBackPress={() => router.push('/flashcard/favorites')}
       onClose={() => router.push('/flashcard/favorites')}
     />

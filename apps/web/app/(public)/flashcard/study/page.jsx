@@ -18,6 +18,9 @@ export default function FlashcardStudyPage() {
       onLearnPress={() => {
         router.push(`/flashcard/learn?topic=${topicId}`)
       }}
+      onQuizPress={() => {
+        router.push(`/flashcard/quiz?topic=${topicId}`)
+      }}
       onTestPress={() => {
         router.push(`/flashcard/test?topic=${topicId}`)
       }}

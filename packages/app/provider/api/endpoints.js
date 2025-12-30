@@ -61,14 +61,22 @@ export const ENDPOINTS = {
       GET_BY_ID: (id) => `/Topics/${id}`,
       DELETE: (id) => `/Topics/${id}`,
       ADD_VOCABULARIES: '/Topics/vocabularies',
+      ADMIN_REMOVE_VOCABULARIES: '/Topics/admin/vocabularies',
+      PUBLISH: (topicId) => `/Topics/${topicId}/publish`,
+      UPDATE: '/Topics/update',
     },
     VOCABULARY: {
       ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
+      ADMIN_CREATE: '/Vocabulary/admin/create-a-vocabulary',
       ADD_VOCABULARY_LIST: '/Vocabulary/bulk',
       FLASH_CARD_TOPIC: '/Vocabulary/flash-card',
       GET_BY_ID: (id) => `/Vocabulary/${id}`,
+      USER_GET_DETAIL: (id) => `/Vocabulary/user/get-detail/${id}`,
       UPDATE: (id) => `/Vocabulary/${id}`,
-      DELETE: (id) => `/Vocabularies/${id}`,
+      DELETE: (id) => `/Vocabulary/${id}`,
+      ADD_EXAMPLES: '/vocabulary-examples/admin/add',
+      UPDATE_EXAMPLE: (exampleId) => `/vocabulary-examples/admin/${exampleId}`,
+      DELETE_EXAMPLE: (exampleId) => `/vocabulary-examples/admin/${exampleId}`,
     },
     MINIGAME: {
       MATCHING_CARDS: '/minigame/matching-cards',
@@ -92,5 +100,9 @@ export const ENDPOINTS = {
     },
     LEADERBOARD: {
       GET_ALL: '/Leaderboard',  // GET: Lấy danh sách leaderboard (query: timeFrame, top)
+    },
+    CLOUDINARY: {
+      UPLOAD_VOCABULARY_IMAGE: '/cloudinary/vocabulary-image',  // POST: Upload ảnh từ vựng lên Cloudinary
+      UPLOAD_TOPIC_IMAGE: '/cloudinary/topic-image',  // POST: Upload ảnh chủ đề lên Cloudinary
     }
   }

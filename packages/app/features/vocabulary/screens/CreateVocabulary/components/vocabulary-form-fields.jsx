@@ -9,6 +9,7 @@ import { Form, Input, Upload, message } from 'antd'
 export function VocabularyFormFields() {
   const form = Form.useFormInstance()
   const [previewUrl, setPreviewUrl] = useState(form?.getFieldValue('imgURL') || '')
+  const [selectedFile, setSelectedFile] = useState(null)
 
   const placeholderStyles = `
     .vocab-form-fields input::placeholder,
@@ -23,24 +24,34 @@ export function VocabularyFormFields() {
     }
   `
 
-  const toBase64 = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = () => resolve(reader.result)
-      reader.onerror = (error) => reject(error)
-    })
-
-  const handleBeforeUpload = async (file) => {
-    try {
-      const dataUrl = await toBase64(file)
-      form?.setFieldsValue({ imgURL: dataUrl })
-      setPreviewUrl(dataUrl)
-      message.success('Đã chọn ảnh')
-    } catch (err) {
-      message.error('Không thể đọc ảnh')
+  const handleBeforeUpload = (file) => {
+    // Kiểm tra loại file
+    const isImage = file.type.startsWith('image/')
+    if (!isImage) {
+      message.error('Chỉ chấp nhận file ảnh!')
+      return false
     }
-    return false
+
+    // Kiểm tra kích thước file (tối đa 5MB)
+    const isLt5M = file.size / 1024 / 1024 < 5
+    if (!isLt5M) {
+      message.error('Ảnh phải nhỏ hơn 5MB!')
+      return false
+    }
+
+    // Lưu file để upload sau
+    setSelectedFile(file)
+    form?.setFieldsValue({ imageFile: file }) // Lưu file vào form
+    
+    // Tạo preview URL
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setPreviewUrl(e.target.result)
+    }
+    reader.readAsDataURL(file)
+    
+    message.success('Đã chọn ảnh')
+    return false // Ngăn upload tự động
   }
 
   return (

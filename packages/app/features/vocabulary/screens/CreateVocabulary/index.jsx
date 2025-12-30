@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, Form, Typography, Modal } from 'antd'
 import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
-import { createVocabulary } from '../../api'
+import { createVocabulary, uploadVocabularyImageToCloudinary } from '../../api'
 import { VocabularyFormFields } from './components/vocabulary-form-fields'
 import { VocabularyFormActions } from './components/vocabulary-form-actions'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
@@ -19,12 +19,34 @@ export function CreateVocabularyScreen() {
   const handleSubmit = async (values) => {
     try {
       setLoading(true)
-      const payload = { ...values }
+      
+      // Nếu có file ảnh mới, upload lên Cloudinary trước
+      let imgURL = values?.imgURL || null
+      if (values?.imageFile) {
+        try {
+          imgURL = await uploadVocabularyImageToCloudinary(values.imageFile)
+          if (!imgURL) {
+            showAdminError('Không thể upload ảnh lên Cloudinary')
+            return
+          }
+        } catch (err) {
+          showAdminError(err?.message || 'Không thể upload ảnh lên Cloudinary')
+          return
+        }
+      }
+
+      // Tạo payload với URL ảnh từ Cloudinary
+      const payload = {
+        ...values,
+        imgURL: imgURL,
+        imageFile: undefined, // Xóa imageFile khỏi payload
+      }
+      
       await createVocabulary(payload)
       showAdminSuccess('Đã tạo từ vựng mới thành công')
       router.push('/admin?tab=vocabulary-words')
     } catch (error) {
-      showAdminError('Tạo từ vựng thất bại')
+      showAdminError(error?.message || 'Tạo từ vựng thất bại')
     } finally {
       setLoading(false)
     }
