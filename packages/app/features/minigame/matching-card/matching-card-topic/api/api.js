@@ -76,7 +76,7 @@ export const getMinigameTopics = async (
       id: item.topicId,
       titleKo: item.topicName,
       titleVi: item.description || '',
-      icon: item.imgUrl || DefaultBunny,
+      imgUrl: item.imgUrl,
       level: item.level,
       _raw: item,
     }))

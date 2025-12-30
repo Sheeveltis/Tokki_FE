@@ -25,6 +25,7 @@ export const getMatchingCards = async (topicId, quantity) => {
       id: item.vocabularyId,
       ko: item.text,
       vi: item.definition,
+      imgUrl: item.imgURL || null, // Thêm trường imgURL từ API
     }))
   } catch (error) {
     console.error('Error fetching matching cards:', error)

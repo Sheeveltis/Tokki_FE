@@ -16,6 +16,7 @@ export function MatchingCard({
   flipped: flippedProp,
   matched = false,
   onFlip,
+  imgUrl = null, // Hình ảnh từ API (chỉ hiển thị cho card tiếng Việt)
 }) {
   const [current, setCurrent] = useState(word || null)
   const [fade] = useState(new Animated.Value(1))
@@ -89,7 +90,18 @@ export function MatchingCard({
               },
             ]}
           >
-            <Text style={styles.word}>{backLabel}</Text>
+            {face === 'vi' && imgUrl ? (
+              <View style={styles.backContent}>
+                <Image
+                  source={normalizeImageSource({ uri: imgUrl })}
+                  style={styles.backImage}
+                  resizeMode="cover"
+                />
+                <Text style={styles.word}>{backLabel}</Text>
+              </View>
+            ) : (
+              <Text style={styles.word}>{backLabel}</Text>
+            )}
           </Animated.View>
         </View>
       </Animated.View>
@@ -159,6 +171,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingHorizontal: 6,
+  },
+  backContent: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 8,
+  },
+  backImage: {
+    width: 100,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: '#F5F5F5',
   },
   word: {
     fontSize: 18,

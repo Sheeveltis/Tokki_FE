@@ -14,9 +14,9 @@ const normalizeImageSource = (src) => {
 }
 
 const DEFAULT_LEVELS = [
-  { id: 'easy', title: 'Mức độ', subtitle: 'Dễ', icon: BunnyEasy, quantity: 5 },
-  { id: 'medium', title: 'Mức độ', subtitle: 'Trung bình', icon: BunnyMedium, quantity: 10 },
-  { id: 'hard', title: 'Mức độ', subtitle: 'Khó', icon: BunnyHard, quantity: 18 },
+  { id: 'easy', title: 'Mức độ', subtitle: 'Dễ', icon: BunnyEasy, quantity: 10 },
+  { id: 'medium', title: 'Mức độ', subtitle: 'Trung bình', icon: BunnyMedium, quantity: 15 },
+  { id: 'hard', title: 'Mức độ', subtitle: 'Khó', icon: BunnyHard, quantity: 20 },
 ]
 
 /**

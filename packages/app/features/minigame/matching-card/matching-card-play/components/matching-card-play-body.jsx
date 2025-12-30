@@ -13,9 +13,9 @@ const shuffle = (list = []) => {
 }
 
 const LEVEL_CONFIG = {
-  easy: { pairs: 5, size: 'large' },
-  medium: { pairs: 10, size: 'medium' },
-  hard: { pairs: 18, size: 'small' },
+  easy: { pairs: 20, size: 'large' },
+  medium: { pairs: 30, size: 'medium' },
+  hard: { pairs: 40, size: 'small' },
 }
 
 /**
@@ -80,8 +80,8 @@ export function MatchingCardPlayBody({ topicId, levelId, quantity: quantityProp,
         const base = shuffle(list || [])
         const selected = base.slice(0, pairCount)
         const pairs = selected.flatMap((item) => [
-          { id: `${item.id}-ko`, pairId: item.id, ko: item.ko, vi: item.vi, face: 'ko' },
-          { id: `${item.id}-vi`, pairId: item.id, ko: item.ko, vi: item.vi, face: 'vi' },
+          { id: `${item.id}-ko`, pairId: item.id, ko: item.ko, vi: item.vi, face: 'ko', imgUrl: null },
+          { id: `${item.id}-vi`, pairId: item.id, ko: item.ko, vi: item.vi, face: 'vi', imgUrl: item.imgUrl || null },
         ])
         const shuffledCards = shuffle(pairs)
         setCards(shuffledCards)
@@ -130,6 +130,7 @@ export function MatchingCardPlayBody({ topicId, levelId, quantity: quantityProp,
             matched={isMatched}
             style={sizeStyle}
             onFlip={() => onFlipCard(card)}
+            imgUrl={card.imgUrl}
           />
         )
       })}
@@ -146,16 +147,16 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: 9,
     justifyContent: 'center',
   },
   cardLarge: {
     transform: [{ scale: 1.1 }],
-    margin: 12,
+    margin: 20,
   },
   cardMedium: {
-    transform: [{ scale: 1.0 }],
-    margin: 10,
+    transform: [{ scale: 1.2 }],
+    margin: 28,
   },
   cardSmall: {
     transform: [{ scale: 0.85 }],

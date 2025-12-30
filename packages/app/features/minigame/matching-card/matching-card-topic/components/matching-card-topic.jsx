@@ -90,7 +90,7 @@ const MatchingCardTopicComponent = forwardRef(({ levelId, selectedId, onSelect, 
             >
               <View style={styles.itemLeft}>
                 <Image
-                  source={normalizeImageSource(topic.icon)}
+                  source={normalizeImageSource(topic.imgUrl)}
                   style={styles.avatar}
                   resizeMode="contain"
                 />
