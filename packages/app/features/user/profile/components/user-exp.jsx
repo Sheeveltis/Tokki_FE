@@ -8,10 +8,9 @@ import { Animated, StyleSheet, Text, View } from 'react-native'
  * @param {number} props.level - Cấp độ hiện tại (từ API)
  * @param {string} props.label - Label hiển thị (mặc định "Kinh nghiệm")
  */
-export function UserExp({ totalXP = 0, level = 1, label = 'Kinh nghiệm' }) {
+export function UserExp({ totalXP = 0, label = 'Kinh nghiệm' }) {
   // Tính maxExp dựa trên level: mỗi level cần 100 XP để lên cấp
   // Level 1: 0-100, Level 2: 100-200, Level 3: 200-300, ...
-  const maxExp = level * 100
   // Tính currentExp trong level hiện tại (XP còn lại trong level)
   const currentExp = totalXP % 100
   
@@ -35,15 +34,7 @@ export function UserExp({ totalXP = 0, level = 1, label = 'Kinh nghiệm' }) {
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.label}>{label}</Text>
-        <View style={styles.headerRight}>
-          <View style={styles.levelBadge}>
-            <Text style={styles.levelLabel}>Cấp</Text>
-            <Text style={styles.levelValue}>{level}</Text>
-          </View>
-          <Text style={styles.expText}>
-            {currentExp} / 100
-          </Text>
-        </View>
+
       </View>
 
       <View style={styles.progressContainer}>

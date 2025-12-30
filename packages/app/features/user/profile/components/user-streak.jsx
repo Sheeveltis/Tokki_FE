@@ -12,7 +12,6 @@ export function UserStreak({ currentStreak = 0, maxStreak = 0, label = 'Chuỗi 
   const fireAnim = useRef(new Animated.Value(1)).current
 
   useEffect(() => {
-    // Animation nhấp nháy cho icon lửa
     Animated.loop(
       Animated.sequence([
         Animated.timing(fireAnim, {

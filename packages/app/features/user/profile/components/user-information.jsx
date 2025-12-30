@@ -3,7 +3,7 @@ import { Image, StyleSheet, Text, View } from 'react-native'
 
 import Carrot from '../../../../../assets/carrot.png'
 import UserIcon from '../../../../../assets/user.png'
-import { getCurrentUser, updateBasicInfo, updateSecurityInfo, uploadAvatar } from '../api/api'
+import { getCurrentUser, updateBasicInfo, updateSecurityInfo, uploadAvatar, getTitleById } from '../api/api'
 import { showAdminSuccess } from '../../../../../components/HelperAdmin'
 import { BasicInfo } from './basic-info'
 import { SecurityInfo } from './security-info'
@@ -39,6 +39,7 @@ export function UserInformation() {
   const [userData, setUserData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [titleData, setTitleData] = useState(null)
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -47,6 +48,17 @@ export function UserInformation() {
         const data = await getCurrentUser()
         setUserData(data)
         setError(null)
+
+        // Nếu có titleId, fetch thông tin title
+        if (data?.currentTitle) {
+          try {
+            const titleInfo = await getTitleById(data.currentTitle)
+            setTitleData(titleInfo)
+          } catch (titleErr) {
+            console.warn('Error fetching title data:', titleErr)
+            // Không set error vì title không phải là thông tin bắt buộc
+          }
+        }
       } catch (err) {
         console.error('Error fetching user data:', err)
         setError(err.message || 'Không thể tải thông tin người dùng')
@@ -191,9 +203,8 @@ export function UserInformation() {
           </View>
           <View style={styles.titleWrap}>
             <UserTitle 
-              title={userData.currentTitle || null}
-              icon={userData.titleIcon || '🏆'}
-              description={userData.titleDescription || ''}
+              title={titleData?.name || userData.currentTitle || null}
+              icon={titleData?.iconUrl || userData.titleIcon || '🏆'}
             />
           </View>
         </View>
