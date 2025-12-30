@@ -1,8 +1,0 @@
-'use client'
-
-import { StaffScreen } from '@tokki/app/features/staff/screen'
-
-export default function StaffPage() {
-  return <StaffScreen />
-}
-
