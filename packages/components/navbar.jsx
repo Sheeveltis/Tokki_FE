@@ -14,6 +14,7 @@ import HomeIcon from '../assets/icon/navigate-app/home.svg'
 import RoadmapIcon from '../assets/icon/navigate-app/book.svg'
 import FlashcardIcon from '../assets/icon/navigate-app/folder.svg'
 import BlogIcon from '../assets/icon/navigate-app/chat.svg'
+import LeaderboardIcon from '../assets/leaderboard.png'
 import SmallFoot from '../assets/smallfoot.png'
 import RoadmapImage from '../assets/roadmap.png'
 import { useRouter } from 'solito/navigation'
@@ -80,6 +81,7 @@ export const Navbar = ({
   const [roadmapHover, setRoadmapHover] = useState(false)
   const [flashcardHover, setFlashcardHover] = useState(false)
   const [blogHover, setBlogHover] = useState(false)
+  const [leaderboardHover, setLeaderboardHover] = useState(false)
   const [userHover, setUserHover] = useState(false)
   const [logoutHover, setLogoutHover] = useState(false)
   const [roadmapInfoHover, setRoadmapInfoHover] = useState(false)
@@ -111,7 +113,7 @@ export const Navbar = ({
   // Prefetch các route chính để giảm độ trễ khi điều hướng (web)
   useEffect(() => {
     if (!router?.prefetch) return
-    const routesToPrefetch = ['/homepage', '/study', '/flashcard', '/blog', '/roadmap/info', '/login', '/register']
+    const routesToPrefetch = ['/homepage', '/study', '/flashcard', '/blog', '/roadmap/info', '/leaderboard', '/login', '/register']
     routesToPrefetch.forEach((r) => {
       router.prefetch(r).catch(() => {})
     })
@@ -128,6 +130,7 @@ export const Navbar = ({
   const handleRoadmapInfoPress = go('/roadmap/info')
   const handleFlashcardPress = onFlashcardPress || go('/flashcard')
   const handleBlogPress = onBlogPress || go('/blog')
+  const handleLeaderboardPress = go('/leaderboard')
   const handleLoginPress = onLoginPress || go('/login')
   const handleRegisterPress = onRegisterPress || go('/register')
 
@@ -313,6 +316,14 @@ export const Navbar = ({
             setHover: setBlogHover,
             size: 40,
             tint: colors.Mustard,
+          },
+          {
+            key: 'leaderboard',
+            icon: LeaderboardIcon,
+            onPress: handleLeaderboardPress,
+            hover: leaderboardHover,
+            setHover: setLeaderboardHover,
+            size: 40,
           },
         ].map((item) => (
           <Pressable

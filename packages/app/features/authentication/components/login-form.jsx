@@ -3,8 +3,9 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { TextInput } from '../../../../components/textInput'
 import { Button } from '../../../../components/button'
-import { login, sendHeartbeat } from '../api'
-import { setAuthToken, getCurrentUserId } from '../../../provider/api/client'
+import { login } from '../api'
+import { setAuthToken } from '../../../provider/api/client'
+import { heartbeatService } from './heartbeat-service'
 import { showApiNotification } from '../helpers/notification'
 import { encryptToken, decryptToken } from '../helpers/token-encryption'
 import { HelperAdmin } from '../../../../components/HelperAdmin'
@@ -32,7 +33,6 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
   const [forgotEmail, setForgotEmail] = useState('')
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [showOtpModal, setShowOtpModal] = useState(false)
-  const heartbeatIntervalRef = React.useRef(null)
 
   // fuwy thêm token để check login (đã mã hóa)
   const setToken = (token) => {
@@ -60,52 +60,13 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
 
   const logoSource = normalizeImageSource(LogoImage)
 
-  // Hàm gửi heartbeat
-  const sendHeartbeatCall = async () => {
-    try {
-      const userId = getCurrentUserId()
-      if (!userId) {
-        console.warn('sendHeartbeatCall: Không tìm thấy userId từ token')
-        return
-      }
-      await sendHeartbeat(userId, 300)
-      console.log('Heartbeat sent successfully:', { userId, durationInSeconds: 300 })
-    } catch (error) {
-      console.error('Error in sendHeartbeatCall:', error)
-    }
-  }
-
-  // Bắt đầu heartbeat interval (300 giây = 5 phút)
-  const startHeartbeatInterval = () => {
-    // Clear interval cũ nếu có
-    if (heartbeatIntervalRef.current) {
-      clearInterval(heartbeatIntervalRef.current)
-    }
-
-    // Gửi heartbeat ngay lập tức sau khi login
-    sendHeartbeatCall()
-
-    // Set interval để gửi heartbeat mỗi 300 giây
-    heartbeatIntervalRef.current = setInterval(() => {
-      sendHeartbeatCall()
-    }, 300 * 1000) // 300 giây = 300000 milliseconds
-
-    console.log('Heartbeat interval started (300 seconds)')
-  }
-
-  // Dừng heartbeat interval
-  const stopHeartbeatInterval = () => {
-    if (heartbeatIntervalRef.current) {
-      clearInterval(heartbeatIntervalRef.current)
-      heartbeatIntervalRef.current = null
-      console.log('Heartbeat interval stopped')
-    }
-  }
+  // Không cần các hàm heartbeat nữa vì đã chuyển sang service
 
   // Cleanup khi component unmount
+  // Cleanup heartbeat service khi component unmount
   React.useEffect(() => {
     return () => {
-      stopHeartbeatInterval()
+      heartbeatService.stop()
     }
   }, [])
 
@@ -171,8 +132,10 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
           avatarUrl,
         })
 
-        // Bắt đầu heartbeat interval sau khi login thành công
-        startHeartbeatInterval()
+        // Bắt đầu heartbeat service sau khi login thành công
+        // Service sẽ tự động gửi heartbeat mỗi 300 giây
+        // Backend sẽ tự động cập nhật TotalXP và Streak sau khi nhận đủ số lần heartbeat
+        heartbeatService.start()
 
         // Chuyển trang đến homepage sau khi hiển thị thông báo
         setTimeout(() => {

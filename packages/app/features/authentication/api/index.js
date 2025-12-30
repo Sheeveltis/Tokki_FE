@@ -259,10 +259,12 @@ export const sendHeartbeat = async (userId, durationInSeconds = 300) => {
       return { isSuccess: false, message: 'UserId không được để trống' }
     }
 
+    console.log('[Heartbeat API] Đang gửi heartbeat:', { userId, durationInSeconds, endpoint: ENDPOINTS.GAMIFICATION.HEARTBEAT })
     const response = await apiClient.post(ENDPOINTS.GAMIFICATION.HEARTBEAT, {
       userId,
       durationInSeconds,
     })
+    console.log('[Heartbeat API] Heartbeat đã được gửi thành công:', response.data)
     return response.data
   } catch (error) {
     // Không throw error để tránh làm gián đoạn flow chính

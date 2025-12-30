@@ -58,3 +58,21 @@ export const uploadAvatar = async (avatarUrl) => {
   throw new Error(response?.message || 'Không thể cập nhật avatar')
 }
 
+/**
+ * Lấy thông tin title theo titleId
+ * @param {string} titleId - ID của title
+ * @returns {Promise<Object>} Title data (name, description, colorHex, iconUrl, etc.)
+ */
+export const getTitleById = async (titleId) => {
+  if (!titleId) {
+    throw new Error('TitleId không được để trống')
+  }
+
+  const res = await apiClient.get(ENDPOINTS.TITLE.GET_BY_ID(titleId))
+  const response = res.data
+  if (response?.isSuccess && response?.data) {
+    return response.data
+  }
+  throw new Error(response?.message || 'Không thể lấy thông tin title')
+}
+

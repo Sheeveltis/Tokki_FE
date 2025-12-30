@@ -86,5 +86,11 @@ export const ENDPOINTS = {
     },
     GAMIFICATION: {
       HEARTBEAT: '/Gamification/heartbeat',  // POST: Heartbeat để track thời gian học tập
+    },
+    TITLE: {
+      GET_BY_ID: (id) => `/Title/${id}`,  // GET: Lấy thông tin title theo ID
+    },
+    LEADERBOARD: {
+      GET_ALL: '/Leaderboard',  // GET: Lấy danh sách leaderboard (query: timeFrame, top)
     }
   }
