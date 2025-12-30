@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useMemo, useState, useEffect, useTransition } from 'react'
 import { Layout, Menu, ConfigProvider, theme as antdTheme } from 'antd'
-import { adminMenuItems } from './menu-items'
+import { adminMenuItems } from './menu-items.jsx'
 
 const ThemeContext = createContext({
   themeMode: 'light',

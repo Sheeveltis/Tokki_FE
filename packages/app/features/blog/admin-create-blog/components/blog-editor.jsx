@@ -1,14 +1,10 @@
 'use client'
-import React, { useMemo } from 'react'
-import dynamic from 'next/dynamic'
+import React, { useMemo, lazy, Suspense } from 'react'
 import { Form } from 'antd'
 import 'react-quill/dist/quill.snow.css'
 
-// Dynamic import để tắt SSR
-const ReactQuill = dynamic(() => import('react-quill'), { 
-  ssr: false,
-  loading: () => <p>Đang tải bộ soạn thảo...</p>
-})
+// Lazy load ReactQuill (thay thế next/dynamic)
+const ReactQuill = lazy(() => import('react-quill'))
 
 export function BlogEditor({ name, label, rules }) {
   // Cấu hình Toolbar gọn gàng ở đây
@@ -25,12 +21,14 @@ export function BlogEditor({ name, label, rules }) {
   return (
     <Form.Item name={name} label={label} rules={rules}>
       {/* ReactQuill nhận value/onChange tự động từ Form.Item */}
-      <ReactQuill 
-        theme="snow"
-        modules={modules}
-        style={{ height: 400, marginBottom: 50 }} 
-        placeholder="Viết nội dung bài blog ở đây..."
-      />
+      <Suspense fallback={<p>Đang tải bộ soạn thảo...</p>}>
+        <ReactQuill 
+          theme="snow"
+          modules={modules}
+          style={{ height: 400, marginBottom: 50 }} 
+          placeholder="Viết nội dung bài blog ở đây..."
+        />
+      </Suspense>
     </Form.Item>
   )
 }

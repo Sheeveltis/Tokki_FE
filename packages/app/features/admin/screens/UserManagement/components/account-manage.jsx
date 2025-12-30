@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'solito/navigation'
 import { Tag, Input, Space } from 'antd'
 import { EyeOutlined, SearchOutlined } from '@ant-design/icons'
 

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'solito/navigation'
 import { Card, Form, Input, Switch, Space, Typography, message } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from '../../components/admin-layout.web'

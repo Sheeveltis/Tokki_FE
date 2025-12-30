@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { View, Text, StyleSheet, Image, Pressable } from 'react-native'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'solito/navigation'
 import { Navbar } from 'components/navbar'
 
 import GameCardIcon from '../../../../assets/icon/icon-mainflow/game-card.svg'

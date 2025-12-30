@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'solito/navigation'
 import { Card, Form, Input, Select, Space, Typography, message } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { statusUser } from '../../../../string.js'

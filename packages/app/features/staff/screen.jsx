@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo, useTransition } from 'react'
 import { Spin } from 'antd'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'solito/navigation'
 import { StaffLayout } from './components/staff-layout.web'
 import {
   fetchRegularUsers,

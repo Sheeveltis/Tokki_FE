@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { StyleSheet, View, Text } from 'react-native'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'solito/navigation'
 import { MatchingCardHeader } from './matching-card-play-header'
 import { MatchingCardPlayBody } from './matching-card-play-body'
 import { BackButton } from '../../../../../../components/backBtn'

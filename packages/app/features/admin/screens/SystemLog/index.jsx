@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'solito/navigation'
 import { Input, Space } from 'antd'
 import { EyeOutlined, SearchOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'

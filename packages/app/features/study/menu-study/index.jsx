@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Platform } from 'react-native'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'solito/navigation'
 import { useMenuStudy } from './useMenuStudy'
 import { 
   MenuStudyLayout as WebLayout,
