@@ -1,67 +1,27 @@
 'use client'
 
-import React, { useMemo, useTransition } from 'react'
-import dynamic from 'next/dynamic'
+import React, { useMemo, useTransition, lazy, Suspense } from 'react'
 import { Spin } from 'antd'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'solito/navigation'
 import { AdminLayout } from './components/admin-layout.web'
 
-const LazyUserManagement = dynamic(() => import('./screens/UserManagement'), {
-  ssr: false,
-  loading: () => <Spin />,
-})
-const LazyLessonManagement = dynamic(() => import('./screens/LessonManagement'), {
-  ssr: false,
-  loading: () => <Spin />,
-})
-const LazyVocabularyManagement = dynamic(
-  () => import('../vocabulary/screens/VocabularyManagement'),
-  { ssr: false, loading: () => <Spin /> }
-)
-const LazyFlashcardTopicManagement = dynamic(
-  () => import('../vocabulary/screens/FlashcardTopicManagement'),
-  { ssr: false, loading: () => <Spin /> }
-)
-const LazyBlogManagement = dynamic(() => import('../blog/blog-management'), {
-  ssr: false,
-  loading: () => <Spin />,
-})
-const LazyChatSupport = dynamic(() => import('../live-chat/chat-support'), {
-  ssr: false,
-  loading: () => <Spin />,
-})
-const LazyAutoEmail = dynamic(() => import('./screens/AutoEmail'), {
-  ssr: false,
-  loading: () => <Spin />,
-})
-const LazyFeedbackInbox = dynamic(() => import('./screens/FeedbackInbox'), {
-  ssr: false,
-  loading: () => <Spin />,
-})
-const LazyMembershipPackage = dynamic(() => import('./screens/MembershipPackage'), {
-  ssr: false,
-  loading: () => <Spin />,
-})
-const LazyPaymentManagement = dynamic(() => import('./screens/PaymentManagement'), {
-  ssr: false,
-  loading: () => <Spin />,
-})
-const LazyRevenueReport = dynamic(() => import('./screens/RevenueReport'), {
-  ssr: false,
-  loading: () => <Spin />,
-})
-const LazySystemLog = dynamic(() => import('./screens/SystemLog'), {
-  ssr: false,
-  loading: () => <Spin />,
-})
-const LazyAIStatisticsReport = dynamic(() => import('./screens/AIStatisticsReport'), {
-  ssr: false,
-  loading: () => <Spin />,
-})
-const LazySettings = dynamic(() => import('./screens/Settings'), {
-  ssr: false,
-  loading: () => <Spin />,
-})
+// Lazy load components với React.lazy (thay thế next/dynamic)
+const LazyUserManagement = lazy(() => import('./screens/UserManagement'))
+const LazyLessonManagement = lazy(() => import('./screens/LessonManagement'))
+const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/VocabularyManagement'))
+const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/FlashcardTopicManagement'))
+const LazyBlogManagement = lazy(() => import('../blog/blog-management'))
+const LazyChatSupport = lazy(() => import('../live-chat/chat-support'))
+const LazyAutoEmail = lazy(() => import('./screens/AutoEmail'))
+const LazyFeedbackInbox = lazy(() => import('./screens/FeedbackInbox'))
+const LazyMembershipPackage = lazy(() => import('./screens/MembershipPackage'))
+const LazyPaymentManagement = lazy(() => import('./screens/PaymentManagement'))
+const LazyRevenueReport = lazy(() => import('./screens/RevenueReport'))
+const LazySystemLog = lazy(() => import('./screens/SystemLog'))
+const LazyAIStatisticsReport = lazy(() => import('./screens/AIStatisticsReport'))
+const LazySettings = lazy(() => import('./screens/Settings'))
+
+const LoadingFallback = () => <Spin />
 
 export function AdminScreen() {
   const router = useRouter()
@@ -73,21 +33,81 @@ export function AdminScreen() {
   // Phải đặt TRƯỚC early return để tuân thủ Rules of Hooks
   const screens = useMemo(
     () => ({
-      'users-admin': <LazyUserManagement mode="admin" />,
-      'users-all': <LazyUserManagement mode="all" />,
-      lessons: <LazyLessonManagement />,
-      'vocabulary-words': <LazyVocabularyManagement />,
-      'vocabulary-topics': <LazyFlashcardTopicManagement />,
-      blog: <LazyBlogManagement />,
-      'chat-support': <LazyChatSupport />,
-      'auto-email': <LazyAutoEmail />,
-      'feedback-inbox': <LazyFeedbackInbox />,
-      'membership-package': <LazyMembershipPackage />,
-      'payment-management': <LazyPaymentManagement />,
-      'revenue-report': <LazyRevenueReport />,
-      'system-log': <LazySystemLog />,
-      'ai-statistics': <LazyAIStatisticsReport />,
-      settings: <LazySettings />,
+      'users-admin': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyUserManagement mode="admin" />
+        </Suspense>
+      ),
+      'users-all': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyUserManagement mode="all" />
+        </Suspense>
+      ),
+      lessons: (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyLessonManagement />
+        </Suspense>
+      ),
+      'vocabulary-words': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyVocabularyManagement />
+        </Suspense>
+      ),
+      'vocabulary-topics': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyFlashcardTopicManagement />
+        </Suspense>
+      ),
+      blog: (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyBlogManagement />
+        </Suspense>
+      ),
+      'chat-support': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyChatSupport />
+        </Suspense>
+      ),
+      'auto-email': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyAutoEmail />
+        </Suspense>
+      ),
+      'feedback-inbox': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyFeedbackInbox />
+        </Suspense>
+      ),
+      'membership-package': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyMembershipPackage />
+        </Suspense>
+      ),
+      'payment-management': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyPaymentManagement />
+        </Suspense>
+      ),
+      'revenue-report': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyRevenueReport />
+        </Suspense>
+      ),
+      'system-log': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazySystemLog />
+        </Suspense>
+      ),
+      'ai-statistics': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyAIStatisticsReport />
+        </Suspense>
+      ),
+      settings: (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazySettings />
+        </Suspense>
+      ),
     }),
     [],
   )
