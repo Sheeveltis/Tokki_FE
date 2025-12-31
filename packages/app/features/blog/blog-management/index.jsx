@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'solito/navigation'
 import { Tag, Space, Row, Col } from 'antd'
 import { EyeOutlined } from '@ant-design/icons'
 import { statusArticle } from '../../../string.js'

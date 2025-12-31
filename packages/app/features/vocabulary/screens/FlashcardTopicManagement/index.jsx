@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react'
 import { Input, Space, Tag, Select } from 'antd'
 import { EyeOutlined, PlusOutlined, SearchOutlined, GlobalOutlined } from '@ant-design/icons'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'solito/navigation'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { searchFlashcardTopics, createFlashcardTopic } from '../../api'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'

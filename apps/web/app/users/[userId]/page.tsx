@@ -1,7 +1,0 @@
-'use client'
-
-import { UserProfileScreen } from 'app/features/user/profile/user-profile-screen'
-
-export default function UserProfilePage() {
-  return <UserProfileScreen />
-}

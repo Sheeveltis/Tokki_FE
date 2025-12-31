@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet, Image } from 'react-native'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'solito/navigation'
 import { NavigationPill } from 'components/navigation-pill'
 
 import GameCardIcon from '../../../../../../assets/icon/icon-mainflow/game-card.svg'

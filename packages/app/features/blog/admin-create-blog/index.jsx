@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'solito/navigation'
 import { Card, Form, Typography, message, Space } from 'antd'
 import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
 import { createBlog } from 'app/features/blog/api/api'

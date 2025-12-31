@@ -8,7 +8,7 @@ import { paymentStatusColors, paymentMethodLabels } from '../../mockData.js'
 import { approvePayment, rejectPayment } from '../../api'
 import { usePaymentsQuery } from '../../api/useAdminQueries'
 import { EyeOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'solito/navigation'
 
 const { Title, Text } = Typography
 const { RangePicker } = DatePicker

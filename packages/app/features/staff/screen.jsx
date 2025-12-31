@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo, useTransition } from 'react'
 import { Spin } from 'antd'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'solito/navigation'
 import { StaffLayout } from './components/staff-layout.web'
 import {
   fetchRegularUsers,
@@ -16,7 +16,7 @@ import { LessonManagement } from '../admin/screens/LessonManagement'
 import { VocabularyManagement } from '../vocabulary/screens/VocabularyManagement'
 import { FlashcardTopicManagement } from '../vocabulary/screens/FlashcardTopicManagement'
 import { BlogManagement } from '../blog/blog-management'
-import { ChatSupport } from '../admin/screens/ChatSupport'
+import { ChatSupport } from '../live-chat/chat-support'
 import { AutoEmail } from '../admin/screens/AutoEmail'
 import { FeedbackInbox } from '../admin/screens/FeedbackInbox'
 // Staff-specific screens

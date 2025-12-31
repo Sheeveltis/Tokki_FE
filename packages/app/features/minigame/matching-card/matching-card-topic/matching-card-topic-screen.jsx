@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'solito/navigation'
 
 import { MatchingCardTopicLayoutWeb } from './components/matching-card-topic-layout.web'
 import { MatchingCardLevelPopup } from '../matching-card-level/components/matching-card-level-popup'
