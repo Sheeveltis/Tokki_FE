@@ -42,6 +42,8 @@ import { PaymentSuccessScreen } from '@tokki/app/features/payment/payment-succes
 
 import { ErrorScreen } from '@tokki/app/features/error/error-screen'
 
+import LeaderboardScreen from '@tokki/app/features/leaderboard/leaderboard-screen'
+
 import { BlogListScreen } from '@tokki/app/features/blog/list-blog'
 import { BlogDetailScreen } from '@tokki/app/features/blog/detail-blog'
 
@@ -299,6 +301,9 @@ function FlashcardStudyRoute() {
       onLearnPress={() => {
         navigate(`/flashcard/learn?topic=${topicId}`)
       }}
+      onQuizPress={() => {
+        navigate(`/flashcard/quiz?topic=${topicId}`)
+      }}
       onTestPress={() => {
         navigate(`/flashcard/test?topic=${topicId}`)
       }}
@@ -334,8 +339,29 @@ function FlashcardTestRoute() {
     <TestScreen
       topicId={topicId}
       title={`Kiểm tra ${topicTitle}`}
+      forceAnswerMode="mix"
       onBackPress={() => navigate(`/flashcard/study?topic=${topicId}`)}
       onClose={() => navigate(`/flashcard/study?topic=${topicId}`)}
+    />
+  )
+}
+
+function FlashcardQuizRoute() {
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const topicId = searchParams.get('topic') || ''
+  const topicTitle = topicId
+    ? TOPIC_TITLES[topicId] || STUDY_PAGE_TITLES.FLASHCARD_STUDY
+    : STUDY_PAGE_TITLES.FLASHCARD_STUDY
+
+  return (
+    <TestScreen
+      topicId={topicId}
+      title={`Học trắc nghiệm ${topicTitle}`}
+      onBackPress={() => navigate(`/flashcard/study?topic=${topicId}`)}
+      onClose={() => navigate(`/flashcard/study?topic=${topicId}`)}
+      enableParts={true}
+      questionsPerPart={10}
     />
   )
 }
@@ -379,12 +405,17 @@ function FlashcardFavoritesTestRoute() {
   return (
     <TestScreen
       topicId={null}
-      isFavoritesMode
+      isFavoritesMode={true}
       title="Kiểm tra Từ Vựng Yêu Thích"
+      forceAnswerMode="mix"
       onBackPress={() => navigate('/flashcard/favorites')}
       onClose={() => navigate('/flashcard/favorites')}
     />
   )
+}
+
+function LeaderboardRoute() {
+  return <LeaderboardScreen />
 }
 
 // -------- ROADMAP --------
@@ -589,6 +620,7 @@ function App() {
             <Route path="/flashcard" element={<FlashcardRoute />} />
             <Route path="/flashcard/study" element={<FlashcardStudyRoute />} />
             <Route path="/flashcard/learn" element={<FlashcardLearnRoute />} />
+            <Route path="/flashcard/quiz" element={<FlashcardQuizRoute />} />
             <Route path="/flashcard/test" element={<FlashcardTestRoute />} />
             <Route path="/flashcard/favorites" element={<FlashcardFavoritesRoute />} />
             <Route path="/flashcard/favorites/learn" element={<FlashcardFavoritesLearnRoute />} />
@@ -612,6 +644,9 @@ function App() {
             <Route path="/payment/premium" element={<PaymentPremiumRoute />} />
             <Route path="/payment/failed" element={<PaymentFailedRoute />} />
             <Route path="/payment/success" element={<PaymentSuccessRoute />} />
+
+            {/* Leaderboard */}
+            <Route path="/leaderboard" element={<LeaderboardRoute />} />
 
             {/* Blog */}
             <Route path="/blog" element={<BlogListRoute />} />
