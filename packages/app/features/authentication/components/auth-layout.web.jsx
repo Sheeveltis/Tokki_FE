@@ -23,20 +23,27 @@ export function AuthLayout({ hero, panel }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    width: '100%',
+    height: '100vh',
+    minHeight: '100vh',
     backgroundColor: 'white',
     alignItems: 'stretch',
     justifyContent: 'center',
   },
   split: {
     flex: 1,
+    width: '100%',
+    height: '100%',
     flexDirection: 'row',
     alignItems: 'stretch',
   },
   hero: {
     flex: 1,
+    height: '100%',
   },
   panel: {
     flex: 1,
+    height: '100%',
   },
 })
 
