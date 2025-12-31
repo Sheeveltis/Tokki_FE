@@ -186,7 +186,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
     ...(Platform.OS === 'web' && {
-      outline: 'none',
+      outlineWidth: 0,
+      outlineStyle: 'none',
+      outlineColor: 'transparent',
     }),
   },
   inputCorrect: {
