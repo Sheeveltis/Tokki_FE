@@ -14,12 +14,14 @@ import {
   updateFlashcardTopic,
   deleteTopic,
   uploadTopicImageToCloudinary,
+  uploadExcelToTopic,
 } from '../../api'
 import { HelperAdmin, showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import TopicInfoCard from './components/topic-info-card'
 import TopicVocabSection from './components/topic-vocab-section'
 import FlashcardTopicEditModal from './components/flashcard-topic-edit-modal'
 import QuickAddVocabularyModal from './components/quick-add-vocabulary-modal'
+import VocabularyGuideModal from './components/vocabulary-guide-modal'
 
 const { Title, Text } = Typography
 
@@ -48,7 +50,10 @@ export function FlashcardTopicDetailScreen() {
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [apiResponse, setApiResponse] = useState(null)
   const [quickAddModalOpen, setQuickAddModalOpen] = useState(false)
+  const [uploadingExcel, setUploadingExcel] = useState(false)
+  const [guideModalOpen, setGuideModalOpen] = useState(false)
   const searchTimeoutRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     let mounted = true
@@ -370,6 +375,78 @@ export function FlashcardTopicDetailScreen() {
     })
   }
 
+  const handleExcelUpload = async (file) => {
+    if (!topicId || !file) return
+
+    setUploadingExcel(true)
+    setApiResponse(null)
+
+    try {
+      const response = await uploadExcelToTopic(topicId, file)
+
+      if (response?.isSuccess) {
+        const successCount = response?.data?.successList?.length || 0
+        const failureCount = response?.data?.failureList?.length || 0
+
+        // Reload lại chi tiết chủ đề từ API để hiển thị dữ liệu mới nhất
+        try {
+          const refreshedDetail = await fetchFlashcardTopicDetail(topicId)
+          if (refreshedDetail?.topic) {
+            setDetailTopic(refreshedDetail.topic)
+            setTopicVocabIds(refreshedDetail.topic.vocabIds || [])
+            setTopicVocabularies(refreshedDetail.vocabularies || [])
+          }
+        } catch (reloadError) {
+          console.error('Error reloading topic detail:', reloadError)
+        }
+
+        setApiResponse({
+          isSuccess: true,
+          message: response?.message || `Import thành công ${successCount} từ vựng${failureCount > 0 ? `, thất bại ${failureCount} từ vựng` : ''}`,
+          statusCode: 200,
+        })
+      } else {
+        throw new Error(response?.message || 'Import từ vựng thất bại')
+      }
+    } catch (err) {
+      console.error('Error uploading Excel:', err)
+      const errorMessage = err?.message || err?.errors?.[0]?.description || 'Không thể import từ vựng từ Excel'
+      setApiResponse({
+        isSuccess: false,
+        message: errorMessage,
+        errors: err?.errors || [],
+        statusCode: err?.statusCode || 500,
+      })
+    } finally {
+      setUploadingExcel(false)
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleExcelFileSelect = (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Kiểm tra định dạng file
+    const validExtensions = ['.xlsx', '.xls']
+    const fileName = file.name.toLowerCase()
+    const isValidExtension = validExtensions.some((ext) => fileName.endsWith(ext))
+
+    if (!isValidExtension) {
+      showAdminError('Vui lòng chọn file Excel (.xlsx hoặc .xls)')
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+      return
+    }
+
+    // Tự động upload khi chọn file
+    handleExcelUpload(file)
+  }
+
   const detailContent = (() => {
     if (loading) {
       return (
@@ -493,6 +570,10 @@ export function FlashcardTopicDetailScreen() {
             removing={removing}
             dataSource={topicVocabData}
             onQuickAdd={() => setQuickAddModalOpen(true)}
+            onExcelUpload={handleExcelFileSelect}
+            uploadingExcel={uploadingExcel}
+            fileInputRef={fileInputRef}
+            onOpenGuide={() => setGuideModalOpen(true)}
           />
           <QuickAddVocabularyModal
             open={quickAddModalOpen}
@@ -525,6 +606,7 @@ export function FlashcardTopicDetailScreen() {
               }
             }}
           />
+          <VocabularyGuideModal open={guideModalOpen} onCancel={() => setGuideModalOpen(false)} />
         </Space>
       </div>
     )
