@@ -1074,3 +1074,49 @@ export async function deleteExample(exampleId) {
   }
 }
 
+/**
+ * Import từ vựng từ file Excel vào chủ đề
+ * @param {string} topicId - ID của chủ đề
+ * @param {File} file - File Excel cần import
+ * @returns {Promise<Object>} - Response từ API với successList và failureList
+ */
+export async function uploadExcelToTopic(topicId, file) {
+  try {
+    if (!topicId) {
+      throw new Error('TopicId là bắt buộc')
+    }
+
+    if (!file) {
+      throw new Error('File Excel là bắt buộc')
+    }
+
+    // Tạo FormData để gửi file
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const res = await apiClient.post(ENDPOINTS.EXCEL.ADD_VOCAB_TO_TOPIC(topicId), formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+
+    const payload = res?.data
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể import từ vựng từ Excel'
+      throw { status: payload?.statusCode || 400, message, errors: payload?.errors, response: payload }
+    }
+
+    return payload
+  } catch (error) {
+    console.error('Error uploading Excel to topic:', error)
+    // Ném error để component có thể xử lý và hiển thị thông báo
+    if (error?.response) {
+      throw error.response
+    }
+    throw error
+  }
+}
+
