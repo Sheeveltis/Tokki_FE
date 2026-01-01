@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'solito/navigation'
 import { Card, Descriptions, Image, Tag, Space, Button, Table } from 'antd'
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { fetchUserDetail } from 'app/features/admin/screens/UserDetail/api/api'
