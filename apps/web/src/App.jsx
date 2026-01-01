@@ -576,7 +576,7 @@ function RootHomeRoute() {
   return (
     <HomeScreen
       onHomePress={() => navigate('/')}
-      onRoadmapPress={() => navigate('/roadmap')}
+      onRoadmapPress={() => navigate('/study')}
       onFlashcardPress={() => navigate('/flashcard')}
       onBlogPress={() => navigate('/blog')}
       onProfilePress={() => navigate('/profile')}

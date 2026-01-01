@@ -1,9 +1,10 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Card, Space, Select, Table, Typography, List, Tag, Modal } from 'antd'
+import { Card, Space, Select, Table, Typography, List, Tag, Modal, Input } from 'antd'
 import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
+import { VocabularyGuideButton } from './vocabulary-guide-modal'
 
 export function TopicVocabSection({
   selecting,
@@ -21,12 +22,17 @@ export function TopicVocabSection({
   dataSource,
   selectStyle,
   onQuickAdd,
+  onExcelUpload,
+  uploadingExcel,
+  fileInputRef,
+  onOpenGuide,
 }) {
   const router = useRouter()
   const { Text } = Typography
   const [removeMode, setRemoveMode] = useState(false)
   const [pageSize, setPageSize] = useState(10)
   const [currentPage, setCurrentPage] = useState(1)
+  const [searchKeyword, setSearchKeyword] = useState('')
 
   const selectedOptions = useMemo(() => {
     if (!Array.isArray(selecting) || !Array.isArray(availableOptions)) return []
@@ -34,15 +40,35 @@ export function TopicVocabSection({
     return availableOptions.filter((opt) => valueSet.has(opt.value))
   }, [selecting, availableOptions])
 
-  // Client-side pagination cho danh sách từ vựng
-  const paginatedDataSource = useMemo(() => {
+  // Filter danh sách từ vựng dựa trên keyword (tìm trong text, definition, và id)
+  const filteredDataSource = useMemo(() => {
     if (!Array.isArray(dataSource)) return []
+    if (!searchKeyword || searchKeyword.trim() === '') return dataSource
+
+    const keyword = searchKeyword.toLowerCase().trim()
+    return dataSource.filter((item) => {
+      const text = (item.text || '').toLowerCase()
+      const definition = (item.definition || '').toLowerCase()
+      const id = (item.vocabularyId || item.id || '').toLowerCase()
+      
+      return text.includes(keyword) || definition.includes(keyword) || id.includes(keyword)
+    })
+  }, [dataSource, searchKeyword])
+
+  // Client-side pagination cho danh sách từ vựng đã filter
+  const paginatedDataSource = useMemo(() => {
+    if (!Array.isArray(filteredDataSource)) return []
     const startIndex = (currentPage - 1) * pageSize
     const endIndex = startIndex + pageSize
-    return dataSource.slice(startIndex, endIndex)
-  }, [dataSource, currentPage, pageSize])
+    return filteredDataSource.slice(startIndex, endIndex)
+  }, [filteredDataSource, currentPage, pageSize])
 
-  const totalItems = Array.isArray(dataSource) ? dataSource.length : 0
+  const totalItems = Array.isArray(filteredDataSource) ? filteredDataSource.length : 0
+
+  // Reset về trang đầu khi search keyword thay đổi
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchKeyword])
 
   const columns = [
     {
@@ -74,7 +100,14 @@ export function TopicVocabSection({
   ]
 
   return (
-    <Card title="Từ vựng trong chủ đề">
+    <Card
+      title={
+        <Space>
+          <Text strong>Từ vựng trong chủ đề</Text>
+          {onOpenGuide && <VocabularyGuideButton onOpen={onOpenGuide} />}
+        </Space>
+      }
+    >
       <Space direction="vertical" size="small" style={{ marginBottom: 12, width: '100%' }}>
         <Space style={{ width: '100%', justifyContent: 'space-between' }} align="start">
           <div style={{ flex: 1 }}>
@@ -104,7 +137,6 @@ export function TopicVocabSection({
             </Text>
           </div>
           <Space>
-           
             {onQuickAdd && (
               <ButtonV2
                 title="Tạo từ vựng nhanh"
@@ -113,6 +145,26 @@ export function TopicVocabSection({
                 style={{ minWidth: 160, paddingVertical: 10 }}
                 textStyle={{ fontSize: 14 }}
               />
+            )}
+
+            {onExcelUpload && (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  style={{ display: 'none' }}
+                  onChange={onExcelUpload}
+                />
+                <ButtonV2
+                  title={uploadingExcel ? 'Đang import...' : 'Import Excel'}
+                  onPress={() => fileInputRef?.current?.click()}
+                  disabled={uploadingExcel}
+                  color="#217346"
+                  style={{ minWidth: 140, paddingVertical: 10 }}
+                  textStyle={{ fontSize: 14 }}
+                />
+              </>
             )}
 
             <ButtonV2
@@ -161,21 +213,22 @@ export function TopicVocabSection({
           </Card>
         )}
       </Space>
-      <Space style={{ width: '100%', marginBottom: 8, justifyContent: 'space-between' }}>
-        <Space direction="vertical" size={2}>
-          <Space align="center">
-            <Text strong>Từ vựng hiện có trong chủ đề</Text>
-            <Text type="secondary" style={{ fontSize: 13 }}>
-              (Tổng: <Text strong>{totalItems}</Text> từ vựng)
-            </Text>
+      <Space direction="vertical" size="small" style={{ width: '100%', marginBottom: 8 }}>
+        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+          <Space direction="vertical" size={2}>
+            <Space align="center">
+              <Text strong>Từ vựng hiện có trong chủ đề</Text>
+              <Text type="secondary" style={{ fontSize: 13 }}>
+                (Tổng: <Text strong>{totalItems}</Text> từ vựng)
+              </Text>
+            </Space>
+            {removeMode && (
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Đang ở chế độ chọn để gỡ. Tick vào các từ vựng muốn gỡ rồi bấm "Gỡ từ vựng đã chọn".
+              </Text>
+            )}
           </Space>
-          {removeMode && (
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              Đang ở chế độ chọn để gỡ. Tick vào các từ vựng muốn gỡ rồi bấm "Gỡ từ vựng đã chọn".
-            </Text>
-          )}
-        </Space>
-        <Space>
+          <Space>
           <Space align="center">
             <Text type="secondary" style={{ fontSize: 13 }}>Hiển thị:</Text>
             <Select
@@ -226,7 +279,16 @@ export function TopicVocabSection({
             style={{ paddingVertical: 8, minWidth: 180 }}
             textStyle={{ fontSize: 13 }}
           />
+          </Space>
         </Space>
+        <Input.Search
+          placeholder="Tìm kiếm theo từ, định nghĩa hoặc ID..."
+          allowClear
+          value={searchKeyword}
+          onChange={(e) => setSearchKeyword(e.target.value)}
+          style={{ width: '100%', maxWidth: 600 }}
+          size="middle"
+        />
       </Space>
       <Table
         rowSelection={
