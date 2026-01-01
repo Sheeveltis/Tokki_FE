@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'solito/navigation'
 import { Card, Space, Select, Table, Typography, List, Tag, Modal } from 'antd'
 import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
 
