@@ -94,6 +94,7 @@ export const ENDPOINTS = {
     },
     GAMIFICATION: {
       HEARTBEAT: '/Gamification/heartbeat',  // POST: Heartbeat để track thời gian học tập
+      PROGRESS: (userId) => `/Gamification/progress/${userId}`,  // GET: Lấy thông tin progress (level, XP, streak, title)
     },
     TITLE: {
       GET_BY_ID: (id) => `/Title/${id}`,  // GET: Lấy thông tin title theo ID
