@@ -1,18 +1,17 @@
 'use client'
 
-import React from 'react'
-import { View, Text, StyleSheet, Image, Pressable } from 'react-native'
+import React, { useState, useEffect } from 'react'
+import { View, Text, StyleSheet, Image, Pressable, ActivityIndicator, ScrollView } from 'react-native'
 import { useRouter, useSearchParams } from 'solito/navigation'
-import { Navbar } from 'components/navbar'
+import { Navbar } from '../../../../components/navbar'
 
 import GameCardIcon from '../../../../assets/icon/icon-mainflow/game-card.svg'
-import BunnyDeveloping from '../../../../assets/bunny/9.png'
 import { NavigationPill } from 'components/navigation-pill'
 import { MinigameHappy } from './minigame-happy'
 import { MinigameRankingButton } from './minigame-ranking-button'
 import { MinigameBanner } from './minigame-banner'
-import { MatchingCardBanner } from '../matching-card/matching-card-play/components/matching-card-play-banner'
-import { MinigameMatchingCard } from './minigame-matching-card'
+import { MinigameGameCard } from './minigame-game-card'
+import { getUserGames } from '../api/api'
 import ArrowIcon from '../../../../assets/icon/icon-mainflow/arrow.svg'
 
 const normalizeImageSource = (src) => {
@@ -27,17 +26,62 @@ export function MinigameLayout() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const levelId = searchParams?.get('level') || ''
+  
+  const [games, setGames] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const goToMatchingCardRule = () => {
+  // Fetch games from API
+  useEffect(() => {
+    const fetchGames = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await getUserGames(1, 10)
+        
+        if (response.isSuccess && response.data?.items) {
+          setGames(response.data.items)
+        } else {
+          setError('Không thể tải danh sách game')
+        }
+      } catch (err) {
+        console.error('[MinigameLayout] Error fetching games:', err)
+        setError('Đã xảy ra lỗi khi tải danh sách game')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchGames()
+  }, [])
+
+  const goToMatchingCardRule = (gameId) => {
     const query = new URLSearchParams()
     if (levelId) {
       query.set('level', levelId)
+    }
+    if (gameId) {
+      query.set('gameId', gameId)
     }
     const url =
       query.toString().length > 0
         ? `/minigame/matching-card/matching-card-rule?${query.toString()}`
         : '/minigame/matching-card/matching-card-rule'
     router.push(url)
+  }
+
+  const handleGamePress = (game) => {
+    // Route based on gameType
+    // 1 = Matching Card, 2 = Solitaire, 3 = Typing Practice
+    if (game.gameType === 1) {
+      goToMatchingCardRule(game.gameId)
+    } else if (game.gameType === 2) {
+      // TODO: Navigate to Solitaire
+      console.log('Solitaire game:', game.gameId)
+    } else if (game.gameType === 3) {
+      // TODO: Navigate to Typing Practice
+      console.log('Typing Practice game:', game.gameId)
+    }
   }
 
   return (
@@ -77,26 +121,36 @@ export function MinigameLayout() {
               <MinigameBanner />
             </View>
 
-            <View style={styles.cardsRow}>
-              <View style={styles.cardCol}>
-                <MatchingCardBanner onStart={goToMatchingCardRule} />
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#FF6B9D" />
+                <Text style={styles.loadingText}>Đang tải danh sách game...</Text>
               </View>
-
-              <View style={styles.cardCol}>
-                <MinigameMatchingCard
-                  header={<Text style={styles.soonTitle}>Tính năng đang được phát triển thêm</Text>}
-                  onPress={goToMatchingCardRule}
-                >
-                  <View style={styles.soonBody}>
-                    <Image
-                      source={normalizeImageSource(BunnyDeveloping)}
-                      style={styles.soonImage}
-                      resizeMode="contain"
-                    />
-                  </View>
-                </MinigameMatchingCard>
+            ) : error ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
               </View>
-            </View>
+            ) : games.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>Không có game nào khả dụng</Text>
+              </View>
+            ) : (
+              <ScrollView 
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.cardsContainer}
+              >
+                <View style={styles.cardsRow}>
+                  {games.map((game, index) => (
+                    <View key={game.gameId || index} style={styles.cardCol}>
+                      <MinigameGameCard
+                        game={game}
+                        onPress={() => handleGamePress(game)}
+                      />
+                    </View>
+                  ))}
+                </View>
+              </ScrollView>
+            )}
           </View>
         </View>
 
@@ -193,15 +247,55 @@ const styles = StyleSheet.create({
   bannerWrapper: {
     marginBottom: 24,
   },
+  cardsContainer: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
   cardsRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 20,
     alignItems: 'flex-start',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
   },
   cardCol: {
-    flex: 1,
+    width: '48%',
+    maxWidth: 320,
     alignItems: 'center',
-    transform: [{ scale: 0.8 }],
+    transform: [{ scale: 0.85 }],
+    marginBottom: 20,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  errorContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#d9534f',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
   },
   soonTitle: {
     fontSize: 20,
