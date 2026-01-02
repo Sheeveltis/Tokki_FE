@@ -3,6 +3,7 @@ import { useRouter, useSearchParams } from 'solito/navigation'
 
 import { MatchingCardTopicLayoutWeb } from './components/matching-card-topic-layout.web'
 import { MatchingCardLevelPopup } from '../matching-card-level/components/matching-card-level-popup'
+import { hasPlayedLevel, mapLevelToDifficulty } from '../matching-card-play/api/api'
 
 /**
  * Screen chọn chủ đề cho matching card
@@ -24,7 +25,7 @@ export default function MatchingCardTopicScreen() {
     console.log('[MatchingCardTopicScreen] Popup should be visible now')
   }
 
-  const handleLevelConfirm = (level) => {
+  const handleLevelConfirm = async (level) => {
     // Đóng popup
     setShowLevelPopup(false)
 
@@ -33,13 +34,32 @@ export default function MatchingCardTopicScreen() {
     const topicName = selectedTopic?.titleKo
     const levelIdValue = level?.id || 'medium'
     const quantity = level?.quantity || 10
+    const gameId = searchParams?.get('gameId') || '' // Lấy gameId từ URL params
 
-    // Navigate trực tiếp đến play với topicId và quantity
+    // Map levelId to gameDifficulty (1=dễ, 2=trung bình, 3=khó)
+    const gameDifficulty = mapLevelToDifficulty(levelIdValue)
+
+    // Check if user has played this level before
+    let hasPlayed = false
+    if (gameId && topicId) {
+      try {
+        hasPlayed = await hasPlayedLevel(gameId, topicId, gameDifficulty)
+        console.log('[MatchingCardTopicScreen] hasPlayedLevel result:', hasPlayed)
+      } catch (error) {
+        console.error('[MatchingCardTopicScreen] Error checking hasPlayedLevel:', error)
+        // Default to false if error
+        hasPlayed = false
+      }
+    }
+
+    // Navigate đến play với topicId, quantity, và hasPlayed flag
     const query = new URLSearchParams()
+    if (gameId) query.set('gameId', gameId)
     if (topicId) query.set('topic', topicId)
     if (topicName) query.set('topicName', topicName)
     query.set('level', levelIdValue)
     query.set('quantity', String(quantity))
+    query.set('hasPlayed', String(hasPlayed)) // Lưu flag để biết dùng POST hay PUT
 
     router.push(`/minigame/matching-card/matching-card-play?${query.toString()}`)
   }

@@ -463,11 +463,14 @@ function MatchingCardResultRoute() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
+  const gameId = searchParams.get('gameId') || ''
   const topicId = searchParams.get('topic') || 'life'
   const topicName = searchParams.get('topicName') || undefined
+  const levelId = searchParams.get('level') || 'medium'
   const score = Number(searchParams.get('score') || 0)
   const topPercent = Number(searchParams.get('top') || 5)
   const timeLeft = Number(searchParams.get('time') || 0)
+  const hasPlayed = searchParams.get('hasPlayed') === 'true'
 
   const handleReplay = () => {
     navigate('/minigame')
@@ -475,11 +478,14 @@ function MatchingCardResultRoute() {
 
   return (
     <MatchingCardResultScreen
+      gameId={gameId}
       topicId={topicId}
       topicName={topicName}
+      levelId={levelId}
       score={score}
       topPercent={topPercent}
       timeLeft={timeLeft}
+      hasPlayed={hasPlayed}
       onBack={handleReplay}
     />
   )

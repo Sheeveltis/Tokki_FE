@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { StyleSheet, View, Text } from 'react-native'
-import { useRouter } from 'solito/navigation'
+import { useRouter, useSearchParams } from 'solito/navigation'
 import { MatchingCardHeader } from './matching-card-play-header'
 import { MatchingCardPlayBody } from './matching-card-play-body'
 import { BackButton } from '../../../../../../components/backBtn'
@@ -28,6 +28,19 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
   const [score, setScore] = useState(0)
   const [finished, setFinished] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const gameId = searchParams?.get('gameId') || ''
+  const hasPlayed = searchParams?.get('hasPlayed') === 'true'
+  
+  // Debug: Log params khi component mount
+  useEffect(() => {
+    console.log('[MatchingCardLayout] Play screen params:', {
+      gameId,
+      topicId,
+      levelId,
+      hasPlayed,
+    })
+  }, [gameId, topicId, levelId, hasPlayed])
 
   const [secondsLeft, setSecondsLeft] = useState(INITIAL_SECONDS)
   const [cardsCount, setCardsCount] = useState(0)
@@ -88,11 +101,25 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
     if (finished) return
     setFinished(true)
     const query = new URLSearchParams()
+    if (gameId) query.set('gameId', gameId)
     if (topicId) query.set('topic', topicId)
     if (topicName) query.set('topicName', topicName)
+    query.set('level', levelId)
     query.set('score', String(score))
     query.set('time', String(secondsLeft))
+    query.set('hasPlayed', String(hasPlayed)) // Truyền flag để biết dùng POST hay PUT
     query.set('top', '5')
+    
+    // Debug: Log params trước khi navigate
+    console.log('[MatchingCardLayout] Navigating to result with params:', {
+      gameId,
+      topicId,
+      levelId,
+      score,
+      hasPlayed,
+      url: `/minigame/matching-card/matching-card-result?${query.toString()}`,
+    })
+    
     router.push(`/minigame/matching-card/matching-card-result?${query.toString()}`)
   }
 

@@ -86,6 +86,10 @@ export const ENDPOINTS = {
     },
     GAMES: {
       USER_GET_ALL: '/Games/user/get-all', // GET: Lấy danh sách games cho user (query: pageNumber, pageSize)
+      HAS_PLAYED_LEVEL: '/Games/user/has-played-level', // GET: Check xem user đã chơi level này chưa (query: gameId, topicId, gameDifficulty)
+      SAVE_RESULT: '/Games/user/save-result', // POST: Lưu điểm game mới
+      UPDATE_RESULT: '/Games/user/result', // PUT: Cập nhật điểm game đã có
+      GET_ALL_USER_RESULTS: '/Games/user/get-all-user-results', // GET: Lấy bảng xếp hạng user results (query: gameId, topicId, gameDifficulty, pageNumber, pageSize)
     },
     REPORT: {
       CREATE: '/Report',
