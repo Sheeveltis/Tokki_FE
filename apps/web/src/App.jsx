@@ -639,11 +639,11 @@ function App() {
             <Route path="/minigame/matching-card/matching-card-result" element={<MatchingCardResultRoute />} />
 
             {/* Payment */}
-            <Route path="/payment/detail" element={<PaymentDetailRoute />} />
-            <Route path="/payment/package" element={<PaymentPackageRoute />} />
-            <Route path="/payment/premium" element={<PaymentPremiumRoute />} />
-            <Route path="/payment/failed" element={<PaymentFailedRoute />} />
-            <Route path="/payment/success" element={<PaymentSuccessRoute />} />
+            <Route path="/payment-detail" element={<PaymentDetailRoute />} />
+            <Route path="/payment-package" element={<PaymentPackageRoute />} />
+            <Route path="/premium-package" element={<PaymentPremiumRoute />} />
+            <Route path="/payment-failed" element={<PaymentFailedRoute />} />
+            <Route path="/payment-success" element={<PaymentSuccessRoute />} />
 
             {/* Leaderboard */}
             <Route path="/leaderboard" element={<LeaderboardRoute />} />
