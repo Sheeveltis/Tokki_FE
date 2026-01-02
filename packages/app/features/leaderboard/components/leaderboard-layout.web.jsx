@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { StyleSheet, View } from 'react-native'
-import { Navbar } from 'components/navbar'
+import { Navbar } from '../../../../components/navbar'
 import { LeaderboardDashboard } from './leaderBoard-dashboard'
 import { Leaderboard } from './leaderBoard'
 

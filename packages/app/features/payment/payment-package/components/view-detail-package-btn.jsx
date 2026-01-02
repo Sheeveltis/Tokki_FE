@@ -20,7 +20,7 @@ export const ViewDetailPackageButton = ({ onPress, style, textStyle }) => {
     if (onPress) {
       onPress()
     } else {
-      router.push('/payment/premium')
+      router.push('/premium-package')
     }
   }
 

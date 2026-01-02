@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, Text, Image, StyleSheet } from 'react-native'
-import { Button } from 'components/button'
+import { Button } from '../../../../components/button'
 import BunnyImage from '../../../../assets/bunny/15.png'
 
 const normalizeImageSource = (src) => {
