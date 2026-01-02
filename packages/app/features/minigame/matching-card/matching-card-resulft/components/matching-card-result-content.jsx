@@ -14,9 +14,10 @@ import CarrotImage from '../../../../../../assets/carrot.png'
  *  topPercent?: number
  *  timeLeft?: number
  *  onReplay?: () => void
+ *  onShowLeaderboard?: () => void
  * }} props
  */
-export function MatchingCardResultContent({ score = 0, topPercent = 5, timeLeft = 0, onReplay }) {
+export function MatchingCardResultContent({ score = 0, topPercent = 5, timeLeft = 0, onReplay, onShowLeaderboard }) {
   const minutes = Math.floor(timeLeft / 60)
   const seconds = timeLeft % 60
   const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
@@ -39,9 +40,17 @@ export function MatchingCardResultContent({ score = 0, topPercent = 5, timeLeft 
 
         <Text style={styles.timeText}>Thời gian còn lại: {formattedTime}</Text>
 
-        <Pressable onPress={onReplay} style={styles.button}>
-          <Text style={styles.buttonText}>Chơi lại</Text>
-        </Pressable>
+        <View style={styles.buttonsContainer}>
+          <Pressable onPress={onReplay} style={styles.button}>
+            <Text style={styles.buttonText}>Chơi lại</Text>
+          </Pressable>
+          
+          {onShowLeaderboard && (
+            <Pressable onPress={onShowLeaderboard} style={styles.leaderboardButton}>
+              <Text style={styles.leaderboardButtonText}>🏆 Bảng xếp hạng</Text>
+            </Pressable>
+          )}
+        </View>
       </View>
     </View>
   )
@@ -109,19 +118,43 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 6,
   },
-  button: {
+  buttonsContainer: {
     marginTop: 4,
+    gap: 12,
+    width: '100%',
+    alignItems: 'center',
+  },
+  button: {
     backgroundColor: '#7FA14D',
     paddingVertical: 10,
     paddingHorizontal: 36,
     borderRadius: 24,
     alignItems: 'center',
+    width: '100%',
+    maxWidth: 200,
     ...(Platform.OS === 'web' && { cursor: 'pointer' }),
   },
   buttonText: {
     fontSize: 16,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  leaderboardButton: {
+    backgroundColor: '#FFD700',
+    paddingVertical: 15,
+    paddingHorizontal: 36,
+    borderRadius: 24,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 200,
+    borderWidth: 2,
+    borderColor: '#FFA500',
+    ...(Platform.OS === 'web' && { cursor: 'pointer' }),
+  },
+  leaderboardButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#8B4513',
   },
 })
 
