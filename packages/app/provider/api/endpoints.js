@@ -25,6 +25,9 @@ export const ENDPOINTS = {
       GET_QR_BY_ID: (id) => `/Payment/${id}/qr`,
       GET_BY_ID: (id) => `/Payment/${id}`,
     },
+    VIP_PACKAGE: {
+      GET_ALL: '/VipPackage',
+    },
     ACCOUNT: {
       LOGIN: '/Account/login',
       REGISTER: '/Account/register',
@@ -80,6 +83,9 @@ export const ENDPOINTS = {
     },
     MINIGAME: {
       MATCHING_CARDS: '/minigame/matching-cards',
+    },
+    GAMES: {
+      USER_GET_ALL: '/Games/user/get-all', // GET: Lấy danh sách games cho user (query: pageNumber, pageSize)
     },
     REPORT: {
       CREATE: '/Report',

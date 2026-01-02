@@ -85,6 +85,7 @@ export const Navbar = ({
   const [userHover, setUserHover] = useState(false)
   const [logoutHover, setLogoutHover] = useState(false)
   const [roadmapInfoHover, setRoadmapInfoHover] = useState(false)
+  const [premiumHover, setPremiumHover] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   // Detect token in localStorage (web) - sử dụng getAuthToken để tự động giải mã
@@ -113,7 +114,7 @@ export const Navbar = ({
   // Prefetch các route chính để giảm độ trễ khi điều hướng (web)
   useEffect(() => {
     if (!router?.prefetch) return
-    const routesToPrefetch = ['/homepage', '/study', '/flashcard', '/blog', '/roadmap/info', '/leaderboard', '/login', '/register']
+    const routesToPrefetch = ['/homepage', '/study', '/flashcard', '/blog', '/roadmap/info', '/leaderboard', '/login', '/register', '/payment-package']
     routesToPrefetch.forEach((r) => {
       router.prefetch(r).catch(() => {})
     })
@@ -140,6 +141,10 @@ export const Navbar = ({
     const userId = getCurrentUserId()
     const targetId = userId && userId.length > 0 ? userId : 'me'
     router.push(`/users/${targetId}`)
+  }
+
+  const handlePremiumPress = () => {
+    router.push('/payment-package')
   }
 
   const handleLogoutPress = () => {
@@ -365,6 +370,49 @@ export const Navbar = ({
       >
         {hasToken ? (
           <>
+            {/* Premium Upgrade Button */}
+            <Pressable
+              onPress={handlePremiumPress}
+              onHoverIn={() => Platform.OS === 'web' && setPremiumHover(true)}
+              onHoverOut={() => Platform.OS === 'web' && setPremiumHover(false)}
+              style={({ pressed }) => {
+                const active = pressed || premiumHover
+                return {
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  borderRadius: 20,
+                  backgroundColor: active ? '#FFD700' : '#FFC107',
+                  borderWidth: 2,
+                  borderColor: '#FFA000',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: 6,
+                  shadowColor: '#FFD700',
+                  shadowOpacity: active ? 0.5 : 0.3,
+                  shadowRadius: 8,
+                  shadowOffset: { width: 0, height: 4 },
+                  elevation: 4,
+                  transform: [{ scale: active ? 0.95 : 1 }],
+                  ...interactiveAnimationStyle,
+                }
+              }}
+            >
+              <Text style={{ fontSize: 18 }}>⭐</Text>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: 'bold',
+                  color: '#8B4513',
+                  fontFamily: 'Epilogue, sans-serif',
+                  textShadowColor: 'rgba(255, 255, 255, 0.5)',
+                  textShadowOffset: { width: 0, height: 1 },
+                  textShadowRadius: 2,
+                }}
+              >
+                Premium
+              </Text>
+            </Pressable>
             <Pressable
               onPress={handleLogoutPress}
               onHoverIn={() => Platform.OS === 'web' && setLogoutHover(true)}

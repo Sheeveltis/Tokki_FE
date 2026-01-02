@@ -92,13 +92,12 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     alignItems: 'center',
-    paddingVertical: 40,
-    paddingBottom: 60,
+    paddingVertical: 20,
+    paddingBottom: 30,
   },
   wrapper: {
     width: '100%',
-    maxWidth: 1200,
-    paddingHorizontal: 16,
+    maxWidth: 1400,
   },
   contentContainer: {
     flexDirection: 'row',

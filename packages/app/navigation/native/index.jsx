@@ -8,6 +8,7 @@ import { LoginScreen } from 'app/features/authentication/login-screen'
 import { RegisterScreen } from 'app/features/authentication/register-screen'
 import { ForgotPasswordScreen } from 'app/features/authentication/forgot-password/forgot-password-screen'
 import { PremiumScreen } from 'app/features/payment/premium-package/premium-screen'
+import { PackageScreen } from 'app/features/payment/payment-package/package-screen'
 import { PaymentScreen } from 'app/features/payment/payment-detail/payment-screen'
 import { PaymentSuccessScreen } from 'app/features/payment/payment-success/payment-success-screen'
 import { PaymentFailedScreen } from 'app/features/payment/payment-failed/payment-failed-screen'
@@ -46,6 +47,10 @@ export function NativeNavigation() {
       <Stack.Screen
         name="blog-detail"
         component={BlogDetailScreen}
+      />
+       <Stack.Screen
+        name="payment-package"
+        component={PackageScreen}
       />
       <Stack.Screen
         name="premium-package"
