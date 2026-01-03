@@ -351,5 +351,52 @@ export async function fetchAIStatistics() {
   }
 }
 
+// Exam Template Management APIs
+// TODO: Thay thế bằng API calls thực tế khi backend sẵn sàng
+export async function fetchExamTemplate(examTemplateId) {
+  try {
+    await delay()
+    if (!examTemplateId) throw { status: 400 }
+    // Mock data - sẽ thay bằng API call thực tế
+    return {
+      ExamTemplateId: examTemplateId,
+      Name: 'Mẫu Đề TOPIK I',
+      Description: 'Đề gồm 30 câu nghe, 40 câu đọc và 3 câu viết',
+      ExamType: 'TOPIK I',
+      CreatedAt: new Date().toISOString(),
+      UpdatedAt: new Date().toISOString(),
+      IsActive: true,
+    }
+  } catch (error) {
+    handleApiError(error, 'Không thể tải thông tin mẫu đề')
+  }
+}
+
+export async function updateExamTemplate(examTemplateId, payload) {
+  try {
+    await delay()
+    if (!examTemplateId || !payload) throw { status: 400 }
+    // Mock: return merged data
+    return {
+      ExamTemplateId: examTemplateId,
+      ...payload,
+      UpdatedAt: new Date().toISOString(),
+    }
+  } catch (error) {
+    handleApiError(error, 'Không thể cập nhật mẫu đề')
+  }
+}
+
+export async function deleteExamTemplate(examTemplateId) {
+  try {
+    await delay()
+    if (!examTemplateId) throw { status: 400 }
+    // Mock: return deleted ID
+    return { ExamTemplateId: examTemplateId }
+  } catch (error) {
+    handleApiError(error, 'Không thể xóa mẫu đề')
+  }
+}
+
 // Export handleApiError để các screen có thể sử dụng
 export { handleApiError }
