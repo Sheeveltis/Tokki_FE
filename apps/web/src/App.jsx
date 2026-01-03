@@ -57,6 +57,7 @@ import { BlogDetailScreen as AdminBlogDetailScreen } from '@tokki/app/features/a
 import { UserDetailScreen } from '@tokki/app/features/admin/screens/UserDetail'
 import { CreateUserScreen } from '@tokki/app/features/admin/screens/CreateUser'
 import { CreateAdminStaffScreen } from '@tokki/app/features/admin/screens/CreateAdminStaff'
+import { ExamTemplateDetailScreen } from '@tokki/app/features/admin/screens/ExamTemplateManagement/ExamTemplateDetail'
 import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/FlashcardTopicDetail'
 import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/VocabularyDetail'
 import { CreateVocabularyScreen } from '@tokki/app/features/vocabulary/screens/CreateVocabulary'
@@ -575,6 +576,10 @@ function AdminVocabCreateRoute() {
   return <CreateVocabularyScreen />
 }
 
+function AdminExamTemplateDetailRoute() {
+  return <ExamTemplateDetailScreen />
+}
+
 // -------- ROOT HOME (app/page.tsx) --------
 function RootHomeRoute() {
   const navigate = useNavigate()
@@ -675,6 +680,7 @@ function App() {
             <Route path="/admin/vocab-topic/:id" element={<AdminVocabTopicDetailRoute />} />
             <Route path="/admin/vocab/create" element={<AdminVocabCreateRoute />} />
             <Route path="/admin/vocab/:id" element={<AdminVocabDetailRoute />} />
+            <Route path="/admin/exam-templates/:id" element={<AdminExamTemplateDetailRoute />} />
 
             {/* Error / test */}
             <Route path="/error" element={<ErrorScreen />} />
