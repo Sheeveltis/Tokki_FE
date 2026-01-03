@@ -1,6 +1,16 @@
 import React, { useState, useMemo } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
+// Import useNavigation cho native
+let useNavigation = null
+if (Platform.OS !== 'web') {
+  try {
+    const navigationModule = require('@react-navigation/native')
+    useNavigation = navigationModule.useNavigation
+  } catch (e) {
+    // @react-navigation/native không có sẵn trên web
+  }
+}
 
 // Import useSafeAreaInsets chỉ trên native
 let useSafeAreaInsets = () => ({ bottom: 0, top: 0, left: 0, right: 0 })
@@ -36,6 +46,8 @@ import { InputOTP } from '../forgot-password/components/input-OTP'
  */
 export function LoginPanel({ onPressSignUp, onPressGoogle }) {
   const router = useRouter()
+  // Sử dụng navigation cho native, router cho web
+  const navigation = useNavigation ? useNavigation() : null
   const insets = useSafeAreaInsets() // Lấy safe area insets để tránh navigation bar
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -149,9 +161,21 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
         // Backend sẽ tự động cập nhật TotalXP và Streak sau khi nhận đủ số lần heartbeat
         heartbeatService.start()
 
-        // Chuyển trang đến homepage sau khi hiển thị thông báo
+        // Chuyển trang sau khi hiển thị thông báo
+        // Native: chuyển đến payment-package để test giao diện (dùng React Navigation)
+        // Web: chuyển đến homepage (dùng solito router)
         setTimeout(() => {
-          router.push('/homepage')
+          if (Platform.OS === 'web') {
+            router.push('/homepage')
+          } else {
+            // Trên native, dùng React Navigation
+            if (navigation) {
+              navigation.navigate('payment-package')
+            } else {
+              // Fallback nếu navigation không có
+              router.push('/payment-package')
+            }
+          }
         }, 500) // Delay nhỏ để user thấy thông báo
       } else {
         // Clear token nếu thất bại
