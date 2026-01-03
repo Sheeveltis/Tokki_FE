@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 
-import UserIcon from '../../../../../assets/user.png'
+import UserIcon from '../../../../../../assets/user.png'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -122,5 +122,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 })
-
 

@@ -47,7 +47,7 @@ import LeaderboardScreen from '@tokki/app/features/leaderboard/leaderboard-scree
 import { BlogListScreen } from '@tokki/app/features/blog/list-blog'
 import { BlogDetailScreen } from '@tokki/app/features/blog/detail-blog'
 
-import { UserProfileScreen } from '@tokki/app/features/user/profile/user-profile-screen'
+import { UserScreen } from '@tokki/app/features/user/screen'
 
 import { AdminScreen } from '@tokki/app/features/admin/screen'
 import { CreateLessonScreen } from '@tokki/app/features/admin/screens/CreateLesson'
@@ -523,7 +523,7 @@ function BlogDetailRoute() {
 
 // -------- USER / STAFF --------
 function ProfileRoute() {
-  return <UserProfileScreen />
+  return <UserScreen />
 }
 
 function StaffRoute() {
@@ -660,6 +660,8 @@ function App() {
 
             {/* User / staff */}
             <Route path="/profile" element={<ProfileRoute />} />
+            <Route path="/user-profile" element={<ProfileRoute />} />
+            <Route path="/user-profile/:tab" element={<ProfileRoute />} />
             <Route path="/staff" element={<StaffRoute />} />
             <Route path="/users/:userId" element={<ProfileRoute />} />
 

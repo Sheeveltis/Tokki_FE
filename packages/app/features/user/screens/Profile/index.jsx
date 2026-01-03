@@ -1,10 +1,12 @@
+'use client'
+
 import React from 'react'
 import { ImageBackground, ScrollView, StyleSheet, View } from 'react-native'
-
-import BgPattern from '../../../../../assets/background2.png'
+import { useRouter } from 'solito/navigation'
 import { Navbar } from '../../../../../components/navbar'
-import { UserDashboard } from './user-dashboard'
-import { UserInformation } from './user-information'
+import { UserDashboard } from '../../components/user-dashboard'
+import { UserInformation } from './components/user-information'
+import BgPattern from '../../../../../assets/background2.png'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -14,7 +16,26 @@ const normalizeImageSource = (src) => {
   return src
 }
 
-export function UserProfileLayout() {
+export function ProfileScreen() {
+  const router = useRouter()
+
+  const handleActionPress = (key) => {
+    if (key === 'profile') {
+      router.push('/user-profile')
+    } else if (key === 'history') {
+      router.push('/user-profile?tab=history')
+    } else if (key === 'roadmap') {
+      // Handle roadmap navigation
+      router.push('/roadmap')
+    } else if (key === 'logout') {
+      // Handle logout
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token')
+      }
+      router.push('/login')
+    }
+  }
+
   return (
     <View style={styles.root}>
       <Navbar />
@@ -27,7 +48,7 @@ export function UserProfileLayout() {
       >
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.row}>
-            <UserDashboard />
+            <UserDashboard onActionPress={handleActionPress} initialActive="profile" />
             <View style={styles.spacer} />
             <UserInformation />
           </View>
@@ -65,4 +86,5 @@ const styles = StyleSheet.create({
   },
 })
 
+export default ProfileScreen
 

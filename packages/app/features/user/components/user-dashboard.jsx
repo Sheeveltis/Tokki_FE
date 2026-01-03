@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
 
-import BunnyIcon from '../../../../../assets/user.png'
-import InfoIcon from '../../../../../assets/userInfo.png'
-import RoadmapIcon from '../../../../../assets/roadmap2.png'
-import PaymentIcon from '../../../../../assets/paymentHistory.png'
-import LogoutIcon from '../../../../../assets/logout.png'
+import BunnyIcon from '../../../../assets/user.png'
+import InfoIcon from '../../../../assets/userInfo.png'
+import RoadmapIcon from '../../../../assets/roadmap2.png'
+import PaymentIcon from '../../../../assets/paymentHistory.png'
+import LogoutIcon from '../../../../assets/logout.png'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -114,5 +114,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 })
-
 
