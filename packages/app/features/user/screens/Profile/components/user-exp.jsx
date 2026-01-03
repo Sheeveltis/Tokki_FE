@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { StyleSheet, Text, View, ActivityIndicator } from 'react-native'
 import { getProgress } from '../api/api'
-import { getCurrentUserId } from '../../../../provider/api/client'
+import { getCurrentUserId } from '../../../../../provider/api/client'
 
 /**
  * Component hiển thị thanh kinh nghiệm (EXP) của người dùng

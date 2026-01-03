@@ -1,7 +1,7 @@
 import { View, Text, Pressable } from 'react-native'
 import { useRouter, useSearchParams } from 'solito/navigation'
 
-export function UserDetailScreen() {
+export function DetailScreen() {
   const router = useRouter()
   const params = useSearchParams()
   return (
@@ -12,3 +12,6 @@ export function UserDetailScreen() {
     </View>
   )
 }
+
+export default DetailScreen
+

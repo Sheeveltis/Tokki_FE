@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { Image, StyleSheet, Text, View } from 'react-native'
 
-import Carrot from '../../../../../assets/carrot.png'
-import UserIcon from '../../../../../assets/user.png'
+import Carrot from '../../../../../../assets/carrot.png'
+import UserIcon from '../../../../../../assets/user.png'
 import { getCurrentUser, updateBasicInfo, updateSecurityInfo, uploadAvatar, getTitleById } from '../api/api'
-import { showAdminSuccess } from '../../../../../components/HelperAdmin'
+import { showAdminSuccess } from '../../../../../../components/HelperAdmin'
 import { BasicInfo } from './basic-info'
 import { SecurityInfo } from './security-info'
 import { UserAvatarCard } from './user-avt'
@@ -311,5 +311,4 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
   },
 })
-
 
