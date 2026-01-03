@@ -1,9 +1,9 @@
 // Payment Detail API functions
 // Get payment by ID to retrieve QR code
 
-import axios from 'axios'
+import { apiClient } from '../../../../provider/api/client'
 import { apiErrors } from '../../../../string.js'
-import { API_BASE_URL, ENDPOINTS } from '../../../../provider/api/endpoints'
+import { ENDPOINTS } from '../../../../provider/api/endpoints'
 
 /**
  * Helper function để xử lý lỗi API và throw error với message từ apiErrors
@@ -56,16 +56,8 @@ export async function getPaymentById(paymentId) {
       throw { status: 400, message: apiErrors.invalidData || 'Payment ID không hợp lệ' }
     }
 
-    // Call API using axios
-    const response = await axios.get(
-      `${API_BASE_URL}${ENDPOINTS.PAYMENT.GET_QR_BY_ID(paymentId)}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          accept: '*/*',
-        },
-      }
-    )
+    // Call API using apiClient (có interceptor tự động thêm token)
+    const response = await apiClient.get(ENDPOINTS.PAYMENT.GET_QR_BY_ID(paymentId))
 
     return response.data
   } catch (error) {
@@ -85,16 +77,8 @@ export async function getPaymentStatusById(paymentId) {
       throw { status: 400, message: apiErrors.invalidData || 'Payment ID không hợp lệ' }
     }
 
-    // Call API using axios
-    const response = await axios.get(
-      `${API_BASE_URL}${ENDPOINTS.PAYMENT.GET_BY_ID(paymentId)}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          accept: '*/*',
-        },
-      }
-    )
+    // Call API using apiClient (có interceptor tự động thêm token)
+    const response = await apiClient.get(ENDPOINTS.PAYMENT.GET_BY_ID(paymentId))
 
     return response.data
   } catch (error) {

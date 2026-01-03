@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingVertical: 20,
+    paddingBottom: 100, // Extra padding for navbar
     alignItems: 'center',
   },
   topSection: {
