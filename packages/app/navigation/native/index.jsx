@@ -1,4 +1,5 @@
 // packages/app/navigation/native/index.jsx
+// packages/app/navigation/native/index.jsx
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
 import { HomeScreen } from 'app/features/home/screen'
@@ -20,25 +21,36 @@ import { ErrorScreen } from 'app/features/error/error-screen'
 const Stack = createNativeStackNavigator()
 
 export function NativeNavigation() {
+
   return (
     <Stack.Navigator 
-      initialRouteName="login" 
+      initialRouteName="login"
+      screenListeners={{
+        state: (e) => {
+          console.log('Navigation state changed:', e.data?.state)
+        },
+      }}
     >
-      <Stack.Screen
-        name="homepage"
-        component={HomeScreen}
-      />
       <Stack.Screen
         name="login"
         component={LoginScreen}
+        options={{
+          headerShown: false, // Ẩn header mặc định
+        }}
       />
       <Stack.Screen
         name="register"
         component={RegisterScreen}
+        options={{
+          headerShown: false, // Ẩn header mặc định
+        }}
       />
       <Stack.Screen
         name="forgot-password"
         component={ForgotPasswordScreen}
+        options={{
+          headerShown: false, // Ẩn header mặc định
+        }}
       />
       <Stack.Screen
         name="user-detail"

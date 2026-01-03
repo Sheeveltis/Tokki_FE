@@ -1,5 +1,16 @@
-import React, { useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
+import React, { useState, useMemo } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native'
+
+// Import useSafeAreaInsets chỉ trên native
+let useSafeAreaInsets = () => ({ bottom: 0, top: 0, left: 0, right: 0 })
+if (Platform.OS !== 'web') {
+  try {
+    const safeAreaModule = require('react-native-safe-area-context')
+    useSafeAreaInsets = safeAreaModule.useSafeAreaInsets || (() => ({ bottom: 0, top: 0, left: 0, right: 0 }))
+  } catch (e) {
+    // react-native-safe-area-context không có sẵn trên web, sử dụng fallback
+  }
+}
 import { useRouter } from 'solito/navigation'
 import { TextInput } from '../../../../components/textInput'
 import { DatePicker } from '../../../../components/datePicker'
@@ -10,6 +21,242 @@ import { HelperAdmin } from '../../../../components/HelperAdmin'
 import LogoImage from '../../../../assets/logo-text.png'
 import HomeIcon from '../../../../assets/icon/icon-mainflow/home.svg'
 import { InputOTP } from '../forgot-password/components/input-OTP'
+import { 
+  scaleWidth, 
+  scaleHeight, 
+  scaleFont, 
+  scaleSize, 
+  percentWidth,
+  getScreenDimensions 
+} from '../helpers/responsive'
+
+// Tạo styles responsive - chỉ áp dụng trên mobile
+const createResponsiveStyles = () => {
+  const { width, height } = getScreenDimensions()
+  const isMobile = Platform.OS !== 'web'
+  
+  // Base values (cho iPhone X - 375x812)
+  const baseValues = {
+    paddingHorizontal: 32,
+    paddingVertical: 32,
+    topOffset: 24,
+    sideOffset: 24,
+    logoWidth: 160,
+    logoHeight: 48,
+    iconSize: 20,
+    titleFont: 32,
+    subtitleFont: 18,
+    backTextFont: 14,
+    formGap: 12,
+    headerGap: 16,
+    buttonPaddingH: 12,
+    buttonPaddingV: 8,
+    verifyButtonHeight: 36,
+    verifyButtonPaddingH: 12,
+    verifyTextFont: 12,
+    errorFont: 13,
+    loginTextFont: 18,
+    emailInputPaddingRight: 110,
+  }
+  
+  // Scale values cho mobile, giữ nguyên cho web
+  const scaled = isMobile ? {
+    paddingHorizontal: scaleWidth(baseValues.paddingHorizontal),
+    paddingVertical: scaleHeight(baseValues.paddingVertical),
+    topOffset: scaleHeight(baseValues.topOffset),
+    sideOffset: scaleWidth(baseValues.sideOffset),
+    logoWidth: scaleWidth(baseValues.logoWidth),
+    logoHeight: scaleHeight(baseValues.logoHeight),
+    iconSize: scaleSize(baseValues.iconSize),
+    titleFont: scaleFont(baseValues.titleFont),
+    subtitleFont: scaleFont(baseValues.subtitleFont),
+    backTextFont: scaleFont(baseValues.backTextFont),
+    formGap: scaleHeight(baseValues.formGap),
+    headerGap: scaleHeight(baseValues.headerGap),
+    buttonPaddingH: scaleWidth(baseValues.buttonPaddingH),
+    buttonPaddingV: scaleHeight(baseValues.buttonPaddingV),
+    verifyButtonHeight: scaleHeight(baseValues.verifyButtonHeight),
+    verifyButtonPaddingH: scaleWidth(baseValues.verifyButtonPaddingH),
+    verifyTextFont: scaleFont(baseValues.verifyTextFont),
+    errorFont: scaleFont(baseValues.errorFont),
+    loginTextFont: scaleFont(baseValues.loginTextFont),
+    emailInputPaddingRight: scaleWidth(baseValues.emailInputPaddingRight),
+  } : baseValues
+  
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: scaled.paddingHorizontal,
+      paddingVertical: scaled.paddingVertical,
+      position: 'relative',
+    },
+    logoContainer: {
+      position: 'absolute',
+      top: scaled.topOffset,
+      right: scaled.sideOffset,
+      zIndex: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: scaleWidth(8),
+    },
+    backHome: {
+      position: 'absolute',
+      top: scaled.topOffset,
+      left: scaled.sideOffset,
+      zIndex: 15,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: scaleWidth(8),
+      paddingHorizontal: scaled.buttonPaddingH,
+      paddingVertical: scaled.buttonPaddingV,
+      borderRadius: 999,
+      backgroundColor: 'rgba(0,0,0,0.05)',
+    },
+    backIcon: {
+      width: scaled.iconSize,
+      height: scaled.iconSize,
+      resizeMode: 'contain',
+    },
+    backText: {
+      fontSize: scaled.backTextFont,
+      fontWeight: '600',
+      color: '#111',
+      fontFamily: 'Epilogue, sans-serif',
+    },
+    logoImage: {
+      width: scaled.logoWidth,
+      height: scaled.logoHeight,
+      resizeMode: 'contain',
+    },
+    content: {
+      width: '100%',
+      maxWidth: isMobile ? percentWidth(90) : 620, // Responsive maxWidth
+      gap: scaled.headerGap,
+    },
+    headerBlock: {
+      gap: scaled.headerGap,
+      marginTop: isMobile ? scaleHeight(20) : 0, // Thêm margin top trên mobile để title không bị dính top
+    },
+    title: {
+      fontSize: scaled.titleFont,
+      fontWeight: '700',
+      fontFamily: 'Lexend, sans-serif',
+      textAlign: 'center',
+      marginTop: isMobile ? scaleHeight(8) : 0, // Thêm margin top cho title trên mobile
+    },
+    subtitle: {
+      fontSize: scaled.subtitleFont,
+      color: '#555',
+      fontFamily: 'Epilogue, sans-serif',
+      textAlign: 'center',
+    },
+    formBlock: {
+      gap: scaled.formGap,
+      width: '100%', // Đảm bảo formBlock chiếm full width
+      alignItems: 'stretch', // Đảm bảo tất cả children có cùng width
+    },
+    emailField: {
+      position: 'relative',
+      width: '100%', // Đảm bảo emailField có cùng width như các field khác
+    },
+    emailInputWithButton: {
+      paddingRight: scaled.emailInputPaddingRight,
+    },
+    verifyEmailButton: {
+      position: 'absolute',
+      right: scaleWidth(12),
+      top: '65%',
+      transform: [{ translateY: -scaled.verifyButtonHeight / 2 }],
+      paddingHorizontal: scaled.verifyButtonPaddingH,
+      height: scaled.verifyButtonHeight,
+      justifyContent: 'center',
+      borderRadius: scaleWidth(8),
+      borderWidth: 1,
+      borderColor: '#D4060A',
+      backgroundColor: '#FFF',
+    },
+    verifyEmailButtonSuccess: {
+      borderColor: '#2E7D32',
+      backgroundColor: 'rgba(46,125,50,0.08)',
+    },
+    verifyEmailButtonDisabled: {
+      opacity: 0.6,
+    },
+    verifyEmailText: {
+      fontSize: scaled.verifyTextFont,
+      fontWeight: '700',
+      color: '#D4060A',
+      fontFamily: 'Epilogue, sans-serif',
+    },
+    verifyEmailTextSuccess: {
+      color: '#2E7D32',
+    },
+    verifyEmailTextDisabled: {
+      color: '#888',
+    },
+    errorText: {
+      color: '#E53935',
+      fontSize: scaled.errorFont,
+      fontFamily: 'Epilogue, sans-serif',
+    },
+    submitBtn: {
+      marginTop: scaleHeight(8),
+      width: isMobile ? percentWidth(60) : '40%', // Responsive button width
+      alignSelf: 'center',
+    },
+    loginRow: {
+      marginTop: scaleHeight(16),
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loginText: {
+      fontSize: scaled.loginTextFont,
+      color: '#333',
+      fontFamily: 'Epilogue, sans-serif',
+    },
+    loginHighlight: {
+      fontSize: scaled.loginTextFont,
+      fontWeight: '700',
+      color: '#D4060A',
+      fontFamily: 'Epilogue, sans-serif',
+    },
+    // Native-specific styles: Logo ở giữa, title phía dưới
+    nativeHeaderContainer: {
+      width: '100%',
+      alignItems: 'center',
+      marginBottom: scaleHeight(24), // Khoảng cách giống login
+    },
+    nativeLogoContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: scaleHeight(16), // Khoảng cách giữa logo và title
+    },
+    nativeLogoImage: {
+      width: scaleWidth(160),
+      height: scaleHeight(48),
+      resizeMode: 'contain',
+    },
+    nativeHeaderBlock: {
+      alignItems: 'center',
+      gap: scaleHeight(16),
+    },
+    nativeTitle: {
+      fontSize: scaled.titleFont, // Dùng cùng font size như login
+      fontWeight: '700',
+      fontFamily: 'Lexend, sans-serif',
+      textAlign: 'center',
+    },
+    nativeSubtitle: {
+      fontSize: scaled.subtitleFont,
+      color: '#555',
+      fontFamily: 'Epilogue, sans-serif',
+      textAlign: 'center',
+    },
+  })
+}
 
 /**
  * RegisterPanel: cột bên phải cho màn Đăng ký
@@ -22,6 +269,7 @@ import { InputOTP } from '../forgot-password/components/input-OTP'
  */
 export function RegisterPanel({ onPressLogin }) {
   const router = useRouter()
+  const insets = useSafeAreaInsets() // Lấy safe area insets để tránh navigation bar
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
@@ -35,6 +283,21 @@ export function RegisterPanel({ onPressLogin }) {
   const [showOtpModal, setShowOtpModal] = useState(false)
   const [isEmailVerified, setIsEmailVerified] = useState(false)
   const [otpSending, setOtpSending] = useState(false)
+  
+  // Tính toán responsive styles dựa trên kích thước màn hình hiện tại
+  const styles = useMemo(() => createResponsiveStyles(), [])
+  
+  // Style động cho container với padding bottom từ safe area
+  const containerStyle = useMemo(() => {
+    // Tính padding bottom dựa trên safe area, tối thiểu 16px trên mobile
+    const minPaddingBottom = Platform.OS !== 'web' ? scaleHeight(16) : 0
+    const paddingBottom = Math.max(insets.bottom, minPaddingBottom)
+    
+    return [
+      styles.container,
+      { paddingBottom }
+    ]
+  }, [styles.container, insets.bottom])
 
   // Chuẩn hoá source để hỗ trợ cả import module (Next/webpack) lẫn require/uri
   const normalizeImageSource = (src) => {
@@ -247,15 +510,18 @@ export function RegisterPanel({ onPressLogin }) {
   }
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.backHome}
-        onPress={() => router.push('/homepage')}
-        activeOpacity={0.8}
-      >
-        {homeIconSource ? <Image source={homeIconSource} style={styles.backIcon} /> : null}
-        <Text style={styles.backText}>Trang chủ</Text>
-      </TouchableOpacity>
+    <View style={containerStyle}>
+      {/* Ẩn button Trang chủ trên native */}
+      {Platform.OS === 'web' && (
+        <TouchableOpacity
+          style={styles.backHome}
+          onPress={() => router.push('/homepage')}
+          activeOpacity={0.8}
+        >
+          {homeIconSource ? <Image source={homeIconSource} style={styles.backIcon} /> : null}
+          <Text style={styles.backText}>Trang chủ</Text>
+        </TouchableOpacity>
+      )}
       {/* HelperAdmin để hiển thị thông báo từ API (chỉ hiển thị khi thành công) */}
       {notifyResponse && (
         <HelperAdmin response={notifyResponse} type="error" hideStatusCode hideErrorCode />
@@ -263,20 +529,39 @@ export function RegisterPanel({ onPressLogin }) {
       {apiResponse && apiResponse.isSuccess && (
         <HelperAdmin response={apiResponse} type="success" hideStatusCode hideErrorCode />
       )}
-      <View style={styles.logoContainer}>
-        {logoSource && <Image source={logoSource} style={styles.logoImage} />}
-      </View>
-      <View style={styles.content}>
-        <View style={styles.headerBlock}>
-          <Text style={styles.title}>Đăng ký</Text>
-          <Text style={styles.subtitle}>
-            Hãy nhập thông tin để đăng ký tài khoản của riêng bạn
-          </Text>
+      {/* Logo và title - layout khác nhau cho web và native */}
+      {Platform.OS === 'web' ? (
+        <>
+          <View style={styles.logoContainer}>
+            {logoSource && <Image source={logoSource} style={styles.logoImage} />}
+          </View>
+          <View style={styles.content}>
+            <View style={styles.headerBlock}>
+              <Text style={styles.title}>Đăng ký</Text>
+              <Text style={styles.subtitle}>
+                Hãy nhập thông tin để đăng ký tài khoản của riêng bạn
+              </Text>
+            </View>
+          </View>
+        </>
+      ) : (
+        // Native: Logo ở giữa, title phía dưới
+        <View style={styles.nativeHeaderContainer}>
+          <View style={styles.nativeLogoContainer}>
+            {logoSource && <Image source={logoSource} style={styles.nativeLogoImage} />}
+          </View>
+          <View style={styles.nativeHeaderBlock}>
+            <Text style={styles.nativeTitle}>Đăng ký</Text>
+            <Text style={styles.nativeSubtitle}>
+              Hãy nhập thông tin để đăng ký tài khoản của riêng bạn
+            </Text>
+          </View>
         </View>
-
-        <View style={styles.formBlock}>
+      )}
+      
+      <View style={styles.formBlock}>
           <TextInput
-            label="Họ và tên"
+            label={Platform.OS === 'web' ? 'Họ và tên' : null}
             placeholder="Nhập họ và tên"
             value={fullName}
             onChangeText={setFullName}
@@ -285,8 +570,8 @@ export function RegisterPanel({ onPressLogin }) {
           {/* Email + nút xác thực nằm trong ô nhập */}
           <View style={styles.emailField}>
             <TextInput
-              label="Email"
-              placeholder="Ví dụ: an@example.com"
+              label={Platform.OS === 'web' ? 'Email' : null}
+              placeholder={Platform.OS === 'web' ? 'Ví dụ: an@example.com' : 'Nhập Email'}
               value={email}
               onChangeText={(text) => {
                 setEmail(text)
@@ -326,28 +611,28 @@ export function RegisterPanel({ onPressLogin }) {
           </View>
 
           <TextInput
-            label="Số điện thoại"
-            placeholder="Ví dụ: 0585204417"
+            label={Platform.OS === 'web' ? 'Số điện thoại' : null}
+            placeholder={Platform.OS === 'web' ? 'Ví dụ: 0585204417' : 'Nhập số điện thoại'}
             value={phoneNumber}
             onChangeText={setPhoneNumber}
             keyboardType="phone-pad"
           />
           <TextInput
-            label="Mật khẩu"
+            label={Platform.OS === 'web' ? 'Mật khẩu' : null}
             placeholder="Nhập mật khẩu"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
           <TextInput
-            label="Xác nhận mật khẩu"
+            label={Platform.OS === 'web' ? 'Xác nhận mật khẩu' : null}
             placeholder="Nhập lại mật khẩu"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
           />
           <DatePicker
-            label="Ngày sinh"
+            label={Platform.OS === 'web' ? 'Ngày sinh' : null}
             placeholder="Chọn ngày sinh"
             value={dateOfBirth}
             onChange={setDateOfBirth}
@@ -371,7 +656,6 @@ export function RegisterPanel({ onPressLogin }) {
             <Text style={styles.loginHighlight}>ĐĂNG NHẬP NGAY</Text>
           </TouchableOpacity>
         </View>
-      </View>
 
       {/* Modal nhập OTP để xác thực email */}
       <InputOTP
@@ -385,141 +669,5 @@ export function RegisterPanel({ onPressLogin }) {
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 32,
-    position: 'relative',
-  },
-  logoContainer: {
-    position: 'absolute',
-    top: 24, // căn cùng hàng với nút Trang chủ
-    right: 24, // logo nằm sát phải
-    zIndex: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  backHome: {
-    position: 'absolute',
-    top: 24,
-    left: 24, // nút Trang chủ sát cạnh trái
-    zIndex: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-  },
-  backIcon: {
-    width: 20,
-    height: 20,
-    resizeMode: 'contain',
-  },
-  backText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  logoImage: {
-    width: 160,
-    height: 48, // chiều cao nhỏ để cùng hàng với nút
-    resizeMode: 'contain',
-  },
-  content: {
-    width: '100%',
-    maxWidth: 620,
-    gap: 16,
-  },
-  headerBlock: {
-    gap: 16,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    fontFamily: 'Lexend, sans-serif',
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#555',
-    fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
-  },
-  formBlock: {
-    gap: 12,
-  },
-  emailField: {
-    position: 'relative',
-  },
-  emailInputWithButton: {
-    paddingRight: 110, // chừa chỗ cho nút xác thực
-  },
-  verifyEmailButton: {
-    position: 'absolute',
-    right: 12,
-    top: '65%',
-    transform: [{ translateY: -18 }], // canh giữa theo chiều dọc
-    paddingHorizontal: 12,
-    height: 36,
-    justifyContent: 'center',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#D4060A',
-    backgroundColor: '#FFF',
-  },
-  verifyEmailButtonSuccess: {
-    borderColor: '#2E7D32',
-    backgroundColor: 'rgba(46,125,50,0.08)',
-  },
-  verifyEmailButtonDisabled: {
-    opacity: 0.6,
-  },
-  verifyEmailText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#D4060A',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  verifyEmailTextSuccess: {
-    color: '#2E7D32',
-  },
-  verifyEmailTextDisabled: {
-    color: '#888',
-  },
-  errorText: {
-    color: '#E53935',
-    fontSize: 13,
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  submitBtn: {
-    marginTop: 8,
-    width: '40%',
-    alignSelf: 'center',
-  },
-  loginRow: {
-    marginTop: 16,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loginText: {
-    fontSize: 18,
-    color: '#333',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  loginHighlight: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#D4060A',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-})
 
 
