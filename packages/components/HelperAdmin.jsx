@@ -1,8 +1,11 @@
 import React, { useEffect } from 'react'
+import { Platform } from 'react-native'
 import { notification } from 'antd'
 
 /**
  * Component xử lý hiển thị thông báo lỗi cho Admin & Staff
+ * CHỈ HOẠT ĐỘNG TRÊN WEB (sử dụng antd notification)
+ * Trên mobile, sử dụng showApiNotification từ authentication/helpers/notification.js
  * 
  * @param {{
  *   response?: {
@@ -28,6 +31,11 @@ export function HelperAdmin({
   hideErrorCode = false,
 }) {
   useEffect(() => {
+    // Chỉ hoạt động trên web (antd notification cần document API)
+    if (Platform.OS !== 'web') {
+      return
+    }
+
     // Nếu không có response, không hiển thị gì
     if (!response) {
       return
@@ -50,14 +58,14 @@ export function HelperAdmin({
         .join('\n')
     }
 
-    // Hiển thị notification
+    // Hiển thị notification (chỉ trên web)
     notification[notificationType]({
       message: statusCode ? `[${statusCode}] ${message}` : message,
       description: description || undefined,
       placement,
       duration,
     })
-  }, [response, type, duration, placement])
+  }, [response, type, duration, placement, hideStatusCode, hideErrorCode])
 
   return null
 }
@@ -74,11 +82,16 @@ export function showAdminNotification(response, options = {}) {
 
 /**
  * Helper function để hiển thị thông báo thành công
+ * CHỈ HOẠT ĐỘNG TRÊN WEB
  * 
  * @param {string} message - Thông điệp thành công
  * @param {Object} options - Options cho notification
  */
 export function showAdminSuccess(message, options = {}) {
+  if (Platform.OS !== 'web') {
+    console.warn('showAdminSuccess chỉ hoạt động trên web. Trên mobile, sử dụng showApiNotification.')
+    return
+  }
   notification.success({
     message: 'Thành công',
     description: message,
@@ -89,12 +102,17 @@ export function showAdminSuccess(message, options = {}) {
 
 /**
  * Helper function để hiển thị thông báo lỗi
+ * CHỈ HOẠT ĐỘNG TRÊN WEB
  * 
  * @param {string} message - Thông điệp lỗi
  * @param {number} statusCode - Mã lỗi (optional)
  * @param {Object} options - Options cho notification
  */
 export function showAdminError(message, statusCode, options = {}) {
+  if (Platform.OS !== 'web') {
+    console.warn('showAdminError chỉ hoạt động trên web. Trên mobile, sử dụng showApiNotification.')
+    return
+  }
   notification.error({
     message: statusCode ? `[${statusCode}] ${message}` : message,
     placement: options.placement || 'topRight',

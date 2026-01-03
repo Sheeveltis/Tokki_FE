@@ -1,5 +1,25 @@
-const DOMAIN = 'http://localhost:5031'
+import { Platform } from 'react-native'
+
+/**
+ * Cấu hình API Domain
+ * - Web: sử dụng localhost
+ * - Mobile: sử dụng IP của máy chủ backend (cần thay đổi theo IP thực tế của máy bạn)
+ * 
+ * Để lấy IP của máy:
+ * - Windows: mở CMD và chạy `ipconfig`, tìm "IPv4 Address" (thường là 192.168.x.x)
+ * - Mac/Linux: mở Terminal và chạy `ifconfig` hoặc `ip addr`, tìm IP của WiFi/Ethernet
+ * 
+ * Ví dụ: Nếu IP của máy là 192.168.1.100, thì MOBILE_DOMAIN = 'http://192.168.1.100:5031'
+ */
+const WEB_DOMAIN = 'http://localhost:5031'
+// ⚠️ THAY ĐỔI IP NÀY THÀNH IP THỰC TẾ CỦA MÁY BẠN
+// Tìm IP bằng cách: Windows (ipconfig) hoặc Mac/Linux (ifconfig)
+const MOBILE_DOMAIN = 'http://192.168.1.101:5031' // Thay đổi IP này!
+
 const PREFIX = '/api'
+
+// Tự động chọn domain dựa trên platform
+const DOMAIN = Platform.OS === 'web' ? WEB_DOMAIN : MOBILE_DOMAIN
 
 export const API_BASE_URL = `${DOMAIN}${PREFIX}`
 
