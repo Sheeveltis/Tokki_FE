@@ -1,8 +1,10 @@
 # Authentication Helpers
 
+> **Lưu ý**: Các utilities như `token-encryption`, `token-decoder`, và `storage` đã được di chuyển sang `app/helpers/` vì chúng được sử dụng chung trong toàn bộ ứng dụng.
+
 ## Token Encryption/Decryption
 
-### `token-encryption.js`
+### `app/helpers/token-encryption.js`
 Utility để mã hóa và giải mã token trước khi lưu vào localStorage.
 
 - `encryptToken(token)`: Mã hóa token bằng Base64 + secret key
@@ -10,7 +12,7 @@ Utility để mã hóa và giải mã token trước khi lưu vào localStorage.
 
 ## Token Decoder
 
-### `token-decoder.js`
+### `app/helpers/token-decoder.js`
 Utility để decode JWT token và lấy thông tin user từ payload.
 
 #### Các hàm chính:
@@ -93,7 +95,7 @@ import { getAuthToken } from 'app/provider/api/client'
 import {
   getUserInfoFromToken,
   getUserIdFromToken,
-} from 'app/features/authentication/helpers/token-decoder'
+} from 'app/helpers/token-decoder'
 
 // Lấy token đã giải mã
 const token = getAuthToken()

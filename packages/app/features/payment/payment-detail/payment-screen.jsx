@@ -34,6 +34,7 @@ const normalizeImageSource = (src) => {
 export function PaymentScreen() {
   const params = useSearchParams()
   const paymentId = params?.get('paymentId') || null
+  const paymentUrl = params?.get('paymentUrl') || null
 
   return (
     <View style={styles.root}>
@@ -49,7 +50,7 @@ export function PaymentScreen() {
       {/* Nội dung chính */}
       <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
         <View style={styles.wrapper}>
-          <PaymentLayout paymentId={paymentId} />
+          <PaymentLayout paymentId={paymentId} paymentUrl={paymentUrl} />
         </View>
       </ScrollView>
 

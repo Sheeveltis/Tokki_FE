@@ -27,11 +27,12 @@ const normalizeImageSource = (src) => {
  * - Shows instructions and bank logos
  *
  * @param {{
- *   paymentId: string;
+ *   paymentId?: string;
+ *   paymentUrl?: string;
  *   style?: any;
  * }} props
  */
-export const QRIsepay = ({ paymentId, style }) => {
+export const QRIsepay = ({ paymentId, paymentUrl, style }) => {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [qrUrl, setQrUrl] = useState(null)
@@ -42,17 +43,25 @@ export const QRIsepay = ({ paymentId, style }) => {
   const hasNavigatedRef = useRef(false)
   const hasNavigatedToFailedRef = useRef(false)
 
+  // If paymentUrl is provided, use it directly
   useEffect(() => {
+    if (paymentUrl) {
+      setQrUrl(paymentUrl)
+      setTimeLeft(600)
+      return
+    }
+    
+    // Otherwise, fetch using paymentId
     if (paymentId) {
       fetchQRCode()
       // Reset timer when paymentId changes
       setTimeLeft(600)
     }
-  }, [paymentId])
+  }, [paymentId, paymentUrl])
 
-  // Countdown timer - 10 minutes
+  // Countdown timer - 10 minutes (only if we have paymentId or paymentUrl)
   useEffect(() => {
-    if (!paymentId) return
+    if (!paymentId && !paymentUrl) return
 
     // Start countdown timer
     timerIntervalRef.current = setInterval(() => {
@@ -82,9 +91,9 @@ export const QRIsepay = ({ paymentId, style }) => {
         clearInterval(timerIntervalRef.current)
       }
     }
-  }, [paymentId, router])
+  }, [paymentId, paymentUrl, router])
 
-  // Poll payment status every 2 seconds
+  // Poll payment status every 2 seconds (only if paymentId is provided)
   useEffect(() => {
     if (!paymentId) return
 

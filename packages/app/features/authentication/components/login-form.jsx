@@ -1,13 +1,25 @@
-import React, { useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
+import React, { useState, useMemo } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
+
+// Import useSafeAreaInsets chỉ trên native
+let useSafeAreaInsets = () => ({ bottom: 0, top: 0, left: 0, right: 0 })
+if (Platform.OS !== 'web') {
+  try {
+    const safeAreaModule = require('react-native-safe-area-context')
+    useSafeAreaInsets = safeAreaModule.useSafeAreaInsets || (() => ({ bottom: 0, top: 0, left: 0, right: 0 }))
+  } catch (e) {
+    // react-native-safe-area-context không có sẵn trên web, sử dụng fallback
+  }
+}
 import { TextInput } from '../../../../components/textInput'
 import { Button } from '../../../../components/button'
 import { login } from '../api'
 import { setAuthToken } from '../../../provider/api/client'
 import { heartbeatService } from './heartbeat-service'
 import { showApiNotification } from '../helpers/notification'
-import { encryptToken, decryptToken } from '../helpers/token-encryption'
+import { encryptToken } from '../../../helpers/token-encryption'
+import { setStorageItem, removeStorageItem, dispatchStorageEvent } from '../../../helpers/storage'
 import { HelperAdmin } from '../../../../components/HelperAdmin'
 import LogoImage from '../../../../assets/logo-text.png'
 import { NavigationPill } from '../../../../components/navigation-pill'
@@ -24,6 +36,7 @@ import { InputOTP } from '../forgot-password/components/input-OTP'
  */
 export function LoginPanel({ onPressSignUp, onPressGoogle }) {
   const router = useRouter()
+  const insets = useSafeAreaInsets() // Lấy safe area insets để tránh navigation bar
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -34,18 +47,17 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [showOtpModal, setShowOtpModal] = useState(false)
 
-  // fuwy thêm token để check login (đã mã hóa)
-  const setToken = (token) => {
-    if (typeof window === 'undefined') return
+  // Lưu token vào storage (hỗ trợ cả web và mobile)
+  const setToken = async (token) => {
     if (token) {
-      // Mã hóa token trước khi lưu vào localStorage
+      // Mã hóa token trước khi lưu vào storage
       const encryptedToken = encryptToken(token)
-      window.localStorage.setItem('token', encryptedToken)
+      await setStorageItem('token', encryptedToken)
     } else {
-      window.localStorage.removeItem('token')
+      await removeStorageItem('token')
     }
-    // thông báo cho navbar/khác biết token đổi
-    window.dispatchEvent(new Event('token-changed'))
+    // Thông báo cho navbar/khác biết token đổi (chỉ trên web)
+    dispatchStorageEvent('token-changed')
   }
 
   // Chuẩn hoá source để hỗ trợ cả import module (Next/webpack) lẫn require/uri
@@ -121,9 +133,9 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
         const { token, fullName, role, avatarUrl } = response.data
 
         // Lưu token để dùng cho các request authorize
-        setAuthToken(token)
-        // Lưu token vào localStorage để navbar nhận biết đã đăng nhập
-        setToken(token)
+        await setAuthToken(token)
+        // Lưu token vào storage để navbar nhận biết đã đăng nhập
+        await setToken(token)
         // TODO: Lưu thông tin user vào context / storage nếu cần
         console.log('Đăng nhập thành công:', {
           token,
@@ -143,7 +155,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
         }, 500) // Delay nhỏ để user thấy thông báo
       } else {
         // Clear token nếu thất bại
-        setToken(null)
+        await setToken(null)
 
         // Lưu response cho HelperAdmin và dòng lỗi dưới form
         setNotifyResponse(response)
@@ -185,16 +197,34 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
     }
   }
 
+  // Style động cho container với padding bottom từ safe area
+  const containerStyle = useMemo(() => {
+    // Tính padding bottom dựa trên safe area, tối thiểu 16px trên mobile
+    const minPaddingBottom = Platform.OS !== 'web' ? 16 : 0
+    const paddingBottom = Math.max(insets.bottom, minPaddingBottom)
+    
+    return [
+      styles.container,
+      { paddingBottom }
+    ]
+  }, [insets.bottom, styles.container])
+
   return (
-    <View style={styles.container}>
+    <View style={containerStyle}>
+      {/* Ẩn button Trang chủ trên native */}
+      {Platform.OS === 'web' && (
       <NavigationPill style={styles.backHome} label="Trang chủ" to="/homepage" />
-      {/* HelperAdmin để hiển thị thông báo từ API (chỉ hiển thị khi thành công) */}
-      {notifyResponse && (
+      )}
+      {/* HelperAdmin để hiển thị thông báo từ API (chỉ hiển thị khi thành công) - Chỉ trên web */}
+      {Platform.OS === 'web' && notifyResponse && (
         <HelperAdmin response={notifyResponse} type="error" hideStatusCode hideErrorCode />
       )}
-      {apiResponse && apiResponse.isSuccess && (
+      {Platform.OS === 'web' && apiResponse && apiResponse.isSuccess && (
         <HelperAdmin response={apiResponse} type="success" hideStatusCode hideErrorCode />
       )}
+      {/* Logo và title - layout khác nhau cho web và native */}
+      {Platform.OS === 'web' ? (
+        <>
       <View style={styles.logoContainer}>
         {logoSource && <Image source={logoSource} style={styles.logoImage} />}
       </View>
@@ -205,6 +235,24 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
           Hãy nhập thông tin để đăng nhập vào tài khoản của bạn
           </Text>
         </View>
+          </View>
+        </>
+      ) : (
+        // Native: Logo ở giữa, title phía dưới
+        <View style={styles.nativeHeaderContainer}>
+          <View style={styles.nativeLogoContainer}>
+            {logoSource && <Image source={logoSource} style={styles.nativeLogoImage} />}
+          </View>
+          <View style={styles.nativeHeaderBlock}>
+            <Text style={styles.nativeTitle}>Đăng nhập</Text>
+            <Text style={styles.nativeSubtitle}>
+              Hãy nhập thông tin để đăng nhập vào tài khoản của bạn
+            </Text>
+          </View>
+        </View>
+      )}
+      
+      <View style={styles.content}>
 
         <View style={styles.formBlock}>
           <TextInput
@@ -332,6 +380,38 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 18,
     maxHeight: 50,
+    color: '#555',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+  },
+  // Native-specific styles: Logo ở giữa, title phía dưới
+  nativeHeaderContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 24, // Khoảng cách giống register
+  },
+  nativeLogoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16, // Khoảng cách giữa logo và title
+  },
+  nativeLogoImage: {
+    width: 160,
+    height: 48,
+    resizeMode: 'contain',
+  },
+  nativeHeaderBlock: {
+    alignItems: 'center',
+    gap: 16,
+  },
+  nativeTitle: {
+    fontSize: 32, // Cùng font size như title hiện tại
+    fontWeight: '700',
+    fontFamily: 'Lexend, sans-serif',
+    textAlign: 'center',
+  },
+  nativeSubtitle: {
+    fontSize: 18,
     color: '#555',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',

@@ -12,6 +12,8 @@ export default defineConfig({
       'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
       // react-native on web
       'react-native': 'react-native-web',
+      // react-native-safe-area-context - no-op trên web
+      'react-native-safe-area-context': path.resolve(__dirname, '../..', 'packages/app/provider/safe-area/index.tsx'),
       // giữ alias @tokki/app cho packages/app
       '@tokki/app': path.resolve(__dirname, '../..', 'packages/app'),
       // subpath cho shared components
@@ -42,7 +44,10 @@ export default defineConfig({
         '.js': 'jsx',
       },
     },
-    exclude: ['react-native'],
+    exclude: [
+      'react-native',
+      'react-native-safe-area-context', // Exclude safe area context trên web
+    ],
     include: ['react', 'react-dom', '@tanstack/react-query'],
   },
   define: {

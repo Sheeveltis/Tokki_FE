@@ -1,5 +1,5 @@
-import { apiClient } from '../../../../provider/api/client'
-import { ENDPOINTS } from '../../../../provider/api/endpoints'
+import { apiClient } from '../../../../../provider/api/client'
+import { ENDPOINTS } from '../../../../../provider/api/endpoints'
 
 /**
  * Lấy thông tin người dùng hiện tại

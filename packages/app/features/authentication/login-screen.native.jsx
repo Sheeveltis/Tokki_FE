@@ -1,5 +1,7 @@
+// packages/app/features/authentication/login-screen.native.jsx
 import React from 'react'
 import { StyleSheet } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
 
 import { AuthLayout } from './components/auth-layout'
 import { LoginHero } from './components/login-hero'
@@ -14,6 +16,20 @@ import LoginHeroImage2 from '../../../assets/loginBackground.png'
  * }} props
  */
 export function LoginScreen({ onPressSignUp, onPressGoogle }) {
+  const navigation = useNavigation()
+
+  const handlePressSignUp = () => {
+    if (onPressSignUp) {
+      onPressSignUp()
+      return
+    }
+    try {
+      navigation.navigate('register')
+    } catch (error) {
+      console.error('Navigation error:', error)
+    }
+  }
+
   const handlePressGoogle = () => {
     // TODO: tích hợp đăng nhập bằng Google
     onPressGoogle?.()
@@ -24,7 +40,7 @@ export function LoginScreen({ onPressSignUp, onPressGoogle }) {
       hero={<LoginHero backgroundSource={LoginHeroImage} overlaySource={LoginHeroImage2} />}
       panel={
         <LoginPanel
-          onPressSignUp={onPressSignUp}
+          onPressSignUp={handlePressSignUp}
           onPressGoogle={handlePressGoogle}
         />
       }
@@ -33,4 +49,3 @@ export function LoginScreen({ onPressSignUp, onPressGoogle }) {
 }
 
 const styles = StyleSheet.create({})
-

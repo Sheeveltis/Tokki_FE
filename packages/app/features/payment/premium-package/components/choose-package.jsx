@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native'
 import { useRouter } from 'solito/navigation'
-import { createPayment } from '../../payment-package/api/api'
-import { getVipPackages } from '../api/api'
+import { getVipPackages, createVipPackagePayment } from '../api/api'
+import { getCurrentUserId } from '../../../../provider/api/client'
 import BigFoot from '../../../../../assets/bigfoot.png'
 
 /**
@@ -121,16 +121,19 @@ export const ChoosePackage = ({ onSelectPackage, style }) => {
     try {
       setLoading(packageId)
       
-      // Call createPayment API
-      const response = await createPayment({
-        amount: amount,
-        description: 'Premium package purchase',
-        userId: '1',
-      })
+      // Get userId from localStorage
+      const userId = getCurrentUserId()
+      if (!userId) {
+        console.error('User ID not found')
+        return
+      }
 
-      if (response.isSuccess && response.data?.paymentId) {
-        // Navigate to payment detail page with paymentId
-        router.push(`/payment-detail?paymentId=${response.data.paymentId}`)
+      // Call createVipPackagePayment API
+      const response = await createVipPackagePayment(userId, packageId)
+
+      if (response.isSuccess && response.data?.paymentUrl) {
+        // Navigate to payment detail page with paymentUrl
+        router.push(`/payment-detail?paymentUrl=${encodeURIComponent(response.data.paymentUrl)}&paymentId=${response.data.paymentId || ''}`)
       } else {
         console.error('Failed to create payment:', response)
       }

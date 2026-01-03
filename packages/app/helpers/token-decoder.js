@@ -4,6 +4,38 @@
  * Payload chứa thông tin user (userId, email, role, fullName, v.v.)
  */
 
+import { Platform } from 'react-native'
+
+/**
+ * Base64 decode - hỗ trợ cả web và React Native
+ */
+const base64Decode = (str) => {
+  try {
+    // Web: sử dụng atob
+    if (Platform.OS === 'web' && typeof atob !== 'undefined') {
+      return atob(str)
+    }
+    
+    // React Native/Node: sử dụng Buffer
+    if (typeof Buffer !== 'undefined') {
+      return Buffer.from(str, 'base64').toString('utf-8')
+    }
+    
+    // Fallback: sử dụng base64-js nếu có
+    try {
+      const base64js = require('base64-js')
+      const bytes = base64js.toByteArray(str)
+      return new TextDecoder().decode(bytes)
+    } catch {
+      console.warn('Base64 decoding not available')
+      return null
+    }
+  } catch (error) {
+    console.error('Error in base64Decode:', error)
+    return null
+  }
+}
+
 /**
  * Decode JWT token và trả về payload (không verify signature)
  * @param {string} token - JWT token cần decode
@@ -24,15 +56,8 @@ export const decodeJWT = (token) => {
     const payload = parts[1]
 
     // Base64 decode payload
-    let decodedPayload
-    if (typeof atob !== 'undefined') {
-      // Browser environment
-      decodedPayload = atob(payload)
-    } else if (typeof Buffer !== 'undefined') {
-      // Node.js environment
-      decodedPayload = Buffer.from(payload, 'base64').toString('utf-8')
-    } else {
-      console.warn('Base64 decode not available')
+    const decodedPayload = base64Decode(payload)
+    if (!decodedPayload) {
       return null
     }
 
@@ -129,4 +154,5 @@ export const isTokenExpired = (token) => {
   // Nếu không có exp, coi như token không hết hạn
   return false
 }
+
 

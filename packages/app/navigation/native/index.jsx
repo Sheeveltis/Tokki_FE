@@ -1,8 +1,9 @@
 // packages/app/navigation/native/index.jsx
+// packages/app/navigation/native/index.jsx
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
 import { HomeScreen } from 'app/features/home/screen'
-import { UserDetailScreen } from 'app/features/user/detail-screen'
+import { DetailScreen } from 'app/features/user/screens/Detail'
 import { BlogDetailScreen } from 'app/features/blog/detail-blog'
 import { LoginScreen } from 'app/features/authentication/login-screen'
 import { RegisterScreen } from 'app/features/authentication/register-screen'
@@ -14,35 +15,46 @@ import { PaymentSuccessScreen } from 'app/features/payment/payment-success/payme
 import { PaymentFailedScreen } from 'app/features/payment/payment-failed/payment-failed-screen'
 import { RoadmapInfoScreen } from 'app/features/roadmap/roadmap-info/roadmap-info-screen'
 import { RoadmapTestScreen } from 'app/features/roadmap/roadmap-test/roadmap-test-screen'
-import { UserProfileScreen } from 'app/features/user/profile/user-profile-screen'
+import { ProfileScreen } from 'app/features/user/screens/Profile'
 import { ErrorScreen } from 'app/features/error/error-screen'
 
 const Stack = createNativeStackNavigator()
 
 export function NativeNavigation() {
+
   return (
     <Stack.Navigator 
-      initialRouteName="login" 
+      initialRouteName="login"
+      screenListeners={{
+        state: (e) => {
+          console.log('Navigation state changed:', e.data?.state)
+        },
+      }}
     >
-      <Stack.Screen
-        name="homepage"
-        component={HomeScreen}
-      />
       <Stack.Screen
         name="login"
         component={LoginScreen}
+        options={{
+          headerShown: false, // Ẩn header mặc định
+        }}
       />
       <Stack.Screen
         name="register"
         component={RegisterScreen}
+        options={{
+          headerShown: false, // Ẩn header mặc định
+        }}
       />
       <Stack.Screen
         name="forgot-password"
         component={ForgotPasswordScreen}
+        options={{
+          headerShown: false, // Ẩn header mặc định
+        }}
       />
       <Stack.Screen
         name="user-detail"
-        component={UserDetailScreen}
+        component={DetailScreen}
       />
       <Stack.Screen
         name="blog-detail"
@@ -78,7 +90,7 @@ export function NativeNavigation() {
       />
       <Stack.Screen
         name="user-profile"
-        component={UserProfileScreen}
+        component={ProfileScreen}
       />
       <Stack.Screen
         name="error"

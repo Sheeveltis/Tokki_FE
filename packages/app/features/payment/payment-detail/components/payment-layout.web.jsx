@@ -13,16 +13,17 @@ import {BackButton} from '../../../../../components/backBtn'
  *
  * @param {{
  *   paymentId?: string;
+ *   paymentUrl?: string;
  * }} props
  */
-export function PaymentLayout({ paymentId }) {
+export function PaymentLayout({ paymentId, paymentUrl }) {
   return (
     <View style={styles.container}>
       {/* Container cho 2 phần */}
       <View style={styles.contentContainer}>
         {/* QR ISePay bên trái */}
         <View style={styles.leftSection}>
-          <QRIsepay paymentId={paymentId} />
+          <QRIsepay paymentId={paymentId} paymentUrl={paymentUrl} />
         </View>
 
         {/* Gạch đen chia cách */}
