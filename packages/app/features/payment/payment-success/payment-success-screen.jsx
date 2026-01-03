@@ -2,7 +2,7 @@ import React from 'react'
 import { View, ScrollView, StyleSheet, Image } from 'react-native'
 import { Navbar } from '../../../../components/navbar'
 import { Footer } from '../../../../components/footer'
-import { PaymentSuccessLayout } from './components/payment-success-layout.web'
+import { PaymentSuccessLayout } from './components/payment-success-layout'
 import BackgroundImage from '../../../../assets/background1.png'
 
 /**
