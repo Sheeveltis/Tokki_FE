@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { ScrollView, StyleSheet } from 'react-native'
 
 /**
  * AuthLayout (native): trên mobile chỉ cần hiển thị form full-width,
@@ -10,16 +10,27 @@ import { View, StyleSheet } from 'react-native'
  */
 export function AuthLayout({ hero, panel, children }) {
   const content = panel || children
-  return <View style={styles.root}>{content}</View>
+  return (
+    <ScrollView 
+      style={styles.root}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
+      {content}
+    </ScrollView>
+  )
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 24,
-    justifyContent: 'center',
+  },
+  contentContainer: {
+    flexGrow: 1,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
   },
 })
 

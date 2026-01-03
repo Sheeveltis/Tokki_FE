@@ -13,6 +13,7 @@ if (Platform.OS !== 'web') {
 }
 import { useRouter } from 'solito/navigation'
 import { TextInput } from '../../../../components/textInput'
+import { TextInput as RNTextInput } from 'react-native'
 import { DatePicker } from '../../../../components/datePicker'
 import { Button } from '../../../../components/button'
 import { register, sendEmailVerificationOtp, verifyEmailOtp } from '../api'
@@ -55,7 +56,7 @@ const createResponsiveStyles = () => {
     verifyButtonPaddingH: 12,
     verifyTextFont: 12,
     errorFont: 13,
-    loginTextFont: 18,
+    loginTextFont: 14,
     emailInputPaddingRight: 110,
   }
   
@@ -87,10 +88,11 @@ const createResponsiveStyles = () => {
     container: {
       flex: 1,
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: isMobile ? 'flex-start' : 'center',
       paddingHorizontal: scaled.paddingHorizontal,
       paddingVertical: scaled.paddingVertical,
       position: 'relative',
+      minHeight: isMobile ? '100%' : 'auto',
     },
     logoContainer: {
       position: 'absolute',
@@ -166,8 +168,8 @@ const createResponsiveStyles = () => {
     },
     verifyEmailButton: {
       position: 'absolute',
-      right: scaleWidth(12),
-      top: '65%',
+      right: scaleWidth(8),
+      top: '50%', // Đặt ở giữa input field
       transform: [{ translateY: -scaled.verifyButtonHeight / 2 }],
       paddingHorizontal: scaled.verifyButtonPaddingH,
       height: scaled.verifyButtonHeight,
@@ -176,6 +178,7 @@ const createResponsiveStyles = () => {
       borderWidth: 1,
       borderColor: '#D4060A',
       backgroundColor: '#FFF',
+      zIndex: 10,
     },
     verifyEmailButtonSuccess: {
       borderColor: '#2E7D32',
@@ -561,7 +564,7 @@ export function RegisterPanel({ onPressLogin }) {
 
         <View style={styles.formBlock}>
           <TextInput
-            label={Platform.OS === 'web' ? 'Họ và tên' : null}
+            label="Họ và tên"
             placeholder="Nhập họ và tên"
             value={fullName}
             onChangeText={setFullName}
@@ -569,70 +572,98 @@ export function RegisterPanel({ onPressLogin }) {
 
           {/* Email + nút xác thực nằm trong ô nhập */}
           <View style={styles.emailField}>
-            <TextInput
-              label={Platform.OS === 'web' ? 'Email' : null}
-              placeholder={Platform.OS === 'web' ? 'Ví dụ: an@example.com' : 'Nhập Email'}
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text)
-                // Khi người dùng đổi email thì coi như chưa xác thực
-                if (isEmailVerified) {
-                  setIsEmailVerified(false)
-                }
-              }}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              inputStyle={styles.emailInputWithButton}
-            />
-            <TouchableOpacity
-              style={[
-                styles.verifyEmailButton,
-                isEmailVerified && styles.verifyEmailButtonSuccess,
-                otpSending && styles.verifyEmailButtonDisabled,
-              ]}
-              onPress={handleOpenOtpModal}
-              activeOpacity={0.8}
-              disabled={otpSending}
-            >
+            <View style={{ width: '100%' }}>
               <Text
-                style={[
-                  styles.verifyEmailText,
-                  isEmailVerified && styles.verifyEmailTextSuccess,
-                  otpSending && styles.verifyEmailTextDisabled,
-                ]}
+                style={{
+                  fontSize: 14,
+                  fontWeight: '500',
+                  marginBottom: 8,
+                  color: '#333',
+                  fontFamily: 'Epilogue, sans-serif',
+                }}
               >
-                {otpSending
-                  ? 'ĐANG GỬI...'
-                  : isEmailVerified
-                    ? 'ĐÃ XÁC THỰC'
-                    : 'XÁC THỰC'}
+                Email
               </Text>
-            </TouchableOpacity>
+              <View style={{ position: 'relative' }}>
+                <RNTextInput
+                  placeholder="Ví dụ: an@example.com"
+                  value={email}
+                  onChangeText={(text) => {
+                    setEmail(text)
+                    // Khi người dùng đổi email thì coi như chưa xác thực
+                    if (isEmailVerified) {
+                      setIsEmailVerified(false)
+                    }
+                  }}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  style={[
+                    {
+                      backgroundColor: '#F3F3F3',
+                      borderRadius: 0,
+                      paddingHorizontal: 16,
+                      paddingVertical: 12,
+                      fontSize: 16,
+                      fontFamily: 'Epilogue, sans-serif',
+                      color: '#333',
+                      minHeight: 48,
+                      textAlignVertical: 'center',
+                    },
+                    styles.emailInputWithButton,
+                  ]}
+                  placeholderTextColor="#999"
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.verifyEmailButton,
+                    isEmailVerified && styles.verifyEmailButtonSuccess,
+                    otpSending && styles.verifyEmailButtonDisabled,
+                  ]}
+                  onPress={handleOpenOtpModal}
+                  activeOpacity={0.8}
+                  disabled={otpSending}
+                >
+                  <Text
+                    style={[
+                      styles.verifyEmailText,
+                      isEmailVerified && styles.verifyEmailTextSuccess,
+                      otpSending && styles.verifyEmailTextDisabled,
+                    ]}
+                  >
+                    {otpSending
+                      ? 'ĐANG GỬI...'
+                      : isEmailVerified
+                        ? 'ĐÃ XÁC THỰC'
+                        : 'XÁC THỰC'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
 
           <TextInput
-            label={Platform.OS === 'web' ? 'Số điện thoại' : null}
-            placeholder={Platform.OS === 'web' ? 'Ví dụ: 0585204417' : 'Nhập số điện thoại'}
+            label="Số điện thoại"
+            placeholder="Nhập số điện thoại"
             value={phoneNumber}
             onChangeText={setPhoneNumber}
             keyboardType="phone-pad"
           />
           <TextInput
-            label={Platform.OS === 'web' ? 'Mật khẩu' : null}
+            label="Mật khẩu"
             placeholder="Nhập mật khẩu"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
           <TextInput
-            label={Platform.OS === 'web' ? 'Xác nhận mật khẩu' : null}
+            label="Xác nhận mật khẩu"
             placeholder="Nhập lại mật khẩu"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
           />
           <DatePicker
-            label={Platform.OS === 'web' ? 'Ngày sinh' : null}
+            label="Ngày sinh"
             placeholder="Chọn ngày sinh"
             value={dateOfBirth}
             onChange={setDateOfBirth}

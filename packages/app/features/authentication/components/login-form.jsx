@@ -331,10 +331,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: Platform.OS === 'web' ? 'center' : 'flex-start',
     paddingHorizontal: 32,
     paddingVertical: 32,
     position: 'relative',
+    minHeight: Platform.OS !== 'web' ? '100%' : 'auto',
   },
   logoContainer: {
     position: 'absolute',
@@ -465,12 +466,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   signupText: {
-    fontSize: 20,
+    fontSize: 14,
     color: '#333',
     fontFamily: 'Epilogue, sans-serif',
   },
   signupHighlight: {
-    fontSize: 20,
+    fontSize: 14,
     fontWeight: '700',
     color: '#D4060A',
     fontFamily: 'Epilogue, sans-serif',

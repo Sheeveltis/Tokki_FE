@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Platform } from 'react-native'
 
 /**
  * DatePicker Component cho React Native
@@ -17,6 +17,29 @@ export function DatePicker({ label, placeholder, value, onChange, style }) {
   const [selectedYear, setSelectedYear] = useState(null)
   const [selectedMonth, setSelectedMonth] = useState(null)
   const [selectedDay, setSelectedDay] = useState(null)
+
+  // Inject CSS để ẩn scrollbar trên web
+  React.useEffect(() => {
+    if (Platform.OS === 'web') {
+      const styleId = 'datepicker-scrollbar-hide'
+      if (!document.getElementById(styleId)) {
+        const style = document.createElement('style')
+        style.id = styleId
+        style.textContent = `
+          .datepicker-scrollview::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+          }
+          .datepicker-scrollview {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `
+        document.head.appendChild(style)
+      }
+    }
+  }, [])
 
   // Parse value nếu có
   React.useEffect(() => {
@@ -57,6 +80,9 @@ export function DatePicker({ label, placeholder, value, onChange, style }) {
   }
 
   const displayValue = value || placeholder || 'Chọn ngày sinh'
+
+  // Style động cho ScrollView trên web để ẩn scrollbar
+  const scrollViewStyle = styles.pickerScrollView
 
   return (
     <View style={[styles.container, style]}>
@@ -102,7 +128,10 @@ export function DatePicker({ label, placeholder, value, onChange, style }) {
               {/* Năm */}
               <View style={styles.pickerColumn}>
                 <Text style={styles.pickerLabel}>Năm</Text>
-                <ScrollView style={styles.pickerScrollView}>
+                <ScrollView 
+                  style={scrollViewStyle}
+                  {...(Platform.OS === 'web' && { className: 'datepicker-scrollview' })}
+                >
                   {years.map((year) => (
                     <TouchableOpacity
                       key={year}
@@ -137,7 +166,10 @@ export function DatePicker({ label, placeholder, value, onChange, style }) {
               {/* Tháng */}
               <View style={styles.pickerColumn}>
                 <Text style={styles.pickerLabel}>Tháng</Text>
-                <ScrollView style={styles.pickerScrollView}>
+                <ScrollView 
+                  style={scrollViewStyle}
+                  {...(Platform.OS === 'web' && { className: 'datepicker-scrollview' })}
+                >
                   {months.map((month) => (
                     <TouchableOpacity
                       key={month}
@@ -172,7 +204,10 @@ export function DatePicker({ label, placeholder, value, onChange, style }) {
               {/* Ngày */}
               <View style={styles.pickerColumn}>
                 <Text style={styles.pickerLabel}>Ngày</Text>
-                <ScrollView style={styles.pickerScrollView}>
+                <ScrollView 
+                  style={scrollViewStyle}
+                  {...(Platform.OS === 'web' && { className: 'datepicker-scrollview' })}
+                >
                   {days.map((day) => (
                     <TouchableOpacity
                       key={day}
@@ -242,7 +277,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     paddingBottom: 10,
-    maxHeight: 220,
+    maxHeight: 400,
     width: '90%',
     maxWidth: 400,
   },
@@ -274,7 +309,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 6,
     paddingVertical: 10,
-    height: 150,
+    height: 280,
   },
   pickerColumn: {
     flex: 1,
