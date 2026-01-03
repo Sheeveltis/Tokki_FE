@@ -1,0 +1,152 @@
+{
+  "ExamTemplate": {
+    "ExamTemplateId": 1,
+    "Name": "Mẫu Đề TOPIK I",
+    "Description": "Đề gồm 30 câu nghe, 40 câu đọc và 3 câu viết",
+    "ExamType": "TOPIK I",
+    "CreatedAt": "2024-01-15T10:00:00Z",
+    "UpdatedAt": "2024-01-15T10:00:00Z",
+    "IsActive": true
+  },
+  "TemplateParts": [
+    {
+      "TemplatePartId": 1,
+      "ExamTemplateId": 1,
+      "Skill": "Reading",
+      "QuestionFrom": 1,
+      "QuestionTo": 10,
+      "PartTitle": "Đọc hiểu đoạn văn ngắn",
+      "Instruction": "다음을 읽고 맞는 답을 고르세요",
+      "Mark": 1.0,
+      "ExampleUrl": null,
+      "QuestionTypeId": 1,
+      "CreatedAt": "2024-01-15T10:00:00Z",
+      "UpdatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "TemplatePartId": 2,
+      "ExamTemplateId": 1,
+      "Skill": "Reading",
+      "QuestionFrom": 11,
+      "QuestionTo": 20,
+      "PartTitle": "Điền từ vào chỗ trống",
+      "Instruction": "다음 빈칸에 알맞은 것을 고르세요",
+      "Mark": 1.0,
+      "ExampleUrl": null,
+      "QuestionTypeId": 2,
+      "CreatedAt": "2024-01-15T10:00:00Z",
+      "UpdatedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "TemplatePartId": 3,
+      "ExamTemplateId": 1,
+      "Skill": "Listening",
+      "QuestionFrom": 21,
+      "QuestionTo": 30,
+      "PartTitle": "Nghe và chọn đáp án",
+      "Instruction": "다음을 듣고 맞는 답을 고르세요",
+      "Mark": 1.5,
+      "ExampleUrl": "https://example.com/audio/topik1-listening.mp3",
+      "QuestionTypeId": 3,
+      "CreatedAt": "2024-01-15T10:00:00Z",
+      "UpdatedAt": "2024-01-15T10:00:00Z"
+    }
+  ],
+  "QuestionTypes": [
+    {
+      "QuestionTypeId": 1,
+      "Code": "MCQ",
+      "Name": "Multiple Choice",
+      "Description": "Câu hỏi trắc nghiệm 4 lựa chọn",
+      "Skill": "Reading",
+      "DifficultyLevel": "medium",
+      "IsActive": true
+    },
+    {
+      "QuestionTypeId": 2,
+      "Code": "FIB",
+      "Name": "Fill in the Blank",
+      "Description": "Điền từ vào chỗ trống",
+      "Skill": "Reading",
+      "DifficultyLevel": "easy",
+      "IsActive": true
+    },
+    {
+      "QuestionTypeId": 3,
+      "Code": "LISTEN",
+      "Name": "Listening Comprehension",
+      "Description": "Nghe hiểu và chọn đáp án",
+      "Skill": "Listening",
+      "DifficultyLevel": "medium",
+      "IsActive": true
+    }
+  ],
+  "API_Response_Example": {
+    "GET /api/admin/exam-templates/1": {
+      "ExamTemplateId": 1,
+      "Name": "Mẫu Đề TOPIK I",
+      "Description": "Đề gồm 30 câu nghe, 40 câu đọc và 3 câu viết",
+      "ExamType": "TOPIK I",
+      "CreatedAt": "2024-01-15T10:00:00Z",
+      "UpdatedAt": "2024-01-15T10:00:00Z",
+      "IsActive": true,
+      "Parts": [
+        {
+          "TemplatePartId": 1,
+          "Skill": "Reading",
+          "QuestionFrom": 1,
+          "QuestionTo": 10,
+          "PartTitle": "Đọc hiểu đoạn văn ngắn",
+          "Instruction": "다음을 읽고 맞는 답을 고르세요",
+          "Mark": 1.0,
+          "ExampleUrl": null,
+          "QuestionTypeId": 1,
+          "QuestionType": {
+            "QuestionTypeId": 1,
+            "Code": "MCQ",
+            "Name": "Multiple Choice",
+            "Description": "Câu hỏi trắc nghiệm 4 lựa chọn",
+            "Skill": "Reading",
+            "DifficultyLevel": "medium"
+          }
+        }
+      ]
+    },
+    "POST /api/admin/exam-templates": {
+      "Request": {
+        "name": "Mẫu Đề TOPIK I",
+        "description": "Đề gồm 30 câu nghe, 40 câu đọc và 3 câu viết",
+        "examType": "TOPIK I"
+      },
+      "Response": {
+        "ExamTemplateId": 1,
+        "name": "Mẫu Đề TOPIK I",
+        "description": "Đề gồm 30 câu nghe, 40 câu đọc và 3 câu viết",
+        "examType": "TOPIK I",
+        "CreatedAt": "2024-01-15T10:00:00Z"
+      }
+    },
+    "PUT /api/admin/exam-templates/1/parts": {
+      "Request": {
+        "parts": [
+          {
+            "Skill": "Reading",
+            "QuestionFrom": 1,
+            "QuestionTo": 10,
+            "PartTitle": "Đọc hiểu đoạn văn ngắn",
+            "Instruction": "다음을 읽고 맞는 답을 고르세요",
+            "Mark": 1.0,
+            "ExampleUrl": null,
+            "QuestionTypeId": 1
+          }
+        ]
+      },
+      "Response": {
+        "success": true,
+        "message": "Đã cập nhật các phần của đề thi thành công",
+        "updatedParts": 1
+      }
+    }
+  }
+}
+

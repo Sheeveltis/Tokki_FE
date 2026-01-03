@@ -14,6 +14,9 @@ import {
   PieChartOutlined,
   ShopOutlined,
   ThunderboltOutlined,
+  FormOutlined,
+  QuestionCircleOutlined,
+  FileDoneOutlined,
 } from '@ant-design/icons'
 
 export const adminMenuItems = [
@@ -42,6 +45,16 @@ export const adminMenuItems = [
     children: [
       { key: 'vocabulary-words', icon: <DatabaseOutlined />, label: 'Quản lý từ vựng' },
       { key: 'vocabulary-topics', icon: <BookOutlined />, label: 'Quản lý chủ đề' },
+    ],
+  },
+  {
+    key: 'exam',
+    icon: <FileDoneOutlined />,
+    label: 'Quản lý Đề',
+    children: [
+      { key: 'exam-template', icon: <FormOutlined />, label: 'Mẫu đề' },
+      { key: 'question-bank', icon: <QuestionCircleOutlined />, label: 'Ngân hàng câu hỏi' },
+      { key: 'exam-management', icon: <FileDoneOutlined />, label: 'Đề' },
     ],
   },
   {
