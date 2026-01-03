@@ -1,7 +1,8 @@
 import React from 'react'
-import { View, ScrollView, StyleSheet, Image } from 'react-native'
+import { View, ScrollView, StyleSheet, Image, Platform } from 'react-native'
 import { Navbar } from '../../../../components/navbar'
 import { Footer } from '../../../../components/footer'
+import { NavbarMobile } from '../../../../components/navbar-mobile'
 import { PaymentSuccessLayout } from './components/payment-success-layout'
 import BackgroundImage from '../../../../assets/background1.png'
 
@@ -46,8 +47,11 @@ export function PaymentSuccessScreen() {
         </View>
       </ScrollView>
 
-      {/* Footer ở cuối trang */}
-      <Footer />
+      {/* Footer chỉ hiển thị trên web */}
+      {Platform.OS === 'web' && <Footer />}
+      
+      {/* NavbarMobile chỉ hiển thị trên native */}
+      {Platform.OS !== 'web' && <NavbarMobile />}
     </View>
   )
 }
@@ -77,7 +81,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     alignItems: 'center',
     paddingVertical: 40,
-    paddingBottom: 60,
+    paddingBottom: Platform.OS === 'web' ? 60 : 100, // Extra padding on native for navbar
   },
   wrapper: {
     width: '100%',
