@@ -24,6 +24,7 @@ export const ENDPOINTS = {
       CREATE: '/Payment',
       GET_QR_BY_ID: (id) => `/Payment/${id}/qr`,
       GET_BY_ID: (id) => `/Payment/${id}`,
+      HISTORY_TOKEN_USER: '/Payment/history-token-user', // GET: Lấy lịch sử thanh toán của user hiện tại
     },
     VIP_PACKAGE: {
       GET_ALL: '/VipPackage',
