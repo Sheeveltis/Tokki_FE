@@ -18,3 +18,22 @@ export async function getVipPackages() {
   }
 }
 
+/**
+ * Create payment for VIP package
+ * @param {string} userId - User ID
+ * @param {string} vipPackageId - VIP Package ID
+ * @returns {Promise<{ isSuccess: boolean; data: { paymentId: string; paymentUrl: string }; message: string; statusCode: number }>}
+ */
+export async function createVipPackagePayment(userId, vipPackageId) {
+  try {
+    const response = await apiClient.post(ENDPOINTS.PAYMENT.CREATE, {
+      userId,
+      vipPackageId,
+    })
+    return response.data
+  } catch (error) {
+    console.error('[createVipPackagePayment] Error:', error)
+    throw error
+  }
+}
+
