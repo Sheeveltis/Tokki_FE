@@ -120,7 +120,7 @@ export function AdminLayout({
               theme="dark"
               mode="inline"
               selectedKeys={[selectedKey]}
-              defaultOpenKeys={['users', 'content', 'vocabulary', 'customer-service', 'revenue']}
+              defaultOpenKeys={['users', 'content', 'vocabulary', 'exam', 'customer-service', 'revenue']}
               onClick={handleMenuClick}
               items={adminMenuItems}
             />
