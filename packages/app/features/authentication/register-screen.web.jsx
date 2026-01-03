@@ -1,5 +1,6 @@
 import React from 'react'
 import { StyleSheet } from 'react-native'
+import { useRouter } from 'solito/navigation'
 
 import { AuthLayout } from './components/auth-layout'
 import { LoginHero } from './components/login-hero'
@@ -13,8 +14,16 @@ import LoginHeroImage2 from '../../../assets/registerBackground.png'
  * }} props
  */
 export function RegisterScreen({ onPressLogin }) {
+  const router = useRouter()
+
   const handlePressLogin = () => {
-    onPressLogin?.()
+    if (onPressLogin) {
+      onPressLogin()
+      return
+    }
+    
+    // Web: dùng Solito router
+    router.push('/login')
   }
 
   return (
@@ -30,5 +39,4 @@ export function RegisterScreen({ onPressLogin }) {
 }
 
 const styles = StyleSheet.create({})
-
 

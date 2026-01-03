@@ -16,7 +16,11 @@
       "reactCanary": true
     },
     "android": {
-      "package": "com.solito.blank"
+      "package": "com.solito.blank",
+      "navigationBar": {
+        "backgroundColor": "#000000",
+        "barStyle": "light-content"
+      }
     }
   }
 }

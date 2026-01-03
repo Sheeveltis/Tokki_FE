@@ -1,6 +1,7 @@
 import axios from 'axios'
+import { Platform } from 'react-native'
 import { API_BASE_URL } from './endpoints'
-import { encryptToken, decryptToken } from '../../features/authentication/helpers/token-encryption'
+import { encryptToken, decryptToken } from '../../helpers/token-encryption'
 import {
   getUserInfoFromToken,
   getUserIdFromToken,
@@ -8,40 +9,68 @@ import {
   getFullNameFromToken,
   getRoleFromToken,
   isTokenExpired,
-} from '../../features/authentication/helpers/token-decoder'
+} from '../../helpers/token-decoder'
+import { setStorageItem, getStorageItem, removeStorageItem, dispatchStorageEvent } from '../../helpers/storage'
 
-// Lưu token đơn giản: ưu tiên localStorage, fallback bộ nhớ tạm
+// Lưu token đơn giản: ưu tiên storage, fallback bộ nhớ tạm
 const TOKEN_KEY = 'token'
 let inMemoryToken = null
+let storageCache = null // Cache để tránh async call nhiều lần
 
-export const setAuthToken = (token) => {
+export const setAuthToken = async (token) => {
   inMemoryToken = token || null
-  if (typeof localStorage !== 'undefined') {
-    if (token) {
-      // Mã hóa token trước khi lưu vào localStorage
-      const encryptedToken = encryptToken(token)
-      localStorage.setItem(TOKEN_KEY, encryptedToken)
-    } else {
-      localStorage.removeItem(TOKEN_KEY)
-    }
+  storageCache = token || null
+  
+  if (token) {
+    // Mã hóa token trước khi lưu vào storage
+    const encryptedToken = encryptToken(token)
+    await setStorageItem(TOKEN_KEY, encryptedToken)
+  } else {
+    await removeStorageItem(TOKEN_KEY)
   }
+  
+  // Dispatch event cho web
+  dispatchStorageEvent('token-changed')
 }
 
 export const clearAuthToken = () => setAuthToken(null)
 
+// Synchronous version cho backward compatibility (sử dụng cache)
 export const getAuthToken = () => {
   if (inMemoryToken) return inMemoryToken
-  if (typeof localStorage !== 'undefined') {
-    const stored = localStorage.getItem(TOKEN_KEY)
+  if (storageCache) return storageCache
+  
+  // Nếu là web, có thể đọc sync từ localStorage
+  if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
+    const stored = window.localStorage.getItem(TOKEN_KEY)
     if (stored) {
-      // Giải mã token từ localStorage
       const decryptedToken = decryptToken(stored)
       if (decryptedToken) {
         inMemoryToken = decryptedToken
+        storageCache = decryptedToken
         return decryptedToken
       }
     }
   }
+  
+  return null
+}
+
+// Async version để đọc từ AsyncStorage trên mobile
+export const getAuthTokenAsync = async () => {
+  if (inMemoryToken) return inMemoryToken
+  if (storageCache) return storageCache
+  
+  const stored = await getStorageItem(TOKEN_KEY)
+  if (stored) {
+    const decryptedToken = decryptToken(stored)
+    if (decryptedToken) {
+      inMemoryToken = decryptedToken
+      storageCache = decryptedToken
+      return decryptedToken
+    }
+  }
+  
   return null
 }
 
@@ -134,22 +163,24 @@ apiClient.interceptors.request.use(
 /**
  * Helper function để tự động logout khi token hết hạn
  */
-const handleTokenExpired = () => {
+const handleTokenExpired = async () => {
   // Clear token
-  clearAuthToken()
+  await clearAuthToken()
   
-  // Clear from localStorage
-  if (typeof window !== 'undefined') {
-    window.localStorage?.removeItem('token')
-    window.localStorage?.removeItem('userId')
-    // Dispatch event để navbar cập nhật
-    window.dispatchEvent(new Event('token-changed'))
-    
-    // Redirect to login page
+  // Clear from storage
+  await removeStorageItem('token')
+  await removeStorageItem('userId')
+  
+  // Dispatch event để navbar cập nhật
+  dispatchStorageEvent('token-changed')
+  
+  // Redirect to login page (chỉ trên web)
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
     if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
       window.location.href = '/login'
     }
   }
+  // Trên mobile, navigation sẽ được xử lý bởi navigation system
 }
 
 // Response interceptor - xử lý error chung
