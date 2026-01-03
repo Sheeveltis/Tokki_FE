@@ -513,35 +513,35 @@ export function RegisterPanel({ onPressLogin }) {
     <View style={containerStyle}>
       {/* Ẩn button Trang chủ trên native */}
       {Platform.OS === 'web' && (
-        <TouchableOpacity
-          style={styles.backHome}
-          onPress={() => router.push('/homepage')}
-          activeOpacity={0.8}
-        >
-          {homeIconSource ? <Image source={homeIconSource} style={styles.backIcon} /> : null}
-          <Text style={styles.backText}>Trang chủ</Text>
-        </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.backHome}
+        onPress={() => router.push('/homepage')}
+        activeOpacity={0.8}
+      >
+        {homeIconSource ? <Image source={homeIconSource} style={styles.backIcon} /> : null}
+        <Text style={styles.backText}>Trang chủ</Text>
+      </TouchableOpacity>
       )}
-      {/* HelperAdmin để hiển thị thông báo từ API (chỉ hiển thị khi thành công) */}
-      {notifyResponse && (
+      {/* HelperAdmin để hiển thị thông báo từ API (chỉ hiển thị khi thành công) - Chỉ trên web */}
+      {Platform.OS === 'web' && notifyResponse && (
         <HelperAdmin response={notifyResponse} type="error" hideStatusCode hideErrorCode />
       )}
-      {apiResponse && apiResponse.isSuccess && (
+      {Platform.OS === 'web' && apiResponse && apiResponse.isSuccess && (
         <HelperAdmin response={apiResponse} type="success" hideStatusCode hideErrorCode />
       )}
       {/* Logo và title - layout khác nhau cho web và native */}
       {Platform.OS === 'web' ? (
         <>
-          <View style={styles.logoContainer}>
-            {logoSource && <Image source={logoSource} style={styles.logoImage} />}
-          </View>
-          <View style={styles.content}>
-            <View style={styles.headerBlock}>
-              <Text style={styles.title}>Đăng ký</Text>
-              <Text style={styles.subtitle}>
-                Hãy nhập thông tin để đăng ký tài khoản của riêng bạn
-              </Text>
-            </View>
+      <View style={styles.logoContainer}>
+        {logoSource && <Image source={logoSource} style={styles.logoImage} />}
+      </View>
+      <View style={styles.content}>
+        <View style={styles.headerBlock}>
+          <Text style={styles.title}>Đăng ký</Text>
+          <Text style={styles.subtitle}>
+            Hãy nhập thông tin để đăng ký tài khoản của riêng bạn
+          </Text>
+        </View>
           </View>
         </>
       ) : (
@@ -558,8 +558,8 @@ export function RegisterPanel({ onPressLogin }) {
           </View>
         </View>
       )}
-      
-      <View style={styles.formBlock}>
+
+        <View style={styles.formBlock}>
           <TextInput
             label={Platform.OS === 'web' ? 'Họ và tên' : null}
             placeholder="Nhập họ và tên"
@@ -655,7 +655,7 @@ export function RegisterPanel({ onPressLogin }) {
           <TouchableOpacity onPress={onPressLogin}>
             <Text style={styles.loginHighlight}>ĐĂNG NHẬP NGAY</Text>
           </TouchableOpacity>
-        </View>
+      </View>
 
       {/* Modal nhập OTP để xác thực email */}
       <InputOTP

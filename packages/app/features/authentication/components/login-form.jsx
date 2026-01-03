@@ -213,28 +213,28 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
     <View style={containerStyle}>
       {/* Ẩn button Trang chủ trên native */}
       {Platform.OS === 'web' && (
-        <NavigationPill style={styles.backHome} label="Trang chủ" to="/homepage" />
+      <NavigationPill style={styles.backHome} label="Trang chủ" to="/homepage" />
       )}
-      {/* HelperAdmin để hiển thị thông báo từ API (chỉ hiển thị khi thành công) */}
-      {notifyResponse && (
+      {/* HelperAdmin để hiển thị thông báo từ API (chỉ hiển thị khi thành công) - Chỉ trên web */}
+      {Platform.OS === 'web' && notifyResponse && (
         <HelperAdmin response={notifyResponse} type="error" hideStatusCode hideErrorCode />
       )}
-      {apiResponse && apiResponse.isSuccess && (
+      {Platform.OS === 'web' && apiResponse && apiResponse.isSuccess && (
         <HelperAdmin response={apiResponse} type="success" hideStatusCode hideErrorCode />
       )}
       {/* Logo và title - layout khác nhau cho web và native */}
       {Platform.OS === 'web' ? (
         <>
-          <View style={styles.logoContainer}>
-            {logoSource && <Image source={logoSource} style={styles.logoImage} />}
-          </View>
-          <View style={styles.content}>
-            <View style={styles.headerBlock}>
-              <Text style={styles.title}>Đăng nhập</Text>
-              <Text style={styles.subtitle}>
-                Hãy nhập thông tin để đăng nhập vào tài khoản của bạn
-              </Text>
-            </View>
+      <View style={styles.logoContainer}>
+        {logoSource && <Image source={logoSource} style={styles.logoImage} />}
+      </View>
+      <View style={styles.content}>
+        <View style={styles.headerBlock}>
+          <Text style={styles.title}>Đăng nhập</Text>
+          <Text style={styles.subtitle}>
+          Hãy nhập thông tin để đăng nhập vào tài khoản của bạn
+          </Text>
+        </View>
           </View>
         </>
       ) : (
