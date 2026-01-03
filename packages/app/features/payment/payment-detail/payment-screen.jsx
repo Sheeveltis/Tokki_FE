@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet, Image } from 'react-native'
 import { useSearchParams } from 'solito/navigation'
 import { Navbar } from '../../../../components/navbar'
 import { Footer } from '../../../../components/footer'
-import { PaymentLayout } from './components/payment-layout.web'
+import { PaymentLayout } from './components/payment-layout'
 import BackgroundImage from '../../../../assets/background1.png'
 
 /**
