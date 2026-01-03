@@ -1,7 +1,6 @@
 import React from 'react'
 import { View, ScrollView, StyleSheet, Image } from 'react-native'
-import { Card as PackagePremium } from '../../payment-package/components/package-premium'
-import { ChoosePackage } from './choose-package'
+import { ChoosePackage } from './choose-package.native'
 import { BackButton } from '../../../../../components/backBtn'
 import BackgroundImage from '../../../../../assets/background1.png'
 
@@ -25,10 +24,9 @@ const normalizeImageSource = (src) => {
 
 /**
  * Premium Package Layout Component (Native/Mobile)
- * - Vertical layout for mobile screens
- * - Package Premium on top
- * - Choose Package below
- * - Back button at the bottom
+ * - Only shows ChoosePackage component
+ * - Optimized for mobile screens
+ * - Back button at the top
  */
 export function PremiumPackageLayout() {
   return (
@@ -42,19 +40,14 @@ export function PremiumPackageLayout() {
       {/* Nội dung chính */}
       <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
         <View style={styles.wrapper}>
-          {/* Package Premium ở trên */}
-          <View style={styles.topSection}>
-            <PackagePremium />
-          </View>
-
-          {/* Choose Package ở dưới */}
-          <View style={styles.bottomSection}>
-            <ChoosePackage />
-          </View>
-
-          {/* Nút Quay lại */}
-          <View style={styles.buttonContainer}>
+          {/* Back button ở trên */}
+          <View style={styles.backButtonContainer}>
             <BackButton />
+          </View>
+
+          {/* Choose Package */}
+          <View style={styles.choosePackageContainer}>
+            <ChoosePackage />
           </View>
         </View>
       </ScrollView>
@@ -87,26 +80,16 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingVertical: 20,
-    alignItems: 'center',
+    paddingBottom: 100, // Extra padding for navbar
   },
   wrapper: {
     width: '100%',
-    maxWidth: 600,
   },
-  topSection: {
+  backButtonContainer: {
     width: '100%',
-    alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
-  bottomSection: {
+  choosePackageContainer: {
     width: '100%',
-    alignItems: 'center',
-  },
-  buttonContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 20,
   },
 })
-

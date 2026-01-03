@@ -1,6 +1,7 @@
 // packages/app/navigation/native/index.jsx
 // packages/app/navigation/native/index.jsx
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import { View, StyleSheet } from 'react-native'
 
 import { HomeScreen } from 'app/features/home/screen'
 import { DetailScreen } from 'app/features/user/screens/Detail'
@@ -21,9 +22,9 @@ import { ErrorScreen } from 'app/features/error/error-screen'
 const Stack = createNativeStackNavigator()
 
 export function NativeNavigation() {
-
   return (
-    <Stack.Navigator 
+    <View style={styles.container}>
+      <Stack.Navigator 
       initialRouteName="login"
       screenListeners={{
         state: (e) => {
@@ -96,6 +97,13 @@ export function NativeNavigation() {
         name="error"
         component={ErrorScreen}
       />
-    </Stack.Navigator>
+      </Stack.Navigator>
+    </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+})

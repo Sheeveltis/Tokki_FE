@@ -1,5 +1,7 @@
 import React from 'react'
+import { View, StyleSheet, Platform } from 'react-native'
 import { PremiumPackageLayout } from './components/premium-package-layout'
+import { NavbarMobile } from '../../../../components/navbar-mobile'
 
 /**
  * PremiumScreen: Màn hình chọn gói premium
@@ -8,7 +10,19 @@ import { PremiumPackageLayout } from './components/premium-package-layout'
  * - Có nút quay lại
  */
 export function PremiumScreen() {
-  return <PremiumPackageLayout />
+  return (
+    <View style={styles.container}>
+      <PremiumPackageLayout />
+      {Platform.OS !== 'web' && <NavbarMobile />}
+    </View>
+  )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    position: 'relative',
+  },
+})
 
 
