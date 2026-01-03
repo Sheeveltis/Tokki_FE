@@ -1,5 +1,5 @@
 import React from 'react'
-import { PremiumPackageLayout } from './components/premium-package-layout.web'
+import { PremiumPackageLayout } from './components/premium-package-layout'
 
 /**
  * PremiumScreen: Màn hình chọn gói premium
