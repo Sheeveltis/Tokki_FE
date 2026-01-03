@@ -1,5 +1,5 @@
 import React from 'react'
-import { PaymentPackageLayout } from './components/payment-package-layout.web'
+import { PaymentPackageLayout } from './components/payment-package-layout'
 
 /**
  * PackageScreen: Màn hình hiển thị các gói thanh toán
