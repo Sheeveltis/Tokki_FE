@@ -1,5 +1,5 @@
 import React from 'react'
-import { TouchableOpacity, Image, Text, StyleSheet } from 'react-native'
+import { TouchableOpacity, Image, Text, StyleSheet, View, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import DefaultHomeIcon from '../assets/icon/icon-mainflow/home.svg'
 
@@ -31,12 +31,27 @@ export const NavigationPill = ({
     if (!src) return null
     if (typeof src === 'number' || typeof src === 'string') return src
     if (src.uri) return src
-    if (src.src) return { uri: src.src }
+    if (typeof src === 'object' && src.src) {
+      return { uri: src.src }
+    }
     if (src.default) return src.default
+    // Xử lý SVG - giống như trong study/api/index.js
+    if (typeof src === 'object') {
+      if (src.uri) return { uri: src.uri }
+      if (src.source) return src.source
+    }
     return src
   }
 
   const iconSource = normalizeImageSource(icon)
+  
+  // Kiểm tra xem icon có phải là React component không (SVG component)
+  // SVG có thể được import như React component hoặc object
+  const isReactComponent = icon && (
+    (typeof icon === 'function') || 
+    (typeof icon === 'object' && icon.$$typeof) ||
+    (typeof icon === 'object' && icon.default && (typeof icon.default === 'function' || icon.default.$$typeof))
+  )
 
   const handlePress = () => {
     if (onPress) {
@@ -48,13 +63,51 @@ export const NavigationPill = ({
     }
   }
 
+  // Render icon - hỗ trợ cả Image source và React component (SVG)
+  const renderIcon = () => {
+    if (!icon) return null
+    
+    // Ưu tiên: Thử dùng Image component trước (giống như flashcard-study)
+    // normalizeImageSource sẽ xử lý SVG object và trả về source phù hợp
+    if (iconSource && !isReactComponent) {
+      return <Image source={iconSource} style={[styles.icon, iconStyle]} />
+    }
+    
+    // Nếu là React component (SVG component), render trực tiếp
+    if (isReactComponent) {
+      const IconComponent = typeof icon === 'function' ? icon : (icon.default || icon)
+      return (
+        <View style={[styles.iconContainer, iconStyle]}>
+          <IconComponent width={20} height={20} />
+        </View>
+      )
+    }
+    
+    // Fallback: thử render như component
+    if (typeof icon === 'function') {
+      const IconComponent = icon
+      return (
+        <View style={[styles.iconContainer, iconStyle]}>
+          <IconComponent width={20} height={20} />
+        </View>
+      )
+    }
+    
+    // Cuối cùng: thử dùng Image với iconSource
+    if (iconSource) {
+      return <Image source={iconSource} style={[styles.icon, iconStyle]} />
+    }
+    
+    return null
+  }
+
   return (
     <TouchableOpacity
       style={[styles.container, style]}
       onPress={handlePress}
       activeOpacity={0.8}
     >
-      {iconSource ? <Image source={iconSource} style={[styles.icon, iconStyle]} /> : null}
+      {renderIcon()}
       <Text style={[styles.text, textStyle]}>{label}</Text>
     </TouchableOpacity>
   )
@@ -74,6 +127,12 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     resizeMode: 'contain',
+  },
+  iconContainer: {
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   text: {
     fontSize: 14,
