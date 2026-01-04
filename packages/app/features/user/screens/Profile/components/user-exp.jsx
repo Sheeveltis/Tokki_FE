@@ -113,6 +113,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E3DC',
     minWidth: 280,
+    width: '100%', // Ensure full width on native
   },
   header: {
     flexDirection: 'row',
