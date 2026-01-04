@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flexGrow: 1,
-    paddingVertical: 0,
+    paddingVertical: 40,
     paddingHorizontal: 0,
   },
 })

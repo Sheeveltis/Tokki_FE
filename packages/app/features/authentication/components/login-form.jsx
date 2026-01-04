@@ -192,8 +192,10 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
 
         setError(msg)
 
-        // Vẫn hiển thị notification (Alert / toast) nếu hàm đã được dùng ở nơi khác
-        showApiNotification(response)
+        // Chỉ hiển thị Alert trên mobile, web dùng HelperAdmin
+        if (Platform.OS !== 'web') {
+          showApiNotification(response)
+        }
       }
     } finally {
       // Đảm bảo luôn tắt trạng thái loading kể cả khi login ném lỗi ngoài ý muốn
@@ -403,7 +405,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 14,
     maxHeight: 50,
     color: '#555',
     fontFamily: 'Epilogue, sans-serif',
@@ -436,7 +438,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   nativeSubtitle: {
-    fontSize: 18,
+    fontSize: 14,
     color: '#555',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
@@ -457,7 +459,7 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     marginTop: 8,
-    width: '30%',
+    width: Platform.OS === 'web' ? '30%' : '50%',
     alignSelf: 'center',
   },
   separatorRow: {
@@ -480,7 +482,7 @@ const styles = StyleSheet.create({
   },
   googleBtn: {
     marginTop: 12,
-    width: '80%',
+    width: Platform.OS === 'web' ? '60%' : '100%',
     alignSelf: 'center',
   },
   signupRow: {
@@ -490,12 +492,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   signupText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#333',
     fontFamily: 'Epilogue, sans-serif',
   },
   signupHighlight: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
     color: '#D4060A',
     fontFamily: 'Epilogue, sans-serif',

@@ -46,7 +46,7 @@ const createResponsiveStyles = () => {
     logoHeight: 48,
     iconSize: 20,
     titleFont: 32,
-    subtitleFont: 18,
+    subtitleFont: 14, // Sửa từ 18 thành 14 để giống login-form
     backTextFont: 14,
     formGap: 12,
     headerGap: 16,
@@ -88,31 +88,31 @@ const createResponsiveStyles = () => {
     container: {
       flex: 1,
       alignItems: 'center',
-      justifyContent: isMobile ? 'flex-start' : 'center',
-      paddingHorizontal: scaled.paddingHorizontal,
-      paddingVertical: scaled.paddingVertical,
+      justifyContent: Platform.OS === 'web' ? 'center' : 'flex-start',
+      paddingHorizontal: 32,
+      paddingVertical: 32,
       position: 'relative',
-      minHeight: isMobile ? '100%' : 'auto',
+      minHeight: Platform.OS !== 'web' ? '100%' : 'auto',
     },
     logoContainer: {
       position: 'absolute',
-      top: scaled.topOffset,
-      right: scaled.sideOffset,
+      top: isMobile ? scaled.topOffset : 24,
+      right: isMobile ? scaled.sideOffset : 24,
       zIndex: 10,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scaleWidth(8),
+      gap: isMobile ? scaleWidth(8) : 8,
     },
     backHome: {
       position: 'absolute',
-      top: scaled.topOffset,
-      left: scaled.sideOffset,
+      top: isMobile ? scaled.topOffset : 24,
+      left: isMobile ? scaled.sideOffset : 24,
       zIndex: 15,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scaleWidth(8),
-      paddingHorizontal: scaled.buttonPaddingH,
-      paddingVertical: scaled.buttonPaddingV,
+      gap: isMobile ? scaleWidth(8) : 8,
+      paddingHorizontal: isMobile ? scaled.buttonPaddingH : 12,
+      paddingVertical: isMobile ? scaled.buttonPaddingV : 8,
       borderRadius: 999,
       backgroundColor: 'rgba(0,0,0,0.05)',
     },
@@ -128,36 +128,32 @@ const createResponsiveStyles = () => {
       fontFamily: 'Epilogue, sans-serif',
     },
     logoImage: {
-      width: scaled.logoWidth,
-      height: scaled.logoHeight,
+      width: isMobile ? scaled.logoWidth : 160,
+      height: isMobile ? scaled.logoHeight : 48,
       resizeMode: 'contain',
     },
     content: {
       width: '100%',
-      maxWidth: isMobile ? percentWidth(90) : 620, // Responsive maxWidth
-      gap: scaled.headerGap,
+      maxWidth: 620,
+      gap: 16,
     },
     headerBlock: {
-      gap: scaled.headerGap,
-      marginTop: isMobile ? scaleHeight(20) : 0, // Thêm margin top trên mobile để title không bị dính top
+      gap: 16,
     },
     title: {
-      fontSize: scaled.titleFont,
+      fontSize: 32, // Dùng giá trị cố định giống login-form, không scale
       fontWeight: '700',
       fontFamily: 'Lexend, sans-serif',
       textAlign: 'center',
-      marginTop: isMobile ? scaleHeight(8) : 0, // Thêm margin top cho title trên mobile
     },
     subtitle: {
-      fontSize: scaled.subtitleFont,
+      fontSize: 14, // Dùng giá trị cố định giống login-form, không scale
       color: '#555',
       fontFamily: 'Epilogue, sans-serif',
       textAlign: 'center',
     },
     formBlock: {
-      gap: scaled.formGap,
-      width: '100%', // Đảm bảo formBlock chiếm full width
-      alignItems: 'stretch', // Đảm bảo tất cả children có cùng width
+      gap: 12, // Dùng giá trị cố định giống login-form
     },
     emailField: {
       position: 'relative',
@@ -168,13 +164,13 @@ const createResponsiveStyles = () => {
     },
     verifyEmailButton: {
       position: 'absolute',
-      right: scaleWidth(8),
+      right: 0, // Sát gốc phải
       top: '50%', // Đặt ở giữa input field
       transform: [{ translateY: -scaled.verifyButtonHeight / 2 }],
       paddingHorizontal: scaled.verifyButtonPaddingH,
       height: scaled.verifyButtonHeight,
       justifyContent: 'center',
-      borderRadius: scaleWidth(8),
+      borderRadius: 0, // Bỏ border radius để sát góc
       borderWidth: 1,
       borderColor: '#D4060A',
       backgroundColor: '#FFF',
@@ -201,27 +197,27 @@ const createResponsiveStyles = () => {
     },
     errorText: {
       color: '#E53935',
-      fontSize: scaled.errorFont,
+      fontSize: 13, // Dùng giá trị cố định giống login-form
       fontFamily: 'Epilogue, sans-serif',
     },
     submitBtn: {
-      marginTop: scaleHeight(8),
-      width: isMobile ? percentWidth(60) : '40%', // Responsive button width
+      marginTop: 8, // Dùng giá trị cố định giống login-form
+      width: Platform.OS === 'web' ? '40%' : '50%', // Giống login-form: web 40%, mobile 50%
       alignSelf: 'center',
     },
     loginRow: {
-      marginTop: scaleHeight(16),
+      marginTop: 16, // Dùng giá trị cố định giống login-form
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
     },
     loginText: {
-      fontSize: scaled.loginTextFont,
+      fontSize: 14, // Dùng giá trị cố định, không scale
       color: '#333',
       fontFamily: 'Epilogue, sans-serif',
     },
     loginHighlight: {
-      fontSize: scaled.loginTextFont,
+      fontSize: 14, // Dùng giá trị cố định, không scale
       fontWeight: '700',
       color: '#D4060A',
       fontFamily: 'Epilogue, sans-serif',
@@ -230,30 +226,30 @@ const createResponsiveStyles = () => {
     nativeHeaderContainer: {
       width: '100%',
       alignItems: 'center',
-      marginBottom: scaleHeight(24), // Khoảng cách giống login
+      marginBottom: 24, // Dùng giá trị cố định giống login-form
     },
     nativeLogoContainer: {
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: scaleHeight(16), // Khoảng cách giữa logo và title
+      marginBottom: 16, // Dùng giá trị cố định giống login-form
     },
     nativeLogoImage: {
-      width: scaleWidth(160),
-      height: scaleHeight(48),
+      width: 160,
+      height: 48,
       resizeMode: 'contain',
     },
     nativeHeaderBlock: {
       alignItems: 'center',
-      gap: scaleHeight(16),
+      gap: 16, // Dùng giá trị cố định giống login-form
     },
     nativeTitle: {
-      fontSize: scaled.titleFont, // Dùng cùng font size như login
+      fontSize: 32, // Dùng giá trị cố định giống login-form
       fontWeight: '700',
       fontFamily: 'Lexend, sans-serif',
       textAlign: 'center',
     },
     nativeSubtitle: {
-      fontSize: scaled.subtitleFont,
+      fontSize: 14, // Dùng giá trị cố định giống login-form
       color: '#555',
       fontFamily: 'Epilogue, sans-serif',
       textAlign: 'center',
@@ -353,10 +349,13 @@ export function RegisterPanel({ onPressLogin }) {
         // Thông báo thành công và mở modal nhập OTP
         setApiResponse(resp)
         setNotifyResponse(null)
-        showApiNotification({
-          ...resp,
-          message: resp.message || 'Đã gửi OTP tới email.',
-        })
+        // Chỉ hiển thị Alert trên mobile, web dùng HelperAdmin
+        if (Platform.OS !== 'web') {
+          showApiNotification({
+            ...resp,
+            message: resp.message || 'Đã gửi OTP tới email.',
+          })
+        }
         setShowOtpModal(true)
       } else {
         // Lưu để HelperAdmin hiển thị lỗi
@@ -367,7 +366,10 @@ export function RegisterPanel({ onPressLogin }) {
           (resp && resp.errors && resp.errors[0]?.description) ||
           'Gửi OTP thất bại.'
         setError(msg)
-        showApiNotification(resp)
+        // Chỉ hiển thị Alert trên mobile, web dùng HelperAdmin
+        if (Platform.OS !== 'web') {
+          showApiNotification(resp)
+        }
       }
     } finally {
       setOtpSending(false)
@@ -380,7 +382,10 @@ export function RegisterPanel({ onPressLogin }) {
       setError(null)
       setNotifyResponse(null)
       setApiResponse(resp)
-      showApiNotification(resp)
+      // Chỉ hiển thị Alert trên mobile, web dùng HelperAdmin
+      if (Platform.OS !== 'web') {
+        showApiNotification(resp)
+      }
     } else if (resp) {
       setIsEmailVerified(false)
       setApiResponse(null)
@@ -390,7 +395,10 @@ export function RegisterPanel({ onPressLogin }) {
         (resp.errors && resp.errors[0]?.description) ||
         'Xác thực OTP thất bại.'
       setError(msg)
-      showApiNotification(resp)
+      // Chỉ hiển thị Alert trên mobile, web dùng HelperAdmin
+      if (Platform.OS !== 'web') {
+        showApiNotification(resp)
+      }
     }
   }
 
@@ -479,8 +487,10 @@ export function RegisterPanel({ onPressLogin }) {
         } else {
           setError(response.message || 'Đăng ký thất bại, vui lòng thử lại.')
         }
-        // Vẫn hiển thị thông báo lỗi bằng React Native Alert
-        showApiNotification(response)
+        // Chỉ hiển thị Alert trên mobile, web dùng HelperAdmin
+        if (Platform.OS !== 'web') {
+          showApiNotification(response)
+        }
       }
     } catch (err) {
       console.error('Register error:', err)
@@ -505,7 +515,10 @@ export function RegisterPanel({ onPressLogin }) {
       }
       setApiResponse(errorResponse)
       setNotifyResponse(errorResponse)
-      showApiNotification(errorResponse)
+      // Chỉ hiển thị Alert trên mobile, web dùng HelperAdmin
+      if (Platform.OS !== 'web') {
+        showApiNotification(errorResponse)
+      }
       setError(errorResponse.message)
     } finally {
       setLoading(false)
@@ -562,6 +575,7 @@ export function RegisterPanel({ onPressLogin }) {
         </View>
       )}
 
+      <View style={styles.content}>
         <View style={styles.formBlock}>
           <TextInput
             label="Họ và tên"
@@ -686,6 +700,7 @@ export function RegisterPanel({ onPressLogin }) {
           <TouchableOpacity onPress={onPressLogin}>
             <Text style={styles.loginHighlight}>ĐĂNG NHẬP NGAY</Text>
           </TouchableOpacity>
+        </View>
       </View>
 
       {/* Modal nhập OTP để xác thực email */}
