@@ -1,10 +1,9 @@
 import React from 'react'
 import { ImageBackground, ScrollView, StyleSheet, View } from 'react-native'
-
-import BgPattern from '../../../../assets/background2.png'
-import { Navbar } from '../../../../components/navbar'
-import { UserDashboard } from './user-dashboard'
-import { UserInformation } from '../screens/Profile/components/user-information'
+import { Navbar } from '../../../../../../components/navbar'
+import { UserDashboard } from '../../../components/user-dashboard'
+import { UserInformation } from './user-information'
+import BgPattern from '../../../../../../assets/background2.png'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -14,6 +13,11 @@ const normalizeImageSource = (src) => {
   return src
 }
 
+/**
+ * User Profile Layout (Web)
+ * - Two-column layout with dashboard on left and user info on right
+ * - Includes Navbar and background
+ */
 export function UserProfileLayout({ onActionPress }) {
   return (
     <View style={styles.root}>
@@ -27,7 +31,7 @@ export function UserProfileLayout({ onActionPress }) {
       >
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.row}>
-            <UserDashboard onActionPress={onActionPress} />
+            <UserDashboard onActionPress={onActionPress} initialActive="profile" />
             <View style={styles.spacer} />
             <UserInformation />
           </View>
@@ -64,5 +68,4 @@ const styles = StyleSheet.create({
     width: 12,
   },
 })
-
 
