@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Image, StyleSheet, Text, View } from 'react-native'
+import { Image, StyleSheet, Text, View, ScrollView, Platform } from 'react-native'
 
 import Carrot from '../../../../../../assets/carrot.png'
 import UserIcon from '../../../../../../assets/user.png'
@@ -76,7 +76,7 @@ export function UserInformation() {
       const updatedData = await updateBasicInfo({ fullName })
       setUserData(updatedData)
       showAdminSuccess('Cập nhật thông tin cơ bản thành công')
-      if (typeof window !== 'undefined') {
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
         setTimeout(() => {
           window.location.reload()
         }, 1000)
@@ -92,7 +92,7 @@ export function UserInformation() {
       const updatedData = await updateSecurityInfo({ phoneNumber: phone })
       setUserData(updatedData)
       showAdminSuccess('Cập nhật số điện thoại thành công')
-      if (typeof window !== 'undefined') {
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
         setTimeout(() => {
           window.location.reload()
         }, 1000)
@@ -108,12 +108,28 @@ export function UserInformation() {
     alert('Chức năng đổi mật khẩu sẽ được triển khai sau')
   }
 
+  const handleAvatarUpdate = async (avatarUrl) => {
+    try {
+      const updatedData = await uploadAvatar(avatarUrl)
+      setUserData(updatedData)
+      showAdminSuccess('Cập nhật avatar thành công')
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        setTimeout(() => {
+          window.location.reload()
+        }, 1000)
+      }
+    } catch (err) {
+      console.error('Error updating avatar:', err)
+      alert(err.message || 'Không thể cập nhật avatar')
+    }
+  }
+
   const handleAvatarUpload = async (fileOrUrl) => {
     try {
       let avatarData = fileOrUrl
 
       // Nếu là file trên web: convert to base64 data URL rồi gửi avatarUrl
-      if (typeof window !== 'undefined' && fileOrUrl instanceof File) {
+      if (Platform.OS === 'web' && typeof window !== 'undefined' && fileOrUrl instanceof File) {
         avatarData = await new Promise((resolve, reject) => {
           const reader = new FileReader()
           reader.onload = () => resolve(reader.result)
@@ -125,7 +141,7 @@ export function UserInformation() {
       const updatedData = await uploadAvatar(avatarData)
       setUserData(updatedData)
       showAdminSuccess('Cập nhật avatar thành công')
-      if (typeof window !== 'undefined') {
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
         setTimeout(() => {
           window.location.reload()
         }, 1000)
@@ -152,99 +168,252 @@ export function UserInformation() {
     )
   }
 
-  // Prepare data for child components
   const { firstName, lastName } = splitFullName(userData.fullName || '')
-  const avatarSource =
-    userData.avatarUrl && userData.avatarUrl !== 'null' && userData.avatarUrl !== null
-      ? { uri: userData.avatarUrl }
-      : UserIcon
 
-  const userAvatarData = {
-    name: userData.fullName || '',
-    phone: userData.phoneNumber || '',
-    avatar: avatarSource,
-  }
+  // Web layout: two-column with dashboard
+  if (Platform.OS === 'web') {
+    const avatarSource =
+      userData.avatarUrl && userData.avatarUrl !== 'null' && userData.avatarUrl !== null
+        ? { uri: userData.avatarUrl }
+        : UserIcon
 
-  const basicInfoData = {
-    firstName: '',
-    lastName: userData.fullName || '',
-  }
+    const userAvatarData = {
+      name: userData.fullName || '',
+      phone: userData.phoneNumber || '',
+      avatar: avatarSource,
+    }
 
-  const securityInfoData = {
-    email: userData.email || '',
-    password: '**********', 
-    phone: userData.phoneNumber || '',
-  }
+    const basicInfoData = {
+      firstName: '',
+      lastName: userData.fullName || '',
+    }
 
-  return (
-    <View style={styles.container}>
-      <Image source={normalizeImageSource(Carrot)} style={styles.carrot} resizeMode="contain" />
+    const securityInfoData = {
+      email: userData.email || '',
+      password: '**********', 
+      phone: userData.phoneNumber || '',
+    }
 
-      <View style={styles.header}>
-        <Text style={styles.title}>Thông tin người dùng</Text>
-        <Text style={styles.subtitle}>
-          Quản lí thông tin tài khoản của bạn, bạn có thể xem trạng thái tài khoản và đổi mật khẩu.
-        </Text>
-      </View>
+    return (
+      <View style={styles.container}>
+        <Image source={normalizeImageSource(Carrot)} style={styles.carrot} resizeMode="contain" />
 
-      <View style={styles.topRow}>
-        <View style={styles.avatarWrap}>
-          <UserAvatarCard user={userAvatarData} onAvatarPress={handleAvatarUpload} />
+        <View style={styles.header}>
+          <Text style={styles.title}>Thông tin người dùng</Text>
+          <Text style={styles.subtitle}>
+            Quản lí thông tin tài khoản của bạn, bạn có thể xem trạng thái tài khoản và đổi mật khẩu.
+          </Text>
         </View>
-        <View style={styles.basicWrap}>
-          <BasicInfo initialInfo={basicInfoData} onSubmit={handleBasicInfoSubmit} />
-        </View>
-      </View>
 
-      <View style={styles.expStreakRow}>
-        <View style={styles.leftColumn}>
-          <View style={styles.expWrap}>
-            <UserExp />
+        <View style={styles.topRow}>
+          <View style={styles.avatarWrap}>
+            <UserAvatarCard user={userAvatarData} onAvatarPress={handleAvatarUpload} />
           </View>
-          <View style={styles.titleWrap}>
-            <UserTitle 
-              title={titleData?.name || userData.currentTitle || null}
-              icon={titleData?.iconUrl || userData.titleIcon || '🏆'}
+          <View style={styles.basicWrap}>
+            <BasicInfo initialInfo={basicInfoData} onSubmit={handleBasicInfoSubmit} />
+          </View>
+        </View>
+
+        <View style={styles.expStreakRow}>
+          <View style={styles.leftColumn}>
+            <View style={styles.expWrap}>
+              <UserExp />
+            </View>
+            <View style={styles.titleWrap}>
+              <UserTitle 
+                title={titleData?.name || userData.currentTitle || null}
+                icon={titleData?.iconUrl || userData.titleIcon || '🏆'}
+              />
+            </View>
+          </View>
+          <View style={styles.streakWrap}>
+            <UserStreak 
+              currentStreak={userData.currentStreak || 0} 
+              maxStreak={userData.maxStreak || 0} 
             />
           </View>
         </View>
-        <View style={styles.streakWrap}>
-          <UserStreak 
-            currentStreak={userData.currentStreak || 0} 
-            maxStreak={userData.maxStreak || 0} 
+
+        <View style={styles.securityWrap}>
+          <SecurityInfo
+            initialData={securityInfoData}
+            onUpdate={handleSecurityInfoUpdate}
+            onChangePassword={handleChangePassword}
           />
         </View>
       </View>
+    )
+  }
 
-      <View style={styles.securityWrap}>
-        <SecurityInfo
-          initialData={securityInfoData}
-          onUpdate={handleSecurityInfoUpdate}
-          onChangePassword={handleChangePassword}
+  // Native layout: vertical scrollable
+  return (
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header */}
+      <View style={styles.headerNative}>
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.titleNative}>Thông tin người dùng</Text>
+          <Text style={styles.subtitleNative}>
+            Quản lí thông tin tài khoản của bạn, bạn có thể xem trạng thái tài khoản và đổi mật khẩu.
+          </Text>
+        </View>
+      </View>
+
+      {/* User Avatar Card */}
+      <View style={styles.section}>
+        <UserAvatarCard
+          avatarUrl={userData.avatarUrl}
+          onAvatarUpdate={handleAvatarUpdate}
         />
       </View>
-    </View>
+
+      {/* User Info Cards - Stacked vertically for mobile */}
+      <View style={styles.cardsContainer}>
+        {/* Left column - Experience and Title */}
+        <View style={styles.leftColumn}>
+          {/* Experience Card */}
+          <View style={styles.card}>
+            <UserExp />
+          </View>
+
+          {/* Title Card */}
+          <View style={styles.card}>
+            <UserTitle 
+              title={titleData?.name || userData.currentTitle || null}
+              icon={titleData?.iconUrl || '🏆'}
+            />
+          </View>
+        </View>
+
+        {/* Right column - Streak */}
+        <View style={styles.rightColumn}>
+          <View style={styles.card}>
+            <UserStreak 
+              currentStreak={userData.currentStreak || 0} 
+              maxStreak={userData.maxStreak || 0} 
+            />
+          </View>
+        </View>
+      </View>
+
+      {/* Basic Info */}
+      <View style={styles.section}>
+        <BasicInfo
+          firstName={firstName}
+          lastName={lastName}
+          onSubmit={handleBasicInfoSubmit}
+        />
+      </View>
+
+      {/* Security Info */}
+      <View style={styles.section}>
+        <SecurityInfo
+          phone={userData.phoneNumber || ''}
+          onUpdate={handleSecurityInfoUpdate}
+        />
+      </View>
+    </ScrollView>
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#F5F0DD',
-    borderRadius: 30,
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-    gap: 18,
-    position: 'relative',
+const getStyles = () => {
+  const isWeb = Platform.OS === 'web'
+  
+  return StyleSheet.create({
+    container: {
+      backgroundColor: '#F5F0DD',
+      borderRadius: 30,
+      paddingVertical: 24,
+      paddingHorizontal: 20,
+      gap: 18,
+      position: 'relative',
+    },
+    // Web carrot
+    carrot: {
+      position: 'absolute',
+      top: -50,
+      right: -100,
+      width: 200,
+      height: 100,
+      zIndex: 2,
+      pointerEvents: 'none',
+    },
+    // Native carrot
+    carrotNative: {
+      position: 'absolute',
+      top: 10,
+      right: 40,
+      width: 200,
+      height: 100,
+      zIndex: 2,
+      pointerEvents: 'none',
+    },
+    // Native scroll content
+    scrollContent: {
+      paddingHorizontal: isWeb ? 16 : 0, // Less padding on native for wider cards
+      paddingTop: 20,
+      paddingBottom: 20,
+    },
+  // Native header
+  headerNative: {
+    marginBottom: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  carrot: {
-    position: 'absolute',
-    top: -50,
-    right: -100,
-    width: 200,
-    height: 100,
-    zIndex: 2,
-    pointerEvents: 'none',
+  headerTextContainer: {
+    alignItems: 'center',
+    width: '100%',
   },
+  titleNative: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  subtitleNative: {
+    fontSize: 14,
+    color: '#2C2C2C',
+    fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  // Native sections
+  section: {
+    marginBottom: 20,
+    width: '100%', // Ensure full width on native
+  },
+  cardsContainer: {
+    flexDirection: 'column', // Stack vertically on mobile
+    gap: 16,
+    marginBottom: 20,
+    width: '100%', // Ensure full width
+  },
+  leftColumn: {
+    flex: 1,
+    gap: 16,
+    width: '100%', // Full width on native
+  },
+  rightColumn: {
+    flex: 1,
+    width: '100%', // Full width on native
+  },
+    card: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 16,
+      padding: isWeb ? 16 : 20, // More padding on native
+      shadowColor: '#000',
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 2,
+      width: '100%', // Ensure full width
+      minWidth: isWeb ? 280 : '100%', // No minWidth constraint on native
+    },
   header: {
     gap: 6,
     paddingRight: 100,
@@ -303,12 +472,15 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
     fontFamily: 'Epilogue, sans-serif',
   },
-  errorText: {
-    fontSize: 16,
-    color: '#E74C3C',
-    textAlign: 'center',
-    paddingVertical: 40,
-    fontFamily: 'Epilogue, sans-serif',
-  },
-})
+    errorText: {
+      fontSize: 16,
+      color: '#E74C3C',
+      textAlign: 'center',
+      paddingVertical: 40,
+      fontFamily: 'Epilogue, sans-serif',
+    },
+  })
+}
+
+const styles = getStyles()
 

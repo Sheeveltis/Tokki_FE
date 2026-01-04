@@ -17,6 +17,7 @@ import { PaymentFailedScreen } from 'app/features/payment/payment-failed/payment
 import { RoadmapInfoScreen } from 'app/features/roadmap/roadmap-info/roadmap-info-screen'
 import { RoadmapTestScreen } from 'app/features/roadmap/roadmap-test/roadmap-test-screen'
 import { ProfileScreen } from 'app/features/user/screens/Profile'
+import { MenuMobileScreenWrapper } from 'app/features/user/screens/menu-mobile'
 import { ErrorScreen } from 'app/features/error/error-screen'
 import { FlashcardListScreen } from 'app/features/study/flashcard-list'
 import { LearnScreen } from 'app/features/study/flashcard-learn'
@@ -96,6 +97,13 @@ export function NativeNavigation() {
       <Stack.Screen
         name="user-profile"
         component={ProfileScreen}
+      />
+      <Stack.Screen
+        name="menu-mobile"
+        component={MenuMobileScreenWrapper}
+        options={{
+          headerShown: false,
+        }}
       />
       <Stack.Screen
         name="error"

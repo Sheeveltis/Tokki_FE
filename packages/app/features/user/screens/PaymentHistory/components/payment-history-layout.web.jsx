@@ -1,10 +1,9 @@
 import React from 'react'
 import { ImageBackground, ScrollView, StyleSheet, View } from 'react-native'
-
-import BgPattern from '../../../../assets/background2.png'
-import { Navbar } from '../../../../components/navbar'
-import { UserDashboard } from './user-dashboard'
-import { UserInformation } from '../screens/Profile/components/user-information'
+import { Navbar } from '../../../../../../components/navbar'
+import { UserDashboard } from '../../../components/user-dashboard'
+import { PaymentHistoryContent } from './PaymentHistoryContent'
+import BgPattern from '../../../../../../assets/background2.png'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -14,7 +13,12 @@ const normalizeImageSource = (src) => {
   return src
 }
 
-export function UserProfileLayout({ onActionPress }) {
+/**
+ * Payment History Layout (Web)
+ * - Two-column layout with dashboard on left and payment history on right
+ * - Includes Navbar and background
+ */
+export function PaymentHistoryLayout({ payments, loading, error, onActionPress }) {
   return (
     <View style={styles.root}>
       <Navbar />
@@ -27,9 +31,9 @@ export function UserProfileLayout({ onActionPress }) {
       >
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.row}>
-            <UserDashboard onActionPress={onActionPress} />
+            <UserDashboard onActionPress={onActionPress} initialActive="history" />
             <View style={styles.spacer} />
-            <UserInformation />
+            <PaymentHistoryContent payments={payments} loading={loading} error={error} />
           </View>
         </ScrollView>
       </ImageBackground>
@@ -64,5 +68,4 @@ const styles = StyleSheet.create({
     width: 12,
   },
 })
-
 

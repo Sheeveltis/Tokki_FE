@@ -78,17 +78,20 @@ const renderIcon = (Icon, style, isActive = false) => {
 /**
  * Navbar Mobile Component
  * - Bottom navigation bar for mobile
- * - Icons from left to right: Home - Star (Favorites) - App (Study Menu) - Folder (Flashcard) - User
- * - Active state: Icon được select sẽ có background beige rounded square
+ * - Icons from left to right: Home - Flashcard - Menu - Blog - Profile
  */
 export function NavbarMobile() {
   const navigation = useNavigation()
   const userInfo = getCurrentUserInfo()
   const avatarUrl = userInfo?.avatarUrl
-  
+
   // Hide if not logged in
   const isLoggedIn = !!getAuthToken()
-  
+
+  if (!isLoggedIn) {
+    return null
+  }
+
   // Try to get current route name safely
   let currentRouteName = null
   try {
@@ -100,57 +103,19 @@ export function NavbarMobile() {
   } catch (error) {
     // Navigation state not available, continue anyway
   }
-  
+
   // Hide navbar on auth screens
-  const hideNavbar = currentRouteName === 'login' || 
-                     currentRouteName === 'register' || 
-                     currentRouteName === 'forgot-password'
-  
-  // Tạm thời hiển thị navbar ngay cả khi chưa đăng nhập để test
-  // if (!isLoggedIn) {
-  //   return null
-  // }
-  
+  const hideNavbar = currentRouteName === 'login' ||
+    currentRouteName === 'register' ||
+    currentRouteName === 'forgot-password'
+
   if (hideNavbar) {
     return null
   }
 
-  // Xác định route hiện tại thuộc nhóm nào
-  const isHomeActive = currentRouteName === 'home'
-  
-  const isStarActive = currentRouteName === 'star' || 
-                       currentRouteName === 'favorites' ||
-                       (currentRouteName && currentRouteName.includes('favorite'))
-  
-  // App (Study menu) - các route liên quan đến study nhưng không phải flashcard
-  const isAppActive = currentRouteName === 'study' ||
-                      currentRouteName === 'menu-study' ||
-                      currentRouteName === 'study-selection' ||
-                      (currentRouteName && (
-                        currentRouteName.includes('alphabet') ||
-                        currentRouteName.includes('listening') ||
-                        currentRouteName.includes('speaking') ||
-                        currentRouteName.includes('reading') ||
-                        currentRouteName.includes('writing') ||
-                        currentRouteName.includes('grammar')
-                      ))
-  
-  // Folder (Flashcard) - các route flashcard
-  const isFlashcardActive = currentRouteName === 'flashcard-list' ||
-                            currentRouteName === 'flashcard-learn' ||
-                            currentRouteName === 'flashcard-study' ||
-                            currentRouteName === 'flashcard-test' ||
-                            (currentRouteName && currentRouteName.includes('flashcard'))
-  
-  // User
-  const isUserActive = currentRouteName === 'user-profile' ||
-                       currentRouteName === 'user-detail' ||
-                       (currentRouteName && currentRouteName.includes('user'))
 
   const handleHomePress = () => {
     try {
-      // Navigate to home screen
-      // Note: Need to add 'home' screen to navigation stack
       navigation.navigate('home')
     } catch (error) {
       console.error('Navigation error:', error)
@@ -159,27 +124,21 @@ export function NavbarMobile() {
 
   const handleStarPress = () => {
     try {
-      // Navigate to star/favorites screen
-      // Note: Need to add 'star' or 'favorites' screen to navigation stack
-      navigation.navigate('star')
+      navigation.navigate('study')
     } catch (error) {
       console.error('Navigation error:', error)
     }
   }
 
-  const handleAppPress = () => {
-    try {
-      // Navigate to study menu screen
-      navigation.navigate('menu-study')
-    } catch (error) {
-      console.error('Navigation error:', error)
-    }
+  const handleMenuPress = () => {
+    // Menu button - can be used for minigame or other features
+    // For now, just a placeholder
+    console.log('Menu pressed')
   }
 
-  const handleChatPress = () => {
+  const handleBlogPress = () => {
     try {
-      // Navigate to flashcard list screen
-      navigation.navigate('flashcard-list')
+      navigation.navigate('blog')
     } catch (error) {
       console.error('Navigation error:', error)
     }
@@ -187,7 +146,7 @@ export function NavbarMobile() {
 
   const handleProfilePress = () => {
     try {
-      navigation.navigate('user-profile')
+      navigation.navigate('menu-mobile')
     } catch (error) {
       console.error('Navigation error:', error)
     }
@@ -195,35 +154,57 @@ export function NavbarMobile() {
 
   return (
     <View style={styles.container}>
-      {/* Home - Leftmost (Icon 1) */}
-      <TouchableOpacity style={styles.iconButton} onPress={handleHomePress} activeOpacity={0.7}>
-        {renderIcon(HomeIcon, styles.icon, isHomeActive)}
-      </TouchableOpacity>
+      {/* Home - Leftmost */}
+        <TouchableOpacity style={styles.iconButton} onPress={handleHomePress} activeOpacity={0.7}>
+          <Image
+            source={normalizeImageSource(HomeIcon)}
+            style={styles.icon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
 
-      {/* Star - Second from left (Icon 2) */}
-      <TouchableOpacity style={styles.iconButton} onPress={handleStarPress} activeOpacity={0.7}>
-        {renderIcon(StarIcon, styles.icon, isStarActive)}
-      </TouchableOpacity>
+        {/* Flashcard - Second from left */}
+        <TouchableOpacity style={styles.iconButton} onPress={handleFlashcardPress} activeOpacity={0.7}>
+          <Image
+            source={normalizeImageSource(FlashcardIcon)}
+            style={styles.icon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
 
-      {/* App - Center (Icon 3) */}
-      <TouchableOpacity style={styles.iconButton} onPress={handleAppPress} activeOpacity={0.7}>
-        {renderIcon(AppIcon, styles.icon, isAppActive)}
-      </TouchableOpacity>
+        {/* Menu - Center */}
+        <TouchableOpacity style={styles.iconButton} onPress={handleMenuPress} activeOpacity={0.7}>
+          <View style={styles.menuIconContainer}>
+            <View style={styles.menuIconGrid}>
+              <View style={styles.menuDot} />
+              <View style={styles.menuDot} />
+              <View style={styles.menuDot} />
+              <View style={styles.menuDot} />
+              <View style={styles.menuDot} />
+              <View style={styles.menuDot} />
+              <View style={styles.menuDot} />
+              <View style={styles.menuDot} />
+              <View style={styles.menuDot} />
+            </View>
+          </View>
+        </TouchableOpacity>
 
-      {/* Folder (Flashcard) - Second from right (Icon 4) */}
-      <TouchableOpacity style={styles.iconButton} onPress={handleChatPress} activeOpacity={0.7}>
-        {renderIcon(ChatIcon, styles.icon, isFlashcardActive)}
-      </TouchableOpacity>
+        {/* Blog - Second from right */}
+        <TouchableOpacity style={styles.iconButton} onPress={handleBlogPress} activeOpacity={0.7}>
+          <Image
+            source={normalizeImageSource(BlogIcon)}
+            style={styles.icon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
 
-      {/* User - Rightmost (Icon 5) */}
-      <TouchableOpacity style={styles.iconButton} onPress={handleProfilePress} activeOpacity={0.7}>
-        <View style={[styles.avatarContainer, isUserActive && styles.avatarContainerActive]}>
+        {/* Profile - Rightmost */}
+        <TouchableOpacity style={styles.iconButton} onPress={handleProfilePress} activeOpacity={0.7}>
           <Image
             source={normalizeImageSource(avatarUrl || UserIcon)}
             style={styles.avatarIcon}
-            resizeMode="contain"
+            resizeMode="cover"
           />
-        </View>
       </TouchableOpacity>
     </View>
   )
@@ -234,7 +215,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: '#F1BE4B', // Yellow background like in the image
+    backgroundColor: '#FFD700', // Yellow background
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderTopLeftRadius: 20,
@@ -283,5 +264,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     borderRadius: 2,
   },
+  menuIconContainer: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuIconGrid: {
+    width: 20,
+    height: 20,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  menuDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#000',
+  },
 })
-

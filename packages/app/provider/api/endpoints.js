@@ -14,7 +14,7 @@ import { Platform } from 'react-native'
 const WEB_DOMAIN = 'http://localhost:5031'
 // ⚠️ THAY ĐỔI IP NÀY THÀNH IP THỰC TẾ CỦA MÁY BẠN
 // Tìm IP bằng cách: Windows (ipconfig) hoặc Mac/Linux (ifconfig)
-const MOBILE_DOMAIN = 'http://192.168.1.68:5031' // Thay đổi IP này!
+const MOBILE_DOMAIN = 'http://192.168.1.100:5031' // Thay đổi IP này!
 
 const PREFIX = '/api'
 
