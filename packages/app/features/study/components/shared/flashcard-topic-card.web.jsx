@@ -77,11 +77,14 @@ const styles = StyleSheet.create({
     borderColor: '#F1BE4B',
   },
   cardCompact: {
-    paddingVertical: 10,
-    paddingHorizontal: 50,
+    paddingVertical: Platform.OS === 'web' ? 10 : 8,
+    paddingHorizontal: Platform.OS === 'web' ? 50 : 16,
     borderRadius: 100,
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 4 },
     backgroundColor: '#F1BE4B',
+    ...(Platform.OS !== 'web' && {
+      marginBottom: 12,
+    }),
   },
   cardMuted: {
     opacity: 0.85,
@@ -98,15 +101,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   leftCompact: {
-    width: 60,
+    width: Platform.OS === 'web' ? 60 : 50,
   },
   avatar: {
     width: 100,
     height: 100,
   },
   avatarCompact: {
-    width: 48,
-    height: 48,
+    width: Platform.OS === 'web' ? 48 : 40,
+    height: Platform.OS === 'web' ? 48 : 40,
   },
   divider: {
     width: 2,
@@ -115,8 +118,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   dividerCompact: {
-    height: 50,
-    marginHorizontal: 12,
+    height: Platform.OS === 'web' ? 50 : 40,
+    marginHorizontal: Platform.OS === 'web' ? 12 : 8,
   },
   middle: {
     flex: 1,
@@ -132,7 +135,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
   },
   titleCompact: {
-    fontSize: 16,
+    fontSize: Platform.OS === 'web' ? 16 : 14,
+    fontWeight: '700',
   },
   subtitle: {
     fontSize: 15,
@@ -140,7 +144,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
   },
   subtitleCompact: {
-    fontSize: 13,
+    fontSize: Platform.OS === 'web' ? 13 : 11,
   },
   right: {
     width: 80,
