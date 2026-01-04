@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 import { Platform } from 'react-native'
 import { useFlashcardList } from './useFlashcardList'
@@ -20,7 +18,12 @@ export function FlashcardListScreen({
   title = 'Flashcard', 
   levelId,
   onFavoritesPress,
+  route, // React Navigation prop - có thể bỏ qua
+  navigation, // React Navigation prop - có thể bỏ qua
+  ...otherProps // Bỏ qua các props khác từ navigation
 }) {
+  // Lấy levelId từ route params nếu có
+  const routeLevelId = route?.params?.levelId || levelId
   const {
     topics,
     loading,
@@ -32,7 +35,7 @@ export function FlashcardListScreen({
     handleSearchSubmit,
     selectedLevel,
     handleLevelChange,
-  } = useFlashcardList(levelId)
+  } = useFlashcardList(routeLevelId)
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain

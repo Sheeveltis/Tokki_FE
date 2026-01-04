@@ -36,7 +36,7 @@ export function NativeNavigation() {
         },
       }}
     >
-      <Stack.Screen
+      {/* <Stack.Screen
         name="login"
         component={LoginScreen}
         options={{
@@ -100,7 +100,7 @@ export function NativeNavigation() {
       <Stack.Screen
         name="error"
         component={ErrorScreen}
-      />
+      /> */}
       <Stack.Screen
         name="flashcard-list"
         component={FlashcardListScreen}

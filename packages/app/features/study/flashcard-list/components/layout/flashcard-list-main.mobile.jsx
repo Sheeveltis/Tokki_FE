@@ -26,17 +26,14 @@ export function FlashcardListMain({
   // Render loading state
   if (loading) {
     return (
-      <LoadingWithContainer
-        size={48}
-        color="#F1BE4B"
-        shadowColor="#F1BE4B50"
-        text="Đang tải danh sách chủ đề..."
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      />
+      <View style={styles.loadingContainer}>
+        <LoadingWithContainer
+          size={48}
+          color="#F1BE4B"
+          shadowColor="#F1BE4B50"
+          text="Đang tải danh sách chủ đề..."
+        />
+      </View>
     )
   }
 
@@ -48,17 +45,14 @@ export function FlashcardListMain({
           <View style={styles.backBtn}>
             <NavigationPill
               label="Quay lại"
-              to={undefined}
-              icon={ArrowIcon}
-              iconStyle={{ transform: [{ scaleX: -1 }] }}
               onPress={onBackPress}
               textStyle={{ fontWeight: '700' }}
             />
           </View>
-          <Text style={styles.title}>{title}</Text>
+          {title ? <Text style={styles.title}>{title}</Text> : null}
         </View>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
           <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
             <Text style={styles.retryButtonText}>Thử lại</Text>
           </TouchableOpacity>
@@ -73,14 +67,13 @@ export function FlashcardListMain({
         <View style={styles.backBtn}>
           <NavigationPill
             label="Quay lại"
-            to={undefined}
             icon={ArrowIcon}
             iconStyle={{ transform: [{ scaleX: -1 }] }}
             onPress={onBackPress}
             textStyle={{ fontWeight: '700' }}
           />
         </View>
-        <Text style={styles.title}>{title}</Text>
+        {title ? <Text style={styles.title}>{title}</Text> : null}
       </View>
 
       <View style={styles.searchContainer}>
@@ -95,6 +88,29 @@ export function FlashcardListMain({
         <TouchableOpacity style={styles.searchButton} onPress={onSearchSubmit}>
           <Text style={styles.searchButtonText}>Tìm</Text>
         </TouchableOpacity>
+      </View>
+
+      <View style={styles.listContainer}>
+        {topics.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Chưa có chủ đề flashcard nào</Text>
+          </View>
+        ) : (
+          topics.map((topic) => (
+            <FlashcardTopicCard
+              key={topic.id}
+              icon={topic.icon}
+              title={topic.title}
+              subtitle={topic.subtitle}
+              highlight={topic.highlight}
+              muted={topic.muted}
+              badgeText="펀"
+              onPress={() => onTopicPress?.(topic.id)}
+              compact={true}
+              showBadge={false}
+            />
+          ))
+        )}
       </View>
 
       <View style={styles.levelContainer}>
@@ -122,32 +138,18 @@ export function FlashcardListMain({
           )
         })}
       </View>
-
-      <View style={styles.listContainer}>
-        {topics.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Chưa có chủ đề flashcard nào</Text>
-          </View>
-        ) : (
-          topics.map((topic) => (
-            <FlashcardTopicCard
-              key={topic.id}
-              icon={topic.icon}
-              title={topic.title}
-              subtitle={topic.subtitle}
-              highlight={topic.highlight}
-              muted={topic.muted}
-              badgeText="펀"
-              onPress={() => onTopicPress?.(topic.id)}
-            />
-          ))
-        )}
-      </View>
     </>
   )
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 400,
+  },
   header: {
     width: '100%',
     alignItems: 'center',
@@ -172,7 +174,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 40,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: 100,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#E0E0E0',
@@ -193,15 +195,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
     width: '100%',
     paddingHorizontal: 16,
-    marginBottom: 8,
+    marginTop: 24,
+    marginBottom: 16,
   },
   levelButton: {
-    minWidth: 42,
+    minWidth: 36  ,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 100,
     borderWidth: 1,
     borderColor: '#E0E0E0',
     backgroundColor: '#FFFFFF',
@@ -214,7 +218,7 @@ const styles = StyleSheet.create({
     }),
   },
   levelButtonActive: {
-    backgroundColor: '#F1BE4B',
+    backgroundColor: '#1F1F1F',
     borderColor: '#D39A1C',
   },
   levelButtonPressed: {
@@ -230,7 +234,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     width: '100%',
-    gap: 16,
+    gap: 0,
   },
   errorContainer: {
     flex: 1,

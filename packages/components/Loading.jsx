@@ -1,17 +1,28 @@
 import React from 'react'
-import './Loading.css'
+import { Platform, View, Text, ActivityIndicator, StyleSheet } from 'react-native'
+
+// Chỉ import CSS trên web
+if (Platform.OS === 'web') {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require('./Loading.css')
+  } catch (e) {
+    // CSS không tồn tại hoặc không thể import - bỏ qua
+  }
+}
 
 /**
  * Component Loading với animation từ Uiverse.io
+ * Hỗ trợ cả Web và React Native
  * 
  * @param {{
  *   size?: number; - Kích thước loader (mặc định 48px)
  *   color?: string; - Màu loader (mặc định #f08080)
  *   shadowColor?: string; - Màu shadow (mặc định #f0808050)
  *   text?: string; - Text hiển thị dưới loader
- *   textStyle?: React.CSSProperties; - Custom styles cho text
- *   style?: React.CSSProperties; - Custom styles cho container
- *   className?: string; - Custom className cho loader
+ *   textStyle?: React.CSSProperties | any; - Custom styles cho text
+ *   style?: React.CSSProperties | any; - Custom styles cho container
+ *   className?: string; - Custom className cho loader (chỉ web)
  * }} props
  */
 export function Loading({
@@ -23,6 +34,37 @@ export function Loading({
   style,
   className = '',
 }) {
+  // React Native version
+  if (Platform.OS !== 'web') {
+    const defaultTextStyle = {
+      marginTop: 20,
+      color: '#333',
+      fontSize: 14,
+      fontFamily: 'Epilogue, sans-serif',
+      textAlign: 'center',
+      ...textStyle,
+    }
+
+    return (
+      <View
+        style={[
+          {
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+          style,
+        ]}
+      >
+        <ActivityIndicator size="large" color={color} />
+        {text ? (
+          <Text style={defaultTextStyle}>{text}</Text>
+        ) : null}
+      </View>
+    )
+  }
+
+  // Web version
   const loaderStyle = {
     width: `${size}px`,
     height: `${size}px`,
@@ -67,17 +109,18 @@ export function Loading({
         className={`loader loader-custom ${className}`}
         style={loaderStyle}
       />
-      {text && (
+      {text ? (
         <p style={defaultTextStyle}>
           {text}
         </p>
-      )}
+      ) : null}
     </div>
   )
 }
 
 /**
  * Component Loading với container wrapper
+ * Hỗ trợ cả Web và React Native
  * 
  * @param {{
  *   size?: number;
@@ -86,9 +129,9 @@ export function Loading({
  *   fullScreen?: boolean; - Hiển thị full screen với overlay
  *   overlay?: boolean; - Có overlay mờ phía sau
  *   text?: string; - Text hiển thị dưới loader
- *   textStyle?: React.CSSProperties; - Custom styles cho text
- *   style?: React.CSSProperties;
- *   className?: string;
+ *   textStyle?: React.CSSProperties | any; - Custom styles cho text
+ *   style?: React.CSSProperties | any;
+ *   className?: string; - Custom className (chỉ web)
  * }} props
  */
 export function LoadingWithContainer({
@@ -102,6 +145,40 @@ export function LoadingWithContainer({
   style,
   className = '',
 }) {
+  // React Native version
+  if (Platform.OS !== 'web') {
+    const containerStyle = {
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...(fullScreen && {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 9999,
+      }),
+      ...(overlay && {
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+      }),
+      ...style,
+    }
+
+    return (
+      <View style={containerStyle}>
+        <Loading 
+          size={size} 
+          color={color} 
+          shadowColor={shadowColor} 
+          text={text}
+          textStyle={textStyle}
+        />
+      </View>
+    )
+  }
+
+  // Web version
   const containerStyle = {
     display: 'flex',
     flexDirection: 'column',
