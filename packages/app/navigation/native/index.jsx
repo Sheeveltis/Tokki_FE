@@ -18,6 +18,10 @@ import { RoadmapInfoScreen } from 'app/features/roadmap/roadmap-info/roadmap-inf
 import { RoadmapTestScreen } from 'app/features/roadmap/roadmap-test/roadmap-test-screen'
 import { ProfileScreen } from 'app/features/user/screens/Profile'
 import { ErrorScreen } from 'app/features/error/error-screen'
+import { FlashcardListScreen } from 'app/features/study/flashcard-list'
+import { LearnScreen } from 'app/features/study/flashcard-learn'
+import { FlashcardStudyScreen } from 'app/features/study/flashcard-study'
+import { FlashcardTestScreen } from 'app/features/study/flashcard-test'
 
 const Stack = createNativeStackNavigator()
 
@@ -25,7 +29,7 @@ export function NativeNavigation() {
   return (
     <View style={styles.container}>
       <Stack.Navigator 
-      initialRouteName="login"
+      initialRouteName="flashcard-list"
       screenListeners={{
         state: (e) => {
           console.log('Navigation state changed:', e.data?.state)
@@ -97,6 +101,34 @@ export function NativeNavigation() {
         name="error"
         component={ErrorScreen}
       />
+      <Stack.Screen
+        name="flashcard-list"
+        component={FlashcardListScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      {/* <Stack.Screen
+        name="flashcard-learn"
+        component={LearnScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="flashcard-study"
+        component={FlashcardStudyScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="flashcard-test"
+        component={FlashcardTestScreen}
+        options={{
+          headerShown: false,
+        }}
+      /> */}
       </Stack.Navigator>
     </View>
   )

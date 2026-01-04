@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, StyleSheet, Text, TouchableOpacity, TextInput, Pressable, Platform } from 'react-native'
 import { FlashcardTopicCard } from '../../../components/shared'
-import { NavigationPill } from 'components/navigation-pill'
+import { NavigationPill } from '../../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
 import { studyStyles } from '../../../styles'
 import { LoadingWithContainer } from '../../../../../../components/Loading'

@@ -1,6 +1,5 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
-import { Navbar } from 'components/navbar'
 
 /**
  * FlashcardListLayout (Mobile): Layout cho trang danh sách flashcard trên mobile
@@ -8,7 +7,6 @@ import { Navbar } from 'components/navbar'
 export function FlashcardListLayout({ children }) {
   return (
     <View style={styles.root}>
-      <Navbar />
       <View style={styles.contentWrapper}>
         {children}
       </View>

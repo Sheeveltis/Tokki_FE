@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
-import { Navbar } from 'components/navbar'
+import { Navbar } from '../../../../../../components/navbar'
 
 /**
  * FlashcardListLayout (Web): Layout cho trang danh sách flashcard trên web
