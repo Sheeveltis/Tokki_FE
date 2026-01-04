@@ -28,20 +28,20 @@ const normalizeImageSource = (src) => {
 /**
  * Navbar Mobile Component
  * - Bottom navigation bar for mobile
- * - Icons from left to right: Avatar (Profile) - Blog - (Empty) - Flashcard - Home
+ * - Icons from left to right: Home - Flashcard - Menu - Blog - Profile
  */
 export function NavbarMobile() {
   const navigation = useNavigation()
   const userInfo = getCurrentUserInfo()
   const avatarUrl = userInfo?.avatarUrl
-  
+
   // Hide if not logged in
   const isLoggedIn = !!getAuthToken()
-  
+
   if (!isLoggedIn) {
     return null
   }
-  
+
   // Try to get current route name safely
   let currentRouteName = null
   try {
@@ -49,28 +49,24 @@ export function NavbarMobile() {
     if (state && state.routes && state.routes.length > 0) {
       const currentRoute = state.routes[state.index]
       currentRouteName = currentRoute?.name
-      console.log('[NavbarMobile] Current route:', currentRouteName)
     }
   } catch (error) {
     // Navigation state not available, continue anyway
     console.warn('[NavbarMobile] Could not get navigation state:', error)
   }
-  
+
   // Hide navbar on auth screens
-  const hideNavbar = currentRouteName === 'login' || 
-                     currentRouteName === 'register' || 
-                     currentRouteName === 'forgot-password'
-  
-  console.log('[NavbarMobile] isLoggedIn:', isLoggedIn, 'hideNavbar:', hideNavbar, 'currentRouteName:', currentRouteName)
-  
+  const hideNavbar = currentRouteName === 'login' ||
+    currentRouteName === 'register' ||
+    currentRouteName === 'forgot-password'
+
   if (hideNavbar) {
     return null
   }
 
+
   const handleHomePress = () => {
     try {
-      // Navigate to home screen
-      // Note: Need to add 'home' screen to navigation stack
       navigation.navigate('home')
     } catch (error) {
       console.error('Navigation error:', error)
@@ -79,18 +75,20 @@ export function NavbarMobile() {
 
   const handleFlashcardPress = () => {
     try {
-      // Navigate to study/flashcard screen
-      // Note: Need to add 'study' screen to navigation stack
       navigation.navigate('study')
     } catch (error) {
       console.error('Navigation error:', error)
     }
   }
 
+  const handleMenuPress = () => {
+    // Menu button - can be used for minigame or other features
+    // For now, just a placeholder
+    console.log('Menu pressed')
+  }
+
   const handleBlogPress = () => {
     try {
-      // Navigate to blog list screen
-      // Note: Need to add 'blog' screen to navigation stack
       navigation.navigate('blog')
     } catch (error) {
       console.error('Navigation error:', error)
@@ -99,7 +97,7 @@ export function NavbarMobile() {
 
   const handleProfilePress = () => {
     try {
-      navigation.navigate('user-profile')
+      navigation.navigate('menu-mobile')
     } catch (error) {
       console.error('Navigation error:', error)
     }
@@ -107,43 +105,57 @@ export function NavbarMobile() {
 
   return (
     <View style={styles.container}>
-      {/* Avatar (Profile) - Leftmost */}
-      <TouchableOpacity style={styles.iconButton} onPress={handleProfilePress} activeOpacity={0.7}>
-        <Image
-          source={normalizeImageSource(avatarUrl || UserIcon)}
-          style={styles.avatarIcon}
-          resizeMode="cover"
-        />
-      </TouchableOpacity>
+      {/* Home - Leftmost */}
+        <TouchableOpacity style={styles.iconButton} onPress={handleHomePress} activeOpacity={0.7}>
+          <Image
+            source={normalizeImageSource(HomeIcon)}
+            style={styles.icon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
 
-      {/* Blog - Second from left */}
-      <TouchableOpacity style={styles.iconButton} onPress={handleBlogPress} activeOpacity={0.7}>
-        <Image
-          source={normalizeImageSource(BlogIcon)}
-          style={styles.icon}
-          resizeMode="contain"
-        />
-      </TouchableOpacity>
+        {/* Flashcard - Second from left */}
+        <TouchableOpacity style={styles.iconButton} onPress={handleFlashcardPress} activeOpacity={0.7}>
+          <Image
+            source={normalizeImageSource(FlashcardIcon)}
+            style={styles.icon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
 
-      {/* Empty space in the middle - can add minigame or other icon later */}
-      <View style={styles.iconButton} />
+        {/* Menu - Center */}
+        <TouchableOpacity style={styles.iconButton} onPress={handleMenuPress} activeOpacity={0.7}>
+          <View style={styles.menuIconContainer}>
+            <View style={styles.menuIconGrid}>
+              <View style={styles.menuDot} />
+              <View style={styles.menuDot} />
+              <View style={styles.menuDot} />
+              <View style={styles.menuDot} />
+              <View style={styles.menuDot} />
+              <View style={styles.menuDot} />
+              <View style={styles.menuDot} />
+              <View style={styles.menuDot} />
+              <View style={styles.menuDot} />
+            </View>
+          </View>
+        </TouchableOpacity>
 
-      {/* Flashcard - Second from right */}
-      <TouchableOpacity style={styles.iconButton} onPress={handleFlashcardPress} activeOpacity={0.7}>
-        <Image
-          source={normalizeImageSource(FlashcardIcon)}
-          style={styles.icon}
-          resizeMode="contain"
-        />
-      </TouchableOpacity>
+        {/* Blog - Second from right */}
+        <TouchableOpacity style={styles.iconButton} onPress={handleBlogPress} activeOpacity={0.7}>
+          <Image
+            source={normalizeImageSource(BlogIcon)}
+            style={styles.icon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
 
-      {/* Home - Rightmost */}
-      <TouchableOpacity style={styles.iconButton} onPress={handleHomePress} activeOpacity={0.7}>
-        <Image
-          source={normalizeImageSource(HomeIcon)}
-          style={styles.icon}
-          resizeMode="contain"
-        />
+        {/* Profile - Rightmost */}
+        <TouchableOpacity style={styles.iconButton} onPress={handleProfilePress} activeOpacity={0.7}>
+          <Image
+            source={normalizeImageSource(avatarUrl || UserIcon)}
+            style={styles.avatarIcon}
+            resizeMode="cover"
+          />
       </TouchableOpacity>
     </View>
   )
@@ -154,7 +166,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: '#FFD700', // Yellow background like in the image
+    backgroundColor: '#FFD700', // Yellow background
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderTopLeftRadius: 20,
@@ -189,5 +201,24 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
     backgroundColor: '#E0E0E0',
   },
+  menuIconContainer: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuIconGrid: {
+    width: 20,
+    height: 20,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  menuDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#000',
+  },
 })
-
