@@ -1,9 +1,20 @@
 import React from 'react'
-import { View, ScrollView, StyleSheet, Image } from 'react-native'
+import { View, ScrollView, StyleSheet, Image, Platform } from 'react-native'
 import { useSearchParams } from 'solito/navigation'
+// Import useRoute cho native
+let useRoute = null
+if (Platform.OS !== 'web') {
+  try {
+    const navigationModule = require('@react-navigation/native')
+    useRoute = navigationModule.useRoute
+  } catch (e) {
+    // @react-navigation/native không có sẵn trên web
+  }
+}
 import { Navbar } from '../../../../components/navbar'
 import { Footer } from '../../../../components/footer'
-import { PaymentLayout } from './components/payment-layout.web'
+import { NavbarMobile } from '../../../../components/navbar-mobile'
+import { PaymentLayout } from './components/payment-layout'
 import BackgroundImage from '../../../../assets/background1.png'
 
 /**
@@ -32,9 +43,18 @@ const normalizeImageSource = (src) => {
  * - Back button at the bottom
  */
 export function PaymentScreen() {
-  const params = useSearchParams()
-  const paymentId = params?.get('paymentId') || null
-  const paymentUrl = params?.get('paymentUrl') || null
+  // Trên web: dùng useSearchParams từ solito
+  // Trên native: dùng route.params từ React Navigation
+  const searchParams = useSearchParams()
+  const route = useRoute ? useRoute() : null
+  
+  // Lấy params từ searchParams (web) hoặc route.params (native)
+  const paymentId = Platform.OS === 'web' 
+    ? (searchParams?.get('paymentId') || null)
+    : (route?.params?.paymentId || null)
+  const paymentUrl = Platform.OS === 'web'
+    ? (searchParams?.get('paymentUrl') || null)
+    : (route?.params?.paymentUrl || null)
 
   return (
     <View style={styles.root}>
@@ -44,8 +64,8 @@ export function PaymentScreen() {
         style={styles.backgroundImage}
       />
 
-      {/* Navbar ở đầu trang */}
-      <Navbar />
+      {/* Navbar và Footer chỉ hiển thị trên web */}
+      {Platform.OS === 'web' && <Navbar />}
 
       {/* Nội dung chính */}
       <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
@@ -54,8 +74,11 @@ export function PaymentScreen() {
         </View>
       </ScrollView>
 
-      {/* Footer ở cuối trang */}
-      <Footer />
+      {/* Footer chỉ hiển thị trên web */}
+      {Platform.OS === 'web' && <Footer />}
+      
+      {/* NavbarMobile chỉ hiển thị trên native */}
+      {Platform.OS !== 'web' && <NavbarMobile />}
     </View>
   )
 }
@@ -85,7 +108,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     alignItems: 'center',
     paddingVertical: 40,
-    paddingBottom: 60,
+    paddingBottom: Platform.OS === 'web' ? 60 : 100, // Extra padding on native for navbar
   },
   wrapper: {
     width: '100%',

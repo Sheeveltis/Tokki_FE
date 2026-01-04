@@ -1,6 +1,16 @@
 import React from 'react'
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
+// Import useNavigation cho native
+let useNavigation = null
+if (Platform.OS !== 'web') {
+  try {
+    const navigationModule = require('@react-navigation/native')
+    useNavigation = navigationModule.useNavigation
+  } catch (e) {
+    // @react-navigation/native không có sẵn trên web
+  }
+}
 
 /**
  * View Detail Package Button Component
@@ -15,12 +25,24 @@ import { useRouter } from 'solito/navigation'
  */
 export const ViewDetailPackageButton = ({ onPress, style, textStyle }) => {
   const router = useRouter()
+  // Sử dụng navigation cho native, router cho web
+  const navigation = useNavigation ? useNavigation() : null
 
   const handlePress = () => {
     if (onPress) {
       onPress()
     } else {
-      router.push('/premium-package')
+      if (Platform.OS === 'web') {
+        router.push('/premium-package')
+      } else {
+        // Trên native, dùng React Navigation
+        if (navigation) {
+          navigation.navigate('premium-package')
+        } else {
+          // Fallback nếu navigation không có
+          router.push('/premium-package')
+        }
+      }
     }
   }
 

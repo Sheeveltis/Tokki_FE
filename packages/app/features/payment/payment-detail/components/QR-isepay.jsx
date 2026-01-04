@@ -119,8 +119,21 @@ export const QRIsepay = ({ paymentId, paymentUrl, style }) => {
           }
         }
       } catch (error) {
+        // Kiểm tra nếu lỗi là do token hết hạn (401)
+        const errorMessage = error?.response?.data?.message || error?.message || ''
+        if (errorMessage.includes('hết hạn') || errorMessage.includes('đăng nhập') || error?.response?.status === 401) {
+          console.warn('Token expired while checking payment status. Stopping polling.')
+          // Dừng polling khi token hết hạn
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current)
+            intervalRef.current = null
+          }
+          // Không log error để tránh spam console
+          return
+        }
+        // Chỉ log các lỗi khác
         console.error('Error checking payment status:', error)
-        // Continue polling even if there's an error
+        // Continue polling for other errors
       }
     }
 
