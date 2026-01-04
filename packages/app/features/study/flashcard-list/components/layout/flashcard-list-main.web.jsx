@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { View, StyleSheet, Text, TouchableOpacity, TextInput, Pressable, Platform, Image } from 'react-native'
 import { FlashcardTopicCard } from '../../../components/shared'
 import { NavigationPill } from '../../../../../../components/navigation-pill'
@@ -27,54 +27,6 @@ export function FlashcardListMain({
   onRetry,
   onFavoritesPress,
 }) {
-  // Thêm style cho select element khi component mount (chỉ trên web)
-  useEffect(() => {
-    if (Platform.OS === 'web') {
-      const style = document.createElement('style')
-      style.textContent = `
-        .level-select {
-          height: 40px;
-          padding: 8px 16px;
-          padding-right: 40px;
-          border-radius: 8px;
-          border: 1px solid #E0E0E0;
-          background-color: #FFFFFF;
-          font-size: 14px;
-          font-weight: 700;
-          color: #1F1F1F;
-          font-family: 'Epilogue', sans-serif;
-          cursor: pointer;
-          min-width: 100px;
-          outline: none;
-          appearance: none;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231F1F1F' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-          background-repeat: no-repeat;
-          background-position: right 12px center;
-          background-size: 12px;
-          transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-        .level-select:hover:not(:disabled) {
-          border-color: #D39A1C;
-        }
-        .level-select:focus {
-          border-color: #F1BE4B;
-          box-shadow: 0 0 0 3px rgba(241, 190, 75, 0.1);
-        }
-        .level-select:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-        .level-select option {
-          padding: 8px;
-          font-weight: 700;
-        }
-      `
-      document.head.appendChild(style)
-      return () => {
-        document.head.removeChild(style)
-      }
-    }
-  }, [])
   // Render loading state chỉ khi là lần load đầu tiên
   if (isInitialLoading && loading) {
     return (
@@ -100,14 +52,13 @@ export function FlashcardListMain({
           <View style={styles.backBtn}>
             <NavigationPill
               label="Quay lại"
-              to={undefined}
               icon={ArrowIcon}
               iconStyle={{ transform: [{ scaleX: -1 }] }}
               onPress={onBackPress}
               textStyle={{ fontWeight: '700' }}
             />
           </View>
-          {onFavoritesPress && (
+          {onFavoritesPress ? (
             <Pressable style={styles.favoritesButton} onPress={onFavoritesPress}>
               <Image
                 source={normalizeImageSource(StarIcon)}
@@ -116,13 +67,13 @@ export function FlashcardListMain({
               />
               <Text style={styles.favoritesButtonText}>Từ vựng yêu thích</Text>
             </Pressable>
-          )}
+          ) : null}
         </View>
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>{title}</Text>
+          {title ? <Text style={styles.title}>{title}</Text> : null}
         </View>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
           <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
             <Text style={styles.retryButtonText}>Thử lại</Text>
           </TouchableOpacity>
@@ -144,7 +95,7 @@ export function FlashcardListMain({
             textStyle={{ fontWeight: '700' }}
           />
         </View>
-        {onFavoritesPress && (
+        {onFavoritesPress ? (
           <Pressable style={styles.favoritesButton} onPress={onFavoritesPress}>
             <Image
               source={normalizeImageSource(StarIcon)}
@@ -153,27 +104,27 @@ export function FlashcardListMain({
             />
             <Text style={styles.favoritesButtonText}>Từ vựng yêu thích</Text>
           </Pressable>
-        )}
+        ) : null}
       </View>
       <View style={styles.titleContainer}>
-        <Text style={styles.title}>{title}</Text>
+        {title ? <Text style={styles.title}>{title}</Text> : null}
       </View>
 
       <View style={styles.searchContainer}>
         <View style={styles.searchInputWrapper}>
-        <TextInput
-          value={searchTerm}
-          placeholder="Tìm kiếm chủ đề..."
-          onChangeText={onSearchChange}
-          onSubmitEditing={onSearchSubmit}
+          <TextInput
+            value={searchTerm}
+            placeholder="Tìm kiếm chủ đề..."
+            onChangeText={onSearchChange}
+            onSubmitEditing={onSearchSubmit}
             style={[
               styles.searchInput,
               loading && !isInitialLoading && styles.searchInputLoading,
             ]}
-          returnKeyType="search"
+            returnKeyType="search"
             editable={!loading}
           />
-          {loading && !isInitialLoading && (
+          {loading && !isInitialLoading ? (
             <View style={styles.loadingIndicator}>
               <LoadingWithContainer
                 size={20}
@@ -182,7 +133,7 @@ export function FlashcardListMain({
                 text=""
               />
             </View>
-          )}
+          ) : null}
         </View>
         <TouchableOpacity 
           style={[styles.searchButton, loading && styles.searchButtonDisabled]} 
@@ -217,48 +168,33 @@ export function FlashcardListMain({
       {/* Level Selector ở cuối trang */}
       <View style={styles.levelSelectContainer}>
         <Text style={styles.levelSelectLabel}>Level:</Text>
-        {Platform.OS === 'web' ? (
-          <View style={styles.selectWrapper}>
-            <select
-              value={selectedLevel || ''}
-              onChange={(e) => onLevelChange?.(Number(e.target.value))}
-              className="level-select"
-              disabled={loading}
-            >
-              {[1, 2, 3, 4, 5, 6].map((level) => (
-                <option key={level} value={level}>
-                  {level}
-                </option>
-              ))}
-            </select>
-          </View>
-        ) : (
-          <View style={styles.levelSelectMobile}>
-            {[1, 2, 3, 4, 5, 6].map((level) => {
-              const isActive = Number(selectedLevel) === level
-              return (
-                <Pressable
-                  key={level}
-                  onPress={() => onLevelChange?.(level)}
-                  style={({ pressed }) => [
-                    styles.levelButton,
-                    isActive && styles.levelButtonActive,
-                    pressed && styles.levelButtonPressed,
+        <View style={styles.levelSelectMobile}>
+          {[1, 2, 3, 4, 5, 6].map((level) => {
+            const isActive = Number(selectedLevel) === level
+            return (
+              <Pressable
+                key={level}
+                onPress={() => !loading && onLevelChange?.(level)}
+                disabled={loading}
+                style={({ pressed }) => [
+                  styles.levelButton,
+                  isActive && styles.levelButtonActive,
+                  pressed && styles.levelButtonPressed,
+                  loading && styles.levelButtonDisabled,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.levelButtonText,
+                    isActive && styles.levelButtonTextActive,
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.levelButtonText,
-                      isActive && styles.levelButtonTextActive,
-                    ]}
-                  >
-                    {level}
-                  </Text>
-                </Pressable>
-              )
-            })}
-          </View>
-        )}
+                  {level}
+                </Text>
+              </Pressable>
+            )
+          })}
+        </View>
       </View>
     </>
   )
@@ -326,7 +262,7 @@ const styles = StyleSheet.create({
     height: 40,
     paddingHorizontal: 12,
     paddingRight: 12,
-    borderRadius: 8,
+    borderRadius: 100,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#E0E0E0',
@@ -374,11 +310,6 @@ const styles = StyleSheet.create({
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
   },
-  selectWrapper: {
-    ...(Platform.OS === 'web' && {
-      display: 'inline-block',
-    }),
-  },
   levelSelectMobile: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -387,7 +318,7 @@ const styles = StyleSheet.create({
   levelButton: {
     minWidth: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 100,
     borderWidth: 1,
     borderColor: '#E0E0E0',
     backgroundColor: '#FFFFFF',
@@ -405,6 +336,12 @@ const styles = StyleSheet.create({
   },
   levelButtonPressed: {
     opacity: 0.85,
+  },
+  levelButtonDisabled: {
+    opacity: 0.6,
+    ...(Platform.OS === 'web' && {
+      cursor: 'not-allowed',
+    }),
   },
   levelButtonText: {
     fontSize: 14,
