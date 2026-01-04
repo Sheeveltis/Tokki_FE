@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Image } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Image, Platform } from 'react-native'
 import { PaymentHistoryItem } from './PaymentHistoryItem'
 import Carrot from '../../../../../../assets/carrot.png'
 
@@ -41,11 +41,15 @@ const formatPrice = (price) => {
 }
 
 export function PaymentHistoryContent({ payments, loading, error }) {
+  const isWeb = Platform.OS === 'web'
+  
   return (
     <View style={styles.container}>
-      <Image source={normalizeImageSource(Carrot)} style={styles.carrot} resizeMode="contain" />
+      {isWeb && (
+        <Image source={normalizeImageSource(Carrot)} style={styles.carrot} resizeMode="contain" />
+      )}
 
-      <View style={styles.header}>
+      <View style={isWeb ? styles.header : styles.headerNative}>
         <Text style={styles.title}>Lịch sử thanh toán</Text>
         <Text style={styles.subtitle}>Xem lại các giao dịch thanh toán của bạn</Text>
       </View>
@@ -103,17 +107,25 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingRight: 100,
   },
+  headerNative: {
+    gap: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 18,
+  },
   title: {
     fontSize: 22,
     fontWeight: '800',
     fontFamily: 'Epilogue, sans-serif',
     color: '#1C1C1C',
+    textAlign: Platform.OS === 'web' ? 'left' : 'center',
   },
   subtitle: {
     fontSize: 14,
     color: '#2C2C2C',
     fontFamily: 'Epilogue, sans-serif',
     lineHeight: 20,
+    textAlign: Platform.OS === 'web' ? 'left' : 'center',
   },
   scrollView: {
     flex: 1,

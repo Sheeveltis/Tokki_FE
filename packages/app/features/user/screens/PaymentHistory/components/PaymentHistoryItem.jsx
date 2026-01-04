@@ -50,12 +50,15 @@ export function PaymentHistoryItem({ payment, formatDate, formatPrice }) {
 
   return (
     <View style={styles.card}>
-      {/* Header: Payment ID và Status */}
-      <View style={styles.header}>
-        <View style={styles.paymentIdContainer}>
-          <Text style={styles.paymentIdLabel}>Mã giao dịch:</Text>
-          <Text style={styles.paymentId}>{payment.paymentId}</Text>
-        </View>
+      {/* Payment ID */}
+      <View style={styles.paymentIdRow}>
+        <Text style={styles.paymentIdLabel}>Mã giao dịch:</Text>
+        <Text style={styles.paymentId}>{payment.paymentId}</Text>
+      </View>
+
+      {/* Status Badge - Separate row */}
+      <View style={styles.statusRow}>
+        <Text style={styles.statusLabel}>Trạng thái:</Text>
         <View style={[styles.statusBadge, { backgroundColor: getStatusBgColor(payment.status) }]}>
           <Text style={[styles.statusText, { color: getStatusColor(payment.status) }]}>
             {payment.statusDisplay}
@@ -122,17 +125,26 @@ const styles = StyleSheet.create({
     borderColor: '#E8E8E8',
     gap: 16,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  paymentIdContainer: {
-    flex: 1,
+  paymentIdRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    marginBottom: 12,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F2',
+  },
+  statusLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
   },
   paymentIdLabel: {
     fontSize: 14,
