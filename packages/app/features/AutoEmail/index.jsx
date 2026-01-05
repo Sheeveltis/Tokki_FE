@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react'
 import { Card, Form, Input, Select, Button, Space, Typography, Switch, Divider, Tag, message } from 'antd'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { mockEmailTemplates } from '../../mockData.js'
-import { sendEmail } from '../../api'
+import { ButtonV2 } from '../../../components/buttonV2.jsx'
+import { mockEmailTemplates } from '../admin/mockData.js'
+import { sendEmail } from '../admin/api'
 import { MailOutlined, SendOutlined } from '@ant-design/icons'
 
 const { Title, Text } = Typography
