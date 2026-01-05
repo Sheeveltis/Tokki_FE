@@ -6,13 +6,13 @@ import { useRouter, useSearchParams } from 'solito/navigation'
 import { AdminLayout } from './components/admin-layout.web'
 
 // Lazy load components với React.lazy (thay thế next/dynamic)
-const LazyUserManagement = lazy(() => import('./screens/UserManagement'))
+const LazyUserManagement = lazy(() => import('../user/screens/UserManagement'))
 const LazyLessonManagement = lazy(() => import('./screens/LessonManagement'))
 const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/VocabularyManagement'))
 const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/FlashcardTopicManagement'))
 const LazyBlogManagement = lazy(() => import('../blog/blog-management'))
 const LazyChatSupport = lazy(() => import('../live-chat/chat-support'))
-const LazyAutoEmail = lazy(() => import('./screens/AutoEmail'))
+const LazyAutoEmail = lazy(() => import('../AutoEmail'))
 const LazyFeedbackInbox = lazy(() => import('./screens/FeedbackInbox'))
 const LazyMembershipPackage = lazy(() => import('./screens/MembershipPackage'))
 const LazyPaymentManagement = lazy(() => import('./screens/PaymentManagement'))

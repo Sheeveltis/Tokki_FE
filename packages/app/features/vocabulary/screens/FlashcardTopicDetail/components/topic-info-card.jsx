@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { Card, Descriptions, Tag, Image } from 'antd'
-import { fetchUserDetail } from 'app/features/admin/screens/UserDetail/api/api'
+import { fetchUserDetail } from 'app/features/user/screens/UserDetail/api/api'
 
 export function TopicInfoCard({ topic }) {
   if (!topic) return null

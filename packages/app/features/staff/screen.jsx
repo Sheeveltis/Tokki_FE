@@ -17,7 +17,7 @@ import { VocabularyManagement } from '../vocabulary/screens/VocabularyManagement
 import { FlashcardTopicManagement } from '../vocabulary/screens/FlashcardTopicManagement'
 import { BlogManagement } from '../blog/blog-management'
 import { ChatSupport } from '../live-chat/chat-support'
-import { AutoEmail } from '../admin/screens/AutoEmail'
+import { AutoEmail } from '../AutoEmail'
 import { FeedbackInbox } from '../admin/screens/FeedbackInbox'
 // Staff-specific screens
 import { UserManagement } from './screens/UserManagement'
