@@ -57,6 +57,11 @@ import { BlogDetailScreen as AdminBlogDetailScreen } from '@tokki/app/features/a
 import { UserDetailScreen } from '@tokki/app/features/admin/screens/UserDetail'
 import { CreateUserScreen } from '@tokki/app/features/admin/screens/CreateUser'
 import { CreateAdminStaffScreen } from '@tokki/app/features/admin/screens/CreateAdminStaff'
+import { CreateQuestionScreen } from '@tokki/app/features/admin/screens/CreateQuestion'
+import { CreateQuestionTypeScreen } from '@tokki/app/features/admin/screens/CreateQuestionType'
+import { QuestionBankDetailScreen } from '@tokki/app/features/admin/screens/QuestionBankDetail'
+import { QuestionTypeManagement } from '@tokki/app/features/admin/screens/QuestionType'
+import { QuestionTypeDetailScreen } from '@tokki/app/features/admin/screens/QuestionType/components/QuestionTypeDetail'
 import { ExamTemplateDetailScreen } from '@tokki/app/features/admin/screens/ExamTemplateManagement/ExamTemplateDetail'
 import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/FlashcardTopicDetail'
 import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/VocabularyDetail'
@@ -564,6 +569,26 @@ function AdminCreateAdminStaffRoute() {
   return <CreateAdminStaffScreen />
 }
 
+function AdminQuestionCreateRoute() {
+  return <CreateQuestionScreen />
+}
+
+function AdminQuestionDetailRoute() {
+  return <QuestionBankDetailScreen />
+}
+
+function AdminQuestionTypeCreateRoute() {
+  return <CreateQuestionTypeScreen />
+}
+
+function AdminQuestionTypeRoute() {
+  return <QuestionTypeManagement />
+}
+
+function AdminQuestionTypeDetailRoute() {
+  return <QuestionTypeDetailScreen />
+}
+
 function AdminVocabTopicDetailRoute() {
   return <FlashcardTopicDetailScreen />
 }
@@ -679,6 +704,10 @@ function App() {
             <Route path="/admin/users/create" element={<AdminUserCreateRoute />} />
             <Route path="/admin/users/create-admin-staff" element={<AdminCreateAdminStaffRoute />} />
             <Route path="/admin/users/:id" element={<AdminUserDetailRoute />} />
+            <Route path="/admin/question-bank/create" element={<AdminQuestionCreateRoute />} />
+            <Route path="/admin/question-bank/:id" element={<AdminQuestionDetailRoute />} />
+            <Route path="/admin/question-type/create" element={<AdminQuestionTypeCreateRoute />} />
+            <Route path="/admin/question-type/:id" element={<AdminQuestionTypeDetailRoute />} />
             <Route path="/admin/vocab-topic/:id" element={<AdminVocabTopicDetailRoute />} />
             <Route path="/admin/vocab/create" element={<AdminVocabCreateRoute />} />
             <Route path="/admin/vocab/:id" element={<AdminVocabDetailRoute />} />
