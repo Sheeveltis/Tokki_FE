@@ -2,57 +2,88 @@
 
 import React, { useState, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Input, Space, Tag } from 'antd'
+import { Input, Space, Tag, Select, Button } from 'antd'
 import { EyeOutlined, SearchOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import ManagementTable from '../../../../../components/ManagementTable'
 import DetailDrawer from '../../../../../components/DetailDrawer'
+import { mockQuestionTypes } from './api/api'
+
+const { Option } = Select
 
 export function QuestionBankManagement({ initialData = null }) {
   const router = useRouter()
-  // TODO: Thay thế bằng API query thực tế khi có
-  const data = initialData || []
+  const data = initialData || mockQuestionTypes
   const isLoading = false
   const [drawerItem, setDrawerItem] = useState(null)
   const [search, setSearch] = useState('')
+  const [skillFilter, setSkillFilter] = useState(null)
 
   const filteredData = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    if (!q) return data
-    return data.filter(
-      (item) =>
-        (item.content || '').toLowerCase().includes(q) ||
-        (item.category || '').toLowerCase().includes(q) ||
-        (item.difficulty || '').toLowerCase().includes(q) ||
-        (item.updatedAt || '').toLowerCase().includes(q),
-    )
-  }, [data, search])
+    let result = data
+
+    // Filter by search
+    if (search) {
+      const searchLower = search.trim().toLowerCase()
+      result = result.filter(
+        (item) =>
+          (item.code || '').toLowerCase().includes(searchLower) ||
+          (item.name || '').toLowerCase().includes(searchLower) ||
+          (item.description || '').toLowerCase().includes(searchLower),
+      )
+    }
+
+    // Filter by skill
+    if (skillFilter !== null) {
+      result = result.filter((item) => item.skill === skillFilter)
+    }
+
+    return result
+  }, [data, search, skillFilter])
 
   const columns = [
-    { title: 'Nội dung câu hỏi', dataIndex: 'content', key: 'content', ellipsis: true },
-    { 
-      title: 'Danh mục', 
-      dataIndex: 'category', 
-      key: 'category',
-      render: (category) => category ? <Tag color="blue">{category}</Tag> : '-'
+    {
+      title: 'Code',
+      dataIndex: 'code',
+      key: 'code',
+      width: 120,
     },
-    { 
-      title: 'Độ khó', 
-      dataIndex: 'difficulty', 
-      key: 'difficulty',
-      render: (difficulty) => {
-        const colorMap = {
-          easy: 'green',
-          medium: 'orange',
-          hard: 'red',
+    {
+      title: 'Tên loại câu hỏi',
+      dataIndex: 'name',
+      key: 'name',
+      width: 250,
+    },
+    {
+      title: 'Mô tả',
+      dataIndex: 'description',
+      key: 'description',
+      ellipsis: true,
+    },
+    {
+      title: 'Kỹ năng',
+      dataIndex: 'skill',
+      key: 'skill',
+      width: 120,
+      render: (skill) => {
+        const skillMap = {
+          1: { label: 'Nghe', color: 'blue' },
+          2: { label: 'Đọc', color: 'green' },
+          3: { label: 'Viết', color: 'orange' },
         }
-        return difficulty ? (
-          <Tag color={colorMap[difficulty] || 'default'}>{difficulty}</Tag>
-        ) : '-'
-      }
+        const skillInfo = skillMap[skill] || { label: skill, color: 'default' }
+        return <Tag color={skillInfo.color}>{skillInfo.label}</Tag>
+      },
     },
-    { title: 'Loại câu hỏi', dataIndex: 'type', key: 'type' },
-    { title: 'Cập nhật', dataIndex: 'updatedAt', key: 'updatedAt' },
+    {
+      title: 'Trạng thái',
+      dataIndex: 'isActive',
+      key: 'isActive',
+      width: 120,
+      align: 'center',
+      render: (isActive) =>
+        isActive ? <Tag color="green">Hoạt động</Tag> : <Tag color="default">Không hoạt động</Tag>,
+    },
     {
       title: 'Xem',
       key: 'actions',
@@ -62,7 +93,7 @@ export function QuestionBankManagement({ initialData = null }) {
         <div
           onClick={(e) => {
             e?.stopPropagation?.()
-            router.push(`/admin/question-bank/${record.id}`)
+            router.push(`/admin/question-type/${record.questionTypeId}`)
           }}
           style={{
             display: 'flex',
@@ -91,19 +122,32 @@ export function QuestionBankManagement({ initialData = null }) {
   return (
     <>
       <Space style={{ marginBottom: 12, width: '100%', justifyContent: 'space-between' }}>
-        <Input
-          allowClear
-          prefix={<SearchOutlined />}
-          placeholder="Tìm theo nội dung, danh mục, độ khó"
-          style={{ maxWidth: 360 }}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <Space>
+          <Input
+            allowClear
+            prefix={<SearchOutlined />}
+            placeholder="Tìm theo code, tên, mô tả"
+            style={{ maxWidth: 360 }}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <Select
+            placeholder="Lọc theo kỹ năng"
+            allowClear
+            style={{ minWidth: 150 }}
+            value={skillFilter}
+            onChange={setSkillFilter}
+          >
+            <Option value={1}>Nghe</Option>
+            <Option value={2}>Đọc</Option>
+            <Option value={3}>Viết</Option>
+          </Select>
+        </Space>
         <ButtonV2
-          title="Thêm câu hỏi"
+          title="Thêm loại câu hỏi"
           color="#F1BE4B"
-          onPress={() => router.push('/admin/question-bank/create')}
-          style={{ minWidth: 120, paddingVertical: 10 }}
+          onPress={() => router.push('/admin/question-type/create')}
+          style={{ minWidth: 150, paddingVertical: 10 }}
           textStyle={{ fontSize: 14 }}
         />
       </Space>
@@ -112,11 +156,12 @@ export function QuestionBankManagement({ initialData = null }) {
         dataSource={filteredData}
         loading={isLoading && !initialData}
         onRowClick={(record) => setDrawerItem(record)}
+        rowKey="questionTypeId"
       />
       <DetailDrawer
         open={!!drawerItem}
         onClose={() => setDrawerItem(null)}
-        title="Chi tiết câu hỏi"
+        title="Chi tiết loại câu hỏi"
         data={drawerItem || {}}
       />
     </>
