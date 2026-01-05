@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
-import { Card, Table, Space, Typography, Tag, Select, DatePicker, Input, Button } from 'antd'
+import React, { useState, useEffect } from 'react'
+import { Card, Table, Space, Typography, Tag, Select, DatePicker, Input } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { statusPayment } from '../../../../string.js'
 import { paymentStatusColors, paymentMethodLabels } from '../../mockData.js'
-import { approvePayment, rejectPayment } from '../../api'
-import { usePaymentsQuery } from '../../api/useAdminQueries'
-import { EyeOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
+import { apiClient } from '../../../../provider/api/client'
+import { ENDPOINTS } from '../../../../provider/api/endpoints'
+import { EyeOutlined } from '@ant-design/icons'
 import { useRouter } from 'solito/navigation'
 
 const { Title, Text } = Typography
@@ -17,60 +17,85 @@ const { Search } = Input
 
 export function PaymentManagement() {
   const router = useRouter()
-  const { data: payments = [], isLoading } = usePaymentsQuery()
+  const [payments, setPayments] = useState([])
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateRange, setDateRange] = useState(null)
   const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  })
 
-  const filteredPayments = useMemo(() => {
-    let filtered = payments
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        setLoading(true)
 
-    // Filter by status
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((p) => p.status === statusFilter)
+        const params = {
+          search: search || undefined,
+          status: statusFilter !== 'all'
+            ? statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)
+            : undefined,
+          fromDate:
+            dateRange && dateRange.length === 2 && dateRange[0]
+              ? dateRange[0].format('YYYY-MM-DD')
+              : undefined,
+          toDate:
+            dateRange && dateRange.length === 2 && dateRange[1]
+              ? dateRange[1].format('YYYY-MM-DD')
+              : undefined,
+          page: pagination.current,
+          pageSize: pagination.pageSize,
+        }
+
+        const response = await apiClient.get(ENDPOINTS.STATISTICS.TRANSACTIONS, {
+          params,
+        })
+
+        const apiData = response?.data?.data
+
+        const items = apiData?.items || []
+
+        const mapped = items.map((item) => ({
+          transactionId: item.transactionId,
+          userEmail: item.userEmail,
+          userName: item.fullName,
+          packageName: item.packageName,
+          amount: item.amount,
+          paymentMethod: (item.paymentMethod || '').toLowerCase(),
+          status: (item.status || '').toLowerCase(),
+          createdAt: item.paymentDate,
+        }))
+
+        setPayments(mapped)
+
+        setPagination((prev) => ({
+          ...prev,
+          current: apiData?.pageNumber || prev.current,
+          pageSize: apiData?.pageSize || prev.pageSize,
+          total: apiData?.totalCount || prev.total,
+        }))
+      } catch (error) {
+        console.error('Failed to fetch transactions', error)
+      } finally {
+        setLoading(false)
+      }
     }
 
-    // Filter by date range
-    if (dateRange && dateRange.length === 2) {
-      const [start, end] = dateRange
-      filtered = filtered.filter((p) => {
-        const paymentDate = new Date(p.createdAt)
-        return paymentDate >= start && paymentDate <= end
-      })
-    }
+    fetchTransactions()
+  }, [statusFilter, dateRange, search, pagination.current, pagination.pageSize])
 
-    // Filter by search
-    if (search) {
-      const searchLower = search.toLowerCase()
-      filtered = filtered.filter(
-        (p) =>
-          p.userName.toLowerCase().includes(searchLower) ||
-          p.userEmail.toLowerCase().includes(searchLower) ||
-          p.transactionId.toLowerCase().includes(searchLower) ||
-          p.packageName.toLowerCase().includes(searchLower),
-      )
-    }
-
-    return filtered
-  }, [payments, statusFilter, dateRange, search])
-
-  const handleApprove = async (id) => {
-    const result = await approvePayment(id)
-    setPayments(
-      payments.map((p) =>
-        p.id === id
-          ? { ...p, status: result.status, completedAt: result.completedAt }
-          : p,
-      ),
-    )
+  const handleTableChange = (newPagination) => {
+    setPagination((prev) => ({
+      ...prev,
+      current: newPagination.current,
+      pageSize: newPagination.pageSize,
+    }))
   }
 
-  const handleReject = async (id) => {
-    const result = await rejectPayment(id)
-    setPayments(payments.map((p) => (p.id === id ? { ...p, status: result.status } : p)))
-  }
-
-  const totalRevenue = filteredPayments
+  const totalRevenue = payments
     .filter((p) => p.status === 'completed')
     .reduce((sum, p) => sum + p.amount, 0)
 
@@ -86,7 +111,7 @@ export function PaymentManagement() {
       key: 'user',
       render: (_, record) => (
         <div>
-          <Text strong>{record.userName}</Text>
+          <Text strong>{record.userName || record.fullName}</Text>
           <br />
           <Text type="secondary" style={{ fontSize: 12 }}>
             {record.userEmail}
@@ -139,26 +164,6 @@ export function PaymentManagement() {
       align: 'center',
       render: (_, record) => (
         <Space>
-          {record.status === 'pending' && (
-            <>
-              <Button
-                type="text"
-                icon={<CheckCircleOutlined />}
-                onClick={() => handleApprove(record.id)}
-                style={{ color: '#52c41a' }}
-              >
-                Duyệt
-              </Button>
-              <Button
-                type="text"
-                danger
-                icon={<CloseCircleOutlined />}
-                onClick={() => handleReject(record.id)}
-              >
-                Từ chối
-              </Button>
-            </>
-          )}
           <div
             onClick={() => {
               // TODO: Navigate to payment detail
@@ -217,8 +222,8 @@ export function PaymentManagement() {
                 placeholder="Trạng thái"
               >
                 <Option value="all">Tất cả</Option>
-                <Option value="completed">{statusPayment.completed}</Option>
-                <Option value="pending">{statusPayment.pending}</Option>
+                <Option value="Paid">{statusPayment.completed}</Option>
+                <Option value="Pending">{statusPayment.pending}</Option>
                 <Option value="failed">{statusPayment.failed}</Option>
                 <Option value="cancelled">{statusPayment.cancelled}</Option>
               </Select>
@@ -243,11 +248,12 @@ export function PaymentManagement() {
         <Card>
           <Table
             columns={columns}
-            dataSource={filteredPayments}
-            rowKey="id"
-            pagination={{ pageSize: 10 }}
+            dataSource={payments}
+            rowKey="transactionId"
+            pagination={pagination}
+            onChange={handleTableChange}
             scroll={{ x: 1200 }}
-            loading={isLoading}
+            loading={loading}
           />
         </Card>
       </Space>
