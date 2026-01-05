@@ -115,6 +115,11 @@ export const ENDPOINTS = {
     REPORT: {
       CREATE: '/Report',
     },
+    STATISTICS: {
+      OVERVIEW: '/Statistics/overview', // GET: Thống kê tổng quan doanh thu
+      TRANSACTIONS: '/Statistics/transactions', // GET: Lịch sử giao dịch (query: search, status, fromDate, toDate, page, pageSize)
+      PACKAGES: '/Statistics/packages', // GET: Doanh thu theo gói thành viên
+    },
     FAVORITES: {
       GET_ALL: '/Favorites/favorites',   // GET: Lấy danh sách từ vựng yêu thích (có pagination và search)
       ADD: '/Favorites',      // POST: Thêm vào danh sách yêu thích
