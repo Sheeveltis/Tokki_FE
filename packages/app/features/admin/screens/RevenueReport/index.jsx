@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, Space, Typography, DatePicker, Select, Button, Row, Col, Statistic, Table } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { DownloadOutlined, FilePdfOutlined } from '@ant-design/icons'
@@ -17,6 +17,8 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { mockRevenueData, mockPackageRevenueData } from '../../mockData.js'
+import { apiClient } from '../../../../provider/api/client'
+import { ENDPOINTS } from '../../../../provider/api/endpoints'
 
 const { Title, Text } = Typography
 const { RangePicker } = DatePicker
@@ -48,10 +50,61 @@ const reportColumns = [
 export function RevenueReport() {
   const [dateRange, setDateRange] = useState(null)
   const [reportType, setReportType] = useState('monthly')
+  const [overview, setOverview] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    averageRevenue: 0,
+  })
+  const [packageRevenueData, setPackageRevenueData] = useState([])
 
-  const totalRevenue = mockRevenueData.reduce((sum, item) => sum + item.revenue, 0)
-  const totalSubscriptions = mockRevenueData.reduce((sum, item) => sum + item.subscriptions, 0)
-  const averageRevenue = Math.round(totalRevenue / mockRevenueData.length)
+  useEffect(() => {
+    const fetchOverview = async () => {
+      try {
+        const response = await apiClient.get(ENDPOINTS.STATISTICS.OVERVIEW)
+        const data = response?.data?.data
+        if (data) {
+          setOverview({
+            totalRevenue: data.totalRevenue ?? 0,
+            totalOrders: data.totalOrders ?? 0,
+            averageRevenue: data.averageRevenue ?? 0,
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch revenue overview', error)
+      }
+    }
+
+    const fetchPackageRevenue = async () => {
+      try {
+        const response = await apiClient.get(ENDPOINTS.STATISTICS.PACKAGES)
+        const data = response?.data?.data
+        if (data && Array.isArray(data)) {
+          // Map data từ API (packageName → package) để phù hợp với BarChart
+          const mappedData = data.map((item) => ({
+            package: item.packageName,
+            revenue: item.revenue,
+            count: item.salesCount,
+          }))
+          setPackageRevenueData(mappedData)
+        }
+      } catch (error) {
+        console.error('Failed to fetch package revenue', error)
+        // Fallback về mock data nếu API lỗi
+        setPackageRevenueData(mockPackageRevenueData)
+      }
+    }
+
+    fetchOverview()
+    fetchPackageRevenue()
+  }, [])
+
+  const totalRevenue =
+    overview.totalRevenue || mockRevenueData.reduce((sum, item) => sum + item.revenue, 0)
+  const totalSubscriptions =
+    overview.totalOrders || mockRevenueData.reduce((sum, item) => sum + item.subscriptions, 0)
+  const averageRevenue =
+    overview.averageRevenue ||
+    Math.round(totalRevenue / (mockRevenueData.length || 1))
 
   const handleExport = () => {
     // TODO: Implement export functionality
@@ -147,7 +200,7 @@ export function RevenueReport() {
         {/* Biểu đồ doanh thu theo gói */}
         <Card title="Doanh thu theo gói thành viên">
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={mockPackageRevenueData}>
+            <BarChart data={packageRevenueData.length > 0 ? packageRevenueData : mockPackageRevenueData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="package" />
               <YAxis />
