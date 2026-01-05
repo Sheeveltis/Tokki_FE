@@ -2,16 +2,15 @@
 
 import React, { useState, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Input, Space, Tag, Select, Button } from 'antd'
+import { Input, Space, Tag, Select } from 'antd'
 import { EyeOutlined, SearchOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import ManagementTable from '../../../../../components/ManagementTable'
 import DetailDrawer from '../../../../../components/DetailDrawer'
-import { mockQuestionTypes } from './api/api'
+import { mockQuestionTypes } from '../QuestionBankManagement/api/api'
 
 const { Option } = Select
 
-export function QuestionBankManagement({ initialData = null }) {
+export function QuestionTypeManagement({ initialData = null }) {
   const router = useRouter()
   const data = initialData || mockQuestionTypes
   const isLoading = false
@@ -143,13 +142,6 @@ export function QuestionBankManagement({ initialData = null }) {
             <Option value={3}>Viết</Option>
           </Select>
         </Space>
-        <ButtonV2
-          title="Thêm loại câu hỏi"
-          color="#F1BE4B"
-          onPress={() => router.push('/admin/question-type/create')}
-          style={{ minWidth: 150, paddingVertical: 10 }}
-          textStyle={{ fontSize: 14 }}
-        />
       </Space>
       <ManagementTable
         columns={columns}
@@ -168,5 +160,5 @@ export function QuestionBankManagement({ initialData = null }) {
   )
 }
 
-export default QuestionBankManagement
+export default QuestionTypeManagement
 
