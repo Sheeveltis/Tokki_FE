@@ -65,6 +65,9 @@ export function MenuStudyLayout({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    width: '100%',
+    minWidth: '100%',
+    minHeight: '100vh',
     backgroundColor: '#FFD7D0',
     position: 'relative',
   },
@@ -75,7 +78,7 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     paddingBottom: 32,
     paddingHorizontal: 16,
-    minHeight: '100%',
+    minHeight: '100vh',
   },
   contentWrapper: {
     width: '70%',
