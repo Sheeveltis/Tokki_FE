@@ -1,6 +1,6 @@
 import './App.css'
 import React, { useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useNavigate, useSearchParams, useParams } from 'react-router-dom'
 
 import { Provider as AppProvider } from '@tokki/app/provider'
 import { QueryProvider } from '@tokki/app/provider/query/query-client'
@@ -67,6 +67,9 @@ import { ExamTemplateDetailScreen } from '@tokki/app/features/admin/screens/Exam
 import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/FlashcardTopicDetail'
 import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/VocabularyDetail'
 import { CreateVocabularyScreen } from '@tokki/app/features/vocabulary/screens/CreateVocabulary'
+import { DictionarySearchScreen } from '@tokki/app/features/vocabulary/screens/DictionarySearch'
+import { DictionaryVocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/DictionaryDetail'
+import { Navbar } from 'components/navbar'
 
 import { StaffScreen } from '@tokki/app/features/staff/screen'
 import { StaffUserDetailScreen } from '@tokki/app/features/staff/screens/UserDetail'
@@ -634,6 +637,79 @@ function AdminExamTemplateDetailRoute() {
   return <ExamTemplateDetailScreen />
 }
 
+// -------- DICTIONARY (USER VOCAB SEARCH) --------
+function DictionaryRoute() {
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: '#FFD7D0',
+      }}
+    >
+      <Navbar />
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <div
+          style={{
+            width: '70%',
+            maxWidth: 1200,
+            minWidth: 0,
+          }}
+        >
+          <DictionarySearchScreen />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function DictionaryDetailRoute() {
+  const { id } = useParams()
+
+  if (!id) {
+    return <DictionaryRoute />
+  }
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: '#FFD7D0',
+      }}
+    >
+      <Navbar />
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <div
+          style={{
+            width: '70%',
+            maxWidth: 1200,
+            minWidth: 0,
+          }}
+        >
+          <DictionaryVocabularyDetailScreen vocabularyId={id} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // -------- ROOT HOME (app/page.tsx) --------
 function RootHomeRoute() {
   const navigate = useNavigate()
@@ -690,6 +766,10 @@ function App() {
             <Route path="/flashcard/favorites" element={<FlashcardFavoritesRoute />} />
             <Route path="/flashcard/favorites/learn" element={<FlashcardFavoritesLearnRoute />} />
             <Route path="/flashcard/favorites/test" element={<FlashcardFavoritesTestRoute />} />
+
+            {/* Dictionary */}
+            <Route path="/dictionary" element={<DictionaryRoute />} />
+            <Route path="/dictionary/:id" element={<DictionaryDetailRoute />} />
 
             {/* Roadmap */}
             <Route path="/roadmap/info" element={<RoadmapInfoScreen />} />

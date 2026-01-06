@@ -102,6 +102,7 @@ export const ENDPOINTS = {
       ADD_EXAMPLES: '/vocabulary-examples/admin/add',
       UPDATE_EXAMPLE: (exampleId) => `/vocabulary-examples/admin/${exampleId}`,
       DELETE_EXAMPLE: (exampleId) => `/vocabulary-examples/admin/${exampleId}`,
+      USER_GET_EXAMPLES: (vocabId) => `/vocabulary-examples/user/${vocabId}`,
     },
     MINIGAME: {
       MATCHING_CARDS: '/minigame/matching-cards',

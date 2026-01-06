@@ -134,6 +134,37 @@ export async function fetchVocabularyDetail(vocabularyId) {
 }
 
 /**
+ * Lấy danh sách câu ví dụ của 1 từ vựng cho user hiện tại
+ * @param {string} vocabularyId - ID từ vựng
+ * @returns {Promise<Array>} - Mảng câu ví dụ [{ exampleId, sentence, translation }]
+ */
+export async function fetchUserVocabularyExamples(vocabularyId) {
+  try {
+    if (!vocabularyId) {
+      throw new Error('VocabularyId là bắt buộc')
+    }
+
+    const res = await apiClient.get(ENDPOINTS.VOCABULARY.USER_GET_EXAMPLES(vocabularyId))
+    const payload = res?.data
+
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể tải câu ví dụ'
+      throw new Error(message)
+    }
+
+    const examples = Array.isArray(payload?.data) ? payload.data : []
+    return examples
+  } catch (error) {
+    console.error('Error fetching user vocabulary examples:', error)
+    handleApiError(error, 'Không thể tải câu ví dụ')
+    return []
+  }
+}
+
+/**
  * Tạo từ vựng mới
  * @param {Object} payload - Dữ liệu từ vựng
  * @param {string} payload.text - Từ vựng (tiếng Hàn)

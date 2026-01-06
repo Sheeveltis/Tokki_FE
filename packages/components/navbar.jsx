@@ -17,6 +17,7 @@ import BlogIcon from '../assets/icon/navigate-app/chat.svg'
 import LeaderboardIcon from '../assets/icon/navigate-app/rank.svg'
 import SmallFoot from '../assets/smallfoot.png'
 import RoadmapIcon from '../assets/icon/navigate-app/roadmap.svg'
+import DictionaryIcon from '../assets/icon/navigate-app/dictionary.svg'
 import { useRouter } from 'solito/navigation'
 import UserIcon from '../assets/user.png'
 import LogoutIcon from '../assets/icon/icon-mainflow/logout.svg'
@@ -50,6 +51,7 @@ const normalizeImageSource = (src) => {
  *   roadmapIcon?: any;
  *   flashcardIcon?: any;
  *   blogIcon?: any;
+ *   dictionaryIcon?: any;
  *   profileIcon?: any;
  *   onHomePress?: () => void;
  *   onRoadmapPress?: () => void;
@@ -66,6 +68,7 @@ export const Navbar = ({
   roadmapIcon,
   flashcardIcon,
   blogIcon,
+  dictionaryIcon,
   onHomePress,
   onRoadmapPress,
   onFlashcardPress,
@@ -81,6 +84,7 @@ export const Navbar = ({
   const [roadmapHover, setRoadmapHover] = useState(false)
   const [flashcardHover, setFlashcardHover] = useState(false)
   const [blogHover, setBlogHover] = useState(false)
+  const [dictionaryHover, setDictionaryHover] = useState(false)
   const [leaderboardHover, setLeaderboardHover] = useState(false)
   const [userHover, setUserHover] = useState(false)
   const [logoutHover, setLogoutHover] = useState(false)
@@ -131,6 +135,7 @@ export const Navbar = ({
   const handleRoadmapInfoPress = go('/roadmap/info')
   const handleFlashcardPress = onFlashcardPress || go('/flashcard')
   const handleBlogPress = onBlogPress || go('/blog')
+  const handleDictionaryPress = go('/dictionary')
   const handleLeaderboardPress = go('/leaderboard')
   const handleLoginPress = onLoginPress || go('/login')
   const handleRegisterPress = onRegisterPress || go('/register')
@@ -211,7 +216,7 @@ export const Navbar = ({
             paddingVertical: 5,
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
             backgroundColor: '#FFF8E7',
             overflow: 'hidden',
           },
@@ -236,6 +241,8 @@ export const Navbar = ({
       {/* Left section: Logo */}
       <View
         style={{
+          position: 'absolute',
+          left: 20,
           flexDirection: 'row',
           alignItems: 'center',
           gap: 8,
@@ -315,6 +322,15 @@ export const Navbar = ({
             tint: colors.background,
           },
           {
+            key: 'dictionary',
+            icon: dictionaryIcon || DictionaryIcon,
+            onPress: handleDictionaryPress,
+            hover: dictionaryHover,
+            setHover: setDictionaryHover,
+            size: 40,
+            tint: colors.neutralBlack,
+          },
+          {
             key: 'blog',
             icon: blogIcon || BlogIcon,
             onPress: handleBlogPress,
@@ -364,6 +380,8 @@ export const Navbar = ({
       {/* Right section: Login and Register buttons */}
       <View
         style={{
+          position: 'absolute',
+          right: 20,
           flexDirection: 'row',
           alignItems: 'center',
           gap: 12,
