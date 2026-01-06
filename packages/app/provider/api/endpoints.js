@@ -139,5 +139,9 @@ export const ENDPOINTS = {
     },
     EXCEL: {
       ADD_VOCAB_TO_TOPIC: (topicId) => `/Excel/add-vocab?topicId=${topicId}`,  // POST: Import từ vựng từ Excel vào chủ đề
-    }
+    },
+    EMAIL: {
+      CAMPAIGNS_CREATE: '/email-campaigns',           // POST: Tạo chiến dịch email thủ công
+      TEMPLATE_CREATE: '/EmailTemplate',              // POST: Tạo email template tự động
+    },
   }
