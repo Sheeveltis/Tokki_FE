@@ -285,7 +285,7 @@ export const Navbar = ({
             hover: homeHover,
             setHover: setHomeHover,
             size: 40,
-            tint: colors.neutralMid,
+            tint: colors.DarkGreen,
           },
           {
             key: 'roadmap',
@@ -294,7 +294,7 @@ export const Navbar = ({
             hover: roadmapHover,
             setHover: setRoadmapHover,
             size: 40,
-            tint: colors.neutralMid,
+            tint: colors.accentPink,
           },
           {
             key: 'roadmap-info',
@@ -303,7 +303,7 @@ export const Navbar = ({
             hover: roadmapInfoHover,
             setHover: setRoadmapInfoHover,
             size: 40,
-            tint: colors.neutralMid,
+            tint: colors.Mustard,
           },
           {
             key: 'flashcard',
@@ -312,7 +312,7 @@ export const Navbar = ({
             hover: flashcardHover,
             setHover: setFlashcardHover,
             size: 40,
-            tint: colors.neutralMid,
+            tint: colors.background,
           },
           {
             key: 'blog',
@@ -321,7 +321,7 @@ export const Navbar = ({
             hover: blogHover,
             setHover: setBlogHover,
             size: 40,
-            tint: colors.neutralMid,
+            tint: colors.DarkPink,
           },
           {
             key: 'leaderboard',
@@ -330,7 +330,7 @@ export const Navbar = ({
             hover: leaderboardHover,
             setHover: setLeaderboardHover,
             size: 40,
-            tint: colors.neutralMid,
+            tint: colors.LightGreen,
           },
         ].map((item) => (
           <Pressable
