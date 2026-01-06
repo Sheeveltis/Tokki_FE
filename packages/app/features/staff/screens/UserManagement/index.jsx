@@ -92,7 +92,9 @@ export function UserManagement({ initialData = null }) {
         <div
           onClick={(e) => {
             e?.stopPropagation?.()
-            router.push(`/staff/users/${record.id}?tab=users`)
+            // Dùng lại cùng JSX chi tiết user (UserDetailScreen) qua route riêng cho staff
+            // Tab mặc định bên trong UserDetailScreen là 'users-all', nên truyền thẳng để đồng bộ
+            router.push(`/staff/users/${record.id}?tab=users-all`)
           }}
           style={{
             display: 'flex',
