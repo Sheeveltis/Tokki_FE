@@ -2,7 +2,8 @@
 
 import React, { useMemo, useState, useEffect } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Card, Space, Select, Table, Typography, List, Tag, Modal, Input } from 'antd'
+import { Card, Space, Select, Table, Typography, List, Tag, Modal, Input, Button } from 'antd'
+import { UploadOutlined, FileExcelOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
 import { VocabularyGuideButton } from './vocabulary-guide-modal'
 
@@ -25,6 +26,8 @@ export function TopicVocabSection({
   onExcelUpload,
   uploadingExcel,
   fileInputRef,
+  onExportExcel,
+  exportingExcel,
   onOpenGuide,
 }) {
   const router = useRouter()
@@ -102,9 +105,59 @@ export function TopicVocabSection({
   return (
     <Card
       title={
-        <Space>
-          <Text strong>Từ vựng trong chủ đề</Text>
-          {onOpenGuide && <VocabularyGuideButton onOpen={onOpenGuide} />}
+        <Space
+          style={{ width: '100%', justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          <Space>
+            <Text strong>Từ vựng trong chủ đề</Text>
+            {onOpenGuide && <VocabularyGuideButton onOpen={onOpenGuide} />}
+          </Space>
+          <Space>
+            {onExportExcel && (
+              <Button
+                icon={<FileExcelOutlined />}
+                onClick={onExportExcel}
+                disabled={exportingExcel}
+                loading={exportingExcel}
+                style={{
+                  backgroundColor: '#dc3545', // đỏ cho Export
+                  borderColor: '#dc3545',
+                  color: '#fff',
+                  minWidth: 140,
+                  height: 40,
+                }}
+              >
+                {exportingExcel ? 'Đang xuất...' : 'Xuất Excel'}
+              </Button>
+            )}
+
+            {onExcelUpload && (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  style={{ display: 'none' }}
+                  onChange={onExcelUpload}
+                />
+                <Button
+                  icon={<UploadOutlined />}
+                  onClick={() => fileInputRef?.current?.click()}
+                  disabled={uploadingExcel}
+                  loading={uploadingExcel}
+                  style={{
+                    backgroundColor: '#217346',
+                    borderColor: '#217346',
+                    color: '#fff',
+                    minWidth: 140,
+                    height: 40,
+                  }}
+                >
+                  {uploadingExcel ? 'Đang import...' : 'Import Excel'}
+                </Button>
+              </>
+            )}
+          </Space>
         </Space>
       }
     >
@@ -145,26 +198,6 @@ export function TopicVocabSection({
                 style={{ minWidth: 160, paddingVertical: 10 }}
                 textStyle={{ fontSize: 14 }}
               />
-            )}
-
-            {onExcelUpload && (
-              <>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".xlsx,.xls"
-                  style={{ display: 'none' }}
-                  onChange={onExcelUpload}
-                />
-                <ButtonV2
-                  title={uploadingExcel ? 'Đang import...' : 'Import Excel'}
-                  onPress={() => fileInputRef?.current?.click()}
-                  disabled={uploadingExcel}
-                  color="#217346"
-                  style={{ minWidth: 140, paddingVertical: 10 }}
-                  textStyle={{ fontSize: 14 }}
-                />
-              </>
             )}
 
             <ButtonV2

@@ -1120,3 +1120,60 @@ export async function uploadExcelToTopic(topicId, file) {
   }
 }
 
+/**
+ * Export từ vựng theo chủ đề ra file Excel
+ * @param {string} topicId - ID của chủ đề
+ * @returns {Promise<Blob>} - File Excel dưới dạng Blob
+ */
+export async function exportTopicToExcel(topicId) {
+  try {
+    if (!topicId) {
+      throw new Error('TopicId là bắt buộc')
+    }
+
+    const res = await apiClient.get(ENDPOINTS.EXCEL.EXPORT_BY_TOPIC(topicId), {
+      responseType: 'blob', // Quan trọng: phải set responseType là 'blob' để nhận file binary
+      headers: {
+        // Có thể để */* hoặc mime Excel, backend sẽ tự set Content-Type phù hợp
+        accept: '*/*',
+      },
+    })
+
+    // Kiểm tra xem response có phải là blob không
+    if (res?.data instanceof Blob) {
+      return res.data
+    }
+
+    throw new Error('Không thể tải file Excel')
+  } catch (error) {
+    console.error('Error exporting topic to Excel:', error)
+    
+    // Nếu có response data từ error, có thể là error message từ server
+    if (error?.response?.data) {
+      // Nếu response là blob (có thể là error message từ server), thử đọc text
+      if (error.response.data instanceof Blob) {
+        try {
+          const text = await error.response.data.text()
+          const errorData = JSON.parse(text)
+          throw {
+            status: error.response.status || 500,
+            message: errorData?.message || 'Không thể export file Excel',
+            errors: errorData?.errors || [],
+          }
+        } catch (parseError) {
+          throw {
+            status: error.response.status || 500,
+            message: 'Không thể export file Excel',
+          }
+        }
+      }
+    }
+    
+    throw {
+      status: error?.status || 500,
+      message: error?.message || 'Không thể export file Excel',
+      errors: error?.errors || [],
+    }
+  }
+}
+

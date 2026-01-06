@@ -15,6 +15,7 @@ import {
   deleteTopic,
   uploadTopicImageToCloudinary,
   uploadExcelToTopic,
+  exportTopicToExcel,
 } from '../../api'
 import { HelperAdmin, showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import TopicInfoCard from './components/topic-info-card'
@@ -51,6 +52,7 @@ export function FlashcardTopicDetailScreen() {
   const [apiResponse, setApiResponse] = useState(null)
   const [quickAddModalOpen, setQuickAddModalOpen] = useState(false)
   const [uploadingExcel, setUploadingExcel] = useState(false)
+  const [exportingExcel, setExportingExcel] = useState(false)
   const [guideModalOpen, setGuideModalOpen] = useState(false)
   const searchTimeoutRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -447,6 +449,57 @@ export function FlashcardTopicDetailScreen() {
     handleExcelUpload(file)
   }
 
+  const handleExportExcel = async () => {
+    if (!topicId) {
+      showAdminError('Không tìm thấy ID chủ đề')
+      return
+    }
+
+    setExportingExcel(true)
+    setApiResponse(null)
+
+    try {
+      // Gọi API để lấy file Excel
+      const blob = await exportTopicToExcel(topicId)
+
+      // Tạo URL tạm thời từ blob và trigger download
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      
+      // Lấy tên file từ topic hoặc dùng tên mặc định
+      const topicName = detailTopic?.title || detailTopic?._raw?.topicName || 'topic'
+      const fileName = `${topicName}_${topicId}.xlsx`
+      link.download = fileName
+      
+      // Trigger download
+      document.body.appendChild(link)
+      link.click()
+      
+      // Cleanup
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+
+      setApiResponse({
+        isSuccess: true,
+        message: 'Xuất file Excel thành công',
+        statusCode: 200,
+      })
+    } catch (err) {
+      console.error('Error exporting Excel:', err)
+      const errorMessage = err?.message || err?.errors?.[0]?.description || 'Không thể xuất file Excel'
+      setApiResponse({
+        isSuccess: false,
+        message: errorMessage,
+        errors: err?.errors || [],
+        statusCode: err?.status || 500,
+      })
+      showAdminError(errorMessage)
+    } finally {
+      setExportingExcel(false)
+    }
+  }
+
   const detailContent = (() => {
     if (loading) {
       return (
@@ -573,6 +626,8 @@ export function FlashcardTopicDetailScreen() {
             onExcelUpload={handleExcelFileSelect}
             uploadingExcel={uploadingExcel}
             fileInputRef={fileInputRef}
+            onExportExcel={handleExportExcel}
+            exportingExcel={exportingExcel}
             onOpenGuide={() => setGuideModalOpen(true)}
           />
           <QuickAddVocabularyModal

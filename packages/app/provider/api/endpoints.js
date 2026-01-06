@@ -146,5 +146,6 @@ export const ENDPOINTS = {
     },
     EXCEL: {
       ADD_VOCAB_TO_TOPIC: (topicId) => `/Excel/add-vocab?topicId=${topicId}`,  // POST: Import từ vựng từ Excel vào chủ đề
+      EXPORT_BY_TOPIC: (topicId) => `/Excel/export-by-topic/${topicId}`,  // GET: Export từ vựng theo chủ đề ra PDF
     }
   }
