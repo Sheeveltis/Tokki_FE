@@ -24,7 +24,7 @@ if (Platform.OS !== 'web') {
 }
 import { TextInput } from '../../../../components/textInput'
 import { Button } from '../../../../components/button'
-import { login } from '../api'
+import { login, getUserLevel } from '../api'
 import { setAuthToken } from '../../../provider/api/client'
 import { heartbeatService } from './heartbeat-service'
 import { showApiNotification } from '../helpers/notification'
@@ -148,6 +148,19 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
         await setAuthToken(token)
         // Lưu token vào storage để navbar nhận biết đã đăng nhập
         await setToken(token)
+        // Sau khi có token, lấy level hiện tại của user và lưu lại
+        try {
+          const levelResp = await getUserLevel()
+          if (levelResp?.isSuccess && levelResp.data?.level != null) {
+            const levelValue = String(levelResp.data.level)
+            await setStorageItem('userLevel', levelValue)
+            // Thông báo nếu cần lắng nghe thay đổi level
+            dispatchStorageEvent('user-level-changed')
+          }
+        } catch (e) {
+          // Không chặn flow login nếu gọi API level thất bại
+          console.error('Không thể lấy level người dùng:', e)
+        }
         // TODO: Lưu thông tin user vào context / storage nếu cần
         console.log('Đăng nhập thành công:', {
           token,

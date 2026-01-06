@@ -1,4 +1,5 @@
 import './App.css'
+import React, { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { Provider as AppProvider } from '@tokki/app/provider'
@@ -118,6 +119,24 @@ function ForgotPasswordRoute() {
 // -------- STUDY / MENU / FLASHCARD / ALPHABET --------
 function StudyRoute() {
   const navigate = useNavigate()
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    // Nếu đã có level lưu sẵn cho user thì chuyển thẳng sang menu-study
+    const storedLevel = typeof window !== 'undefined'
+      ? window.localStorage.getItem('userLevel')
+      : null
+
+    if (storedLevel) {
+      navigate(`/menu-study?level=${storedLevel}`, { replace: true })
+    } else {
+      setReady(true)
+    }
+  }, [navigate])
+
+  if (!ready) {
+    return null
+  }
 
   return (
     <StudyScreen

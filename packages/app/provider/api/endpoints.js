@@ -55,6 +55,7 @@ export const ENDPOINTS = {
       FORGOT_PASSWORD_RESET: '/Account/forgot-password/reset',
       PROFILE: '/Account/profile',
       ME: '/Account/me',
+      LEVEL: '/Account/me/level',
       GET_ALL: '/Account/get-all',
       DETAIL: (id) => `/Account/detail/${id}`,
       CREATE_ACCOUNT: '/Account/create-account',

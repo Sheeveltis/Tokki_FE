@@ -277,4 +277,46 @@ export const sendHeartbeat = async (userId, durationInSeconds = 300) => {
   }
 }
 
+/**
+ * Lấy level hiện tại của user sau khi đăng nhập
+ * Response mẫu:
+ * {
+ *   "isSuccess": true,
+ *   "data": { "level": 1 },
+ *   "errors": null,
+ *   "message": "",
+ *   "statusCode": 200
+ * }
+ */
+export const getUserLevel = async () => {
+  try {
+    const response = await apiClient.get(ENDPOINTS.ACCOUNT.LEVEL)
+    return response.data
+  } catch (error) {
+    if (error.response?.data) {
+      return error.response.data
+    }
+
+    const rawMsg = (typeof error?.message === 'string' && error.message) || ''
+    const lowerMsg = rawMsg.toLowerCase()
+    const isConnRefused = lowerMsg.includes('err_connection_refused')
+    const isNetworkError = lowerMsg.includes('network error')
+    const fallbackMsg = 'Không thể kết nối đến server. Vui lòng thử lại sau.'
+    const finalMsg = isConnRefused || isNetworkError ? fallbackMsg : rawMsg || fallbackMsg
+
+    return {
+      isSuccess: false,
+      data: null,
+      errors: [
+        {
+          code: 'Error.Network',
+          description: finalMsg,
+        },
+      ],
+      message: finalMsg,
+      statusCode: error.response?.status || 500,
+    }
+  }
+}
+
 
