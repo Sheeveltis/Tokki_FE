@@ -24,6 +24,7 @@ export function AlphabetStudyMain({
   onLearnPress,
   onPronunciationPress,
   onTypingPress,
+  onDrawingPress,
   onTestPress,
   onFlip,
   onToggleFavorite,
@@ -61,6 +62,10 @@ export function AlphabetStudyMain({
         <FlashcardActionButton
           title="Tập đánh chữ"
           onPress={onTypingPress}
+        />
+        <FlashcardActionButton
+          title="Vẽ chữ"
+          onPress={onDrawingPress}
         />
         <FlashcardActionButton
           title="Kiểm tra"
