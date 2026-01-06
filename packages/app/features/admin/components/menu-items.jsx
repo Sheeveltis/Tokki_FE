@@ -64,6 +64,7 @@ export const adminMenuItems = [
     children: [
       { key: 'chat-support', icon: <MessageOutlined />, label: 'Khung chat' },
       { key: 'auto-email', icon: <MailOutlined />, label: 'Gửi mail tự động' },
+      { key: 'manual-email', icon: <MailOutlined />, label: 'Gửi mail thủ công' },
       { key: 'feedback-inbox', icon: <InboxOutlined />, label: 'Hòm thư feedback' },
     ],
   },
