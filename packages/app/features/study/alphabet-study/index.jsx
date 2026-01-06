@@ -20,6 +20,7 @@ export function AlphabetStudyScreen({
   onLearnPress,
   onPronunciationPress,
   onTypingPress,
+  onDrawingPress,
   onTestPress,
 }) {
   const {
@@ -54,6 +55,7 @@ export function AlphabetStudyScreen({
         onLearnPress={onLearnPress}
         onPronunciationPress={onPronunciationPress}
         onTypingPress={onTypingPress}
+        onDrawingPress={onDrawingPress}
         onTestPress={onTestPress}
         onFlip={setIsFlipped}
         onToggleFavorite={toggleFavorite}
