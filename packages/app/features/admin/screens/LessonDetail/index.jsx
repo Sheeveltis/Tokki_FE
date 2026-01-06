@@ -18,7 +18,7 @@ import { VocabularyManagement } from 'app/features/vocabulary/screens/Vocabulary
 import { FlashcardTopicManagement } from 'app/features/vocabulary/screens/FlashcardTopicManagement'
 import { BlogManagement } from 'app/features/blog/blog-management'
 import { ChatSupport } from '../../../live-chat/chat-support'
-import { AutoEmail } from 'app/features/AutoEmail'
+import { AutoEmail } from 'app/features/admin/screens/AutoEmail'
 import { FeedbackInbox } from 'app/features/admin/screens/FeedbackInbox'
 import { MembershipPackage } from 'app/features/admin/screens/MembershipPackage'
 import { PaymentManagement } from 'app/features/admin/screens/PaymentManagement'

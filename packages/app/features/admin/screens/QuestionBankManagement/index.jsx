@@ -26,7 +26,7 @@ export function QuestionBankManagement({ initialData = null }) {
     if (search) {
       const searchLower = search.trim().toLowerCase()
       result = result.filter(
-        (item) =>
+      (item) =>
           (item.code || '').toLowerCase().includes(searchLower) ||
           (item.name || '').toLowerCase().includes(searchLower) ||
           (item.description || '').toLowerCase().includes(searchLower),
@@ -48,7 +48,7 @@ export function QuestionBankManagement({ initialData = null }) {
       key: 'code',
       width: 120,
     },
-    {
+    { 
       title: 'Tên loại câu hỏi',
       dataIndex: 'name',
       key: 'name',
@@ -60,7 +60,7 @@ export function QuestionBankManagement({ initialData = null }) {
       key: 'description',
       ellipsis: true,
     },
-    {
+    { 
       title: 'Kỹ năng',
       dataIndex: 'skill',
       key: 'skill',
@@ -123,14 +123,14 @@ export function QuestionBankManagement({ initialData = null }) {
     <>
       <Space style={{ marginBottom: 12, width: '100%', justifyContent: 'space-between' }}>
         <Space>
-          <Input
-            allowClear
-            prefix={<SearchOutlined />}
+        <Input
+          allowClear
+          prefix={<SearchOutlined />}
             placeholder="Tìm theo code, tên, mô tả"
-            style={{ maxWidth: 360 }}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+          style={{ maxWidth: 360 }}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
           <Select
             placeholder="Lọc theo kỹ năng"
             allowClear

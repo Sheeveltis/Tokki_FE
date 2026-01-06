@@ -1,6 +1,6 @@
 import './App.css'
-import React, { useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route, useNavigate, useSearchParams, useParams } from 'react-router-dom'
+import React, { useEffect, useState,  Suspense, lazy  } from 'react'
+import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { Provider as AppProvider } from '@tokki/app/provider'
 import { QueryProvider } from '@tokki/app/provider/query/query-client'
@@ -17,6 +17,7 @@ import AlphabetStudyScreen from '@tokki/app/features/study/alphabet-study'
 import AlphabetLearnScreen from '@tokki/app/features/study/alphabet-learn'
 import AlphabetTypingScreen from '@tokki/app/features/study/alphabet-typing'
 import AlphabetPronunciationScreen from '@tokki/app/features/study/alphabet-pronunciation'
+const AlphabetDrawingScreen = lazy(() => import('@tokki/app/features/study/alphabet-drawing'))
 
 import FlashcardListScreen from '@tokki/app/features/study/flashcard-list'
 import FlashcardStudyScreen from '@tokki/app/features/study/flashcard-study'
@@ -194,7 +195,18 @@ function AlphabetLettersRoute() {
       onLearnPress={() => navigate('/alphabet/letters/learn')}
       onPronunciationPress={() => navigate('/alphabet/letters/pronunciation')}
       onTypingPress={() => navigate('/alphabet/letters/typing')}
+      onDrawingPress={() => navigate('/alphabet/letters/drawing')}
       onTestPress={() => navigate('/alphabet/letters/test')}
+    />
+  )
+}
+
+function AlphabetLettersDrawingRoute() {
+  const navigate = useNavigate()
+
+  return (
+    <AlphabetDrawingScreen
+      onBackPress={() => navigate('/alphabet/letters')}
     />
   )
 }
@@ -250,7 +262,18 @@ function AlphabetSyllablesRoute() {
       onLearnPress={() => navigate('/alphabet/syllables/learn')}
       onPronunciationPress={() => navigate('/alphabet/syllables/pronunciation')}
       onTypingPress={() => navigate('/alphabet/syllables/typing')}
+      onDrawingPress={() => navigate('/alphabet/syllables/drawing')}
       onTestPress={() => navigate('/alphabet/syllables/test')}
+    />
+  )
+}
+
+function AlphabetSyllablesDrawingRoute() {
+  const navigate = useNavigate()
+
+  return (
+    <AlphabetDrawingScreen
+      onBackPress={() => navigate('/alphabet/syllables')}
     />
   )
 }
@@ -747,11 +770,27 @@ function App() {
             {/* Alphabet */}
             <Route path="/alphabet" element={<AlphabetRoute />} />
             <Route path="/alphabet/letters" element={<AlphabetLettersRoute />} />
+            <Route
+              path="/alphabet/letters/drawing"
+              element={
+                <Suspense fallback={<div>Đang tải màn vẽ chữ...</div>}>
+                  <AlphabetLettersDrawingRoute />
+                </Suspense>
+              }
+            />
             <Route path="/alphabet/letters/learn" element={<AlphabetLettersLearnRoute />} />
             <Route path="/alphabet/letters/pronunciation" element={<AlphabetLettersPronunciationRoute />} />
             <Route path="/alphabet/letters/typing" element={<AlphabetLettersTypingRoute />} />
             <Route path="/alphabet/letters/test" element={<AlphabetLettersTestRoute />} />
             <Route path="/alphabet/syllables" element={<AlphabetSyllablesRoute />} />
+            <Route
+              path="/alphabet/syllables/drawing"
+              element={
+                <Suspense fallback={<div>Đang tải màn vẽ chữ...</div>}>
+                  <AlphabetSyllablesDrawingRoute />
+                </Suspense>
+              }
+            />
             <Route path="/alphabet/syllables/learn" element={<AlphabetSyllablesLearnRoute />} />
             <Route path="/alphabet/syllables/pronunciation" element={<AlphabetSyllablesPronunciationRoute />} />
             <Route path="/alphabet/syllables/typing" element={<AlphabetSyllablesTypingRoute />} />

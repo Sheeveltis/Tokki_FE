@@ -12,7 +12,7 @@ const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/Vocabu
 const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/FlashcardTopicManagement'))
 const LazyBlogManagement = lazy(() => import('../blog/blog-management'))
 const LazyChatSupport = lazy(() => import('../live-chat/chat-support'))
-const LazyAutoEmail = lazy(() => import('../AutoEmail'))
+const LazyAutoEmail = lazy(() => import('./screens/AutoEmail'))
 const LazyFeedbackInbox = lazy(() => import('./screens/FeedbackInbox'))
 const LazyMembershipPackage = lazy(() => import('./screens/MembershipPackage'))
 const LazyPaymentManagement = lazy(() => import('./screens/PaymentManagement'))
@@ -23,6 +23,7 @@ const LazySettings = lazy(() => import('./screens/Settings'))
 const LazyExamTemplateManagement = lazy(() => import('./screens/ExamTemplateManagement'))
 const LazyQuestionBankManagement = lazy(() => import('./screens/QuestionBankManagement'))
 const LazyExamManagement = lazy(() => import('./screens/ExamManagement'))
+const LazyManualEmail = lazy(() => import('./screens/ManualEmail'))
 
 const LoadingFallback = () => <Spin />
 
@@ -89,6 +90,11 @@ export function AdminScreen() {
       'payment-management': (
         <Suspense fallback={<LoadingFallback />}>
           <LazyPaymentManagement />
+        </Suspense>
+      ),
+      'manual-email': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyManualEmail />
         </Suspense>
       ),
       'revenue-report': (
