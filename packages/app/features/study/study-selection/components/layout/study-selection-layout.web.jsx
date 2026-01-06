@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet, Platform } from 'react-native'
+import { View, StyleSheet, ScrollView, Platform } from 'react-native'
 import { Navbar } from 'components/navbar'
 import { QuickLevelTestButton } from '../../../components/quick-level-test-button.web'
 import { StudyStatsCards } from '../../../components/study-stats-cards.web'
@@ -16,18 +16,18 @@ export function StudySelectionLayout({
   return (
     <View style={styles.root}>
       <Navbar />
-      
+
       {/* Bên trái: Nút kiểm tra level nhanh - nằm ngoài ScrollView */}
       <View style={styles.leftSide}>
         <QuickLevelTestButton onPress={onQuickTestPress} />
       </View>
 
       {/* Giữa: Content chính trong ScrollView */}
-      <View style={styles.centerWrapper}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.centerContent}>
           {children}
         </View>
-      </View>
+      </ScrollView>
 
       {/* Bên phải: Thống kê học tập - nằm ngoài ScrollView */}
       <View style={styles.rightSide}>
@@ -40,21 +40,18 @@ export function StudySelectionLayout({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    width: '100%',
-    minWidth: '100%',
-    height: '100vh',
-    minHeight: '100vh',
     backgroundColor: '#FFD7D0',
     position: 'relative',
-    overflow: 'hidden',
   },
-  centerWrapper: {
+  scrollContent: {
     flex: 1,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 32,
+    paddingTop: 0,
+    paddingBottom: 32,
     paddingHorizontal: 16,
+    minHeight: '100%',
   },
   centerContent: {
     width: '100%',

@@ -2,7 +2,7 @@ import React from 'react'
 import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
 import { colors } from '../../../../color'
 import { studyStyles } from '../../../styles'
-import BunnyReading from '../../../../../../assets/bunny/4.png'
+import BunnyReading from '../../../../../../assets/bunny/5.png'
 
 const LEVELS = [
   { id: 1, color: '#2E2E2E', hoverColor: colors.LightGreen },
