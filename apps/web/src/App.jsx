@@ -68,6 +68,8 @@ import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/V
 import { CreateVocabularyScreen } from '@tokki/app/features/vocabulary/screens/CreateVocabulary'
 
 import { StaffScreen } from '@tokki/app/features/staff/screen'
+import { StaffUserDetailScreen } from '@tokki/app/features/staff/screens/UserDetail'
+import { ModeratorScreen } from '@tokki/app/features/moderator/screen'
 
 import { TestLayout } from './test-layout'
 
@@ -536,6 +538,14 @@ function StaffRoute() {
   return <StaffScreen />
 }
 
+function ModeratorRoute() {
+  return <ModeratorScreen />
+}
+
+function StaffUserDetailRoute() {
+  return <StaffUserDetailScreen />
+}
+
 // -------- ADMIN --------
 function AdminRoute() {
   return <AdminScreen />
@@ -693,7 +703,10 @@ function App() {
             <Route path="/user-profile" element={<ProfileRoute />} />
             <Route path="/user-profile/:tab" element={<ProfileRoute />} />
             <Route path="/staff" element={<StaffRoute />} />
+            <Route path="/moderator" element={<ModeratorRoute />} />
             <Route path="/users/:userId" element={<ProfileRoute />} />
+            {/* Màn chi tiết user cho Staff dùng StaffLayout riêng */}
+            <Route path="/staff/users/:id" element={<StaffUserDetailRoute />} />
 
             {/* Admin */}
             <Route path="/admin" element={<AdminRoute />} />
