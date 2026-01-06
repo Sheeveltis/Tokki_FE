@@ -55,6 +55,7 @@ export const ENDPOINTS = {
       FORGOT_PASSWORD_RESET: '/Account/forgot-password/reset',
       PROFILE: '/Account/profile',
       ME: '/Account/me',
+      LEVEL: '/Account/me/level',
       GET_ALL: '/Account/get-all',
       DETAIL: (id) => `/Account/detail/${id}`,
       CREATE_ACCOUNT: '/Account/create-account',
@@ -115,6 +116,11 @@ export const ENDPOINTS = {
     REPORT: {
       CREATE: '/Report',
     },
+    STATISTICS: {
+      OVERVIEW: '/Statistics/overview', // GET: Thống kê tổng quan doanh thu
+      TRANSACTIONS: '/Statistics/transactions', // GET: Lịch sử giao dịch (query: search, status, fromDate, toDate, page, pageSize)
+      PACKAGES: '/Statistics/packages', // GET: Doanh thu theo gói thành viên
+    },
     FAVORITES: {
       GET_ALL: '/Favorites/favorites',   // GET: Lấy danh sách từ vựng yêu thích (có pagination và search)
       ADD: '/Favorites',      // POST: Thêm vào danh sách yêu thích
@@ -136,6 +142,7 @@ export const ENDPOINTS = {
     CLOUDINARY: {
       UPLOAD_VOCABULARY_IMAGE: '/cloudinary/vocabulary-image',  // POST: Upload ảnh từ vựng lên Cloudinary
       UPLOAD_TOPIC_IMAGE: '/cloudinary/topic-image',  // POST: Upload ảnh chủ đề lên Cloudinary
+      UPLOAD_AVATAR: '/cloudinary/avatar',  // POST: Upload avatar lên Cloudinary
     },
     EXCEL: {
       ADD_VOCAB_TO_TOPIC: (topicId) => `/Excel/add-vocab?topicId=${topicId}`,  // POST: Import từ vựng từ Excel vào chủ đề

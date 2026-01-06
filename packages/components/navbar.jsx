@@ -11,12 +11,12 @@ import { colors } from '../app/color'
 import BackgroundImage from '../assets/background1.png'
 import LogoImage from '../assets/logo-text.png'
 import HomeIcon from '../assets/icon/navigate-app/home.svg'
-import RoadmapIcon from '../assets/icon/navigate-app/book.svg'
+import StudyIcon from '../assets/icon/navigate-app/book.svg'
 import FlashcardIcon from '../assets/icon/navigate-app/folder.svg'
 import BlogIcon from '../assets/icon/navigate-app/chat.svg'
-import LeaderboardIcon from '../assets/leaderboard.png'
+import LeaderboardIcon from '../assets/icon/navigate-app/rank.svg'
 import SmallFoot from '../assets/smallfoot.png'
-import RoadmapImage from '../assets/roadmap.png'
+import RoadmapIcon from '../assets/icon/navigate-app/roadmap.svg'
 import { useRouter } from 'solito/navigation'
 import UserIcon from '../assets/user.png'
 import LogoutIcon from '../assets/icon/icon-mainflow/logout.svg'
@@ -289,20 +289,21 @@ export const Navbar = ({
           },
           {
             key: 'roadmap',
-            icon: roadmapIcon || RoadmapIcon,
+            icon: roadmapIcon || StudyIcon,
             onPress: handleRoadmapPress,
             hover: roadmapHover,
             setHover: setRoadmapHover,
             size: 40,
-            tint: colors.primaryLight,
+            tint: colors.accentPink,
           },
           {
             key: 'roadmap-info',
-            icon: RoadmapImage,
+            icon: RoadmapIcon,
             onPress: handleRoadmapInfoPress,
             hover: roadmapInfoHover,
             setHover: setRoadmapInfoHover,
             size: 40,
+            tint: colors.Mustard,
           },
           {
             key: 'flashcard',
@@ -311,7 +312,7 @@ export const Navbar = ({
             hover: flashcardHover,
             setHover: setFlashcardHover,
             size: 40,
-            tint: colors.Pink,
+            tint: colors.background,
           },
           {
             key: 'blog',
@@ -320,7 +321,7 @@ export const Navbar = ({
             hover: blogHover,
             setHover: setBlogHover,
             size: 40,
-            tint: colors.Mustard,
+            tint: colors.DarkPink,
           },
           {
             key: 'leaderboard',
@@ -329,6 +330,7 @@ export const Navbar = ({
             hover: leaderboardHover,
             setHover: setLeaderboardHover,
             size: 40,
+            tint: colors.LightGreen,
           },
         ].map((item) => (
           <Pressable

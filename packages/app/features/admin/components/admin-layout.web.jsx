@@ -1,7 +1,8 @@
 'use client'
 
 import React, { createContext, useContext, useMemo, useState, useEffect, useTransition } from 'react'
-import { Layout, Menu, ConfigProvider, theme as antdTheme } from 'antd'
+import { Layout, Menu, ConfigProvider, Badge, Popover, List, theme as antdTheme } from 'antd'
+import { BellOutlined } from '@ant-design/icons'
 import { adminMenuItems } from './menu-items.jsx'
 
 const ThemeContext = createContext({
@@ -73,6 +74,15 @@ export function AdminLayout({
     return children || screens[selectedKey] || screens[defaultKey] || null
   }, [children, screens, selectedKey, defaultKey])
 
+  const notifications = useMemo(
+    () => [
+      { title: '3 yêu cầu phê duyệt user mới', time: '5 phút trước' },
+      { title: '2 feedback chưa xử lý', time: '30 phút trước' },
+      { title: 'Báo cáo hệ thống sẵn sàng', time: 'Hôm nay' },
+    ],
+    [],
+  )
+
   const scrollHideStyles = `
     .sider-scroll-hidden::-webkit-scrollbar {
       display: none;
@@ -131,6 +141,7 @@ export function AdminLayout({
                 background: 'transparent',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 paddingInline: 24,
                 fontFamily: 'Epilogue, sans-serif',
               }}
@@ -139,6 +150,30 @@ export function AdminLayout({
                 {adminMenuItems
                   .flatMap((item) => [item, ...(item.children || [])])
                   .find((item) => item.key === selectedKey)?.label || 'Dashboard'}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <Popover
+                  placement="bottomRight"
+                  trigger="click"
+                  content={
+                    <List
+                      size="small"
+                      dataSource={notifications}
+                      renderItem={(item) => (
+                        <List.Item style={{ padding: '6px 0' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontWeight: 600 }}>{item.title}</span>
+                            <span style={{ fontSize: 12, color: '#888' }}>{item.time}</span>
+                          </div>
+                        </List.Item>
+                      )}
+                    />
+                  }
+                >
+                  <Badge dot>
+                    <BellOutlined style={{ fontSize: 20, cursor: 'pointer' }} />
+                  </Badge>
+                </Popover>
               </div>
             </Layout.Header>
             <Layout.Content style={{ margin: 16 }}>

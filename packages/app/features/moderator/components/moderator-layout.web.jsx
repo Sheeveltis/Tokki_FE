@@ -2,19 +2,8 @@
 
 import React, { createContext, useContext, useMemo, useState, useEffect, useTransition } from 'react'
 import { Layout, Menu, ConfigProvider, Badge, Popover, List, theme as antdTheme } from 'antd'
-import {
-  UserOutlined,
-  BookOutlined,
-  FileTextOutlined,
-  SettingOutlined,
-  DatabaseOutlined,
-  PoweroffOutlined,
-  CustomerServiceOutlined,
-  MessageOutlined,
-  MailOutlined,
-  InboxOutlined,
-  BellOutlined,
-} from '@ant-design/icons'
+import { BellOutlined } from '@ant-design/icons'
+import { moderatorMenuItems } from './moderator-menu-items.jsx'
 
 const ThemeContext = createContext({
   themeMode: 'light',
@@ -24,21 +13,15 @@ const ThemeContext = createContext({
 export const useTheme = () => useContext(ThemeContext)
 
 /**
- * StaffLayout (web): wrapper cho Sider + Content, quản lý menu và theme.
- * Staff có quyền hạn giới hạn hơn admin.
+ * ModeratorLayout (web): wrapper cho Sider + Content, quản lý menu và theme cho moderator.
  * @param {{
  *  screens: Record<string, React.ReactNode>;
  *  defaultKey?: string;
  *  onLogout?: () => void;
+ *  onNavigate?: (key: string) => void;
  * }} props
  */
-export function StaffLayout({
-  screens = {},
-  defaultKey = 'users',
-  onLogout = () => {},
-  onNavigate,
-  children,
-}) {
+export function ModeratorLayout({ screens = {}, defaultKey = 'approve-blog', onLogout = () => {}, onNavigate, children }) {
   const [selectedKey, setSelectedKey] = useState(defaultKey)
   const [collapsed, setCollapsed] = useState(false)
   const [themeMode, setThemeMode] = useState('light')
@@ -56,7 +39,7 @@ export function StaffLayout({
     [],
   )
 
-  // Size chữ toàn staff mặc định
+  // Size chữ toàn moderator mặc định
   const themeTokens = useMemo(
     () => ({
       fontSize: 18,
@@ -88,8 +71,8 @@ export function StaffLayout({
 
   const notifications = useMemo(
     () => [
-      { title: '2 câu hỏi chat cần phản hồi', time: '10 phút trước' },
-      { title: '1 bài viết chờ duyệt', time: '1 giờ trước' },
+      { title: '1 bài blog chờ duyệt', time: '15 phút trước' },
+      { title: 'Có báo cáo nội dung vi phạm', time: 'Hôm nay' },
     ],
     [],
   )
@@ -99,53 +82,6 @@ export function StaffLayout({
       display: none;
     }
   `
-
-  // Menu items cho Staff - giới hạn quyền hạn hơn Admin
-  const menuItems = [
-    {
-      key: 'users',
-      icon: <UserOutlined />,
-      label: 'Quản lý Người dùng',
-    },
-    {
-      key: 'content',
-      icon: <BookOutlined />,
-      label: 'Quản lý Nội dung',
-      children: [
-        { key: 'lessons', icon: <BookOutlined />, label: 'Bài học' },
-        { key: 'blog', icon: <FileTextOutlined />, label: 'Bài viết' },
-      ],
-    },
-    {
-      key: 'vocabulary',
-      icon: <DatabaseOutlined />,
-      label: 'Quản lý Từ vựng',
-      children: [
-        { key: 'vocabulary-words', icon: <DatabaseOutlined />, label: 'Quản lý từ vựng' },
-        { key: 'vocabulary-topics', icon: <BookOutlined />, label: 'Quản lý chủ đề' },
-      ],
-    },
-    {
-      key: 'customer-service',
-      icon: <CustomerServiceOutlined />,
-      label: 'Chăm sóc khách hàng',
-      children: [
-        { key: 'chat-support', icon: <MessageOutlined />, label: 'Khung chat' },
-        { key: 'auto-email', icon: <MailOutlined />, label: 'Gửi mail tự động' },
-        { key: 'feedback-inbox', icon: <InboxOutlined />, label: 'Hòm thư feedback' },
-      ],
-    },
-    { key: 'settings', icon: <SettingOutlined />, label: 'Cài đặt' },
-    {
-      type: 'divider',
-    },
-    {
-      key: 'logout',
-      icon: <PoweroffOutlined />,
-      label: <span style={{ color: '#ff4d4f', fontWeight: 600 }}>Đăng xuất</span>,
-      danger: true,
-    },
-  ]
 
   return (
     <ThemeContext.Provider
@@ -182,15 +118,14 @@ export function StaffLayout({
                 letterSpacing: 0.5,
               }}
             >
-              {collapsed ? 'STF' : 'Staff Panel'}
+              {collapsed ? 'MOD' : 'Moderator Panel'}
             </div>
             <Menu
               theme="dark"
               mode="inline"
               selectedKeys={[selectedKey]}
-              defaultOpenKeys={['content', 'vocabulary', 'customer-service']}
               onClick={handleMenuClick}
-              items={menuItems}
+              items={moderatorMenuItems}
             />
           </Layout.Sider>
           <Layout>
@@ -205,9 +140,7 @@ export function StaffLayout({
               }}
             >
               <div style={{ fontSize: 21, fontWeight: 700 }}>
-                {menuItems
-                  .flatMap((item) => [item, ...(item.children || [])])
-                  .find((item) => item.key === selectedKey)?.label || 'Dashboard'}
+                {moderatorMenuItems.find((item) => item.key === selectedKey)?.label || 'Moderator Dashboard'}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                 <Popover
@@ -253,5 +186,7 @@ export function StaffLayout({
   )
 }
 
-export default StaffLayout
+export default ModeratorLayout
+
+
 

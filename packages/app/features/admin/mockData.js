@@ -733,6 +733,7 @@ export const feedbackCategoryLabels = {
 
 export const paymentStatusColors = {
   completed: 'green',
+  paid: 'green',
   pending: 'orange',
   failed: 'red',
   cancelled: 'default',

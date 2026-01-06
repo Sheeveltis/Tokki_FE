@@ -16,7 +16,7 @@ export function StudySelectionLayout({
   return (
     <View style={styles.root}>
       <Navbar />
-      
+
       {/* Bên trái: Nút kiểm tra level nhanh - nằm ngoài ScrollView */}
       <View style={styles.leftSide}>
         <QuickLevelTestButton onPress={onQuickTestPress} />
@@ -44,8 +44,8 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   scrollContent: {
-    width: '100%',
     flex: 1,
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: 0,

@@ -12,7 +12,7 @@ import AccountDetails from './account-details'
 /**
  * AccountManage: hiển thị danh sách user; mode=admin chỉ lọc Admin/Staff.
  */
-export default function AccountManage({ mode = 'all', initialData = null }) {
+export default function AccountManage({ mode = 'all', basePath = '/admin', initialData = null }) {
   const router = useRouter()
   const [data, setData] = useState(initialData?.items || [])
   const [loading, setLoading] = useState(!initialData)
@@ -154,7 +154,7 @@ export default function AccountManage({ mode = 'all', initialData = null }) {
           onClick={(e) => {
             e?.stopPropagation?.()
             const userId = record.id || record.userId
-            router.push(`/admin/users/${userId}`)
+            router.push(`${basePath}/users/${userId}`)
           }}
           style={{
             display: 'flex',
@@ -224,7 +224,7 @@ export default function AccountManage({ mode = 'all', initialData = null }) {
           <ButtonV2
             title="Thêm"
             color="#F1BE4B"
-            onPress={() => router.push('/admin/users/create-admin-staff')}
+            onPress={() => router.push(`${basePath}/users/create-admin-staff`)}
             style={{ minWidth: 80, paddingVertical: 10 }}
             textStyle={{ fontSize: 14 }}
           />
@@ -243,7 +243,7 @@ export default function AccountManage({ mode = 'all', initialData = null }) {
         }}
         onRowClick={(record) => {
           const userId = record.id || record.userId
-          router.push(`/admin/users/${userId}`)
+          router.push(`${basePath}/users/${userId}`)
         }}
       />
     </>

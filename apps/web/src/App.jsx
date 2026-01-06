@@ -1,4 +1,5 @@
 import './App.css'
+import React, { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { Provider as AppProvider } from '@tokki/app/provider'
@@ -54,9 +55,9 @@ import { CreateLessonScreen } from '@tokki/app/features/admin/screens/CreateLess
 import { LessonDetailScreen } from '@tokki/app/features/admin/screens/LessonDetail'
 import { CreateBlogScreen } from '@tokki/app/features/blog/admin-create-blog'
 import { BlogDetailScreen as AdminBlogDetailScreen } from '@tokki/app/features/admin/screens/BlogDetail'
-import { UserDetailScreen } from '@tokki/app/features/admin/screens/UserDetail'
-import { CreateUserScreen } from '@tokki/app/features/admin/screens/CreateUser'
-import { CreateAdminStaffScreen } from '@tokki/app/features/admin/screens/CreateAdminStaff'
+import { UserDetailScreen } from '@tokki/app/features/user/screens/UserDetail'
+import { CreateUserScreen } from '@tokki/app/features/user/screens/CreateUser'
+import { CreateAdminStaffScreen } from '@tokki/app/features/user/screens/CreateAdminStaff'
 import { CreateQuestionScreen } from '@tokki/app/features/admin/screens/CreateQuestion'
 import { CreateQuestionTypeScreen } from '@tokki/app/features/admin/screens/CreateQuestionType'
 import { QuestionBankDetailScreen } from '@tokki/app/features/admin/screens/QuestionBankDetail'
@@ -68,6 +69,8 @@ import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/V
 import { CreateVocabularyScreen } from '@tokki/app/features/vocabulary/screens/CreateVocabulary'
 
 import { StaffScreen } from '@tokki/app/features/staff/screen'
+import { StaffUserDetailScreen } from '@tokki/app/features/staff/screens/UserDetail'
+import { ModeratorScreen } from '@tokki/app/features/moderator/screen'
 
 import { TestLayout } from './test-layout'
 
@@ -116,6 +119,24 @@ function ForgotPasswordRoute() {
 // -------- STUDY / MENU / FLASHCARD / ALPHABET --------
 function StudyRoute() {
   const navigate = useNavigate()
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    // Nếu đã có level lưu sẵn cho user thì chuyển thẳng sang menu-study
+    const storedLevel = typeof window !== 'undefined'
+      ? window.localStorage.getItem('userLevel')
+      : null
+
+    if (storedLevel) {
+      navigate(`/menu-study?level=${storedLevel}`, { replace: true })
+    } else {
+      setReady(true)
+    }
+  }, [navigate])
+
+  if (!ready) {
+    return null
+  }
 
   return (
     <StudyScreen
@@ -536,6 +557,14 @@ function StaffRoute() {
   return <StaffScreen />
 }
 
+function ModeratorRoute() {
+  return <ModeratorScreen />
+}
+
+function StaffUserDetailRoute() {
+  return <StaffUserDetailScreen />
+}
+
 // -------- ADMIN --------
 function AdminRoute() {
   return <AdminScreen />
@@ -693,7 +722,10 @@ function App() {
             <Route path="/user-profile" element={<ProfileRoute />} />
             <Route path="/user-profile/:tab" element={<ProfileRoute />} />
             <Route path="/staff" element={<StaffRoute />} />
+            <Route path="/moderator" element={<ModeratorRoute />} />
             <Route path="/users/:userId" element={<ProfileRoute />} />
+            {/* Màn chi tiết user cho Staff dùng StaffLayout riêng */}
+            <Route path="/staff/users/:id" element={<StaffUserDetailRoute />} />
 
             {/* Admin */}
             <Route path="/admin" element={<AdminRoute />} />

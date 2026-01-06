@@ -4,7 +4,6 @@ import { Navbar } from 'components/navbar'
 import { QuickLevelTestButton } from './quick-level-test-button.web'
 import { StudyStatsCards } from './study-stats-cards.web'
 import { MessageModal } from 'components/MessageModal'
-import { useRouter } from 'solito/navigation'
 import Bunny2 from '../../../../assets/bunny/2.png'
 
 /**
@@ -96,11 +95,11 @@ const styles = StyleSheet.create({
     width: '100%',
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    // Căn từ trên xuống để không tạo khoảng trống lớn phía dưới
+    justifyContent: 'flex-start',
     paddingTop: 0,
     paddingBottom: 32,
     paddingHorizontal: 16,
-    minHeight: '100%',
   },
   centerContent: {
     width: '100%',

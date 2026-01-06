@@ -1,14 +1,8 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, Pressable, Image, Platform, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, Pressable, Platform } from 'react-native'
 import { colors } from '../../../color'
-import { normalizeImageSource } from '../api'
 import { studyStyles } from '../styles'
-import { MessageModal } from 'components/MessageModal'
 import { useRouter } from 'solito/navigation'
-
-import BunnyReading from '../../../../assets/bunny/4.png'
-import Bunny2 from '../../../../assets/bunny/2.png'
-import BackgroundPattern from '../../../../assets/background2.png'
 
 const LEVELS = [
   { id: 1, color: '#2E2E2E', hoverColor: colors.LightGreen },
@@ -72,8 +66,6 @@ export function StudyMain({ onSelectLevel, onShowModal, modalState }) {
             ))}
           </View>
         </View>
-
-        <Image source={BunnyReading} style={styles.bunny} resizeMode="contain" />
       </View>
 
     </>
@@ -82,9 +74,13 @@ export function StudyMain({ onSelectLevel, onShowModal, modalState }) {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     width: '100%',
     alignItems: 'center',
+    justifyContent: 'center', // đưa khối chọn level ra giữa theo chiều dọc
     gap: 20,
+    paddingVertical: 32,
+    minHeight: '90vh', // đảm bảo full màn hình
   },
   header: {
     alignItems: 'center',
@@ -98,11 +94,9 @@ const styles = StyleSheet.create({
     maxWidth: 900,
     backgroundColor: '#F6F2E2',
     borderRadius: 16,
-    paddingVertical: 32,
+    paddingVertical: 50,
     paddingHorizontal: 32,
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#F4B8AF',
     shadowColor: '#00000025',
     shadowOpacity: 0.12,
     shadowRadius: 12,
@@ -167,10 +161,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#3C3C3C',
     letterSpacing: 0.4,
-  },
-  bunny: {
-    width: 210,
-    height: 210,
   },
 })
 

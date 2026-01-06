@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Platform } from 'react-native'
 import { notification } from 'antd'
 
@@ -30,6 +30,9 @@ export function HelperAdmin({
   hideStatusCode = false,
   hideErrorCode = false,
 }) {
+  // Tránh thông báo lặp (đặc biệt trong React 18 StrictMode render double)
+  const lastShownRef = useRef(null)
+
   useEffect(() => {
     // Chỉ hoạt động trên web (antd notification cần document API)
     if (Platform.OS !== 'web') {
@@ -38,6 +41,19 @@ export function HelperAdmin({
 
     // Nếu không có response, không hiển thị gì
     if (!response) {
+      return
+    }
+
+    // Tạo key duy nhất cho thông báo hiện tại
+    const key = JSON.stringify({
+      isSuccess: response.isSuccess,
+      message: response.message,
+      statusCode: response.statusCode,
+      errors: response.errors?.map((e) => `${e.code}-${e.description}`),
+    })
+
+    // Nếu key trùng với lần trước => bỏ qua để tránh hiện 2 lần
+    if (lastShownRef.current === key) {
       return
     }
 
@@ -65,6 +81,8 @@ export function HelperAdmin({
       placement,
       duration,
     })
+
+    lastShownRef.current = key
   }, [response, type, duration, placement, hideStatusCode, hideErrorCode])
 
   return null

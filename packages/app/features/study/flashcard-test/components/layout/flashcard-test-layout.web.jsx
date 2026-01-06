@@ -17,22 +17,27 @@ export function FlashcardTestLayout({ children }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    width: '100%',
     backgroundColor: '#FFD7D0',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
+    // Bám từ trên xuống, tránh lộ nền tối bên dưới khi nội dung thấp
+    justifyContent: 'flex-start',
+    paddingVertical: 32,
     paddingHorizontal: 16,
+    minHeight: '100vh',
   },
   contentWrapper: {
-    width: '70%',
+    width: '100%',
     maxWidth: 1200,
+    minHeight: '70vh', // đủ cao cho trạng thái trống/kết thúc
     gap: 16,
     alignItems: 'stretch',
     backgroundColor: '#F5F0DD',
-    paddingVertical: 24,
+    paddingVertical: 32,
     paddingHorizontal: 24,
     borderRadius: 16,
     flexDirection: 'column',
+    justifyContent: 'flex-start',
   },
 })
 
