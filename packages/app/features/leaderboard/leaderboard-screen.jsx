@@ -1,5 +1,5 @@
 import React from 'react'
-import { LeaderboardLayoutWeb } from './components/leaderBoard-layout.web'
+import { LeaderboardLayoutWeb } from './components/leaderboard-layout.web'
 
 /**
  * Screen component cho leaderboard
