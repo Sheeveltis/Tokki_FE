@@ -3,8 +3,8 @@
 import React, { useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { Navbar } from '../../../../components/navbar'
-import { LeaderboardDashboard } from './leaderBoard-dashboard'
-import { Leaderboard } from './leaderBoard'
+import { LeaderboardDashboard } from './leaderboard-dashboard'
+import { Leaderboard } from './leaderboard'
 
 /**
  * Layout component cho leaderboard page
