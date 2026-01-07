@@ -1,6 +1,6 @@
 import './App.css'
 import React, { useEffect, useState,  Suspense, lazy  } from 'react'
-import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useNavigate, useSearchParams, useParams } from 'react-router-dom'
 
 import { Provider as AppProvider } from '@tokki/app/provider'
 import { QueryProvider } from '@tokki/app/provider/query/query-client'
