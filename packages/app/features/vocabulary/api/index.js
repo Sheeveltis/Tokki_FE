@@ -388,7 +388,7 @@ export async function uploadTopicImageToCloudinary(file) {
  * @param {number} params.pageSize - Số item mỗi trang (mặc định: 10)
  * @param {string} params.searchTerm - Từ khóa tìm kiếm
  * @param {number} params.level - Lọc theo level
- * @param {number|string} params.status - Lọc theo status (0: draft, 1: active, 2: deleted, 'all': tất cả)
+ * @param {number|string} params.status - Lọc theo status (0: draft, 1: active, 2: deleted, 3: pending approval, 'all': tất cả)
  * @returns {Promise<Object>} - { items, pageNumber, pageSize, totalCount, totalPages, hasNextPage, hasPreviousPage }
  */
 export async function searchFlashcardTopics(params = {}) {
@@ -625,7 +625,7 @@ export async function createFlashcardTopic(payload) {
  * @param {string} payload.topicName - Tên chủ đề
  * @param {string} payload.description - Mô tả
  * @param {number} payload.level - Level
- * @param {number} payload.status - Trạng thái (0: Draft, 1: Active, 2: Deleted)
+ * @param {number} payload.status - Trạng thái (0: Draft, 1: Active, 2: Deleted, 3: PendingApproval)
  * @param {string} payload.imgUrl - URL ảnh
  * @returns {Promise<Object>} - Response từ API
  */
