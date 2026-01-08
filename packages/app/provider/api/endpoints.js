@@ -161,6 +161,7 @@ export const ENDPOINTS = {
       UPDATE: (id) => `/ExamTemplates/${id}`,          // PUT: Cập nhật exam template
       DELETE: (id) => `/ExamTemplates/${id}`,         // DELETE: Xóa exam template
       TEMPLATE_PARTS: '/ExamTemplates/TemplateParts',  // POST: Thêm/cập nhật template parts
+      DUPLICATE: (id) => `/ExamTemplates/${id}/duplicate`,  // POST: Sao chép exam template
     },
     QUESTION_TYPE: {
       GET_ALL: '/QuestionType',                        // GET: Lấy danh sách question types (query: skill, examType)

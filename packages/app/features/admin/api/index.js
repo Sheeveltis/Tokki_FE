@@ -490,25 +490,16 @@ export async function fetchExamTemplate(examTemplateId) {
       }))
     }
 
-    // Map dữ liệu từ API response về format component đang sử dụng
+    // Map dữ liệu từ API response - chỉ trả về format từ API (camelCase) để tránh duplicate
     return {
-      ExamTemplateId: apiData.examTemplateId,
-      id: apiData.examTemplateId,
-      Name: apiData.name,
+      examTemplateId: apiData.examTemplateId,
       name: apiData.name,
-      Description: apiData.description,
       description: apiData.description,
-      ExamType: examTypeMap[apiData.type] || `Type ${apiData.type}`,
       examType: examTypeMap[apiData.type] || `Type ${apiData.type}`,
       type: apiData.type,
-      status: apiData.status ?? apiData.Status ?? 0, // Mặc định là 0 (Draft) nếu không có
-      Status: apiData.status ?? apiData.Status ?? 0, // Thêm PascalCase để tương thích
-      IsActive: (apiData.status ?? apiData.Status ?? 0) === 1, // Published = active
-      isActive: (apiData.status ?? apiData.Status ?? 0) === 1,
-      CreatedAt: apiData.createdAt,
+      status: apiData.status ?? 0, // Mặc định là 0 (Draft) nếu không có
       createdAt: apiData.createdAt,
-      UpdatedAt: apiData.createdAt, // API chỉ trả về createdAt
-      updatedAt: apiData.createdAt,
+      updatedAt: apiData.createdAt, // API chỉ trả về createdAt
       totalParts: apiData.totalParts || 0,
       totalQuestions: apiData.totalQuestions || 0,
       Parts: transformParts(apiData.parts), // Đã được transform thành cấu trúc form
@@ -558,7 +549,7 @@ export async function updateExamTemplate(examTemplateId, payload) {
       return { examTemplateId, ...apiPayload }
     }
 
-    // Map lại về format component đang sử dụng
+    // Map lại về format từ API (camelCase) để tránh duplicate
     const examTypeMap = {
       1: 'TOPIK I',
       2: 'TOPIK II',
@@ -566,22 +557,16 @@ export async function updateExamTemplate(examTemplateId, payload) {
     }
 
     return {
-      ExamTemplateId: updatedData.examTemplateId || examTemplateId,
-      id: updatedData.examTemplateId || examTemplateId,
-      Name: updatedData.name,
+      examTemplateId: updatedData.examTemplateId || examTemplateId,
       name: updatedData.name,
-      Description: updatedData.description,
       description: updatedData.description,
-      ExamType: examTypeMap[updatedData.type] || `Type ${updatedData.type}`,
       examType: examTypeMap[updatedData.type] || `Type ${updatedData.type}`,
       type: updatedData.type,
       status: updatedData.status,
-      IsActive: updatedData.status === 1,
-      isActive: updatedData.status === 1,
-      CreatedAt: updatedData.createdAt,
       createdAt: updatedData.createdAt,
-      UpdatedAt: updatedData.createdAt,
       updatedAt: updatedData.createdAt,
+      totalParts: updatedData.totalParts || 0,
+      totalQuestions: updatedData.totalQuestions || 0,
     }
   } catch (error) {
     handleApiError(error, 'Không thể cập nhật mẫu đề')
@@ -818,6 +803,39 @@ export async function uploadTemplatePartImageToCloudinary(file) {
     console.error('Error uploading template part image to Cloudinary:', error)
     handleApiError(error, 'Không thể upload ảnh lên Cloudinary')
     throw error
+  }
+}
+
+// Duplicate Exam Template API
+export async function duplicateExamTemplate(examTemplateId) {
+  try {
+    if (!examTemplateId) {
+      throw { status: 400, message: 'Exam Template ID là bắt buộc' }
+    }
+
+    const res = await apiClient.post(ENDPOINTS.EXAM_TEMPLATES.DUPLICATE(examTemplateId))
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      const message =
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể sao chép mẫu đề'
+      throw new Error(message)
+    }
+
+    // Trả về examTemplateId mới
+    const newExamTemplateId = responseData?.data
+    return {
+      examTemplateId: newExamTemplateId,
+      ExamTemplateId: newExamTemplateId,
+    }
+  } catch (error) {
+    // Nếu error đã có message thì throw luôn
+    if (error.message) {
+      throw error
+    }
+    handleApiError(error, 'Không thể sao chép mẫu đề')
   }
 }
 
