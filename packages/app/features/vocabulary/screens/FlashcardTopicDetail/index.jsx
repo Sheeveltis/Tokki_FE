@@ -18,6 +18,7 @@ import {
   exportTopicToExcel,
 } from '../../api'
 import { HelperAdmin, showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
+import { getCurrentUserRole } from '../../../../provider/api/client'
 import TopicInfoCard from './components/topic-info-card'
 import TopicVocabSection from './components/topic-vocab-section'
 import FlashcardTopicEditModal from './components/flashcard-topic-edit-modal'
@@ -549,6 +550,8 @@ export function FlashcardTopicDetailScreen() {
                 const topicStatus = detailTopic?._raw?.status ?? detailTopic?.status
                 const isDraft = topicStatus === 0
                 const isDeleted = topicStatus === 2
+                const userRole = getCurrentUserRole()
+                const isAdmin = userRole === 'Admin'
 
                 return (
                   <>
@@ -560,7 +563,7 @@ export function FlashcardTopicDetailScreen() {
                       style={{ minWidth: 110, paddingVertical: 10 }}
                       textStyle={{ fontSize: 14 }}
                     />
-                    {isDraft && !isDeleted && (
+                    {isDraft && !isDeleted && isAdmin && (
                       <ButtonV2
                         title={publishing ? 'Đang công khai...' : 'Công khai'}
                         color="sage"
