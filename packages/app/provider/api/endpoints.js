@@ -121,6 +121,7 @@ export const ENDPOINTS = {
       OVERVIEW: '/Statistics/overview', // GET: Thống kê tổng quan doanh thu
       TRANSACTIONS: '/Statistics/transactions', // GET: Lịch sử giao dịch (query: search, status, fromDate, toDate, page, pageSize)
       PACKAGES: '/Statistics/packages', // GET: Doanh thu theo gói thành viên
+      CHART: (year) => `/Statistics/chart?year=${year}`, // GET: Biểu đồ doanh thu theo tháng (query: year)
     },
     FAVORITES: {
       GET_ALL: '/Favorites/favorites',   // GET: Lấy danh sách từ vựng yêu thích (có pagination và search)
