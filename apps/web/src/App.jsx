@@ -845,6 +845,17 @@ function App() {
             <Route path="/users/:userId" element={<ProfileRoute />} />
             {/* Màn chi tiết user cho Staff dùng StaffLayout riêng */}
             <Route path="/staff/users/:id" element={<StaffUserDetailRoute />} />
+            {/* Màn chi tiết vocab topic cho Staff và Moderator */}
+            <Route path="/staff/vocab-topic/:id" element={<AdminVocabTopicDetailRoute />} />
+            <Route path="/moderator/vocab-topic/:id" element={<AdminVocabTopicDetailRoute />} />
+            {/* Màn chi tiết lessons cho Staff */}
+            <Route path="/staff/lessons/:id" element={<AdminLessonDetailRoute />} />
+            {/* Màn chi tiết blog cho Staff và Moderator */}
+            <Route path="/staff/blog/:id" element={<AdminBlogDetailRoute />} />
+            <Route path="/moderator/blog/:id" element={<AdminBlogDetailRoute />} />
+            {/* Màn chi tiết vocab cho Staff và Moderator */}
+            <Route path="/staff/vocab/:id" element={<AdminVocabDetailRoute />} />
+            <Route path="/moderator/vocab/:id" element={<AdminVocabDetailRoute />} />
 
             {/* Admin */}
             <Route path="/admin" element={<AdminRoute />} />
