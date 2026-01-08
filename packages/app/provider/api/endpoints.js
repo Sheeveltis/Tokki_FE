@@ -4,11 +4,11 @@ import { Platform } from 'react-native'
  * Cấu hình API Domain
  * - Web: sử dụng localhost
  * - Mobile: sử dụng IP của máy chủ backend (cần thay đổi theo IP thực tế của máy bạn)
- * 
+ *
  * Để lấy IP của máy:
  * - Windows: mở CMD và chạy `ipconfig`, tìm "IPv4 Address" (thường là 192.168.x.x)
  * - Mac/Linux: mở Terminal và chạy `ifconfig` hoặc `ip addr`, tìm IP của WiFi/Ethernet
- * 
+ *
  * Ví dụ: Nếu IP của máy là 192.168.1.100, thì MOBILE_DOMAIN = 'http://192.168.1.100:5031'
  */
 const WEB_DOMAIN = 'http://localhost:5031'
@@ -31,6 +31,33 @@ export const ENDPOINTS = {
       UPDATE: (id) => `/Blog/${id}`,    
       DELETE: (id) => `/Blog/${id}`,     
       ADMIN_LIST: '/Blog', // same endpoint, nhưng dùng kèm query pageNumber/pageSize
+    },
+    QUESTION_TYPE: {
+      GET_ALL: '/QuestionType',
+      GET_BY_ID: (id) => `/QuestionType/${id}`,
+      CREATE: '/QuestionType',
+      UPDATE: (id) => `/QuestionType/${id}`,
+      DELETE: (id) => `/QuestionType/${id}`,
+    },
+  
+    QUESTION: {
+      GET_ALL: '/Question',
+      GET_BY_ID: (id) => `/Question/${id}`,
+    },
+    QUESTION_BANK: {
+      GET_ALL: '/QuestionBanks',
+      GET_BY_ID: (id) => `/QuestionBanks/${id}`,
+      CREATE: '/QuestionBanks',
+      UPDATE: '/QuestionBanks/update',
+    },
+    QUESTION_BANK_OPTION: {
+      CREATE: (questionBankId) => `/QuestionBanks/${questionBankId}/options`,
+      UPDATE: (questionBankId, optionId) => `/QuestionBanks/${questionBankId}/options/${optionId}`,
+      DELETE: (questionBankId, optionId) => `/QuestionBanks/${questionBankId}/options/${optionId}`,
+    },
+    PASSAGE: {
+      GET_ALL: '/Passages',
+      GET_BY_ID: (id) => `/Passages/${id}`,
     },
     STATISTIC_BLOG: {
       DASHBOARD: '/StatisticBlog/dashboard',
