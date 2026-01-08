@@ -59,7 +59,6 @@ import { UserDetailScreen } from '@tokki/app/features/user/screens/UserDetail'
 import { CreateUserScreen } from '@tokki/app/features/user/screens/CreateUser'
 import { CreateAdminStaffScreen } from '@tokki/app/features/user/screens/CreateAdminStaff'
 import { CreateQuestionScreen } from '@tokki/app/features/admin/screens/CreateQuestion'
-import { CreateQuestionTypeScreen } from '@tokki/app/features/admin/screens/CreateQuestionType'
 import { QuestionBankDetailScreen } from '@tokki/app/features/admin/screens/QuestionBankDetail'
 import { QuestionTypeManagement } from '@tokki/app/features/admin/screens/QuestionType'
 import { QuestionTypeDetailScreen } from '@tokki/app/features/admin/screens/QuestionType/components/QuestionTypeDetail'
@@ -606,10 +605,6 @@ function AdminQuestionDetailRoute() {
   return <QuestionBankDetailScreen />
 }
 
-function AdminQuestionTypeCreateRoute() {
-  return <CreateQuestionTypeScreen />
-}
-
 function AdminQuestionTypeRoute() {
   return <QuestionTypeManagement />
 }
@@ -738,7 +733,6 @@ function App() {
             <Route path="/admin/users/:id" element={<AdminUserDetailRoute />} />
             <Route path="/admin/question-bank/create" element={<AdminQuestionCreateRoute />} />
             <Route path="/admin/question-bank/:id" element={<AdminQuestionDetailRoute />} />
-            <Route path="/admin/question-type/create" element={<AdminQuestionTypeCreateRoute />} />
             <Route path="/admin/question-type/:id" element={<AdminQuestionTypeDetailRoute />} />
             <Route path="/admin/vocab-topic/:id" element={<AdminVocabTopicDetailRoute />} />
             <Route path="/admin/vocab/create" element={<AdminVocabCreateRoute />} />

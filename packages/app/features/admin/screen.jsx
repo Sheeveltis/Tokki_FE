@@ -21,9 +21,9 @@ const LazySystemLog = lazy(() => import('./screens/SystemLog'))
 const LazyAIStatisticsReport = lazy(() => import('./screens/AIStatisticsReport'))
 const LazySettings = lazy(() => import('./screens/Settings'))
 const LazyExamTemplateManagement = lazy(() => import('./screens/ExamTemplateManagement'))
-const LazyQuestionBankManagement = lazy(() => import('./screens/QuestionBankManagement'))
 const LazyExamManagement = lazy(() => import('./screens/ExamManagement'))
 const LazyManualEmail = lazy(() => import('./screens/ManualEmail'))
+const LazyQuestionTypeManagement = lazy(() => import('./screens/QuestionType'))
 
 const LoadingFallback = () => <Spin />
 
@@ -124,7 +124,7 @@ export function AdminScreen() {
       ),
       'question-bank': (
         <Suspense fallback={<LoadingFallback />}>
-          <LazyQuestionBankManagement />
+          <LazyQuestionTypeManagement />
         </Suspense>
       ),
       'exam-management': (
