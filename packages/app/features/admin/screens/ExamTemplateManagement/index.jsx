@@ -2,13 +2,14 @@
 
 import React, { useState, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Input, Space, Select } from 'antd'
-import { EyeOutlined, SearchOutlined } from '@ant-design/icons'
+import { Input, Space, Select, message, Modal } from 'antd'
+import { EyeOutlined, SearchOutlined, CopyOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import ManagementTable from '../../../../../components/ManagementTable'
 import DetailDrawer from '../../../../../components/DetailDrawer'
 import CreateExamTemplateModal from './create/CreateExamTemplateModal'
 import { useExamTemplatesQuery } from '../../api/useAdminQueries'
+import { duplicateExamTemplate } from '../../api'
 
 // Options cho Status filter
 const statusOptions = [
@@ -93,38 +94,93 @@ export function ExamTemplateManagement({ initialData = null }) {
       render: (text, record) => text || record.Description || '-'
     },
     {
-      title: 'Xem',
+      title: 'Thao tác',
       key: 'actions',
       align: 'center',
-      width: 90,
-      render: (_, record) => (
-        <div
-          onClick={(e) => {
-            e?.stopPropagation?.()
-            const id = record.id || record.ExamTemplateId || record.examTemplateId
-            router.push(`/admin/exam-templates/${id}`)
-          }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            padding: '4px 8px',
-            borderRadius: 4,
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#f0f0f0'
-            e.currentTarget.style.transform = 'scale(1.1)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent'
-            e.currentTarget.style.transform = 'scale(1)'
-          }}
-        >
-          <EyeOutlined style={{ fontSize: 18, color: '#111', transition: 'color 0.2s ease' }} />
-        </div>
-      ),
+      width: 120,
+      render: (_, record) => {
+        const id = record.id || record.ExamTemplateId || record.examTemplateId
+        const name = record.name || record.Name || 'mẫu đề này'
+        
+        const handleDuplicate = async (e) => {
+          e?.stopPropagation?.()
+          
+          Modal.confirm({
+            title: 'Xác nhận sao chép',
+            content: `Bạn có chắc chắn muốn sao chép mẫu đề "${name}"?`,
+            okText: 'Sao chép',
+            cancelText: 'Hủy',
+            onOk: async () => {
+              try {
+                const result = await duplicateExamTemplate(id)
+                message.success('Sao chép mẫu đề thành công')
+                // Refetch danh sách
+                refetch()
+                // Navigate đến mẫu đề mới
+                if (result?.examTemplateId || result?.ExamTemplateId) {
+                  router.push(`/admin/exam-templates/${result.examTemplateId || result.ExamTemplateId}`)
+                }
+              } catch (error) {
+                message.error(error?.message || 'Sao chép thất bại')
+              }
+            },
+          })
+        }
+
+        return (
+          <Space size="middle" style={{ justifyContent: 'center' }}>
+            <div
+              onClick={(e) => {
+                e?.stopPropagation?.()
+                router.push(`/admin/exam-templates/${id}`)
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                padding: '4px 8px',
+                borderRadius: 4,
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f0f0f0'
+                e.currentTarget.style.transform = 'scale(1.1)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+              title="Xem chi tiết"
+            >
+              <EyeOutlined style={{ fontSize: 18, color: '#111', transition: 'color 0.2s ease' }} />
+            </div>
+            <div
+              onClick={handleDuplicate}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                padding: '4px 8px',
+                borderRadius: 4,
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f0f0f0'
+                e.currentTarget.style.transform = 'scale(1.1)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+              title="Sao chép mẫu đề"
+            >
+              <CopyOutlined style={{ fontSize: 18, color: '#1890ff', transition: 'color 0.2s ease' }} />
+            </div>
+          </Space>
+        )
+      },
     },
   ]
 
