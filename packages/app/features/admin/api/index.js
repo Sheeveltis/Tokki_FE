@@ -352,20 +352,167 @@ export async function fetchAIStatistics() {
 }
 
 // Exam Template Management APIs
-// TODO: Thay thế bằng API calls thực tế khi backend sẵn sàng
+import { apiClient } from '../../../provider/api/client'
+import { ENDPOINTS } from '../../../provider/api/endpoints'
+
+export async function fetchExamTemplates(params = {}) {
+  try {
+    const {
+      pageNumber = 1,
+      pageSize = 10,
+      searchTerm = '',
+      status = 1, // Mặc định là Published (1)
+      type = null, // null = lấy tất cả
+    } = params
+
+    const queryParams = {
+      PageNumber: pageNumber,
+      PageSize: pageSize,
+    }
+
+    if (searchTerm) {
+      queryParams.SearchTerm = searchTerm
+    }
+
+    if (status !== null && status !== undefined) {
+      queryParams.Status = status
+    }
+
+    if (type !== null && type !== undefined) {
+      queryParams.Type = type
+    }
+
+    const res = await apiClient.get(ENDPOINTS.EXAM_TEMPLATES.ADMIN_LIST, {
+      params: queryParams,
+    })
+
+    const payload = res?.data
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể tải danh sách mẫu đề'
+      throw new Error(message)
+    }
+
+    const pagingData = payload?.data
+    const items = Array.isArray(pagingData?.items) ? pagingData.items : []
+
+    // Map data từ API response về format component đang sử dụng
+    const mappedItems = items.map((item) => ({
+      ExamTemplateId: item.examTemplateId,
+      id: item.examTemplateId,
+      name: item.name,
+      Name: item.name,
+      description: item.description,
+      Description: item.description,
+      examType: item.type === 1 ? 'TOPIK I' : item.type === 2 ? 'TOPIK II' : item.type === 3 ? 'Test đầu vào' : '',
+      ExamType: item.type === 1 ? 'TOPIK I' : item.type === 2 ? 'TOPIK II' : item.type === 3 ? 'Test đầu vào' : '',
+      status: item.status,
+      type: item.type,
+      totalParts: item.totalParts || 0,
+      totalQuestions: item.totalQuestions || 0,
+      createdAt: item.createdAt,
+      updatedAt: item.createdAt, // API chỉ trả về createdAt
+      isActive: item.status === 1, // Published = active
+    }))
+
+    return {
+      items: mappedItems,
+      pageNumber: pagingData?.pageNumber || pageNumber,
+      pageSize: pagingData?.pageSize || pageSize,
+      totalCount: pagingData?.totalCount || 0,
+      totalPages: pagingData?.totalPages || 1,
+      hasNextPage: pagingData?.hasNextPage || false,
+      hasPreviousPage: pagingData?.hasPreviousPage || false,
+    }
+  } catch (error) {
+    handleApiError(error, 'Không thể tải danh sách mẫu đề')
+  }
+}
+
 export async function fetchExamTemplate(examTemplateId) {
   try {
-    await delay()
     if (!examTemplateId) throw { status: 400 }
-    // Mock data - sẽ thay bằng API call thực tế
+
+    const res = await apiClient.get(ENDPOINTS.EXAM_TEMPLATES.GET_BY_ID(examTemplateId))
+
+    const payload = res?.data
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể tải thông tin mẫu đề'
+      throw new Error(message)
+    }
+
+    const apiData = payload?.data
+    if (!apiData) {
+      throw new Error('Không tìm thấy dữ liệu mẫu đề')
+    }
+
+    // Map type number sang string
+    const examTypeMap = {
+      1: 'TOPIK I',
+      2: 'TOPIK II',
+      3: 'Test đầu vào',
+    }
+
+    // Map parts từ API format sang format component đang sử dụng
+    const transformParts = (parts) => {
+      if (!parts || !Array.isArray(parts)) return []
+      
+      // Group parts theo skill
+      const groupedBySkill = {}
+      parts.forEach((part) => {
+        const skill = part.skill
+        if (!groupedBySkill[skill]) {
+          groupedBySkill[skill] = []
+        }
+        // Map từ API format sang component format
+        groupedBySkill[skill].push({
+          Skill: part.skill,
+          QuestionFrom: part.questionFrom,
+          QuestionTo: part.questionTo,
+          PartTitle: part.partTitle,
+          Instruction: part.instruction,
+          Mark: part.mark,
+          ExampleUrl: part.exampleUrl,
+          QuestionTypeId: part.questionTypeId || '',
+          TemplatePartId: part.templatePartId, // Giữ lại để có thể update/delete
+        })
+      })
+      
+      // Convert thành mảng parts với QuestionGroups
+      return Object.keys(groupedBySkill).map((skill) => ({
+        Skill: parseInt(skill),
+        QuestionGroups: groupedBySkill[skill],
+      }))
+    }
+
+    // Map dữ liệu từ API response về format component đang sử dụng
     return {
-      ExamTemplateId: examTemplateId,
-      Name: 'Mẫu Đề TOPIK I',
-      Description: 'Đề gồm 30 câu nghe, 40 câu đọc và 3 câu viết',
-      ExamType: 'TOPIK I',
-      CreatedAt: new Date().toISOString(),
-      UpdatedAt: new Date().toISOString(),
-      IsActive: true,
+      ExamTemplateId: apiData.examTemplateId,
+      id: apiData.examTemplateId,
+      Name: apiData.name,
+      name: apiData.name,
+      Description: apiData.description,
+      description: apiData.description,
+      ExamType: examTypeMap[apiData.type] || `Type ${apiData.type}`,
+      examType: examTypeMap[apiData.type] || `Type ${apiData.type}`,
+      type: apiData.type,
+      status: apiData.status ?? apiData.Status ?? 0, // Mặc định là 0 (Draft) nếu không có
+      Status: apiData.status ?? apiData.Status ?? 0, // Thêm PascalCase để tương thích
+      IsActive: (apiData.status ?? apiData.Status ?? 0) === 1, // Published = active
+      isActive: (apiData.status ?? apiData.Status ?? 0) === 1,
+      CreatedAt: apiData.createdAt,
+      createdAt: apiData.createdAt,
+      UpdatedAt: apiData.createdAt, // API chỉ trả về createdAt
+      updatedAt: apiData.createdAt,
+      totalParts: apiData.totalParts || 0,
+      totalQuestions: apiData.totalQuestions || 0,
+      Parts: transformParts(apiData.parts), // Đã được transform thành cấu trúc form
+      parts: apiData.parts, // Giữ nguyên để có thể sử dụng nếu cần
     }
   } catch (error) {
     handleApiError(error, 'Không thể tải thông tin mẫu đề')
@@ -374,13 +521,67 @@ export async function fetchExamTemplate(examTemplateId) {
 
 export async function updateExamTemplate(examTemplateId, payload) {
   try {
-    await delay()
     if (!examTemplateId || !payload) throw { status: 400 }
-    // Mock: return merged data
+
+    // Map ExamType string sang type number
+    const examTypeToNumber = {
+      'TOPIK I': 1,
+      'TOPIK II': 2,
+      'Test đầu vào': 3,
+    }
+
+    // Format payload từ component format sang API format
+    const apiPayload = {
+      name: payload.Name || payload.name,
+      description: payload.Description || payload.description || '',
+      type: examTypeToNumber[payload.ExamType || payload.examType] || payload.type,
+    }
+
+    // Đảm bảo các field bắt buộc có giá trị
+    if (!apiPayload.name) {
+      throw { status: 400, message: 'Tên mẫu đề là bắt buộc' }
+    }
+
+    const res = await apiClient.put(ENDPOINTS.EXAM_TEMPLATES.UPDATE(examTemplateId), apiPayload)
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      const message =
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể cập nhật mẫu đề'
+      throw new Error(message)
+    }
+
+    const updatedData = responseData?.data
+    if (!updatedData) {
+      return { examTemplateId, ...apiPayload }
+    }
+
+    // Map lại về format component đang sử dụng
+    const examTypeMap = {
+      1: 'TOPIK I',
+      2: 'TOPIK II',
+      3: 'Test đầu vào',
+    }
+
     return {
-      ExamTemplateId: examTemplateId,
-      ...payload,
-      UpdatedAt: new Date().toISOString(),
+      ExamTemplateId: updatedData.examTemplateId || examTemplateId,
+      id: updatedData.examTemplateId || examTemplateId,
+      Name: updatedData.name,
+      name: updatedData.name,
+      Description: updatedData.description,
+      description: updatedData.description,
+      ExamType: examTypeMap[updatedData.type] || `Type ${updatedData.type}`,
+      examType: examTypeMap[updatedData.type] || `Type ${updatedData.type}`,
+      type: updatedData.type,
+      status: updatedData.status,
+      IsActive: updatedData.status === 1,
+      isActive: updatedData.status === 1,
+      CreatedAt: updatedData.createdAt,
+      createdAt: updatedData.createdAt,
+      UpdatedAt: updatedData.createdAt,
+      updatedAt: updatedData.createdAt,
     }
   } catch (error) {
     handleApiError(error, 'Không thể cập nhật mẫu đề')
@@ -389,12 +590,234 @@ export async function updateExamTemplate(examTemplateId, payload) {
 
 export async function deleteExamTemplate(examTemplateId) {
   try {
-    await delay()
     if (!examTemplateId) throw { status: 400 }
-    // Mock: return deleted ID
+
+    const res = await apiClient.delete(ENDPOINTS.EXAM_TEMPLATES.DELETE(examTemplateId))
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      const message =
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể xóa mẫu đề'
+      throw new Error(message)
+    }
+
     return { ExamTemplateId: examTemplateId }
   } catch (error) {
     handleApiError(error, 'Không thể xóa mẫu đề')
+  }
+}
+
+// Question Type APIs
+export async function fetchQuestionTypes(params = {}) {
+  try {
+    const { skill = null, examType = null } = params
+
+    const queryParams = {}
+    if (skill !== null && skill !== undefined) {
+      queryParams.skill = skill
+    }
+    if (examType !== null && examType !== undefined) {
+      queryParams.examType = examType
+    }
+
+    const res = await apiClient.get(ENDPOINTS.QUESTION_TYPE.GET_ALL, {
+      params: queryParams,
+    })
+
+    const payload = res?.data
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể tải danh sách dạng câu hỏi'
+      throw new Error(message)
+    }
+
+    const items = Array.isArray(payload?.data) ? payload.data : []
+
+    // Map dữ liệu từ API response về format component đang sử dụng
+    return items.map((item) => ({
+      QuestionTypeId: item.questionTypeId,
+      questionTypeId: item.questionTypeId,
+      Code: item.code,
+      code: item.code,
+      Name: item.name,
+      name: item.name,
+      Description: item.description,
+      description: item.description,
+      Skill: item.skill,
+      skill: item.skill,
+      Difficulty: item.difficulty,
+      difficulty: item.difficulty,
+      ExamType: item.examType,
+      examType: item.examType,
+      IsActive: item.isActive,
+      isActive: item.isActive,
+    }))
+  } catch (error) {
+    handleApiError(error, 'Không thể tải danh sách dạng câu hỏi')
+  }
+}
+
+// Create Exam Template API
+export async function createExamTemplate(payload) {
+  try {
+    if (!payload || !payload.name) {
+      throw { status: 400, message: 'Tên mẫu đề là bắt buộc' }
+    }
+
+    // Map ExamType string sang number
+    const examTypeToNumber = {
+      'TOPIK I': 1,
+      'TOPIK II': 2,
+      'Test đầu vào': 3,
+    }
+
+    // Format payload từ component format sang API format
+    const apiPayload = {
+      name: payload.name,
+      description: payload.description || '',
+      type: examTypeToNumber[payload.examType] || payload.type,
+    }
+
+    // Đảm bảo type có giá trị
+    if (!apiPayload.type) {
+      throw { status: 400, message: 'Loại đề là bắt buộc' }
+    }
+
+    const res = await apiClient.post(ENDPOINTS.EXAM_TEMPLATES.CREATE, apiPayload)
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      // Xử lý error từ API
+      const errorMessage = 
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể tạo mẫu đề'
+      
+      // Tạo error object với message
+      const error = new Error(errorMessage)
+      error.status = responseData?.statusCode || 400
+      error.errors = responseData?.errors || []
+      throw error
+    }
+
+    // API trả về examTemplateId trong data
+    const examTemplateId = responseData?.data
+
+    return {
+      examTemplateId: examTemplateId,
+      ExamTemplateId: examTemplateId,
+    }
+  } catch (error) {
+    // Nếu error đã có message thì throw luôn
+    if (error.message) {
+      throw error
+    }
+    handleApiError(error, 'Không thể tạo mẫu đề')
+  }
+}
+
+// Add Exam Template Parts API (chỉ add parts mới, không update parts cũ)
+export async function updateExamTemplateParts(examTemplateId, parts) {
+  try {
+    if (!examTemplateId) {
+      throw { status: 400, message: 'Exam Template ID là bắt buộc' }
+    }
+
+    if (!Array.isArray(parts)) {
+      throw { status: 400, message: 'Parts phải là một mảng' }
+    }
+
+    // Format payload từ component format sang API format
+    // Chỉ gửi các parts mới (không có TemplatePartId)
+    const apiParts = parts.map((part) => ({
+      skill: part.Skill || part.skill,
+      questionFrom: part.QuestionFrom || part.questionFrom,
+      questionTo: part.QuestionTo || part.questionTo,
+      partTitle: part.PartTitle || part.partTitle || '',
+      instruction: part.Instruction || part.instruction || '',
+      mark: part.Mark || part.mark || 0,
+      questionTypeId: part.QuestionTypeId || part.questionTypeId || '',
+      exampleUrl: part.ExampleUrl || part.exampleUrl || null,
+    }))
+
+    // Validate required fields
+    for (const part of apiParts) {
+      if (part.skill === undefined || part.skill === null) {
+        throw { status: 400, message: 'Skill là bắt buộc cho mỗi part' }
+      }
+      if (part.questionFrom === undefined || part.questionFrom === null) {
+        throw { status: 400, message: 'QuestionFrom là bắt buộc cho mỗi part' }
+      }
+      if (part.questionTo === undefined || part.questionTo === null) {
+        throw { status: 400, message: 'QuestionTo là bắt buộc cho mỗi part' }
+      }
+      if (!part.questionTypeId) {
+        throw { status: 400, message: 'QuestionTypeId là bắt buộc cho mỗi part' }
+      }
+    }
+
+    const apiPayload = {
+      examTemplateId: examTemplateId,
+      parts: apiParts,
+    }
+
+    const res = await apiClient.post(ENDPOINTS.EXAM_TEMPLATES.TEMPLATE_PARTS, apiPayload)
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      const message =
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể thêm các phần của đề thi'
+      throw new Error(message)
+    }
+
+    return responseData?.data || true
+  } catch (error) {
+    // Nếu error đã có message thì throw luôn
+    if (error.message) {
+      throw error
+    }
+    handleApiError(error, 'Không thể thêm các phần của đề thi')
+  }
+}
+
+// Upload Template Part Image to Cloudinary
+export async function uploadTemplatePartImageToCloudinary(file) {
+  try {
+    if (!file) {
+      throw new Error('File ảnh là bắt buộc')
+    }
+
+    // Tạo FormData để gửi file
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const res = await apiClient.post(ENDPOINTS.CLOUDINARY.UPLOAD_TEMPLATE_PART_IMAGE, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+
+    const payload = res?.data
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể upload ảnh'
+      throw new Error(message)
+    }
+
+    // Trả về URL của ảnh
+    return payload?.data || null
+  } catch (error) {
+    console.error('Error uploading template part image to Cloudinary:', error)
+    handleApiError(error, 'Không thể upload ảnh lên Cloudinary')
+    throw error
   }
 }
 

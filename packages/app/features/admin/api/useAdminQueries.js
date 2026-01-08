@@ -8,6 +8,7 @@ import {
   fetchFeedbacks,
   fetchPackages,
   fetchAIStatistics,
+  fetchExamTemplates,
 } from './index'
 
 // Common options for admin data (reduce refetch noise, cache for 5 minutes)
@@ -88,4 +89,16 @@ export const useAIStatisticsQuery = (initialData = null) =>
     enabled: !initialData,
     ...commonOptions,
   })
+
+export const useExamTemplatesQuery = (params = {}, initialData = null) => {
+  const { pageNumber = 1, pageSize = 10, searchTerm = '', status = 1, type = null } = params
+  
+  return useQuery({
+    queryKey: ['admin', 'exam-templates', pageNumber, pageSize, searchTerm, status, type],
+    queryFn: () => fetchExamTemplates({ pageNumber, pageSize, searchTerm, status, type }),
+    initialData: initialData || undefined,
+    enabled: !initialData,
+    ...commonOptions,
+  })
+}
 

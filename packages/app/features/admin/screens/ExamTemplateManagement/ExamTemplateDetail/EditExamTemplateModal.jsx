@@ -49,7 +49,6 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
 
       // TODO: Thay bằng API call thực tế
       // await updateExamTemplate(examTemplate.ExamTemplateId, payload)
-      console.log('Update payload:', payload)
       
       message.success('Đã cập nhật mẫu đề thành công')
       

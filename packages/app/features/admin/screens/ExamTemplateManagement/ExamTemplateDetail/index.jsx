@@ -7,41 +7,20 @@ import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
 import { AdminLayout } from '../../../components/admin-layout.web'
 import ExamTemplatePartsForm from './ExamTemplatePartsForm'
 import EditExamTemplateModal from './EditExamTemplateModal'
-import sampleData from './DB_SAMPLE.json'
-// TODO: Thay thế bằng API thực tế khi có
-// import { fetchExamTemplate, updateExamTemplate, deleteExamTemplate } from '../../api'
+import { fetchExamTemplate, updateExamTemplate, deleteExamTemplate } from '../../../api'
 
 const { Title, Text } = Typography
 
-// Transform TemplateParts từ API thành cấu trúc form (group theo Skill)
-const transformTemplatePartsToFormParts = (templateParts) => {
-  if (!templateParts || !Array.isArray(templateParts)) return []
-  
-  // Group TemplateParts theo Skill
-  const groupedBySkill = {}
-  templateParts.forEach((part) => {
-    const skill = part.Skill
-    if (!groupedBySkill[skill]) {
-      groupedBySkill[skill] = []
-    }
-    // Chuyển TemplatePart thành QuestionGroup (bỏ ExamTemplateId, TemplatePartId)
-    groupedBySkill[skill].push({
-      Skill: part.Skill,
-      QuestionFrom: part.QuestionFrom,
-      QuestionTo: part.QuestionTo,
-      PartTitle: part.PartTitle,
-      Instruction: part.Instruction,
-      Mark: part.Mark,
-      ExampleUrl: part.ExampleUrl,
-      QuestionTypeId: part.QuestionTypeId,
-    })
-  })
-  
-  // Convert thành mảng parts với QuestionGroups
-  return Object.keys(groupedBySkill).map((skill) => ({
-    Skill: skill,
-    QuestionGroups: groupedBySkill[skill],
-  }))
+// Mapping trạng thái theo enum ExamTemplateStatus
+const statusMap = {
+  0: { label: 'Nháp', color: 'default' },
+  1: { label: 'Đã xuất bản', color: 'green' },
+  2: { label: 'Đã xóa', color: 'red' },
+}
+
+// Helper function để lấy thông tin trạng thái
+const getStatusInfo = (status) => {
+  return statusMap[status] || { label: `Trạng thái ${status}`, color: 'default' }
 }
 
 export function ExamTemplateDetailScreen() {
@@ -54,14 +33,6 @@ export function ExamTemplateDetailScreen() {
   const [examTemplate, setExamTemplate] = useState(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  
-  // Debug log
-  useEffect(() => {
-    console.log('ExamTemplateDetailScreen mounted')
-    console.log('examTemplateId:', examTemplateId)
-    console.log('params:', params)
-    console.log('params.id:', params?.id)
-  }, [examTemplateId, params])
 
   useEffect(() => {
     let mounted = true
@@ -69,28 +40,9 @@ export function ExamTemplateDetailScreen() {
       try {
         setLoading(true)
         setError('')
-        // TODO: Thay bằng API call thực tế
-        // const data = await fetchExamTemplate(examTemplateId)
-        // Mock data từ DB_SAMPLE.json - simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 300))
+        // Gọi API để lấy thông tin exam template
+        const data = await fetchExamTemplate(examTemplateId)
         
-        // Sử dụng dữ liệu mẫu từ DB_SAMPLE.json
-        const sampleExamTemplate = sampleData.ExamTemplate
-        const sampleTemplateParts = sampleData.TemplateParts
-        
-        // Transform TemplateParts thành cấu trúc form (group theo Skill)
-        const transformedParts = transformTemplatePartsToFormParts(sampleTemplateParts)
-        
-        const data = {
-          ExamTemplateId: sampleExamTemplate.ExamTemplateId,
-          Name: sampleExamTemplate.Name,
-          Description: sampleExamTemplate.Description,
-          ExamType: sampleExamTemplate.ExamType,
-          CreatedAt: sampleExamTemplate.CreatedAt,
-          UpdatedAt: sampleExamTemplate.UpdatedAt,
-          IsActive: sampleExamTemplate.IsActive,
-          Parts: transformedParts, // Đã được transform thành cấu trúc form
-        }
         if (mounted) {
           setExamTemplate(data)
         }
@@ -125,9 +77,8 @@ export function ExamTemplateDetailScreen() {
 
   const handleEditSuccess = async (updatedData) => {
     try {
-      // TODO: Thay bằng API call thực tế
-      // await updateExamTemplate(examTemplateId, updatedData)
-      console.log('Update payload:', updatedData)
+      // Gọi API để cập nhật exam template
+      await updateExamTemplate(examTemplateId, updatedData)
       
       // Cập nhật state với dữ liệu mới
       setExamTemplate((prev) => ({
@@ -153,9 +104,8 @@ export function ExamTemplateDetailScreen() {
       onOk: async () => {
         try {
           setDeleting(true)
-          // TODO: Thay bằng API call thực tế
-          // await deleteExamTemplate(examTemplateId)
-          console.log('Delete exam template:', examTemplateId)
+          // Gọi API để xóa exam template
+          await deleteExamTemplate(examTemplateId)
           
           message.success('Đã xóa mẫu đề thành công')
           // Quay lại trang danh sách
@@ -259,14 +209,14 @@ export function ExamTemplateDetailScreen() {
                 {examTemplate.Name || '-'}
               </Descriptions.Item>
               <Descriptions.Item label="Loại đề">
-                <Tag color="blue">{examTemplate.ExamType || '-'}</Tag>
+                {examTemplate.ExamType || '-'}
               </Descriptions.Item>
               <Descriptions.Item label="Mô tả">
                 {examTemplate.Description || '-'}
               </Descriptions.Item>
               <Descriptions.Item label="Trạng thái">
-                <Tag color={examTemplate.IsActive ? 'green' : 'default'}>
-                  {examTemplate.IsActive ? 'Đang hoạt động' : 'Không hoạt động'}
+                <Tag color={getStatusInfo(examTemplate.status ?? examTemplate.Status ?? 0).color}>
+                  {getStatusInfo(examTemplate.status ?? examTemplate.Status ?? 0).label}
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Ngày tạo">
@@ -280,7 +230,23 @@ export function ExamTemplateDetailScreen() {
 
           {/* Quản lý các phần */}
           <Card>
-            <ExamTemplatePartsForm examTemplateId={examTemplateId} initialParts={examTemplate.Parts || []} />
+            <ExamTemplatePartsForm 
+              examTemplateId={examTemplateId} 
+              initialParts={examTemplate.Parts || []}
+              examTemplate={examTemplate}
+              onPartsAdded={async () => {
+                // Reload lại dữ liệu exam template sau khi add parts thành công
+                try {
+                  setLoading(true)
+                  const data = await fetchExamTemplate(examTemplateId)
+                  setExamTemplate(data)
+                } catch (err) {
+                  message.error(err?.message || 'Không thể tải lại thông tin mẫu đề')
+                } finally {
+                  setLoading(false)
+                }
+              }}
+            />
           </Card>
         </Space>
 
