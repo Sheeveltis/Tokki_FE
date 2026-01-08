@@ -6,6 +6,8 @@ import { Card, Space, Typography, Descriptions, Spin, Alert, Tag } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { statusArticle } from '../../../../string.js'
 import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
+import { StaffLayout } from 'app/features/staff/components/staff-layout.web'
+import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
 import {
   fetchUsers,
   fetchLessons,
@@ -41,6 +43,17 @@ export function BlogDetailScreen() {
       : tabParam === 'vocab-topics'
         ? 'vocabulary-topics'
         : tabParam || 'blog'
+
+  // Xác định cổng hiện tại dựa vào URL
+  const getCurrentPortal = () => {
+    if (typeof window === 'undefined') return 'admin'
+    const pathname = window.location.pathname
+    if (pathname === '/staff' || pathname.startsWith('/staff/')) return 'staff'
+    if (pathname === '/moderator' || pathname.startsWith('/moderator/')) return 'moderator'
+    return 'admin'
+  }
+  
+  const currentPortal = getCurrentPortal()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -95,7 +108,12 @@ export function BlogDetailScreen() {
   }, [blog])
 
   const handleNavigate = (key) => {
-    if (key) {
+    if (!key) return
+    if (currentPortal === 'staff') {
+      router.push(`/staff?tab=${key}`)
+    } else if (currentPortal === 'moderator') {
+      router.push(`/moderator?tab=${key}`)
+    } else {
       router.push(`/admin?tab=${key}`)
     }
   }
@@ -115,9 +133,17 @@ export function BlogDetailScreen() {
         <div style={{ padding: 24 }}>
           <Alert type="error" message="Lỗi" description={error} />
           <ButtonV2
-            title="Quay lại Admin"
+            title="Quay lại"
             style={{ marginTop: 10, minWidth: 120 }}
-            onPress={() => router.push('/admin')}
+            onPress={() => {
+              if (currentPortal === 'staff') {
+                router.push('/staff?tab=blog')
+              } else if (currentPortal === 'moderator') {
+                router.push('/moderator?tab=approve-blog')
+              } else {
+                router.push('/admin?tab=blog')
+              }
+            }}
           />
         </div>
       )
@@ -130,7 +156,15 @@ export function BlogDetailScreen() {
           <ButtonV2
             title="Quay lại danh sách"
             style={{ marginTop: 12, minWidth: 140 }}
-            onPress={() => router.push('/admin?tab=blog')}
+            onPress={() => {
+              if (currentPortal === 'staff') {
+                router.push('/staff?tab=blog')
+              } else if (currentPortal === 'moderator') {
+                router.push('/moderator?tab=approve-blog')
+              } else {
+                router.push('/admin?tab=blog')
+              }
+            }}
           />
         </div>
       )
@@ -150,7 +184,15 @@ export function BlogDetailScreen() {
               <ButtonV2
                 title="Quay lại"
                 color="mint"
-                onPress={() => router.push('/admin?tab=blog')}
+                onPress={() => {
+                  if (currentPortal === 'staff') {
+                    router.push('/staff?tab=blog')
+                  } else if (currentPortal === 'moderator') {
+                    router.push('/moderator?tab=approve-blog')
+                  } else {
+                    router.push('/admin?tab=blog')
+                  }
+                }}
                 style={{ minWidth: 100, paddingVertical: 10 }}
                 textStyle={{ fontSize: 14 }}
               />
@@ -188,6 +230,29 @@ export function BlogDetailScreen() {
     'revenue-report': <RevenueReport />,
     'system-log': <SystemLog initialData={initialData.logs} />,
     settings: <Settings />,
+  }
+
+  // Chọn layout dựa vào cổng hiện tại
+  if (currentPortal === 'staff') {
+    return (
+      <StaffLayout
+        screens={screens}
+        defaultKey={defaultTab}
+        onNavigate={handleNavigate}
+        onLogout={() => router.push('/login')}
+      />
+    )
+  }
+
+  if (currentPortal === 'moderator') {
+    return (
+      <ModeratorLayout
+        screens={screens}
+        defaultKey={defaultTab}
+        onNavigate={handleNavigate}
+        onLogout={() => router.push('/login')}
+      />
+    )
   }
 
   return (
