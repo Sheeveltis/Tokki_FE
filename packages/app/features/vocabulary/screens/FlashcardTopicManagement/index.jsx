@@ -23,6 +23,19 @@ const STATUS_OPTIONS = [
 
 export function FlashcardTopicManagement({ initialData = null }) {
   const router = useRouter()
+  
+  // Xác định cổng hiện tại dựa vào URL - đọc trực tiếp mỗi lần render để đảm bảo luôn lấy giá trị mới nhất
+  const getCurrentPortal = () => {
+    if (typeof window === 'undefined') return 'admin'
+    const pathname = window.location.pathname
+    // Kiểm tra exact match hoặc startsWith để cover cả /staff và /staff/...
+    if (pathname === '/staff' || pathname.startsWith('/staff/')) return 'staff'
+    if (pathname === '/moderator' || pathname.startsWith('/moderator/')) return 'moderator'
+    return 'admin'
+  }
+  
+  const currentPortal = getCurrentPortal()
+  
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(!initialData)
   const [drawerItem, setDrawerItem] = useState(null)
@@ -135,7 +148,12 @@ export function FlashcardTopicManagement({ initialData = null }) {
     }
   }
 
-  const columns = [
+  // Tính toán portalPrefix một lần dựa trên currentPortal
+  const portalPrefix = useMemo(() => {
+    return currentPortal === 'staff' ? '/staff' : currentPortal === 'moderator' ? '/moderator' : '/admin'
+  }, [currentPortal])
+
+  const columns = useMemo(() => [
     { title: 'Mã', dataIndex: 'id', key: 'id', width: 200 },
     { title: 'Tiêu đề', dataIndex: 'title', key: 'title' },
     { title: 'Mô tả', dataIndex: 'subtitle', key: 'subtitle' },
@@ -163,12 +181,13 @@ export function FlashcardTopicManagement({ initialData = null }) {
       key: 'actions',
       align: 'center',
       width: 140,
-      render: (_, record) => (
+      render: (_, record) => {
+        return (
         <Space size="middle">
           <div
             onClick={(e) => {
               e?.stopPropagation?.()
-              router.push(`/admin/vocab-topic/${record.id}`)
+              router.push(`${portalPrefix}/vocab-topic/${record.id}`)
             }}
             style={{
               display: 'flex',
@@ -218,9 +237,10 @@ export function FlashcardTopicManagement({ initialData = null }) {
             <GlobalOutlined style={{ fontSize: 18, color: '#1890ff', transition: 'color 0.2s ease' }} />
           </div>
         </Space>
-      ),
+        )
+      },
     },
-  ]
+  ], [portalPrefix, router])
 
   return (
     <>

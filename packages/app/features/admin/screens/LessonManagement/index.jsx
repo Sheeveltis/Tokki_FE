@@ -15,6 +15,22 @@ export function LessonManagement({ initialData = null }) {
   const [drawerItem, setDrawerItem] = useState(null)
   const [search, setSearch] = useState('')
 
+  // Xác định cổng hiện tại dựa vào URL
+  const getCurrentPortal = () => {
+    if (typeof window === 'undefined') return 'admin'
+    const pathname = window.location.pathname
+    if (pathname === '/staff' || pathname.startsWith('/staff/')) return 'staff'
+    if (pathname === '/moderator' || pathname.startsWith('/moderator/')) return 'moderator'
+    return 'admin'
+  }
+  
+  const currentPortal = getCurrentPortal()
+  
+  // Tính toán portalPrefix một lần dựa trên currentPortal
+  const portalPrefix = useMemo(() => {
+    return currentPortal === 'staff' ? '/staff' : currentPortal === 'moderator' ? '/moderator' : '/admin'
+  }, [currentPortal])
+
   const filteredData = useMemo(() => {
     const q = search.trim().toLowerCase()
     if (!q) return data
@@ -26,7 +42,7 @@ export function LessonManagement({ initialData = null }) {
     )
   }, [data, search])
 
-  const columns = [
+  const columns = useMemo(() => [
     { title: 'Tiêu đề', dataIndex: 'title', key: 'title' },
     { title: 'Tác giả', dataIndex: 'author', key: 'author' },
     { title: 'Cập nhật', dataIndex: 'updatedAt', key: 'updatedAt' },
@@ -39,7 +55,7 @@ export function LessonManagement({ initialData = null }) {
         <div
           onClick={(e) => {
             e?.stopPropagation?.()
-            router.push(`/admin/lessons/${record.id}`)
+            router.push(`${portalPrefix}/lessons/${record.id}`)
           }}
           style={{
             display: 'flex',
@@ -63,7 +79,7 @@ export function LessonManagement({ initialData = null }) {
         </div>
       ),
     },
-  ]
+  ], [portalPrefix, router])
 
   return (
     <>
@@ -79,7 +95,7 @@ export function LessonManagement({ initialData = null }) {
         <ButtonV2
           title="Thêm"
           color="#F1BE4B"
-          onPress={() => router.push('/admin/lessons/create')}
+          onPress={() => router.push(`${portalPrefix}/lessons/create`)}
           style={{ minWidth: 80, paddingVertical: 10 }}
           textStyle={{ fontSize: 14 }}
         />
