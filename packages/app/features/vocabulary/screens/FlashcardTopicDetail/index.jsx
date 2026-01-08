@@ -5,6 +5,8 @@ import { useParams, useRouter, useSearchParams } from 'solito/navigation'
 import { Card, Space, Typography, Spin, Alert, Modal } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
+import { StaffLayout } from 'app/features/staff/components/staff-layout.web'
+import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
 import {
   fetchFlashcardTopicDetail,
   searchVocabulariesForTopic,
@@ -34,6 +36,18 @@ export function FlashcardTopicDetailScreen() {
   const topicId = params?.id
   const tabParam = searchParams?.get('tab')
   const defaultTab = tabParam || 'vocabulary-topics'
+
+  // Xác định cổng hiện tại dựa vào URL - đọc trực tiếp mỗi lần render để đảm bảo luôn lấy giá trị mới nhất
+  const getCurrentPortal = () => {
+    if (typeof window === 'undefined') return 'admin'
+    const pathname = window.location.pathname
+    // Kiểm tra exact match hoặc startsWith để cover cả /staff và /staff/...
+    if (pathname === '/staff' || pathname.startsWith('/staff/')) return 'staff'
+    if (pathname === '/moderator' || pathname.startsWith('/moderator/')) return 'moderator'
+    return 'admin'
+  }
+  
+  const currentPortal = getCurrentPortal()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -225,7 +239,14 @@ export function FlashcardTopicDetailScreen() {
   }, [])
 
   const handleNavigate = (key) => {
-    if (key) router.push(`/admin?tab=${key}`)
+    if (!key) return
+    if (currentPortal === 'staff') {
+      router.push(`/staff?tab=${key}`)
+    } else if (currentPortal === 'moderator') {
+      router.push(`/moderator?tab=${key}`)
+    } else {
+      router.push(`/admin?tab=${key}`)
+    }
   }
 
   const handleDelete = () => {
@@ -246,7 +267,13 @@ export function FlashcardTopicDetailScreen() {
           setDeleteLoading(true)
           await deleteTopic(topicId)
           showAdminSuccess('Đã xóa chủ đề thành công')
-          router.push('/admin?tab=vocabulary-topics')
+          if (currentPortal === 'staff') {
+            router.push('/staff?tab=vocabulary-topics')
+          } else if (currentPortal === 'moderator') {
+            router.push('/moderator?tab=vocabulary-topics')
+          } else {
+            router.push('/admin?tab=vocabulary-topics')
+          }
         } catch (err) {
           // err có thể là response object từ API hoặc error object
           if (err?.isSuccess === false || err?.errors) {
@@ -517,7 +544,19 @@ export function FlashcardTopicDetailScreen() {
       return (
         <div style={{ padding: 24 }}>
           <Alert type="error" message="Lỗi" description={error} />
-          <ButtonV2 title="Quay lại Admin" style={{ marginTop: 10, minWidth: 120 }} onPress={() => router.push('/admin')} />
+          <ButtonV2
+            title="Quay lại"
+            style={{ marginTop: 10, minWidth: 120 }}
+            onPress={() => {
+              if (currentPortal === 'staff') {
+                router.push('/staff')
+              } else if (currentPortal === 'moderator') {
+                router.push('/moderator')
+              } else {
+                router.push('/admin')
+              }
+            }}
+          />
         </div>
       )
     }
@@ -529,7 +568,15 @@ export function FlashcardTopicDetailScreen() {
           <ButtonV2
             title="Quay lại danh sách"
             style={{ marginTop: 12, minWidth: 140 }}
-            onPress={() => router.push('/admin?tab=vocabulary-topics')}
+            onPress={() => {
+              if (currentPortal === 'staff') {
+                router.push('/staff?tab=vocabulary-topics')
+              } else if (currentPortal === 'moderator') {
+                router.push('/moderator?tab=vocabulary-topics')
+              } else {
+                router.push('/admin?tab=vocabulary-topics')
+              }
+            }}
           />
         </div>
       )
@@ -586,7 +633,15 @@ export function FlashcardTopicDetailScreen() {
                     <ButtonV2
                       title="Quay lại"
                       color="mint"
-                      onPress={() => router.push('/admin?tab=vocabulary-topics')}
+                      onPress={() => {
+                        if (currentPortal === 'staff') {
+                          router.push('/staff?tab=vocabulary-topics')
+                        } else if (currentPortal === 'moderator') {
+                          router.push('/moderator?tab=vocabulary-topics')
+                        } else {
+                          router.push('/admin?tab=vocabulary-topics')
+                        }
+                      }}
                       style={{ minWidth: 100, paddingVertical: 10 }}
                       textStyle={{ fontSize: 14 }}
                     />
@@ -672,6 +727,29 @@ export function FlashcardTopicDetailScreen() {
 
   const screens = {
     'vocabulary-topics': detailContent,
+  }
+
+  // Chọn layout dựa vào cổng hiện tại
+  if (currentPortal === 'staff') {
+    return (
+      <StaffLayout
+        screens={screens}
+        defaultKey={defaultTab}
+        onNavigate={handleNavigate}
+        onLogout={() => router.push('/login')}
+      />
+    )
+  }
+
+  if (currentPortal === 'moderator') {
+    return (
+      <ModeratorLayout
+        screens={screens}
+        defaultKey={defaultTab}
+        onNavigate={handleNavigate}
+        onLogout={() => router.push('/login')}
+      />
+    )
   }
 
   return (
