@@ -208,11 +208,10 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
   const [loadingQuestionTypes, setLoadingQuestionTypes] = useState({})
 
   // Lấy examType từ examTemplate (1 = TOPIK I, 2 = TOPIK II, 3 = Test đầu vào)
-  const examType = examTemplate?.type || examTemplate?.ExamType ? 
-    (typeof examTemplate.type === 'number' ? examTemplate.type : 
-     examTemplate.ExamType === 'TOPIK I' ? 1 :
-     examTemplate.ExamType === 'TOPIK II' ? 2 :
-     examTemplate.ExamType === 'Test đầu vào' ? 3 : null) : null
+  const examType = examTemplate?.type || 
+    (examTemplate?.examType === 'TOPIK I' ? 1 :
+     examTemplate?.examType === 'TOPIK II' ? 2 :
+     examTemplate?.examType === 'Test đầu vào' ? 3 : null) || null
 
   // Function để fetch question types theo skill
   const loadQuestionTypes = React.useCallback(async (skill) => {
@@ -275,7 +274,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
       setLoading(true)
       
       // Kiểm tra trạng thái - chỉ cho phép add/update khi status = 0 (Nháp)
-      const currentStatus = examTemplate?.status ?? examTemplate?.Status ?? 0
+      const currentStatus = examTemplate?.status ?? 0
       if (currentStatus !== 0) {
         message.error('Chỉ có thể thêm hoặc cập nhật parts khi mẫu đề ở trạng thái Nháp')
         return

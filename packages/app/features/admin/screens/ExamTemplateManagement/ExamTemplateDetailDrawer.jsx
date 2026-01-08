@@ -1,11 +1,9 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Drawer, Descriptions, Tag, Spin, Alert, Space, Typography, Button } from 'antd'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
+import { Drawer, Descriptions, Tag, Spin, Alert, Space, Typography} from 'antd'
 import ExamTemplatePartsForm from './ExamTemplateDetail/ExamTemplatePartsForm'
-// TODO: Thay thế bằng API thực tế khi có
-// import { fetchExamTemplate } from '../api'
+import { fetchExamTemplate } from '../../../api'
 
 const { Title, Text } = Typography
 
@@ -25,33 +23,8 @@ export default function ExamTemplateDetailDrawer({ open, onClose, examTemplateId
       try {
         setLoading(true)
         setError('')
-        // TODO: Thay bằng API call thực tế
-        // const data = await fetchExamTemplate(examTemplateId)
-        // Mock data - simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 300))
-        
-        const data = {
-          ExamTemplateId: examTemplateId,
-          Name: 'Mẫu Đề TOPIK I',
-          Description: 'Đề gồm 30 câu nghe, 40 câu đọc và 3 câu viết',
-          ExamType: 'TOPIK I',
-          CreatedAt: '2024-01-15T10:00:00Z',
-          UpdatedAt: '2024-01-15T10:00:00Z',
-          IsActive: true,
-          Parts: [
-            {
-              TemplatePartId: 1,
-              Skill: 'Reading',
-              QuestionFrom: 1,
-              QuestionTo: 10,
-              PartTitle: 'Đọc hiểu đoạn văn ngắn',
-              Instruction: '다음을 읽고 맞는 답을 고르세요',
-              Mark: 1.0,
-              ExampleUrl: null,
-              QuestionTypeId: 1,
-            },
-          ],
-        }
+        // Gọi API để lấy thông tin exam template
+        const data = await fetchExamTemplate(examTemplateId)
         if (mounted) {
           setExamTemplate(data)
         }
@@ -119,24 +92,30 @@ export default function ExamTemplateDetailDrawer({ open, onClose, examTemplateId
             </Title>
             <Descriptions column={1} bordered size="middle">
               <Descriptions.Item label="Tên mẫu đề">
-                {examTemplate.Name || '-'}
+                {examTemplate.name || '-'}
               </Descriptions.Item>
               <Descriptions.Item label="Loại đề">
-                <Tag color="blue">{examTemplate.ExamType || '-'}</Tag>
+                <Tag color="blue">{examTemplate.examType || '-'}</Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Mô tả">
-                {examTemplate.Description || '-'}
+                {examTemplate.description || '-'}
               </Descriptions.Item>
               <Descriptions.Item label="Trạng thái">
-                <Tag color={examTemplate.IsActive ? 'green' : 'default'}>
-                  {examTemplate.IsActive ? 'Đang hoạt động' : 'Không hoạt động'}
+                <Tag color={(examTemplate.status ?? 0) === 1 ? 'green' : 'default'}>
+                  {(examTemplate.status ?? 0) === 1 ? 'Đã xuất bản' : 'Nháp'}
                 </Tag>
               </Descriptions.Item>
+              <Descriptions.Item label="Tổng số phần">
+                {examTemplate.totalParts || 0}
+              </Descriptions.Item>
+              <Descriptions.Item label="Tổng số câu hỏi">
+                {examTemplate.totalQuestions || 0}
+              </Descriptions.Item>
               <Descriptions.Item label="Ngày tạo">
-                {formatDate(examTemplate.CreatedAt)}
+                {formatDate(examTemplate.createdAt)}
               </Descriptions.Item>
               <Descriptions.Item label="Ngày cập nhật">
-                {formatDate(examTemplate.UpdatedAt)}
+                {formatDate(examTemplate.updatedAt || examTemplate.createdAt)}
               </Descriptions.Item>
             </Descriptions>
           </div>
@@ -146,7 +125,11 @@ export default function ExamTemplateDetailDrawer({ open, onClose, examTemplateId
             <Title level={4} style={{ marginBottom: 16 }}>
               Quản lý các phần
             </Title>
-            <ExamTemplatePartsForm examTemplateId={examTemplateId} initialParts={examTemplate.Parts || []} />
+            <ExamTemplatePartsForm 
+              examTemplateId={examTemplateId} 
+              initialParts={examTemplate.Parts || []} 
+              examTemplate={examTemplate}
+            />
           </div>
         </Space>
       )}

@@ -80,12 +80,9 @@ export function ExamTemplateDetailScreen() {
       // Gọi API để cập nhật exam template
       await updateExamTemplate(examTemplateId, updatedData)
       
-      // Cập nhật state với dữ liệu mới
-      setExamTemplate((prev) => ({
-        ...prev,
-        ...updatedData,
-        UpdatedAt: new Date().toISOString(),
-      }))
+      // Reload lại dữ liệu từ API để đảm bảo đồng bộ
+      const data = await fetchExamTemplate(examTemplateId)
+      setExamTemplate(data)
       
       message.success('Đã cập nhật thông tin mẫu đề thành công')
       setEditModalOpen(false)
@@ -97,7 +94,7 @@ export function ExamTemplateDetailScreen() {
   const handleDelete = () => {
     Modal.confirm({
       title: 'Xác nhận xóa',
-      content: `Bạn có chắc chắn muốn xóa mẫu đề "${examTemplate?.Name}"? Hành động này không thể hoàn tác.`,
+      content: `Bạn có chắc chắn muốn xóa mẫu đề "${examTemplate?.name}"? Hành động này không thể hoàn tác.`,
       okText: 'Xóa',
       okType: 'danger',
       cancelText: 'Hủy',
@@ -174,7 +171,7 @@ export function ExamTemplateDetailScreen() {
               <Title level={3} style={{ marginBottom: 8 }}>
                 Chi tiết mẫu đề
               </Title>
-              <Text type="secondary">ID: {examTemplate.ExamTemplateId}</Text>
+              <Text type="secondary">ID: {examTemplate.examTemplateId}</Text>
             </div>
             <Space>
               <ButtonV2
@@ -206,24 +203,24 @@ export function ExamTemplateDetailScreen() {
           <Card title="Thông tin cơ bản">
             <Descriptions column={1} bordered size="middle">
               <Descriptions.Item label="Tên mẫu đề">
-                {examTemplate.Name || '-'}
+                {examTemplate.name || '-'}
               </Descriptions.Item>
               <Descriptions.Item label="Loại đề">
-                {examTemplate.ExamType || '-'}
+                {examTemplate.examType || '-'}
               </Descriptions.Item>
               <Descriptions.Item label="Mô tả">
-                {examTemplate.Description || '-'}
+                {examTemplate.description || '-'}
               </Descriptions.Item>
               <Descriptions.Item label="Trạng thái">
-                <Tag color={getStatusInfo(examTemplate.status ?? examTemplate.Status ?? 0).color}>
-                  {getStatusInfo(examTemplate.status ?? examTemplate.Status ?? 0).label}
+                <Tag color={getStatusInfo(examTemplate.status ?? 0).color}>
+                  {getStatusInfo(examTemplate.status ?? 0).label}
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Ngày tạo">
-                {formatDate(examTemplate.CreatedAt)}
+                {formatDate(examTemplate.createdAt)}
               </Descriptions.Item>
               <Descriptions.Item label="Ngày cập nhật">
-                {formatDate(examTemplate.UpdatedAt)}
+                {formatDate(examTemplate.updatedAt || examTemplate.createdAt)}
               </Descriptions.Item>
             </Descriptions>
           </Card>
