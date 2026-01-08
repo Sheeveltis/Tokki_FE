@@ -4,6 +4,7 @@ import React, { useMemo, useTransition } from 'react'
 import { useParams, useRouter } from 'solito/navigation'
 import { StaffLayout } from '../../components/staff-layout.web'
 import AccountDetails from '../../../user/screens/UserManagement/components/account-details'
+import { clearAuthToken } from '../../../../provider/api/client'
 
 /**
  * StaffUserDetailScreen:
@@ -40,7 +41,17 @@ export function StaffUserDetailScreen() {
       screens={screens}
       defaultKey="users"
       onNavigate={handleNavigate}
-      onLogout={() => router.push('/login')}
+      onLogout={async () => {
+        // Xóa token khi đăng xuất
+        await clearAuthToken()
+        // Dùng window.location.href để đảm bảo redirect hoạt động
+        // Redirect về /staff để hiển thị login form
+        if (typeof window !== 'undefined') {
+          window.location.href = '/staff'
+        } else {
+          router.push('/staff')
+        }
+      }}
     />
   )
 }
