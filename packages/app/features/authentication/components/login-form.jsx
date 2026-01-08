@@ -25,7 +25,7 @@ if (Platform.OS !== 'web') {
 import { TextInput } from '../../../../components/textInput'
 import { Button } from '../../../../components/button'
 import { login, getUserLevel } from '../api'
-import { setAuthToken } from '../../../provider/api/client'
+import { setAuthToken, clearAuthToken } from '../../../provider/api/client'
 import { heartbeatService } from './heartbeat-service'
 import { showApiNotification } from '../helpers/notification'
 import { encryptToken } from '../../../helpers/token-encryption'
@@ -145,9 +145,8 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
         const { token, fullName, role, avatarUrl } = response.data
 
         // Lưu token để dùng cho các request authorize
+        // setAuthToken đã tự động mã hóa và lưu vào storage, không cần gọi setToken nữa
         await setAuthToken(token)
-        // Lưu token vào storage để navbar nhận biết đã đăng nhập
-        await setToken(token)
         // Sau khi có token, lấy level hiện tại của user và lưu lại
         try {
           const levelResp = await getUserLevel()
@@ -192,7 +191,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
         }, 500) // Delay nhỏ để user thấy thông báo
       } else {
         // Clear token nếu thất bại
-        await setToken(null)
+        await clearAuthToken()
 
         // Lưu response cho HelperAdmin và dòng lỗi dưới form
         setNotifyResponse(response)

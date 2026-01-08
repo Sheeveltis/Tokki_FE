@@ -176,7 +176,22 @@ const handleTokenExpired = async () => {
   
   // Redirect to login page (chỉ trên web)
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+    const currentPath = window.location.pathname
+    
+    // Nếu đang ở trang login hoặc register, không redirect
+    if (currentPath === '/login' || currentPath === '/register') {
+      return
+    }
+    
+    // Nếu đang ở admin/staff/moderator route, redirect về route đó để hiển thị login form tương ứng
+    if (currentPath.startsWith('/admin')) {
+      window.location.href = '/admin'
+    } else if (currentPath.startsWith('/staff')) {
+      window.location.href = '/staff'
+    } else if (currentPath.startsWith('/moderator')) {
+      window.location.href = '/moderator'
+    } else {
+      // Các route khác redirect về /login
       window.location.href = '/login'
     }
   }
