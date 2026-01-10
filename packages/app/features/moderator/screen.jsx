@@ -10,6 +10,7 @@ import { AdminLoginForm } from '../authentication/components/admin-login-form'
 // Lazy load các màn duyệt, tái sử dụng từ admin / vocabulary / blog
 const LazyBlogManagement = lazy(() => import('../blog/blog-management'))
 const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/VocabularyManagement'))
+const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/FlashcardTopicManagement'))
 const LazyExamTemplateManagement = lazy(() => import('../admin/screens/ExamTemplateManagement'))
 const LazyExamManagement = lazy(() => import('../admin/screens/ExamManagement'))
 
@@ -77,7 +78,7 @@ export function ModeratorScreen() {
     checkAuth()
   }, [router])
 
-  // Chỉ chứa các màn duyệt: blog, từ vựng, cấu trúc đề, đề
+  // Chỉ chứa các màn duyệt: blog, từ vựng, chủ đề từ vựng, cấu trúc đề, đề
   const screens = useMemo(
     () => ({
       'approve-blog': (
@@ -88,6 +89,11 @@ export function ModeratorScreen() {
       'approve-vocabulary': (
         <Suspense fallback={<LoadingFallback />}>
           <LazyVocabularyManagement />
+        </Suspense>
+      ),
+      'approve-flashcard-topic': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyFlashcardTopicManagement />
         </Suspense>
       ),
       'approve-exam-template': (

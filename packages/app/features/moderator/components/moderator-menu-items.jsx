@@ -1,4 +1,4 @@
-import { FileTextOutlined, DatabaseOutlined, FileDoneOutlined, FormOutlined, PoweroffOutlined } from '@ant-design/icons'
+import { FileTextOutlined, DatabaseOutlined, FileDoneOutlined, FormOutlined, PoweroffOutlined, BookOutlined } from '@ant-design/icons'
 
 export const moderatorMenuItems = [
   {
@@ -10,6 +10,11 @@ export const moderatorMenuItems = [
     key: 'approve-vocabulary',
     icon: <DatabaseOutlined />,
     label: 'Duyệt từ vựng',
+  },
+  {
+    key: 'approve-flashcard-topic',
+    icon: <BookOutlined />,
+    label: 'Duyệt chủ đề từ vựng',
   },
   {
     key: 'approve-exam-template',
