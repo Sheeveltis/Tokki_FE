@@ -5,8 +5,10 @@ import { Modal, Form, Input, InputNumber, Upload, message, Select } from 'antd'
 
 /**
  * Modal chỉnh sửa chủ đề flashcard
+ * @param {boolean} isModerator - Nếu true, ẩn field status (moderator không được thay đổi status)
+ * @param {boolean} isStaff - Nếu true, chỉ cho phép chọn Draft (0) và Rejected (4)
  */
-export function FlashcardTopicEditModal({ open, loading, initialValues = {}, onCancel, onSubmit }) {
+export function FlashcardTopicEditModal({ open, loading, initialValues = {}, onCancel, onSubmit, isModerator = false, isStaff = false }) {
   const [form] = Form.useForm()
   const [previewUrl, setPreviewUrl] = React.useState(initialValues?.imgUrl || initialValues?.imgURL || '')
   const [selectedFile, setSelectedFile] = React.useState(null)
@@ -122,12 +124,23 @@ export function FlashcardTopicEditModal({ open, loading, initialValues = {}, onC
             style={{ width: '100%', fontSize: 16 }}
           />
         </Form.Item>
-        <Form.Item label="Trạng thái" name="status" rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}>
-          <Select size="large" style={{ fontSize: 16 }}>
-            <Select.Option value={0}>Nháp/Ẩn</Select.Option>
-            <Select.Option value={1}>Hoạt động</Select.Option>
-          </Select>
-        </Form.Item>
+        {!isModerator && (
+          <Form.Item label="Trạng thái" name="status" rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}>
+            <Select size="large" style={{ fontSize: 16 }}>
+              {isStaff ? (
+                <>
+                  <Select.Option value={0}>Bản nháp</Select.Option>
+                  <Select.Option value={4}>Bị từ chối phê duyệt</Select.Option>
+                </>
+              ) : (
+                <>
+                  <Select.Option value={0}>Bản nháp</Select.Option>
+                  <Select.Option value={1}>Đang hoạt động</Select.Option>
+                </>
+              )}
+            </Select>
+          </Form.Item>
+        )}
         <Form.Item label="Ảnh minh họa" name="imgUrl">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <Upload.Dragger
