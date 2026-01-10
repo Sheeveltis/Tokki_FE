@@ -15,10 +15,11 @@ const { Option } = Select
 
 const STATUS_OPTIONS = [
   { value: 'all', label: 'Tất cả' },
-  { value: 0, label: 'Nháp/Ẩn' },
-  { value: 1, label: 'Hoạt động' },
+  { value: 0, label: 'Bản nháp' },
+  { value: 1, label: 'Đang hoạt động' },
   { value: 2, label: 'Đã xóa' },
   { value: 3, label: 'Chờ phê duyệt' },
+  { value: 4, label: 'Bị từ chối phê duyệt' },
 ]
 
 export function FlashcardTopicManagement({ initialData = null }) {
@@ -36,6 +37,9 @@ export function FlashcardTopicManagement({ initialData = null }) {
   
   const currentPortal = getCurrentPortal()
   
+  // Mặc định status = 3 (Chờ phê duyệt) khi ở moderator portal
+  const defaultStatus = currentPortal === 'moderator' ? 3 : 1
+  
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(!initialData)
   const [drawerItem, setDrawerItem] = useState(null)
@@ -43,7 +47,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
   const [createLoading, setCreateLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [level, setLevel] = useState(null)
-  const [status, setStatus] = useState(1)
+  const [status, setStatus] = useState(defaultStatus)
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 20,
@@ -166,10 +170,11 @@ export function FlashcardTopicManagement({ initialData = null }) {
       align: 'center',
       render: (status) => {
         const statusMap = {
-          0: { label: 'Nháp/Ẩn', color: 'default' },
-          1: { label: 'Hoạt động', color: 'green' },
+          0: { label: 'Bản nháp', color: 'default' },
+          1: { label: 'Đang hoạt động', color: 'green' },
           2: { label: 'Đã xóa', color: 'red' },
           3: { label: 'Chờ phê duyệt', color: 'orange' },
+          4: { label: 'Bị từ chối phê duyệt', color: 'red' },
         }
         const statusInfo = statusMap[status]
         if (!statusInfo) return '-'
@@ -280,14 +285,16 @@ export function FlashcardTopicManagement({ initialData = null }) {
             ))}
           </Select>
         </Space>
-        <ButtonV2
-          title="Thêm chủ đề"
-          color="#F1BE4B"
-          onPress={() => setCreateModalOpen(true)}
-          style={{ minWidth: 140, paddingVertical: 10 }}
-          textStyle={{ fontSize: 14 }}
-          icon={<PlusOutlined />}
-        />
+        {currentPortal !== 'moderator' && (
+          <ButtonV2
+            title="Thêm chủ đề"
+            color="#F1BE4B"
+            onPress={() => setCreateModalOpen(true)}
+            style={{ minWidth: 140, paddingVertical: 10 }}
+            textStyle={{ fontSize: 14 }}
+            icon={<PlusOutlined />}
+          />
+        )}
       </Space>
       <ManagementTable
         columns={columns}

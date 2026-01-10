@@ -8,10 +8,11 @@ const { Option } = Select
 
 const STATUS_OPTIONS = [
   { value: 'all', label: 'Tất cả' },
-  { value: 0, label: 'Draft' },
-  { value: 1, label: 'Hoạt động' },
+  { value: 0, label: 'Bản nháp' },
+  { value: 1, label: 'Đang hoạt động' },
   { value: 2, label: 'Đã xóa' },
   { value: 3, label: 'Chờ phê duyệt' },
+  { value: 4, label: 'Bị từ chối phê duyệt' },
 ]
 
 export function TopicSearchSection({
@@ -47,10 +48,11 @@ export function TopicSearchSection({
       align: 'center',
       render: (status) => {
         const statusMap = {
-          0: { label: 'Draft', color: 'default' },
-          1: { label: 'Hoạt động', color: 'green' },
+          0: { label: 'Bản nháp', color: 'default' },
+          1: { label: 'Đang hoạt động', color: 'green' },
           2: { label: 'Đã xóa', color: 'red' },
           3: { label: 'Chờ phê duyệt', color: 'orange' },
+          4: { label: 'Bị từ chối phê duyệt', color: 'red' },
         }
         const statusInfo = statusMap[status] || { label: 'Không xác định', color: 'default' }
         return <Tag color={statusInfo.color}>{statusInfo.label}</Tag>
