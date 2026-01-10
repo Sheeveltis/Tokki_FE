@@ -11,6 +11,7 @@ const STATUS_OPTIONS = [
   { value: 0, label: 'Draft' },
   { value: 1, label: 'Hoạt động' },
   { value: 2, label: 'Đã xóa' },
+  { value: 3, label: 'Chờ phê duyệt' },
 ]
 
 export function TopicSearchSection({
@@ -49,6 +50,7 @@ export function TopicSearchSection({
           0: { label: 'Draft', color: 'default' },
           1: { label: 'Hoạt động', color: 'green' },
           2: { label: 'Đã xóa', color: 'red' },
+          3: { label: 'Chờ phê duyệt', color: 'orange' },
         }
         const statusInfo = statusMap[status] || { label: 'Không xác định', color: 'default' }
         return <Tag color={statusInfo.color}>{statusInfo.label}</Tag>

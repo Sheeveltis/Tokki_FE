@@ -28,6 +28,18 @@ export function TopicInfoCard({ topic }) {
   // Xác định status từ topic._raw hoặc topic.status
   const topicStatus = topic._raw?.status ?? topic.status
   const isMuted = topicStatus === 0
+  
+  // Map status để hiển thị
+  const getStatusInfo = (status) => {
+    const statusMap = {
+      0: { label: 'Nháp/Ẩn', color: 'default' },
+      1: { label: 'Hoạt động', color: 'green' },
+      2: { label: 'Đã xóa', color: 'red' },
+      3: { label: 'Chờ phê duyệt', color: 'orange' },
+    }
+    return statusMap[status] || { label: 'Không xác định', color: 'default' }
+  }
+  const statusInfo = getStatusInfo(topicStatus)
 
   const creatorId = topic._raw?.createBy || topic.createBy || ''
   const updaterId = topic._raw?.updateBy || topic.updateBy || ''
@@ -75,8 +87,8 @@ export function TopicInfoCard({ topic }) {
         <Descriptions.Item label="Mô tả">{topic.subtitle || topic._raw?.description || '-'}</Descriptions.Item>
         <Descriptions.Item label="Level">{topic.level ?? topic._raw?.level ?? '-'}</Descriptions.Item>
         <Descriptions.Item label="Trạng thái">
-          <Tag color={isMuted ? 'default' : 'green'} style={{ fontSize: 12 }}>
-            {isMuted ? 'Ẩn' : 'Hoạt động'}
+          <Tag color={statusInfo.color} style={{ fontSize: 12 }}>
+            {statusInfo.label}
           </Tag>
         </Descriptions.Item>
         <Descriptions.Item label="Ảnh minh họa">

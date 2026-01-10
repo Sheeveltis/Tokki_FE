@@ -3,8 +3,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Modal, Form, Input, Select, message } from 'antd'
-// TODO: Thay thế bằng API thực tế khi có
-// import { createExamTemplate } from '../../api'
+import { createExamTemplate } from '../../../api'
 
 const { TextArea } = Input
 
@@ -34,15 +33,17 @@ function CreateExamTemplateModal({ open, onCancel, onSuccess }) {
       // Format data để gửi lên API
       const payload = {
         name: values.name,
-        description: values.description,
+        description: values.description || '',
         examType: values.examType,
       }
 
-      // TODO: Thay bằng API call thực tế
-      // const result = await createExamTemplate(payload)
-      // const examTemplateId = result.ExamTemplateId
-      const examTemplateId = `temp_${Date.now()}` // Mock ID
-      console.log('Payload:', payload)
+      // Gọi API để tạo exam template
+      const result = await createExamTemplate(payload)
+      const examTemplateId = result.examTemplateId || result.ExamTemplateId
+      
+      if (!examTemplateId) {
+        throw new Error('Không nhận được ID mẫu đề từ server')
+      }
       
       message.success('Đã tạo mẫu đề mới thành công')
       onCancel()
@@ -54,7 +55,9 @@ function CreateExamTemplateModal({ open, onCancel, onSuccess }) {
         router.push(`/admin/exam-templates/${examTemplateId}`)
       }
     } catch (error) {
-      message.error(error.message || 'Tạo mẫu đề thất bại')
+      // Hiển thị error message từ API
+      const errorMessage = error.message || 'Tạo mẫu đề thất bại'
+      message.error(errorMessage)
     } finally {
       setLoading(false)
     }

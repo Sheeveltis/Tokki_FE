@@ -18,6 +18,7 @@ const STATUS_OPTIONS = [
   { value: 0, label: 'Nháp/Ẩn' },
   { value: 1, label: 'Hoạt động' },
   { value: 2, label: 'Đã xóa' },
+  { value: 3, label: 'Chờ phê duyệt' },
 ]
 
 export function FlashcardTopicManagement({ initialData = null }) {
@@ -150,6 +151,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
           0: { label: 'Nháp/Ẩn', color: 'default' },
           1: { label: 'Hoạt động', color: 'green' },
           2: { label: 'Đã xóa', color: 'red' },
+          3: { label: 'Chờ phê duyệt', color: 'orange' },
         }
         const statusInfo = statusMap[status]
         if (!statusInfo) return '-'
