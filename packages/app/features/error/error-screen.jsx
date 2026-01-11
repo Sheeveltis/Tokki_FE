@@ -38,6 +38,8 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     width: '100%',
+    minHeight: '100vh', // Web: Đảm bảo chiếm toàn bộ chiều cao viewport
+    height: '100%',
     backgroundColor: '#fff',
     position: 'relative',
   },
@@ -47,17 +49,20 @@ const styles = StyleSheet.create({
     left: 0,
     width: '100%',
     height: '100%',
+    minHeight: '100vh', // Web: Đảm bảo ảnh nền chiếm toàn bộ chiều cao
     resizeMode: 'cover',
     opacity: 0.1, // ảnh nền mờ 10%
     zIndex: 0,
   },
   container: {
     flex: 1,
+    minHeight: '100vh', // Web: Đảm bảo container chiếm toàn bộ chiều cao
     backgroundColor: 'transparent',
     zIndex: 1,
   },
   scrollContent: {
     flexGrow: 1,
+    minHeight: '100vh', // Web: Đảm bảo nội dung có thể scroll đầy đủ
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 40,
