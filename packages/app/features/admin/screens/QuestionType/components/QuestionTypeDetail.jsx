@@ -121,8 +121,8 @@ export function QuestionTypeDetailScreen() {
             try {
               setDeleting(true)
               await deleteQuestionType(questionTypeId)
-              message.success('Đã xóa loại câu hỏi thành công')
-              router.push('/admin?tab=question-bank')
+            message.success('Đã xóa loại câu hỏi thành công')
+            router.push('/admin?tab=question-bank')
             } catch (err) {
               // message từ backend đã được map qua handleApiError
               message.error(err?.message || 'Xóa loại câu hỏi thất bại')

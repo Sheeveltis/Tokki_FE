@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Card, Row, Col, Tag, Typography, Space, Button, Popconfirm, Spin, Input, Select, Modal, message, Checkbox, Upload } from 'antd'
+import { Card, Row, Col, Tag, Typography, Space, Button, Popconfirm, Spin, Input, Select, Modal, message, Checkbox, Upload, Switch } from 'antd'
 import { EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, PlusOutlined, InboxOutlined } from '@ant-design/icons'
-import { fetchPassageById, fetchPassages, fetchQuestionTypes, updateQuestionBank, updateQuestionBankOption, createQuestionBankOption, deleteQuestionBankOption } from '../api/api'
-import { uploadAvatarToCloudinary } from '../../../../user/screens/UserDetail/api/api'
+import { fetchPassageById, fetchPassages, fetchQuestionTypes, updateQuestionBank, updateQuestionBankOption, createQuestionBankOption, deleteQuestionBankOption, activateQuestionBanks } from '../api/api'
+import { uploadOptionImageToCloudinary, uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary } from '../../../api/cloudinary'
+import { createObjectUrl, isAudioUrl } from '../../CreateQuestion/components/upload-utils'
 
 const { Text, Paragraph } = Typography
 const { TextArea } = Input
@@ -28,6 +29,7 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
   const [loadingTypes, setLoadingTypes] = useState(false)
   const [editOptions, setEditOptions] = useState([])
   const [saving, setSaving] = useState(false)
+  const [mediaObjectUrl, setMediaObjectUrl] = useState('')
 
   // Fetch passages whenever data changes
   useEffect(() => {
@@ -130,6 +132,7 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
         keyOption: opt?.keyOption || String.fromCharCode(65 + idx),
         content: opt?.content || (typeof opt === 'string' ? opt : ''),
         imageUrl: opt?.imageUrl || opt?.imageUrl1 || '',
+        imageFile: null,
         isCorrect: opt?.isCorrect === true || opt?.status === true,
       }
     })
@@ -139,11 +142,13 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
       content: question.content || '',
       explanation: question.explanation || '',
       mediaUrl: question.mediaUrl || '',
+      mediaFile: null,
       passageId: question.passageId || null,
       questionTypeId: question.questionTypeId || null,
       status: question.status !== undefined ? question.status : 1,
     })
     setEditOptions(normalized)
+    setMediaObjectUrl('')
   }
 
   const handleCancelEdit = () => {
@@ -151,6 +156,7 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
     setEditForm({})
     setEditOptions([])
     setSaving(false)
+    setMediaObjectUrl('')
   }
 
   const handleAddOption = () => {
@@ -163,6 +169,7 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
         keyOption: String.fromCharCode(65 + nextIndex),
         content: '',
         imageUrl: '',
+        imageFile: null,
         isCorrect: false,
       },
     ])
@@ -222,13 +229,25 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
 
     setSaving(true)
     try {
+      // Upload question media only when Save
+      let finalMediaUrl = editForm.mediaUrl || null
+      if (editForm.mediaFile) {
+        const isAudio = editForm.mediaFile?.type?.startsWith('audio/')
+        finalMediaUrl = isAudio
+          ? await uploadQuestionAudioToCloudinary(editForm.mediaFile)
+          : await uploadQuestionImageToCloudinary(editForm.mediaFile)
+      }
+
+      const wasDraft = (question.status ?? 0) === 0
+      const willBeActive = (editForm.status ?? question.status ?? 0) === 1
+
       // 1) Update question
       await updateQuestionBank({
         questionBankId,
         passageId: editForm.passageId || null,
         questionTypeId: finalQuestionTypeId,
         content: editForm.content,
-        mediaUrl: editForm.mediaUrl || null,
+        mediaUrl: finalMediaUrl,
         explanation: editForm.explanation || null,
       })
 
@@ -241,11 +260,16 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
       const currentExistingIds = editOptions.map((o) => o.optionId).filter(Boolean)
       const toDelete = originalIds.filter((id) => !currentExistingIds.includes(id))
 
-      const updateOrCreatePromises = editOptions.map((o) => {
+      const updateOrCreatePromises = editOptions.map(async (o) => {
+        let finalImageUrl = o.imageUrl || null
+        if (o.imageFile) {
+          finalImageUrl = await uploadOptionImageToCloudinary(o.imageFile)
+        }
+
         const payload = {
           keyOption: o.keyOption,
           content: o.content,
-          imageUrl1: o.imageUrl || null,
+          imageUrl1: finalImageUrl,
           isCorrect: !!o.isCorrect,
         }
 
@@ -259,6 +283,11 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
       const deletePromises = toDelete.map((optionId) => deleteQuestionBankOption(questionBankId, optionId))
 
       await Promise.all([...updateOrCreatePromises, ...deletePromises])
+
+      // Nếu đổi từ Nháp -> Hoạt động thì gọi activate
+      if (wasDraft && willBeActive) {
+        await activateQuestionBanks([questionBankId])
+      }
 
       message.success('Đã cập nhật câu hỏi & đáp án')
 
@@ -339,24 +368,24 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
                   </Button>
                   <Button type="text" icon={<CloseOutlined />} onClick={handleCancelEdit}>
                     Hủy
-                  </Button>
+              </Button>
                 </>
               ) : (
                 <>
                   <Button type="text" icon={<EditOutlined />} onClick={() => handleEdit(key)}>
-                    Sửa
-                  </Button>
-                  <Popconfirm
-                    title="Xóa câu hỏi"
-                    description="Bạn có chắc chắn muốn xóa câu hỏi này?"
-                    onConfirm={() => onDelete?.(key)}
-                    okText="Xóa"
-                    cancelText="Hủy"
-                  >
-                    <Button type="text" danger icon={<DeleteOutlined />}>
-                      Xóa
-                    </Button>
-                  </Popconfirm>
+                Sửa
+              </Button>
+              <Popconfirm
+                title="Xóa câu hỏi"
+                description="Bạn có chắc chắn muốn xóa câu hỏi này?"
+                  onConfirm={() => onDelete?.(key)}
+                okText="Xóa"
+                cancelText="Hủy"
+              >
+                <Button type="text" danger icon={<DeleteOutlined />}>
+                  Xóa
+                </Button>
+              </Popconfirm>
                 </>
               )}
             </Space>
@@ -463,9 +492,9 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
                   />
                 </div>
               ) : (
-                <Paragraph strong style={{ marginBottom: 4 }}>
-                  {question.content}
-                </Paragraph>
+              <Paragraph strong style={{ marginBottom: 4 }}>
+            {question.content}
+          </Paragraph>
               )}
 
               {/* Media URL */}
@@ -483,18 +512,11 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
                         message.error('Chỉ chấp nhận file hình ảnh hoặc audio!')
                         return Upload.LIST_IGNORE
                       }
-                      return true
-                    }}
-                    customRequest={async ({ file, onSuccess, onError }) => {
-                      try {
-                        const url = await uploadAvatarToCloudinary(file)
-                        setEditForm((prev) => ({ ...prev, mediaUrl: url }))
-                        onSuccess?.({ url })
-                        message.success('Tải lên thành công')
-                      } catch (err) {
-                        onError?.(err)
-                        message.error(err?.message || 'Tải lên thất bại')
-                      }
+
+                      setEditForm((prev) => ({ ...prev, mediaFile: file }))
+                      const preview = createObjectUrl(file)
+                      setMediaObjectUrl(preview)
+                      return false
                     }}
                   >
                     <p className="ant-upload-drag-icon">
@@ -502,18 +524,38 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
                     </p>
                     <p className="ant-upload-text">Nhấp hoặc kéo thả file vào đây để tải lên</p>
                     <p className="ant-upload-hint">Hỗ trợ hình ảnh (JPG, PNG) hoặc audio (MP3, WAV)</p>
-                    {currentForm.mediaUrl ? (
+                    {mediaObjectUrl || currentForm.mediaUrl ? (
                       <p style={{ marginTop: 8, marginBottom: 0, fontSize: 12, color: '#666' }}>
-                        Đã chọn: {currentForm.mediaUrl}
+                        {editForm?.mediaFile ? `File đã chọn: ${editForm.mediaFile.name}` : `Đã chọn: ${currentForm.mediaUrl}`}
                       </p>
                     ) : null}
                   </Dragger>
 
-                  {currentForm.mediaUrl ? (
+                  {(mediaObjectUrl || currentForm.mediaUrl) ? (
+                    <div style={{ marginTop: 12 }}>
+                      {isAudioUrl(mediaObjectUrl || currentForm.mediaUrl) ? (
+                        <audio controls style={{ width: '100%' }}>
+                          <source src={mediaObjectUrl || currentForm.mediaUrl} />
+                          Trình duyệt không hỗ trợ phát audio.
+                        </audio>
+                      ) : (
+                        <img
+                          src={mediaObjectUrl || currentForm.mediaUrl}
+                          alt="Preview"
+                          style={{ maxWidth: '100%', maxHeight: 240, borderRadius: 8, border: '1px solid #d9d9d9' }}
+                        />
+                      )}
+                    </div>
+                  ) : null}
+
+                  {(mediaObjectUrl || currentForm.mediaUrl) ? (
                     <Button
                       type="link"
                       danger
-                      onClick={() => setEditForm((prev) => ({ ...prev, mediaUrl: '' }))}
+                      onClick={() => {
+                        setEditForm((prev) => ({ ...prev, mediaUrl: '', mediaFile: null }))
+                        setMediaObjectUrl('')
+                      }}
                       style={{ paddingLeft: 0 }}
                     >
                       Xóa media
@@ -521,10 +563,18 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
                   ) : null}
                 </div>
               ) : question.mediaUrl ? (
-                <audio controls style={{ width: '100%', marginTop: 4 }}>
-                  <source src={question.mediaUrl} />
-                  Trình duyệt không hỗ trợ phát audio.
-                </audio>
+                question.mediaUrl.match(/\.(mp3|wav|ogg)(\?|#|$)/i) ? (
+                  <audio controls style={{ width: '100%', marginTop: 4 }}>
+                    <source src={question.mediaUrl} />
+                    Trình duyệt không hỗ trợ phát audio.
+                  </audio>
+                ) : (
+                  <img
+                    src={question.mediaUrl}
+                    alt="Question media"
+                    style={{ maxWidth: '100%', maxHeight: 240, borderRadius: 8, marginTop: 8 }}
+                  />
+                )
               ) : null}
 
               {/* Explanation */}
@@ -545,13 +595,23 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
               ) : null}
 
               {/* Status */}
-              {question.status !== undefined && (
+              {isEditing ? (
+                <div style={{ marginTop: 8 }}>
+                  <Text strong style={{ display: 'block', marginBottom: 4 }}>Trạng thái:</Text>
+                  <Switch
+                    checkedChildren="Hoạt động"
+                    unCheckedChildren="Nháp"
+                    checked={currentForm.status === 1}
+                    onChange={(checked) => setEditForm(prev => ({ ...prev, status: checked ? 1 : 0 }))}
+                  />
+                </div>
+              ) : question.status !== undefined ? (
                 <Space wrap>
                   <Tag color={question.status === 1 ? 'green' : 'default'}>
-                    {question.status === 1 ? 'Hoạt động' : 'Không hoạt động'}
+                    {question.status === 1 ? 'Hoạt động' : 'Nháp'}
                   </Tag>
                 </Space>
-              )}
+              ) : null}
             </Space>
 
             {isEditing ? (
@@ -601,18 +661,8 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
                               message.error('Chỉ chấp nhận file hình ảnh!')
                               return Upload.LIST_IGNORE
                             }
-                            return true
-                          }}
-                          customRequest={async ({ file, onSuccess, onError }) => {
-                            try {
-                              const url = await uploadAvatarToCloudinary(file)
-                              handleOptionChange(opt.__tempId, 'imageUrl', url)
-                              onSuccess?.({ url })
-                              message.success('Tải lên thành công')
-                            } catch (err) {
-                              onError?.(err)
-                              message.error(err?.message || 'Tải lên thất bại')
-                            }
+                            handleOptionChange(opt.__tempId, 'imageFile', file)
+                            return false
                           }}
                           style={{ padding: '8px 0' }}
                         >
@@ -622,21 +672,34 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
                           <p className="ant-upload-text" style={{ margin: 0, fontSize: 12 }}>
                             Tải ảnh (tùy chọn)
                           </p>
-                          {opt.imageUrl ? (
+                          {opt.imageFile || opt.imageUrl ? (
                             <p style={{ marginTop: 6, marginBottom: 0, fontSize: 11, color: '#666' }}>
-                              Đã chọn
+                              {opt.imageFile ? `File đã chọn: ${opt.imageFile.name}` : 'Đã chọn'}
                             </p>
                           ) : null}
                         </Dragger>
-                        {opt.imageUrl ? (
+                        {(opt.imageFile || opt.imageUrl) ? (
                           <Button
                             type="link"
                             danger
-                            onClick={() => handleOptionChange(opt.__tempId, 'imageUrl', '')}
+                            onClick={() => {
+                              handleOptionChange(opt.__tempId, 'imageUrl', '')
+                              handleOptionChange(opt.__tempId, 'imageFile', null)
+                            }}
                             style={{ paddingLeft: 0 }}
                           >
                             Xóa ảnh
                           </Button>
+                        ) : null}
+
+                        {(opt.imageFile || opt.imageUrl) ? (
+                          <div style={{ marginTop: 8 }}>
+                            <img
+                              src={opt.imageFile ? createObjectUrl(opt.imageFile) : opt.imageUrl}
+                              alt="Preview"
+                              style={{ maxWidth: '100%', maxHeight: 140, borderRadius: 6, border: '1px solid #d9d9d9' }}
+                            />
+                          </div>
                         ) : null}
                       </div>
 
@@ -666,26 +729,33 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
                 {options.map((option, ansIndex) => {
                   const isCorrect = option.status === true || option.isCorrect === true
                   return (
-                    <Col span={12} key={ansIndex}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          padding: '8px 12px',
-                          borderRadius: '6px',
+              <Col span={12} key={ansIndex}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
                           border: `1px solid ${isCorrect ? '#52c41a' : '#d9d9d9'}`,
                           backgroundColor: isCorrect ? '#f6ffed' : '#fff',
-                        }}
-                      >
+                  }}
+                >
                         <Tag color={isCorrect ? 'success' : 'default'} style={{ marginRight: 10 }}>
-                          {String.fromCharCode(65 + ansIndex)}
-                        </Tag>
+                    {String.fromCharCode(65 + ansIndex)}
+                  </Tag>
                         <Text>{option.content || option}</Text>
-                      </div>
-                    </Col>
+                        {option.imageUrl || option.imageUrl1 ? (
+                          <img
+                            src={option.imageUrl || option.imageUrl1}
+                            alt="Option"
+                            style={{ maxWidth: 80, maxHeight: 80, marginLeft: 8, borderRadius: 6 }}
+                          />
+                        ) : null}
+                </div>
+              </Col>
                   )
                 })}
-              </Row>
+          </Row>
             ) : null}
         </Card>
         )
