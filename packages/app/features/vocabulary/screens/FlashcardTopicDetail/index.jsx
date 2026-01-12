@@ -76,6 +76,7 @@ export function FlashcardTopicDetailScreen() {
   const [guideModalOpen, setGuideModalOpen] = useState(false)
   const [approvalModalOpen, setApprovalModalOpen] = useState(false)
   const [approvalLoading, setApprovalLoading] = useState(false)
+  const [excelImportResult, setExcelImportResult] = useState(null)
   const searchTimeoutRef = useRef(null)
   const fileInputRef = useRef(null)
 
@@ -564,6 +565,7 @@ export function FlashcardTopicDetailScreen() {
 
     setUploadingExcel(true)
     setApiResponse(null)
+    setExcelImportResult(null)
 
     try {
       const response = await uploadExcelToTopic(topicId, file)
@@ -589,6 +591,12 @@ export function FlashcardTopicDetailScreen() {
           message: response?.message || `Import thành công ${successCount} từ vựng${failureCount > 0 ? `, thất bại ${failureCount} từ vựng` : ''}`,
           statusCode: 200,
         })
+
+        setExcelImportResult({
+          addedNewCount: response?.data?.addedNewCount ?? 0,
+          linkedExistingCount: response?.data?.linkedExistingCount ?? 0,
+          failureCount: response?.data?.failureCount ?? 0,
+        })
       } else {
         throw new Error(response?.message || 'Import từ vựng thất bại')
       }
@@ -601,6 +609,7 @@ export function FlashcardTopicDetailScreen() {
         errors: err?.errors || [],
         statusCode: err?.statusCode || 500,
       })
+      setExcelImportResult(null)
     } finally {
       setUploadingExcel(false)
       // Reset file input
@@ -884,6 +893,7 @@ export function FlashcardTopicDetailScreen() {
             exportingExcel={exportingExcel}
             onOpenGuide={() => setGuideModalOpen(true)}
             isModerator={currentPortal === 'moderator'}
+            excelImportResult={excelImportResult}
           />
           <QuickAddVocabularyModal
             open={quickAddModalOpen}

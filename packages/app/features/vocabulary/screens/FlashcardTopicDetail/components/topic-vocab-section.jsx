@@ -30,6 +30,7 @@ export function TopicVocabSection({
   exportingExcel,
   onOpenGuide,
   isModerator = false, // Prop để ẩn các chức năng không được phép cho moderator
+  excelImportResult = null,
 }) {
   const router = useRouter()
   const { Text } = Typography
@@ -353,6 +354,34 @@ export function TopicVocabSection({
         locale={{ emptyText: 'Chưa có từ vựng trong chủ đề' }}
         rowKey={(record) => record.vocabularyId || record.id}
       />
+      {excelImportResult && (
+        <Card
+          size="large"
+          style={{ marginTop: 12, background: '#f6ffed', borderColor: '#b7eb8f' }}
+          title={<Text strong>Kết quả import Excel</Text>}
+        >
+          <Space direction="vertical" size={2} style={{ width: '100%' }}>
+            <Text style={{ color: '#389e0d' }}>
+              <Text strong style={{ color: '#389e0d' }}>
+                Thêm mới:
+              </Text>{' '}
+              {excelImportResult.addedNewCount ?? 0}
+            </Text>
+            <Text>
+              <Text strong>
+                Link vào Topic:
+              </Text>{' '}
+              {excelImportResult.linkedExistingCount ?? 0}
+            </Text>
+            <Text style={{ color: '#cf1322' }}>
+              <Text strong style={{ color: '#cf1322' }}>
+                Thất bại:
+              </Text>{' '}
+              {excelImportResult.failureCount ?? 0}
+            </Text>
+          </Space>
+        </Card>
+      )}
     </Card>
   )
 }
