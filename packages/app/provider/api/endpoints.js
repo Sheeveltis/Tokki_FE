@@ -49,6 +49,8 @@ export const ENDPOINTS = {
       GET_BY_ID: (id) => `/QuestionBanks/${id}`,
       CREATE: '/QuestionBanks',
       UPDATE: '/QuestionBanks/update',
+      DELETE: (id) => `/QuestionBanks/${id}`,
+      ACTIVATE: '/QuestionBanks/admin/activate',
     },
     QUESTION_BANK_OPTION: {
       CREATE: (questionBankId) => `/QuestionBanks/${questionBankId}/options`,
@@ -58,6 +60,9 @@ export const ENDPOINTS = {
     PASSAGE: {
       GET_ALL: '/Passages',
       GET_BY_ID: (id) => `/Passages/${id}`,
+      CREATE: '/Passages',
+      UPDATE: '/Passages/update',
+      DELETE: (id) => `/Passages/${id}`,
     },
     STATISTIC_BLOG: {
       DASHBOARD: '/StatisticBlog/dashboard',
@@ -170,6 +175,12 @@ export const ENDPOINTS = {
       UPLOAD_VOCABULARY_IMAGE: '/cloudinary/vocabulary-image',  // POST: Upload ảnh từ vựng lên Cloudinary
       UPLOAD_TOPIC_IMAGE: '/cloudinary/topic-image',  // POST: Upload ảnh chủ đề lên Cloudinary
       UPLOAD_AVATAR: '/cloudinary/avatar',  // POST: Upload avatar lên Cloudinary
+
+      // Question/Option media
+      UPLOAD_QUESTION_IMAGE: '/Cloudinary/image/question',
+      UPLOAD_OPTION_IMAGE: '/Cloudinary/image/option',
+      UPLOAD_QUESTION_AUDIO: '/Cloudinary/audio/question',
+      UPLOAD_OPTION_AUDIO: '/Cloudinary/audio/option',
     },
     EXCEL: {
       ADD_VOCAB_TO_TOPIC: (topicId) => `/Excel/add-vocab?topicId=${topicId}`,  // POST: Import từ vựng từ Excel vào chủ đề
