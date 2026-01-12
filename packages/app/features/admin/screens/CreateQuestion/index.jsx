@@ -1,11 +1,12 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useRouter } from 'solito/navigation'
-import { Card, Form, Space, Typography, message, Divider } from 'antd'
+import { useRouter, useSearchParams } from 'solito/navigation'
+import { Card, Form, Space, Typography, message, Divider, Input } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from '../../components/admin-layout.web'
 import { createQuestion } from './api/api'
+import { activateQuestionBanks } from '../QuestionBankManagement/api/api'
 import { QuestionForm } from './components/QuestionForm'
 import { AnswerForm } from './components/AnswerForm'
 
@@ -13,41 +14,84 @@ const { Title } = Typography
 
 export function CreateQuestionScreen() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const questionTypeId = searchParams?.get('questionTypeId')
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (values) => {
     try {
       setLoading(true)
-      
-      // Validate answers
-      if (!values.answers || values.answers.length < 2) {
+
+      // Validate options
+      if (!values.options || values.options.length < 2) {
         message.error('Cần ít nhất 2 đáp án')
         return
       }
 
-      const correctAnswers = values.answers.filter((a) => a?.isCorrect)
-      if (correctAnswers.length === 0) {
+      const correctOptions = values.options.filter((a) => a?.isCorrect)
+      if (correctOptions.length === 0) {
         message.error('Cần ít nhất 1 đáp án đúng')
         return
       }
 
-      // Prepare payload
-      const payload = {
-        content: values.content,
-        type: values.type,
-        difficulty: values.difficulty,
-        skill: values.skill,
-        examType: values.examType,
-        answers: values.answers.map((answer) => ({
-          content: answer.content,
-          isCorrect: answer.isCorrect || false,
-        })),
+      if (!questionTypeId) {
+        message.error('Vui lòng chọn loại câu hỏi')
+        return
       }
 
-      await createQuestion(payload)
+      // Upload media (nếu user chọn file) chỉ khi bấm Tạo mới
+      const { uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary, uploadOptionImageToCloudinary } = await import('../../api/cloudinary')
+
+      let mediaUrl = values.mediaUrl || null
+      if (values.mediaFile) {
+        const isAudio = values.mediaFile?.type?.startsWith('audio/')
+        mediaUrl = isAudio
+          ? await uploadQuestionAudioToCloudinary(values.mediaFile)
+          : await uploadQuestionImageToCloudinary(values.mediaFile)
+      }
+
+      const uploadedOptions = await Promise.all(
+        (values.options || []).map(async (option, index) => {
+          let imageUrl = option.imageUrl || null
+          if (option.imageFile) {
+            imageUrl = await uploadOptionImageToCloudinary(option.imageFile)
+          }
+          return {
+            keyOption: String(option.keyOption || index + 1),
+            content: option.content?.trim(),
+            imageUrl,
+            isCorrect: option.isCorrect || false,
+          }
+        }),
+      )
+
+      // Prepare payload theo API
+      const payload = {
+        passageId: values.passageId || null,
+        questionTypeId: questionTypeId,
+        content: values.content?.trim(),
+        mediaUrl,
+        explanation: values.explanation?.trim() || null,
+        options: uploadedOptions,
+        status: values.status ?? 0,
+      }
+
+      const created = await createQuestion(payload)
+
+      // Nếu chọn Hoạt động thì gọi thêm API activate
+      const createdId = created?.data?.questionBankId || created?.data?.id || created?.data?.questionBankID || created?.questionBankId
+      if ((values.status ?? 0) === 1 && createdId) {
+        await activateQuestionBanks([createdId])
+      }
+
       message.success('Đã tạo câu hỏi mới thành công')
-      router.push('/admin?tab=question-bank')
+
+      if (questionTypeId) {
+        router.push(`/admin/question-type/${questionTypeId}`)
+      } else {
+        router.push('/admin?tab=question-bank')
+      }
     } catch (error) {
       message.error(error.message || 'Tạo câu hỏi thất bại')
     } finally {
@@ -56,7 +100,12 @@ export function CreateQuestionScreen() {
   }
 
   const handleCancel = () => {
-    router.push('/admin?tab=question-bank')
+    // Nếu có questionTypeId, quay về trang detail của questionType đó
+    if (questionTypeId) {
+      router.push(`/admin/question-type/${questionTypeId}`)
+    } else {
+      router.push('/admin?tab=question-bank')
+    }
   }
 
   const handleNavigate = (key) => {
@@ -79,13 +128,18 @@ export function CreateQuestionScreen() {
               layout="vertical"
               onFinish={handleSubmit}
               initialValues={{
-                answers: [
-                  { content: '', isCorrect: false },
-                  { content: '', isCorrect: false },
+                options: [
+                  { keyOption: 1, content: '', imageUrl: '', isCorrect: false },
+                  { keyOption: 2, content: '', imageUrl: '', isCorrect: false },
                 ],
               }}
             >
-              <QuestionForm form={form} />
+              <QuestionForm form={form} questionTypeId={questionTypeId} />
+
+              {/* hidden fields for local files */}
+              <Form.Item name="mediaFile" hidden>
+                <Input type="hidden" />
+              </Form.Item>
 
               <Divider />
 

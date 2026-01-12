@@ -32,10 +32,11 @@ export function TopicInfoCard({ topic }) {
   // Map status để hiển thị
   const getStatusInfo = (status) => {
     const statusMap = {
-      0: { label: 'Nháp/Ẩn', color: 'default' },
-      1: { label: 'Hoạt động', color: 'green' },
+      0: { label: 'Bản nháp', color: 'default' },
+      1: { label: 'Đang hoạt động', color: 'green' },
       2: { label: 'Đã xóa', color: 'red' },
       3: { label: 'Chờ phê duyệt', color: 'orange' },
+      4: { label: 'Bị từ chối phê duyệt', color: 'red' },
     }
     return statusMap[status] || { label: 'Không xác định', color: 'default' }
   }

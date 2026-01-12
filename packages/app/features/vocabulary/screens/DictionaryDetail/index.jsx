@@ -1,11 +1,21 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { View, Text, ScrollView, ActivityIndicator, Platform } from 'react-native'
+import React, { useEffect, useState, useRef } from 'react'
+import { View, Text, ScrollView, ActivityIndicator, Platform, Image, Pressable, Animated } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
+import SoundIcon from '../../../../../assets/icon/icon-mainflow/sound.svg'
 import { fetchVocabularyDetail, fetchUserVocabularyExamples } from '../../api'
+
+// Hàm normalize image source để xử lý URL ảnh
+const normalizeImageSource = (src) => {
+  if (!src) return null
+  if (typeof src === 'number' || src.uri) return src
+  if (typeof src === 'object' && src.src) return { uri: src.src }
+  if (typeof src === 'string') return { uri: src }
+  return src
+}
 
 /**
  * Màn chi tiết từ vựng cho Dictionary (user):
@@ -19,6 +29,10 @@ export function DictionaryVocabularyDetailScreen({ vocabularyId }) {
   const [error, setError] = useState('')
   const [detail, setDetail] = useState(null)
   const [examples, setExamples] = useState([])
+  const [isPlaying, setIsPlaying] = useState(false)
+  const audioRef = useRef(null)
+  const scaleAnim = useRef(new Animated.Value(1)).current
+  const pulseAnim = useRef(new Animated.Value(1)).current
 
   useEffect(() => {
     if (!vocabularyId) {
@@ -58,6 +72,95 @@ export function DictionaryVocabularyDetailScreen({ vocabularyId }) {
       mounted = false
     }
   }, [vocabularyId])
+
+  // Hàm phát âm thanh từ audioURL
+  const handlePlaySound = () => {
+    if (!detail?.audioURL) {
+      return
+    }
+
+    // Animation khi nhấn
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.9,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start()
+
+    // Dừng audio hiện tại nếu đang phát
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+      setIsPlaying(false)
+      pulseAnim.stopAnimation()
+      pulseAnim.setValue(1)
+    }
+
+    // Tạo audio element mới và phát
+    const audio = new Audio(detail.audioURL)
+    audioRef.current = audio
+
+    setIsPlaying(true)
+    
+    // Pulse animation khi đang phát
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start()
+
+    audio.play().catch((error) => {
+      console.error('Error playing audio:', error)
+      setIsPlaying(false)
+      pulseAnim.stopAnimation()
+      pulseAnim.setValue(1)
+    })
+
+    // Cleanup khi audio kết thúc
+    audio.addEventListener('ended', () => {
+      audioRef.current = null
+      setIsPlaying(false)
+      pulseAnim.stopAnimation()
+      pulseAnim.setValue(1)
+    })
+
+    // Track khi audio bị pause
+    audio.addEventListener('pause', () => {
+      setIsPlaying(false)
+      pulseAnim.stopAnimation()
+      pulseAnim.setValue(1)
+    })
+  }
+
+  // Cleanup audio khi component unmount hoặc detail thay đổi
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+      setIsPlaying(false)
+      scaleAnim.stopAnimation()
+      pulseAnim.stopAnimation()
+      scaleAnim.setValue(1)
+      pulseAnim.setValue(1)
+    }
+  }, [detail])
 
   return (
     <View
@@ -172,10 +275,7 @@ export function DictionaryVocabularyDetailScreen({ vocabularyId }) {
                 backgroundColor: '#FFFFFF',
                 borderWidth: 1,
                 borderColor: '#F3F4F6',
-                shadowColor: '#000',
-                shadowOpacity: 0.04,
-                shadowRadius: 8,
-                shadowOffset: { width: 0, height: 2 },
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
               }}
             >
             <View
@@ -187,15 +287,49 @@ export function DictionaryVocabularyDetailScreen({ vocabularyId }) {
               }}
             >
               <View style={{ flexShrink: 1, paddingRight: 8 }}>
-                <Text
-                  style={{
-                    fontSize: 50,
-                    fontWeight: '800',
-                    color: '#111827',
-                  }}
-                >
-                  {detail.text || 'Không có từ'}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <Text
+                    style={{
+                      fontSize: 50,
+                      fontWeight: '800',
+                      color: '#111827',
+                    }}
+                  >
+                    {detail.text || 'Không có từ'}
+                  </Text>
+                  {!!detail.audioURL && (
+                    <Pressable onPress={handlePlaySound}>
+                      <Animated.View
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 24,
+                          backgroundColor: isPlaying ? '#8B5CF6' : '#6366F1',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: isPlaying ? '0 4px 8px rgba(139, 92, 246, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.1)',
+                          transform: [{ scale: scaleAnim }],
+                        }}
+                      >
+                        <Animated.View
+                          style={{
+                            transform: [{ scale: pulseAnim }],
+                          }}
+                        >
+                          <Image
+                            source={normalizeImageSource(SoundIcon)}
+                            style={{
+                              width: 24,
+                              height: 24,
+                              tintColor: '#FFFFFF',
+                            }}
+                            resizeMode="contain"
+                          />
+                        </Animated.View>
+                      </Animated.View>
+                    </Pressable>
+                  )}
+                </View>
                 {!!detail.pronunciation && (
                   <Text
                     style={{
@@ -241,6 +375,47 @@ export function DictionaryVocabularyDetailScreen({ vocabularyId }) {
               </View>
             )}
           </View>
+
+            {!!detail.imgURL && (
+              <View
+                style={{
+                  width: '100%',
+                  padding: 16,
+                  borderRadius: 12,
+                  backgroundColor: '#FFFFFF',
+                  borderWidth: 1,
+                  borderColor: '#F3F4F6',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '700',
+                    marginBottom: 12,
+                    color: '#111827',
+                  }}
+                >
+                  Hình ảnh minh họa
+                </Text>
+                <View
+                  style={{
+                    width: '100%',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Image
+                    source={normalizeImageSource(detail.imgURL)}
+                    style={{
+                      width: '100%',
+                      height: 250,
+                      borderRadius: 12,
+                      resizeMode: 'contain',
+                    }}
+                  />
+                </View>
+              </View>
+            )}
 
             {examples.length > 0 && (
               <View

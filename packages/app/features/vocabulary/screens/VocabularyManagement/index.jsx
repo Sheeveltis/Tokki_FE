@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Input, Space, Select, Tag } from 'antd'
 import { EyeOutlined, PlusOutlined, SearchOutlined, GlobalOutlined } from '@ant-design/icons'
@@ -30,6 +30,22 @@ export function VocabularyManagement({ initialData = null }) {
     pageSize: 20,
     total: 0,
   })
+
+  // Xác định cổng hiện tại dựa vào URL
+  const getCurrentPortal = () => {
+    if (typeof window === 'undefined') return 'admin'
+    const pathname = window.location.pathname
+    if (pathname === '/staff' || pathname.startsWith('/staff/')) return 'staff'
+    if (pathname === '/moderator' || pathname.startsWith('/moderator/')) return 'moderator'
+    return 'admin'
+  }
+  
+  const currentPortal = getCurrentPortal()
+  
+  // Tính toán portalPrefix một lần dựa trên currentPortal
+  const portalPrefix = useMemo(() => {
+    return currentPortal === 'staff' ? '/staff' : currentPortal === 'moderator' ? '/moderator' : '/admin'
+  }, [currentPortal])
 
   const loadData = useCallback(
     async (page = 1, pageSize = 20, statusFilter, searchText) => {
@@ -121,7 +137,7 @@ export function VocabularyManagement({ initialData = null }) {
     loadData(newPagination.current, newPagination.pageSize, status, search)
   }
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       title: 'ID',
       dataIndex: 'vocabularyId',
@@ -160,7 +176,7 @@ export function VocabularyManagement({ initialData = null }) {
             <div
               onClick={(e) => {
                 e?.stopPropagation?.()
-                router.push(`/admin/vocab/${vocabId}`)
+                router.push(`${portalPrefix}/vocab/${vocabId}`)
               }}
               style={{
                 display: 'flex',
@@ -215,7 +231,7 @@ export function VocabularyManagement({ initialData = null }) {
         )
       },
     },
-  ]
+  ], [portalPrefix, router])
 
   return (
     <>
@@ -254,7 +270,7 @@ export function VocabularyManagement({ initialData = null }) {
           <ButtonV2
             title="Thêm"
             color="#F1BE4B"
-            onPress={() => router.push('/admin/vocab/create')}
+            onPress={() => router.push(`${portalPrefix}/vocab/create`)}
             style={{ minWidth: 80, paddingVertical: 10 }}
             textStyle={{ fontSize: 14 }}
             icon={<PlusOutlined />}

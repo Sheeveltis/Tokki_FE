@@ -910,6 +910,111 @@ export async function publishTopic(topicId) {
 }
 
 /**
+ * Staff gửi chủ đề flashcard chờ moderator phê duyệt
+ * Chỉ áp dụng cho topic ở trạng thái Draft và đã có từ vựng
+ * @param {string} topicId - ID của chủ đề
+ * @returns {Promise<Object>} - Response từ API
+ */
+export async function submitTopicForApproval(topicId) {
+  try {
+    if (!topicId) {
+      throw new Error('TopicId là bắt buộc')
+    }
+
+    const res = await apiClient.post(ENDPOINTS.TOPIC.STAFF_SUBMIT_FOR_APPROVAL(topicId))
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      const message =
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể gửi chủ đề chờ phê duyệt'
+      throw { status: responseData?.statusCode || 400, message, response: responseData }
+    }
+
+    return responseData
+  } catch (error) {
+    console.error('Error submitting topic for approval:', error)
+    // Ném error để component có thể xử lý và hiển thị thông báo
+    if (error?.response) {
+      throw error.response
+    }
+    throw error
+  }
+}
+
+/**
+ * Moderator phê duyệt chủ đề flashcard
+ * @param {string} topicId - ID của chủ đề
+ * @returns {Promise<Object>} - Response từ API
+ */
+export async function approveTopic(topicId) {
+  try {
+    if (!topicId) {
+      throw new Error('TopicId là bắt buộc')
+    }
+
+    const res = await apiClient.put(ENDPOINTS.TOPIC.MODERATOR_APPROVE(topicId))
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      const message =
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể phê duyệt chủ đề'
+      throw { status: responseData?.statusCode || 400, message, response: responseData }
+    }
+
+    return responseData
+  } catch (error) {
+    console.error('Error approving topic:', error)
+    if (error?.response) {
+      throw error.response
+    }
+    throw error
+  }
+}
+
+/**
+ * Moderator từ chối phê duyệt chủ đề flashcard
+ * @param {string} topicId - ID của chủ đề
+ * @param {string} rejectReason - Lý do từ chối (tên field theo API backend)
+ * @returns {Promise<Object>} - Response từ API
+ */
+export async function rejectTopic(topicId, rejectReason) {
+  try {
+    if (!topicId) {
+      throw new Error('TopicId là bắt buộc')
+    }
+
+    if (!rejectReason || rejectReason.trim().length < 10) {
+      throw new Error('Lý do từ chối phải có ít nhất 10 ký tự')
+    }
+
+    const res = await apiClient.put(ENDPOINTS.TOPIC.MODERATOR_REJECT(topicId), {
+      rejectReason: rejectReason.trim(),
+    })
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      const message =
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể từ chối phê duyệt chủ đề'
+      throw { status: responseData?.statusCode || 400, message, response: responseData }
+    }
+
+    return responseData
+  } catch (error) {
+    console.error('Error rejecting topic:', error)
+    if (error?.response) {
+      throw error.response
+    }
+    throw error
+  }
+}
+
+/**
  * Xóa chủ đề flashcard
  * @param {string} topicId - ID của chủ đề cần xóa
  * @returns {Promise<Object>} - Response từ API
@@ -1129,6 +1234,7 @@ export async function uploadExcelToTopic(topicId, file) {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 0, // Không giới hạn thời gian cho import Excel vì backend xử lý lâu
     })
 
     const payload = res?.data

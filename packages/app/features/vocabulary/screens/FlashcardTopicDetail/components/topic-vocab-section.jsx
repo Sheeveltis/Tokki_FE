@@ -29,6 +29,8 @@ export function TopicVocabSection({
   onExportExcel,
   exportingExcel,
   onOpenGuide,
+  isModerator = false, // Prop để ẩn các chức năng không được phép cho moderator
+  excelImportResult = null,
 }) {
   const router = useRouter()
   const { Text } = Typography
@@ -113,7 +115,7 @@ export function TopicVocabSection({
             {onOpenGuide && <VocabularyGuideButton onOpen={onOpenGuide} />}
           </Space>
           <Space>
-            {onExportExcel && (
+            {onExportExcel && !isModerator && (
               <Button
                 icon={<FileExcelOutlined />}
                 onClick={onExportExcel}
@@ -131,7 +133,7 @@ export function TopicVocabSection({
               </Button>
             )}
 
-            {onExcelUpload && (
+            {onExcelUpload && !isModerator && (
               <>
                 <input
                   ref={fileInputRef}
@@ -161,91 +163,93 @@ export function TopicVocabSection({
         </Space>
       }
     >
-      <Space direction="vertical" size="small" style={{ marginBottom: 12, width: '100%' }}>
-        <Space style={{ width: '100%', justifyContent: 'space-between' }} align="start">
-          <div style={{ flex: 1 }}>
-            <Select
-              mode="multiple"
-              allowClear
-              placeholder="Tìm và chọn từ vựng để thêm"
-              style={{
-                width: '100%',
-                minWidth: 600,
-                ...selectStyle,
-              }}
-              value={selecting}
-              options={availableOptions}
-              onChange={onSelectingChange}
-              onSearch={onSearch}
-              onFocus={onFocus}
-              showSearch
-              filterOption={false}
-              loading={searching}
-              size="middle"
-              optionFilterProp="label"
-              maxTagCount="responsive"
-            />
-            <Text type="secondary" style={{ display: 'block', marginTop: 4 }}>
-              Đã chọn <Text strong>{selecting?.length || 0}</Text> từ vựng để thêm vào chủ đề
-            </Text>
-          </div>
-          <Space>
-            {onQuickAdd && (
+      {!isModerator && (
+        <Space direction="vertical" size="small" style={{ marginBottom: 12, width: '100%' }}>
+          <Space style={{ width: '100%', justifyContent: 'space-between' }} align="start">
+            <div style={{ flex: 1 }}>
+              <Select
+                mode="multiple"
+                allowClear
+                placeholder="Tìm và chọn từ vựng để thêm"
+                style={{
+                  width: '100%',
+                  minWidth: 600,
+                  ...selectStyle,
+                }}
+                value={selecting}
+                options={availableOptions}
+                onChange={onSelectingChange}
+                onSearch={onSearch}
+                onFocus={onFocus}
+                showSearch
+                filterOption={false}
+                loading={searching}
+                size="middle"
+                optionFilterProp="label"
+                maxTagCount="responsive"
+              />
+              <Text type="secondary" style={{ display: 'block', marginTop: 4 }}>
+                Đã chọn <Text strong>{selecting?.length || 0}</Text> từ vựng để thêm vào chủ đề
+              </Text>
+            </div>
+            <Space>
+              {onQuickAdd && (
+                <ButtonV2
+                  title="Tạo từ vựng nhanh"
+                  onPress={onQuickAdd}
+                  color="#F1BE4B"
+                  style={{ minWidth: 160, paddingVertical: 10 }}
+                  textStyle={{ fontSize: 14 }}
+                />
+              )}
+
               <ButtonV2
-                title="Tạo từ vựng nhanh"
-                onPress={onQuickAdd}
-                color="#F1BE4B"
-                style={{ minWidth: 160, paddingVertical: 10 }}
+                title={adding ? 'Đang thêm...' : 'Thêm vào chủ đề'}
+                onPress={onAdd}
+                disabled={!selecting?.length || adding}
+                color="mint"
+                style={{ minWidth: 180, paddingVertical: 10 }}
                 textStyle={{ fontSize: 14 }}
               />
-            )}
-
-            <ButtonV2
-              title={adding ? 'Đang thêm...' : 'Thêm vào chủ đề'}
-              onPress={onAdd}
-              disabled={!selecting?.length || adding}
-              color="mint"
-              style={{ minWidth: 180, paddingVertical: 10 }}
-              textStyle={{ fontSize: 14 }}
-            />
+            </Space>
           </Space>
-        </Space>
 
-        {selectedOptions.length > 0 && (
-          <Card
-            size="small"
-            style={{
-              marginTop: 4,
-              background: '#fafafa',
-              borderStyle: 'dashed',
-            }}
-            title={
-              <span>
-                Từ vựng đang chọn để thêm{' '}
-                <Tag color="blue" style={{ marginLeft: 4 }}>
-                  {selectedOptions.length}
-                </Tag>
-              </span>
-            }
-          >
-            <List
+          {selectedOptions.length > 0 && (
+            <Card
               size="small"
-              dataSource={selectedOptions}
-              style={{ maxHeight: 160, overflow: 'auto' }}
-              renderItem={(item, index) => (
-                <List.Item key={item.value || index}>
-                  <Space direction="vertical" size={0} style={{ width: '100%' }}>
-                    <Text strong>{item.label?.split(' - ')[0]}</Text>
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      {item.label}
-                    </Text>
-                  </Space>
-                </List.Item>
-              )}
-            />
-          </Card>
-        )}
-      </Space>
+              style={{
+                marginTop: 4,
+                background: '#fafafa',
+                borderStyle: 'dashed',
+              }}
+              title={
+                <span>
+                  Từ vựng đang chọn để thêm{' '}
+                  <Tag color="blue" style={{ marginLeft: 4 }}>
+                    {selectedOptions.length}
+                  </Tag>
+                </span>
+              }
+            >
+              <List
+                size="small"
+                dataSource={selectedOptions}
+                style={{ maxHeight: 160, overflow: 'auto' }}
+                renderItem={(item, index) => (
+                  <List.Item key={item.value || index}>
+                    <Space direction="vertical" size={0} style={{ width: '100%' }}>
+                      <Text strong>{item.label?.split(' - ')[0]}</Text>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {item.label}
+                      </Text>
+                    </Space>
+                  </List.Item>
+                )}
+              />
+            </Card>
+          )}
+        </Space>
+      )}
       <Space direction="vertical" size="small" style={{ width: '100%', marginBottom: 8 }}>
         <Space style={{ width: '100%', justifyContent: 'space-between' }}>
           <Space direction="vertical" size={2}>
@@ -280,38 +284,42 @@ export function TopicVocabSection({
               ]}
             />
           </Space>
-          <ButtonV2
-            title={removeMode ? 'Hủy chọn xóa' : 'Chọn từ để gỡ'}
-            onPress={() => {
-              if (removeMode) {
-                // Tắt chế độ xóa thì clear selection
-                onRemovingKeysChange([])
-              }
-              setRemoveMode(!removeMode)
-            }}
-            color={removeMode ? 'ivory' : 'charcoal'}
-            style={{ paddingVertical: 8, minWidth: 150 }}
-            textStyle={{ fontSize: 13 }}
-          />
-          <ButtonV2
-            title={removing ? 'Đang gỡ...' : 'Gỡ từ vựng đã chọn'}
-            onPress={() => {
-              if (!removeMode || !removingKeys?.length || removing) return
+          {!isModerator && (
+            <>
+              <ButtonV2
+                title={removeMode ? 'Hủy chọn xóa' : 'Chọn từ để gỡ'}
+                onPress={() => {
+                  if (removeMode) {
+                    // Tắt chế độ xóa thì clear selection
+                    onRemovingKeysChange([])
+                  }
+                  setRemoveMode(!removeMode)
+                }}
+                color={removeMode ? 'ivory' : 'charcoal'}
+                style={{ paddingVertical: 8, minWidth: 150 }}
+                textStyle={{ fontSize: 13 }}
+              />
+              <ButtonV2
+                title={removing ? 'Đang gỡ...' : 'Gỡ từ vựng đã chọn'}
+                onPress={() => {
+                  if (!removeMode || !removingKeys?.length || removing) return
 
-              Modal.confirm({
-                title: 'Xác nhận gỡ từ vựng',
-                content: `Bạn có chắc muốn gỡ ${removingKeys?.length || 0} từ vựng khỏi chủ đề này?`,
-                okText: 'Gỡ',
-                cancelText: 'Hủy',
-                okButtonProps: { danger: true },
-                onOk: onRemove,
-              })
-            }}
-            disabled={!removeMode || !removingKeys?.length || removing}
-            color="poppy"
-            style={{ paddingVertical: 8, minWidth: 180 }}
-            textStyle={{ fontSize: 13 }}
-          />
+                  Modal.confirm({
+                    title: 'Xác nhận gỡ từ vựng',
+                    content: `Bạn có chắc muốn gỡ ${removingKeys?.length || 0} từ vựng khỏi chủ đề này?`,
+                    okText: 'Gỡ',
+                    cancelText: 'Hủy',
+                    okButtonProps: { danger: true },
+                    onOk: onRemove,
+                  })
+                }}
+                disabled={!removeMode || !removingKeys?.length || removing}
+                color="poppy"
+                style={{ paddingVertical: 8, minWidth: 180 }}
+                textStyle={{ fontSize: 13 }}
+              />
+            </>
+          )}
           </Space>
         </Space>
         <Input.Search
@@ -325,7 +333,7 @@ export function TopicVocabSection({
       </Space>
       <Table
         rowSelection={
-          removeMode
+          removeMode && !isModerator
             ? {
                 selectedRowKeys: removingKeys,
                 onChange: onRemovingKeysChange,
@@ -346,6 +354,34 @@ export function TopicVocabSection({
         locale={{ emptyText: 'Chưa có từ vựng trong chủ đề' }}
         rowKey={(record) => record.vocabularyId || record.id}
       />
+      {excelImportResult && (
+        <Card
+          size="large"
+          style={{ marginTop: 12, background: '#f6ffed', borderColor: '#b7eb8f' }}
+          title={<Text strong>Kết quả import Excel</Text>}
+        >
+          <Space direction="vertical" size={2} style={{ width: '100%' }}>
+            <Text style={{ color: '#389e0d' }}>
+              <Text strong style={{ color: '#389e0d' }}>
+                Thêm mới:
+              </Text>{' '}
+              {excelImportResult.addedNewCount ?? 0}
+            </Text>
+            <Text>
+              <Text strong>
+                Link vào Topic:
+              </Text>{' '}
+              {excelImportResult.linkedExistingCount ?? 0}
+            </Text>
+            <Text style={{ color: '#cf1322' }}>
+              <Text strong style={{ color: '#cf1322' }}>
+                Thất bại:
+              </Text>{' '}
+              {excelImportResult.failureCount ?? 0}
+            </Text>
+          </Space>
+        </Card>
+      )}
     </Card>
   )
 }

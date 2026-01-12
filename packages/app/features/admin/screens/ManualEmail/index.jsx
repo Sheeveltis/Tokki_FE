@@ -23,16 +23,24 @@ export function ManualEmailScreen() {
   const targetGroupValue = Form.useWatch('targetGroup', form)
 
   const handleSubmit = async (values) => {
+    // Prevent double submit
+    if (sending) return
+
     try {
       setSending(true)
 
-      const specificEmails =
+      const parsedEmails =
         values.targetGroup === 0
           ? (values.specificEmailsText || '')
               .split(/[,;\s]+/)
               .map((e) => e.trim())
               .filter(Boolean)
           : []
+
+      // Dedupe emails to avoid duplicate sending
+      const specificEmails = Array.from(
+        new Set(parsedEmails.map((e) => e.toLowerCase())),
+      )
 
       const payload = {
         subject: values.subject?.trim(),

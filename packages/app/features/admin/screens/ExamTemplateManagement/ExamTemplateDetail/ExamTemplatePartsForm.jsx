@@ -19,7 +19,7 @@ import {
 } from 'antd'
 import { PlusOutlined, DeleteOutlined, UpOutlined, DownOutlined, EyeOutlined, EyeInvisibleOutlined, EditOutlined, CloseOutlined, UploadOutlined, InboxOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
-import { fetchQuestionTypes, updateExamTemplateParts, uploadTemplatePartImageToCloudinary } from '../../../api'
+import { fetchQuestionTypes, updateExamTemplateParts, uploadTemplatePartImageToCloudinary, updateTemplatePart } from '../../../api'
 
 const { Title, Text } = Typography
 const { TextArea } = Input
@@ -35,6 +35,14 @@ const ImageUploadField = ({ value, onChange }) => {
   
   // Sync previewUrl từ value khi value thay đổi (từ database hoặc từ form)
   React.useEffect(() => {
+    // Nếu value là string URL (từ database, chưa được normalize)
+    if (value && typeof value === 'string') {
+      setPreviewUrl(value)
+      setSelectedFile(null)
+      return
+    }
+    
+    // Nếu value là array (fileList)
     if (value && Array.isArray(value) && value.length > 0) {
       const fileItem = value[0]
       // Nếu có URL (từ database hoặc base64 từ file mới)
@@ -724,10 +732,37 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                         }
 
                                         const handleEdit = () => {
-                                          setEditingGroups((prev) => {
-                                            const newSet = new Set(prev)
-                                            newSet.add(groupUniqueKey)
-                                            return newSet
+                                          Modal.confirm({
+                                            title: 'Xác nhận chỉnh sửa',
+                                            content: 'Bạn có muốn chỉnh sửa bộ câu này?',
+                                            okText: 'Chỉnh sửa',
+                                            cancelText: 'Hủy',
+                                            onOk: () => {
+                                              // Lấy giá trị hiện tại của group
+                                              const currentGroupValues = form.getFieldValue(['parts', name, 'QuestionGroups', groupName]) || {}
+                                              
+                                              // Normalize ExampleUrl nếu là string URL (từ database)
+                                              if (currentGroupValues.ExampleUrl && typeof currentGroupValues.ExampleUrl === 'string') {
+                                                // Chuyển string URL thành fileList format
+                                                const normalizedExampleUrl = [{
+                                                  uid: '-1',
+                                                  name: 'image.png',
+                                                  status: 'done',
+                                                  url: currentGroupValues.ExampleUrl
+                                                }]
+                                                
+                                                // Cập nhật lại giá trị trong form
+                                                form.setFieldsValue({
+                                                  [`parts.${name}.QuestionGroups.${groupName}.ExampleUrl`]: normalizedExampleUrl
+                                                })
+                                              }
+                                              
+                                              setEditingGroups((prev) => {
+                                                const newSet = new Set(prev)
+                                                newSet.add(groupUniqueKey)
+                                                return newSet
+                                              })
+                                            },
                                           })
                                         }
 
@@ -750,6 +785,142 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                               })
                                             },
                                           })
+                                        }
+
+                                        // Hàm xử lý khi bấm "Hoàn tất" để lưu và gọi API
+                                        const handleFinishEdit = async () => {
+                                          try {
+                                            // Validate form fields trước khi submit
+                                            const groupFieldPath = ['parts', name, 'QuestionGroups', groupName]
+                                            
+                                            // Validate các fields con của group này
+                                            const fieldsToValidate = [
+                                              [...groupFieldPath, 'QuestionTypeId'],
+                                              [...groupFieldPath, 'QuestionFrom'],
+                                              [...groupFieldPath, 'QuestionTo'],
+                                              [...groupFieldPath, 'Mark'],
+                                              [...groupFieldPath, 'PartTitle'],
+                                              [...groupFieldPath, 'Instruction'],
+                                            ]
+                                            
+                                            try {
+                                              await form.validateFields(fieldsToValidate)
+                                            } catch (error) {
+                                              // Nếu có lỗi validation, Ant Design sẽ tự động hiển thị message
+                                              return
+                                            }
+
+                                            // Lấy giá trị sau khi validate
+                                            const groupValues = form.getFieldValue(groupFieldPath) || {}
+                                            
+                                            // Kiểm tra TemplatePartId - phải có để update
+                                            if (!groupValues.TemplatePartId) {
+                                              message.error('Không tìm thấy ID của bộ câu. Vui lòng thử lại.')
+                                              return
+                                            }
+
+                                            // Kiểm tra trạng thái - chỉ cho phép update khi status = 0 (Nháp)
+                                            const currentStatus = examTemplate?.status ?? 0
+                                            if (currentStatus !== 0) {
+                                              message.error('Chỉ có thể cập nhật parts khi mẫu đề ở trạng thái Nháp')
+                                              return
+                                            }
+
+                                            setLoading(true)
+
+                                            // Lấy ExampleUrl từ form field trực tiếp
+                                            const exampleUrlFieldPath = ['parts', name, 'QuestionGroups', groupName, 'ExampleUrl']
+                                            const exampleUrlValue = form.getFieldValue(exampleUrlFieldPath) || groupValues?.ExampleUrl
+                                            
+                                            let exampleUrl = null
+                                            
+                                            // Xử lý upload ảnh nếu có
+                                            if (exampleUrlValue) {
+                                              // Nếu là array (fileList từ Upload component)
+                                              if (Array.isArray(exampleUrlValue) && exampleUrlValue.length > 0) {
+                                                const fileItem = exampleUrlValue[0]
+                                                
+                                                // Kiểm tra xem có originFileObj không (file chưa upload)
+                                                if (fileItem?.originFileObj) {
+                                                  try {
+                                                    // Upload file lên Cloudinary
+                                                    const imageUrl = await uploadTemplatePartImageToCloudinary(fileItem.originFileObj)
+                                                    if (imageUrl) {
+                                                      exampleUrl = imageUrl
+                                                    }
+                                                  } catch (error) {
+                                                    console.error('Error uploading image:', error)
+                                                    message.error(`Lỗi upload ảnh: ${error.message || 'Upload thất bại'}`)
+                                                    setLoading(false)
+                                                    return
+                                                  }
+                                                } 
+                                                // Nếu đã có URL từ Cloudinary (http/https)
+                                                else if (fileItem?.url && (fileItem.url.startsWith('http://') || fileItem.url.startsWith('https://'))) {
+                                                  exampleUrl = fileItem.url
+                                                }
+                                                // Nếu là base64 preview nhưng không có originFileObj
+                                                else if (fileItem?.url && fileItem.url.startsWith('data:')) {
+                                                  message.warning('Ảnh đã được chọn nhưng không thể upload. Vui lòng chọn lại ảnh.')
+                                                  setLoading(false)
+                                                  return
+                                                }
+                                              } 
+                                              // Nếu đã là string URL (từ database hoặc đã upload trước đó)
+                                              else if (typeof exampleUrlValue === 'string') {
+                                                exampleUrl = exampleUrlValue
+                                              }
+                                            }
+
+                                            // Format payload để gửi lên API
+                                            // Lấy Skill từ Part cha hoặc từ group
+                                            const partSkill = form.getFieldValue(['parts', name, 'Skill'])
+                                            const updatePayload = {
+                                              examTemplateId: examTemplateId,
+                                              PartTitle: groupValues.PartTitle,
+                                              Skill: groupValues.Skill || partSkill,
+                                              QuestionFrom: groupValues.QuestionFrom,
+                                              QuestionTo: groupValues.QuestionTo,
+                                              Instruction: groupValues.Instruction,
+                                              Mark: groupValues.Mark,
+                                              QuestionTypeId: groupValues.QuestionTypeId,
+                                              ExampleUrl: exampleUrl || null,
+                                            }
+
+                                            // Gọi API để cập nhật
+                                            await updateTemplatePart(groupValues.TemplatePartId, updatePayload)
+                                            
+                                            // Cập nhật lại ExampleUrl trong form nếu đã upload
+                                            if (exampleUrl) {
+                                              form.setFieldsValue({
+                                                [`parts.${name}.QuestionGroups.${groupName}.ExampleUrl`]: [{
+                                                  uid: '-1',
+                                                  name: 'image.png',
+                                                  status: 'done',
+                                                  url: exampleUrl
+                                                }]
+                                              })
+                                            }
+
+                                            // Tắt chế độ chỉnh sửa
+                                            setEditingGroups((prev) => {
+                                              const newSet = new Set(prev)
+                                              newSet.delete(groupUniqueKey)
+                                              return newSet
+                                            })
+
+                                            message.success('Đã cập nhật bộ câu thành công')
+                                            
+                                            // Gọi callback để component cha reload lại dữ liệu
+                                            if (onPartsAdded) {
+                                              onPartsAdded()
+                                            }
+                                          } catch (error) {
+                                            console.error('Error updating template part:', error)
+                                            message.error(error.message || 'Cập nhật bộ câu thất bại')
+                                          } finally {
+                                            setLoading(false)
+                                          }
                                         }
                                         
                                         return (
@@ -850,6 +1021,17 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                                 </>
                                               ) : (
                                                 <>
+                                                  {/* Nút hoàn tất */}
+                                                  <Button
+                                                    type="primary"
+                                                    onClick={handleFinishEdit}
+                                                    size="small"
+                                                    style={{ fontSize: 13 }}
+                                                    title="Hoàn tất"
+                                                    loading={loading}
+                                                  >
+                                                    Hoàn tất
+                                                  </Button>
                                                   {/* Nút hủy chỉnh sửa */}
                                                   <Button
                                                     type="text"
@@ -858,6 +1040,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                                     size="small"
                                                     style={{ fontSize: 13 }}
                                                     title="Hủy chỉnh sửa"
+                                                    disabled={loading}
                                                   />
                                                 </>
                                               )}

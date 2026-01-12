@@ -806,6 +806,68 @@ export async function uploadTemplatePartImageToCloudinary(file) {
   }
 }
 
+// Update Template Part API (PUT)
+export async function updateTemplatePart(templatePartId, payload) {
+  try {
+    if (!templatePartId) {
+      throw { status: 400, message: 'Template Part ID là bắt buộc' }
+    }
+
+    if (!payload) {
+      throw { status: 400, message: 'Payload là bắt buộc' }
+    }
+
+    // Format payload từ component format sang API format
+    const apiPayload = {
+      examTemplateId: payload.examTemplateId || payload.ExamTemplateId,
+      partTitle: payload.PartTitle || payload.partTitle || '',
+      skill: payload.Skill || payload.skill,
+      questionFrom: payload.QuestionFrom || payload.questionFrom,
+      questionTo: payload.QuestionTo || payload.questionTo,
+      instruction: payload.Instruction || payload.instruction || '',
+      mark: payload.Mark || payload.mark || 0,
+      questionTypeId: payload.QuestionTypeId || payload.questionTypeId || '',
+      exampleUrl: payload.ExampleUrl || payload.exampleUrl || null,
+    }
+
+    // Validate required fields
+    if (!apiPayload.examTemplateId) {
+      throw { status: 400, message: 'Exam Template ID là bắt buộc' }
+    }
+    if (apiPayload.skill === undefined || apiPayload.skill === null) {
+      throw { status: 400, message: 'Skill là bắt buộc' }
+    }
+    if (apiPayload.questionFrom === undefined || apiPayload.questionFrom === null) {
+      throw { status: 400, message: 'QuestionFrom là bắt buộc' }
+    }
+    if (apiPayload.questionTo === undefined || apiPayload.questionTo === null) {
+      throw { status: 400, message: 'QuestionTo là bắt buộc' }
+    }
+    if (!apiPayload.questionTypeId) {
+      throw { status: 400, message: 'QuestionTypeId là bắt buộc' }
+    }
+
+    const res = await apiClient.put(ENDPOINTS.EXAM_TEMPLATES.UPDATE_TEMPLATE_PART(templatePartId), apiPayload)
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      const message =
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể cập nhật phần của đề thi'
+      throw new Error(message)
+    }
+
+    return responseData?.data || true
+  } catch (error) {
+    // Nếu error đã có message thì throw luôn
+    if (error.message) {
+      throw error
+    }
+    handleApiError(error, 'Không thể cập nhật phần của đề thi')
+  }
+}
+
 // Duplicate Exam Template API
 export async function duplicateExamTemplate(examTemplateId) {
   try {

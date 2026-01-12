@@ -13,9 +13,9 @@ const shuffle = (list = []) => {
 }
 
 const LEVEL_CONFIG = {
-  easy: { pairs: 20, size: 'large' },
-  medium: { pairs: 30, size: 'medium' },
-  hard: { pairs: 40, size: 'small' },
+  easy: { pairs: 12, size: 'large' },
+  medium: { pairs: 18, size: 'medium' },
+  hard: { pairs: 27, size: 'small' },
 }
 
 /**
@@ -151,16 +151,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cardLarge: {
-    transform: [{ scale: 1.1 }],
-    margin: 20,
+    transform: [{ scale: 1.0 }],
+    margin: 15,
   },
   cardMedium: {
-    transform: [{ scale: 1.2 }],
-    margin: 28,
+    transform: [{ scale: 1.0 }],
+    margin: 6,
   },
   cardSmall: {
-    transform: [{ scale: 0.85 }],
-    margin: 6,
+    transform: [{ scale: 0.8 }],
+    margin: -10,
   },
 })
 

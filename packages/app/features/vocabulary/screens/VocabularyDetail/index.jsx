@@ -5,6 +5,8 @@ import { useParams, useRouter, useSearchParams } from 'solito/navigation'
 import { Space, Typography, Spin, Alert, Modal } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
+import { StaffLayout } from 'app/features/staff/components/staff-layout.web'
+import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
 import { updateVocabulary, fetchVocabularyDetail, uploadVocabularyImageToCloudinary, deleteVocabulary, addExampleToVocabulary, updateExample, deleteExample } from '../../api'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import VocabularyEditModal from './components/vocabulary-edit-modal'
@@ -21,6 +23,17 @@ export function VocabularyDetailScreen() {
   const vocabId = params?.id
   const tabParam = searchParams?.get('tab')
   const defaultTab = tabParam || 'vocabulary-words'
+
+  // Xác định cổng hiện tại dựa vào URL
+  const getCurrentPortal = () => {
+    if (typeof window === 'undefined') return 'admin'
+    const pathname = window.location.pathname
+    if (pathname === '/staff' || pathname.startsWith('/staff/')) return 'staff'
+    if (pathname === '/moderator' || pathname.startsWith('/moderator/')) return 'moderator'
+    return 'admin'
+  }
+  
+  const currentPortal = getCurrentPortal()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -70,7 +83,12 @@ export function VocabularyDetailScreen() {
   }, [vocabId])
 
   const handleNavigate = (key) => {
-    if (key) {
+    if (!key) return
+    if (currentPortal === 'staff') {
+      router.push(`/staff?tab=${key}`)
+    } else if (currentPortal === 'moderator') {
+      router.push(`/moderator?tab=${key}`)
+    } else {
       router.push(`/admin?tab=${key}`)
     }
   }
@@ -93,7 +111,13 @@ export function VocabularyDetailScreen() {
           setDeleteLoading(true)
           await deleteVocabulary(vocabularyId)
           showAdminSuccess('Đã xóa từ vựng thành công')
-          router.push('/admin?tab=vocabulary-words')
+          if (currentPortal === 'staff') {
+            router.push('/staff?tab=vocabulary-words')
+          } else if (currentPortal === 'moderator') {
+            router.push('/moderator?tab=approve-vocabulary')
+          } else {
+            router.push('/admin?tab=vocabulary-words')
+          }
         } catch (err) {
           // err có thể là response object từ API hoặc error object
           if (err?.isSuccess === false || err?.errors) {
@@ -339,7 +363,19 @@ export function VocabularyDetailScreen() {
       return (
         <div style={{ padding: 24 }}>
           <Alert type="error" message="Lỗi" description={error} />
-          <ButtonV2 title="Quay lại Admin" style={{ marginTop: 10, minWidth: 120 }} onPress={() => router.push('/admin')} />
+          <ButtonV2 
+            title="Quay lại" 
+            style={{ marginTop: 10, minWidth: 120 }} 
+            onPress={() => {
+              if (currentPortal === 'staff') {
+                router.push('/staff?tab=vocabulary-words')
+              } else if (currentPortal === 'moderator') {
+                router.push('/moderator?tab=approve-vocabulary')
+              } else {
+                router.push('/admin?tab=vocabulary-words')
+              }
+            }} 
+          />
         </div>
       )
     }
@@ -351,7 +387,15 @@ export function VocabularyDetailScreen() {
           <ButtonV2
             title="Quay lại danh sách"
             style={{ marginTop: 12, minWidth: 140 }}
-            onPress={() => router.push('/admin?tab=vocabulary-words')}
+            onPress={() => {
+              if (currentPortal === 'staff') {
+                router.push('/staff?tab=vocabulary-words')
+              } else if (currentPortal === 'moderator') {
+                router.push('/moderator?tab=approve-vocabulary')
+              } else {
+                router.push('/admin?tab=vocabulary-words')
+              }
+            }}
           />
         </div>
       )
@@ -371,7 +415,15 @@ export function VocabularyDetailScreen() {
               <ButtonV2
                 title="Quay lại"
                 color="mint"
-                onPress={() => router.push('/admin?tab=vocabulary-words')}
+                onPress={() => {
+                  if (currentPortal === 'staff') {
+                    router.push('/staff?tab=vocabulary-words')
+                  } else if (currentPortal === 'moderator') {
+                    router.push('/moderator?tab=approve-vocabulary')
+                  } else {
+                    router.push('/admin?tab=vocabulary-words')
+                  }
+                }}
                 style={{ minWidth: 100, paddingVertical: 10 }}
                 textStyle={{ fontSize: 14 }}
               />
@@ -430,6 +482,29 @@ export function VocabularyDetailScreen() {
 
   const screens = {
     'vocabulary-words': detailContent,
+  }
+
+  // Chọn layout dựa vào cổng hiện tại
+  if (currentPortal === 'staff') {
+    return (
+      <StaffLayout
+        screens={screens}
+        defaultKey={defaultTab}
+        onNavigate={handleNavigate}
+        onLogout={() => router.push('/login')}
+      />
+    )
+  }
+
+  if (currentPortal === 'moderator') {
+    return (
+      <ModeratorLayout
+        screens={screens}
+        defaultKey={defaultTab}
+        onNavigate={handleNavigate}
+        onLogout={() => router.push('/login')}
+      />
+    )
   }
 
   return (

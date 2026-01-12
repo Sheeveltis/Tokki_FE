@@ -30,6 +30,12 @@ const reportColumns = [
     dataIndex: 'month',
     key: 'month',
   },
+  
+  {
+    title: 'Số gói đăng ký',
+    dataIndex: 'subscriptions',
+    key: 'subscriptions',
+  },
   {
     title: 'Doanh thu',
     dataIndex: 'revenue',
@@ -40,22 +46,20 @@ const reportColumns = [
       </Text>
     ),
   },
-  {
-    title: 'Số đăng ký',
-    dataIndex: 'subscriptions',
-    key: 'subscriptions',
-  },
 ]
 
 export function RevenueReport() {
   const [dateRange, setDateRange] = useState(null)
   const [reportType, setReportType] = useState('monthly')
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [overview, setOverview] = useState({
     totalRevenue: 0,
     totalOrders: 0,
     averageRevenue: 0,
   })
   const [packageRevenueData, setPackageRevenueData] = useState([])
+  const [revenueChartData, setRevenueChartData] = useState([])
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const fetchOverview = async () => {
@@ -94,17 +98,42 @@ export function RevenueReport() {
       }
     }
 
+    const fetchRevenueChart = async () => {
+      setLoading(true)
+      try {
+        const response = await apiClient.get(ENDPOINTS.STATISTICS.CHART(selectedYear))
+        const data = response?.data?.data
+        if (data && Array.isArray(data)) {
+          // Map data từ API để phù hợp với LineChart
+          const mappedData = data.map((item) => ({
+            month: item.month,
+            revenue: item.revenue,
+            subscriptions: item.totalOrders, // Map totalOrders thành subscriptions cho bảng
+          }))
+          setRevenueChartData(mappedData)
+        }
+      } catch (error) {
+        console.error('Failed to fetch revenue chart', error)
+        // Fallback về mock data nếu API lỗi
+        setRevenueChartData(mockRevenueData)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     fetchOverview()
     fetchPackageRevenue()
-  }, [])
+    fetchRevenueChart()
+  }, [selectedYear])
 
+  const chartData = revenueChartData.length > 0 ? revenueChartData : mockRevenueData
   const totalRevenue =
-    overview.totalRevenue || mockRevenueData.reduce((sum, item) => sum + item.revenue, 0)
+    overview.totalRevenue || chartData.reduce((sum, item) => sum + item.revenue, 0)
   const totalSubscriptions =
-    overview.totalOrders || mockRevenueData.reduce((sum, item) => sum + item.subscriptions, 0)
+    overview.totalOrders || chartData.reduce((sum, item) => sum + (item.subscriptions || 0), 0)
   const averageRevenue =
     overview.averageRevenue ||
-    Math.round(totalRevenue / (mockRevenueData.length || 1))
+    Math.round(totalRevenue / (chartData.length || 1))
 
   const handleExport = () => {
     // TODO: Implement export functionality
@@ -123,16 +152,31 @@ export function RevenueReport() {
           </div>
           <Space>
             <Select
+              value={selectedYear}
+              onChange={setSelectedYear}
+              style={{ width: 120, fontSize: 14 }}
+              size="large"
+            >
+              {Array.from({ length: 5 }, (_, i) => {
+                const year = new Date().getFullYear() - i
+                return (
+                  <Option key={year} value={year}>
+                    {year}
+                  </Option>
+                )
+              })}
+            </Select>
+            <Select
               value={reportType}
               onChange={setReportType}
-              style={{ width: 150 }}
+              style={{ width: 140, fontSize: 14 }}
               size="large"
             >
               <Option value="monthly">Theo tháng</Option>
               <Option value="quarterly">Theo quý</Option>
               <Option value="yearly">Theo năm</Option>
             </Select>
-            <RangePicker size="large" value={dateRange} onChange={setDateRange} />
+            <RangePicker size="middle" value={dateRange} onChange={setDateRange} style={{ fontSize: 14 }} />
             <ButtonV2
               title="Xuất báo cáo"
               color="#F1BE4B"
@@ -182,9 +226,9 @@ export function RevenueReport() {
         </Row>
 
         {/* Biểu đồ doanh thu */}
-        <Card title="Biểu đồ doanh thu theo tháng">
+        <Card title={`Biểu đồ doanh thu theo tháng - Năm ${selectedYear}`} loading={loading}>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={mockRevenueData}>
+            <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
@@ -217,9 +261,10 @@ export function RevenueReport() {
         <Card title="Báo cáo doanh thu cơ bản">
           <Table
             columns={reportColumns}
-            dataSource={mockRevenueData}
+            dataSource={chartData}
             rowKey="month"
-            pagination={{ pageSize: 6 }}
+            pagination={false}
+            loading={loading}
           />
         </Card>
       </Space>

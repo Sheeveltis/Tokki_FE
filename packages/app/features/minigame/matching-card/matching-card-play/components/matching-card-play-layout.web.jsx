@@ -165,7 +165,7 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    height: '100vh',
+    height: '100%',
     backgroundColor: '#F3EEDC',
     paddingHorizontal: 20,
     paddingVertical: 12,

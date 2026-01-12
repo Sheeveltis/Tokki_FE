@@ -12,6 +12,10 @@ export function useFlashcardList(levelId) {
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [selectedLevel, setSelectedLevel] = useState(levelId ?? null)
+
+  const [pageNumber, setPageNumber] = useState(1)
+  const pageSize = 5
+
   const debounceTimerRef = useRef(null)
 
   // Fetch flashcard topics từ API
@@ -20,6 +24,8 @@ export function useFlashcardList(levelId) {
       setLoading(true)
       setError(null)
       const data = await getFlashcardTopics(selectedLevel ?? levelId, {
+        pageNumber,
+        pageSize,
         searchTerm: debouncedSearchTerm || undefined,
       })
       setTopics(Array.isArray(data) ? data : [])
@@ -32,7 +38,7 @@ export function useFlashcardList(levelId) {
     } finally {
       setLoading(false)
     }
-  }, [levelId, debouncedSearchTerm, selectedLevel])
+  }, [levelId, debouncedSearchTerm, selectedLevel, pageNumber])
 
   // Load data khi component mount, debouncedSearchTerm hoặc selectedLevel thay đổi
   useEffect(() => {
@@ -75,17 +81,30 @@ export function useFlashcardList(levelId) {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
     }
+    setPageNumber(1)
     setDebouncedSearchTerm(searchTerm)
   }
 
   const handleLevelChange = (level) => {
     setSelectedLevel(level)
+    setPageNumber(1)
     // Hủy debounce timer và cập nhật debouncedSearchTerm ngay khi đổi level
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
     }
     setDebouncedSearchTerm(searchTerm)
     // fetchTopics sẽ tự động chạy qua useEffect khi debouncedSearchTerm hoặc selectedLevel thay đổi
+  }
+
+  const canNextPage = topics.length === pageSize
+
+  const handlePrevPage = () => {
+    setPageNumber((p) => Math.max(1, p - 1))
+  }
+
+  const handleNextPage = () => {
+    if (!canNextPage) return
+    setPageNumber((p) => p + 1)
   }
 
   return {
@@ -99,6 +118,12 @@ export function useFlashcardList(levelId) {
     handleSearchSubmit,
     selectedLevel,
     handleLevelChange,
+
+    pageNumber,
+    pageSize,
+    canNextPage,
+    handlePrevPage,
+    handleNextPage,
   }
 }
 
