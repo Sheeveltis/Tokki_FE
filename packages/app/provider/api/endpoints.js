@@ -4,11 +4,11 @@ import { Platform } from 'react-native'
  * Cấu hình API Domain
  * - Web: sử dụng localhost
  * - Mobile: sử dụng IP của máy chủ backend (cần thay đổi theo IP thực tế của máy bạn)
- * 
+ *
  * Để lấy IP của máy:
  * - Windows: mở CMD và chạy `ipconfig`, tìm "IPv4 Address" (thường là 192.168.x.x)
  * - Mac/Linux: mở Terminal và chạy `ifconfig` hoặc `ip addr`, tìm IP của WiFi/Ethernet
- * 
+ *
  * Ví dụ: Nếu IP của máy là 192.168.1.100, thì MOBILE_DOMAIN = 'http://192.168.1.100:5031'
  */
 const WEB_DOMAIN = 'http://localhost:5031'
@@ -29,8 +29,43 @@ export const ENDPOINTS = {
       GET_BY_ID: (id) => `/Blog/${id}`,
       CREATE: '/Blog',                // POST: Tạo mới
       UPDATE: (id) => `/Blog/${id}`,    
-      DELETE: (id) => `/Blog/${id}`,     
-      ADMIN_LIST: '/Blog', // same endpoint, nhưng dùng kèm query pageNumber/pageSize
+      DELETE: (id) => `/Blog/admin/delete/${id}`,     
+      ADMIN_LIST: '/Blog/admin/get-all', // same endpoint, nhưng dùng kèm query pageNumber/pageSize
+      STAFF_SUBMIT_FOR_APPROVAL: (blogId) => `/Blog/staff/submit-for-approval/${blogId}`,
+      MODERATOR_APPROVE: (blogId) => `/Blog/moderator/approve/${blogId}`,
+      MODERATOR_REJECT:  '/Blog/moderator/reject',
+    },
+    QUESTION_TYPE: {
+      GET_ALL: '/QuestionType',
+      GET_BY_ID: (id) => `/QuestionType/${id}`,
+      CREATE: '/QuestionType',
+      UPDATE: (id) => `/QuestionType/${id}`,
+      DELETE: (id) => `/QuestionType/${id}`,
+    },
+  
+    QUESTION: {
+      GET_ALL: '/Question',
+      GET_BY_ID: (id) => `/Question/${id}`,
+    },
+    QUESTION_BANK: {
+      GET_ALL: '/QuestionBanks',
+      GET_BY_ID: (id) => `/QuestionBanks/${id}`,
+      CREATE: '/QuestionBanks',
+      UPDATE: '/QuestionBanks/update',
+      DELETE: (id) => `/QuestionBanks/${id}`,
+      ACTIVATE: '/QuestionBanks/admin/activate',
+    },
+    QUESTION_BANK_OPTION: {
+      CREATE: (questionBankId) => `/QuestionBanks/${questionBankId}/options`,
+      UPDATE: (questionBankId, optionId) => `/QuestionBanks/${questionBankId}/options/${optionId}`,
+      DELETE: (questionBankId, optionId) => `/QuestionBanks/${questionBankId}/options/${optionId}`,
+    },
+    PASSAGE: {
+      GET_ALL: '/Passages',
+      GET_BY_ID: (id) => `/Passages/${id}`,
+      CREATE: '/Passages',
+      UPDATE: '/Passages/update',
+      DELETE: (id) => `/Passages/${id}`,
     },
     STATISTIC_BLOG: {
       DASHBOARD: '/StatisticBlog/dashboard',
@@ -149,6 +184,15 @@ export const ENDPOINTS = {
       UPLOAD_TOPIC_IMAGE: '/Cloudinary/image/topic',  // POST: Upload ảnh chủ đề lên Cloudinary
       UPLOAD_AVATAR: '/Cloudinary/image/avatar',  // POST: Upload avatar lên Cloudinary
       UPLOAD_TEMPLATE_PART_IMAGE: '/Cloudinary/image/template-part',  // POST: Upload ảnh template part lên Cloudinary
+      UPLOAD_VOCABULARY_IMAGE: '/cloudinary/vocabulary-image',  // POST: Upload ảnh từ vựng lên Cloudinary
+      UPLOAD_TOPIC_IMAGE: '/cloudinary/topic-image',  // POST: Upload ảnh chủ đề lên Cloudinary
+      UPLOAD_AVATAR: '/cloudinary/avatar',  // POST: Upload avatar lên Cloudinary
+
+      // Question/Option media
+      UPLOAD_QUESTION_IMAGE: '/Cloudinary/image/question',
+      UPLOAD_OPTION_IMAGE: '/Cloudinary/image/option',
+      UPLOAD_QUESTION_AUDIO: '/Cloudinary/audio/question',
+      UPLOAD_OPTION_AUDIO: '/Cloudinary/audio/option',
     },
     EXCEL: {
       ADD_VOCAB_TO_TOPIC: (topicId) => `/Excel/add-vocab?topicId=${topicId}`,  // POST: Import từ vựng từ Excel vào chủ đề
@@ -168,7 +212,5 @@ export const ENDPOINTS = {
       UPDATE_TEMPLATE_PART: (templatePartId) => `/ExamTemplates/TemplateParts/${templatePartId}`,  // PUT: Cập nhật một template part (templatePartId trong URL)
       DUPLICATE: (id) => `/ExamTemplates/${id}/duplicate`,  // POST: Sao chép exam template
     },
-    QUESTION_TYPE: {
-      GET_ALL: '/QuestionType',                        // GET: Lấy danh sách question types (query: skill, examType)
-    },
+    
   }

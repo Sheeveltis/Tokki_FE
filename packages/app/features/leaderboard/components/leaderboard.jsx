@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react'
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { getAuthToken, isCurrentTokenExpired } from '../../../provider/api/client'
+import { LoginRequest } from '../../../../components/loginRequest'
 import { getLeaderboard } from '../api/api'
 import UserIcon from '../../../../assets/user.png'
 
@@ -22,9 +24,20 @@ export function Leaderboard({ timeFrame = 0 }) {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [showLoginRequest, setShowLoginRequest] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
+      const token = getAuthToken()
+      const isAuthed = Boolean(token) && !isCurrentTokenExpired()
+
+      if (!isAuthed) {
+        setShowLoginRequest(true)
+        setLoading(false)
+        setData([])
+        return
+      }
+
       try {
         setLoading(true)
         setError(null)
@@ -53,6 +66,14 @@ export function Leaderboard({ timeFrame = 0 }) {
     if (rank === 2) return { backgroundColor: '#C0C0C0', borderColor: '#808080' }
     if (rank === 3) return { backgroundColor: '#CD7F32', borderColor: '#A0522D' }
     return { backgroundColor: '#FFFFFF', borderColor: '#E5E3DC' }
+  }
+
+  if (showLoginRequest) {
+    return (
+      <View style={styles.loginOverlay}>
+        <LoginRequest onClose={() => setShowLoginRequest(false)} />
+      </View>
+    )
   }
 
   if (loading) {
@@ -284,6 +305,14 @@ const styles = StyleSheet.create({
   },
   xpValueTop: {
     color: '#FFA500',
+  },
+  loginOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+    padding: 20,
   },
 })
 

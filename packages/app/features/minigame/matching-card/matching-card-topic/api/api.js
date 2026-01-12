@@ -72,17 +72,22 @@ export const getMinigameTopics = async (
     }
 
     // Map về shape UI dùng cho minigame-topic
-    return items.map((item) => ({
+    const mappedItems = items.map((item) => ({
       id: item.topicId,
       titleKo: item.topicName,
       titleVi: item.description || '',
       imgUrl: item.imgUrl,
       level: item.level,
       _raw: item,
-    }))
+    }));
+
+    return {
+      items: mappedItems,
+      totalPages: pagingData.totalPages || 1,
+    };
   } catch (error) {
-    console.error('Error fetching minigame topics:', error)
-    return []
+    console.error('Error fetching minigame topics:', error);
+    return { items: [], totalPages: 1 };
   }
 }
 

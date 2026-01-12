@@ -1,11 +1,13 @@
-import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react'
-import { StyleSheet, Text, View, Image, ScrollView, Pressable, Platform } from 'react-native'
+import React, { useEffect, useState, useImperativeHandle, forwardRef, useCallback } from 'react'
+import { StyleSheet, Text, View, Image, Pressable, Platform } from 'react-native'
 import { normalizeImageSource, getMinigameTopics } from '../api/api'
 
 const MatchingCardTopicComponent = forwardRef(({ levelId, selectedId, onSelect, onConfirm }, ref) => {
   const [apiTopics, setApiTopics] = useState([])
   const [loading, setLoading] = useState(false)
   const [current, setCurrent] = useState(selectedId || null)
+  const [pageNumber, setPageNumber] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   
   const handleConfirm = () => {
     console.log('[MatchingCardTopic] handleConfirm called, current:', current)
@@ -28,37 +30,32 @@ const MatchingCardTopicComponent = forwardRef(({ levelId, selectedId, onSelect, 
     confirm: handleConfirm
   }))
 
+  const fetchTopics = useCallback(async () => {
+    if (!levelId) {
+      setApiTopics([])
+      setTotalPages(1)
+      setLoading(false)
+      return
+    }
+
+    try {
+      setLoading(true)
+      const res = await getMinigameTopics(levelId, { pageNumber, pageSize: 3 })
+      const items = Array.isArray(res?.items) ? res.items : []
+      setApiTopics(items)
+      setTotalPages(typeof res?.totalPages === 'number' ? res.totalPages : 1)
+    } catch (error) {
+      console.error('MatchingCardTopic/fetch error:', error)
+      setApiTopics([])
+      setTotalPages(1)
+    } finally {
+      setLoading(false)
+    }
+  }, [levelId, pageNumber])
+
   useEffect(() => {
-    let isMounted = true
-
-    const fetchTopics = async () => {
-      if (!levelId) {
-        if (isMounted) {
-          setApiTopics([])
-          setLoading(false)
-        }
-        return
-      }
-
-      try {
-        setLoading(true)
-        const list = await getMinigameTopics(levelId)
-        if (!isMounted) return
-        setApiTopics(Array.isArray(list) ? list : [])
-      } catch (error) {
-        console.error('MatchingCardTopic/fetch error:', error)
-        if (isMounted) setApiTopics(null)
-      } finally {
-        if (isMounted) setLoading(false)
-      }
-    }
-
     fetchTopics()
-
-    return () => {
-      isMounted = false
-    }
-  }, [levelId])
+  }, [fetchTopics])
 
   const dataSource = Array.isArray(apiTopics) ? apiTopics : []
 
@@ -79,7 +76,7 @@ const MatchingCardTopicComponent = forwardRef(({ levelId, selectedId, onSelect, 
     <View style={styles.wrapper}>
       <Text style={styles.title}>Chủ đề</Text>
 
-      <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
+      <View style={styles.list}>
         {dataSource.map((topic) => {
           const active = topic.id === current
           return (
@@ -109,7 +106,27 @@ const MatchingCardTopicComponent = forwardRef(({ levelId, selectedId, onSelect, 
             </Pressable>
           )
         })}
-      </ScrollView>
+      </View>
+
+      <View style={styles.pagination}>
+        <Pressable
+          onPress={() => setPageNumber((p) => Math.max(1, p - 1))}
+          disabled={loading || pageNumber <= 1}
+          style={[styles.pageBtn, (loading || pageNumber <= 1) && styles.pageBtnDisabled]}
+        >
+          <Text style={styles.pageBtnText}>Trước</Text>
+        </Pressable>
+
+        <Text style={styles.pageInfo}>{pageNumber}/{totalPages}</Text>
+
+        <Pressable
+          onPress={() => setPageNumber((p) => Math.min(totalPages, p + 1))}
+          disabled={loading || pageNumber >= totalPages}
+          style={[styles.pageBtn, (loading || pageNumber >= totalPages) && styles.pageBtnDisabled]}
+        >
+          <Text style={styles.pageBtnText}>Sau</Text>
+        </Pressable>
+      </View>
     </View>
   )
 })
@@ -133,11 +150,38 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   list: {
-    flexGrow: 0,
-  },
-  listContent: {
     gap: 12,
     paddingVertical: 4,
+  },
+  pagination: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 14,
+  },
+  pageBtn: {
+    backgroundColor: '#7FA14D',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    ...(Platform.OS === 'web' && { cursor: 'pointer' }),
+  },
+  pageBtnDisabled: {
+    opacity: 0.5,
+    ...(Platform.OS === 'web' && { cursor: 'not-allowed' }),
+  },
+  pageBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  pageInfo: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1C1C1C',
+    minWidth: 56,
+    textAlign: 'center',
   },
   item: {
     flexDirection: 'row',

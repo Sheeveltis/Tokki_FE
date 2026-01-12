@@ -219,6 +219,7 @@ export const Navbar = ({
             justifyContent: 'center',
             backgroundColor: '#FFF8E7',
             overflow: 'hidden',
+            height:"8%",
           },
           stickyPositionStyle,
           style,
