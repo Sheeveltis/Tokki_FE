@@ -24,6 +24,7 @@ const LazyExamTemplateManagement = lazy(() => import('./screens/ExamTemplateMana
 const LazyExamManagement = lazy(() => import('./screens/ExamManagement'))
 const LazyManualEmail = lazy(() => import('./screens/ManualEmail'))
 const LazyQuestionTypeManagement = lazy(() => import('./screens/QuestionType'))
+const LazyPassageManagement = lazy(() => import('./screens/PassageManagement'))
 
 const LoadingFallback = () => <Spin />
 
@@ -125,6 +126,11 @@ export function AdminScreen() {
       'question-bank': (
         <Suspense fallback={<LoadingFallback />}>
           <LazyQuestionTypeManagement />
+        </Suspense>
+      ),
+      'passage-management': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyPassageManagement />
         </Suspense>
       ),
       'exam-management': (
