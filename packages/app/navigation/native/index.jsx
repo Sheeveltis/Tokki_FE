@@ -6,9 +6,9 @@ import { View, StyleSheet } from 'react-native'
 import { HomeScreen } from 'app/features/home/screen'
 import { DetailScreen } from 'app/features/user/screens/Detail'
 import { BlogDetailScreen } from 'app/features/blog/detail-blog'
-import { LoginScreen } from 'app/features/authentication/login-screen'
-import { RegisterScreen } from 'app/features/authentication/register-screen'
-import { ForgotPasswordScreen } from 'app/features/authentication/forgot-password/forgot-password-screen'
+import { LoginScreen } from 'app/features/authentication/screens/login-screen.native'
+import { RegisterScreen } from 'app/features/authentication/screens/register-screen.native'
+import { ForgotPasswordScreen } from 'app/features/authentication/screens/forgot-password-screen'
 import { PremiumScreen } from 'app/features/payment/premium-package/premium-screen'
 import { PackageScreen } from 'app/features/payment/payment-package/package-screen'
 import { PaymentScreen } from 'app/features/payment/payment-detail/payment-screen'
@@ -30,14 +30,14 @@ export function NativeNavigation() {
   return (
     <View style={styles.container}>
       <Stack.Navigator 
-      initialRouteName="flashcard-list"
+      initialRouteName="login"
       screenListeners={{
         state: (e) => {
           console.log('Navigation state changed:', e.data?.state)
         },
       }}
     >
-      {/* <Stack.Screen
+      <Stack.Screen
         name="login"
         component={LoginScreen}
         options={{
@@ -108,7 +108,7 @@ export function NativeNavigation() {
       <Stack.Screen
         name="error"
         component={ErrorScreen}
-      /> */}
+      /> 
       <Stack.Screen
         name="flashcard-list"
         component={FlashcardListScreen}
