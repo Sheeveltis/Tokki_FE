@@ -10,9 +10,9 @@ import { UserDetailScreen } from '@tokki/app/features/user/screens/UserDetail'
 import { CreateUserScreen } from '@tokki/app/features/user/screens/CreateUser'
 import { CreateAdminStaffScreen } from '@tokki/app/features/user/screens/CreateAdminStaff'
 import { CreateQuestionScreen } from '@tokki/app/features/admin/screens/CreateQuestion'
-import { QuestionBankDetailScreen } from '@tokki/app/features/admin/screens/QuestionBankDetail'
-import { CreateQuestionTypeScreen } from '@tokki/app/features/admin/screens/CreateQuestionType'
+import { QuestionTypeManagement } from '@tokki/app/features/admin/screens/QuestionType'
 import { QuestionTypeDetailScreen } from '@tokki/app/features/admin/screens/QuestionType/components/QuestionTypeDetail'
+import { PassageManagementScreen } from '@tokki/app/features/admin/screens/PassageManagement'
 import { ExamTemplateDetailScreen } from '@tokki/app/features/admin/screens/ExamTemplateManagement/ExamTemplateDetail'
 import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/FlashcardTopicDetail'
 import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/VocabularyDetail'
@@ -47,12 +47,16 @@ export const adminRoutes = [
   { path: '/admin/users/:id', element: <UserDetailScreen /> },
 
   // Admin - Question Bank Module
+  // Entry: go to QuestionType list first
+  { path: '/admin/question-bank', element: <QuestionTypeManagement /> },
   { path: '/admin/question-bank/create', element: <CreateQuestionScreen /> },
-  { path: '/admin/question-bank/:id', element: <QuestionBankDetailScreen /> },
 
   // Admin - Question Type Module
-  { path: '/admin/question-type/create', element: <CreateQuestionTypeScreen /> },
+  { path: '/admin/question-type', element: <QuestionTypeManagement /> },
   { path: '/admin/question-type/:id', element: <QuestionTypeDetailScreen /> },
+
+  // Admin - Passage Module
+  { path: '/admin/passage', element: <PassageManagementScreen /> },
 
   // Admin - Vocabulary Module
   { path: '/admin/vocab-topic/:id', element: <FlashcardTopicDetailScreen /> },
