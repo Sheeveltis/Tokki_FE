@@ -167,6 +167,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F0DD',
     padding: 24,
     position: 'relative',
+    paddingTop:73,
+
   },
   contentRow: {
     flexDirection: 'row',
@@ -205,7 +207,7 @@ const styles = StyleSheet.create({
   },
   carrot: {
     position: 'absolute',
-    top: 10,
+    top: 100,
     right: 350,
     width: 200,
     height: 100,
