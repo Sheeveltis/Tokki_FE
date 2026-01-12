@@ -27,14 +27,14 @@ import { Button } from '../../../../components/button'
 import { login, getUserLevel } from '../api'
 import { setAuthToken, clearAuthToken } from '../../../provider/api/client'
 import { heartbeatService } from './heartbeat-service'
-import { showApiNotification } from '../helpers/notification'
+import { showApiNotification } from '../utils/notification'
 import { encryptToken } from '../../../helpers/token-encryption'
 import { setStorageItem, removeStorageItem, dispatchStorageEvent } from '../../../helpers/storage'
 import { HelperAdmin } from '../../../../components/HelperAdmin'
 import LogoImage from '../../../../assets/logo-text.png'
 import { NavigationPill } from '../../../../components/navigation-pill'
-import { InputEmail } from '../forgot-password/components/input-Email'
-import { InputOTP } from '../forgot-password/components/input-OTP'
+import { InputEmail } from './input-email'
+import { InputOTP } from './input-otp'
 
 /**
  * LoginPanel: toàn bộ cột bên phải của màn đăng nhập (tiêu đề + form + ghi chú)

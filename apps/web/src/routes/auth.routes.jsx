@@ -1,9 +1,9 @@
 import React from 'react'
 import { Route } from 'react-router-dom'
 import { useRouteNavigation } from './utils/navigation-helpers'
-import { LoginScreen } from '@tokki/app/features/authentication/login-screen'
-import { RegisterScreen } from '@tokki/app/features/authentication/register-screen'
-import { ForgotPasswordScreen } from '@tokki/app/features/authentication/forgot-password/forgot-password-screen'
+import { LoginScreen } from '@tokki/app/features/authentication/screens/login-screen.web'
+import { RegisterScreen } from '@tokki/app/features/authentication/screens/register-screen.web'
+import { ForgotPasswordScreen } from '@tokki/app/features/authentication/screens/forgot-password-screen'
 
 /**
  * Authentication Routes Container

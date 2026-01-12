@@ -1,12 +1,13 @@
+// packages/app/features/authentication/screens/login-screen.native.jsx
 import React from 'react'
 import { StyleSheet } from 'react-native'
-import { useRouter } from 'solito/navigation'
+import { useNavigation } from '@react-navigation/native'
 
-import { AuthLayout } from './components/auth-layout'
-import { LoginHero } from './components/login-hero'
-import { LoginPanel } from './components/login-form'
-import LoginHeroImage from '../../../assets/background1.png'
-import LoginHeroImage2 from '../../../assets/loginBackground.png'
+import { AuthLayout } from '../components/auth-layout'
+import { LoginHero } from '../components/login-hero'
+import { LoginPanel } from '../components/login-form'
+import LoginHeroImage from '../../../../assets/background1.png'
+import LoginHeroImage2 from '../../../../assets/loginBackground.png'
 
 /**
  * @param {{
@@ -15,16 +16,18 @@ import LoginHeroImage2 from '../../../assets/loginBackground.png'
  * }} props
  */
 export function LoginScreen({ onPressSignUp, onPressGoogle }) {
-  const router = useRouter()
+  const navigation = useNavigation()
 
   const handlePressSignUp = () => {
     if (onPressSignUp) {
       onPressSignUp()
       return
     }
-    
-    // Web: dùng Solito router
-    router.push('/register')
+    try {
+      navigation.navigate('register')
+    } catch (error) {
+      console.error('Navigation error:', error)
+    }
   }
 
   const handlePressGoogle = () => {
@@ -46,4 +49,3 @@ export function LoginScreen({ onPressSignUp, onPressGoogle }) {
 }
 
 const styles = StyleSheet.create({})
-

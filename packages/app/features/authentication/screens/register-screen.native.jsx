@@ -1,13 +1,13 @@
-// packages/app/features/authentication/register-screen.native.jsx
+// packages/app/features/authentication/screens/register-screen.native.jsx
 import React from 'react'
 import { StyleSheet } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 
-import { AuthLayout } from './components/auth-layout'
-import { LoginHero } from './components/login-hero'
-import { RegisterPanel } from './components/register-form'
-import LoginHeroImage from '../../../assets/background1.png'
-import LoginHeroImage2 from '../../../assets/registerBackground.png'
+import { AuthLayout } from '../components/auth-layout'
+import { LoginHero } from '../components/login-hero'
+import { RegisterPanel } from '../components/register-form'
+import LoginHeroImage from '../../../../assets/background1.png'
+import LoginHeroImage2 from '../../../../assets/registerBackground.png'
 
 /**
  * @param {{

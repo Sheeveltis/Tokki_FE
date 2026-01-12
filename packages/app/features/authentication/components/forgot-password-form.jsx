@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react'
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, Image, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
-import { TextInput } from '../../../../../components/textInput'
-import { Button } from '../../../../../components/button'
-import LogoImage from '../../../../../assets/logo-text.png'
-import HomeIcon from '../../../../../assets/icon/icon-mainflow/home.svg'
+import { TextInput } from '../../../../components/textInput'
+import { Button } from '../../../../components/button'
+import { NavigationPill } from '../../../../components/navigation-pill'
+import LogoImage from '../../../../assets/logo-text.png'
 
 /**
  * ForgotPasswordForm: Form tạo mật khẩu mới
@@ -30,7 +30,6 @@ export const ForgotPasswordForm = ({ email, onSubmit }) => {
   }
 
   const logoSource = useMemo(() => normalizeImageSource(LogoImage), [])
-  const homeIconSource = useMemo(() => normalizeImageSource(HomeIcon), [])
 
   const handleSubmit = () => {
     if (submitting) return
@@ -56,21 +55,20 @@ export const ForgotPasswordForm = ({ email, onSubmit }) => {
   }
 
   return (
-    <View style={styles.wrapper}>
-      {/* Trang chủ + Logo */}
-      <TouchableOpacity
-        style={styles.backHome}
-        onPress={() => router.push('/homepage')}
-        activeOpacity={0.8}
-      >
-        {homeIconSource ? <Image source={homeIconSource} style={styles.backIcon} /> : null}
-        <Text style={styles.backText}>Trang chủ</Text>
-      </TouchableOpacity>
-      <View style={styles.logoContainer}>
-        {logoSource ? <Image source={logoSource} style={styles.logoImage} /> : null}
-      </View>
+    <View style={styles.container}>
+      {/* Trang chủ button - chỉ hiển thị trên web */}
+      {Platform.OS === 'web' && (
+        <NavigationPill style={styles.backHome} label="Trang chủ" to="/homepage" />
+      )}
+      
+      {/* Logo - chỉ hiển thị trên web */}
+      {Platform.OS === 'web' && (
+        <View style={styles.logoContainer}>
+          {logoSource && <Image source={logoSource} style={styles.logoImage} />}
+        </View>
+      )}
 
-      <View style={styles.card}>
+      <View style={styles.content}>
         {/* Title */}
         <View style={styles.headerBlock}>
           <Text style={styles.title}>Tạo mật khẩu mới</Text>
@@ -78,14 +76,13 @@ export const ForgotPasswordForm = ({ email, onSubmit }) => {
         </View>
 
         {/* Inputs */}
-        <View style={styles.inputGroup}>
+        <View style={styles.formBlock}>
           <TextInput
             label="Mật khẩu"
             placeholder="Nhập Mật Khẩu Mới"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            inputStyle={styles.input}
           />
           <TextInput
             label="Xác nhận mật khẩu"
@@ -93,7 +90,6 @@ export const ForgotPasswordForm = ({ email, onSubmit }) => {
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
-            inputStyle={styles.input}
           />
         </View>
 
@@ -105,7 +101,6 @@ export const ForgotPasswordForm = ({ email, onSubmit }) => {
           color="lightGreen"
           disabled={submitting}
           style={styles.submitBtn}
-          textStyle={styles.submitText}
         />
       </View>
     </View>
@@ -113,92 +108,25 @@ export const ForgotPasswordForm = ({ email, onSubmit }) => {
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: Platform.OS === 'web' ? 'center' : 'flex-start',
     paddingHorizontal: 32,
-    paddingVertical: 10,
+    paddingVertical: 32,
     position: 'relative',
-  },
-  card: {
-    width: '200%',
-    maxWidth: 1000,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    gap: 50,
-    marginTop: 32,
-    paddingTop: 8,
-    bottom: 50,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#2D2D2D',
-    fontFamily: 'Lexend, sans-serif',
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 18,
-    maxHeight: 50,
-    color: '#555',
-    fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
-  },
-  inputGroup: {
-    width: '100%',
-    gap: 12,
-  },
-  input: {
-    backgroundColor: '#F3F3F3',
-    borderRadius: 4,
-    minHeight: 50,
-  },
-  errorText: {
-    color: '#941C28',
-    fontSize: 14,
-    fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
-  },
-  submitBtn: {
-    marginTop: 8,
-    width: '40%',
-    alignSelf: 'center',
-  },
-  submitText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    minHeight: Platform.OS !== 'web' ? '100%' : 'auto',
   },
   backHome: {
     position: 'absolute',
     top: 24,
-    left: -100, // sát hơn cạnh trái
+    left: 24,
     zIndex: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-  },
-  backIcon: {
-    width: 20,
-    height: 20,
-    resizeMode: 'contain',
-  },
-  backText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111',
-    fontFamily: 'Epilogue, sans-serif',
   },
   logoContainer: {
     position: 'absolute',
     top: 24,
-    right: -100, // sát hơn cạnh phải
+    right: 24,
     zIndex: 10,
     flexDirection: 'row',
     alignItems: 'center',
@@ -209,9 +137,38 @@ const styles = StyleSheet.create({
     height: 48,
     resizeMode: 'contain',
   },
-  headerBlock: {
-    gap: 12,
+  content: {
     width: '100%',
+    maxWidth: 620,
+    gap: 16,
+  },
+  headerBlock: {
+    gap: 16,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
+    fontFamily: 'Lexend, sans-serif',
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 14,
+    maxHeight: 50,
+    color: '#555',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+  },
+  formBlock: {
+    gap: 12,
+  },
+  errorText: {
+    color: '#E53935',
+    fontSize: 13,
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  submitBtn: {
+    marginTop: 8,
+    width: Platform.OS === 'web' ? '30%' : '50%',
+    alignSelf: 'center',
   },
 })
-

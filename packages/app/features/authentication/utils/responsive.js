@@ -69,5 +69,3 @@ export const responsive = (value, type = 'width') => {
   }
   return scaleSize(value)
 }
-
-

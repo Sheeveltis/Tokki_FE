@@ -1,6 +1,6 @@
 import React from 'react'
-import { ForgotPasswordForm } from './components/forgot-password-form'
-import { ForgotPasswordLayoutWeb } from './components/forgot-password-layout.web'
+import { ForgotPasswordForm } from '../components/forgot-password-form'
+import { ForgotPasswordLayoutWeb } from '../components/forgot-password-layout.web'
 import { LoginHero } from '../components/login-hero'
 import LoginHeroImage from '../../../../assets/background1.png'
 import LoginHeroImage2 from '../../../../assets/loginBackground.png'
@@ -16,4 +16,3 @@ export function ForgotPasswordScreen({ email, onSubmit }) {
     />
   )
 }
-

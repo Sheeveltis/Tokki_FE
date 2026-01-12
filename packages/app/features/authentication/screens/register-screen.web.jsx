@@ -2,11 +2,11 @@ import React from 'react'
 import { StyleSheet } from 'react-native'
 import { useRouter } from 'solito/navigation'
 
-import { AuthLayout } from './components/auth-layout'
-import { LoginHero } from './components/login-hero'
-import { RegisterPanel } from './components/register-form'
-import LoginHeroImage from '../../../assets/background1.png'
-import LoginHeroImage2 from '../../../assets/registerBackground.png'
+import { AuthLayout } from '../components/auth-layout'
+import { LoginHero } from '../components/login-hero'
+import { RegisterPanel } from '../components/register-form'
+import LoginHeroImage from '../../../../assets/background1.png'
+import LoginHeroImage2 from '../../../../assets/registerBackground.png'
 
 /**
  * @param {{
@@ -39,4 +39,3 @@ export function RegisterScreen({ onPressLogin }) {
 }
 
 const styles = StyleSheet.create({})
-

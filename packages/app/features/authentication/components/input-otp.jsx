@@ -1,32 +1,31 @@
 import React, { useState } from 'react'
 import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native'
-import { TextInput } from '../../../../../components/textInput'
-import { RedBtn } from '../../../../../components/redbtn'
-import { sendForgotPasswordOtp } from '../api/api'
-import { showApiNotification } from '../../helpers/notification'
+import { TextInput } from '../../../../components/textInput'
+import { RedBtn } from '../../../../components/redbtn'
+import { verifyForgotPasswordOtp } from '../api'
 
 /**
- * InputEmail: Modal popup để nhập email và gửi OTP
+ * InputOTP: Modal popup để nhập OTP và xác thực
  * Props:
  *  - visible: boolean - Hiển thị/ẩn modal
+ *  - email: string - Email đã nhập từ InputEmail
  *  - onClose: () => void - Callback khi đóng modal
- *  - onSuccess: (data, email) => void - Callback khi gửi OTP thành công, truyền email
+ *  - verifyFn?: (email: string, otp: string) => Promise<any> - hàm verify tuỳ biến
+ *  - onSuccess: (data) => void - Callback khi xác thực OTP thành công
  */
-export const InputEmail = ({ visible, onClose, onSuccess }) => {
-  const [email, setEmail] = useState('')
+export const InputOTP = ({ visible, email, onClose, onSuccess, verifyFn }) => {
+  const [otpCode, setOtpCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const handleConfirm = async () => {
-    // Validate email
-    if (!email || !email.trim()) {
-      setError('Vui lòng nhập email')
+    // Validate OTP
+    if (!otpCode || !otpCode.trim()) {
+      setError('Vui lòng nhập OTP')
       return
     }
 
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
+    if (!email) {
       setError('Email không hợp lệ')
       return
     }
@@ -34,36 +33,27 @@ export const InputEmail = ({ visible, onClose, onSuccess }) => {
     try {
       setLoading(true)
       setError('')
-      const response = await sendForgotPasswordOtp(email)
-      
-      // Hiển thị thông báo thành công
-      if (response && response.isSuccess) {
-        showApiNotification({
-          ...response,
-          message: 'ĐÃ GỬI OTP ĐẾN EMAIL',
-        })
-      } else {
-        showApiNotification(response)
-      }
+      const verify = verifyFn || verifyForgotPasswordOtp
+      const response = await verify(email, otpCode.trim())
       
       if (onSuccess) {
-        onSuccess(response, email)
+        onSuccess(response)
       }
       
       // Reset form and close modal
-      setEmail('')
+      setOtpCode('')
       if (onClose) {
         onClose()
       }
     } catch (err) {
-      setError(err.message || 'Không thể gửi OTP. Vui lòng thử lại.')
+      setError(err.message || 'OTP không đúng. Vui lòng thử lại.')
     } finally {
       setLoading(false)
     }
   }
 
   const handleClose = () => {
-    setEmail('')
+    setOtpCode('')
     setError('')
     if (onClose) {
       onClose()
@@ -81,7 +71,7 @@ export const InputEmail = ({ visible, onClose, onSuccess }) => {
         <View style={styles.modalContent}>
           {/* Header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Nhập Email để nhận OTP</Text>
+            <Text style={styles.modalTitle}>Nhập OTP</Text>
             <TouchableOpacity
               onPress={handleClose}
               style={styles.closeButton}
@@ -91,16 +81,16 @@ export const InputEmail = ({ visible, onClose, onSuccess }) => {
             </TouchableOpacity>
           </View>
 
-          {/* Email Input */}
+          {/* OTP Input */}
           <View style={styles.inputContainer}>
             <TextInput
-              placeholder="Nhập Email"
-              value={email}
+              placeholder="Nhập OTP"
+              value={otpCode}
               onChangeText={(text) => {
-                setEmail(text)
+                setOtpCode(text)
                 setError('')
               }}
-              keyboardType="email-address"
+              keyboardType="number-pad"
               autoCapitalize="none"
               inputStyle={styles.input}
             />
@@ -120,7 +110,7 @@ export const InputEmail = ({ visible, onClose, onSuccess }) => {
               ]}
             >
               <Text style={styles.confirmButtonText}>
-                {loading ? 'Đang gửi...' : 'Xác nhận'}
+                {loading ? 'Đang xác thực...' : 'Xác nhận'}
               </Text>
             </RedBtn>
           </View>
@@ -216,4 +206,3 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
   },
 })
-

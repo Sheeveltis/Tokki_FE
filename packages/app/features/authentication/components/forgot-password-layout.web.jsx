@@ -8,7 +8,7 @@ import { View, StyleSheet } from 'react-native'
  */
 export const ForgotPasswordLayoutWeb = ({ hero, form }) => {
   return (
-    <View style={styles.container}>
+    <View style={styles.root}>
       <View style={styles.split}>
         <View style={styles.hero}>{hero}</View>
         <View style={styles.panel}>{form}</View>
@@ -18,26 +18,28 @@ export const ForgotPasswordLayoutWeb = ({ hero, form }) => {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    width: '100%',
+    height: '100vh',
+    minHeight: '100vh',
+    backgroundColor: 'white',
     alignItems: 'stretch',
     justifyContent: 'center',
   },
   split: {
     flex: 1,
+    width: '100%',
+    height: '100%',
     flexDirection: 'row',
     alignItems: 'stretch',
   },
   hero: {
     flex: 1,
+    height: '100%',
   },
   panel: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 24,
+    height: '100%',
   },
 })
-

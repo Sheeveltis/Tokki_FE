@@ -55,4 +55,3 @@ export const showError = (message, statusCode = null) => {
   // Không hiển thị statusCode cho user, chỉ hiển thị message
   Alert.alert('Thất bại', message, [{ text: 'OK' }])
 }
-
