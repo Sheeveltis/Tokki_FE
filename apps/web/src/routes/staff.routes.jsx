@@ -4,7 +4,8 @@ import { Route } from 'react-router-dom'
 import { StaffScreen } from '@tokki/app/features/staff/screen'
 import { StaffUserDetailScreen } from '@tokki/app/features/staff/screens/UserDetail'
 import { LessonDetailScreen } from '@tokki/app/features/admin/screens/LessonDetail'
-import { BlogDetailScreen as AdminBlogDetailScreen } from '@tokki/app/features/admin/screens/BlogDetail'
+import { ViewBlogScreen } from '@tokki/app/features/blog/screens/admin/view-blog-screen'
+import { EditBlogScreen } from '@tokki/app/features/blog/screens/admin/edit-blog-screen'
 import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/FlashcardTopicDetail'
 import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/VocabularyDetail'
 
@@ -28,7 +29,8 @@ export const staffRoutes = [
   // Staff - Content Management
   { path: '/staff/vocab-topic/:id', element: <FlashcardTopicDetailScreen /> },
   { path: '/staff/lessons/:id', element: <LessonDetailScreen /> },
-  { path: '/staff/blog/:id', element: <AdminBlogDetailScreen /> },
+  { path: '/staff/blog/:id/edit', element: <EditBlogScreen /> },
+  { path: '/staff/blog/:id', element: <ViewBlogScreen /> },
   { path: '/staff/vocab/:id', element: <VocabularyDetailScreen /> },
 ]
 

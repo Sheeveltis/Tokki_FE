@@ -4,8 +4,9 @@ import { Route } from 'react-router-dom'
 import { AdminScreen } from '@tokki/app/features/admin/screen'
 import { CreateLessonScreen } from '@tokki/app/features/admin/screens/CreateLesson'
 import { LessonDetailScreen } from '@tokki/app/features/admin/screens/LessonDetail'
-import { CreateBlogScreen } from '@tokki/app/features/blog/admin-create-blog'
-import { BlogDetailScreen as AdminBlogDetailScreen } from '@tokki/app/features/admin/screens/BlogDetail'
+import { CreateBlogScreen } from '@tokki/app/features/blog/screens/admin/create-blog-screen'
+import { ViewBlogScreen } from '@tokki/app/features/blog/screens/admin/view-blog-screen'
+import { EditBlogScreen } from '@tokki/app/features/blog/screens/admin/edit-blog-screen'
 import { UserDetailScreen } from '@tokki/app/features/user/screens/UserDetail'
 import { CreateUserScreen } from '@tokki/app/features/user/screens/CreateUser'
 import { CreateAdminStaffScreen } from '@tokki/app/features/user/screens/CreateAdminStaff'
@@ -39,7 +40,8 @@ export const adminRoutes = [
 
   // Admin - Blog Module
   { path: '/admin/blog/create', element: <CreateBlogScreen /> },
-  { path: '/admin/blog/:id', element: <AdminBlogDetailScreen /> },
+  { path: '/admin/blog/:id/edit', element: <EditBlogScreen /> },
+  { path: '/admin/blog/:id', element: <ViewBlogScreen /> },
 
   // Admin - Users Module
   { path: '/admin/users/create', element: <CreateUserScreen /> },

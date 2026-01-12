@@ -2,7 +2,7 @@ import React from 'react'
 import { Route } from 'react-router-dom'
 
 import { ModeratorScreen } from '@tokki/app/features/moderator/screen'
-import { BlogDetailScreen as AdminBlogDetailScreen } from '@tokki/app/features/admin/screens/BlogDetail'
+import { ViewBlogScreen } from '@tokki/app/features/blog/screens/admin/view-blog-screen'
 import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/FlashcardTopicDetail'
 import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/VocabularyDetail'
 
@@ -22,7 +22,7 @@ export const moderatorRoutes = [
 
   // Moderator - Content Review
   { path: '/moderator/vocab-topic/:id', element: <FlashcardTopicDetailScreen /> },
-  { path: '/moderator/blog/:id', element: <AdminBlogDetailScreen /> },
+  { path: '/moderator/blog/:id', element: <ViewBlogScreen /> },
   { path: '/moderator/vocab/:id', element: <VocabularyDetailScreen /> },
 ]
 

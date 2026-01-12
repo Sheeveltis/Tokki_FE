@@ -5,7 +5,7 @@ import { View, StyleSheet } from 'react-native'
 
 import { HomeScreen } from 'app/features/home/screen'
 import { DetailScreen } from 'app/features/user/screens/Detail'
-import { BlogDetailScreen } from 'app/features/blog/detail-blog'
+import { BlogDetailScreen } from 'app/features/blog/screens/client/blog-detail-screen'
 import { LoginScreen } from 'app/features/authentication/screens/login-screen.native'
 import { RegisterScreen } from 'app/features/authentication/screens/register-screen.native'
 import { ForgotPasswordScreen } from 'app/features/authentication/screens/forgot-password-screen'

@@ -8,7 +8,7 @@ import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../provider
 import { AdminLoginForm } from '../authentication/components/admin-login-form'
 
 // Lazy load các màn duyệt, tái sử dụng từ admin / vocabulary / blog
-const LazyBlogManagement = lazy(() => import('../blog/blog-management'))
+const LazyBlogManagement = lazy(() => import('../blog/screens/admin/blog-management-screen'))
 const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/VocabularyManagement'))
 const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/FlashcardTopicManagement'))
 const LazyExamTemplateManagement = lazy(() => import('../admin/screens/ExamTemplateManagement'))
