@@ -7,8 +7,6 @@ import { Navbar } from '../../../../components/navbar'
 
 import GameCardIcon from '../../../../assets/icon/icon-mainflow/game-card.svg'
 import { NavigationPill } from 'components/navigation-pill'
-import { MinigameHappy } from './minigame-happy'
-import { MinigameRankingButton } from './minigame-ranking-button'
 import { MinigameBanner } from './minigame-banner'
 import { MinigameGameCard } from './minigame-game-card'
 import { getUserGames } from '../api/api'
@@ -89,9 +87,6 @@ export function MinigameLayout() {
       <Navbar />
 
       <View style={styles.inner}>
-        <View style={styles.sideLeft}>
-          <MinigameHappy />
-        </View>
 
         <View style={styles.centerCardWrapper}>
           <View style={styles.centerCard}>
@@ -153,10 +148,6 @@ export function MinigameLayout() {
             )}
           </View>
         </View>
-
-        <View style={styles.sideRight}>
-          <MinigameRankingButton />
-        </View>
       </View>
     </View>
   )
@@ -182,20 +173,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     paddingVertical: 24,
   },
-  sideLeft: {
-    flex: 0.6,
-    alignItems: 'flex-start',
-    right: 100,
-  },
-  sideRight: {
-    flex: 0.6,
-    alignItems: 'flex-end',
-    left: 100,
-    top: 30,
-  },
   centerCardWrapper: {
     flex: 3,
-    paddingHorizontal: 16,
+    paddingHorizontal: 40,
     height: '100%',
   },
   centerCard: {
@@ -231,15 +211,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  titleIcon: {
-    width: 32,
-    height: 32,
-  },
   titleText: {
     fontSize: 24,
     fontWeight: '800',
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
+    paddingRight: 50,
   },
   headerRightSpacer: {
     width: 60,
