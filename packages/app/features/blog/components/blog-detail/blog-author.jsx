@@ -1,50 +1,21 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { View, Text, Image, StyleSheet } from 'react-native'
-
-/**
- * Mock data cho authors - sau này sẽ lấy từ API
- */
-const MOCK_AUTHORS = {
-  'ACC-Gum': {
-    id: 'ACC-Gum',
-    name: 'Thảo Trần',
-    avatar: 'https://banobagi.vn/wp-content/uploads/2025/06/avatar-bua-19.jpg',
-    bio: 'Chuyên gia về văn hóa Hàn Quốc',
-  },
-  'ACC-Admin': {
-    id: 'ACC-Admin',
-    name: 'Admin Tokki',
-    avatar: 'https://via.placeholder.com/60?text=AT',
-    bio: 'Quản trị viên hệ thống',
-  },
-  // Default fallback
-  default: {
-    id: 'unknown',
-    name: 'Tác giả',
-    avatar: 'https://via.placeholder.com/60?text=AU',
-    bio: '',
-  },
-}
+import UserIcon from '../../../../../assets/user.png'
 
 /**
  * BlogAuthor: Component hiển thị thông tin tác giả
  * @param {Object} props
- * @param {string} props.authorId - ID của author
+ * @param {Object} props.author - Thông tin author từ API { id, fullName, avatarUrl }
  * @param {string} props.createdAt - Ngày đăng bài
- * @param {string} props.viewCount - Số lượt xem
+ * @param {number} props.viewCount - Số lượt xem
  */
-export function BlogAuthor({ authorId, createdAt, viewCount = 0 }) {
-  const [author, setAuthor] = useState(MOCK_AUTHORS.default)
+export function BlogAuthor({ author, createdAt, viewCount = 0 }) {
+  // Sử dụng default avatar nếu avatarUrl là null hoặc không có
+  const avatarSource = author?.avatarUrl 
+    ? { uri: author.avatarUrl }
+    : UserIcon
 
-  useEffect(() => {
-    // Lấy thông tin author từ mock data
-    // Sau này sẽ gọi API: getAuthorById(authorId)
-    if (authorId && MOCK_AUTHORS[authorId]) {
-      setAuthor(MOCK_AUTHORS[authorId])
-    } else {
-      setAuthor(MOCK_AUTHORS.default)
-    }
-  }, [authorId])
+  const authorName = author?.fullName || 'Tác giả'
 
   const formattedDate = new Date(createdAt).toLocaleDateString('vi-VN', {
     year: 'numeric',
@@ -55,19 +26,16 @@ export function BlogAuthor({ authorId, createdAt, viewCount = 0 }) {
   return (
     <View style={styles.container}>
       <Image 
-        source={{ uri: author.avatar }} 
+        source={avatarSource}
         style={styles.avatar}
       />
       <View style={styles.info}>
-        <Text style={styles.authorName}>{author.name}</Text>
+        <Text style={styles.authorName}>{authorName}</Text>
         <View style={styles.meta}>
           <Text style={styles.metaText}>📅 {formattedDate}</Text>
           <Text style={styles.metaText}> • </Text>
           <Text style={styles.metaText}>👁️ {viewCount} lượt xem</Text>
         </View>
-        {author.bio && (
-          <Text style={styles.bio}>{author.bio}</Text>
-        )}
       </View>
     </View>
   )

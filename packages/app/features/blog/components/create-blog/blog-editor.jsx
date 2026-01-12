@@ -1,10 +1,11 @@
 'use client'
 import React, { useMemo, lazy, Suspense } from 'react'
 import { Form } from 'antd'
-import 'react-quill/dist/quill.snow.css'
 
-// Lazy load ReactQuill (thay thế next/dynamic)
-const ReactQuill = lazy(() => import('react-quill'))
+// Lazy load ReactQuill wrapper để tránh lỗi findDOMNode
+const ReactQuillWrapper = lazy(() => 
+  import('./react-quill-wrapper').then(module => ({ default: module.ReactQuillWrapper }))
+)
 
 export function BlogEditor({ name, label, rules }) {
   // Cấu hình Toolbar gọn gàng ở đây
@@ -20,9 +21,9 @@ export function BlogEditor({ name, label, rules }) {
 
   return (
     <Form.Item name={name} label={label} rules={rules}>
-      {/* ReactQuill nhận value/onChange tự động từ Form.Item */}
-      <Suspense fallback={<p>Đang tải bộ soạn thảo...</p>}>
-        <ReactQuill 
+      {/* ReactQuillWrapper nhận value/onChange tự động từ Form.Item */}
+      <Suspense fallback={<div style={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #d9d9d9', borderRadius: 4 }}>Đang tải bộ soạn thảo...</div>}>
+        <ReactQuillWrapper 
           theme="snow"
           modules={modules}
           style={{ height: 400, marginBottom: 50 }} 

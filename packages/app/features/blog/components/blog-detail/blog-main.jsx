@@ -35,7 +35,7 @@ export function BlogMainContent({ data }) {
 
       {/* Author Info - Đặt dưới content, trên comments */}
       <BlogAuthor 
-        authorId={data.authorId}
+        author={data.author}
         createdAt={data.createdAt}
         viewCount={data.viewCount}
       />

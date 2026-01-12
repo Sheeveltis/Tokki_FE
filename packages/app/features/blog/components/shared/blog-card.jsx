@@ -4,9 +4,6 @@ import { View, Text, Image, TouchableOpacity, StyleSheet, Platform } from 'react
 export const BlogCard = React.memo(function BlogCard({ item, onPress }) {
   const formattedDate = new Date(item.createdAt).toLocaleDateString('vi-VN')
   
-  // Mock author data - sau này sẽ lấy từ API
-  const authorName = item.authorName || 'Thảo Trần'
-  const authorAvatar = item.authorAvatar || 'https://via.placeholder.com/40'
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9}>
@@ -30,13 +27,9 @@ export const BlogCard = React.memo(function BlogCard({ item, onPress }) {
         {/* Description/Snippet */}
         <Text style={styles.desc} numberOfLines={3}>{item.shortDescription}</Text>
 
-        {/* Author section */}
-        <View style={styles.authorSection}>
-          <Image 
-            source={{ uri: authorAvatar }} 
-            style={styles.authorAvatar}
-          />
-          <Text style={styles.authorName}>{authorName}</Text>
+        {/* Created date */}
+        <View style={styles.dateSection}>
+          <Text style={styles.dateText}>{formattedDate}</Text>
         </View>
 
         {/* Tags hiển thị dưới tên tác giả */}
@@ -108,22 +101,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     flex: 1,
   },
-  authorSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  dateSection: {
     marginBottom: 8,
   },
-  authorAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: 8,
-    backgroundColor: '#f0f0f0',
-  },
-  authorName: {
+  dateText: {
     fontSize: 13,
-    color: '#333',
-    fontWeight: '500',
+    color: '#666',
+    fontWeight: '400',
   },
   tagsContainer: {
     flexDirection: 'row',

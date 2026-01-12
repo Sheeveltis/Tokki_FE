@@ -1,13 +1,17 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { Form, Input, Select, Row, Col } from 'antd'
-import { getAllCategories } from '../../api/api'
+import { Form, Input, Select, Row, Col, Upload, Button, Image, message } from 'antd'
+import { UploadOutlined } from '@ant-design/icons'
+import { getAllCategories, uploadBlogImageToCloudinary } from '../../api'
 
 const { TextArea } = Input
 
 export function BlogGeneralInfo() {
+  const form = Form.useFormInstance()
   const [categories, setCategories] = useState([])
   const [loadingCategories, setLoadingCategories] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [thumbnailPreview, setThumbnailPreview] = useState(null)
 
   useEffect(() => {
     let mounted = true
@@ -26,6 +30,25 @@ export function BlogGeneralInfo() {
       mounted = false
     }
   }, [])
+
+  const handleThumbnailUpload = async ({ file }) => {
+    const rawFile = file?.originFileObj || file
+    if (!rawFile) return
+
+    try {
+      setUploading(true)
+      const url = await uploadBlogImageToCloudinary(rawFile)
+      if (url) {
+        form.setFieldsValue({ thumbnail: url })
+        setThumbnailPreview(url)
+        message.success('Upload ảnh bìa thành công')
+      }
+    } catch (err) {
+      message.error(err?.message || 'Upload ảnh bìa thất bại')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   return (
     <>
@@ -62,13 +85,32 @@ export function BlogGeneralInfo() {
         </Col>
       </Row>
 
-      {/* Hàng 2: Ảnh bìa */}
+      {/* Hàng 2: Ảnh bìa - upload lên Cloudinary */}
       <Form.Item
-        label="Link ảnh bìa (Thumbnail URL)"
-        name="thumbnailUrl"
-        rules={[{ required: true, message: 'Vui lòng nhập link ảnh' }]}
+        label="Ảnh bìa (Thumbnail)"
+        name="thumbnail"
+        rules={[{ required: true, message: 'Vui lòng upload ảnh bìa' }]}
       >
-        <Input placeholder="https://example.com/image.jpg" size="large" />
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+          <Upload
+            showUploadList={false}
+            customRequest={handleThumbnailUpload}
+            accept="image/*"
+          >
+            <Button icon={<UploadOutlined />} loading={uploading}>
+              Chọn ảnh
+            </Button>
+          </Upload>
+          {thumbnailPreview && (
+            <Image
+              src={thumbnailPreview}
+              alt="Thumbnail preview"
+              width={80}
+              height={80}
+              style={{ objectFit: 'cover', borderRadius: 8 }}
+            />
+          )}
+        </div>
       </Form.Item>
 
       {/* Hàng 3: Mô tả ngắn */}

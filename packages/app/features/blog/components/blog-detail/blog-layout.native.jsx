@@ -1,7 +1,7 @@
 
 import React from 'react'
 import { View, ScrollView, StyleSheet } from 'react-native'
-import { BlogSidebar } from './blog-sidebar'
+import { BlogSidebar } from './blog-detail-sidebar'
 
 export function BlogLayout({ children, relatedPosts }) {
   return (
