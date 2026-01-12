@@ -18,7 +18,7 @@ export function AlphabetSelectModeLayout({ children }) {
 
 const styles = StyleSheet.create({
   root: {
-    flex: 1,
+    minHeight: '100%',
     backgroundColor: '#FFD7D0',
     alignItems: 'center',
     paddingVertical: 16,
@@ -29,7 +29,8 @@ const styles = StyleSheet.create({
     gap: 24,
     alignItems: 'center',
     backgroundColor: '#F5F0DD',
-    paddingVertical: 32,
+    paddingTop: 32,
+    paddingBottom: 48,
     borderRadius: 16,
   },
 })
