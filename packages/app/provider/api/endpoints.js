@@ -212,7 +212,5 @@ export const ENDPOINTS = {
       UPDATE_TEMPLATE_PART: (templatePartId) => `/ExamTemplates/TemplateParts/${templatePartId}`,  // PUT: Cập nhật một template part (templatePartId trong URL)
       DUPLICATE: (id) => `/ExamTemplates/${id}/duplicate`,  // POST: Sao chép exam template
     },
-    QUESTION_TYPE: {
-      GET_ALL: '/QuestionType',                        // GET: Lấy danh sách question types (query: skill, examType)
-    },
+    
   }
