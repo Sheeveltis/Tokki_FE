@@ -4,14 +4,12 @@ import React, { useState } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Card, Form, Typography, message, Space } from 'antd'
 import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
-import { createBlog } from 'app/features/blog/api/api'
-
-import { BlogEditor } from './components/blog-editor'
-import { BlogGeneralInfo } from './components/blog-general-info'
-import { BlogMetaInfo } from './components/blog-meta-info'
-import { BlogFormActions } from './components/blog-form-actions'
-// 👇 Import Modal Preview
-import { BlogPreviewModal } from './components/blog-preview-modal'
+import { createBlog } from '../../api'
+import { BlogEditor } from '../../components/create-blog/blog-editor'
+import { BlogGeneralInfo } from '../../components/create-blog/blog-general-info'
+import { BlogMetaInfo } from '../../components/create-blog/blog-meta-info'
+import { BlogFormActions } from '../../components/create-blog/blog-form-actions'
+import { BlogPreviewModal } from '../../components/create-blog/blog-preview-modal'
 
 const { Title } = Typography
 
@@ -20,7 +18,7 @@ export function CreateBlogScreen() {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   
-  // 👇 State quản lý Preview
+  // State quản lý Preview
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewData, setPreviewData] = useState(null)
 
@@ -40,12 +38,11 @@ export function CreateBlogScreen() {
   }
 
   const handleSubmit = async (values) => {
-    // ... (Giữ nguyên logic submit cũ)
     try {
       setLoading(true)
       const payload = {
         title: values.title,
-        thumbnailUrl: values.thumbnailUrl,
+        thumbnailUrl: values.thumbnail, // FE dùng thumbnail, API vẫn nhận thumbnailUrl
         content: values.content,
         shortDescription: values.shortDescription,
         status: values.isPublished ? 1 : 0,
@@ -92,20 +89,19 @@ export function CreateBlogScreen() {
               <BlogFormActions 
                 loading={loading} 
                 onCancel={() => router.push('/admin?tab=blog')}
-                onPreview={handlePreview} // 👈 Truyền hàm preview vào
+                onPreview={handlePreview}
                 onSubmit={() => form.submit()}
               />
             </Form>
           </Space>
         </Card>
 
-        {/* 👇 Render Modal Preview (Nó ẩn mặc định) */}
+        {/* Render Modal Preview */}
         <BlogPreviewModal 
           open={previewOpen}
           onCancel={() => setPreviewOpen(false)}
           data={previewData}
         />
-        
       </div>
     </AdminLayout>
   )

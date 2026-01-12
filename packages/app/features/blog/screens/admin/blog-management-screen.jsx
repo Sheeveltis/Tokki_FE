@@ -4,13 +4,13 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Tag, Space, Row, Col } from 'antd'
 import { EyeOutlined } from '@ant-design/icons'
-import { statusArticle } from '../../../string.js'
-import DetailDrawer from '../../../../components/DetailDrawer'
-import { getBlogsAdmin, getBlogSummary, getTopBlogsByViews, getTopAuthors } from '../api/api'
-import { BlogSearchActions } from './components/BlogSearchActions'
-import { BlogStatsTable } from './components/BlogStatsTable'
-import { TopBlogsCard } from './components/TopBlogsCard'
-import { TopAuthorsCard } from './components/TopAuthorsCard'
+import { statusArticle } from '../../../../string.js'
+import DetailDrawer from '../../../../../components/DetailDrawer'
+import { getBlogsAdmin, getBlogSummary, getTopBlogsByViews, getTopAuthors } from '../../api'
+import { BlogSearchActions } from '../../components/blog-management/BlogSearchActions'
+import { BlogStatsTable } from '../../components/blog-management/BlogStatsTable'
+import { TopBlogsCard } from '../../components/blog-management/TopBlogsCard'
+import { TopAuthorsCard } from '../../components/blog-management/TopAuthorsCard'
 
 export function BlogManagement({ initialData = null }) {
   const router = useRouter()
@@ -178,11 +178,11 @@ export function BlogManagement({ initialData = null }) {
         <BlogSearchActions
           search={search}
           onSearchChange={setSearch}
-        status={statusFilter}
-        onStatusChange={(val) => {
-          setPageNumber(1)
-          setStatusFilter(val)
-        }}
+          status={statusFilter}
+          onStatusChange={(val) => {
+            setPageNumber(1)
+            setStatusFilter(val)
+          }}
           onCreate={() => router.push(`${portalPrefix}/blog/create`)}
         />
 
@@ -220,4 +220,3 @@ export function BlogManagement({ initialData = null }) {
 }
 
 export default BlogManagement
-

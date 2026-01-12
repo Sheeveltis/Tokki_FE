@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react'
 import { Text, View, StyleSheet } from 'react-native'
 import { useParams } from 'solito/navigation'
 
-import { BlogLayout } from './components/blog-layout'
-import { getBlogDetail, getAllBlogs } from '../api/api'
-import { Loading } from '../../../../components/Loading' 
+import { BlogLayout } from '../../components/blog-detail/blog-layout'
+import { getBlogDetail, getAllBlogs, increaseViewCount } from '../../api'
+import { Loading } from '../../../../../components/Loading' 
 
-import { BlogMainContent } from './components/blog-main'
+import { BlogMainContent } from '../../components/blog-detail/blog-main'
 
 export function BlogDetailScreen() {
   const params = useParams()
@@ -31,6 +31,13 @@ export function BlogDetailScreen() {
         ])
         setData(result)
         setLatestBlogs(latest.blogs || [])
+        
+        // Tăng lượt xem cho blog (async, không block UI)
+        if (result?.id) {
+          increaseViewCount(result.id).catch((err) => {
+            console.warn('Failed to increase view count:', err)
+          })
+        }
       } catch (err) {
         console.error(err)
         setError(err.message)
