@@ -1,0 +1,119 @@
+[
+  {
+    "word": "ㄱ",
+    "meaning": "giyeok (g/k)",
+    "pronunciation": "g/k",
+    "totalStrokes": 1,
+    "description": "Bắt đầu từ trái, vẽ ngang rồi gập xuống dưới.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [0.2, 0.3],
+          [0.7, 0.3],
+          [0.7, 0.8]
+        ],
+        "guide": {
+          "arrowPath": [
+            [0.60, 0.2],
+            [0.8, 0.2],
+            [0.8, 0.35]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.8,
+              0.2
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㄴ",
+    "meaning": "nieun (n)",
+    "pronunciation": "n",
+    "totalStrokes": 1,
+    "description": "Kéo thẳng từ trên xuống, rồi gập sang phải.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [0.25, 0.2],
+          [0.25, 0.75],
+          [0.75, 0.75]
+        ],
+        "guide": {
+          "arrowPath": [
+            [0.15, 0.6],
+            [0.15, 0.85],
+            [0.4, 0.85]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.15,
+              0.85
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㄷ",
+    "meaning": "digeut (d/t)",
+    "pronunciation": "d/t",
+    "totalStrokes": 2,
+    "description": "Nét ngang trên trước, sau đó là nét gập dưới.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [0.25, 0.25],
+          [0.75, 0.25]
+        ],
+        "guide": {
+          "arrowPath": [
+            [0.25, 0.15],
+            [0.75, 0.15]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.5,
+              0.15
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [0.25, 0.25],
+          [0.25, 0.75],
+          [0.75, 0.75]
+        ],
+        "guide": {
+          "arrowPath": [
+            [0.15, 0.55],
+            [0.15, 0.85],
+            [0.4, 0.85]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.15,
+              0.85
+            ]
+          }
+        }
+      }
+    ]
+  }
+]

@@ -134,6 +134,37 @@ export async function fetchVocabularyDetail(vocabularyId) {
 }
 
 /**
+ * Lấy danh sách câu ví dụ của 1 từ vựng cho user hiện tại
+ * @param {string} vocabularyId - ID từ vựng
+ * @returns {Promise<Array>} - Mảng câu ví dụ [{ exampleId, sentence, translation }]
+ */
+export async function fetchUserVocabularyExamples(vocabularyId) {
+  try {
+    if (!vocabularyId) {
+      throw new Error('VocabularyId là bắt buộc')
+    }
+
+    const res = await apiClient.get(ENDPOINTS.VOCABULARY.USER_GET_EXAMPLES(vocabularyId))
+    const payload = res?.data
+
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể tải câu ví dụ'
+      throw new Error(message)
+    }
+
+    const examples = Array.isArray(payload?.data) ? payload.data : []
+    return examples
+  } catch (error) {
+    console.error('Error fetching user vocabulary examples:', error)
+    handleApiError(error, 'Không thể tải câu ví dụ')
+    return []
+  }
+}
+
+/**
  * Tạo từ vựng mới
  * @param {Object} payload - Dữ liệu từ vựng
  * @param {string} payload.text - Từ vựng (tiếng Hàn)
@@ -357,7 +388,7 @@ export async function uploadTopicImageToCloudinary(file) {
  * @param {number} params.pageSize - Số item mỗi trang (mặc định: 10)
  * @param {string} params.searchTerm - Từ khóa tìm kiếm
  * @param {number} params.level - Lọc theo level
- * @param {number|string} params.status - Lọc theo status (0: draft, 1: active, 2: deleted, 'all': tất cả)
+ * @param {number|string} params.status - Lọc theo status (0: draft, 1: active, 2: deleted, 3: pending approval, 'all': tất cả)
  * @returns {Promise<Object>} - { items, pageNumber, pageSize, totalCount, totalPages, hasNextPage, hasPreviousPage }
  */
 export async function searchFlashcardTopics(params = {}) {
@@ -594,7 +625,7 @@ export async function createFlashcardTopic(payload) {
  * @param {string} payload.topicName - Tên chủ đề
  * @param {string} payload.description - Mô tả
  * @param {number} payload.level - Level
- * @param {number} payload.status - Trạng thái (0: Draft, 1: Active, 2: Deleted)
+ * @param {number} payload.status - Trạng thái (0: Draft, 1: Active, 2: Deleted, 3: PendingApproval)
  * @param {string} payload.imgUrl - URL ảnh
  * @returns {Promise<Object>} - Response từ API
  */
@@ -879,6 +910,111 @@ export async function publishTopic(topicId) {
 }
 
 /**
+ * Staff gửi chủ đề flashcard chờ moderator phê duyệt
+ * Chỉ áp dụng cho topic ở trạng thái Draft và đã có từ vựng
+ * @param {string} topicId - ID của chủ đề
+ * @returns {Promise<Object>} - Response từ API
+ */
+export async function submitTopicForApproval(topicId) {
+  try {
+    if (!topicId) {
+      throw new Error('TopicId là bắt buộc')
+    }
+
+    const res = await apiClient.post(ENDPOINTS.TOPIC.STAFF_SUBMIT_FOR_APPROVAL(topicId))
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      const message =
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể gửi chủ đề chờ phê duyệt'
+      throw { status: responseData?.statusCode || 400, message, response: responseData }
+    }
+
+    return responseData
+  } catch (error) {
+    console.error('Error submitting topic for approval:', error)
+    // Ném error để component có thể xử lý và hiển thị thông báo
+    if (error?.response) {
+      throw error.response
+    }
+    throw error
+  }
+}
+
+/**
+ * Moderator phê duyệt chủ đề flashcard
+ * @param {string} topicId - ID của chủ đề
+ * @returns {Promise<Object>} - Response từ API
+ */
+export async function approveTopic(topicId) {
+  try {
+    if (!topicId) {
+      throw new Error('TopicId là bắt buộc')
+    }
+
+    const res = await apiClient.put(ENDPOINTS.TOPIC.MODERATOR_APPROVE(topicId))
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      const message =
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể phê duyệt chủ đề'
+      throw { status: responseData?.statusCode || 400, message, response: responseData }
+    }
+
+    return responseData
+  } catch (error) {
+    console.error('Error approving topic:', error)
+    if (error?.response) {
+      throw error.response
+    }
+    throw error
+  }
+}
+
+/**
+ * Moderator từ chối phê duyệt chủ đề flashcard
+ * @param {string} topicId - ID của chủ đề
+ * @param {string} rejectReason - Lý do từ chối (tên field theo API backend)
+ * @returns {Promise<Object>} - Response từ API
+ */
+export async function rejectTopic(topicId, rejectReason) {
+  try {
+    if (!topicId) {
+      throw new Error('TopicId là bắt buộc')
+    }
+
+    if (!rejectReason || rejectReason.trim().length < 10) {
+      throw new Error('Lý do từ chối phải có ít nhất 10 ký tự')
+    }
+
+    const res = await apiClient.put(ENDPOINTS.TOPIC.MODERATOR_REJECT(topicId), {
+      rejectReason: rejectReason.trim(),
+    })
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      const message =
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể từ chối phê duyệt chủ đề'
+      throw { status: responseData?.statusCode || 400, message, response: responseData }
+    }
+
+    return responseData
+  } catch (error) {
+    console.error('Error rejecting topic:', error)
+    if (error?.response) {
+      throw error.response
+    }
+    throw error
+  }
+}
+
+/**
  * Xóa chủ đề flashcard
  * @param {string} topicId - ID của chủ đề cần xóa
  * @returns {Promise<Object>} - Response từ API
@@ -1117,6 +1253,63 @@ export async function uploadExcelToTopic(topicId, file) {
       throw error.response
     }
     throw error
+  }
+}
+
+/**
+ * Export từ vựng theo chủ đề ra file Excel
+ * @param {string} topicId - ID của chủ đề
+ * @returns {Promise<Blob>} - File Excel dưới dạng Blob
+ */
+export async function exportTopicToExcel(topicId) {
+  try {
+    if (!topicId) {
+      throw new Error('TopicId là bắt buộc')
+    }
+
+    const res = await apiClient.get(ENDPOINTS.EXCEL.EXPORT_BY_TOPIC(topicId), {
+      responseType: 'blob', // Quan trọng: phải set responseType là 'blob' để nhận file binary
+      headers: {
+        // Có thể để */* hoặc mime Excel, backend sẽ tự set Content-Type phù hợp
+        accept: '*/*',
+      },
+    })
+
+    // Kiểm tra xem response có phải là blob không
+    if (res?.data instanceof Blob) {
+      return res.data
+    }
+
+    throw new Error('Không thể tải file Excel')
+  } catch (error) {
+    console.error('Error exporting topic to Excel:', error)
+    
+    // Nếu có response data từ error, có thể là error message từ server
+    if (error?.response?.data) {
+      // Nếu response là blob (có thể là error message từ server), thử đọc text
+      if (error.response.data instanceof Blob) {
+        try {
+          const text = await error.response.data.text()
+          const errorData = JSON.parse(text)
+          throw {
+            status: error.response.status || 500,
+            message: errorData?.message || 'Không thể export file Excel',
+            errors: errorData?.errors || [],
+          }
+        } catch (parseError) {
+          throw {
+            status: error.response.status || 500,
+            message: 'Không thể export file Excel',
+          }
+        }
+      }
+    }
+    
+    throw {
+      status: error?.status || 500,
+      message: error?.message || 'Không thể export file Excel',
+      errors: error?.errors || [],
+    }
   }
 }
 

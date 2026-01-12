@@ -25,6 +25,22 @@ export function BlogManagement({ initialData = null }) {
   const [topBlogs, setTopBlogs] = useState([])
   const [topAuthors, setTopAuthors] = useState([])
 
+  // Xác định cổng hiện tại dựa vào URL
+  const getCurrentPortal = () => {
+    if (typeof window === 'undefined') return 'admin'
+    const pathname = window.location.pathname
+    if (pathname === '/staff' || pathname.startsWith('/staff/')) return 'staff'
+    if (pathname === '/moderator' || pathname.startsWith('/moderator/')) return 'moderator'
+    return 'admin'
+  }
+  
+  const currentPortal = getCurrentPortal()
+  
+  // Tính toán portalPrefix một lần dựa trên currentPortal
+  const portalPrefix = useMemo(() => {
+    return currentPortal === 'staff' ? '/staff' : currentPortal === 'moderator' ? '/moderator' : '/admin'
+  }, [currentPortal])
+
   const PAGE_SIZE = 10
 
   // Load overview & list
@@ -99,7 +115,7 @@ export function BlogManagement({ initialData = null }) {
     })
   }, [data, search, statusFilter])
 
-  const columns = [
+  const columns = useMemo(() => [
     { title: 'Tiêu đề', dataIndex: 'title', key: 'title' },
     { title: 'Tác giả', dataIndex: 'authorName', key: 'authorName' },
     { title: 'Lượt xem', dataIndex: 'viewCount', key: 'viewCount', width: 110, align: 'center' },
@@ -130,7 +146,7 @@ export function BlogManagement({ initialData = null }) {
         <div
           onClick={(e) => {
             e?.stopPropagation?.()
-            router.push(`/admin/blog/${record.id}`)
+            router.push(`${portalPrefix}/blog/${record.id}`)
           }}
           style={{
             display: 'flex',
@@ -154,7 +170,7 @@ export function BlogManagement({ initialData = null }) {
         </div>
       ),
     },
-  ]
+  ], [portalPrefix, router])
 
   return (
     <>
@@ -167,7 +183,7 @@ export function BlogManagement({ initialData = null }) {
           setPageNumber(1)
           setStatusFilter(val)
         }}
-          onCreate={() => router.push('/admin/blog/create')}
+          onCreate={() => router.push(`${portalPrefix}/blog/create`)}
         />
 
         <Row gutter={16}>

@@ -1,10 +1,21 @@
 import './App.css'
-import React, { useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom'
+import React from 'react'
+import { BrowserRouter } from 'react-router-dom'
 
 import { Provider as AppProvider } from '@tokki/app/provider'
 import { QueryProvider } from '@tokki/app/provider/query/query-client'
 
+import { AppRoutes } from './routes'
+
+/**
+ * App Component - Main Application Entry Point
+ * 
+ * Refactored to use modular route architecture:
+ * - Route Grouping / Route Modularization
+ * - Wrapper / Container Pattern
+ * - Logic Abstraction
+ * - Code Cleanup & Organization
+ */
 import { HomeScreen } from '@tokki/app/features/home/screen'
 import { LoginScreen } from '@tokki/app/features/authentication/login-screen'
 import { RegisterScreen } from '@tokki/app/features/authentication/register-screen'
@@ -640,6 +651,7 @@ function App() {
     <QueryProvider>
       <AppProvider>
         <BrowserRouter>
+          <AppRoutes />
           <Routes>
             {/* Root & homepage */}
             <Route path="/" element={<RootHomeRoute />} />

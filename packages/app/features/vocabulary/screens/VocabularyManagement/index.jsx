@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Input, Space, Select, Tag } from 'antd'
-import { EyeOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons'
+import { EyeOutlined, PlusOutlined, SearchOutlined, GlobalOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { fetchVocabularies } from '../../api'
 import ManagementTable from '../../../../../components/ManagementTable'
@@ -30,6 +30,22 @@ export function VocabularyManagement({ initialData = null }) {
     pageSize: 20,
     total: 0,
   })
+
+  // Xác định cổng hiện tại dựa vào URL
+  const getCurrentPortal = () => {
+    if (typeof window === 'undefined') return 'admin'
+    const pathname = window.location.pathname
+    if (pathname === '/staff' || pathname.startsWith('/staff/')) return 'staff'
+    if (pathname === '/moderator' || pathname.startsWith('/moderator/')) return 'moderator'
+    return 'admin'
+  }
+  
+  const currentPortal = getCurrentPortal()
+  
+  // Tính toán portalPrefix một lần dựa trên currentPortal
+  const portalPrefix = useMemo(() => {
+    return currentPortal === 'staff' ? '/staff' : currentPortal === 'moderator' ? '/moderator' : '/admin'
+  }, [currentPortal])
 
   const loadData = useCallback(
     async (page = 1, pageSize = 20, statusFilter, searchText) => {
@@ -121,7 +137,7 @@ export function VocabularyManagement({ initialData = null }) {
     loadData(newPagination.current, newPagination.pageSize, status, search)
   }
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       title: 'ID',
       dataIndex: 'vocabularyId',
@@ -149,39 +165,73 @@ export function VocabularyManagement({ initialData = null }) {
       },
     },
     {
-      title: 'Xem',
+      title: 'Thao tác',
       key: 'actions',
       align: 'center',
-      width: 90,
-      render: (_, record) => (
-        <div
-          onClick={(e) => {
-            e?.stopPropagation?.()
-            router.push(`/admin/vocab/${record.vocabularyId || record.id}`)
-          }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            padding: '4px 8px',
-            borderRadius: 4,
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#f0f0f0'
-            e.currentTarget.style.transform = 'scale(1.1)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent'
-            e.currentTarget.style.transform = 'scale(1)'
-          }}
-        >
-          <EyeOutlined style={{ fontSize: 18, color: '#111', transition: 'color 0.2s ease' }} />
-        </div>
-      ),
+      width: 140,
+      render: (_, record) => {
+        const vocabId = record.vocabularyId || record.id
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <div
+              onClick={(e) => {
+                e?.stopPropagation?.()
+                router.push(`${portalPrefix}/vocab/${vocabId}`)
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                padding: '4px 8px',
+                borderRadius: 4,
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f0f0f0'
+                e.currentTarget.style.transform = 'scale(1.1)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+              title="Xem chi tiết (Admin)"
+            >
+              <EyeOutlined style={{ fontSize: 18, color: '#111', transition: 'color 0.2s ease' }} />
+            </div>
+            <div
+              onClick={(e) => {
+                e?.stopPropagation?.()
+                if (vocabId) {
+                  window.open(`/dictionary/${vocabId}`, '_blank')
+                }
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                padding: '4px 8px',
+                borderRadius: 4,
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#e6f7ff'
+                e.currentTarget.style.transform = 'scale(1.1)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+              title="Xem trên web user"
+            >
+              <GlobalOutlined style={{ fontSize: 18, color: '#1890ff', transition: 'color 0.2s ease' }} />
+            </div>
+          </div>
+        )
+      },
     },
-  ]
+  ], [portalPrefix, router])
 
   return (
     <>
@@ -209,14 +259,23 @@ export function VocabularyManagement({ initialData = null }) {
             ))}
           </Select>
         </Space>
-        <ButtonV2
-          title="Thêm"
-          color="#F1BE4B"
-          onPress={() => router.push('/admin/vocab/create')}
-          style={{ minWidth: 80, paddingVertical: 10 }}
-          textStyle={{ fontSize: 14 }}
-          icon={<PlusOutlined />}
-        />
+        <Space>
+          <ButtonV2
+            title="Từ điển"
+            color="#6366F1"
+            onPress={() => router.push('/dictionary')}
+            style={{ minWidth: 100, paddingVertical: 10 }}
+            textStyle={{ fontSize: 14 }}
+          />
+          <ButtonV2
+            title="Thêm"
+            color="#F1BE4B"
+            onPress={() => router.push(`${portalPrefix}/vocab/create`)}
+            style={{ minWidth: 80, paddingVertical: 10 }}
+            textStyle={{ fontSize: 14 }}
+            icon={<PlusOutlined />}
+          />
+        </Space>
       </Space>
       <ManagementTable
         columns={columns}

@@ -22,9 +22,9 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
   useEffect(() => {
     if (open && examTemplate) {
       form.setFieldsValue({
-        name: examTemplate.Name,
-        description: examTemplate.Description,
-        examType: examTemplate.ExamType,
+        name: examTemplate.name,
+        description: examTemplate.description,
+        examType: examTemplate.examType,
       })
     }
   }, [open, examTemplate, form])
@@ -42,14 +42,13 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
       
       // Format data để gửi lên API
       const payload = {
-        Name: values.name,
-        Description: values.description,
-        ExamType: values.examType,
+        name: values.name,
+        description: values.description,
+        examType: values.examType,
       }
 
       // TODO: Thay bằng API call thực tế
-      // await updateExamTemplate(examTemplate.ExamTemplateId, payload)
-      console.log('Update payload:', payload)
+      // await updateExamTemplate(examTemplate.examTemplateId, payload)
       
       message.success('Đã cập nhật mẫu đề thành công')
       

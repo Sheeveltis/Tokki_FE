@@ -1,9 +1,11 @@
 'use client'
 
-import React, { useMemo, useTransition, lazy, Suspense } from 'react'
+import React, { useMemo, useTransition, lazy, Suspense, useEffect, useState } from 'react'
 import { Spin } from 'antd'
 import { useRouter, useSearchParams } from 'solito/navigation'
 import { AdminLayout } from './components/admin-layout.web'
+import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../provider/api/client'
+import { AdminLoginForm } from '../authentication/components/admin-login-form'
 
 // Lazy load components với React.lazy (thay thế next/dynamic)
 const LazyUserManagement = lazy(() => import('../user/screens/UserManagement'))
@@ -33,6 +35,62 @@ export function AdminScreen() {
   const searchParams = useSearchParams()
   const tab = searchParams?.get('tab')
   const [isPending, startTransition] = useTransition()
+  const [checking, setChecking] = useState(true)
+  const [isAuthorized, setIsAuthorized] = useState(false)
+
+  // Role được phép truy cập admin panel - chỉ Admin
+  const allowedRole = 'Admin'
+
+  // Kiểm tra authentication và role khi component mount
+  useEffect(() => {
+    const checkAuth = () => {
+      try {
+        const token = getAuthToken()
+        
+        if (!token) {
+          // Chưa đăng nhập
+          setIsAuthorized(false)
+          setChecking(false)
+          return
+        }
+
+        // Kiểm tra role - chỉ Admin mới được truy cập
+        const role = getCurrentUserRole()
+        
+        if (!role || role !== allowedRole) {
+          // Không có quyền - redirect về dashboard tương ứng với role
+          setIsAuthorized(false)
+          setChecking(false)
+          
+          // Nếu là Staff hoặc Moderator, redirect về dashboard của họ
+          if (role === 'Staff') {
+            if (typeof window !== 'undefined') {
+              window.location.href = '/staff?tab=users'
+            } else {
+              router.push('/staff?tab=users')
+            }
+          } else if (role === 'Moderator') {
+            if (typeof window !== 'undefined') {
+              window.location.href = '/moderator?tab=approve-blog'
+            } else {
+              router.push('/moderator?tab=approve-blog')
+            }
+          }
+          return
+        }
+
+        // Đã đăng nhập và có quyền Admin
+        setIsAuthorized(true)
+        setChecking(false)
+      } catch (error) {
+        console.error('Error checking auth:', error)
+        setIsAuthorized(false)
+        setChecking(false)
+      }
+    }
+
+    checkAuth()
+  }, [router])
 
   // Memoize screens để tránh tạo lại components mỗi lần render
   // Phải đặt TRƯỚC early return để tuân thủ Rules of Hooks
@@ -151,14 +209,36 @@ export function AdminScreen() {
 
   const normalizedTab = tab === 'vocab' ? 'vocabulary-words' : tab === 'vocab-topics' ? 'vocabulary-topics' : tab
 
+  // Hiển thị loading khi đang kiểm tra
+  if (checking) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Spin size="large" />
+      </div>
+    )
+  }
+
+  // Hiển thị login form nếu chưa đăng nhập hoặc không có quyền
+  if (!isAuthorized) {
+    return <AdminLoginForm />
+  }
+
+  // Hiển thị admin panel nếu đã đăng nhập và có quyền
   return (
     <AdminLayout
       screens={screens}
       defaultKey={normalizedTab || 'users-all'}
       onNavigate={handleNavigate}
-      onLogout={() => {
-        console.log('Đăng xuất')
-        router.push('/login')
+      onLogout={async () => {
+        // Xóa token khi đăng xuất
+        await clearAuthToken()
+        // Dùng window.location.href để đảm bảo redirect hoạt động
+        // Redirect về /admin để hiển thị login form
+        if (typeof window !== 'undefined') {
+          window.location.href = '/admin'
+        } else {
+          router.push('/admin')
+        }
       }}
     />
   )

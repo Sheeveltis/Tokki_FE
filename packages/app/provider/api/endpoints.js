@@ -29,8 +29,11 @@ export const ENDPOINTS = {
       GET_BY_ID: (id) => `/Blog/${id}`,
       CREATE: '/Blog',                // POST: Tạo mới
       UPDATE: (id) => `/Blog/${id}`,    
-      DELETE: (id) => `/Blog/${id}`,     
-      ADMIN_LIST: '/Blog', // same endpoint, nhưng dùng kèm query pageNumber/pageSize
+      DELETE: (id) => `/Blog/admin/delete/${id}`,     
+      ADMIN_LIST: '/Blog/admin/get-all', // same endpoint, nhưng dùng kèm query pageNumber/pageSize
+      STAFF_SUBMIT_FOR_APPROVAL: (blogId) => `/Blog/staff/submit-for-approval/${blogId}`,
+      MODERATOR_APPROVE: (blogId) => `/Blog/moderator/approve/${blogId}`,
+      MODERATOR_REJECT:  '/Blog/moderator/reject',
     },
     QUESTION_TYPE: {
       GET_ALL: '/QuestionType',
@@ -121,6 +124,9 @@ export const ENDPOINTS = {
       ADMIN_REMOVE_VOCABULARIES: '/Topics/admin/vocabularies',
       PUBLISH: (topicId) => `/Topics/${topicId}/publish`,
       UPDATE: '/Topics/update',
+      STAFF_SUBMIT_FOR_APPROVAL: (topicId) => `/Topics/staff/submit-for-approval/${topicId}`,
+      MODERATOR_APPROVE: (topicId) => `/Topics/moderator/approve-topic/${topicId}`,
+      MODERATOR_REJECT: (topicId) => `/Topics/moderator/reject-topic/${topicId}`,
     },
     VOCABULARY: {
       ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
@@ -134,6 +140,7 @@ export const ENDPOINTS = {
       ADD_EXAMPLES: '/vocabulary-examples/admin/add',
       UPDATE_EXAMPLE: (exampleId) => `/vocabulary-examples/admin/${exampleId}`,
       DELETE_EXAMPLE: (exampleId) => `/vocabulary-examples/admin/${exampleId}`,
+      USER_GET_EXAMPLES: (vocabId) => `/vocabulary-examples/user/${vocabId}`,
     },
     MINIGAME: {
       MATCHING_CARDS: '/minigame/matching-cards',
@@ -152,6 +159,7 @@ export const ENDPOINTS = {
       OVERVIEW: '/Statistics/overview', // GET: Thống kê tổng quan doanh thu
       TRANSACTIONS: '/Statistics/transactions', // GET: Lịch sử giao dịch (query: search, status, fromDate, toDate, page, pageSize)
       PACKAGES: '/Statistics/packages', // GET: Doanh thu theo gói thành viên
+      CHART: (year) => `/Statistics/chart?year=${year}`, // GET: Biểu đồ doanh thu theo tháng (query: year)
     },
     FAVORITES: {
       GET_ALL: '/Favorites/favorites',   // GET: Lấy danh sách từ vựng yêu thích (có pagination và search)
@@ -172,6 +180,10 @@ export const ENDPOINTS = {
       GET_ALL: '/Leaderboard',  // GET: Lấy danh sách leaderboard (query: timeFrame, top)
     },
     CLOUDINARY: {
+      UPLOAD_VOCABULARY_IMAGE: '/Cloudinary/image/vocabulary',  // POST: Upload ảnh từ vựng lên Cloudinary
+      UPLOAD_TOPIC_IMAGE: '/Cloudinary/image/topic',  // POST: Upload ảnh chủ đề lên Cloudinary
+      UPLOAD_AVATAR: '/Cloudinary/image/avatar',  // POST: Upload avatar lên Cloudinary
+      UPLOAD_TEMPLATE_PART_IMAGE: '/Cloudinary/image/template-part',  // POST: Upload ảnh template part lên Cloudinary
       UPLOAD_VOCABULARY_IMAGE: '/cloudinary/vocabulary-image',  // POST: Upload ảnh từ vựng lên Cloudinary
       UPLOAD_TOPIC_IMAGE: '/cloudinary/topic-image',  // POST: Upload ảnh chủ đề lên Cloudinary
       UPLOAD_AVATAR: '/cloudinary/avatar',  // POST: Upload avatar lên Cloudinary
@@ -184,9 +196,23 @@ export const ENDPOINTS = {
     },
     EXCEL: {
       ADD_VOCAB_TO_TOPIC: (topicId) => `/Excel/add-vocab?topicId=${topicId}`,  // POST: Import từ vựng từ Excel vào chủ đề
+      EXPORT_BY_TOPIC: (topicId) => `/Excel/export-by-topic/${topicId}`,  // GET: Export từ vựng của chủ đề ra Excel
     },
     EMAIL: {
       CAMPAIGNS_CREATE: '/email-campaigns',           // POST: Tạo chiến dịch email thủ công
       TEMPLATE_CREATE: '/EmailTemplate',              // POST: Tạo email template tự động
+    },
+    EXAM_TEMPLATES: {
+      ADMIN_LIST: '/ExamTemplates/admin',              // GET: Lấy danh sách exam templates cho admin (query: PageNumber, PageSize, SearchTerm, Status, Type)
+      GET_BY_ID: (id) => `/ExamTemplates/${id}`,      // GET: Lấy chi tiết exam template
+      CREATE: '/ExamTemplates',                        // POST: Tạo exam template mới
+      UPDATE: (id) => `/ExamTemplates/${id}`,          // PUT: Cập nhật exam template
+      DELETE: (id) => `/ExamTemplates/${id}`,         // DELETE: Xóa exam template
+      TEMPLATE_PARTS: '/ExamTemplates/TemplateParts',  // POST: Thêm/cập nhật template parts
+      UPDATE_TEMPLATE_PART: (templatePartId) => `/ExamTemplates/TemplateParts/${templatePartId}`,  // PUT: Cập nhật một template part (templatePartId trong URL)
+      DUPLICATE: (id) => `/ExamTemplates/${id}/duplicate`,  // POST: Sao chép exam template
+    },
+    QUESTION_TYPE: {
+      GET_ALL: '/QuestionType',                        // GET: Lấy danh sách question types (query: skill, examType)
     },
   }
