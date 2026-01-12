@@ -1,161 +1,137 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Input, Space, Tag, Select } from 'antd'
-import { EyeOutlined, SearchOutlined } from '@ant-design/icons'
-import ManagementTable from '../../../../../components/ManagementTable'
+import { Alert, Modal, Form, message } from 'antd'
 import DetailDrawer from '../../../../../components/DetailDrawer'
-import { mockQuestionTypes } from '../QuestionBankManagement/api/api'
+import QuestionTypeToolbar from './components/QuestionTypeToolbar'
+import QuestionTypeTable from './components/QuestionTypeTable'
+import { fetchQuestionTypes } from './api/api'
+import { QuestionTypeForm } from '../CreateQuestionType/components/QuestionTypeForm.jsx'
+import { createQuestionType } from '../CreateQuestionType/api/api'
 
-const { Option } = Select
-
-export function QuestionTypeManagement({ initialData = null }) {
+export function QuestionTypeManagement() {
   const router = useRouter()
-  const data = initialData || mockQuestionTypes
-  const isLoading = false
+
   const [drawerItem, setDrawerItem] = useState(null)
-  const [search, setSearch] = useState('')
-  const [skillFilter, setSkillFilter] = useState(null)
+  const [filters, setFilters] = useState({
+    keyword: '',
+    skill: null,
+    difficulty: null,
+    examType: null,
+  })
 
-  const filteredData = useMemo(() => {
-    let result = data
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [form] = Form.useForm()
 
-    // Filter by search
-    if (search) {
-      const searchLower = search.trim().toLowerCase()
-      result = result.filter(
-        (item) =>
-          (item.code || '').toLowerCase().includes(searchLower) ||
-          (item.name || '').toLowerCase().includes(searchLower) ||
-          (item.description || '').toLowerCase().includes(searchLower),
-      )
-    }
+  useEffect(() => {
+    let mounted = true
 
-    // Filter by skill
-    if (skillFilter !== null) {
-      result = result.filter((item) => item.skill === skillFilter)
-    }
+    const load = async () => {
+      try {
+        setLoading(true)
+        setError('')
 
-    return result
-  }, [data, search, skillFilter])
-
-  const columns = [
-    {
-      title: 'Code',
-      dataIndex: 'code',
-      key: 'code',
-      width: 120,
-    },
-    {
-      title: 'Tên loại câu hỏi',
-      dataIndex: 'name',
-      key: 'name',
-      width: 250,
-    },
-    {
-      title: 'Mô tả',
-      dataIndex: 'description',
-      key: 'description',
-      ellipsis: true,
-    },
-    {
-      title: 'Kỹ năng',
-      dataIndex: 'skill',
-      key: 'skill',
-      width: 120,
-      render: (skill) => {
-        const skillMap = {
-          1: { label: 'Nghe', color: 'blue' },
-          2: { label: 'Đọc', color: 'green' },
-          3: { label: 'Viết', color: 'orange' },
+        // Nếu keyword rỗng => không gửi (để backend hiểu là lấy tất cả)
+        const params = {
+          ...(filters.keyword?.trim() ? { keyword: filters.keyword.trim() } : {}),
+          ...(filters.skill ? { skill: filters.skill } : {}),
+          ...(filters.difficulty ? { difficulty: filters.difficulty } : {}),
+          ...(filters.examType ? { examType: filters.examType } : {}),
         }
-        const skillInfo = skillMap[skill] || { label: skill, color: 'default' }
-        return <Tag color={skillInfo.color}>{skillInfo.label}</Tag>
-      },
-    },
-    {
-      title: 'Trạng thái',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      width: 120,
-      align: 'center',
-      render: (isActive) =>
-        isActive ? <Tag color="green">Hoạt động</Tag> : <Tag color="default">Không hoạt động</Tag>,
-    },
-    {
-      title: 'Xem',
-      key: 'actions',
-      align: 'center',
-      width: 90,
-      render: (_, record) => (
-        <div
-          onClick={(e) => {
-            e?.stopPropagation?.()
-            router.push(`/admin/question-type/${record.questionTypeId}`)
-          }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            padding: '4px 8px',
-            borderRadius: 4,
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#f0f0f0'
-            e.currentTarget.style.transform = 'scale(1.1)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent'
-            e.currentTarget.style.transform = 'scale(1)'
-          }}
-        >
-          <EyeOutlined style={{ fontSize: 18, color: '#111', transition: 'color 0.2s ease' }} />
-        </div>
-      ),
-    },
-  ]
+
+        const list = await fetchQuestionTypes(params)
+        if (mounted) setData(list)
+      } catch (err) {
+        if (mounted) setError(err?.message || 'Không thể tải danh sách loại câu hỏi')
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+
+    load()
+
+    return () => {
+      mounted = false
+    }
+  }, [filters])
 
   return (
     <>
-      <Space style={{ marginBottom: 12, width: '100%', justifyContent: 'space-between' }}>
-        <Space>
-          <Input
-            allowClear
-            prefix={<SearchOutlined />}
-            placeholder="Tìm theo code, tên, mô tả"
-            style={{ maxWidth: 360 }}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <Select
-            placeholder="Lọc theo kỹ năng"
-            allowClear
-            style={{ minWidth: 150 }}
-            value={skillFilter}
-            onChange={setSkillFilter}
-          >
-            <Option value={1}>Nghe</Option>
-            <Option value={2}>Đọc</Option>
-            <Option value={3}>Viết</Option>
-          </Select>
-        </Space>
-      </Space>
-      <ManagementTable
-        columns={columns}
-        dataSource={filteredData}
-        loading={isLoading && !initialData}
+      <QuestionTypeToolbar
+        filters={filters}
+        onFilterChange={setFilters}
+        onCreate={() => {
+          form.resetFields()
+          form.setFieldsValue({ isActive: true })
+          setCreateModalOpen(true)
+        }}
+      />
+
+      {error ? (
+        <Alert type="error" showIcon message="Lỗi" description={error} style={{ marginBottom: 16 }} />
+      ) : null}
+
+      <QuestionTypeTable
+        data={data}
+        loading={loading}
         onRowClick={(record) => setDrawerItem(record)}
         rowKey="questionTypeId"
+        onView={(record) => router.push(`/admin/question-type/${record.questionTypeId}`)}
       />
+
       <DetailDrawer
         open={!!drawerItem}
         onClose={() => setDrawerItem(null)}
         title="Chi tiết loại câu hỏi"
         data={drawerItem || {}}
       />
+
+      <Modal
+        title="Tạo bộ câu hỏi mới"
+        open={createModalOpen}
+        onCancel={() => setCreateModalOpen(false)}
+        destroyOnClose
+        centered
+        okText="Tạo"
+        cancelText="Hủy"
+        confirmLoading={creating}
+        onOk={() => form.submit()}
+        styles={{ body: { paddingTop: 8 } }}
+      >
+        <Form
+          layout="vertical"
+          form={form}
+          initialValues={{ isActive: true }}
+          onFinish={async (values) => {
+            try {
+              setCreating(true)
+              const payload = {
+                ...values,
+                code: values.code?.trim()?.toUpperCase(),
+                name: values.name?.trim(),
+                description: values.description?.trim(),
+                isActive: values.isActive ? 1 : 0,
+              }
+              await createQuestionType(payload)
+              message.success('Đã tạo bộ câu hỏi mới')
+              setCreateModalOpen(false)
+              // reload list
+              setFilters((prev) => ({ ...prev })) // trigger useEffect
+            } catch (err) {
+              message.error(err?.message || 'Tạo bộ câu hỏi thất bại')
+            } finally {
+              setCreating(false)
+            }
+          }}
+        >
+          <QuestionTypeForm form={form} />
+        </Form>
+      </Modal>
     </>
   )
 }
