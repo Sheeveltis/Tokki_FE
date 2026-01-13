@@ -6,7 +6,7 @@ import { useParams } from 'react-router-dom'
 import { Typography, message } from 'antd'
 
 import { AdminLayout } from '../../../components/admin-layout.web.jsx'
-import { fetchQuestionBanks } from '../../QuestionBankManagement/api/api'
+import { fetchQuestionBanksByQuestionType } from '../../QuestionBankManagement/api/api'
 import { deleteQuestionType, fetchQuestionTypeById } from '../api/api'
 
 import QuestionTypeHeaderActions from './QuestionTypeHeaderActions'
@@ -37,7 +37,7 @@ export function QuestionTypeDetailScreen() {
 
         const [qt, qs] = await Promise.all([
           fetchQuestionTypeById(questionTypeId),
-          fetchQuestionBanks({ questionTypeId }),
+          fetchQuestionBanksByQuestionType(questionTypeId),
         ])
 
         if (!mounted) return
@@ -64,6 +64,35 @@ export function QuestionTypeDetailScreen() {
     status: null,
   })
 
+  // Filter status sẽ gọi backend API (/QuestionBanks/question-type/{questionTypeId}?status=...)
+  // Search vẫn filter ở frontend (vì endpoint này chỉ có status theo swagger bạn gửi)
+  useEffect(() => {
+    let mounted = true
+
+    const loadByStatus = async () => {
+      if (!questionTypeId) return
+      try {
+        setLoading(true)
+        const status = filters.status !== null && filters.status !== undefined ? filters.status : undefined
+        const qs = await fetchQuestionBanksByQuestionType(questionTypeId, status)
+        if (!mounted) return
+        setAllQuestions(qs || [])
+      } catch (err) {
+        if (!mounted) return
+        message.error(err?.message || 'Không thể tải danh sách câu hỏi')
+      } finally {
+        if (!mounted) return
+        setLoading(false)
+      }
+    }
+
+    loadByStatus()
+
+    return () => {
+      mounted = false
+    }
+  }, [questionTypeId, filters.status])
+
   const filteredData = useMemo(() => {
     let result = allQuestions || []
 
@@ -77,12 +106,8 @@ export function QuestionTypeDetailScreen() {
       )
     }
 
-    if (filters.status !== null && filters.status !== undefined) {
-      result = result.filter((item) => item.status === filters.status)
-    }
-
     return result
-  }, [allQuestions, filters])
+  }, [allQuestions, filters.search])
 
   const setSearch = (search) => setFilters((prev) => ({ ...prev, search }))
 
@@ -158,7 +183,25 @@ export function QuestionTypeDetailScreen() {
           onFilterChange={setFilters}
           onSearchChange={setSearch}
           data={filteredData}
-            loading={false}
+          loading={false}
+          onRefresh={async () => {
+            try {
+              const status = filters.status !== null && filters.status !== undefined ? filters.status : undefined
+              const qs = await fetchQuestionBanksByQuestionType(questionTypeId, status)
+              setAllQuestions(qs || [])
+            } catch (err) {
+              message.error(err?.message || 'Không thể tải lại danh sách câu hỏi')
+            }
+          }}
+          onDeleted={async () => {
+            try {
+              const status = filters.status !== null && filters.status !== undefined ? filters.status : undefined
+              const qs = await fetchQuestionBanksByQuestionType(questionTypeId, status)
+              setAllQuestions(qs || [])
+            } catch (err) {
+              message.error(err?.message || 'Không thể tải lại danh sách câu hỏi')
+            }
+          }}
         />
       </div>
     </AdminLayout>

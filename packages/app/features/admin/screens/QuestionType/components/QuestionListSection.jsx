@@ -7,7 +7,7 @@ import { QuestionCardList } from '../../QuestionBankManagement/components/Questi
 
 const { Title } = Typography
 
-export function QuestionListSection({ title, total, filters, onFilterChange, onSearchChange, data, loading }) {
+export function QuestionListSection({ title, total, filters, onFilterChange, onSearchChange, data, loading, onDeleted, onRefresh }) {
   return (
     <Card>
       <Title level={4} style={{ marginBottom: 16 }}>
@@ -16,7 +16,7 @@ export function QuestionListSection({ title, total, filters, onFilterChange, onS
 
       <QuestionFilter filters={filters} onFilterChange={onFilterChange} onSearchChange={onSearchChange} />
 
-      <QuestionCardList data={data} loading={loading} />
+      <QuestionCardList data={data} loading={loading} onDeleted={onDeleted} onRefresh={onRefresh} />
     </Card>
   )
 }
