@@ -22,6 +22,8 @@ const getRoleLabel = (val) => {
       return 'Nhân viên'
     case 3:
       return 'Thành viên VIP'
+    case 4:
+      return 'Kiểm duyệt viên'
     default:
       return String(val ?? '')
   }
@@ -451,6 +453,7 @@ export default function AccountDetails({ userId, onAfterChange }) {
                         { value: 1, label: 'Quản trị viên' },
                         { value: 2, label: 'Nhân viên' },
                         { value: 3, label: 'Thành viên VIP' },
+                        { value: 4, label: 'Người giám sát' },
                       ]}
                     />
                   ) : (
