@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, Divider, Space, Tag, Typography, Row, Col, Input, Select, Button, Form, message } from 'antd'
+import { Card, Divider, Space, Tag, Typography, Input, Select, Button, Form, Descriptions } from 'antd'
 import { updateQuestionType } from '../api/api'
 import { showAdminSuccess, showAdminError } from 'components/HelperAdmin'
 
@@ -138,136 +138,115 @@ export function QuestionTypeInfoCard({ questionType, isEditing: isEditingProp, o
 
           <Divider style={{ margin: '16px 0' }} />
 
-          {/* Information Grid */}
-          <Row gutter={[24, 16]}>
-            <Col xs={24} sm={12} md={8}>
-              <div style={{ marginBottom: 8 }}>
-                <Text type="secondary" style={{ fontSize: 13, display: 'block', marginBottom: 4 }}>
-                  Code
-                </Text>
-                {isEditing ? (
-                  <Form.Item
-                    name="code"
-                    rules={[{ required: true, message: 'Vui lòng nhập code' }]}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Input size="large" placeholder="Code" />
-                  </Form.Item>
-                ) : (
-                  <Tag color="geekblue" style={{ fontSize: 14, padding: '4px 12px' }}>
-                    {questionType?.code || '-'}
-                  </Tag>
-                )}
-              </div>
-            </Col>
+          {/* Thông tin cơ bản (format table giống ExamTemplateDetail) */}
+          <Descriptions column={1} bordered size="middle">
+            <Descriptions.Item label="Code">
+              {isEditing ? (
+                <Form.Item
+                  name="code"
+                  rules={[{ required: true, message: 'Vui lòng nhập code' }]}
+                  style={{ marginBottom: 0 }}
+                >
+                  <Input size="large" placeholder="Code" />
+                </Form.Item>
+              ) : (
+                <Tag color="geekblue" style={{ fontSize: 14, padding: '4px 12px' }}>
+                  {questionType?.code || '-'}
+                </Tag>
+              )}
+            </Descriptions.Item>
 
-            <Col xs={24} sm={12} md={8}>
-              <div style={{ marginBottom: 8 }}>
-                <Text type="secondary" style={{ fontSize: 13, display: 'block', marginBottom: 4 }}>
-                  Kỹ năng
-                </Text>
-                {isEditing ? (
-                  <Form.Item
-                    name="skill"
-                    rules={[{ required: true, message: 'Vui lòng chọn kỹ năng' }]}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Select size="large" placeholder="Chọn kỹ năng">
-                      <Select.Option value={1}>Nghe</Select.Option>
-                      <Select.Option value={2}>Đọc</Select.Option>
-                      <Select.Option value={3}>Viết</Select.Option>
-                    </Select>
-                  </Form.Item>
-                ) : (
-                  <Tag color={skillInfo.color} style={{ fontSize: 14, padding: '4px 12px' }}>
-                    {skillInfo.label}
-                  </Tag>
-                )}
-              </div>
-            </Col>
+            <Descriptions.Item label="Kỹ năng">
+              {isEditing ? (
+                <Form.Item
+                  name="skill"
+                  rules={[{ required: true, message: 'Vui lòng chọn kỹ năng' }]}
+                  style={{ marginBottom: 0 }}
+                >
+                  <Select size="large" placeholder="Chọn kỹ năng">
+                    <Select.Option value={1}>Nghe</Select.Option>
+                    <Select.Option value={2}>Đọc</Select.Option>
+                    <Select.Option value={3}>Viết</Select.Option>
+                  </Select>
+                </Form.Item>
+              ) : (
+                <Tag color={skillInfo.color} style={{ fontSize: 14, padding: '4px 12px' }}>
+                  {skillInfo.label}
+                </Tag>
+              )}
+            </Descriptions.Item>
 
-            <Col xs={24} sm={12} md={8}>
-              <div style={{ marginBottom: 8 }}>
-                <Text type="secondary" style={{ fontSize: 13, display: 'block', marginBottom: 4 }}>
-                  TOPIK Level
+            <Descriptions.Item label="TOPIK Level">
+              {isEditing ? (
+                <Form.Item
+                  name="examType"
+                  rules={[{ required: true, message: 'Vui lòng chọn TOPIK level' }]}
+                  style={{ marginBottom: 0 }}
+                >
+                  <Select size="large" placeholder="Chọn TOPIK level">
+                    <Select.Option value={1}>TOPIK I</Select.Option>
+                    <Select.Option value={2}>TOPIK II</Select.Option>
+                    <Select.Option value={3}>Test đầu vào</Select.Option>
+                  </Select>
+                </Form.Item>
+              ) : examType ? (
+                <Tag color="geekblue" style={{ fontSize: 14, padding: '4px 12px' }}>
+                  {examType}
+                </Tag>
+              ) : (
+                <Text type="secondary" style={{ fontSize: 14 }}>
+                  -
                 </Text>
-                {isEditing ? (
-                  <Form.Item
-                    name="examType"
-                    rules={[{ required: true, message: 'Vui lòng chọn TOPIK level' }]}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Select size="large" placeholder="Chọn TOPIK level">
-                      <Select.Option value={1}>TOPIK I</Select.Option>
-                      <Select.Option value={2}>TOPIK II</Select.Option>
-                      <Select.Option value={3}>Test đầu vào</Select.Option>
-                    </Select>
-                  </Form.Item>
-                ) : examType ? (
-                  <Tag color="geekblue" style={{ fontSize: 14, padding: '4px 12px' }}>
-                    {examType}
-                  </Tag>
-                ) : (
-                  <Text type="secondary" style={{ fontSize: 14 }}>-</Text>
-                )}
-              </div>
-            </Col>
+              )}
+            </Descriptions.Item>
 
-            <Col xs={24} sm={12} md={8}>
-              <div style={{ marginBottom: 8 }}>
-                <Text type="secondary" style={{ fontSize: 13, display: 'block', marginBottom: 4 }}>
-                  Mức độ
+            <Descriptions.Item label="Mức độ">
+              {isEditing ? (
+                <Form.Item
+                  name="difficulty"
+                  rules={[{ required: true, message: 'Vui lòng chọn mức độ' }]}
+                  style={{ marginBottom: 0 }}
+                >
+                  <Select size="large" placeholder="Chọn mức độ">
+                    <Select.Option value={1}>Dễ</Select.Option>
+                    <Select.Option value={2}>Trung bình</Select.Option>
+                    <Select.Option value={3}>Khó</Select.Option>
+                  </Select>
+                </Form.Item>
+              ) : difficultyInfo ? (
+                <Tag color={difficultyInfo.color} style={{ fontSize: 14, padding: '4px 12px' }}>
+                  {difficultyInfo.label}
+                </Tag>
+              ) : (
+                <Text type="secondary" style={{ fontSize: 14 }}>
+                  -
                 </Text>
-                {isEditing ? (
-                  <Form.Item
-                    name="difficulty"
-                    rules={[{ required: true, message: 'Vui lòng chọn mức độ' }]}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Select size="large" placeholder="Chọn mức độ">
-                      <Select.Option value={1}>Dễ</Select.Option>
-                      <Select.Option value={2}>Trung bình</Select.Option>
-                      <Select.Option value={3}>Khó</Select.Option>
-                    </Select>
-                  </Form.Item>
-                ) : difficultyInfo ? (
-                  <Tag color={difficultyInfo.color} style={{ fontSize: 14, padding: '4px 12px' }}>
-                    {difficultyInfo.label}
-                  </Tag>
-                ) : (
-                  <Text type="secondary" style={{ fontSize: 14 }}>-</Text>
-                )}
-              </div>
-            </Col>
+              )}
+            </Descriptions.Item>
 
-            <Col xs={24} sm={12} md={8}>
-              <div style={{ marginBottom: 8 }}>
-                <Text type="secondary" style={{ fontSize: 13, display: 'block', marginBottom: 4 }}>
-                  Trạng thái
-                </Text>
-                {isEditing ? (
-                  <Form.Item
-                    name="status"
-                    rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Select size="large" placeholder="Chọn trạng thái">
-                      <Select.Option value={1}>Hoạt động</Select.Option>
-                      <Select.Option value={0}>Không hoạt động</Select.Option>
-                    </Select>
-                  </Form.Item>
-                ) : questionType?.isActive ? (
-                  <Tag color="green" style={{ fontSize: 14, padding: '4px 12px' }}>
-                    Hoạt động
-                  </Tag>
-                ) : (
-                  <Tag color="default" style={{ fontSize: 14, padding: '4px 12px' }}>
-                    Không hoạt động
-                  </Tag>
-                )}
-              </div>
-            </Col>
-          </Row>
+            <Descriptions.Item label="Trạng thái">
+              {isEditing ? (
+                <Form.Item
+                  name="status"
+                  rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
+                  style={{ marginBottom: 0 }}
+                >
+                  <Select size="large" placeholder="Chọn trạng thái">
+                    <Select.Option value={1}>Hoạt động</Select.Option>
+                    <Select.Option value={0}>Không hoạt động</Select.Option>
+                  </Select>
+                </Form.Item>
+              ) : questionType?.isActive ? (
+                <Tag color="green" style={{ fontSize: 14, padding: '4px 12px' }}>
+                  Hoạt động
+                </Tag>
+              ) : (
+                <Tag color="default" style={{ fontSize: 14, padding: '4px 12px' }}>
+                  Không hoạt động
+                </Tag>
+              )}
+            </Descriptions.Item>
+          </Descriptions>
 
           {/* Action Buttons when editing */}
           {isEditing && (
