@@ -50,6 +50,7 @@ export const ENDPOINTS = {
     QUESTION_BANK: {
       GET_ALL: '/QuestionBanks',
       GET_BY_ID: (id) => `/QuestionBanks/${id}`,
+      GET_BY_QUESTION_TYPE: (questionTypeId) => `/QuestionBanks/question-type/${questionTypeId}`,
       CREATE: '/QuestionBanks',
       UPDATE: '/QuestionBanks/update',
       DELETE: (id) => `/QuestionBanks/${id}`,

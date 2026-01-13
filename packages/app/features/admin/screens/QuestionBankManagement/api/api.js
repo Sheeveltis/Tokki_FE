@@ -1,6 +1,17 @@
 import { apiClient } from '../../../../../provider/api/client'
 import { ENDPOINTS } from '../../../../../provider/api/endpoints'
 
+// Lấy danh sách câu hỏi theo questionTypeId (hỗ trợ filter status)
+// Status: 0 (Draft), 1 (Active), 2 (Deleted)
+export async function fetchQuestionBanksByQuestionType(questionTypeId, status) {
+  const params = {}
+  if (status !== undefined) {
+    params.status = status
+  }
+  const res = await apiClient.get(ENDPOINTS.QUESTION_BANK.GET_BY_QUESTION_TYPE(questionTypeId), { params })
+  return res.data?.data || []
+}
+
 export async function fetchPassageById(id) {
   const res = await apiClient.get(ENDPOINTS.PASSAGE.GET_BY_ID(id))
   return res.data?.data || null
@@ -21,7 +32,7 @@ export async function fetchQuestionTypes(params = {}) {
 // Lấy danh sách câu hỏi trong ngân hàng câu hỏi
 // Query hỗ trợ: SearchTerm, Skill, DifficultyLevel, QuestionTypeId, PassageId, Status, PageNumber, PageSize
 export async function fetchQuestionBanks(params = {}) {
-  const res = await apiClient.get('/QuestionBanks', { params })
+  const res = await apiClient.get(ENDPOINTS.QUESTION_BANK.GET_ALL, { params })
   return res.data?.data?.items || res.data?.data || []
 }
 
