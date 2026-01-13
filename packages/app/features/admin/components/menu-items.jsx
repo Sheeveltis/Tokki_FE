@@ -53,7 +53,7 @@ export const adminMenuItems = [
     label: 'Quản lý Đề',
     children: [
       { key: 'exam-template', icon: <FormOutlined />, label: 'Mẫu đề' },
-      { key: 'question-bank', icon: <QuestionCircleOutlined />, label: 'Ngân hàng câu hỏi' },
+      { key: 'question-bank', icon: <QuestionCircleOutlined />, label: 'Bộ câu hỏi' },
       { key: 'passage-management', icon: <FileTextOutlined />, label: 'Quản lí Passage' },
       { key: 'exam-management', icon: <FileDoneOutlined />, label: 'Đề' },
     ],
