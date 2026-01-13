@@ -3,9 +3,10 @@
 import React, { useEffect, useState } from 'react'
 import { Card, Row, Col, Tag, Typography, Space, Button, Popconfirm, Spin, Input, Select, Modal, message, Checkbox, Upload, Switch } from 'antd'
 import { EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, PlusOutlined, InboxOutlined } from '@ant-design/icons'
-import { fetchPassageById, fetchPassages, fetchQuestionTypes, updateQuestionBank, updateQuestionBankOption, createQuestionBankOption, deleteQuestionBankOption, activateQuestionBanks } from '../api/api'
+import { fetchPassageById, fetchPassages, fetchQuestionTypes, updateQuestionBank, updateQuestionBankOption, createQuestionBankOption, deleteQuestionBankOption, activateQuestionBanks, deleteQuestionBank } from '../api/api'
 import { uploadOptionImageToCloudinary, uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary } from '../../../api/cloudinary'
 import { createObjectUrl, isAudioUrl } from '../../CreateQuestion/components/upload-utils'
+import { showAdminSuccess, showAdminError } from 'components/HelperAdmin'
 
 const { Text, Paragraph } = Typography
 const { TextArea } = Input
@@ -17,7 +18,7 @@ const { Dragger } = Upload
  * Hiển thị danh sách câu hỏi dưới dạng các card, mỗi card là một câu hỏi và các đáp án.
  * Nếu câu hỏi có passageId thì hiển thị passageTitle trong title.
  */
-export function QuestionCardList({ data, loading, onEdit, onDelete }) {
+export function QuestionCardList({ data, loading, onEdit, onDelete, onDeleted, onRefresh }) {
   const [passageMap, setPassageMap] = useState({})
   const [loadingPassage, setLoadingPassage] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -189,6 +190,28 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
     setEditOptions((prev) => prev.map((o) => ({ ...o, isCorrect: o.__tempId === tempId })))
   }
 
+  const [deletingId, setDeletingId] = useState(null)
+
+  const handleDeleteQuestion = async (questionId) => {
+    const question = data.find((q) => (q.questionBankId || q.id) === questionId)
+    if (!question) return
+
+    const questionBankId = question.questionBankId || question.id
+
+    try {
+      setDeletingId(questionId)
+      await deleteQuestionBank(questionBankId)
+      showAdminSuccess('Đã xóa câu hỏi thành công')
+      if (onDeleted) {
+        onRefresh ? onRefresh() : onDeleted?.(questionId)
+      }
+    } catch (error) {
+      showAdminError(error?.message || 'Xóa câu hỏi thất bại')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   const handleSave = async () => {
     const question = data.find((q) => (q.questionBankId || q.id) === editingId)
     if (!question) return
@@ -269,7 +292,7 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
         const payload = {
           keyOption: o.keyOption,
           content: o.content,
-          imageUrl1: finalImageUrl,
+          imageUrl: finalImageUrl,
           isCorrect: !!o.isCorrect,
         }
 
@@ -294,6 +317,10 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
       setEditingId(null)
       setEditForm({})
       setEditOptions([])
+
+      if (onRefresh) {
+        onRefresh()
+      }
     } catch (error) {
       message.error(error?.message || 'Cập nhật thất bại')
     } finally {
@@ -372,20 +399,25 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
                 </>
               ) : (
                 <>
-                  <Button type="text" icon={<EditOutlined />} onClick={() => handleEdit(key)}>
-                Sửa
-              </Button>
-              <Popconfirm
-                title="Xóa câu hỏi"
-                description="Bạn có chắc chắn muốn xóa câu hỏi này?"
-                  onConfirm={() => onDelete?.(key)}
-                okText="Xóa"
-                cancelText="Hủy"
-              >
-                <Button type="text" danger icon={<DeleteOutlined />}>
-                  Xóa
-                </Button>
-              </Popconfirm>
+                  {(question.status ?? 0) !== 1 && (question.status ?? 0) !== 2 ? (
+                    <Button type="text" icon={<EditOutlined />} onClick={() => handleEdit(key)}>
+                      Sửa
+                    </Button>
+                  ) : null}
+
+                  {(question.status ?? 0) !== 2 ? (
+                    <Popconfirm
+                      title="Xóa câu hỏi"
+                      description="Bạn có chắc chắn muốn xóa câu hỏi này?"
+                      onConfirm={() => handleDeleteQuestion(key)}
+                      okText="Xóa"
+                      cancelText="Hủy"
+                    >
+                      <Button type="text" danger icon={<DeleteOutlined />} loading={deletingId === key} disabled={deletingId === key}>
+                        Xóa
+                      </Button>
+                    </Popconfirm>
+                  ) : null}
                 </>
               )}
             </Space>
@@ -595,23 +627,41 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
               ) : null}
 
               {/* Status */}
-              {isEditing ? (
-                <div style={{ marginTop: 8 }}>
-                  <Text strong style={{ display: 'block', marginBottom: 4 }}>Trạng thái:</Text>
-                  <Switch
-                    checkedChildren="Hoạt động"
-                    unCheckedChildren="Nháp"
-                    checked={currentForm.status === 1}
-                    onChange={(checked) => setEditForm(prev => ({ ...prev, status: checked ? 1 : 0 }))}
-                  />
-                </div>
-              ) : question.status !== undefined ? (
-                <Space wrap>
-                  <Tag color={question.status === 1 ? 'green' : 'default'}>
-                    {question.status === 1 ? 'Hoạt động' : 'Nháp'}
-                  </Tag>
-                </Space>
-              ) : null}
+              {(() => {
+                const statusMap = {
+                  0: { label: 'Nháp', color: 'default' },
+                  1: { label: 'Đang hoạt động', color: 'green' },
+                  2: { label: 'Đã xóa', color: 'red' },
+                }
+
+                const getStatusInfo = (status) => statusMap[status] || { label: `Trạng thái ${status}`, color: 'default' }
+
+                if (isEditing) {
+                  return (
+                    <div style={{ marginTop: 8 }}>
+                      <Text strong style={{ display: 'block', marginBottom: 4 }}>Trạng thái:</Text>
+                      <Select
+                        style={{ width: 260 }}
+                        value={currentForm.status}
+                        onChange={(value) => setEditForm((prev) => ({ ...prev, status: value }))}
+                        options={[
+                          { value: 0, label: 'Nháp' },
+                          { value: 1, label: 'Đang hoạt động' },
+                        ]}
+                      />
+                    </div>
+                  )
+                }
+
+                if (question.status === undefined || question.status === null) return null
+
+                const info = getStatusInfo(question.status)
+                return (
+                  <Space wrap>
+                    <Tag color={info.color}>{info.label}</Tag>
+                  </Space>
+                )
+              })()}
             </Space>
 
             {isEditing ? (
@@ -743,7 +793,7 @@ export function QuestionCardList({ data, loading, onEdit, onDelete }) {
                         <Tag color={isCorrect ? 'success' : 'default'} style={{ marginRight: 10 }}>
                     {String.fromCharCode(65 + ansIndex)}
                   </Tag>
-                        <Text>{option.content || option}</Text>
+                        <Text>{option?.content || option?.keyOption || option?.label || '-'}</Text>
                         {option.imageUrl || option.imageUrl1 ? (
                           <img
                             src={option.imageUrl || option.imageUrl1}
