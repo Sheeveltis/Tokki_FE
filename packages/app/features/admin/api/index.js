@@ -526,6 +526,7 @@ export async function updateExamTemplate(examTemplateId, payload) {
       name: payload.Name || payload.name,
       description: payload.Description || payload.description || '',
       type: examTypeToNumber[payload.ExamType || payload.examType] || payload.type,
+      status: payload.Status ?? payload.status ?? 0,
     }
 
     // Đảm bảo các field bắt buộc có giá trị
@@ -697,10 +698,24 @@ export async function createExamTemplate(payload) {
       ExamTemplateId: examTemplateId,
     }
   } catch (error) {
-    // Nếu error đã có message thì throw luôn
-    if (error.message) {
+    // Ưu tiên lấy message/description từ response của axios
+    const apiMessage =
+      error?.response?.data?.message ||
+      (Array.isArray(error?.response?.data?.errors) && error.response.data.errors[0]?.description)
+
+    if (apiMessage) {
+      const enrichedError = new Error(apiMessage)
+      enrichedError.status = error?.response?.status || error?.status || 400
+      enrichedError.errors = error?.response?.data?.errors || error?.errors
+      throw enrichedError
+    }
+
+    // Nếu lỗi đã có message thì throw luôn
+    if (error?.message) {
       throw error
     }
+
+    // Fallback sang handler chung
     handleApiError(error, 'Không thể tạo mẫu đề')
   }
 }
