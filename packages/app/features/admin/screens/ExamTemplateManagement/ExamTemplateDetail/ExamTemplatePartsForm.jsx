@@ -221,6 +221,9 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
      examTemplate?.examType === 'TOPIK II' ? 2 :
      examTemplate?.examType === 'Test đầu vào' ? 3 : null) || null
 
+  // Template đã xuất bản (status = 1) thì chỉ cho xem, không cho chỉnh sửa
+  const isActiveTemplate = examTemplate?.status === 1
+
   // Function để fetch question types theo skill
   const loadQuestionTypes = React.useCallback(async (skill) => {
     if (!skill || !examType) return
@@ -422,6 +425,18 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
     }
   }
 
+  // Tập kỹ năng đã tồn tại để chặn tạo trùng (ví dụ đã có Đọc thì không cho thêm Đọc nữa)
+  const existingSkills = React.useMemo(() => {
+    const parts = form.getFieldValue('parts') || []
+    if (!Array.isArray(parts)) return new Set()
+
+    return new Set(
+      parts
+        .map((p) => p?.Skill)
+        .filter((s) => s === 1 || s === 2 || s === 3)
+    )
+  }, [form, watchParts])
+
   // Lọc question types theo skill từ API
   // QuestionTypeId là foreign key trỏ đến bảng QuestionTypes để lấy thông tin dạng câu hỏi
   const getQuestionTypesBySkill = React.useCallback((skill) => {
@@ -486,6 +501,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
             partsCountRef.current = partsCount
 
             const handleAddPart = () => {
+              if (isActiveTemplate) return
               if (canAddMore) {
                 setAddPartModalOpen(true)
               }
@@ -534,7 +550,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                     )
                   })}
                   
-                  {canAddMore && (
+                  {canAddMore && !isActiveTemplate && (
                     <Button
                       type="dashed"
                       icon={<PlusOutlined />}
@@ -550,7 +566,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                 </div>
 
                 {/* Hiển thị empty state nếu chưa có phần nào */}
-                {fields.length === 0 && (
+                {fields.length === 0 && !isActiveTemplate && (
                   <Card
                     style={{
                       border: '2px dashed #d9d9d9',
@@ -569,7 +585,8 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                         type="primary"
                         icon={<PlusOutlined />}
                         onClick={handleAddPart}
-                        size="large"
+                        size="middle"
+                        style={{ padding: 12 }}
                       >
                         Thêm phần
                       </Button>
@@ -587,14 +604,16 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                       size="small"
                       title={`Phần ${validActiveIndex + 1}`}
                       extra={
-                        <Button
-                          type="text"
-                          danger
-                          icon={<DeleteOutlined />}
-                          onClick={() => handleRemovePart(name)}
-                        >
-                          Xóa phần
-                        </Button>
+                        !isActiveTemplate && (
+                          <Button
+                            type="text"
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() => handleRemovePart(name)}
+                          >
+                            Xóa phần
+                          </Button>
+                        )
                       }
                       style={{ marginBottom: 16 }}
                     >
@@ -617,6 +636,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                               
                               // Khi thêm bộ câu mới, tự động thêm Skill từ Part cha và bật chế độ edit
                               const handleAddQuestionGroup = () => {
+                                if (isActiveTemplate) return
                                 addQuestionGroup({ Skill: skill })
                                 // Sau khi thêm, bật chế độ edit cho bộ câu mới (sẽ được xử lý trong map)
                               }
@@ -652,6 +672,8 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                               }
 
                               // Hàm kiểm tra trùng lặp phạm vi câu hỏi
+                              // - Không cho trùng trong cùng phần
+                              // - Không cho trùng giữa các phần khác nhau (ví dụ Nghe 1-20 thì Đọc không được dùng lại 1-20)
                               const validateQuestionRange = (currentGroupIndex, fromValue, toValue) => {
                                 if (!fromValue || !toValue) {
                                   return Promise.resolve() // Chưa chọn đủ thì không validate
@@ -661,30 +683,40 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                   return Promise.reject(new Error('Từ câu phải nhỏ hơn hoặc bằng Đến câu'))
                                 }
 
-                                // Lấy tất cả các bộ câu trong phần này
-                                const allGroups = form.getFieldValue(['parts', name, 'QuestionGroups']) || []
-                                
-                                // Kiểm tra trùng với các bộ câu khác (trừ bộ câu hiện tại)
-                                for (let i = 0; i < allGroups.length; i++) {
-                                  if (i === currentGroupIndex) continue // Bỏ qua bộ câu hiện tại
-                                  
-                                  const otherFrom = allGroups[i]?.QuestionFrom
-                                  const otherTo = allGroups[i]?.QuestionTo
-                                  
-                                  if (!otherFrom || !otherTo) continue // Bỏ qua nếu chưa có đủ thông tin
-                                  
-                                  // Kiểm tra trùng lặp: có overlap giữa [fromValue, toValue] và [otherFrom, otherTo]
-                                  if (
-                                    (fromValue >= otherFrom && fromValue <= otherTo) ||
-                                    (toValue >= otherFrom && toValue <= otherTo) ||
-                                    (fromValue <= otherFrom && toValue >= otherTo)
-                                  ) {
-                                    return Promise.reject(
-                                      new Error(`Phạm vi câu ${fromValue}-${toValue} đã được sử dụng bởi bộ câu khác (${otherFrom}-${otherTo})`)
-                                    )
+                                // Lấy tất cả các phần và bộ câu trong form
+                                const allParts = form.getFieldValue('parts') || []
+
+                                for (let partIndex = 0; partIndex < allParts.length; partIndex++) {
+                                  const part = allParts[partIndex]
+                                  const partSkill = part?.Skill
+                                  const allGroups = part?.QuestionGroups || []
+
+                                  for (let i = 0; i < allGroups.length; i++) {
+                                    // Bỏ qua chính bộ câu hiện tại (cùng phần + cùng index)
+                                    if (partIndex === name && i === currentGroupIndex) continue
+
+                                    const otherFrom = allGroups[i]?.QuestionFrom
+                                    const otherTo = allGroups[i]?.QuestionTo
+
+                                    if (!otherFrom || !otherTo) continue // Bỏ qua nếu chưa có đủ thông tin
+
+                                    // Kiểm tra trùng lặp: có overlap giữa [fromValue, toValue] và [otherFrom, otherTo]
+                                    const isOverlap =
+                                      (fromValue >= otherFrom && fromValue <= otherTo) ||
+                                      (toValue >= otherFrom && toValue <= otherTo) ||
+                                      (fromValue <= otherFrom && toValue >= otherTo)
+
+                                    if (isOverlap) {
+                                      const skillLabel = getSkillLabel(partSkill)
+                                      return Promise.reject(
+                                        new Error(
+                                          `Phạm vi câu ${fromValue}-${toValue} đã được sử dụng ở phần ${skillLabel} (câu ${otherFrom}-${otherTo})`
+                                        )
+                                      )
+                                    }
                                   }
                                 }
-                                
+
                                 return Promise.resolve()
                               }
 
@@ -732,6 +764,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                         }
 
                                         const handleEdit = () => {
+                                          if (isActiveTemplate) return
                                           Modal.confirm({
                                             title: 'Xác nhận chỉnh sửa',
                                             content: 'Bạn có muốn chỉnh sửa bộ câu này?',
@@ -767,6 +800,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                         }
 
                                         const handleCancelEdit = () => {
+                                          if (isActiveTemplate) return
                                           Modal.confirm({
                                             title: 'Hủy chỉnh sửa',
                                             content: 'Bạn có chắc muốn hủy chỉnh sửa? Tất cả thay đổi chưa lưu sẽ bị mất.',
@@ -790,6 +824,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                         // Hàm xử lý khi bấm "Hoàn tất" để lưu và gọi API
                                         const handleFinishEdit = async () => {
                                           try {
+                                            if (isActiveTemplate) return
                                             // Validate form fields trước khi submit
                                             const groupFieldPath = ['parts', name, 'QuestionGroups', groupName]
                                             
@@ -955,93 +990,97 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                               }}
                                           extra={
                                             <Space size="small">
-                                              {!isEditing ? (
+                                              {/* Nút ẩn/hiển thị luôn cho phép để tiện xem nội dung */}
+                                              <Button
+                                                type="text"
+                                                icon={isCollapsed ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                                                onClick={toggleCollapse}
+                                                size="small"
+                                                style={{ fontSize: 13 }}
+                                                title={isCollapsed ? 'Hiển thị' : 'Ẩn'}
+                                              />
+                                              {!isActiveTemplate && (
                                                 <>
-                                                  {/* Nút chỉnh sửa */}
-                                                  <Button
-                                                    type="text"
-                                                    icon={<EditOutlined />}
-                                                    onClick={handleEdit}
-                                                    size="small"
-                                                    style={{ fontSize: 13 }}
-                                                    title="Chỉnh sửa"
-                                                  />
-                                                  {/* Nút di chuyển lên */}
-                                                  <Button
-                                                    type="text"
-                                                    icon={<UpOutlined />}
-                                                    onClick={() => handleMoveUp(groupIndex)}
-                                                    disabled={groupIndex === 0}
-                                                    size="small"
-                                                    style={{ fontSize: 13 }}
-                                                    title="Di chuyển lên"
-                                                  />
-                                                  {/* Nút di chuyển xuống */}
-                                                  <Button
-                                                    type="text"
-                                                    icon={<DownOutlined />}
-                                                    onClick={() => handleMoveDown(groupIndex)}
-                                                    disabled={groupIndex === questionGroupFields.length - 1}
-                                                    size="small"
-                                                    style={{ fontSize: 13 }}
-                                                    title="Di chuyển xuống"
-                                                  />
-                                                  {/* Nút ẩn/hiển thị */}
-                                                  <Button
-                                                    type="text"
-                                                    icon={isCollapsed ? <EyeInvisibleOutlined /> : <EyeOutlined />}
-                                                    onClick={toggleCollapse}
-                                                    size="small"
-                                                    style={{ fontSize: 13 }}
-                                                    title={isCollapsed ? 'Hiển thị' : 'Ẩn'}
-                                                  />
-                                                  {/* Nút xóa */}
-                                                  {questionGroupFields.length > 1 && (
-                                                    <Button
-                                                      type="text"
-                                                      danger
-                                                      icon={<DeleteOutlined />}
-                                                      onClick={() => {
-                                                        Modal.confirm({
-                                                          title: 'Xác nhận xóa',
-                                                          content: 'Bạn có chắc muốn xóa bộ câu này? Hành động này không thể hoàn tác.',
-                                                          okText: 'Xóa',
-                                                          cancelText: 'Hủy',
-                                                          okType: 'danger',
-                                                          onOk: () => {
-                                                            removeQuestionGroup(groupName)
-                                                          },
-                                                        })
-                                                      }}
-                                                      size="small"
-                                                      style={{ fontSize: 13 }}
-                                                      title="Xóa"
-                                                    />
+                                                  {!isEditing ? (
+                                                    <>
+                                                      {/* Nút chỉnh sửa */}
+                                                      <Button
+                                                        type="text"
+                                                        icon={<EditOutlined />}
+                                                        onClick={handleEdit}
+                                                        size="small"
+                                                        style={{ fontSize: 13 }}
+                                                        title="Chỉnh sửa"
+                                                      />
+                                                      {/* Nút di chuyển lên */}
+                                                      <Button
+                                                        type="text"
+                                                        icon={<UpOutlined />}
+                                                        onClick={() => handleMoveUp(groupIndex)}
+                                                        disabled={groupIndex === 0}
+                                                        size="small"
+                                                        style={{ fontSize: 13 }}
+                                                        title="Di chuyển lên"
+                                                      />
+                                                      {/* Nút di chuyển xuống */}
+                                                      <Button
+                                                        type="text"
+                                                        icon={<DownOutlined />}
+                                                        onClick={() => handleMoveDown(groupIndex)}
+                                                        disabled={groupIndex === questionGroupFields.length - 1}
+                                                        size="small"
+                                                        style={{ fontSize: 13 }}
+                                                        title="Di chuyển xuống"
+                                                      />
+                                                      {/* Nút xóa */}
+                                                      {questionGroupFields.length > 1 && (
+                                                        <Button
+                                                          type="text"
+                                                          danger
+                                                          icon={<DeleteOutlined />}
+                                                          onClick={() => {
+                                                            Modal.confirm({
+                                                              title: 'Xác nhận xóa',
+                                                              content: 'Bạn có chắc muốn xóa bộ câu này? Hành động này không thể hoàn tác.',
+                                                              okText: 'Xóa',
+                                                              cancelText: 'Hủy',
+                                                              okType: 'danger',
+                                                              onOk: () => {
+                                                                removeQuestionGroup(groupName)
+                                                              },
+                                                            })
+                                                          }}
+                                                          size="small"
+                                                          style={{ fontSize: 13 }}
+                                                          title="Xóa"
+                                                        />
+                                                      )}
+                                                    </>
+                                                  ) : (
+                                                    <>
+                                                      {/* Nút hoàn tất */}
+                                                      <Button
+                                                        type="primary"
+                                                        onClick={handleFinishEdit}
+                                                        size="small"
+                                                        style={{ fontSize: 13 }}
+                                                        title="Hoàn tất"
+                                                        loading={loading}
+                                                      >
+                                                        Hoàn tất
+                                                      </Button>
+                                                      {/* Nút hủy chỉnh sửa */}
+                                                      <Button
+                                                        type="text"
+                                                        icon={<CloseOutlined />}
+                                                        onClick={handleCancelEdit}
+                                                        size="small"
+                                                        style={{ fontSize: 13 }}
+                                                        title="Hủy chỉnh sửa"
+                                                        disabled={loading}
+                                                      />
+                                                    </>
                                                   )}
-                                                </>
-                                              ) : (
-                                                <>
-                                                  {/* Nút hoàn tất */}
-                                                  <Button
-                                                    type="primary"
-                                                    onClick={handleFinishEdit}
-                                                    size="small"
-                                                    style={{ fontSize: 13 }}
-                                                    title="Hoàn tất"
-                                                    loading={loading}
-                                                  >
-                                                    Hoàn tất
-                                                  </Button>
-                                                  {/* Nút hủy chỉnh sửa */}
-                                                  <Button
-                                                    type="text"
-                                                    icon={<CloseOutlined />}
-                                                    onClick={handleCancelEdit}
-                                                    size="small"
-                                                    style={{ fontSize: 13 }}
-                                                    title="Hủy chỉnh sửa"
-                                                    disabled={loading}
-                                                  />
                                                 </>
                                               )}
                                             </Space>
@@ -1186,7 +1225,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                                         placeholder="Chọn từ câu"
                                                         size="middle"
                                                         style={{ fontSize: 13 }}
-                                                        options={Array.from({ length: 50 }, (_, i) => ({
+                                                        options={Array.from({ length: 120 }, (_, i) => ({
                                                           value: i + 1,
                                                           label: i + 1,
                                                         }))}
@@ -1225,15 +1264,29 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                                       name={[groupName, 'Mark']}
                                                       label={<span style={{ fontSize: 13 }}>Điểm mỗi câu</span>}
                                                       rules={[
-                                                        { required: true, message: 'Vui lòng nhập số điểm' },
-                                                        { type: 'number', min: 0.1, message: 'Phải lớn hơn 0' },
+                                                      { required: true, message: 'Vui lòng nhập số điểm' },
+                                                      {
+                                                        validator: (_, value) => {
+                                                          if (value === undefined || value === null) {
+                                                            return Promise.reject(new Error('Vui lòng nhập số điểm'))
+                                                          }
+                                                          if (!Number.isInteger(value)) {
+                                                            return Promise.reject(new Error('Điểm phải là số nguyên'))
+                                                          }
+                                                          if (value < 0) {
+                                                            return Promise.reject(new Error('Điểm phải >= 0'))
+                                                          }
+                                                          return Promise.resolve()
+                                                        },
+                                                      },
                                                       ]}
                                                       style={{ marginBottom: 0 }}
                                                     >
                                                       <InputNumber
-                                                        placeholder="VD: 1.0"
-                                                        min={0.1}
-                                                        step={0.1}
+                                                      placeholder="VD: 1"
+                                                      min={0}
+                                                      step={1}
+                                                      precision={0}
                                                         style={{ width: '100%', fontSize: 13 }}
                                                         size="middle"
                                                       />
@@ -1319,16 +1372,18 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                         )
                                       })}
 
-                                      <Button
-                                        type="dashed"
-                                        icon={<PlusOutlined />}
-                                        onClick={handleAddQuestionGroup}
-                                        block
-                                        size="middle"
-                                        style={{ marginTop: 8, fontSize: 13 }}
-                                      >
-                                        Thêm bộ câu
-                                      </Button>
+                                      {!isActiveTemplate && (
+                                        <Button
+                                          type="dashed"
+                                          icon={<PlusOutlined />}
+                                          onClick={handleAddQuestionGroup}
+                                          block
+                                          size="middle"
+                                          style={{ marginTop: 8, fontSize: 13 }}
+                                        >
+                                          Thêm bộ câu
+                                        </Button>
+                                      )}
                                     </>
                                   )}
                                 </div>
@@ -1340,17 +1395,20 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                   )
                 })()}
 
-                <Divider />
-
-                <Form.Item>
-                  <ButtonV2
-                    title={loading ? 'Đang lưu...' : 'Lưu thay đổi'}
-                    color="poppy"
-                    onPress={() => form.submit()}
-                    style={{ minWidth: 120, paddingVertical: 10 }}
-                    textStyle={{ fontSize: 14 }}
-                  />
-                </Form.Item>
+                {!isActiveTemplate && (
+                  <>
+                    <Divider />
+                    <Form.Item>
+                      <ButtonV2
+                        title={loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+                        color="poppy"
+                        onPress={() => form.submit()}
+                        style={{ minWidth: 120, paddingVertical: 10 }}
+                        textStyle={{ fontSize: 14 }}
+                      />
+                    </Form.Item>
+                  </>
+                )}
               </>
             )
           }}
@@ -1364,6 +1422,13 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
         onOk={() => {
           if (!selectedSkillForNewPart) {
             message.warning('Vui lòng chọn kỹ năng')
+            return
+          }
+
+          // Không cho phép tạo trùng skill (Listening/Reading/Writing)
+          if (existingSkills.has(selectedSkillForNewPart)) {
+            const existedSkillLabel = getSkillLabel(selectedSkillForNewPart)
+            message.error(`Đã tồn tại phần "${existedSkillLabel}". Mỗi kỹ năng chỉ được tạo một phần.`)
             return
           }
           
@@ -1390,7 +1455,10 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
           <Select
             placeholder="Chọn kỹ năng"
             size="middle"
-            options={skillOptions}
+            options={skillOptions.map((opt) => ({
+              ...opt,
+              disabled: existingSkills.has(opt.value),
+            }))}
             value={selectedSkillForNewPart}
             onChange={(value) => setSelectedSkillForNewPart(value)}
             style={{ width: '100%', fontSize: 13 }}

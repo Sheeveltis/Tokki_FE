@@ -144,6 +144,23 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
       if (response.isSuccess && response.data) {
         const { token, fullName, role, avatarUrl } = response.data
 
+        // Danh sách role không được phép đăng nhập qua form user
+        const adminRoles = ['Admin', 'Staff', 'Moderator']
+
+        // Kiểm tra nếu là admin/staff/moderator thì không cho đăng nhập
+        if (adminRoles.includes(role)) {
+          await clearAuthToken()
+          const msg = 'Tài khoản Admin, Staff và Moderator không thể đăng nhập tại đây. Vui lòng sử dụng trang đăng nhập nội bộ.'
+          setError(msg)
+          setNotifyResponse({
+            isSuccess: false,
+            message: msg,
+            statusCode: 403,
+          })
+          setLoading(false)
+          return
+        }
+
         // Lưu token để dùng cho các request authorize
         // setAuthToken đã tự động mã hóa và lưu vào storage, không cần gọi setToken nữa
         await setAuthToken(token)
