@@ -25,12 +25,13 @@ export function QuestionFilter({ filters, onFilterChange, onSearchChange }) {
       <Select
         placeholder="Trạng thái"
         allowClear
-        style={{ width: 150 }}
+        style={{ width: 180 }}
         value={status}
         onChange={(value) => onFilterChange({ ...filters, status: value })}
         options={[
-          { value: 1, label: 'Hoạt động' },
-          { value: 0, label: 'Không hoạt động' },
+          { value: 0, label: 'Nháp' },
+          { value: 1, label: 'Đang hoạt động' },
+          { value: 2, label: 'Đã xóa' },
         ]}
       />
     </Space>
