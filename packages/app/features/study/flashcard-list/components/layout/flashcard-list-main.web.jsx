@@ -26,6 +26,10 @@ export function FlashcardListMain({
   onTopicPress,
   onRetry,
   onFavoritesPress,
+  pageNumber,
+  canNextPage,
+  onPrevPage,
+  onNextPage,
 }) {
   // Render loading state chỉ khi là lần load đầu tiên
   if (isInitialLoading && loading) {
@@ -144,28 +148,6 @@ export function FlashcardListMain({
         </TouchableOpacity>
       </View>
 
-      <View style={styles.listContainer}>
-        {topics.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Chưa có chủ đề flashcard nào</Text>
-          </View>
-        ) : (
-          topics.map((topic) => (
-            <FlashcardTopicCard
-              key={topic.id}
-              icon={topic.icon}
-              title={topic.title}
-              subtitle={topic.subtitle}
-              highlight={topic.highlight}
-              muted={topic.muted}
-              badgeText="펀"
-              onPress={() => onTopicPress?.(topic.id)}
-            />
-          ))
-        )}
-      </View>
-
-      {/* Level Selector ở cuối trang */}
       <View style={styles.levelSelectContainer}>
         <Text style={styles.levelSelectLabel}>Level:</Text>
         <View style={styles.levelSelectMobile}>
@@ -195,6 +177,55 @@ export function FlashcardListMain({
             )
           })}
         </View>
+      </View>
+
+      <View style={styles.listContainer}>
+        {topics.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Chưa có chủ đề flashcard nào</Text>
+          </View>
+        ) : (
+          topics.map((topic) => (
+            <FlashcardTopicCard
+              key={topic.id}
+              icon={topic.icon}
+              title={topic.title}
+              subtitle={topic.subtitle}
+              highlight={topic.highlight}
+              muted={topic.muted}
+              badgeText="펀"
+              onPress={() => onTopicPress?.(topic.id)}
+            />
+          ))
+        )}
+      </View>
+
+      <View style={styles.paginationContainer}>
+        <Pressable
+          onPress={() => !loading && onPrevPage?.()}
+          disabled={loading || pageNumber <= 1}
+          style={({ pressed }) => [
+            styles.paginationButton,
+            (loading || pageNumber <= 1) && styles.paginationButtonDisabled,
+            pressed && styles.paginationButtonPressed,
+          ]}
+        >
+          <Text style={styles.paginationButtonText}>Trước</Text>
+        </Pressable>
+
+        <Text style={styles.paginationText}>Trang {pageNumber}</Text>
+
+        <Pressable
+          onPress={() => !loading && onNextPage?.()}
+          disabled={loading || !canNextPage}
+          style={({ pressed }) => [
+            styles.paginationButton,
+            (loading || !canNextPage) && styles.paginationButtonDisabled,
+            pressed && styles.paginationButtonPressed,
+          ]}
+        >
+          <Text style={styles.paginationButtonText}>Sau</Text>
+        </Pressable>
       </View>
     </>
   )
@@ -295,13 +326,55 @@ const styles = StyleSheet.create({
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
   },
+  paginationContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 16,
+  },
+  paginationButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+      transitionProperty: 'opacity, background-color',
+      transitionDuration: '120ms',
+    }),
+  },
+  paginationButtonPressed: {
+    opacity: 0.85,
+  },
+  paginationButtonDisabled: {
+    opacity: 0.5,
+    ...(Platform.OS === 'web' && {
+      cursor: 'not-allowed',
+    }),
+  },
+  paginationButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  paginationText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
+  },
   levelSelectContainer: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
-    marginTop: 24,
+    marginTop: 16,
     marginBottom: 16,
   },
   levelSelectLabel: {

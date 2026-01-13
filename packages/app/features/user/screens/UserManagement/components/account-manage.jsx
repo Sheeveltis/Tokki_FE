@@ -96,6 +96,8 @@ export default function AccountManage({ mode = 'all', basePath = '/admin', initi
         return 'Nhân viên'
       case 3:
         return 'Thành viên VIP'
+      case 4:
+        return 'Kiểm duyệt viên'
       default:
         return String(val ?? '')
     }

@@ -25,6 +25,7 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
         name: examTemplate.name,
         description: examTemplate.description,
         examType: examTemplate.examType,
+        status: examTemplate.status ?? 0,
       })
     }
   }, [open, examTemplate, form])
@@ -45,6 +46,7 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
         name: values.name,
         description: values.description,
         examType: values.examType,
+        status: values.status,
       }
 
       // TODO: Thay bằng API call thực tế
@@ -124,6 +126,22 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
             placeholder="Chọn loại đề"
             options={examTypeOptions}
             showSearch={false}
+          />
+        </Form.Item>
+
+        <Form.Item
+          label="Trạng thái"
+          name="status"
+          rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
+          validateTrigger="onSubmit"
+        >
+          <Select
+            placeholder="Chọn trạng thái"
+            options={[
+              { value: 0, label: 'Nháp' },
+              { value: 1, label: 'Đã xuất bản' },
+              { value: 2, label: 'Đã xóa' },
+            ]}
           />
         </Form.Item>
       </Form>

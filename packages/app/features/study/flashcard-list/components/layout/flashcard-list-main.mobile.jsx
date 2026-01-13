@@ -22,6 +22,10 @@ export function FlashcardListMain({
   onBackPress,
   onTopicPress,
   onRetry,
+  pageNumber,
+  canNextPage,
+  onPrevPage,
+  onNextPage,
 }) {
   // Render loading state
   if (loading) {
@@ -113,6 +117,34 @@ export function FlashcardListMain({
         )}
       </View>
 
+      <View style={styles.paginationContainer}>
+        <Pressable
+          onPress={() => !loading && onPrevPage?.()}
+          disabled={loading || pageNumber <= 1}
+          style={({ pressed }) => [
+            styles.paginationButton,
+            (loading || pageNumber <= 1) && styles.paginationButtonDisabled,
+            pressed && styles.paginationButtonPressed,
+          ]}
+        >
+          <Text style={styles.paginationButtonText}>Trước</Text>
+        </Pressable>
+
+        <Text style={styles.paginationText}>Trang {pageNumber}</Text>
+
+        <Pressable
+          onPress={() => !loading && onNextPage?.()}
+          disabled={loading || !canNextPage}
+          style={({ pressed }) => [
+            styles.paginationButton,
+            (loading || !canNextPage) && styles.paginationButtonDisabled,
+            pressed && styles.paginationButtonPressed,
+          ]}
+        >
+          <Text style={styles.paginationButtonText}>Sau</Text>
+        </Pressable>
+      </View>
+
       <View style={styles.levelContainer}>
         {[1, 2, 3, 4, 5, 6].map((level) => {
           const isActive = Number(selectedLevel) === level
@@ -191,6 +223,39 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1F1F1F',
   },
+  paginationContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    marginTop: 8,
+  },
+  paginationButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  paginationButtonPressed: {
+    opacity: 0.85,
+  },
+  paginationButtonDisabled: {
+    opacity: 0.5,
+  },
+  paginationButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1F1F1F',
+  },
+  paginationText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F1F1F',
+  },
   levelContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -199,7 +264,7 @@ const styles = StyleSheet.create({
     gap: 8,
     width: '100%',
     paddingHorizontal: 16,
-    marginTop: 24,
+    marginTop: 16,
     marginBottom: 16,
   },
   levelButton: {

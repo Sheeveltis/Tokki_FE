@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'solito/navigation'
-import { Card, Space, Typography, Spin, Alert, Descriptions, Tag, Divider, Modal, message } from 'antd'
+import { Card, Space, Typography, Spin, Alert, Descriptions, Tag, Divider, Modal, message, Button, Tooltip } from 'antd'
+import { QuestionCircleOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
 import { AdminLayout } from '../../../components/admin-layout.web'
 import ExamTemplatePartsForm from './ExamTemplatePartsForm'
@@ -33,6 +34,8 @@ export function ExamTemplateDetailScreen() {
   const [examTemplate, setExamTemplate] = useState(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [guideModalOpen, setGuideModalOpen] = useState(false)
+  const [guideSection, setGuideSection] = useState(null) // 'info' | 'parts'
 
   useEffect(() => {
     let mounted = true
@@ -89,6 +92,51 @@ export function ExamTemplateDetailScreen() {
     } catch (err) {
       message.error(err?.message || 'Cập nhật thất bại')
     }
+  }
+
+  const openGuide = (sectionKey) => {
+    setGuideSection(sectionKey)
+    setGuideModalOpen(true)
+  }
+
+  const renderGuideContent = () => {
+    if (guideSection === 'info') {
+      return (
+        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+          <div>
+            <Title level={5}>Thông tin cơ bản</Title>
+            <Text>Thẻ này hiển thị các trường chính của mẫu đề: tên, loại đề, mô tả, trạng thái và thời gian tạo/cập nhật.</Text>
+          </div>
+          <div>
+            <Title level={5}>Khi nào cần chỉnh sửa?</Title>
+            <Text>Sử dụng nút "Chỉnh sửa" ở góc trên để cập nhật thông tin tổng quan của mẫu đề (tên, loại đề, mô tả, trạng thái).</Text>
+          </div>
+        </Space>
+      )
+    }
+
+    if (guideSection === 'parts') {
+      return (
+        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+          <div>
+            <Title level={5}>Quản lý các phần của đề thi</Title>
+            <Text>Phần này cho phép xem, thêm, chỉnh sửa hoặc xóa các phần (Parts) thuộc mẫu đề.</Text>
+            <ul style={{ marginTop: 8, paddingLeft: 20 }}>
+              <li>Xem danh sách Parts hiện có và thông tin chi tiết.</li>
+              <li>Thêm Part mới với skill, số câu hỏi, hướng dẫn và điểm.</li>
+              <li>Chỉnh sửa Part để điều chỉnh phạm vi câu hỏi hoặc nội dung hướng dẫn.</li>
+              <li>Xóa Part không còn sử dụng.</li>
+            </ul>
+          </div>
+          <div>
+            <Title level={5}>Lưu ý</Title>
+            <Text>Nhấn lưu sau mỗi thay đổi và kiểm tra lại thứ tự/điểm số để đảm bảo đề thi hợp lệ.</Text>
+          </div>
+        </Space>
+      )
+    }
+
+    return null
   }
 
   const handleDelete = () => {
@@ -174,6 +222,7 @@ export function ExamTemplateDetailScreen() {
               <Text type="secondary">ID: {examTemplate.examTemplateId}</Text>
             </div>
             <Space>
+              {/* Luôn cho phép chỉnh sửa thông tin cơ bản của mẫu đề */}
               <ButtonV2
                 title="Chỉnh sửa"
                 color="#F1BE4B"
@@ -181,14 +230,17 @@ export function ExamTemplateDetailScreen() {
                 style={{ minWidth: 100, paddingVertical: 10 }}
                 textStyle={{ fontSize: 14 }}
               />
-              <ButtonV2
-                title="Xóa"
-                color="#ff4d4f"
-                onPress={handleDelete}
-                disabled={deleting}
-                style={{ minWidth: 100, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
+              {/* Chỉ cho phép xóa khi không phải trạng thái Đã xuất bản */}
+              {examTemplate.status !== 1 && (
+                <ButtonV2
+                  title="Xóa"
+                  color="#ff4d4f"
+                  onPress={handleDelete}
+                  disabled={deleting}
+                  style={{ minWidth: 100, paddingVertical: 10 }}
+                  textStyle={{ fontSize: 14 }}
+                />
+              )}
               <ButtonV2
                 title="Quay lại"
                 color="charcoal"
@@ -200,7 +252,17 @@ export function ExamTemplateDetailScreen() {
           </div>
 
           {/* Thông tin cơ bản */}
-          <Card title="Thông tin cơ bản">
+          <Card
+            title="Thông tin cơ bản"
+            extra={
+              <Tooltip title="Hướng dẫn Thông tin cơ bản">
+                <QuestionCircleOutlined
+                  onClick={() => openGuide('info')}
+                  style={{ fontSize: 18, cursor: 'pointer' }}
+                />
+              </Tooltip>
+            }
+          >
             <Descriptions column={1} bordered size="middle">
               <Descriptions.Item label="Tên mẫu đề">
                 {examTemplate.name || '-'}
@@ -226,7 +288,17 @@ export function ExamTemplateDetailScreen() {
           </Card>
 
           {/* Quản lý các phần */}
-          <Card>
+          <Card
+            title="Quản lý các phần của đề thi"
+            extra={
+              <Tooltip title="Hướng dẫn Quản lý các phần">
+                <QuestionCircleOutlined
+                  onClick={() => openGuide('parts')}
+                  style={{ fontSize: 18, cursor: 'pointer' }}
+                />
+              </Tooltip>
+            }
+          >
             <ExamTemplatePartsForm 
               examTemplateId={examTemplateId} 
               initialParts={examTemplate.Parts || []}
@@ -256,6 +328,23 @@ export function ExamTemplateDetailScreen() {
             onSuccess={handleEditSuccess}
           />
         )}
+
+        {/* Modal hướng dẫn */}
+        <Modal
+          title={guideSection === 'parts' ? 'Hướng dẫn: Quản lý các phần' : 'Hướng dẫn: Thông tin cơ bản'}
+          open={guideModalOpen}
+          onCancel={() => setGuideModalOpen(false)}
+          footer={[
+            <Button key="close" onClick={() => setGuideModalOpen(false)}>
+              Đóng
+            </Button>,
+          ]}
+          width={700}
+        >
+          <div style={{ padding: '8px 0' }}>
+            {renderGuideContent()}
+          </div>
+        </Modal>
       </div>
     </AdminLayout>
   )

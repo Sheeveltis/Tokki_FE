@@ -173,14 +173,11 @@ export function AdminLoginForm() {
         <HelperAdmin response={apiResponse} type="success" hideStatusCode hideErrorCode />
       )}
 
-      {/* Logo và title */}
-      <View style={styles.logoContainer}>
-        {logoSource && <Image source={logoSource} style={styles.logoImage} />}
-      </View>
+
 
       <View style={styles.content}>
         <View style={styles.headerBlock}>
-          <Text style={styles.title}>Đăng nhập Admin</Text>
+          <Text style={styles.title}>Đăng nhập nội bộ</Text>
           <Text style={styles.subtitle}>
             Dành cho Admin, Staff và Moderator
           </Text>
