@@ -1,12 +1,12 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'solito/navigation'
 import { useParams } from 'react-router-dom'
 import { Typography, message } from 'antd'
 
 import { AdminLayout } from '../../../components/admin-layout.web.jsx'
-import { fetchQuestionBanksByQuestionType } from '../../QuestionBankManagement/api/api'
+import { fetchQuestionBanksPaged } from '../../QuestionBankManagement/api/api'
 import { deleteQuestionType, fetchQuestionTypeById } from '../api/api'
 
 import QuestionTypeHeaderActions from './QuestionTypeHeaderActions'
@@ -22,10 +22,14 @@ export function QuestionTypeDetailScreen() {
 
   const [questionType, setQuestionType] = useState(null)
   const [allQuestions, setAllQuestions] = useState([])
+  const [totalQuestions, setTotalQuestions] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [isEditing, setIsEditing] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [pageNumber, setPageNumber] = useState(1)
+
+  const PAGE_SIZE = 5
 
   useEffect(() => {
     let mounted = true
@@ -35,14 +39,16 @@ export function QuestionTypeDetailScreen() {
         setLoading(true)
         setError('')
 
-        const [qt, qs] = await Promise.all([
+        const [qt, paged] = await Promise.all([
           fetchQuestionTypeById(questionTypeId),
-          fetchQuestionBanksByQuestionType(questionTypeId),
+          fetchQuestionBanksPaged({ QuestionTypeId: questionTypeId, PageNumber: 1, PageSize: PAGE_SIZE }),
         ])
 
         if (!mounted) return
         setQuestionType(qt)
-        setAllQuestions(qs || [])
+        setAllQuestions(paged?.items || [])
+        setTotalQuestions(paged?.total ?? (paged?.items?.length || 0))
+        setPageNumber(1)
       } catch (err) {
         if (!mounted) return
         setError(err?.message || 'Không thể tải dữ liệu')
@@ -64,19 +70,26 @@ export function QuestionTypeDetailScreen() {
     status: null,
   })
 
-  // Filter status sẽ gọi backend API (/QuestionBanks/question-type/{questionTypeId}?status=...)
-  // Search vẫn filter ở frontend (vì endpoint này chỉ có status theo swagger bạn gửi)
+  // Load questions via GET /api/QuestionBanks with paging (PageSize=5)
   useEffect(() => {
     let mounted = true
 
-    const loadByStatus = async () => {
+    const loadPaged = async () => {
       if (!questionTypeId) return
       try {
         setLoading(true)
         const status = filters.status !== null && filters.status !== undefined ? filters.status : undefined
-        const qs = await fetchQuestionBanksByQuestionType(questionTypeId, status)
+        const searchTerm = filters.search?.trim() ? filters.search.trim() : undefined
+        const paged = await fetchQuestionBanksPaged({
+          QuestionTypeId: questionTypeId,
+          Status: status,
+          SearchTerm: searchTerm,
+          PageNumber: pageNumber,
+          PageSize: PAGE_SIZE,
+        })
         if (!mounted) return
-        setAllQuestions(qs || [])
+        setAllQuestions(paged?.items || [])
+        setTotalQuestions(paged?.total ?? (paged?.items?.length || 0))
       } catch (err) {
         if (!mounted) return
         message.error(err?.message || 'Không thể tải danh sách câu hỏi')
@@ -86,30 +99,17 @@ export function QuestionTypeDetailScreen() {
       }
     }
 
-    loadByStatus()
+    loadPaged()
 
     return () => {
       mounted = false
     }
-  }, [questionTypeId, filters.status])
+  }, [questionTypeId, filters.status, filters.search, pageNumber])
 
-  const filteredData = useMemo(() => {
-    let result = allQuestions || []
-
-    if (filters.search) {
-      const searchLower = filters.search.trim().toLowerCase()
-      result = result.filter(
-        (item) =>
-          (item.content || '').toLowerCase().includes(searchLower) ||
-          (item.explanation || '').toLowerCase().includes(searchLower) ||
-          (item.questionTypeName || '').toLowerCase().includes(searchLower),
-      )
-    }
-
-    return result
-  }, [allQuestions, filters.search])
-
-  const setSearch = (search) => setFilters((prev) => ({ ...prev, search }))
+  const setSearch = (search) => {
+    setPageNumber(1)
+    setFilters((prev) => ({ ...prev, search }))
+  }
 
   const handleNavigate = (key) => {
     router.push(`/admin?tab=${key}`)
@@ -178,17 +178,34 @@ export function QuestionTypeDetailScreen() {
 
         <QuestionListSection
           title="Danh sách câu hỏi"
-          total={filteredData.length}
+          total={totalQuestions}
           filters={filters}
-          onFilterChange={setFilters}
+          onFilterChange={(next) => {
+            setPageNumber(1)
+            setFilters(next)
+          }}
           onSearchChange={setSearch}
-          data={filteredData}
-          loading={false}
+          data={allQuestions}
+          loading={loading}
+          pagination={{
+            current: pageNumber,
+            pageSize: PAGE_SIZE,
+            total: totalQuestions,
+            onChange: (page) => setPageNumber(page),
+          }}
           onRefresh={async () => {
             try {
               const status = filters.status !== null && filters.status !== undefined ? filters.status : undefined
-              const qs = await fetchQuestionBanksByQuestionType(questionTypeId, status)
-              setAllQuestions(qs || [])
+              const searchTerm = filters.search?.trim() ? filters.search.trim() : undefined
+              const paged = await fetchQuestionBanksPaged({
+                QuestionTypeId: questionTypeId,
+                Status: status,
+                SearchTerm: searchTerm,
+                PageNumber: pageNumber,
+                PageSize: PAGE_SIZE,
+              })
+              setAllQuestions(paged?.items || [])
+              setTotalQuestions(paged?.total ?? (paged?.items?.length || 0))
             } catch (err) {
               message.error(err?.message || 'Không thể tải lại danh sách câu hỏi')
             }
@@ -196,13 +213,23 @@ export function QuestionTypeDetailScreen() {
           onDeleted={async () => {
             try {
               const status = filters.status !== null && filters.status !== undefined ? filters.status : undefined
-              const qs = await fetchQuestionBanksByQuestionType(questionTypeId, status)
-              setAllQuestions(qs || [])
+              const searchTerm = filters.search?.trim() ? filters.search.trim() : undefined
+              const paged = await fetchQuestionBanksPaged({
+                QuestionTypeId: questionTypeId,
+                Status: status,
+                SearchTerm: searchTerm,
+                PageNumber: pageNumber,
+                PageSize: PAGE_SIZE,
+              })
+              setAllQuestions(paged?.items || [])
+              setTotalQuestions(paged?.total ?? (paged?.items?.length || 0))
             } catch (err) {
               message.error(err?.message || 'Không thể tải lại danh sách câu hỏi')
             }
           }}
         />
+
+        {/* Pagination handled inside QuestionCardList via props */} 
       </div>
     </AdminLayout>
   )

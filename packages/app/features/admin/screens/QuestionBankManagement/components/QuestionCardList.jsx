@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Typography, Spin, message } from 'antd'
+import { Typography, Spin, message, Pagination } from 'antd'
 import { fetchPassageById, fetchPassages, fetchQuestionTypes, updateQuestionBank, activateQuestionBanks, deleteQuestionBank } from '../api/api'
 import { uploadOptionImageToCloudinary, uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary } from '../../../api/cloudinary'
 import { showAdminSuccess, showAdminError } from 'components/HelperAdmin'
@@ -15,7 +15,15 @@ const { Text } = Typography
  * Hiển thị danh sách câu hỏi dưới dạng các card, mỗi card là một câu hỏi và các đáp án.
  * Nếu câu hỏi có passageId thì hiển thị passageTitle trong title.
  */
-export function QuestionCardList({ data, loading, onEdit, onDelete, onDeleted, onRefresh }) {
+export function QuestionCardList({
+  data,
+  loading,
+  onEdit,
+  onDelete,
+  onDeleted,
+  onRefresh,
+  pagination,
+}) {
   const [passageMap, setPassageMap] = useState({})
   const [loadingPassage, setLoadingPassage] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -528,6 +536,18 @@ export function QuestionCardList({ data, loading, onEdit, onDelete, onDeleted, o
         validatePassageSkillCompatibility={validatePassageSkillCompatibility}
         onSelect={handleTypeSelect}
       />
+
+      {pagination?.total > pagination?.pageSize ? (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+          <Pagination
+            current={pagination.current}
+            pageSize={pagination.pageSize}
+            total={pagination.total}
+            showSizeChanger={false}
+            onChange={(page) => pagination.onChange?.(page)}
+          />
+        </div>
+      ) : null}
     </div>
   )
 }

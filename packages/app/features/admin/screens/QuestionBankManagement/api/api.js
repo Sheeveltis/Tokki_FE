@@ -29,11 +29,20 @@ export async function fetchQuestionTypes(params = {}) {
   return res.data?.data || []
 }
 
-// Lấy danh sách câu hỏi trong ngân hàng câu hỏi
-// Query hỗ trợ: SearchTerm, Skill, DifficultyLevel, QuestionTypeId, PassageId, Status, PageNumber, PageSize
-export async function fetchQuestionBanks(params = {}) {
+// Lấy danh sách câu hỏi có phân trang
+// Return: { items: [], total: number }
+export async function fetchQuestionBanksPaged(params = {}) {
   const res = await apiClient.get(ENDPOINTS.QUESTION_BANK.GET_ALL, { params })
-  return res.data?.data?.items || res.data?.data || []
+  const data = res.data?.data
+  const items = data?.items || (Array.isArray(data) ? data : []) || []
+  const total =
+    data?.total ??
+    data?.totalCount ??
+    data?.totalItems ??
+    data?.totalRecords ??
+    (Array.isArray(items) ? items.length : 0)
+
+  return { items, total }
 }
 
 export async function updateQuestionBank(payload) {
