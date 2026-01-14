@@ -5,6 +5,7 @@ import { Form, Input, Select, Space, Typography, Upload, message, Switch } from 
 import { InboxOutlined } from '@ant-design/icons'
 import { fetchPassages } from '../api/api'
 import { isAudioUrl, createObjectUrl } from './upload-utils'
+import { getCurrentUserRole } from '../../../../../provider/api/client'
 
 const { Title } = Typography
 const { TextArea } = Input
@@ -20,6 +21,12 @@ export function QuestionForm({ form, questionTypeId }) {
   const mediaFile = Form.useWatch('mediaFile', form)
   const mediaUrl = Form.useWatch('mediaUrl', form)
   const mediaPreview = createObjectUrl(mediaFile) || mediaUrl
+  const role = getCurrentUserRole()
+  const isStaff =
+    role === 'Staff' ||
+    (typeof window !== 'undefined' &&
+      typeof window.localStorage !== 'undefined' &&
+      window.localStorage.getItem('userLevel') === '2')
 
   useEffect(() => {
     const loadPassages = async () => {
@@ -112,10 +119,12 @@ export function QuestionForm({ form, questionTypeId }) {
         initialValue={0}
       >
         <Switch
-          checkedChildren="Hoạt động"
+          checkedChildren={isStaff ? 'Gửi duyệt' : 'Hoạt động'}
           unCheckedChildren="Nháp"
-          checked={Form.useWatch('status', form) === 1}
-          onChange={(checked) => form.setFieldsValue({ status: checked ? 1 : 0 })}
+          checked={Form.useWatch('status', form) === (isStaff ? 3 : 1)}
+          onChange={(checked) =>
+            form.setFieldsValue({ status: checked ? (isStaff ? 3 : 1) : 0 })
+          }
         />
       </Form.Item>
 

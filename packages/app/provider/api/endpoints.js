@@ -55,6 +55,7 @@ export const ENDPOINTS = {
       UPDATE: '/QuestionBanks/update',
       DELETE: (id) => `/QuestionBanks/${id}`,
       ACTIVATE: '/QuestionBanks/admin/activate',
+      SUBMIT_TO_APPROVAL: '/QuestionBanks/submit-to-approval',
     },
     QUESTION_BANK_OPTION: {
       CREATE: (questionBankId) => `/QuestionBanks/${questionBankId}/options`,

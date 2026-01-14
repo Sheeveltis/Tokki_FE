@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'solito/navigation'
 import { Card, Form, Space, Typography, message, Divider, Input } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from '../../components/admin-layout.web'
-import { createQuestion, activateQuestionBanks } from './api/api'
+import { createQuestion, activateQuestionBanks, submitQuestionBanksForApproval } from './api/api'
 import { QuestionForm } from './components/QuestionForm'
 import { AnswerForm } from './components/AnswerForm'
 
@@ -97,13 +97,18 @@ export function CreateQuestionScreen() {
 
       const created = await createQuestion(payload)
 
-      // Nếu chọn Hoạt động thì gọi thêm API activate
+      // Nếu chọn Hoạt động (admin) hoặc Gửi duyệt (staff) thì gọi thêm API tương ứng
+      const createdId = getCreatedQuestionBankId(created)
       if ((values.status ?? 0) === 1) {
-        const createdId = getCreatedQuestionBankId(created)
         if (!createdId) {
           throw new Error('Tạo câu hỏi thành công nhưng không lấy được ID để kích hoạt (activate).')
         }
         await activateQuestionBanks([createdId])
+      } else if ((values.status ?? 0) === 3) {
+        if (!createdId) {
+          throw new Error('Tạo câu hỏi thành công nhưng không lấy được ID để gửi duyệt.')
+        }
+        await submitQuestionBanksForApproval([createdId])
       }
 
       message.success('Đã tạo câu hỏi mới thành công')
