@@ -522,11 +522,12 @@ export async function updateExamTemplate(examTemplateId, payload) {
     }
 
     // Format payload từ component format sang API format
+    // Lưu ý: API update hiện tại KHÔNG cho phép cập nhật status,
+    // chỉ cập nhật name, description, type
     const apiPayload = {
       name: payload.Name || payload.name,
       description: payload.Description || payload.description || '',
       type: examTypeToNumber[payload.ExamType || payload.examType] || payload.type,
-      status: payload.Status ?? payload.status ?? 0,
     }
 
     // Đảm bảo các field bắt buộc có giá trị
@@ -570,6 +571,24 @@ export async function updateExamTemplate(examTemplateId, payload) {
       totalQuestions: updatedData.totalQuestions || 0,
     }
   } catch (error) {
+    // Ưu tiên lấy message/description chi tiết từ response của axios
+    const apiMessage =
+      error?.response?.data?.message ||
+      (Array.isArray(error?.response?.data?.errors) && error.response.data.errors[0]?.description)
+
+    if (apiMessage) {
+      const enrichedError = new Error(apiMessage)
+      enrichedError.status = error?.response?.status || error?.status || 400
+      enrichedError.errors = error?.response?.data?.errors || error?.errors
+      throw enrichedError
+    }
+
+    // Nếu lỗi đã có message rõ ràng thì throw luôn để UI hiển thị
+    if (error?.message) {
+      throw error
+    }
+
+    // Fallback sang handler chung
     handleApiError(error, 'Không thể cập nhật mẫu đề')
   }
 }
@@ -592,6 +611,48 @@ export async function deleteExamTemplate(examTemplateId) {
     return { ExamTemplateId: examTemplateId }
   } catch (error) {
     handleApiError(error, 'Không thể xóa mẫu đề')
+  }
+}
+
+// Update Exam Template Status API (PATCH /ExamTemplates/{id}/status)
+export async function updateExamTemplateStatus(examTemplateId, status) {
+  try {
+    if (!examTemplateId || status === undefined || status === null) {
+      throw { status: 400, message: 'Exam Template ID và trạng thái là bắt buộc' }
+    }
+
+    const res = await apiClient.patch(ENDPOINTS.EXAM_TEMPLATES.UPDATE_STATUS(examTemplateId), {
+      status,
+    })
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      const message =
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể cập nhật trạng thái mẫu đề'
+      throw new Error(message)
+    }
+
+    return responseData?.data === true
+  } catch (error) {
+    // Nếu backend trả message cụ thể thì hiển thị cho UI
+    const apiMessage =
+      error?.response?.data?.message ||
+      (Array.isArray(error?.response?.data?.errors) && error.response.data.errors[0]?.description)
+
+    if (apiMessage) {
+      const enrichedError = new Error(apiMessage)
+      enrichedError.status = error?.response?.status || error?.status || 400
+      enrichedError.errors = error?.response?.data?.errors || error?.errors
+      throw enrichedError
+    }
+
+    if (error?.message) {
+      throw error
+    }
+
+    handleApiError(error, 'Không thể cập nhật trạng thái mẫu đề')
   }
 }
 

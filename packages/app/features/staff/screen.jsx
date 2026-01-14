@@ -18,6 +18,7 @@ const LazyAutoEmail = lazy(() => import('../admin/screens/AutoEmail'))
 const LazyFeedbackInbox = lazy(() => import('../admin/screens/FeedbackInbox'))
 const LazySettings = lazy(() => import('./screens/Settings'))
 const LazyQuestionTypeManagement = lazy(() => import('../admin/screens/QuestionType'))
+const LazyExamTemplateManagement = lazy(() => import('../admin/screens/ExamTemplateManagement'))
 
 // Cache dữ liệu để khi quay lại từ trang chi tiết không phải load lại toàn bộ
 let cachedInitialData = null
@@ -192,6 +193,11 @@ export function StaffScreen() {
       'question-bank': (
         <Suspense fallback={<LoadingFallback />}>
           <LazyQuestionTypeManagement basePath="/staff" />
+        </Suspense>
+      ),
+      'exam-templates': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyExamTemplateManagement />
         </Suspense>
       ),
       blog: (

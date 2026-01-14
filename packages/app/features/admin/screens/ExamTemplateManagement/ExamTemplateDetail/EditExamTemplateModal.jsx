@@ -25,7 +25,6 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
         name: examTemplate.name,
         description: examTemplate.description,
         examType: examTemplate.examType,
-        status: examTemplate.status ?? 0,
       })
     }
   }, [open, examTemplate, form])
@@ -42,20 +41,20 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
       setLoading(true)
       
       // Format data để gửi lên API
+      // Lưu ý: API update hiện tại KHÔNG cho phép cập nhật status,
+      // nên chỉ gửi name, description, examType
       const payload = {
         name: values.name,
         description: values.description,
         examType: values.examType,
-        status: values.status,
       }
 
       // TODO: Thay bằng API call thực tế
       // await updateExamTemplate(examTemplate.examTemplateId, payload)
       
-      message.success('Đã cập nhật mẫu đề thành công')
-      
       if (onSuccess) {
-        onSuccess(payload)
+        // Chờ screen cha gọi API update và tự hiển thị message.success / message.error
+        await onSuccess(payload)
       }
     } catch (error) {
       message.error(error.message || 'Cập nhật mẫu đề thất bại')
@@ -129,21 +128,6 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
           />
         </Form.Item>
 
-        <Form.Item
-          label="Trạng thái"
-          name="status"
-          rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
-          validateTrigger="onSubmit"
-        >
-          <Select
-            placeholder="Chọn trạng thái"
-            options={[
-              { value: 0, label: 'Nháp' },
-              { value: 1, label: 'Đã xuất bản' },
-              { value: 2, label: 'Đã xóa' },
-            ]}
-          />
-        </Form.Item>
       </Form>
     </Modal>
   )

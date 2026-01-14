@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'solito/navigation'
-import { Card, Space, Typography, Spin, Alert, Descriptions, Tag, Divider, Modal, message, Button, Tooltip } from 'antd'
+import { Card, Space, Typography, Spin, Alert, Descriptions, Tag, Modal, message, Button, Tooltip } from 'antd'
 import { QuestionCircleOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
 import { AdminLayout } from '../../../components/admin-layout.web'
 import ExamTemplatePartsForm from './ExamTemplatePartsForm'
 import EditExamTemplateModal from './EditExamTemplateModal'
-import { fetchExamTemplate, updateExamTemplate, deleteExamTemplate } from '../../../api'
+import { fetchExamTemplate, updateExamTemplate, deleteExamTemplate, updateExamTemplateStatus } from '../../../api'
 
 const { Title, Text } = Typography
 
@@ -36,6 +36,7 @@ export function ExamTemplateDetailScreen() {
   const [deleting, setDeleting] = useState(false)
   const [guideModalOpen, setGuideModalOpen] = useState(false)
   const [guideSection, setGuideSection] = useState(null) // 'info' | 'parts'
+  const [updatingStatus, setUpdatingStatus] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -163,6 +164,48 @@ export function ExamTemplateDetailScreen() {
     })
   }
 
+  const handleToggleStatus = async () => {
+    if (!examTemplate) return
+
+    // Giả sử chỉ toggle giữa Nháp (0) và Đã xuất bản (1)
+    const currentStatus = examTemplate.status ?? 0
+    const isDraft = currentStatus === 0
+    const targetStatus = isDraft ? 1 : 0
+
+    Modal.confirm({
+      title: 'Xác nhận thay đổi trạng thái',
+      content: isDraft
+        ? 'Bạn có chắc chắn muốn xuất bản mẫu đề này? Sau khi xuất bản, một số thông tin sẽ bị hạn chế chỉnh sửa.'
+        : 'Bạn có chắc chắn muốn chuyển mẫu đề này về trạng thái Nháp?',
+      okText: 'Xác nhận',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          setUpdatingStatus(true)
+          const success = await updateExamTemplateStatus(examTemplateId, targetStatus)
+
+          if (success) {
+            // Reload lại dữ liệu để cập nhật trạng thái mới
+            const data = await fetchExamTemplate(examTemplateId)
+            setExamTemplate(data)
+
+            message.success(
+              targetStatus === 1
+                ? 'Đã xuất bản mẫu đề thành công'
+                : 'Đã chuyển mẫu đề về trạng thái Nháp'
+            )
+          } else {
+            message.error('Cập nhật trạng thái mẫu đề thất bại')
+          }
+        } catch (err) {
+          message.error(err?.message || 'Cập nhật trạng thái mẫu đề thất bại')
+        } finally {
+          setUpdatingStatus(false)
+        }
+      },
+    })
+  }
+
   if (loading) {
     return (
       <AdminLayout defaultKey="exam-template" onNavigate={handleNavigate}>
@@ -222,6 +265,15 @@ export function ExamTemplateDetailScreen() {
               <Text type="secondary">ID: {examTemplate.examTemplateId}</Text>
             </div>
             <Space>
+              {/* Nút thay đổi trạng thái */}
+              <ButtonV2
+                title={examTemplate.status === 1 ? 'Chuyển về Nháp' : 'Xuất bản'}
+                color="#1890ff"
+                onPress={handleToggleStatus}
+                disabled={updatingStatus}
+                style={{ minWidth: 100, paddingVertical: 10 }}
+                textStyle={{ fontSize: 14 }}
+              />
               {/* Luôn cho phép chỉnh sửa thông tin cơ bản của mẫu đề */}
               <ButtonV2
                 title="Chỉnh sửa"
