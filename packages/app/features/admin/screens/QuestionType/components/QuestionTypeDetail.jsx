@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom'
 import { Typography, message } from 'antd'
 
 import { AdminLayout } from '../../../components/admin-layout.web.jsx'
+import StaffLayout from '../../../../staff/components/staff-layout.web.jsx'
 import { fetchQuestionBanksPaged } from '../../QuestionBankManagement/api/api'
 import { deleteQuestionType, fetchQuestionTypeById } from '../api/api'
 
@@ -15,7 +16,7 @@ import QuestionListSection from './QuestionListSection'
 
 const { Text } = Typography
 
-export function QuestionTypeDetailScreen() {
+export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin' }) {
   const router = useRouter()
   const params = useParams()
   const questionTypeId = params?.id
@@ -112,42 +113,45 @@ export function QuestionTypeDetailScreen() {
   }
 
   const handleNavigate = (key) => {
-    router.push(`/admin?tab=${key}`)
+    const prefix = layout === 'staff' ? '/staff' : '/admin'
+    router.push(`${prefix}?tab=${key}`)
   }
+
+  const LayoutComponent = layout === 'staff' ? StaffLayout : AdminLayout
 
   if (loading) {
     return (
-      <AdminLayout defaultKey="question-bank" onNavigate={handleNavigate}>
+      <LayoutComponent defaultKey="question-bank" onNavigate={handleNavigate}>
         <div style={{ padding: 24, textAlign: 'center' }}>
           <Text type="secondary">Đang tải...</Text>
         </div>
-      </AdminLayout>
+      </LayoutComponent>
     )
   }
 
   if (error || !questionType) {
     return (
-      <AdminLayout defaultKey="question-bank" onNavigate={handleNavigate}>
+      <LayoutComponent defaultKey="question-bank" onNavigate={handleNavigate}>
         <div style={{ padding: 24, textAlign: 'center' }}>
           <Text type="secondary">{error || 'Không tìm thấy loại câu hỏi'}</Text>
         </div>
-      </AdminLayout>
+      </LayoutComponent>
     )
   }
 
   return (
-    <AdminLayout defaultKey="question-bank" onNavigate={handleNavigate}>
+    <LayoutComponent defaultKey="question-bank" onNavigate={handleNavigate}>
       <div style={{ padding: 24 }}>
         <QuestionTypeHeaderActions
-          onBack={() => router.push('/admin?tab=question-bank')}
+          onBack={() => router.push(`${basePath}?tab=question-bank`)}
           onEdit={() => setIsEditing(true)}
           deleting={deleting}
           onDelete={async () => {
             try {
               setDeleting(true)
               await deleteQuestionType(questionTypeId)
-            message.success('Đã xóa loại câu hỏi thành công')
-            router.push('/admin?tab=question-bank')
+              message.success('Đã xóa loại câu hỏi thành công')
+              router.push(`${basePath}?tab=question-bank`)
             } catch (err) {
               // message từ backend đã được map qua handleApiError
               message.error(err?.message || 'Xóa loại câu hỏi thất bại')
@@ -156,7 +160,7 @@ export function QuestionTypeDetailScreen() {
             }
           }}
           onAddQuestion={() => {
-            router.push(`/admin/question-bank/create?questionTypeId=${questionTypeId}`)
+            router.push(`${basePath}/question-bank/create?questionTypeId=${questionTypeId}`)
           }}
         />
 
@@ -231,7 +235,7 @@ export function QuestionTypeDetailScreen() {
 
         {/* Pagination handled inside QuestionCardList via props */} 
       </div>
-    </AdminLayout>
+    </LayoutComponent>
   )
 }
 
