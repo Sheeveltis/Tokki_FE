@@ -32,6 +32,8 @@ export function QuestionFilter({ filters, onFilterChange, onSearchChange }) {
           { value: 0, label: 'Nháp' },
           { value: 1, label: 'Đang hoạt động' },
           { value: 2, label: 'Đã xóa' },
+          { value: 3, label: 'Chờ phê duyệt' },
+          { value: 4, label: 'Bị từ chối' },
         ]}
       />
     </Space>
