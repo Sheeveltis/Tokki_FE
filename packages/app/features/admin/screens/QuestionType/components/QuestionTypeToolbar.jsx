@@ -4,10 +4,19 @@ import React from 'react'
 import { Input, Space, Select } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
+import { getCurrentUserRole } from '../../../../../provider/api/client'
 
 const { Option } = Select
 
 export function QuestionTypeToolbar({ filters, onFilterChange, onCreate }) {
+  // Ưu tiên lấy từ token (decode role), fallback userLevel trong localStorage (1 = Admin, 2 = Staff)
+  const role = getCurrentUserRole()
+  const isStaffFromToken = role === 'Staff'
+  const isStaffFromLocalStorage =
+    typeof window !== 'undefined' &&
+    typeof window.localStorage !== 'undefined' &&
+    window.localStorage.getItem('userLevel') === '2'
+  const isStaff = isStaffFromToken || isStaffFromLocalStorage
   const handleInputChange = (e) => {
     onFilterChange({ ...filters, keyword: e.target.value })
   }
@@ -66,7 +75,7 @@ export function QuestionTypeToolbar({ filters, onFilterChange, onCreate }) {
         </Select>
       </Space>
 
-      {onCreate ? (
+      {onCreate && !isStaff ? (
         <ButtonV2
           title="Thêm bộ câu hỏi"
           color="#F1BE4B"
