@@ -40,3 +40,16 @@ export async function createQuestion(payload) {
   }
 }
 
+/**
+ * Activate question banks (set status to Active)
+ * @param {Array<string>} questionBankIds
+ */
+export async function activateQuestionBanks(questionBankIds = []) {
+  try {
+    const res = await apiClient.put(ENDPOINTS.QUESTION_BANK.ACTIVATE, { questionBankIds })
+    return res.data
+  } catch (error) {
+    handleApiError(error, 'Không thể kích hoạt câu hỏi')
+  }
+}
+

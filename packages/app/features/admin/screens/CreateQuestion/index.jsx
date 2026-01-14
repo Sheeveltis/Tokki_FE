@@ -5,8 +5,7 @@ import { useRouter, useSearchParams } from 'solito/navigation'
 import { Card, Form, Space, Typography, message, Divider, Input } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from '../../components/admin-layout.web'
-import { createQuestion } from './api/api'
-import { activateQuestionBanks } from '../QuestionBankManagement/api/api'
+import { createQuestion, activateQuestionBanks } from './api/api'
 import { QuestionForm } from './components/QuestionForm'
 import { AnswerForm } from './components/AnswerForm'
 
@@ -18,6 +17,25 @@ export function CreateQuestionScreen() {
   const questionTypeId = searchParams?.get('questionTypeId')
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
+
+  const getCreatedQuestionBankId = (created) => {
+    // `createQuestion()` returns axios `response.data` (not the full axios response),
+    // but backend responses may still be nested (e.g. { data: {...} } or { data: { data: {...} } }).
+    const candidates = [
+      created?.questionBankId,
+      created?.questionBankID,
+      created?.id,
+      created?.data, // backend trả trực tiếp id ở field data (string) theo ví dụ
+      created?.data?.questionBankId,
+      created?.data?.questionBankID,
+      created?.data?.id,
+      created?.data?.data?.questionBankId,
+      created?.data?.data?.questionBankID,
+      created?.data?.data?.id,
+    ]
+
+    return candidates.find((x) => x !== undefined && x !== null && String(x).trim() !== '')
+  }
 
   const handleSubmit = async (values) => {
     try {
@@ -80,8 +98,11 @@ export function CreateQuestionScreen() {
       const created = await createQuestion(payload)
 
       // Nếu chọn Hoạt động thì gọi thêm API activate
-      const createdId = created?.data?.questionBankId || created?.data?.id || created?.data?.questionBankID || created?.questionBankId
-      if ((values.status ?? 0) === 1 && createdId) {
+      if ((values.status ?? 0) === 1) {
+        const createdId = getCreatedQuestionBankId(created)
+        if (!createdId) {
+          throw new Error('Tạo câu hỏi thành công nhưng không lấy được ID để kích hoạt (activate).')
+        }
         await activateQuestionBanks([createdId])
       }
 
