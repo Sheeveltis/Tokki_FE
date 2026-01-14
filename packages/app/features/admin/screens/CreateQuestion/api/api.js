@@ -53,3 +53,16 @@ export async function activateQuestionBanks(questionBankIds = []) {
   }
 }
 
+/**
+ * Submit question banks for approval (status pending)
+ * @param {Array<string>} questionBankIds
+ */
+export async function submitQuestionBanksForApproval(questionBankIds = []) {
+  try {
+    const res = await apiClient.put(ENDPOINTS.QUESTION_BANK.SUBMIT_TO_APPROVAL, { questionBankIds })
+    return res.data
+  } catch (error) {
+    handleApiError(error, 'Không thể gửi duyệt câu hỏi')
+  }
+}
+
