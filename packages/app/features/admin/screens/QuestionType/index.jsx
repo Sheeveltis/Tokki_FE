@@ -10,7 +10,7 @@ import { fetchQuestionTypes } from './api/api'
 import { QuestionTypeForm } from '../CreateQuestionType/components/QuestionTypeForm.jsx'
 import { createQuestionType } from '../CreateQuestionType/api/api'
 
-export function QuestionTypeManagement() {
+export function QuestionTypeManagement({ basePath = '/admin' }) {
   const router = useRouter()
 
   const [drawerItem, setDrawerItem] = useState(null)
@@ -81,7 +81,7 @@ export function QuestionTypeManagement() {
         loading={loading}
         onRowClick={(record) => setDrawerItem(record)}
         rowKey="questionTypeId"
-        onView={(record) => router.push(`/admin/question-type/${record.questionTypeId}`)}
+        onView={(record) => router.push(`${basePath}/question-type/${record.questionTypeId}`)}
       />
 
       <DetailDrawer

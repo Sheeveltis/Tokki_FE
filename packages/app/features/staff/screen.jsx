@@ -17,6 +17,7 @@ const LazyChatSupport = lazy(() => import('../live-chat/chat-support'))
 const LazyAutoEmail = lazy(() => import('../admin/screens/AutoEmail'))
 const LazyFeedbackInbox = lazy(() => import('../admin/screens/FeedbackInbox'))
 const LazySettings = lazy(() => import('./screens/Settings'))
+const LazyQuestionTypeManagement = lazy(() => import('../admin/screens/QuestionType'))
 
 // Cache dữ liệu để khi quay lại từ trang chi tiết không phải load lại toàn bộ
 let cachedInitialData = null
@@ -186,6 +187,11 @@ export function StaffScreen() {
       'vocabulary-topics': (
         <Suspense fallback={<LoadingFallback />}>
           <LazyFlashcardTopicManagement />
+        </Suspense>
+      ),
+      'question-bank': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyQuestionTypeManagement basePath="/staff" />
         </Suspense>
       ),
       blog: (
