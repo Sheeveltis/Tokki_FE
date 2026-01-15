@@ -13,7 +13,7 @@ const LazyLessonManagement = lazy(() => import('../admin/screens/LessonManagemen
 const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/VocabularyManagement'))
 const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/FlashcardTopicManagement'))
 const LazyBlogManagement = lazy(() => import('../blog/screens/admin/blog-management-screen'))
-const LazyChatSupport = lazy(() => import('../live-chat/chat-support'))
+const LazyChatSupport = lazy(() => import('../live-chat/screens/chat-support-screen'))
 const LazyAutoEmail = lazy(() => import('../admin/screens/AutoEmail'))
 const LazyFeedbackInbox = lazy(() => import('../admin/screens/FeedbackInbox'))
 const LazySettings = lazy(() => import('./screens/Settings'))

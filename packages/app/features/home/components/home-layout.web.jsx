@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet } from 'react-native'
 import { Navbar } from '../../../../components/navbar'
 import { Footer } from '../../../../components/footer'
 import { HomeSidebar } from './home-sidebar'
-import BubbleChat from '../../live-chat/bubble-chat'
+import BubbleChat from '../../live-chat/components/bubble-chat'
 import { AppShow } from '../../../../components/appShow'
 
 /**

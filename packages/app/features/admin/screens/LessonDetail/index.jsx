@@ -19,7 +19,7 @@ import { LessonManagement } from 'app/features/admin/screens/LessonManagement'
 import { VocabularyManagement } from 'app/features/vocabulary/screens/VocabularyManagement'
 import { FlashcardTopicManagement } from 'app/features/vocabulary/screens/FlashcardTopicManagement'
 import { BlogManagement } from 'app/features/blog/screens/admin/blog-management-screen'
-import { ChatSupport } from '../../../live-chat/chat-support'
+import { ChatSupportScreen } from '../../../live-chat/screens/chat-support-screen'
 import { AutoEmail } from 'app/features/admin/screens/AutoEmail'
 import { FeedbackInbox } from 'app/features/admin/screens/FeedbackInbox'
 import { MembershipPackage } from 'app/features/admin/screens/MembershipPackage'
@@ -217,7 +217,7 @@ export function LessonDetailScreen() {
     'vocabulary-words': <VocabularyManagement initialData={initialData.vocab} />,
     'vocabulary-topics': <FlashcardTopicManagement initialData={initialData.vocabTopics} />,
     blog: <BlogManagement initialData={initialData.articles} />,
-    'chat-support': <ChatSupport initialData={initialData.users} />,
+    'chat-support': <ChatSupportScreen />,
     'auto-email': <AutoEmail />,
     'feedback-inbox': <FeedbackInbox />,
     'membership-package': <MembershipPackage />,
