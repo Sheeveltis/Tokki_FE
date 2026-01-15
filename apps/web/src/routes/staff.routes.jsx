@@ -9,6 +9,7 @@ import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/scree
 import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/VocabularyDetail'
 import { QuestionTypeDetailScreen } from '@tokki/app/features/admin/screens/QuestionType/components/QuestionTypeDetail'
 import { QuestionTypeManagement } from '@tokki/app/features/admin/screens/QuestionType'
+import { ExamTemplateDetailScreen } from '@tokki/app/features/admin/screens/ExamTemplateManagement/ExamTemplateDetail'
 
 /**
  * Staff Routes - Container Components
@@ -35,6 +36,8 @@ export const staffRoutes = [
   // Staff - Question Type / Question Bank detail
   { path: '/staff/question-type/:id', element: <QuestionTypeDetailScreen /> },
   { path: '/staff/question-type', element: <QuestionTypeManagement /> },
+  // Staff - Exam Templates detail (dùng lại màn admin)
+  { path: '/staff/exam-templates/:id', element: <ExamTemplateDetailScreen /> },
 ]
 
 /**
