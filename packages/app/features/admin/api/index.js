@@ -656,6 +656,129 @@ export async function updateExamTemplateStatus(examTemplateId, status) {
   }
 }
 
+// Submit Exam Template for approval (POST /ExamTemplates/{id}/submit)
+export async function submitExamTemplate(examTemplateId) {
+  try {
+    if (!examTemplateId) {
+      throw { status: 400, message: 'Exam Template ID là bắt buộc' }
+    }
+
+    const res = await apiClient.post(ENDPOINTS.EXAM_TEMPLATES.SUBMIT(examTemplateId))
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      const message =
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể gửi mẫu đề để phê duyệt'
+      throw new Error(message)
+    }
+
+    return responseData?.data === true
+  } catch (error) {
+    const apiMessage =
+      error?.response?.data?.message ||
+      (Array.isArray(error?.response?.data?.errors) && error.response.data.errors[0]?.description)
+
+    if (apiMessage) {
+      const enrichedError = new Error(apiMessage)
+      enrichedError.status = error?.response?.status || error?.status || 400
+      enrichedError.errors = error?.response?.data?.errors || error?.errors
+      throw enrichedError
+    }
+
+    if (error?.message) {
+      throw error
+    }
+
+    handleApiError(error, 'Không thể gửi mẫu đề để phê duyệt')
+  }
+}
+
+// Approve Exam Template (POST /ExamTemplates/{id}/approve)
+export async function approveExamTemplate(examTemplateId) {
+  try {
+    if (!examTemplateId) {
+      throw { status: 400, message: 'Exam Template ID là bắt buộc' }
+    }
+
+    const res = await apiClient.post(ENDPOINTS.EXAM_TEMPLATES.APPROVE(examTemplateId))
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      const message =
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể phê duyệt mẫu đề'
+      throw new Error(message)
+    }
+
+    return responseData?.data === true
+  } catch (error) {
+    const apiMessage =
+      error?.response?.data?.message ||
+      (Array.isArray(error?.response?.data?.errors) && error.response.data.errors[0]?.description)
+
+    if (apiMessage) {
+      const enrichedError = new Error(apiMessage)
+      enrichedError.status = error?.response?.status || error?.status || 400
+      enrichedError.errors = error?.response?.data?.errors || error?.errors
+      throw enrichedError
+    }
+
+    if (error?.message) {
+      throw error
+    }
+
+    handleApiError(error, 'Không thể phê duyệt mẫu đề')
+  }
+}
+
+// Reject Exam Template (POST /ExamTemplates/{id}/reject)
+export async function rejectExamTemplate(examTemplateId, reason) {
+  try {
+    if (!examTemplateId) {
+      throw { status: 400, message: 'Exam Template ID là bắt buộc' }
+    }
+
+    if (!reason || !reason.trim()) {
+      throw { status: 400, message: 'Lý do từ chối là bắt buộc' }
+    }
+
+    const res = await apiClient.post(ENDPOINTS.EXAM_TEMPLATES.REJECT(examTemplateId), {
+      reason: reason.trim(),
+    })
+
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      const message =
+        responseData?.message ||
+        (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
+        'Không thể từ chối mẫu đề'
+      throw new Error(message)
+    }
+
+    return responseData?.data === true
+  } catch (error) {
+    const apiMessage =
+      error?.response?.data?.message ||
+      (Array.isArray(error?.response?.data?.errors) && error.response.data.errors[0]?.description)
+
+    if (apiMessage) {
+      const enrichedError = new Error(apiMessage)
+      enrichedError.status = error?.response?.status || error?.status || 400
+      enrichedError.errors = error?.response?.data?.errors || error?.errors
+      throw enrichedError
+    }
+
+    if (error?.message) {
+      throw error
+    }
+
+    handleApiError(error, 'Không thể từ chối mẫu đề')
+  }
+}
+
 // Question Type APIs
 export async function fetchQuestionTypes(params = {}) {
   try {
