@@ -197,7 +197,7 @@ export function StaffScreen() {
       ),
       'exam-templates': (
         <Suspense fallback={<LoadingFallback />}>
-          <LazyExamTemplateManagement />
+          <LazyExamTemplateManagement basePath="/staff" />
         </Suspense>
       ),
       blog: (

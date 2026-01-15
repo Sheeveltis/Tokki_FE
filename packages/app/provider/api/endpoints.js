@@ -213,6 +213,9 @@ export const ENDPOINTS = {
       UPDATE: (id) => `/ExamTemplates/${id}`,          // PUT: Cập nhật exam template
       DELETE: (id) => `/ExamTemplates/${id}`,         // DELETE: Xóa exam template
       UPDATE_STATUS: (id) => `/ExamTemplates/${id}/status`, // PATCH: Cập nhật trạng thái exam template
+      APPROVE: (id) => `/ExamTemplates/${id}/approve`, // POST: Phê duyệt mẫu đề
+      SUBMIT: (id) => `/ExamTemplates/${id}/submit`,   // POST: Trình mẫu đề để phê duyệt
+      REJECT: (id) => `/ExamTemplates/${id}/reject`,   // POST: Từ chối mẫu đề
       TEMPLATE_PARTS: '/ExamTemplates/TemplateParts',  // POST: Thêm/cập nhật template parts
       UPDATE_TEMPLATE_PART: (templatePartId) => `/ExamTemplates/TemplateParts/${templatePartId}`,  // PUT: Cập nhật một template part (templatePartId trong URL)
       DUPLICATE: (id) => `/ExamTemplates/${id}/duplicate`,  // POST: Sao chép exam template

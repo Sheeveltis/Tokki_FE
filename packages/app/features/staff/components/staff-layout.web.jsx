@@ -132,8 +132,8 @@ export function StaffLayout({
       icon: <FileDoneOutlined />,
       label: 'Quản lý Đề',
       children: [
-        { key: 'question-bank', icon: <QuestionCircleOutlined />, label: 'Bộ câu hỏi' },
         { key: 'exam-templates', icon: <FileTextOutlined />, label: 'Mẫu đề' },
+        { key: 'question-bank', icon: <QuestionCircleOutlined />, label: 'Bộ câu hỏi' },
       ],
     },
     

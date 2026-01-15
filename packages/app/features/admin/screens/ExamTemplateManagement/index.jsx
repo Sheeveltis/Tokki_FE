@@ -17,6 +17,8 @@ const statusOptions = [
   { value: 0, label: 'Nháp' },
   { value: 1, label: 'Đã xuất bản' },
   { value: 2, label: 'Đã xóa' },
+  { value: 3, label: 'Chờ phê duyệt' },
+  { value: 4, label: 'Từ chối' },
 ]
 
 // Options cho Type filter
@@ -27,7 +29,7 @@ const typeOptions = [
   { value: 3, label: 'Test đầu vào' },
 ]
 
-export function ExamTemplateManagement({ initialData = null }) {
+export function ExamTemplateManagement({ initialData = null, basePath = '/admin' }) {
   const router = useRouter()
   const [drawerItem, setDrawerItem] = useState(null)
   const [search, setSearch] = useState('')
@@ -38,7 +40,7 @@ export function ExamTemplateManagement({ initialData = null }) {
   const pageSize = 10
 
   // Debounce search để tránh gọi API quá nhiều
-  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [debouncedSearch,  setDebouncedSearch] = useState('')
   
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -118,7 +120,7 @@ export function ExamTemplateManagement({ initialData = null }) {
                 refetch()
                 // Navigate đến mẫu đề mới
                 if (result?.examTemplateId || result?.ExamTemplateId) {
-                  router.push(`/admin/exam-templates/${result.examTemplateId || result.ExamTemplateId}`)
+                  router.push(`${basePath}/exam-templates/${result.examTemplateId || result.ExamTemplateId}`)
                 }
               } catch (error) {
                 message.error(error?.message || 'Sao chép thất bại')
@@ -132,7 +134,7 @@ export function ExamTemplateManagement({ initialData = null }) {
             <div
               onClick={(e) => {
                 e?.stopPropagation?.()
-                router.push(`/admin/exam-templates/${id}`)
+                router.push(`${basePath}/exam-templates/${id}`)
               }}
               style={{
                 display: 'flex',
@@ -178,6 +180,8 @@ export function ExamTemplateManagement({ initialData = null }) {
             >
               <CopyOutlined style={{ fontSize: 18, color: '#1890ff', transition: 'color 0.2s ease' }} />
             </div>
+            <div
+            />
           </Space>
         )
       },
@@ -242,14 +246,14 @@ export function ExamTemplateManagement({ initialData = null }) {
         data={drawerItem || {}}
       />
       {createModalOpen && (
-        <CreateExamTemplateModal
+          <CreateExamTemplateModal
           open={createModalOpen}
           onCancel={() => setCreateModalOpen(false)}
           onSuccess={(examTemplateId) => {
             setCreateModalOpen(false)
             // Refetch danh sách sau khi tạo mới
             refetch()
-            router.push(`/admin/exam-templates/${examTemplateId}`)
+            router.push(`${basePath}/exam-templates/${examTemplateId}`)
           }}
         />
       )}

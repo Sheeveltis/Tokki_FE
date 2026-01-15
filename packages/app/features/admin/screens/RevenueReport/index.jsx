@@ -80,21 +80,58 @@ export function RevenueReport() {
 
     const fetchPackageRevenue = async () => {
       try {
-        const response = await apiClient.get(ENDPOINTS.STATISTICS.PACKAGES)
+        // Format date từ dateRange sang MM-DD-YYYY
+        let params = {}
+        if (dateRange && dateRange[0] && dateRange[1]) {
+          // Ant Design DatePicker trả về dayjs objects
+          // Sử dụng format method nếu có (dayjs object), hoặc format thủ công
+          const formatDate = (date) => {
+            // Nếu là dayjs object, sử dụng format method
+            if (date && typeof date.format === 'function') {
+              return date.format('MM-DD-YYYY')
+            }
+            // Fallback: format thủ công từ Date object
+            const d = new Date(date)
+            const month = String(d.getMonth() + 1).padStart(2, '0')
+            const day = String(d.getDate()).padStart(2, '0')
+            const year = d.getFullYear()
+            return `${month}-${day}-${year}`
+          }
+          
+          params = {
+            startDate: formatDate(dateRange[0]),
+            endDate: formatDate(dateRange[1]),
+          }
+        }
+        
+        const response = await apiClient.get(ENDPOINTS.STATISTICS.PACKAGES, { params })
+        console.log('Package Revenue API Response:', response?.data)
         const data = response?.data?.data
         if (data && Array.isArray(data)) {
+          console.log('Raw package data:', data)
           // Map data từ API (packageName → package) để phù hợp với BarChart
-          const mappedData = data.map((item) => ({
-            package: item.packageName,
-            revenue: item.revenue,
-            count: item.salesCount,
-          }))
+          // Filter bỏ các gói không mong muốn như "sample" hoặc "test"
+          const mappedData = data
+            .filter((item) => {
+              const packageName = item.packageName?.toLowerCase() || ''
+              return !packageName.includes('sample') && !packageName.includes('test')
+            })
+            .map((item) => ({
+              package: item.packageName,
+              revenue: item.revenue,
+              count: item.salesCount,
+            }))
+          console.log('Mapped package data:', mappedData)
           setPackageRevenueData(mappedData)
+        } else {
+          // Nếu API trả về empty hoặc không hợp lệ, set về empty array
+          console.log('No valid data from API, setting empty array')
+          setPackageRevenueData([])
         }
       } catch (error) {
         console.error('Failed to fetch package revenue', error)
-        // Fallback về mock data nếu API lỗi
-        setPackageRevenueData(mockPackageRevenueData)
+        // Không fallback về mock data, chỉ set về empty array
+        setPackageRevenueData([])
       }
     }
 
@@ -124,7 +161,7 @@ export function RevenueReport() {
     fetchOverview()
     fetchPackageRevenue()
     fetchRevenueChart()
-  }, [selectedYear])
+  }, [selectedYear, dateRange])
 
   const chartData = revenueChartData.length > 0 ? revenueChartData : mockRevenueData
   const totalRevenue =
@@ -243,18 +280,42 @@ export function RevenueReport() {
 
         {/* Biểu đồ doanh thu theo gói */}
         <Card title="Doanh thu theo gói thành viên">
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={packageRevenueData.length > 0 ? packageRevenueData : mockPackageRevenueData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="package" />
-              <YAxis />
-              <Tooltip
-                formatter={(value) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)}
-              />
-              <Legend />
-              <Bar dataKey="revenue" fill="#F87218" name="Doanh thu" />
-            </BarChart>
-          </ResponsiveContainer>
+          {packageRevenueData && packageRevenueData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={packageRevenueData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="package" angle={-45} textAnchor="end" height={100} />
+                <YAxis />
+                <Tooltip
+                  formatter={(value, name, props) => {
+                    if (name === 'revenue') {
+                      const count = props.payload?.count || 0
+                      return [
+                        `${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)} (${count} gói)`,
+                        'Doanh thu',
+                      ]
+                    }
+                    return [value, name]
+                  }}
+                  labelFormatter={(label) => `Gói: ${label}`}
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    padding: '8px',
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="revenue" fill="#F87218" name="Doanh thu" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+              <Text type="secondary">
+                {dateRange ? 'Không có dữ liệu doanh thu theo gói trong khoảng thời gian đã chọn' : 'Vui lòng chọn khoảng thời gian để xem doanh thu theo gói'}
+              </Text>
+            </div>
+          )}
         </Card>
 
         {/* Bảng báo cáo chi tiết */}
