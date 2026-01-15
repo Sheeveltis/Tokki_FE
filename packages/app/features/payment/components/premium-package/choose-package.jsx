@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native'
 import { useRouter } from 'solito/navigation'
-import { getVipPackages, createVipPackagePayment } from '../api/api'
+import { getVipPackages, createVipPackagePayment } from '../../api/premium-package-api'
 import { getCurrentUserId } from '../../../../provider/api/client'
 import BigFoot from '../../../../../assets/bigfoot.png'
 

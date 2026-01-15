@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet, Platform } from 'react-native'
-import { PaymentPackageLayout } from './components/payment-package-layout'
+import { PaymentPackageLayout } from '../components/payment-package/payment-package-layout.web'
 import { NavbarMobile } from '../../../../components/navbar-mobile'
 
 /**

@@ -1,8 +1,8 @@
 // Premium Package API functions
 // Get VIP packages
 
-import { apiClient } from '../../../../provider/api/client'
-import { ENDPOINTS } from '../../../../provider/api/endpoints'
+import { apiClient } from '../../../provider/api/client'
+import { ENDPOINTS } from '../../../provider/api/endpoints'
 
 /**
  * Get all VIP packages

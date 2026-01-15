@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native'
 import { useRouter } from 'solito/navigation'
-import { getPaymentById, getPaymentStatusById } from '../api/api'
+import { getPaymentById, getPaymentStatusById } from '../../api/payment-detail-api'
 
 /**
  * Normalize image source so it works with:

@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet, Platform } from 'react-native'
-import { PremiumPackageLayout } from './components/premium-package-layout'
+import { PremiumPackageLayout } from '../components/premium-package/premium-package-layout.web'
 import { NavbarMobile } from '../../../../components/navbar-mobile'
 
 /**

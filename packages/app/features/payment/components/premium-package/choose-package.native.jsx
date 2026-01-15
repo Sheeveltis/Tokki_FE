@@ -11,7 +11,7 @@ if (Platform.OS !== 'web') {
     // @react-navigation/native không có sẵn trên web
   }
 }
-import { getVipPackages, createVipPackagePayment } from '../api/api'
+import { getVipPackages, createVipPackagePayment } from '../api/premium-package-api'
 import { getCurrentUserId } from '../../../../provider/api/client'
 import BigFoot from '../../../../../assets/bigfoot.png'
 

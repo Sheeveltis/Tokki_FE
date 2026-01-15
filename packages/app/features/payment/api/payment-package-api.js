@@ -2,8 +2,8 @@
 // Create payment transaction
 
 import axios from 'axios'
-import { apiErrors } from '../../../../string.js'
-import { API_BASE_URL, ENDPOINTS } from '../../../../provider/api/endpoints'
+import { apiErrors } from '../../../string.js'
+import { API_BASE_URL, ENDPOINTS } from '../../../provider/api/endpoints.js'
 
 /**
  * Helper function để xử lý lỗi API và throw error với message từ apiErrors

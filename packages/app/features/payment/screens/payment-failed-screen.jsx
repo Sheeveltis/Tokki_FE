@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet, Image, Platform } from 'react-native'
 import { Navbar } from '../../../../components/navbar'
 import { Footer } from '../../../../components/footer'
 import { NavbarMobile } from '../../../../components/navbar-mobile'
-import { PaymentSuccessLayout } from './components/payment-success-layout'
+import { PaymentFailedLayout } from '../components/payment-failed/payment-failed-layout.web'
 import BackgroundImage from '../../../../assets/background1.png'
 
 /**
@@ -25,10 +25,10 @@ const normalizeImageSource = (src) => {
 }
 
 /**
- * Payment Success Screen Component
- * - Displays payment success message
+ * Payment Failed Screen Component
+ * - Displays payment failed message
  */
-export function PaymentSuccessScreen() {
+export function PaymentFailedScreen() {
   return (
     <View style={styles.root}>
       {/* Background image */}
@@ -43,7 +43,7 @@ export function PaymentSuccessScreen() {
       {/* Nội dung chính */}
       <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
         <View style={styles.wrapper}>
-          <PaymentSuccessLayout />
+          <PaymentFailedLayout />
         </View>
       </ScrollView>
 

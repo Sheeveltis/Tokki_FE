@@ -1,9 +1,9 @@
 // Payment Detail API functions
 // Get payment by ID to retrieve QR code
 
-import { apiClient } from '../../../../provider/api/client'
-import { apiErrors } from '../../../../string.js'
-import { ENDPOINTS } from '../../../../provider/api/endpoints'
+import { apiClient } from '../../../provider/api/client'
+import { apiErrors } from '../../../string.js'
+import { ENDPOINTS } from '../../../provider/api/endpoints'
 
 /**
  * Helper function để xử lý lỗi API và throw error với message từ apiErrors
