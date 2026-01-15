@@ -38,8 +38,7 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
         mediaType: initialValues.mediaType,
         status: initialValues.status ?? 1,
         content: initialValues.content,
-        imageUrl1: initialValues.imageUrl1 || initialValues.imageUrl || null,
-        audioUrl1: initialValues.audioUrl1 || initialValues.audioUrl || null,
+        imageUrl: initialValues.imageUrl1 || initialValues.imageUrl || null, // Dùng imageUrl cho cả Image và Audio
         imageFile: null,
         audioFile: null,
       })
@@ -78,8 +77,7 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
       content: undefined,
       imageFile: null,
       audioFile: null,
-      imageUrl1: null,
-      audioUrl1: null,
+      imageUrl: null,
     })
     setImagePreviewUrl((prev) => {
       if (prev) revokeObjectUrl(prev)
@@ -98,11 +96,11 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
       return
     }
     if (mt === 1) {
-      if (!values.imageFile && !values.imageUrl1) throw new Error('MediaType = Hình ảnh: bắt buộc chọn ảnh')
+      if (!values.imageFile && !values.imageUrl) throw new Error('MediaType = Hình ảnh: bắt buộc chọn ảnh')
       return
     }
     if (mt === 2) {
-      if (!values.audioFile && !values.audioUrl1) throw new Error('MediaType = Audio: bắt buộc chọn audio')
+      if (!values.audioFile && !values.imageUrl) throw new Error('MediaType = Audio: bắt buộc chọn audio')
       return
     }
   }
@@ -118,7 +116,7 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
         message.error('Chỉ chấp nhận file hình ảnh!')
         return Upload.LIST_IGNORE
       }
-      form.setFieldsValue({ imageFile: file, imageUrl1: null })
+      form.setFieldsValue({ imageFile: file, imageUrl: null })
       return false
     },
   }
@@ -134,7 +132,7 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
         message.error('Chỉ chấp nhận file audio!')
         return Upload.LIST_IGNORE
       }
-      form.setFieldsValue({ audioFile: file, audioUrl1: null })
+      form.setFieldsValue({ audioFile: file, imageUrl: null })
       return false
     },
   }
@@ -207,10 +205,10 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
               <p className="ant-upload-text">Nhấp hoặc kéo thả ảnh vào đây</p>
             </Dragger>
 
-            {(imagePreviewUrl || form.getFieldValue('imageUrl1')) ? (
+            {(imagePreviewUrl || form.getFieldValue('imageUrl')) ? (
               <div style={{ marginTop: 12 }}>
                 <img
-                  src={imagePreviewUrl || form.getFieldValue('imageUrl1')}
+                  src={imagePreviewUrl || form.getFieldValue('imageUrl')}
                   alt="Preview"
                   style={{ maxWidth: '100%', maxHeight: 240, borderRadius: 8, border: '1px solid #d9d9d9' }}
                 />
@@ -226,10 +224,10 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
               <p className="ant-upload-text">Nhấp hoặc kéo thả audio vào đây</p>
             </Dragger>
 
-            {(audioPreviewUrl || form.getFieldValue('audioUrl1')) ? (
+            {(audioPreviewUrl || form.getFieldValue('imageUrl')) ? (
               <div style={{ marginTop: 12 }}>
                 <audio controls style={{ width: '100%' }}>
-                  <source src={audioPreviewUrl || form.getFieldValue('audioUrl1')} />
+                  <source src={audioPreviewUrl || form.getFieldValue('imageUrl')} />
                   Trình duyệt không hỗ trợ phát audio.
                 </audio>
               </div>
@@ -244,8 +242,7 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
         {/* hidden */}
         <Form.Item name="imageFile" hidden><Input /></Form.Item>
         <Form.Item name="audioFile" hidden><Input /></Form.Item>
-        <Form.Item name="imageUrl1" hidden><Input /></Form.Item>
-        <Form.Item name="audioUrl1" hidden><Input /></Form.Item>
+        <Form.Item name="imageUrl" hidden><Input /></Form.Item>
       </Form>
     </Modal>
   )

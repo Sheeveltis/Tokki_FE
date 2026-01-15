@@ -15,7 +15,9 @@ export async function fetchPassages(params = {}) {
 }
 
 // POST /api/Passages
-// Body: { title, content, imageUrl1, audioUrl1, mediaType }
+// Body: { title, content, imageUrl, mediaType }
+// - Text (mediaType=0): content bắt buộc, imageUrl = null
+// - Image (mediaType=1) / Audio (mediaType=2): imageUrl bắt buộc, content = null
 export async function createPassage(payload) {
   const res = await apiClient.post(ENDPOINTS.PASSAGE.CREATE, payload)
   return res.data

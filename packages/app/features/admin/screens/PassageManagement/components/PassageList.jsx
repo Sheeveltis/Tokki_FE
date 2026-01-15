@@ -254,24 +254,28 @@ export function PassageList() {
           try {
             setCreating(true)
 
-            let imageUrl1 = null
-            let audioUrl1 = null
+            let imageUrl = null
 
             // Upload only when click "Tạo"
             if (values.mediaType === 1) {
-              imageUrl1 = values.imageFile ? await uploadQuestionImageToCloudinary(values.imageFile) : null
-            }
-            if (values.mediaType === 2) {
-              audioUrl1 = values.audioFile ? await uploadQuestionAudioToCloudinary(values.audioFile) : null
+              // Image: upload image và gửi vào imageUrl
+              if (!values.imageFile) {
+                throw new Error('MediaType = Hình ảnh: bắt buộc chọn hình ảnh')
+              }
+              imageUrl = await uploadQuestionImageToCloudinary(values.imageFile)
+            } else if (values.mediaType === 2) {
+              // Audio: upload audio và gửi vào imageUrl (theo API spec)
+              if (!values.audioFile) {
+                throw new Error('MediaType = Audio: bắt buộc chọn audio')
+              }
+              imageUrl = await uploadQuestionAudioToCloudinary(values.audioFile)
             }
 
             const payload = {
               title: values.title?.trim(),
               content: values.mediaType === 0 ? values.content?.trim() : null,
-              imageUrl1,
-              audioUrl1,
+              imageUrl: imageUrl, // Backend mong đợi imageUrl cho cả Image và Audio
               mediaType: values.mediaType,
-              status: values.status ?? 1,
             }
 
             await createPassage(payload)
@@ -298,25 +302,46 @@ export function PassageList() {
           try {
             setUpdating(true)
 
-            // upload only if user selected new file
-            let imageUrl1 = values.imageUrl1 || null
-            let audioUrl1 = values.audioUrl1 || null
-
-            if (values.mediaType === 1 && values.imageFile) {
-              imageUrl1 = await uploadQuestionImageToCloudinary(values.imageFile)
-            }
-            if (values.mediaType === 2 && values.audioFile) {
-              audioUrl1 = await uploadQuestionAudioToCloudinary(values.audioFile)
-            }
-
+            // Theo quy tắc update: field nào truyền "" hoặc null => không cập nhật
+            // Chỉ field có giá trị "thực" mới update
             const payload = {
               passageId: values.passageId,
-              title: values.title?.trim(),
-              content: values.mediaType === 0 ? values.content?.trim() : null,
-              imageUrl1: values.mediaType === 1 ? imageUrl1 : null,
-              audioUrl1: values.mediaType === 2 ? audioUrl1 : null,
-              mediaType: values.mediaType,
-              status: values.status ?? 1,
+            }
+
+            // Title: chỉ update nếu có giá trị
+            if (values.title?.trim()) {
+              payload.title = values.title.trim()
+            }
+
+            // MediaType: chỉ update nếu có giá trị
+            if (values.mediaType !== undefined && values.mediaType !== null) {
+              payload.mediaType = values.mediaType
+            }
+
+            // Content: chỉ update nếu mediaType = 0 và có giá trị
+            if (values.mediaType === 0 && values.content?.trim()) {
+              payload.content = values.content.trim()
+            } else if (values.mediaType === 0 && !values.content?.trim()) {
+              // Nếu mediaType = 0 nhưng content rỗng, không update content (giữ nguyên DB)
+            }
+
+            // ImageUrl: chỉ update nếu có file mới upload
+            // Theo quy tắc: chỉ field có giá trị "thực" mới update
+            // Nếu không upload file mới, không gửi imageUrl (giữ nguyên DB)
+            if (values.mediaType === 1 && values.imageFile) {
+              // Upload image mới
+              const imageUrl = await uploadQuestionImageToCloudinary(values.imageFile)
+              payload.imageUrl = imageUrl
+            } else if (values.mediaType === 2 && values.audioFile) {
+              // Upload audio mới
+              const imageUrl = await uploadQuestionAudioToCloudinary(values.audioFile)
+              payload.imageUrl = imageUrl
+            }
+            // Nếu không có file mới, không gửi imageUrl (giữ nguyên DB theo quy tắc update)
+
+            // Status: chỉ update nếu có giá trị
+            if (values.status !== undefined && values.status !== null) {
+              payload.status = values.status
             }
 
             await updatePassage(payload)
