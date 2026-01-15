@@ -36,7 +36,7 @@ export const staffRoutes = [
   // Staff - Question Type / Question Bank detail
   { path: '/staff/question-type/:id', element: <QuestionTypeDetailScreen basePath="/staff" layout="staff" /> },
   { path: '/staff/question-type', element: <QuestionTypeManagement basePath="/staff" /> },
-  { path: '/staff/question-bank/create', element: <CreateQuestionScreen /> },
+  { path: '/staff/question-bank/create', element: <CreateQuestionScreen basePath="/staff" layout="staff" /> },
 ]
 
 /**

@@ -5,18 +5,26 @@ import { useRouter, useSearchParams } from 'solito/navigation'
 import { Card, Form, Space, Typography, message, Divider, Input } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from '../../components/admin-layout.web'
+import StaffLayout from '../../../staff/components/staff-layout.web.jsx'
 import { createQuestion, activateQuestionBanks, submitQuestionBanksForApproval } from './api/api'
 import { QuestionForm } from './components/QuestionForm'
 import { AnswerForm } from './components/AnswerForm'
 
 const { Title } = Typography
 
-export function CreateQuestionScreen() {
+export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const questionTypeId = searchParams?.get('questionTypeId')
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
+  
+  const LayoutComponent = layout === 'staff' ? StaffLayout : AdminLayout
+  
+  const handleNavigate = (key) => {
+    const prefix = layout === 'staff' ? '/staff' : '/admin'
+    router.push(`${prefix}?tab=${key}`)
+  }
 
   const getCreatedQuestionBankId = (created) => {
     // `createQuestion()` returns axios `response.data` (not the full axios response),
@@ -114,9 +122,10 @@ export function CreateQuestionScreen() {
       message.success('Đã tạo câu hỏi mới thành công')
 
       if (questionTypeId) {
-        router.push(`/admin/question-type/${questionTypeId}`)
+        router.push(`${basePath}/question-type/${questionTypeId}`)
       } else {
-        router.push('/admin?tab=question-bank')
+        const prefix = layout === 'staff' ? '/staff' : '/admin'
+        router.push(`${prefix}?tab=question-bank`)
       }
     } catch (error) {
       message.error(error.message || 'Tạo câu hỏi thất bại')
@@ -128,18 +137,15 @@ export function CreateQuestionScreen() {
   const handleCancel = () => {
     // Nếu có questionTypeId, quay về trang detail của questionType đó
     if (questionTypeId) {
-      router.push(`/admin/question-type/${questionTypeId}`)
+      router.push(`${basePath}/question-type/${questionTypeId}`)
     } else {
-      router.push('/admin?tab=question-bank')
+      const prefix = layout === 'staff' ? '/staff' : '/admin'
+      router.push(`${prefix}?tab=question-bank`)
     }
   }
 
-  const handleNavigate = (key) => {
-    router.push(`/admin?tab=${key}`)
-  }
-
   return (
-    <AdminLayout defaultKey="question-bank" onNavigate={handleNavigate}>
+    <LayoutComponent defaultKey="question-bank" onNavigate={handleNavigate}>
       <div style={{ padding: 24 }}>
         <Card>
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -195,7 +201,7 @@ export function CreateQuestionScreen() {
           </Space>
         </Card>
       </div>
-    </AdminLayout>
+    </LayoutComponent>
   )
 }
 
