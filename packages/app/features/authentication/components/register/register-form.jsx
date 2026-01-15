@@ -12,16 +12,16 @@ if (Platform.OS !== 'web') {
   }
 }
 import { useRouter } from 'solito/navigation'
-import { TextInput } from '../../../../components/textInput'
+import { TextInput } from '../../../../../components/textInput'
 import { TextInput as RNTextInput } from 'react-native'
-import { DatePicker } from '../../../../components/datePicker'
-import { Button } from '../../../../components/button'
-import { register, sendEmailVerificationOtp, verifyEmailOtp } from '../api'
-import { showApiNotification } from '../utils/notification'
-import { HelperAdmin } from '../../../../components/HelperAdmin'
-import LogoImage from '../../../../assets/logo-text.png'
-import HomeIcon from '../../../../assets/icon/icon-mainflow/home.svg'
-import { InputOTP } from './input-otp'
+import { DatePicker } from '../../../../../components/datePicker'
+import { Button } from '../../../../../components/button'
+import { register, sendEmailVerificationOtp, verifyEmailOtp } from '../../api'
+import { showApiNotification } from '../../utils/notification'
+import { HelperAdmin } from '../../../../../components/HelperAdmin'
+import LogoImage from '../../../../../assets/logo-text.png'
+import HomeIcon from '../../../../../assets/icon/icon-mainflow/home.svg'
+import { InputOTP } from '../shared/input-otp'
 import { 
   scaleWidth, 
   scaleHeight, 
@@ -29,7 +29,7 @@ import {
   scaleSize, 
   percentWidth,
   getScreenDimensions 
-} from '../utils/responsive'
+} from '../../utils/responsive'
 
 // Tạo styles responsive - chỉ áp dụng trên mobile
 const createResponsiveStyles = () => {

@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react'
 import { View, Text, StyleSheet, Image, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
-import { TextInput } from '../../../../components/textInput'
-import { Button } from '../../../../components/button'
-import { NavigationPill } from '../../../../components/navigation-pill'
-import LogoImage from '../../../../assets/logo-text.png'
+import { TextInput } from '../../../../../components/textInput'
+import { Button } from '../../../../../components/button'
+import { NavigationPill } from '../../../../../components/navigation-pill'
+import LogoImage from '../../../../../assets/logo-text.png'
 
 /**
  * ForgotPasswordForm: Form tạo mật khẩu mới

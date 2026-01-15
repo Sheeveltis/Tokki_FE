@@ -1,5 +1,5 @@
-import { sendHeartbeat } from '../api'
-import { getCurrentUserId } from '../../../provider/api/client'
+import { sendHeartbeat } from '../../api'
+import { getCurrentUserId } from '../../../../provider/api/client'
 
 /**
  * Heartbeat Service
