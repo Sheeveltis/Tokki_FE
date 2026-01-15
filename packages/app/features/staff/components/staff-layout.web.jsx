@@ -14,6 +14,8 @@ import {
   MailOutlined,
   InboxOutlined,
   BellOutlined,
+  FileDoneOutlined,
+  QuestionCircleOutlined,
 } from '@ant-design/icons'
 
 const ThemeContext = createContext({
@@ -125,6 +127,16 @@ export function StaffLayout({
         { key: 'vocabulary-topics', icon: <BookOutlined />, label: 'Quản lý chủ đề' },
       ],
     },
+    {
+      key: 'exam',
+      icon: <FileDoneOutlined />,
+      label: 'Quản lý Đề',
+      children: [
+        { key: 'question-bank', icon: <QuestionCircleOutlined />, label: 'Bộ câu hỏi' },
+        { key: 'exam-templates', icon: <FileTextOutlined />, label: 'Mẫu đề' },
+      ],
+    },
+    
     {
       key: 'customer-service',
       icon: <CustomerServiceOutlined />,

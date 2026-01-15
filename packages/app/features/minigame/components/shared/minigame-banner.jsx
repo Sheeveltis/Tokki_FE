@@ -57,11 +57,12 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     width: '100%',
     height: '100%',
-    opacity: 0.5,
+    opacity: 0.8,
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 16,
     paddingHorizontal: 24,
     gap: 16,
@@ -81,9 +82,11 @@ const styles = StyleSheet.create({
   },
   text: {
     flex: 1,
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
     color: '#FFFFFF',
+    textAlign: 'center',
+    lineHeight: 20,
     fontFamily: 'Epilogue, sans-serif',
   },
 })

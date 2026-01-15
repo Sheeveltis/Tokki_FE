@@ -61,17 +61,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingTop: 12,
-    paddingBottom: 0,
+    overflow: 'hidden',
   },
   inner: {
+    flex: 1,
     width: '100%',
     maxWidth: 1024,
     alignItems: 'stretch',
-    flexShrink: 0,  
+    overflow: 'hidden',
   },
   bodyWrapper: {
+    flex: 1,
     paddingHorizontal: 32,
-    marginTop: 40
+    marginTop: 12,
+    overflow: 'hidden',
   },
   buttonWrapper: {
     marginTop: 16,
@@ -81,6 +84,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 180,
     marginTop: 'auto',
+    flexShrink: 0,
   },
 })
 

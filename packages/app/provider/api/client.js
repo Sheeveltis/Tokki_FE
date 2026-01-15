@@ -163,7 +163,7 @@ apiClient.interceptors.request.use(
 /**
  * Helper function để tự động logout khi token hết hạn
  */
-const handleTokenExpired = async () => {
+const handleTokenExpired = async (options = {}) => {
   // Clear token
   await clearAuthToken()
   
@@ -175,7 +175,7 @@ const handleTokenExpired = async () => {
   dispatchStorageEvent('token-changed')
   
   // Redirect to login page (chỉ trên web)
-  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+  if (!options?.skipRedirect && Platform.OS === 'web' && typeof window !== 'undefined') {
     const currentPath = window.location.pathname
     
     // Nếu đang ở trang login hoặc register, không redirect

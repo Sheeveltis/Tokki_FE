@@ -1,22 +1,25 @@
 import { apiClient } from '../../../../../provider/api/client'
+import { ENDPOINTS } from '../../../../../provider/api/endpoints'
 import { handleApiError } from '../../../api'
 
 /**
- * Create a new question type
- * @param {Object} payload - QuestionType data
- * @param {string} payload.code - QuestionType code (e.g., 'REA_TOP', 'LIS_LOC')
- * @param {string} payload.name - QuestionType name (e.g., 'Reading - Identify Topic')
- * @param {string} payload.description - QuestionType description
- * @param {number} payload.skill - Skill enum (1=Nghe, 2=Đọc, 3=Viết)
- * @param {number} payload.isActive - Active status (0 or 1)
- * @returns {Promise<Object>} Created question type object
+ * Tạo mới bộ câu hỏi (QuestionType)
+ * @param {Object} payload
+ * @param {string} payload.name
+ * @param {string} payload.code
+ * @param {string} payload.description
+ * @param {number} payload.skill      // 1=Nghe, 2=Đọc, 3=Viết
+ * @param {number} payload.difficulty // 1=Dễ, 2=Trung bình, 3=Khó
+ * @param {number} payload.examType   // 1=TOPIK I, 2=TOPIK II, 3=Test đầu vào
+ * @param {number} payload.isActive   // 0/1
+ * @returns {Promise<Object>}
  */
 export async function createQuestionType(payload) {
   try {
-    const response = await apiClient.post('/api/admin/question-types', payload)
+    const response = await apiClient.post(ENDPOINTS.QUESTION_TYPE.CREATE, payload)
     return response.data
   } catch (error) {
-    handleApiError(error, 'Không thể tạo loại câu hỏi mới')
+    handleApiError(error, 'Không thể tạo bộ câu hỏi mới')
+    throw error
   }
 }
-

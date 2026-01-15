@@ -35,6 +35,11 @@ export function FlashcardListScreen({
     handleSearchSubmit,
     selectedLevel,
     handleLevelChange,
+    pageNumber,
+    pageSize,
+    canNextPage,
+    handlePrevPage,
+    handleNextPage,
   } = useFlashcardList(routeLevelId)
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
@@ -57,6 +62,11 @@ export function FlashcardListScreen({
         onTopicPress={onTopicPress}
         onRetry={fetchTopics}
         onFavoritesPress={onFavoritesPress}
+        pageNumber={pageNumber}
+        pageSize={pageSize}
+        canNextPage={canNextPage}
+        onPrevPage={handlePrevPage}
+        onNextPage={handleNextPage}
       />
     </Layout>
   )

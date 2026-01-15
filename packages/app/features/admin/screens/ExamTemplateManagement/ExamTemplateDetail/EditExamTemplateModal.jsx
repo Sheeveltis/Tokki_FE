@@ -41,6 +41,8 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
       setLoading(true)
       
       // Format data để gửi lên API
+      // Lưu ý: API update hiện tại KHÔNG cho phép cập nhật status,
+      // nên chỉ gửi name, description, examType
       const payload = {
         name: values.name,
         description: values.description,
@@ -50,10 +52,9 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
       // TODO: Thay bằng API call thực tế
       // await updateExamTemplate(examTemplate.examTemplateId, payload)
       
-      message.success('Đã cập nhật mẫu đề thành công')
-      
       if (onSuccess) {
-        onSuccess(payload)
+        // Chờ screen cha gọi API update và tự hiển thị message.success / message.error
+        await onSuccess(payload)
       }
     } catch (error) {
       message.error(error.message || 'Cập nhật mẫu đề thất bại')
@@ -126,6 +127,7 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
             showSearch={false}
           />
         </Form.Item>
+
       </Form>
     </Modal>
   )

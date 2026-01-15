@@ -13,7 +13,7 @@ import { duplicateExamTemplate } from '../../api'
 
 // Options cho Status filter
 const statusOptions = [
-  { value: undefined, label: 'Tất cả trạng thái' },
+  { value: null, label: 'Tất cả trạng thái' },
   { value: 0, label: 'Nháp' },
   { value: 1, label: 'Đã xuất bản' },
   { value: 2, label: 'Đã xóa' },
@@ -21,7 +21,7 @@ const statusOptions = [
 
 // Options cho Type filter
 const typeOptions = [
-  { value: undefined, label: 'Tất cả loại đề' },
+  { value: null, label: 'Tất cả loại đề' },
   { value: 1, label: 'TOPIK I' },
   { value: 2, label: 'TOPIK II' },
   { value: 3, label: 'Test đầu vào' },
@@ -33,7 +33,7 @@ export function ExamTemplateManagement({ initialData = null }) {
   const [search, setSearch] = useState('')
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [pageNumber, setPageNumber] = useState(1)
-  const [status, setStatus] = useState(1) // Mặc định là Published (1)
+  const [status, setStatus] = useState(1)
   const [type, setType] = useState(null) // null = lấy tất cả loại đề
   const pageSize = 10
 

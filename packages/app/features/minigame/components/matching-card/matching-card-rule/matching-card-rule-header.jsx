@@ -39,9 +39,7 @@ export function MatchingCardRuleHeader() {
           <Text style={styles.title}>Lật thẻ bài từ vựng</Text>
         </View>
 
-        <View style={styles.rankingButtonWrapper}>
-          <MinigameRankingButton />
-        </View>
+       
       </View>
     </View>
   )
@@ -64,16 +62,12 @@ const styles = StyleSheet.create({
   backButtonWrapper: {
     alignItems: 'flex-start',
   },
-  rankingButtonWrapper: {
-    alignItems: 'flex-end',
-    
-  },
   centerSection: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,
-    paddingLeft: 60, 
+    paddingRight:100,
   },
   iconCircle: {
     width: 30,

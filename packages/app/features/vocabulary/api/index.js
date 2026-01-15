@@ -1234,6 +1234,7 @@ export async function uploadExcelToTopic(topicId, file) {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 0, // Không giới hạn thời gian cho import Excel vì backend xử lý lâu
     })
 
     const payload = res?.data

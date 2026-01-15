@@ -7,15 +7,7 @@ import { QueryProvider } from '@tokki/app/provider/query/query-client'
 
 import { AppRoutes } from './routes'
 
-/**
- * App Component - Main Application Entry Point
- * 
- * Refactored to use modular route architecture:
- * - Route Grouping / Route Modularization
- * - Wrapper / Container Pattern
- * - Logic Abstraction
- * - Code Cleanup & Organization
- */
+
 function App() {
   return (
     <QueryProvider>
