@@ -17,6 +17,21 @@ export async function fetchPassages() {
 }
 
 /**
+ * Fetch question type by ID
+ * @param {string} questionTypeId
+ * @returns {Promise<Object|null>} Question type object
+ */
+export async function fetchQuestionTypeById(questionTypeId) {
+  try {
+    const response = await apiClient.get(ENDPOINTS.QUESTION_TYPE.GET_BY_ID(questionTypeId))
+    return response.data?.data || null
+  } catch (error) {
+    handleApiError(error, 'Không thể tải thông tin loại câu hỏi')
+    return null
+  }
+}
+
+/**
  * Create a new question with answers
  * @param {Object} payload - Question data
  * @param {string} payload.passageId - Passage ID (optional)
@@ -63,6 +78,33 @@ export async function submitQuestionBanksForApproval(questionBankIds = []) {
     return res.data
   } catch (error) {
     handleApiError(error, 'Không thể gửi duyệt câu hỏi')
+  }
+}
+
+/**
+ * Approve question banks (Admin)
+ * @param {Array<string>} questionBankIds
+ */
+export async function approveQuestionBanks(questionBankIds = []) {
+  try {
+    const res = await apiClient.put(ENDPOINTS.QUESTION_BANK.APPROVE, { questionBankIds })
+    return res.data
+  } catch (error) {
+    handleApiError(error, 'Không thể duyệt câu hỏi')
+  }
+}
+
+/**
+ * Reject question banks (Admin)
+ * @param {Array<string>} questionBankIds
+ * @param {string} rejectReason
+ */
+export async function rejectQuestionBanks(questionBankIds = [], rejectReason = '') {
+  try {
+    const res = await apiClient.put(ENDPOINTS.QUESTION_BANK.REJECT, { questionBankIds, rejectReason })
+    return res.data
+  } catch (error) {
+    handleApiError(error, 'Không thể từ chối câu hỏi')
   }
 }
 

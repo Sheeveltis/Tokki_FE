@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { Typography, Spin, message, Pagination } from 'antd'
 import { fetchPassageById, fetchPassages, fetchQuestionTypes, updateQuestionBank, activateQuestionBanks, deleteQuestionBank } from '../api/api'
+import { submitQuestionBanksForApproval } from '../../CreateQuestion/api/api'
 import { uploadOptionImageToCloudinary, uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary } from '../../../api/cloudinary'
 import { showAdminSuccess, showAdminError } from 'components/HelperAdmin'
 import { QuestionCard } from './QuestionCard'
@@ -23,6 +24,13 @@ export function QuestionCardList({
   onDeleted,
   onRefresh,
   pagination,
+  selectedQuestions = new Set(),
+  onToggleSelect,
+  // Admin approval props
+  approvalStatuses = {},
+  rejectReasons = {},
+  onSetApprovalStatus,
+  onSetRejectReason,
 }) {
   const [passageMap, setPassageMap] = useState({})
   const [loadingPassage, setLoadingPassage] = useState(false)
@@ -220,6 +228,27 @@ export function QuestionCardList({
       setDeletingId(null)
     }
   }
+
+  const handleResubmitForApproval = async (questionId) => {
+    const question = data.find((q) => (q.questionBankId || q.id) === questionId)
+    if (!question) return
+
+    const questionBankId = question.questionBankId || question.id
+
+    try {
+      setDeletingId(questionId) // Tạm dùng để hiển thị loading
+      await submitQuestionBanksForApproval([questionBankId])
+      message.success('Đã gửi câu hỏi để phê duyệt lại')
+      if (onRefresh) {
+        onRefresh()
+      }
+    } catch (error) {
+      message.error(error?.message || 'Gửi duyệt lại thất bại')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
 
   const handleSave = async () => {
     const question = data.find((q) => (q.questionBankId || q.id) === editingId)
@@ -485,6 +514,14 @@ export function QuestionCardList({
     return <Text type="secondary">Không có câu hỏi nào phù hợp.</Text>
   }
 
+  // Tính số thứ tự dựa trên pagination
+  const getQuestionNumber = (index) => {
+    if (!pagination || !pagination.current || !pagination.pageSize) {
+      return index + 1
+    }
+    return (pagination.current - 1) * pagination.pageSize + index + 1
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {data.map((question, index) => {
@@ -493,12 +530,13 @@ export function QuestionCardList({
         const isEditing = editingId === key
         const currentPassage = editForm.passageId ? (passageMap[editForm.passageId] || allPassages.find(p => p.passageId === editForm.passageId)) : null
         const currentQuestionType = editForm.questionTypeId ? questionTypes.find(t => t.questionTypeId === editForm.questionTypeId) : null
+        const questionNumber = getQuestionNumber(index)
 
         return (
           <QuestionCard
             key={key}
             question={question}
-            index={index}
+            index={questionNumber - 1}
             isEditing={isEditing}
             editingId={editingId}
             saving={saving}
@@ -523,6 +561,14 @@ export function QuestionCardList({
             onOptionChange={handleOptionChange}
             onSelectCorrect={handleSelectCorrect}
             onOpenTypeSelector={() => setShowTypeSelector(true)}
+            onSubmitForApproval={handleResubmitForApproval}
+            isSelected={selectedQuestions.has(key)}
+            onToggleSelect={onToggleSelect}
+            // Admin approval props
+            approvalStatus={approvalStatuses[key]}
+            rejectReason={rejectReasons[key]}
+            onSetApprovalStatus={onSetApprovalStatus}
+            onSetRejectReason={onSetRejectReason}
           />
         )
       })}

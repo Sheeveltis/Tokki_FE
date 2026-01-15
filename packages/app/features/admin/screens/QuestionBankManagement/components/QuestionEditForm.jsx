@@ -4,6 +4,7 @@ import React from 'react'
 import { Typography, Input, Select, Upload, Button, Space, message } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import { createObjectUrl, isAudioUrl } from '../../CreateQuestion/components/upload-utils'
+import { getCurrentUserRole } from '../../../../../provider/api/client'
 
 const { Text, Paragraph } = Typography
 const { TextArea } = Input
@@ -25,6 +26,8 @@ export function QuestionEditForm({
   validatePassageSkillCompatibility,
   onOpenTypeSelector,
 }) {
+  const role = getCurrentUserRole()
+  const isStaff = role === 'Staff'
   return (
     <Space direction="vertical" size={8} style={{ width: '100%' }}>
       {/* Change Question Type Button */}
@@ -183,19 +186,21 @@ export function QuestionEditForm({
         />
       </div>
 
-      {/* Status */}
-      <div style={{ marginTop: 8 }}>
-        <Text strong style={{ display: 'block', marginBottom: 4 }}>Trạng thái:</Text>
-        <Select
-          style={{ width: 260 }}
-          value={editForm.status}
-          onChange={(value) => setEditForm((prev) => ({ ...prev, status: value }))}
-          options={[
-            { value: 0, label: 'Nháp' },
-            { value: 1, label: 'Đang hoạt động' },
-          ]}
-        />
-      </div>
+      {/* Status - Ẩn khi là Staff */}
+      {!isStaff && (
+        <div style={{ marginTop: 8 }}>
+          <Text strong style={{ display: 'block', marginBottom: 4 }}>Trạng thái:</Text>
+          <Select
+            style={{ width: 260 }}
+            value={editForm.status}
+            onChange={(value) => setEditForm((prev) => ({ ...prev, status: value }))}
+            options={[
+              { value: 0, label: 'Nháp' },
+              { value: 1, label: 'Đang hoạt động' },
+            ]}
+          />
+        </div>
+      )}
     </Space>
   )
 }

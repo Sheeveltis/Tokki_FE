@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Form, Input, Select, Space, Typography, Upload, message, Switch } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
-import { fetchPassages } from '../api/api'
+import { fetchPassages, fetchQuestionTypeById } from '../api/api'
 import { isAudioUrl, createObjectUrl } from './upload-utils'
 import { getCurrentUserRole } from '../../../../../provider/api/client'
 
@@ -18,6 +18,8 @@ const { Dragger } = Upload
 export function QuestionForm({ form, questionTypeId }) {
   const [passages, setPassages] = useState([])
   const [loadingPassages, setLoadingPassages] = useState(false)
+  const [questionType, setQuestionType] = useState(null)
+  const [loadingQuestionType, setLoadingQuestionType] = useState(false)
   const mediaFile = Form.useWatch('mediaFile', form)
   const mediaUrl = Form.useWatch('mediaUrl', form)
   const mediaPreview = createObjectUrl(mediaFile) || mediaUrl
@@ -28,6 +30,28 @@ export function QuestionForm({ form, questionTypeId }) {
       typeof window.localStorage !== 'undefined' &&
       window.localStorage.getItem('userLevel') === '2')
 
+  // Load questionType khi có questionTypeId
+  useEffect(() => {
+    if (!questionTypeId) {
+      setQuestionType(null)
+      return
+    }
+
+    const loadQuestionType = async () => {
+      try {
+        setLoadingQuestionType(true)
+        const data = await fetchQuestionTypeById(questionTypeId)
+        setQuestionType(data)
+      } catch (error) {
+        message.error('Không thể tải thông tin loại câu hỏi')
+      } finally {
+        setLoadingQuestionType(false)
+      }
+    }
+    loadQuestionType()
+  }, [questionTypeId])
+
+  // Load passages
   useEffect(() => {
     const loadPassages = async () => {
       try {
@@ -42,6 +66,33 @@ export function QuestionForm({ form, questionTypeId }) {
     }
     loadPassages()
   }, [])
+
+  // Filter passages dựa trên skill của questionType
+  const validPassages = useMemo(() => {
+    if (!questionType || !questionType.skill) {
+      // Nếu không có questionType hoặc skill, hiển thị tất cả
+      return passages
+    }
+
+    const skill = questionType.skill
+
+    return passages.filter((passage) => {
+      const mediaType = passage.mediaType
+
+      // Skill 1 (Listening) chỉ chấp nhận mediaType 2 (Audio)
+      if (skill === 1) {
+        return mediaType === 2
+      }
+
+      // Skill 2 (Reading) và 3 (Writing) chấp nhận mediaType 0 (Text) hoặc 1 (Image)
+      if (skill === 2 || skill === 3) {
+        return mediaType === 0 || mediaType === 1
+      }
+
+      // Skill khác → không hiển thị passage nào
+      return false
+    })
+  }, [passages, questionType])
 
   // Chỉ chọn file + preview tại local. Upload Cloudinary sẽ chạy khi bấm "Tạo mới".
   const mediaUploadProps = {
@@ -85,7 +136,7 @@ export function QuestionForm({ form, questionTypeId }) {
           filterOption={(input, option) =>
             (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
           }
-          options={passages.map((passage) => ({
+          options={validPassages.map((passage) => ({
             value: passage.passageId,
             label: `${passage.title || 'Không có tiêu đề'}`,
             passage: passage,

@@ -1,12 +1,26 @@
-import { apiClient } from '../../../../../provider/api/client'
+import { apiClient, getCurrentUserId, getCurrentUserRole } from '../../../../../provider/api/client'
 import { ENDPOINTS } from '../../../../../provider/api/endpoints'
 
 // Lấy danh sách câu hỏi theo questionTypeId (hỗ trợ filter status)
-// Status: 0 (Draft), 1 (Active), 2 (Deleted)
+// Status: 0 (Draft), 1 (Active), 2 (Deleted), 3 (Pending Approval), 4 (Rejected)
+// Nếu là Staff:
+//   - Status = 1 (Hoạt động): Xem tất cả (không filter theo userId)
+//   - Status khác 1: Chỉ lấy câu hỏi do chính họ tạo (filter theo userId)
 export async function fetchQuestionBanksByQuestionType(questionTypeId, status) {
   const params = {}
   if (status !== undefined) {
     params.status = status
+  }
+  const role = getCurrentUserRole()
+  if (role === 'Staff') {
+    // Nếu status = 1 (Hoạt động), không filter theo userId (xem tất cả)
+    // Nếu status khác 1, chỉ lấy câu hỏi do chính họ tạo
+    if (status !== 1) {
+      const userId = getCurrentUserId()
+      if (userId) {
+        params.userId = userId
+      }
+    }
   }
   const res = await apiClient.get(ENDPOINTS.QUESTION_BANK.GET_BY_QUESTION_TYPE(questionTypeId), { params })
   return res.data?.data || []
@@ -31,7 +45,22 @@ export async function fetchQuestionTypes(params = {}) {
 
 // Lấy danh sách câu hỏi có phân trang
 // Return: { items: [], total: number }
+// Nếu là Staff:
+//   - Status = 1 (Hoạt động): Xem tất cả (không filter theo userId)
+//   - Status khác 1: Chỉ lấy câu hỏi do chính họ tạo (filter theo userId)
 export async function fetchQuestionBanksPaged(params = {}) {
+  const role = getCurrentUserRole()
+  if (role === 'Staff') {
+    // Nếu status = 1 (Hoạt động), không filter theo userId (xem tất cả)
+    // Nếu status khác 1, chỉ lấy câu hỏi do chính họ tạo
+    const status = params.Status !== undefined ? params.Status : params.status
+    if (status !== 1) {
+      const userId = getCurrentUserId()
+      if (userId) {
+        params.userId = userId
+      }
+    }
+  }
   const res = await apiClient.get(ENDPOINTS.QUESTION_BANK.GET_ALL, { params })
   const data = res.data?.data
   const items = data?.items || (Array.isArray(data) ? data : []) || []
