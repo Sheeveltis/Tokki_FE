@@ -3,9 +3,9 @@ import React from 'react'
 import { StyleSheet } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 
-import { AuthLayout } from '../components/auth-layout'
-import { LoginHero } from '../components/login-hero'
-import { RegisterPanel } from '../components/register-form'
+import { AuthLayout } from '../components/login/auth-layout'
+import { LoginHero } from '../components/login/login-hero'
+import { RegisterPanel } from '../components/register/register-form'
 import LoginHeroImage from '../../../../assets/background1.png'
 import LoginHeroImage2 from '../../../../assets/registerBackground.png'
 

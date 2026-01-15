@@ -5,7 +5,7 @@ import { Spin } from 'antd'
 import { useRouter, useSearchParams } from 'solito/navigation'
 import { ModeratorLayout } from './components/moderator-layout.web'
 import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../provider/api/client'
-import { AdminLoginForm } from '../authentication/components/admin-login-form'
+import { AdminLoginForm } from '../authentication/components/admin-login/admin-login-form'
 
 // Lazy load các màn duyệt, tái sử dụng từ admin / vocabulary / blog
 const LazyBlogManagement = lazy(() => import('../blog/screens/admin/blog-management-screen'))

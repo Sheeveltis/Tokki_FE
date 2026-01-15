@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'solito/navigation'
 import { StaffLayout } from './components/staff-layout.web'
 import { fetchRegularUsers } from './api'
 import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../provider/api/client'
-import { AdminLoginForm } from '../authentication/components/admin-login-form'
+import { AdminLoginForm } from '../authentication/components/admin-login/admin-login-form'
 // Lazy load để giảm bundle + chỉ fetch khi cần tab
 const LazyUserManagement = lazy(() => import('../user/screens/UserManagement'))
 const LazyLessonManagement = lazy(() => import('../admin/screens/LessonManagement'))

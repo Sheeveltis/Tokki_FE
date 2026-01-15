@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { Spin } from 'antd'
-import { AdminLoginForm } from '../components/admin-login-form'
+import { AdminLoginForm } from '../components/admin-login/admin-login-form'
 import { getAuthToken, getCurrentUserRole } from '../../../provider/api/client'
 
 /**

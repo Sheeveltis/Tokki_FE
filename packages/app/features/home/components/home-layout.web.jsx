@@ -43,7 +43,10 @@ export function HomeLayout({
       />
 
       {/* Nội dung chính */}
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[styles.scrollContent, styles.scrollContentGrow]}
+      >
         <View style={styles.wrapper}>
           <View style={styles.leftCol}>
             {children}
@@ -78,6 +81,8 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#fff',
+    // react-native-web: giúp layout luôn phủ đủ viewport khi zoom out
+    minHeight: '100vh',
   },
   container: {
     flex: 1,
@@ -86,6 +91,10 @@ const styles = StyleSheet.create({
   scrollContent: {
     alignItems: 'center',
     paddingVertical: 20,
+  },
+  // Sticky footer: ScrollView content luôn "ăn" hết khoảng trống còn lại để đẩy Footer xuống đáy
+  scrollContentGrow: {
+    flexGrow: 1,
   },
   wrapper: {
     width: '70%',
