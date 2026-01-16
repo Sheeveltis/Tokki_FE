@@ -1,4 +1,4 @@
-import { requestSupport, getChatHistory } from '../../customer-service/api/chat-support'
+import { requestSupport, getChatHistory } from '../../customer-service-management/api/chat-support'
 import { getAuthToken } from '../../../provider/api/client'
 import { useChatSignalR } from './use-chat-signalr'
 import { useEffect, useRef, useState } from 'react'
