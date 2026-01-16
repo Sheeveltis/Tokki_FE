@@ -3,7 +3,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { View, StyleSheet } from 'react-native'
 
-import { HomeScreen } from 'app/features/home/screen'
+import { HomeScreen } from 'app/features/general/screens/homepage-screen'
 import { DetailScreen } from 'app/features/user/screens/mobile/user-detail-screen'
 import { BlogDetailScreen } from 'app/features/blog/screens/client/blog-detail-screen'
 import { LoginScreen } from 'app/features/authentication/screens/login-screen.native'
@@ -18,7 +18,7 @@ import { RoadmapInfoScreen } from 'app/features/roadmap/roadmap-info/roadmap-inf
 import { RoadmapTestScreen } from 'app/features/roadmap/roadmap-test/roadmap-test-screen'
 import { ProfileScreen } from 'app/features/user/screens/client/profile-screen'
 import { MenuMobileScreenWrapper } from 'app/features/user/screens/mobile'
-import { ErrorScreen } from 'app/features/error/error-screen'
+import { ErrorScreen } from 'app/features/general/screens/error-screen'
 import { FlashcardListScreen } from 'app/features/study/flashcard-list'
 import { LearnScreen } from 'app/features/study/flashcard-learn'
 import { FlashcardStudyScreen } from 'app/features/study/flashcard-study'
