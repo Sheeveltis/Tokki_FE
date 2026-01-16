@@ -14,7 +14,7 @@ import {
   fetchSystemLogs,
 } from 'app/features/admin/api'
 import { fetchVocabularies, fetchFlashcardTopics } from 'app/features/vocabulary/api'
-import { UserManagement } from 'app/features/user/screens/UserManagement'
+import { UserManagement } from 'app/features/user/screens/admin/user-management-screen.jsx'
 import { LessonManagement } from 'app/features/admin/screens/LessonManagement'
 import { VocabularyManagement } from '@tokki/app/features/vocabulary/screens/admin/vocabulary-management-screen'
 import { FlashcardTopicManagement } from 'app/features/vocabulary/screens/admin/vocab-topic-management-screen.jsx'

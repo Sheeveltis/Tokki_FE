@@ -2,7 +2,7 @@
 // Staff có quyền hạn giới hạn hơn admin
 
 import { fetchLessons, fetchArticles, fetchFeedbacks, sendEmail, handleApiError as adminHandleApiError } from '../../admin/api'
-import { fetchUsers as fetchUsersApi } from '../../user/screens/UserManagement/api/api'
+import { fetchUsers as fetchUsersApi } from '../../user/api/user-management'
 import { fetchVocabularies, fetchFlashcardTopics } from '../../vocabulary/api'
 
 // Re-export các functions mà staff có thể sử dụng

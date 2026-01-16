@@ -8,7 +8,7 @@ import { fetchRegularUsers } from './api'
 import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../provider/api/client'
 import { AdminLoginForm } from '../authentication/components/admin-login/admin-login-form'
 // Lazy load để giảm bundle + chỉ fetch khi cần tab
-const LazyUserManagement = lazy(() => import('../user/screens/UserManagement'))
+const LazyUserManagement = lazy(() => import('../user/screens/admin/user-management-screen'))
 const LazyLessonManagement = lazy(() => import('../admin/screens/LessonManagement'))
 const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/admin/vocabulary-management-screen'))
 const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/admin/vocab-topic-management-screen'))

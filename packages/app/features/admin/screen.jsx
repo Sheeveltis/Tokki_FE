@@ -8,7 +8,7 @@ import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../provider
 import { AdminLoginForm } from '../authentication/components/admin-login/admin-login-form'
 
 // Lazy load components với React.lazy (thay thế next/dynamic)
-const LazyUserManagement = lazy(() => import('../user/screens/UserManagement'))
+const LazyUserManagement = lazy(() => import('../user/screens/admin/user-management-screen'))
 const LazyLessonManagement = lazy(() => import('./screens/LessonManagement'))
 const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/admin/vocabulary-management-screen'))
 const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/admin/vocab-topic-management-screen'))

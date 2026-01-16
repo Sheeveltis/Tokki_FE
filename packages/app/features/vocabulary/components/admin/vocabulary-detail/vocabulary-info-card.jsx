@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Card, Descriptions, Image, Tag, Space, Button, Table } from 'antd'
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
-import { fetchUserDetail } from 'app/features/user/screens/UserDetail/api/api'
+import { fetchUserDetail } from 'app/features/user/api/user-detail'
 import { ButtonV2 } from 'components/buttonV2.jsx'
 
 export function VocabularyInfoCard({ vocab, onAddExample, onEditExample, onDeleteExample, deletingExampleId }) {
