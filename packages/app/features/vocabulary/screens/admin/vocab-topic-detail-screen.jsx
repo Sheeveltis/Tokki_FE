@@ -24,12 +24,12 @@ import {
 } from '../../api'
 import { HelperAdmin, showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import { getCurrentUserRole } from '../../../../provider/api/client'
-import TopicInfoCard from './components/topic-info-card'
-import TopicVocabSection from './components/topic-vocab-section'
-import FlashcardTopicEditModal from './components/flashcard-topic-edit-modal'
-import QuickAddVocabularyModal from './components/quick-add-vocabulary-modal'
-import VocabularyGuideModal from './components/vocabulary-guide-modal'
-import TopicApprovalModal from './components/topic-approval-modal'
+import TopicInfoCard from '../../components/admin/vocab-topic-detail/topic-info-card'
+import TopicVocabSection from '../../components/admin/vocab-topic-detail/topic-vocab-section'
+import FlashcardTopicEditModal from '../../components/admin/vocab-topic-detail/vocab-topic-edit-modal.jsx'
+import QuickAddVocabularyModal from '../../components/admin/vocab-topic-detail/quick-add-vocabulary-modal'
+import VocabularyGuideModal from '../../components/admin/vocab-topic-detail/vocabulary-guide-modal'
+import TopicApprovalModal from '../../components/admin/vocab-topic-detail/topic-approval-modal'
 
 const { Title, Text } = Typography
 

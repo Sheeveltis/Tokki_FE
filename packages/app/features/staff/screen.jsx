@@ -10,8 +10,8 @@ import { AdminLoginForm } from '../authentication/components/admin-login/admin-l
 // Lazy load để giảm bundle + chỉ fetch khi cần tab
 const LazyUserManagement = lazy(() => import('../user/screens/UserManagement'))
 const LazyLessonManagement = lazy(() => import('../admin/screens/LessonManagement'))
-const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/VocabularyManagement'))
-const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/FlashcardTopicManagement'))
+const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/admin/vocabulary-management-screen'))
+const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/admin/vocab-topic-management-screen'))
 const LazyBlogManagement = lazy(() => import('../blog/screens/admin/blog-management-screen'))
 const LazyChatSupport = lazy(() => import('../live-chat/screens/chat-support-screen'))
 const LazyAutoEmail = lazy(() => import('../admin/screens/AutoEmail'))

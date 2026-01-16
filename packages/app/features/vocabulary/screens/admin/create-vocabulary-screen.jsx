@@ -5,8 +5,8 @@ import { useRouter } from 'solito/navigation'
 import { Card, Form, Typography, Modal } from 'antd'
 import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
 import { createVocabulary, uploadVocabularyImageToCloudinary } from '../../api'
-import { VocabularyFormFields } from './components/vocabulary-form-fields'
-import { VocabularyFormActions } from './components/vocabulary-form-actions'
+import { VocabularyFormFields } from '../../components/admin/create-vocabulary/vocabulary-form-fields'
+import { VocabularyFormActions } from '../../components/admin/create-vocabulary/vocabulary-form-actions'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 
 const { Title } = Typography

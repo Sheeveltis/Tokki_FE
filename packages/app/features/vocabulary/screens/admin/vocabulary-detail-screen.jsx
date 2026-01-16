@@ -9,10 +9,10 @@ import { StaffLayout } from 'app/features/staff/components/staff-layout.web'
 import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
 import { updateVocabulary, fetchVocabularyDetail, uploadVocabularyImageToCloudinary, deleteVocabulary, addExampleToVocabulary, updateExample, deleteExample } from '../../api'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
-import VocabularyEditModal from './components/vocabulary-edit-modal'
-import VocabularyInfoCard from './components/vocabulary-info-card'
-import ExampleAddModal from './components/example-add-modal'
-import ExampleEditModal from './components/example-edit-modal'
+import VocabularyEditModal from '../../components/admin/vocabulary-detail/vocabulary-edit-modal'
+import VocabularyInfoCard from '../../components/admin/vocabulary-detail/vocabulary-info-card'
+import ExampleAddModal from '../../components/admin/vocabulary-detail/example-add-modal'
+import ExampleEditModal from '../../components/admin/vocabulary-detail/example-edit-modal'
 
 const { Title, Text } = Typography
 

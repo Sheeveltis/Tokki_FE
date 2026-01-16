@@ -5,9 +5,9 @@ import { useRouter } from 'solito/navigation'
 import { Input, Space, Select, Tag } from 'antd'
 import { EyeOutlined, PlusOutlined, SearchOutlined, GlobalOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { fetchVocabularies } from '../../api'
-import ManagementTable from '../../../../../components/ManagementTable'
-import DetailDrawer from '../../../../../components/DetailDrawer'
+import { fetchVocabularies } from '../../api/index.js'
+import ManagementTable from '../../../../../components/ManagementTable.jsx'
+import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
 
 const { Option } = Select
 

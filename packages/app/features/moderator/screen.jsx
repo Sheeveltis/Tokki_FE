@@ -9,8 +9,8 @@ import { AdminLoginForm } from '../authentication/components/admin-login/admin-l
 
 // Lazy load các màn duyệt, tái sử dụng từ admin / vocabulary / blog
 const LazyBlogManagement = lazy(() => import('../blog/screens/admin/blog-management-screen'))
-const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/VocabularyManagement'))
-const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/FlashcardTopicManagement'))
+const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/admin/vocabulary-management-screen'))
+const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/admin/vocab-topic-management-screen'))
 const LazyExamTemplateManagement = lazy(() => import('../admin/screens/ExamTemplateManagement'))
 const LazyExamManagement = lazy(() => import('../admin/screens/ExamManagement'))
 

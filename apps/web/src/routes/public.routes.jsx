@@ -19,8 +19,8 @@ import MatchingCardTopicScreen from '@tokki/app/features/minigame/screens/matchi
 import MatchingCardRuleScreen from '@tokki/app/features/minigame/screens/matching-card/matching-card-rule-screen'
 import MatchingCardScreen from '@tokki/app/features/minigame/screens/matching-card/matching-card-screen'
 import MatchingCardResultScreen from '@tokki/app/features/minigame/screens/matching-card/matching-card-result-screen'
-import { DictionarySearchScreen } from '@tokki/app/features/vocabulary/screens/DictionarySearch'
-import { DictionaryVocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/DictionaryDetail'
+import { DictionarySearchScreen } from '@tokki/app/features/vocabulary/screens/client/dictionary-search-screen'
+import { DictionaryVocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/client/dictionary-detail-screen'
 import { Navbar } from 'components/navbar'
 
 /**

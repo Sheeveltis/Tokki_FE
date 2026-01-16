@@ -3,8 +3,8 @@ import { Route } from 'react-router-dom'
 
 import { ModeratorScreen } from '@tokki/app/features/moderator/screen'
 import { ViewBlogScreen } from '@tokki/app/features/blog/screens/admin/view-blog-screen'
-import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/FlashcardTopicDetail'
-import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/VocabularyDetail'
+import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocab-topic-detail-screen'
+import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocabulary-detail-screen'
 
 /**
  * Moderator Routes - Container Components

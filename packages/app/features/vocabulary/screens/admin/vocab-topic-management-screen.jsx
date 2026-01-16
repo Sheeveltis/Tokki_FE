@@ -5,11 +5,11 @@ import { Input, Space, Tag, Select } from 'antd'
 import { EyeOutlined, PlusOutlined, SearchOutlined, GlobalOutlined } from '@ant-design/icons'
 import { useRouter } from 'solito/navigation'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { searchFlashcardTopics, createFlashcardTopic } from '../../api'
+import { searchFlashcardTopics, createFlashcardTopic } from '../../api/index.js'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
-import ManagementTable from '../../../../../components/ManagementTable'
-import DetailDrawer from '../../../../../components/DetailDrawer'
-import FlashcardTopicCreateModal from './components/flashcard-topic-create-modal'
+import ManagementTable from '../../../../../components/ManagementTable.jsx'
+import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
+import FlashcardTopicCreateModal from '../../components/admin/vocab-topic-management/vocab-topic-create-modal.jsx'
 
 const { Option } = Select
 

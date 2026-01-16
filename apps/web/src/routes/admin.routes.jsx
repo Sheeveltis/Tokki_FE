@@ -15,9 +15,9 @@ import { QuestionTypeManagement } from '@tokki/app/features/admin/screens/Questi
 import { QuestionTypeDetailScreen } from '@tokki/app/features/admin/screens/QuestionType/components/QuestionTypeDetail'
 import { PassageManagementScreen } from '@tokki/app/features/admin/screens/PassageManagement'
 import { ExamTemplateDetailScreen } from '@tokki/app/features/admin/screens/ExamTemplateManagement/ExamTemplateDetail'
-import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/FlashcardTopicDetail'
-import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/VocabularyDetail'
-import { CreateVocabularyScreen } from '@tokki/app/features/vocabulary/screens/CreateVocabulary'
+import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocab-topic-detail-screen'
+import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocabulary-detail-screen'
+import { CreateVocabularyScreen } from '@tokki/app/features/vocabulary/screens/admin/create-vocabulary-screen'
 
 /**
  * Admin Routes - Container Components
