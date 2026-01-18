@@ -11,8 +11,8 @@ import { AdminLoginForm } from '../authentication/components/admin-login/admin-l
 const LazyBlogManagement = lazy(() => import('../blog/screens/admin/blog-management-screen'))
 const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/admin/vocabulary-management-screen'))
 const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/admin/vocab-topic-management-screen'))
-const LazyExamTemplateManagement = lazy(() => import('../admin/screens/ExamTemplateManagement'))
-const LazyExamManagement = lazy(() => import('../admin/screens/ExamManagement'))
+const LazyExamTemplateManagement = lazy(() => import('../examination/screens/admin/exam-template-management-screen'))
+const LazyExamManagement = lazy(() => import('../examination/screens/admin/exam-management-screen'))
 
 const LoadingFallback = () => <Spin />
 

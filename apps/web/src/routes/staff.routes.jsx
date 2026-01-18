@@ -8,8 +8,8 @@ import { ViewBlogScreen } from '@tokki/app/features/blog/screens/admin/view-blog
 import { EditBlogScreen } from '@tokki/app/features/blog/screens/admin/edit-blog-screen'
 import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocab-topic-detail-screen'
 import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocabulary-detail-screen'
-import { QuestionTypeDetailScreen } from '@tokki/app/features/admin/screens/QuestionType/components/QuestionTypeDetail'
-import { QuestionTypeManagement } from '@tokki/app/features/admin/screens/QuestionType'
+import { QuestionTypeDetailScreen } from '@tokki/app/features/examination/components/admin/question-type-management/QuestionTypeDetail'
+import { QuestionTypeManagement } from '@tokki/app/features/examination/screens/admin/question-type-management-screen'
 
 /**
  * Staff Routes - Container Components

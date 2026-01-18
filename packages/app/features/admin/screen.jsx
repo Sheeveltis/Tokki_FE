@@ -22,11 +22,11 @@ const LazyRevenueReport = lazy(() => import('../revenue-management/screens/reven
 const LazySystemLog = lazy(() => import('./screens/SystemLog'))
 const LazyAIStatisticsReport = lazy(() => import('./screens/AIStatisticsReport'))
 const LazySettings = lazy(() => import('./screens/Settings'))
-const LazyExamTemplateManagement = lazy(() => import('./screens/ExamTemplateManagement'))
-const LazyExamManagement = lazy(() => import('./screens/ExamManagement'))
+const LazyExamTemplateManagement = lazy(() => import('../examination/screens/admin/exam-template-management-screen'))
+const LazyExamManagement = lazy(() => import('../examination/screens/admin/exam-management-screen'))
 const LazyManualEmail = lazy(() => import('../customer-service-management/screens/manual-email-screen'))
-const LazyQuestionTypeManagement = lazy(() => import('./screens/QuestionType'))
-const LazyPassageManagement = lazy(() => import('./screens/PassageManagement'))
+const LazyQuestionTypeManagement = lazy(() => import('../examination/screens/admin/question-type-management-screen'))
+const LazyPassageManagement = lazy(() => import('../examination/screens/admin/passage-management-screen'))
 
 const LoadingFallback = () => <Spin />
 
