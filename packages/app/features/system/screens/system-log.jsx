@@ -4,10 +4,10 @@ import React, { useMemo, useState } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Input, Space } from 'antd'
 import { EyeOutlined, SearchOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { useSystemLogsQuery } from '../../../back-office/api/useAdminQueries.js'
-import ManagementTable from '../../../../../components/ManagementTable'
-import DetailDrawer from '../../../../../components/DetailDrawer'
+import { ButtonV2 } from '../../../../components/buttonV2.jsx'
+import { useSystemLogsQuery } from '../../back-office/api/useAdminQueries.js'
+import ManagementTable from '../../../../components/ManagementTable.jsx'
+import DetailDrawer from '../../../../components/DetailDrawer.jsx'
 
 export function SystemLog({ initialData = null }) {
   const router = useRouter()

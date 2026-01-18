@@ -17,8 +17,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
-import { handleApiError } from '../../../back-office/api/admin-index'
-import { useAIStatisticsQuery } from '../../../back-office/api/useAdminQueries'
+import { handleApiError } from '../../back-office/api/admin-index'
+import { useAIStatisticsQuery } from '../../back-office/api/useAdminQueries'
 import { message } from 'antd'
 
 const { Title, Text } = Typography

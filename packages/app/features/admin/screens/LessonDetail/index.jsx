@@ -25,8 +25,8 @@ import { FeedbackInbox } from '@tokki/app/features/customer-service-management/s
 import { MembershipPackage } from 'app/features/revenue-management/screens/membership-package-screen.jsx'
 import { PaymentManagement } from 'app/features/revenue-management/screens/payment-management.jsx'
 import { RevenueReport } from 'app/features/revenue-management/screens/revenue-report-screen.jsx'
-import { SystemLog } from 'app/features/admin/screens/SystemLog'
-import { Settings } from 'app/features/admin/screens/Settings'
+import { SystemLog } from 'app/features/system/screens/system-log.jsx'
+import { Settings } from 'app/features/system/screens/setting-screen.jsx'
 
 const { Title, Text } = Typography
 
