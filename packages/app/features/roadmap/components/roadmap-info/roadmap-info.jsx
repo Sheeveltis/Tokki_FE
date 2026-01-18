@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import { Pressable, StyleSheet, Text, View, Modal, TouchableOpacity } from 'react-native'
-import { TOPIK_LEVELS, getLevelData, formatTime, getTotalTime } from '../api/api'
+import { TOPIK_LEVELS, getLevelData, formatTime, getTotalTime } from '../../api/roadmap-info'
 
 const LEVELS = TOPIK_LEVELS.map((l) => ({ value: l.level, label: l.label }))
 

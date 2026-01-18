@@ -18,9 +18,8 @@ import FlashcardStudyScreen from '@tokki/app/features/study/flashcard-study'
 import LearnScreen from '@tokki/app/features/study/flashcard-learn'
 
 import { STUDY_PAGE_TITLES, TOPIC_TITLES } from '@tokki/app/features/study/constants'
-import { RoadmapInfoScreen } from '@tokki/app/features/roadmap/roadmap-info/roadmap-info-screen'
-import { RoadmapTestLayout } from '@tokki/app/features/roadmap/roadmap-test/components/roadmap-test-layout.web'
-
+import { RoadmapInfoScreen } from '@tokki/app/features/roadmap/screens/roadmap-info-screen'
+import { RoadmapTestScreen } from '@tokki/app/features/roadmap/screens/roadmap-test-screen'
 const AlphabetDrawingScreen = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
 
 /**
@@ -296,7 +295,7 @@ function FlashcardFavoritesTestRoute() {
 function RoadmapTestRoute() {
   const { getIntQueryParam } = useRouteNavigation()
   const level = getIntQueryParam('level', 1)
-  return <RoadmapTestLayout level={level} />
+  return <RoadmapTestScreen level={level} />
 }
 
 function AlphabetLettersDrawingRoute() {

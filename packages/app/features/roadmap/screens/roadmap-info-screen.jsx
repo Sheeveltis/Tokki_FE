@@ -1,6 +1,6 @@
 import React from 'react'
 import { useRouter } from 'solito/navigation'
-import { RoadmapInfoLayout } from './components/roadmap-info-layout.web'
+import { RoadmapInfoLayout } from '../components/roadmap-info/roadmap-info-layout.web'
 
 export function RoadmapInfoScreen() {
   const router = useRouter()

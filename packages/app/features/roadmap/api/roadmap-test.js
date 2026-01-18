@@ -87,7 +87,7 @@ export const getTestQuestions = (level = 1) => {
   return mockQuestions[level] || mockQuestions[1]
 }
 
-import { getLevelData } from '../../roadmap-info/api/api'
+import { getLevelData } from './roadmap-info'
 
 // Get test configuration based on level
 export const getTestConfig = (level = 1) => {

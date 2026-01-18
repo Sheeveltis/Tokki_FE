@@ -3,7 +3,7 @@ import { StyleSheet, View, Image } from 'react-native'
 import { RoadmapTestQuestion } from './roadmap-test-question'
 import { RoadmapTestDashboard } from './roadmap-test-dashboard'
 import { RoadmapTestButton } from './roadmap-test-button'
-import { getTestQuestions, getTestConfig, formatTime } from '../api/api'
+import { getTestQuestions, getTestConfig, formatTime } from '../../api/roadmap-test'
 import CarrotImage from '../../../../../assets/carrot.png'
 import { NavigationPill } from '../../../../../components/navigation-pill'
 
