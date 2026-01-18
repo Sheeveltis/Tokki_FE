@@ -1,0 +1,337 @@
+'use client'
+
+import React, { useState, useEffect } from 'react'
+import { Card, Space, Typography, DatePicker, Select, Button, Row, Col, Statistic, Table } from 'antd'
+import { ButtonV2 } from '../../../../components/buttonV2.jsx'
+import { DownloadOutlined, FilePdfOutlined } from '@ant-design/icons'
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts'
+import { mockRevenueData, mockPackageRevenueData } from '../../admin/mockData.js'
+import { apiClient } from '../../../provider/api/client.js'
+import { ENDPOINTS } from '../../../provider/api/endpoints.js'
+
+const { Title, Text } = Typography
+const { RangePicker } = DatePicker
+const { Option } = Select
+
+const reportColumns = [
+  {
+    title: 'Tháng',
+    dataIndex: 'month',
+    key: 'month',
+  },
+  
+  {
+    title: 'Số gói đăng ký',
+    dataIndex: 'subscriptions',
+    key: 'subscriptions',
+  },
+  {
+    title: 'Doanh thu',
+    dataIndex: 'revenue',
+    key: 'revenue',
+    render: (revenue) => (
+      <Text strong style={{ color: '#F87218' }}>
+        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(revenue)}
+      </Text>
+    ),
+  },
+]
+
+export function RevenueReport() {
+  const [dateRange, setDateRange] = useState(null)
+  const [reportType, setReportType] = useState('monthly')
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
+  const [overview, setOverview] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    averageRevenue: 0,
+  })
+  const [packageRevenueData, setPackageRevenueData] = useState([])
+  const [revenueChartData, setRevenueChartData] = useState([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const fetchOverview = async () => {
+      try {
+        const response = await apiClient.get(ENDPOINTS.STATISTICS.OVERVIEW)
+        const data = response?.data?.data
+        if (data) {
+          setOverview({
+            totalRevenue: data.totalRevenue ?? 0,
+            totalOrders: data.totalOrders ?? 0,
+            averageRevenue: data.averageRevenue ?? 0,
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch revenue overview', error)
+      }
+    }
+
+    const fetchPackageRevenue = async () => {
+      try {
+        // Format date từ dateRange sang MM-DD-YYYY
+        let params = {}
+        if (dateRange && dateRange[0] && dateRange[1]) {
+          // Ant Design DatePicker trả về dayjs objects
+          // Sử dụng format method nếu có (dayjs object), hoặc format thủ công
+          const formatDate = (date) => {
+            // Nếu là dayjs object, sử dụng format method
+            if (date && typeof date.format === 'function') {
+              return date.format('MM-DD-YYYY')
+            }
+            // Fallback: format thủ công từ Date object
+            const d = new Date(date)
+            const month = String(d.getMonth() + 1).padStart(2, '0')
+            const day = String(d.getDate()).padStart(2, '0')
+            const year = d.getFullYear()
+            return `${month}-${day}-${year}`
+          }
+          
+          params = {
+            startDate: formatDate(dateRange[0]),
+            endDate: formatDate(dateRange[1]),
+          }
+        }
+        
+        const response = await apiClient.get(ENDPOINTS.STATISTICS.PACKAGES, { params })
+        console.log('Package Revenue API Response:', response?.data)
+        const data = response?.data?.data
+        if (data && Array.isArray(data)) {
+          console.log('Raw package data:', data)
+          // Map data từ API (packageName → package) để phù hợp với BarChart
+          // Filter bỏ các gói không mong muốn như "sample" hoặc "test"
+          const mappedData = data
+            .filter((item) => {
+              const packageName = item.packageName?.toLowerCase() || ''
+              return !packageName.includes('sample') && !packageName.includes('test')
+            })
+            .map((item) => ({
+              package: item.packageName,
+              revenue: item.revenue,
+              count: item.salesCount,
+            }))
+          console.log('Mapped package data:', mappedData)
+          setPackageRevenueData(mappedData)
+        } else {
+          // Nếu API trả về empty hoặc không hợp lệ, set về empty array
+          console.log('No valid data from API, setting empty array')
+          setPackageRevenueData([])
+        }
+      } catch (error) {
+        console.error('Failed to fetch package revenue', error)
+        // Không fallback về mock data, chỉ set về empty array
+        setPackageRevenueData([])
+      }
+    }
+
+    const fetchRevenueChart = async () => {
+      setLoading(true)
+      try {
+        const response = await apiClient.get(ENDPOINTS.STATISTICS.CHART(selectedYear))
+        const data = response?.data?.data
+        if (data && Array.isArray(data)) {
+          // Map data từ API để phù hợp với LineChart
+          const mappedData = data.map((item) => ({
+            month: item.month,
+            revenue: item.revenue,
+            subscriptions: item.totalOrders, // Map totalOrders thành subscriptions cho bảng
+          }))
+          setRevenueChartData(mappedData)
+        }
+      } catch (error) {
+        console.error('Failed to fetch revenue chart', error)
+        // Fallback về mock data nếu API lỗi
+        setRevenueChartData(mockRevenueData)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchOverview()
+    fetchPackageRevenue()
+    fetchRevenueChart()
+  }, [selectedYear, dateRange])
+
+  const chartData = revenueChartData.length > 0 ? revenueChartData : mockRevenueData
+  const totalRevenue =
+    overview.totalRevenue || chartData.reduce((sum, item) => sum + item.revenue, 0)
+  const totalSubscriptions =
+    overview.totalOrders || chartData.reduce((sum, item) => sum + (item.subscriptions || 0), 0)
+  const averageRevenue =
+    overview.averageRevenue ||
+    Math.round(totalRevenue / (chartData.length || 1))
+
+  const handleExport = () => {
+    // TODO: Implement export functionality
+    console.log('Exporting report...')
+  }
+
+  return (
+    <div style={{ padding: 24 }}>
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <Title level={3} style={{ marginBottom: 4 }}>
+              Báo cáo và Thống kê Doanh thu
+            </Title>
+            <Text type="secondary">Theo dõi hiệu quả kinh doanh và xuất báo cáo</Text>
+          </div>
+          <Space>
+            <Select
+              value={selectedYear}
+              onChange={setSelectedYear}
+              style={{ width: 120, fontSize: 14 }}
+              size="large"
+            >
+              {Array.from({ length: 5 }, (_, i) => {
+                const year = new Date().getFullYear() - i
+                return (
+                  <Option key={year} value={year}>
+                    {year}
+                  </Option>
+                )
+              })}
+            </Select>
+            <Select
+              value={reportType}
+              onChange={setReportType}
+              style={{ width: 140, fontSize: 14 }}
+              size="large"
+            >
+              <Option value="monthly">Theo tháng</Option>
+              <Option value="quarterly">Theo quý</Option>
+              <Option value="yearly">Theo năm</Option>
+            </Select>
+            <RangePicker size="middle" value={dateRange} onChange={setDateRange} style={{ fontSize: 14 }} />
+            <ButtonV2
+              title="Xuất báo cáo"
+              color="#F1BE4B"
+              onPress={handleExport}
+              style={{ minWidth: 140, paddingVertical: 10 }}
+              textStyle={{ fontSize: 14 }}
+            />
+          </Space>
+        </div>
+
+        {/* Thống kê tổng quan */}
+        <Row gutter={16}>
+          <Col span={8}>
+            <Card>
+              <Statistic
+                title="Tổng doanh thu"
+                value={totalRevenue}
+                precision={0}
+                valueStyle={{ color: '#F87218' }}
+                prefix="₫"
+                formatter={(value) => new Intl.NumberFormat('vi-VN').format(value)}
+              />
+            </Card>
+          </Col>
+          <Col span={8}>
+            <Card>
+              <Statistic
+                title="Tổng đăng ký"
+                value={totalSubscriptions}
+                valueStyle={{ color: '#3f8600' }}
+                suffix="gói"
+              />
+            </Card>
+          </Col>
+          <Col span={8}>
+            <Card>
+              <Statistic
+                title="Doanh thu trung bình"
+                value={averageRevenue}
+                precision={0}
+                valueStyle={{ color: '#1890ff' }}
+                prefix="₫"
+                formatter={(value) => new Intl.NumberFormat('vi-VN').format(value)}
+              />
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Biểu đồ doanh thu */}
+        <Card title={`Biểu đồ doanh thu theo tháng - Năm ${selectedYear}`} loading={loading}>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip
+                formatter={(value) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)}
+              />
+              <Legend />
+              <Line type="monotone" dataKey="revenue" stroke="#F87218" strokeWidth={2} name="Doanh thu" />
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
+
+        {/* Biểu đồ doanh thu theo gói */}
+        <Card title="Doanh thu theo gói thành viên">
+          {packageRevenueData && packageRevenueData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={packageRevenueData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="package" angle={-45} textAnchor="end" height={100} />
+                <YAxis />
+                <Tooltip
+                  formatter={(value, name, props) => {
+                    if (name === 'revenue') {
+                      const count = props.payload?.count || 0
+                      return [
+                        `${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)} (${count} gói)`,
+                        'Doanh thu',
+                      ]
+                    }
+                    return [value, name]
+                  }}
+                  labelFormatter={(label) => `Gói: ${label}`}
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    padding: '8px',
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="revenue" fill="#F87218" name="Doanh thu" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+              <Text type="secondary">
+                {dateRange ? 'Không có dữ liệu doanh thu theo gói trong khoảng thời gian đã chọn' : 'Vui lòng chọn khoảng thời gian để xem doanh thu theo gói'}
+              </Text>
+            </div>
+          )}
+        </Card>
+
+        {/* Bảng báo cáo chi tiết */}
+        <Card title="Báo cáo doanh thu cơ bản">
+          <Table
+            columns={reportColumns}
+            dataSource={chartData}
+            rowKey="month"
+            pagination={false}
+            loading={loading}
+          />
+        </Card>
+      </Space>
+    </div>
+  )
+}
+
+export default RevenueReport
+

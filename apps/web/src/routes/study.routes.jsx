@@ -5,12 +5,12 @@ import { createLazyRouteContainer } from './utils/route-container'
 
 import { StudyScreen } from '@tokki/app/features/study/screen'
 import { MenuStudy } from '@tokki/app/features/study/menu-study'
-import AlphabetSelectModeScreen from '@tokki/app/features/study/alphabet-select-mode'
-import AlphabetStudyScreen from '@tokki/app/features/study/alphabet-study'
-import AlphabetLearnScreen from '@tokki/app/features/study/alphabet-learn'
-import AlphabetTypingScreen from '@tokki/app/features/study/alphabet-typing'
-import AlphabetPronunciationScreen from '@tokki/app/features/study/alphabet-pronunciation'
-import { AlphabetTestScreen } from '@tokki/app/features/study/alphabet-test'
+import AlphabetSelectModeScreen from '@tokki/app/features/alphabet/screens/client/alphabet-select-mode-screen'
+import AlphabetStudyScreen from '@tokki/app/features/alphabet/screens/client/alphabet-study-screen'
+import AlphabetLearnScreen from '@tokki/app/features/alphabet/screens/client/alphabet-learn-screen'
+import AlphabetTypingScreen from '@tokki/app/features/alphabet/screens/client/alphabet-typing-screen'
+import AlphabetPronunciationScreen from '@tokki/app/features/alphabet/screens/client/alphabet-pronunciation-screen'
+import { AlphabetTestScreen } from '@tokki/app/features/alphabet/screens/client/alphabet-test-screen'
 import TestScreen from '@tokki/app/features/study/flashcard-test'
 
 import FlashcardListScreen from '@tokki/app/features/study/flashcard-list'
@@ -18,10 +18,9 @@ import FlashcardStudyScreen from '@tokki/app/features/study/flashcard-study'
 import LearnScreen from '@tokki/app/features/study/flashcard-learn'
 
 import { STUDY_PAGE_TITLES, TOPIC_TITLES } from '@tokki/app/features/study/constants'
-import { RoadmapInfoScreen } from '@tokki/app/features/roadmap/roadmap-info/roadmap-info-screen'
-import { RoadmapTestLayout } from '@tokki/app/features/roadmap/roadmap-test/components/roadmap-test-layout.web'
-
-const AlphabetDrawingScreen = lazy(() => import('@tokki/app/features/study/alphabet-drawing'))
+import { RoadmapInfoScreen } from '@tokki/app/features/roadmap/screens/roadmap-info-screen'
+import { RoadmapTestScreen } from '@tokki/app/features/roadmap/screens/roadmap-test-screen'
+const AlphabetDrawingScreen = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
 
 /**
  * Study Routes - Container Components
@@ -296,12 +295,12 @@ function FlashcardFavoritesTestRoute() {
 function RoadmapTestRoute() {
   const { getIntQueryParam } = useRouteNavigation()
   const level = getIntQueryParam('level', 1)
-  return <RoadmapTestLayout level={level} />
+  return <RoadmapTestScreen level={level} />
 }
 
 function AlphabetLettersDrawingRoute() {
   const { navigate } = useRouteNavigation()
-  const LazyComponent = lazy(() => import('@tokki/app/features/study/alphabet-drawing'))
+  const LazyComponent = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
   
   return (
     <Suspense fallback={<div>Đang tải màn vẽ chữ...</div>}>
@@ -312,7 +311,7 @@ function AlphabetLettersDrawingRoute() {
 
 function AlphabetSyllablesDrawingRoute() {
   const { navigate } = useRouteNavigation()
-  const LazyComponent = lazy(() => import('@tokki/app/features/study/alphabet-drawing'))
+  const LazyComponent = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
   
   return (
     <Suspense fallback={<div>Đang tải màn vẽ chữ...</div>}>

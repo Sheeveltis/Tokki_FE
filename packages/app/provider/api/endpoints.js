@@ -30,10 +30,11 @@ export const ENDPOINTS = {
       CREATE: '/Blog',                // POST: Tạo mới
       UPDATE: (id) => `/Blog/${id}`,    
       DELETE: (id) => `/Blog/admin/delete/${id}`,     
-      ADMIN_LIST: '/Blog/admin/get-all', // same endpoint, nhưng dùng kèm query pageNumber/pageSize
+      ADMIN_LIST: '/Blog', // same endpoint, nhưng dùng kèm query pageNumber/pageSize
       STAFF_SUBMIT_FOR_APPROVAL: (blogId) => `/Blog/staff/submit-for-approval/${blogId}`,
       MODERATOR_APPROVE: (blogId) => `/Blog/moderator/approve/${blogId}`,
       MODERATOR_REJECT:  '/Blog/moderator/reject',
+      INCREASE_VIEW_COUNT: (blogId) => `/Blog/increase-view/${blogId}`,
     },
     QUESTION_TYPE: {
       GET_ALL: '/QuestionType',
@@ -197,6 +198,7 @@ export const ENDPOINTS = {
       UPLOAD_OPTION_IMAGE: '/Cloudinary/image/option',
       UPLOAD_QUESTION_AUDIO: '/Cloudinary/audio/question',
       UPLOAD_OPTION_AUDIO: '/Cloudinary/audio/option',
+      UPLOAD_BLOG_IMAGE: '/Cloudinary/image/blog',  // POST: Upload ảnh blog lên Cloudinary
     },
     EXCEL: {
       ADD_VOCAB_TO_TOPIC: (topicId) => `/Excel/add-vocab?topicId=${topicId}`,  // POST: Import từ vựng từ Excel vào chủ đề

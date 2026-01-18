@@ -4,8 +4,8 @@ import React, { useState } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Card, Form, Input, Space, Typography, message } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { AdminLayout } from '../../components/admin-layout.web'
-import { createLesson } from '../../api'
+import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
+import { createLesson } from '../../../back-office/api/admin-index.js'
 
 const { Title } = Typography
 const { TextArea } = Input

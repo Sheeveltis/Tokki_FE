@@ -1,0 +1,44 @@
+// packages/app/features/authentication/screens/register-screen.native.jsx
+import React from 'react'
+import { StyleSheet } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+
+import { AuthLayout } from '../components/login/auth-layout'
+import { LoginHero } from '../components/login/login-hero'
+import { RegisterPanel } from '../components/register/register-form'
+import LoginHeroImage from '../../../../assets/background1.png'
+import LoginHeroImage2 from '../../../../assets/registerBackground.png'
+
+/**
+ * @param {{
+ *   onPressLogin?: () => void
+ * }} props
+ */
+export function RegisterScreen({ onPressLogin }) {
+  const navigation = useNavigation()
+  const handlePressLogin = () => {
+    if (onPressLogin) {
+      onPressLogin()
+      return
+    }
+    
+    try {
+      navigation.navigate('login')
+    } catch (error) {
+      console.error('Navigation error:', error)
+    }
+  }
+
+  return (
+    <AuthLayout
+      hero={<LoginHero backgroundSource={LoginHeroImage} overlaySource={LoginHeroImage2} />}
+      panel={
+        <RegisterPanel
+          onPressLogin={handlePressLogin}
+        />
+      }
+    />
+  )
+}
+
+const styles = StyleSheet.create({})
