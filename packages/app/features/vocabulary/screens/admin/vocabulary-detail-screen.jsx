@@ -7,12 +7,12 @@ import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
 import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web.jsx'
 import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
-import { updateVocabulary, fetchVocabularyDetail, uploadVocabularyImageToCloudinary, deleteVocabulary, addExampleToVocabulary, updateExample, deleteExample } from '../../api'
+import { updateVocabulary, fetchVocabularyDetail, uploadVocabularyImageToCloudinary, deleteVocabulary, addExampleToVocabulary, updateExample, deleteExample } from '../../api/index.js'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
-import VocabularyEditModal from '../../components/admin/vocabulary-detail/vocabulary-edit-modal'
-import VocabularyInfoCard from '../../components/admin/vocabulary-detail/vocabulary-info-card'
-import ExampleAddModal from '../../components/admin/vocabulary-detail/example-add-modal'
-import ExampleEditModal from '../../components/admin/vocabulary-detail/example-edit-modal'
+import VocabularyEditModal from '../../components/admin/vocabulary-detail/vocabulary-edit-modal.jsx'
+import VocabularyInfoCard from '../../components/admin/vocabulary-detail/vocabulary-info-card.jsx'
+import ExampleAddModal from '../../components/admin/vocabulary-detail/example-add-modal.jsx'
+import ExampleEditModal from '../../components/admin/vocabulary-detail/example-edit-modal.jsx'
 
 const { Title, Text } = Typography
 
@@ -518,5 +518,4 @@ export function VocabularyDetailScreen() {
 }
 
 export default VocabularyDetailScreen
-
 
