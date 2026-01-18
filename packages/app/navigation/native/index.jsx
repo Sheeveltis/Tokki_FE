@@ -3,22 +3,22 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { View, StyleSheet } from 'react-native'
 
-import { HomeScreen } from 'app/features/home/screen'
-import { DetailScreen } from 'app/features/user/screens/Detail'
-import { BlogDetailScreen } from 'app/features/blog/detail-blog'
-import { LoginScreen } from 'app/features/authentication/login-screen'
-import { RegisterScreen } from 'app/features/authentication/register-screen'
-import { ForgotPasswordScreen } from 'app/features/authentication/forgot-password/forgot-password-screen'
-import { PremiumScreen } from 'app/features/payment/premium-package/premium-screen'
+import { HomeScreen } from 'app/features/general/screens/homepage-screen'
+import { DetailScreen } from 'app/features/user/screens/mobile/user-detail-screen'
+import { BlogDetailScreen } from 'app/features/blog/screens/client/blog-detail-screen'
+import { LoginScreen } from 'app/features/authentication/screens/login-screen.native'
+import { RegisterScreen } from 'app/features/authentication/screens/register-screen.native'
+import { ForgotPasswordScreen } from 'app/features/authentication/screens/forgot-password-screen'
+import { PremiumScreen } from 'app/features/payment/screens/premium-screen'
 import { PackageScreen } from 'app/features/payment/payment-package/package-screen'
-import { PaymentScreen } from 'app/features/payment/payment-detail/payment-screen'
+import { PaymentScreen } from 'app/features/payment/screens/payment-screen'
 import { PaymentSuccessScreen } from 'app/features/payment/payment-success/payment-success-screen'
-import { PaymentFailedScreen } from 'app/features/payment/payment-failed/payment-failed-screen'
+import { PaymentFailedScreen } from 'app/features/payment/screens/payment-failed-screen'
 import { RoadmapInfoScreen } from 'app/features/roadmap/roadmap-info/roadmap-info-screen'
-import { RoadmapTestScreen } from 'app/features/roadmap/roadmap-test/roadmap-test-screen'
-import { ProfileScreen } from 'app/features/user/screens/Profile'
-import { MenuMobileScreenWrapper } from 'app/features/user/screens/menu-mobile'
-import { ErrorScreen } from 'app/features/error/error-screen'
+import { RoadmapTestScreen } from 'app/features/roadmap/screens/roadmap-test-screen'
+import { ProfileScreen } from 'app/features/user/screens/client/profile-screen'
+import { MenuMobileScreenWrapper } from 'app/features/user/screens/mobile'
+import { ErrorScreen } from 'app/features/general/screens/error-screen'
 import { FlashcardListScreen } from 'app/features/study/flashcard-list'
 import { LearnScreen } from 'app/features/study/flashcard-learn'
 import { FlashcardStudyScreen } from 'app/features/study/flashcard-study'
@@ -30,14 +30,14 @@ export function NativeNavigation() {
   return (
     <View style={styles.container}>
       <Stack.Navigator 
-      initialRouteName="flashcard-list"
+      initialRouteName="login"
       screenListeners={{
         state: (e) => {
           console.log('Navigation state changed:', e.data?.state)
         },
       }}
     >
-      {/* <Stack.Screen
+      <Stack.Screen
         name="login"
         component={LoginScreen}
         options={{
@@ -108,7 +108,7 @@ export function NativeNavigation() {
       <Stack.Screen
         name="error"
         component={ErrorScreen}
-      /> */}
+      /> 
       <Stack.Screen
         name="flashcard-list"
         component={FlashcardListScreen}

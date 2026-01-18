@@ -1,9 +1,9 @@
 // File test để kiểm tra layout nào đang được load
 import React from 'react'
 import { Platform, View, Text, StyleSheet } from 'react-native'
-import { AuthLayout as AuthLayoutWeb } from '@tokki/app/features/authentication/components/auth-layout.web'
-import { AuthLayout as AuthLayoutNative } from '@tokki/app/features/authentication/components/auth-layout.native'
-import { AuthLayout } from '@tokki/app/features/authentication/components/auth-layout'
+import { AuthLayout as AuthLayoutWeb } from '@tokki/app/features/authentication/components/login/auth-layout.web'
+import { AuthLayout as AuthLayoutNative } from '@tokki/app/features/authentication/components/login/auth-layout.native'
+import { AuthLayout } from '@tokki/app/features/authentication/components/login/auth-layout'
 
 export function TestLayout() {
   const platform = Platform.OS

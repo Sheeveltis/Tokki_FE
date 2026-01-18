@@ -1,18 +1,16 @@
-'use client'
-
 import React, { useMemo, useTransition, lazy, Suspense, useEffect, useState } from 'react'
 import { Spin } from 'antd'
 import { useRouter, useSearchParams } from 'solito/navigation'
 import { ModeratorLayout } from './components/moderator-layout.web'
-import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../provider/api/client'
-import { AdminLoginForm } from '../authentication/components/admin-login-form'
+import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../provider/api/client.js'
+import { AdminLoginForm } from '../authentication/components/admin-login/admin-login-form'
 
 // Lazy load các màn duyệt, tái sử dụng từ admin / vocabulary / blog
-const LazyBlogManagement = lazy(() => import('../blog/blog-management'))
-const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/VocabularyManagement'))
-const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/FlashcardTopicManagement'))
-const LazyExamTemplateManagement = lazy(() => import('../admin/screens/ExamTemplateManagement'))
-const LazyExamManagement = lazy(() => import('../admin/screens/ExamManagement'))
+const LazyBlogManagement = lazy(() => import('../blog/screens/admin/blog-management-screen'))
+const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/admin/vocabulary-management-screen'))
+const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/admin/vocab-topic-management-screen'))
+const LazyExamTemplateManagement = lazy(() => import('../examination-management/screens/admin/exam-template-management-screen'))
+const LazyExamManagement = lazy(() => import('../examination-management/screens/admin/exam-management-screen'))
 
 const LoadingFallback = () => <Spin />
 

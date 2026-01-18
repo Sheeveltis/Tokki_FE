@@ -10,8 +10,8 @@ import { FlipCard } from 'components/FlipCard'
 import { normalizeImageSource } from '../../../api'
 import { studyStyles } from '../../../styles'
 import { LoadingWithContainer } from '../../../../../../components/Loading'
-import { StudyActionButtons } from '../../../alphabet-learn/components'
-import { PaginationControls, InstructionsBox } from '../../../alphabet-typing/components'
+import { StudyActionButtons } from '../../../../alphabet/api/alphabet-learn-index'
+import { PaginationControls, InstructionsBox } from '../../../../alphabet/api/alphabet-typing-index'
 import { colors } from '../../../../../color'
 
 /**

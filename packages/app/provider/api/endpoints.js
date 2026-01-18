@@ -30,10 +30,11 @@ export const ENDPOINTS = {
       CREATE: '/Blog',                // POST: Tạo mới
       UPDATE: (id) => `/Blog/${id}`,    
       DELETE: (id) => `/Blog/admin/delete/${id}`,     
-      ADMIN_LIST: '/Blog/admin/get-all', // same endpoint, nhưng dùng kèm query pageNumber/pageSize
+      ADMIN_LIST: '/Blog', // same endpoint, nhưng dùng kèm query pageNumber/pageSize
       STAFF_SUBMIT_FOR_APPROVAL: (blogId) => `/Blog/staff/submit-for-approval/${blogId}`,
       MODERATOR_APPROVE: (blogId) => `/Blog/moderator/approve/${blogId}`,
       MODERATOR_REJECT:  '/Blog/moderator/reject',
+      INCREASE_VIEW_COUNT: (blogId) => `/Blog/increase-view/${blogId}`,
     },
     QUESTION_TYPE: {
       GET_ALL: '/QuestionType',
@@ -50,10 +51,14 @@ export const ENDPOINTS = {
     QUESTION_BANK: {
       GET_ALL: '/QuestionBanks',
       GET_BY_ID: (id) => `/QuestionBanks/${id}`,
+      GET_BY_QUESTION_TYPE: (questionTypeId) => `/QuestionBanks/question-type/${questionTypeId}`,
       CREATE: '/QuestionBanks',
       UPDATE: '/QuestionBanks/update',
       DELETE: (id) => `/QuestionBanks/${id}`,
       ACTIVATE: '/QuestionBanks/admin/activate',
+      SUBMIT_TO_APPROVAL: '/QuestionBanks/submit-to-approval',
+      APPROVE: '/QuestionBanks/approve',
+      REJECT: '/QuestionBanks/reject',
     },
     QUESTION_BANK_OPTION: {
       CREATE: (questionBankId) => `/QuestionBanks/${questionBankId}/options`,
@@ -193,6 +198,7 @@ export const ENDPOINTS = {
       UPLOAD_OPTION_IMAGE: '/Cloudinary/image/option',
       UPLOAD_QUESTION_AUDIO: '/Cloudinary/audio/question',
       UPLOAD_OPTION_AUDIO: '/Cloudinary/audio/option',
+      UPLOAD_BLOG_IMAGE: '/Cloudinary/image/blog',  // POST: Upload ảnh blog lên Cloudinary
     },
     EXCEL: {
       ADD_VOCAB_TO_TOPIC: (topicId) => `/Excel/add-vocab?topicId=${topicId}`,  // POST: Import từ vựng từ Excel vào chủ đề
@@ -208,6 +214,10 @@ export const ENDPOINTS = {
       CREATE: '/ExamTemplates',                        // POST: Tạo exam template mới
       UPDATE: (id) => `/ExamTemplates/${id}`,          // PUT: Cập nhật exam template
       DELETE: (id) => `/ExamTemplates/${id}`,         // DELETE: Xóa exam template
+      UPDATE_STATUS: (id) => `/ExamTemplates/${id}/status`, // PATCH: Cập nhật trạng thái exam template
+      APPROVE: (id) => `/ExamTemplates/${id}/approve`, // POST: Phê duyệt mẫu đề
+      SUBMIT: (id) => `/ExamTemplates/${id}/submit`,   // POST: Trình mẫu đề để phê duyệt
+      REJECT: (id) => `/ExamTemplates/${id}/reject`,   // POST: Từ chối mẫu đề
       TEMPLATE_PARTS: '/ExamTemplates/TemplateParts',  // POST: Thêm/cập nhật template parts
       UPDATE_TEMPLATE_PART: (templatePartId) => `/ExamTemplates/TemplateParts/${templatePartId}`,  // PUT: Cập nhật một template part (templatePartId trong URL)
       DUPLICATE: (id) => `/ExamTemplates/${id}/duplicate`,  // POST: Sao chép exam template

@@ -4,29 +4,29 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'solito/navigation'
 import { Card, Space, Typography, Descriptions, Spin, Alert, message } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
-import { StaffLayout } from 'app/features/staff/components/staff-layout.web'
+import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
+import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web.jsx'
 import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
 import {
   fetchUsers,
   fetchLessons,
   fetchArticles,
   fetchSystemLogs,
-} from 'app/features/admin/api'
+} from 'app/features/back-office/api/admin-index.js'
 import { fetchVocabularies, fetchFlashcardTopics } from 'app/features/vocabulary/api'
-import { UserManagement } from 'app/features/user/screens/UserManagement'
+import { UserManagement } from 'app/features/user/screens/admin/user-management-screen.jsx'
 import { LessonManagement } from 'app/features/admin/screens/LessonManagement'
-import { VocabularyManagement } from 'app/features/vocabulary/screens/VocabularyManagement'
-import { FlashcardTopicManagement } from 'app/features/vocabulary/screens/FlashcardTopicManagement'
-import { BlogManagement } from 'app/features/blog/blog-management'
-import { ChatSupport } from '../../../live-chat/chat-support'
-import { AutoEmail } from 'app/features/admin/screens/AutoEmail'
-import { FeedbackInbox } from 'app/features/admin/screens/FeedbackInbox'
-import { MembershipPackage } from 'app/features/admin/screens/MembershipPackage'
-import { PaymentManagement } from 'app/features/admin/screens/PaymentManagement'
-import { RevenueReport } from 'app/features/admin/screens/RevenueReport'
-import { SystemLog } from 'app/features/admin/screens/SystemLog'
-import { Settings } from 'app/features/admin/screens/Settings'
+import { VocabularyManagement } from '@tokki/app/features/vocabulary/screens/admin/vocabulary-management-screen'
+import { FlashcardTopicManagement } from 'app/features/vocabulary/screens/admin/vocab-topic-management-screen.jsx'
+import { BlogManagement } from 'app/features/blog/screens/admin/blog-management-screen'
+import { ChatSupportScreen } from '../../../customer-service-management/screens/chat-support-screen.jsx'
+import { AutoEmail } from 'app/features/customer-service-management/screens/auto-email-screen.jsx'
+import { FeedbackInbox } from '@tokki/app/features/customer-service-management/screens/feedback-inbox-screen'
+import { MembershipPackage } from 'app/features/revenue-management/screens/membership-package-screen.jsx'
+import { PaymentManagement } from 'app/features/revenue-management/screens/payment-management.jsx'
+import { RevenueReport } from 'app/features/revenue-management/screens/revenue-report-screen.jsx'
+import { SystemLog } from 'app/features/system/screens/system-log.jsx'
+import { Settings } from 'app/features/system/screens/setting-screen.jsx'
 
 const { Title, Text } = Typography
 
@@ -217,7 +217,7 @@ export function LessonDetailScreen() {
     'vocabulary-words': <VocabularyManagement initialData={initialData.vocab} />,
     'vocabulary-topics': <FlashcardTopicManagement initialData={initialData.vocabTopics} />,
     blog: <BlogManagement initialData={initialData.articles} />,
-    'chat-support': <ChatSupport initialData={initialData.users} />,
+    'chat-support': <ChatSupportScreen />,
     'auto-email': <AutoEmail />,
     'feedback-inbox': <FeedbackInbox />,
     'membership-package': <MembershipPackage />,

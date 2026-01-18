@@ -5,7 +5,7 @@ import { useRouter } from 'solito/navigation'
 import { Input, Space } from 'antd'
 import { EyeOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { useLessonsQuery } from '../../api/useAdminQueries'
+import { useLessonsQuery } from '../../../back-office/api/useAdminQueries.js'
 import ManagementTable from '../../../../../components/ManagementTable'
 import DetailDrawer from '../../../../../components/DetailDrawer'
 

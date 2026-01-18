@@ -1,22 +1,23 @@
 import React from 'react'
 import { Route } from 'react-router-dom'
 
-import { AdminScreen } from '@tokki/app/features/admin/screen'
+import { AdminScreen } from '@tokki/app/features/back-office/screens/admin-screen'
 import { CreateLessonScreen } from '@tokki/app/features/admin/screens/CreateLesson'
 import { LessonDetailScreen } from '@tokki/app/features/admin/screens/LessonDetail'
-import { CreateBlogScreen } from '@tokki/app/features/blog/admin-create-blog'
-import { BlogDetailScreen as AdminBlogDetailScreen } from '@tokki/app/features/admin/screens/BlogDetail'
-import { UserDetailScreen } from '@tokki/app/features/user/screens/UserDetail'
-import { CreateUserScreen } from '@tokki/app/features/user/screens/CreateUser'
-import { CreateAdminStaffScreen } from '@tokki/app/features/user/screens/CreateAdminStaff'
-import { CreateQuestionScreen } from '@tokki/app/features/admin/screens/CreateQuestion'
-import { QuestionTypeManagement } from '@tokki/app/features/admin/screens/QuestionType'
-import { QuestionTypeDetailScreen } from '@tokki/app/features/admin/screens/QuestionType/components/QuestionTypeDetail'
-import { PassageManagementScreen } from '@tokki/app/features/admin/screens/PassageManagement'
-import { ExamTemplateDetailScreen } from '@tokki/app/features/admin/screens/ExamTemplateManagement/ExamTemplateDetail'
-import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/FlashcardTopicDetail'
-import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/VocabularyDetail'
-import { CreateVocabularyScreen } from '@tokki/app/features/vocabulary/screens/CreateVocabulary'
+import { CreateBlogScreen } from '@tokki/app/features/blog/screens/admin/create-blog-screen'
+import { ViewBlogScreen } from '@tokki/app/features/blog/screens/admin/view-blog-screen'
+import { EditBlogScreen } from '@tokki/app/features/blog/screens/admin/edit-blog-screen'
+import { UserDetailScreen } from '@tokki/app/features/user/screens/admin/user-detail-screen'
+import { CreateUserScreen } from '@tokki/app/features/user/screens/admin/create-user-screen'
+import { CreateAdminStaffScreen } from '@tokki/app/features/user/screens/admin/create-admin-staff-screen'
+import { CreateQuestionScreen } from '@tokki/app/features/examination-management/screens/admin/create-question-screen'
+import { QuestionTypeManagement } from '@tokki/app/features/examination-management/screens/admin/question-type-management-screen'
+import { QuestionTypeDetailScreen } from '@tokki/app/features/examination-management/components/admin/question-type-management/QuestionTypeDetail'
+import { PassageManagementScreen } from '@tokki/app/features/examination-management/screens/admin/passage-management-screen'
+import { ExamTemplateDetailScreen } from '@tokki/app/features/examination-management/screens/admin/exam-template-detail-screen'
+import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocab-topic-detail-screen'
+import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocabulary-detail-screen'
+import { CreateVocabularyScreen } from '@tokki/app/features/vocabulary/screens/admin/create-vocabulary-screen'
 
 /**
  * Admin Routes - Container Components
@@ -39,7 +40,8 @@ export const adminRoutes = [
 
   // Admin - Blog Module
   { path: '/admin/blog/create', element: <CreateBlogScreen /> },
-  { path: '/admin/blog/:id', element: <AdminBlogDetailScreen /> },
+  { path: '/admin/blog/:id/edit', element: <EditBlogScreen /> },
+  { path: '/admin/blog/:id', element: <ViewBlogScreen /> },
 
   // Admin - Users Module
   { path: '/admin/users/create', element: <CreateUserScreen /> },

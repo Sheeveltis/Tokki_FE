@@ -7,7 +7,7 @@ import { renderStaffRoutes } from './staff.routes'
 import { renderModeratorRoutes } from './moderator.routes'
 import { renderPublicRoutes } from './public.routes'
 import { TestLayout } from '../test-layout'
-import { ErrorScreen } from '@tokki/app/features/error/error-screen'
+import { ErrorScreen } from 'app/features/general/screens/error-screen'
 
 /**
  * App Routes - Centralized Route Configuration
