@@ -60,8 +60,9 @@ export function StaffScreen() {
       try {
         const token = getAuthToken()
         
-        if (!token) {
-          // Chưa đăng nhập
+        // Kiểm tra token trước - bao gồm cả string 'null' và 'undefined'
+        if (!token || token === 'null' || token === 'undefined') {
+          // Chưa đăng nhập hoặc token không hợp lệ
           if (mounted) {
             setIsAuthorized(false)
             setChecking(false)
@@ -72,6 +73,7 @@ export function StaffScreen() {
         // Kiểm tra role - chỉ Staff mới được truy cập
         const role = getCurrentUserRole()
         
+        // Nếu không có role hoặc role không phải Staff
         if (!role || role !== allowedRole) {
           // Không có quyền - redirect về dashboard tương ứng với role
           if (mounted) {
@@ -99,6 +101,7 @@ export function StaffScreen() {
         }
       } catch (error) {
         console.error('Error checking auth:', error)
+        // Trong trường hợp lỗi, không authorize và hiển thị login form
         if (mounted) {
           setIsAuthorized(false)
           setChecking(false)
@@ -106,7 +109,13 @@ export function StaffScreen() {
       }
     }
 
-    checkAuth()
+    // Đảm bảo window đã sẵn sàng (cho web)
+    if (typeof window !== 'undefined') {
+      checkAuth()
+    } else {
+      // SSR hoặc mobile - chạy ngay
+      checkAuth()
+    }
     
     return () => {
       mounted = false

@@ -150,7 +150,8 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     const token = getAuthToken()
-    if (token) {
+    // Chỉ thêm token nếu token hợp lệ (không phải null, undefined, hoặc string 'null')
+    if (token && token !== 'null' && token !== 'undefined' && typeof token === 'string' && token.trim() !== '') {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
@@ -207,9 +208,25 @@ apiClient.interceptors.response.use(
     // Xử lý error chung ở đây
     console.error('API Error:', error.response?.data || error.message)
     
-    // Nếu token hết hạn (401 Unauthorized), tự động logout
+    // Nếu token hết hạn hoặc không hợp lệ (401 Unauthorized), tự động logout
     if (error.response?.status === 401) {
-      handleTokenExpired()
+      // Chỉ handle token expired nếu đang ở admin/staff/moderator route
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+      if (currentPath.startsWith('/admin') || currentPath.startsWith('/staff') || currentPath.startsWith('/moderator')) {
+        handleTokenExpired()
+      }
+    }
+    
+    // Nếu là 404 và đang ở admin/staff route, có thể là do token null
+    if (error.response?.status === 404) {
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+      const token = getAuthToken()
+      // Nếu không có token và đang ở admin/staff route, có thể cần redirect
+      if ((!token || token === 'null' || token === 'undefined') && 
+          (currentPath.startsWith('/admin') || currentPath.startsWith('/staff'))) {
+        // Không làm gì ở đây, để component tự xử lý
+        console.warn('404 error on admin/staff route with null token')
+      }
     }
     
     return Promise.reject(error)
