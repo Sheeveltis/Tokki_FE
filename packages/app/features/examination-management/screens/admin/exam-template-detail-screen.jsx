@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'solito/navigation'
 import { Card, Space, Typography, Spin, Alert, Descriptions, Tag, Modal, message, Button, Tooltip, Input } from 'antd'
-import { QuestionCircleOutlined } from '@ant-design/icons'
+import { QuestionCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
 import ExamTemplatePartsForm from '../../components/admin/exam-template-detail/ExamTemplatePartsForm.jsx'
 import EditExamTemplateModal from '../../components/admin/exam-template-detail/EditExamTemplateModal.jsx'
-import { fetchExamTemplate, updateExamTemplate, deleteExamTemplate, updateExamTemplateStatus, submitExamTemplate, approveExamTemplate, rejectExamTemplate } from '../../../back-office/api/admin-index.js'
+import ExamTemplateApprovalModal from '../../components/admin/exam-template-detail/exam-template-approval-modal.jsx'
+import ExamTemplateStatusChangeModal from '../../components/admin/exam-template-detail/exam-template-status-change-modal.jsx'
+import { fetchExamTemplate, updateExamTemplate, deleteExamTemplate, submitExamTemplate, approveExamTemplate, rejectExamTemplate, updateExamTemplateStatus } from '../../../back-office/api/admin-index.js'
 import { getCurrentUserRole } from '../../../../provider/api/client.js'
 
 const { Title, Text } = Typography
@@ -37,12 +39,13 @@ export function ExamTemplateDetailScreen() {
   const [deleting, setDeleting] = useState(false)
   const [guideModalOpen, setGuideModalOpen] = useState(false)
   const [guideSection, setGuideSection] = useState(null) // 'info' | 'parts'
-  const [updatingStatus, setUpdatingStatus] = useState(false)
   const [approvalModalOpen, setApprovalModalOpen] = useState(false)
   const [approvalLoading, setApprovalLoading] = useState(false)
   const [approvalMode, setApprovalMode] = useState('approve') // 'approve' | 'reject'
   const [rejectReason, setRejectReason] = useState('')
   const [submittingForApproval, setSubmittingForApproval] = useState(false)
+  const [statusChangeModalOpen, setStatusChangeModalOpen] = useState(false)
+  const [statusChangeLoading, setStatusChangeLoading] = useState(false)
 
   const currentRole = getCurrentUserRole()
   const isAdmin = currentRole === 'Admin'
@@ -174,90 +177,17 @@ export function ExamTemplateDetailScreen() {
     })
   }
 
-  const handleToggleStatus = async () => {
+  const handleOpenApprovalModal = (type) => {
     if (!examTemplate) return
 
-    const currentRole = getCurrentUserRole()
-    const isAdmin = currentRole === 'Admin'
-    const isStaff = currentRole === 'Staff'
-    const currentStatus = examTemplate.status ?? 0
-
-    // Staff: chỉ cho phép chuyển từ Từ chối (4) về Nháp (0)
-    if (isStaff) {
-      if (currentStatus !== 4) {
-        message.warning('Chỉ có thể chuyển về Nháp khi mẫu đề đang ở trạng thái Từ chối.')
-        return
-      }
-
-      Modal.confirm({
-        title: 'Xác nhận chuyển về Nháp',
-        content: 'Bạn có chắc chắn muốn chuyển mẫu đề này về trạng thái Nháp để chỉnh sửa lại?',
-        okText: 'Xác nhận',
-        cancelText: 'Hủy',
-        onOk: async () => {
-          try {
-            setUpdatingStatus(true)
-            const success = await updateExamTemplateStatus(examTemplateId, 0)
-
-            if (success) {
-              const data = await fetchExamTemplate(examTemplateId)
-              setExamTemplate(data)
-              message.success('Đã chuyển mẫu đề về trạng thái Nháp')
-            } else {
-              message.error('Cập nhật trạng thái mẫu đề thất bại')
-            }
-          } catch (err) {
-            message.error(err?.message || 'Cập nhật trạng thái mẫu đề thất bại')
-          } finally {
-            setUpdatingStatus(false)
-          }
-        },
-      })
+    if (examTemplate.status !== 3) {
+      message.warning('Chỉ có thể phê duyệt hoặc từ chối khi đề ở trạng thái Chờ phê duyệt.')
       return
     }
 
-    // Admin: chỉ cho phép toggle giữa Nháp (0) và Đã xuất bản (1)
-    if (isAdmin) {
-      if (currentStatus !== 0 && currentStatus !== 1) {
-        message.warning('Chỉ có thể thay đổi trạng thái khi đề đang là Nháp hoặc Đã xuất bản.')
-        return
-      }
-
-      const isDraft = currentStatus === 0
-      const targetStatus = isDraft ? 1 : 0
-
-      Modal.confirm({
-        title: 'Xác nhận thay đổi trạng thái',
-        content: isDraft
-          ? 'Bạn có chắc chắn muốn xuất bản mẫu đề này? Sau khi xuất bản, một số thông tin sẽ bị hạn chế chỉnh sửa.'
-          : 'Bạn có chắc chắn muốn chuyển mẫu đề này về trạng thái Nháp?',
-        okText: 'Xác nhận',
-        cancelText: 'Hủy',
-        onOk: async () => {
-          try {
-            setUpdatingStatus(true)
-            const success = await updateExamTemplateStatus(examTemplateId, targetStatus)
-
-            if (success) {
-              const data = await fetchExamTemplate(examTemplateId)
-              setExamTemplate(data)
-
-              message.success(
-                targetStatus === 1
-                  ? 'Đã xuất bản mẫu đề thành công'
-                  : 'Đã chuyển mẫu đề về trạng thái Nháp'
-              )
-            } else {
-              message.error('Cập nhật trạng thái mẫu đề thất bại')
-            }
-          } catch (err) {
-            message.error(err?.message || 'Cập nhật trạng thái mẫu đề thất bại')
-          } finally {
-            setUpdatingStatus(false)
-          }
-        },
-      })
-    }
+    setApprovalMode(type)
+    setRejectReason('')
+    setApprovalModalOpen(true)
   }
 
   const handleSubmitForApproval = async () => {
@@ -295,26 +225,13 @@ export function ExamTemplateDetailScreen() {
     })
   }
 
-  const openApprovalModal = () => {
-    if (!examTemplate) return
-
-    if (examTemplate.status !== 3) {
-      message.warning('Chỉ có thể phê duyệt hoặc từ chối khi đề ở trạng thái Chờ phê duyệt.')
-      return
-    }
-
-    setApprovalMode('approve')
-    setRejectReason('')
-    setApprovalModalOpen(true)
-  }
-
-  const handleApprovalSubmit = async () => {
+  const handleApprovalSubmit = async (values) => {
     if (!examTemplate) return
 
     try {
       setApprovalLoading(true)
 
-      if (approvalMode === 'approve') {
+      if (values.approvalType === 'approve') {
         const success = await approveExamTemplate(examTemplateId)
         if (success) {
           message.success('Đã phê duyệt mẫu đề thành công')
@@ -322,8 +239,9 @@ export function ExamTemplateDetailScreen() {
           message.error('Phê duyệt mẫu đề thất bại')
         }
       } else {
-        if (!rejectReason || !rejectReason.trim()) {
-          message.warning('Vui lòng nhập lý do từ chối')
+        const rejectReason = values.rejectionReason?.trim() || ''
+        if (!rejectReason || rejectReason.length < 10) {
+          message.warning('Lý do từ chối phải có ít nhất 10 ký tự')
           setApprovalLoading(false)
           return
         }
@@ -339,10 +257,39 @@ export function ExamTemplateDetailScreen() {
       const data = await fetchExamTemplate(examTemplateId)
       setExamTemplate(data)
       setApprovalModalOpen(false)
+      setApprovalMode('approve')
+      setRejectReason('')
     } catch (err) {
       message.error(err?.message || 'Thao tác phê duyệt / từ chối thất bại')
     } finally {
       setApprovalLoading(false)
+    }
+  }
+
+  const handleStatusChange = async (values) => {
+    if (!examTemplate) return
+
+    try {
+      setStatusChangeLoading(true)
+      const newStatus = values.status
+
+      // Sử dụng updateExamTemplateStatus để cập nhật status
+      const success = await updateExamTemplateStatus(examTemplateId, newStatus)
+
+      if (success) {
+        message.success(`Đã chuyển trạng thái sang "${getStatusInfo(newStatus).label}" thành công`)
+        
+        // Reload lại dữ liệu
+        const data = await fetchExamTemplate(examTemplateId)
+        setExamTemplate(data)
+        setStatusChangeModalOpen(false)
+      } else {
+        message.error('Chuyển trạng thái thất bại')
+      }
+    } catch (err) {
+      message.error(err?.message || 'Chuyển trạng thái thất bại')
+    } finally {
+      setStatusChangeLoading(false)
     }
   }
 
@@ -416,33 +363,14 @@ export function ExamTemplateDetailScreen() {
                   textStyle={{ fontSize: 14 }}
                 />
               )}
-              {/* Admin: nút phê duyệt / từ chối - chỉ hiển thị khi Chờ phê duyệt */}
-              {isAdmin && examTemplate.status === 3 && (
-                <ButtonV2
-                  title="Phê duyệt / Từ chối"
-                  color="#52c41a"
-                  onPress={openApprovalModal}
-                  disabled={approvalLoading}
-                  style={{ minWidth: 130, paddingVertical: 10 }}
-                  textStyle={{ fontSize: 14 }}
-                />
-              )}
-              {/* Admin: nút thay đổi trạng thái */}
+              {/* Admin: nút chuyển trạng thái */}
               {isAdmin && (
                 <ButtonV2
-                  title={
-                    examTemplate.status === 1
-                      ? 'Chuyển về Nháp'
-                      : examTemplate.status === 0
-                        ? 'Xuất bản'
-                        : getStatusInfo(examTemplate.status ?? 0).label
-                  }
+                  title="Chuyển trạng thái"
                   color="#1890ff"
-                  onPress={handleToggleStatus}
-                  disabled={
-                    updatingStatus || ![0, 1].includes(examTemplate.status ?? 0)
-                  }
-                  style={{ minWidth: 100, paddingVertical: 10 }}
+                  onPress={() => setStatusChangeModalOpen(true)}
+                  disabled={statusChangeLoading}
+                  style={{ minWidth: 140, paddingVertical: 10 }}
                   textStyle={{ fontSize: 14 }}
                 />
               )}
@@ -458,17 +386,6 @@ export function ExamTemplateDetailScreen() {
                 style={{ minWidth: 100, paddingVertical: 10 }}
                 textStyle={{ fontSize: 14 }}
               />
-              {/* Staff: nút chuyển về Nháp khi đang ở trạng thái Từ chối */}
-              {isStaff && examTemplate.status === 4 && (
-                <ButtonV2
-                  title="Chuyển về Nháp"
-                  color="#1890ff"
-                  onPress={handleToggleStatus}
-                  disabled={updatingStatus}
-                  style={{ minWidth: 120, paddingVertical: 10 }}
-                  textStyle={{ fontSize: 14 }}
-                />
-              )}
               {/* Chỉ cho phép xóa khi không phải trạng thái Đã xuất bản */}
               {examTemplate.status !== 1 && (
                 <ButtonV2
@@ -513,9 +430,77 @@ export function ExamTemplateDetailScreen() {
                 {examTemplate.description || '-'}
               </Descriptions.Item>
               <Descriptions.Item label="Trạng thái">
-                <Tag color={getStatusInfo(examTemplate.status ?? 0).color}>
-                  {getStatusInfo(examTemplate.status ?? 0).label}
-                </Tag>
+                <Space size="small" align="center">
+                  <Tag color={getStatusInfo(examTemplate.status ?? 0).color} style={{ fontSize: 12 }}>
+                    {getStatusInfo(examTemplate.status ?? 0).label}
+                  </Tag>
+                  {examTemplate.status === 3 && isAdmin && (
+                    <>
+                      <div
+                        onClick={(e) => {
+                          e?.stopPropagation?.()
+                          handleOpenApprovalModal('approve')
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: approvalLoading ? 'not-allowed' : 'pointer',
+                          padding: '2px 4px',
+                          borderRadius: 4,
+                          transition: 'all 0.2s ease',
+                          opacity: approvalLoading ? 0.5 : 1,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!approvalLoading) {
+                            e.currentTarget.style.backgroundColor = '#f6ffed'
+                            e.currentTarget.style.transform = 'scale(1.2)'
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!approvalLoading) {
+                            e.currentTarget.style.backgroundColor = 'transparent'
+                            e.currentTarget.style.transform = 'scale(1)'
+                          }
+                        }}
+                        title="Phê duyệt"
+                      >
+                        <CheckCircleOutlined style={{ fontSize: 16, color: '#52c41a', transition: 'color 0.2s ease' }} />
+                      </div>
+                      <div
+                        onClick={(e) => {
+                          e?.stopPropagation?.()
+                          handleOpenApprovalModal('reject')
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: approvalLoading ? 'not-allowed' : 'pointer',
+                          padding: '2px 4px',
+                          borderRadius: 4,
+                          transition: 'all 0.2s ease',
+                          opacity: approvalLoading ? 0.5 : 1,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!approvalLoading) {
+                            e.currentTarget.style.backgroundColor = '#fff1f0'
+                            e.currentTarget.style.transform = 'scale(1.2)'
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!approvalLoading) {
+                            e.currentTarget.style.backgroundColor = 'transparent'
+                            e.currentTarget.style.transform = 'scale(1)'
+                          }
+                        }}
+                        title="Từ chối"
+                      >
+                        <CloseCircleOutlined style={{ fontSize: 16, color: '#ff4d4f', transition: 'color 0.2s ease' }} />
+                      </div>
+                    </>
+                  )}
+                </Space>
               </Descriptions.Item>
               <Descriptions.Item label="Ngày tạo">
                 {formatDate(examTemplate.createdAt)}
@@ -569,63 +554,26 @@ export function ExamTemplateDetailScreen() {
         )}
 
         {/* Modal phê duyệt / từ chối */}
-        <Modal
-          title="Phê duyệt / Từ chối mẫu đề"
+        <ExamTemplateApprovalModal
           open={approvalModalOpen}
+          loading={approvalLoading}
+          initialApprovalType={approvalMode}
           onCancel={() => {
-            if (!approvalLoading) {
-              setApprovalModalOpen(false)
-            }
+            setApprovalModalOpen(false)
+            setApprovalMode('approve')
+            setRejectReason('')
           }}
-          footer={null}
-          confirmLoading={approvalLoading}
-        >
-          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-            <div>
-              <Text>Chọn hành động:</Text>
-              <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                <Button
-                  type={approvalMode === 'approve' ? 'primary' : 'default'}
-                  onClick={() => setApprovalMode('approve')}
-                  disabled={approvalLoading}
-                >
-                  Phê duyệt
-                </Button>
-                <Button
-                  type={approvalMode === 'reject' ? 'primary' : 'default'}
-                  danger
-                  onClick={() => setApprovalMode('reject')}
-                  disabled={approvalLoading}
-                >
-                  Từ chối
-                </Button>
-              </div>
-            </div>
+          onSubmit={handleApprovalSubmit}
+        />
 
-            {approvalMode === 'reject' && (
-              <div>
-                <Text>Lý do từ chối:</Text>
-                <Input.TextArea
-                  rows={4}
-                  placeholder="Nhập lý do từ chối..."
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                  disabled={approvalLoading}
-                  style={{ marginTop: 8 }}
-                />
-              </div>
-            )}
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-              <Button onClick={() => !approvalLoading && setApprovalModalOpen(false)} disabled={approvalLoading}>
-                Hủy
-              </Button>
-              <Button type="primary" loading={approvalLoading} onClick={handleApprovalSubmit}>
-                Xác nhận
-              </Button>
-            </div>
-          </Space>
-        </Modal>
+        {/* Modal chuyển trạng thái */}
+        <ExamTemplateStatusChangeModal
+          open={statusChangeModalOpen}
+          loading={statusChangeLoading}
+          currentStatus={examTemplate?.status ?? 0}
+          onCancel={() => setStatusChangeModalOpen(false)}
+          onSubmit={handleStatusChange}
+        />
 
         {/* Modal hướng dẫn */}
         <Modal

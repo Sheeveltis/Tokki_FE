@@ -124,9 +124,7 @@ export default function ExamTemplateDetailDrawer({ open, onClose, examTemplateId
               Quản lý các phần
             </Title>
             <ExamTemplatePartsForm 
-              examTemplateId={examTemplateId} 
-              initialParts={examTemplate.Parts || []} 
-              examTemplate={examTemplate}
+                examTemplate={examTemplate}
             />
           </div>
         </Space>

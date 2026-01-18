@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Input, Space, Select, message, Modal } from 'antd'
+import { Input, Space, Select, message, Modal, Tag } from 'antd'
 import { EyeOutlined, SearchOutlined, CopyOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import ManagementTable from '../../../../../components/ManagementTable.jsx'
@@ -26,6 +26,20 @@ const typeOptions = [
   { value: 2, label: 'TOPIK II' },
   { value: 3, label: 'Test đầu vào' },
 ]
+
+// Mapping trạng thái theo enum ExamTemplateStatus
+const statusMap = {
+  0: { label: 'Nháp', color: 'default' },
+  1: { label: 'Đã xuất bản', color: 'green' },
+  2: { label: 'Đã xóa', color: 'red' },
+  3: { label: 'Chờ phê duyệt', color: 'orange' },
+  4: { label: 'Từ chối', color: 'volcano' },
+}
+
+// Helper function để lấy thông tin trạng thái
+const getStatusInfo = (status) => {
+  return statusMap[status] || { label: `Trạng thái ${status}`, color: 'default' }
+}
 
 export function ExamTemplateManagement({ initialData = null, basePath = '/admin' }) {
   const router = useRouter()
@@ -92,6 +106,16 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
       key: 'description',
       ellipsis: true,
       render: (text, record) => text || record.Description || '-'
+    },
+    {
+      title: 'Trạng thái',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status, record) => {
+        const statusValue = status ?? record.Status ?? record.status ?? 0
+        const statusInfo = getStatusInfo(statusValue)
+        return <Tag color={statusInfo.color} style={{ fontSize: 12 }}>{statusInfo.label}</Tag>
+      }
     },
     {
       title: 'Thao tác',
