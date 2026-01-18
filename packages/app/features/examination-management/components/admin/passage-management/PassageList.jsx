@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useEffect, useMemo, useState } from 'react'
 import { Alert, Card, Input, Select, Space, Spin, Table, Tag, Typography, message, Popconfirm, Button, Image } from 'antd'
 import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'

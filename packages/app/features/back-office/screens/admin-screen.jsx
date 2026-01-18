@@ -20,11 +20,11 @@ const LazyRevenueReport = lazy(() => import('../../revenue-management/screens/re
 const LazySystemLog = lazy(() => import('../../system/screens/system-log'))
 const LazyAIStatisticsReport = lazy(() => import('../../system/screens/ai_statistics-report-screen'))
 const LazySettings = lazy(() => import('../../system/screens/setting-screen'))
-const LazyExamTemplateManagement = lazy(() => import('../../examination/screens/admin/exam-template-management-screen'))
-const LazyExamManagement = lazy(() => import('../../examination/screens/admin/exam-management-screen'))
+const LazyExamTemplateManagement = lazy(() => import('../../examination-management/screens/admin/exam-template-management-screen'))
+const LazyExamManagement = lazy(() => import('../../examination-management/screens/admin/exam-management-screen'))
 const LazyManualEmail = lazy(() => import('../../customer-service-management/screens/manual-email-screen'))
-const LazyQuestionTypeManagement = lazy(() => import('../../examination/screens/admin/question-type-management-screen'))
-const LazyPassageManagement = lazy(() => import('../../examination/screens/admin/passage-management-screen'))
+const LazyQuestionTypeManagement = lazy(() => import('../../examination-management/screens/admin/question-type-management-screen'))
+const LazyPassageManagement = lazy(() => import('../../examination-management/screens/admin/passage-management-screen'))
 
 const LoadingFallback = () => <Spin />
 

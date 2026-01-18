@@ -15,8 +15,8 @@ const LazyChatSupport = lazy(() => import('../../customer-service-management/scr
 const LazyAutoEmail = lazy(() => import('../../customer-service-management/screens/auto-email-screen'))
 const LazyFeedbackInbox = lazy(() => import('../../customer-service-management/screens/feedback-inbox-screen'))
 const LazySettings = lazy(() => import('../../user/screens/staff/setting-screen'))
-const LazyQuestionTypeManagement = lazy(() => import('../../examination/screens/admin/question-type-management-screen'))
-const LazyExamTemplateManagement = lazy(() => import('../../examination/screens/admin/exam-template-management-screen'))
+const LazyQuestionTypeManagement = lazy(() => import('../../examination-management/screens/admin/question-type-management-screen'))
+const LazyExamTemplateManagement = lazy(() => import('../../examination-management/screens/admin/exam-template-management-screen'))
 
 // Cache dữ liệu để khi quay lại từ trang chi tiết không phải load lại toàn bộ
 let cachedInitialData = null

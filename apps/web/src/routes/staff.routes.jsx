@@ -4,14 +4,14 @@ import { Route } from 'react-router-dom'
 import { StaffScreen } from '@tokki/app/features/back-office/screens/staff-screen'
 import { StaffUserDetailScreen } from '@tokki/app/features/user/screens/staff/user-detail-screen'
 import { LessonDetailScreen } from '@tokki/app/features/admin/screens/LessonDetail'
-import { ExamTemplateDetailScreen } from '@tokki/app/features/examination/screens/admin/exam-template-detail-screen'
-import { CreateQuestionScreen } from '@tokki/app/features/examination/screens/admin/create-question-screen'
+import { ExamTemplateDetailScreen } from '@tokki/app/features/examination-management/screens/admin/exam-template-detail-screen'
+import { CreateQuestionScreen } from '@tokki/app/features/examination-management/screens/admin/create-question-screen'
 import { ViewBlogScreen } from '@tokki/app/features/blog/screens/admin/view-blog-screen'
 import { EditBlogScreen } from '@tokki/app/features/blog/screens/admin/edit-blog-screen'
 import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocab-topic-detail-screen'
 import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocabulary-detail-screen'
-import { QuestionTypeDetailScreen } from '@tokki/app/features/examination/components/admin/question-type-management/QuestionTypeDetail'
-import { QuestionTypeManagement } from '@tokki/app/features/examination/screens/admin/question-type-management-screen'
+import { QuestionTypeDetailScreen } from '@tokki/app/features/examination-management/components/admin/question-type-management/QuestionTypeDetail'
+import { QuestionTypeManagement } from '@tokki/app/features/examination-management/screens/admin/question-type-management-screen'
 
 /**
  * Staff Routes - Container Components
