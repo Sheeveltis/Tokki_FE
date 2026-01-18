@@ -1,15 +1,16 @@
 'use client'
 
 import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react'
-import { Input, Space, Tag, Select } from 'antd'
-import { EyeOutlined, PlusOutlined, SearchOutlined, GlobalOutlined } from '@ant-design/icons'
+import { Input, Space, Tag, Select, Badge } from 'antd'
+import { EyeOutlined, PlusOutlined, SearchOutlined, GlobalOutlined, ClockCircleOutlined, ArrowLeftOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import { useRouter } from 'solito/navigation'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { searchFlashcardTopics, createFlashcardTopic } from '../../api/index.js'
+import { searchFlashcardTopics, createFlashcardTopic, approveTopic, rejectTopic } from '../../api/index.js'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import ManagementTable from '../../../../../components/ManagementTable.jsx'
 import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
 import FlashcardTopicCreateModal from '../../components/admin/vocab-topic-management/vocab-topic-create-modal.jsx'
+import TopicApprovalModal from '../../components/admin/vocab-topic-detail/topic-approval-modal.jsx'
 
 const { Option } = Select
 
@@ -53,6 +54,11 @@ export function FlashcardTopicManagement({ initialData = null }) {
     pageSize: 20,
     total: 0,
   })
+  const [pendingCount, setPendingCount] = useState(0)
+  const [approvalModalOpen, setApprovalModalOpen] = useState(false)
+  const [approvalLoading, setApprovalLoading] = useState(false)
+  const [topicIdForApproval, setTopicIdForApproval] = useState(null)
+  const [approvalType, setApprovalType] = useState('approve') // 'approve' hoặc 'reject'
   const searchTimeoutRef = useRef(null)
 
   const loadData = useCallback(
@@ -82,6 +88,21 @@ export function FlashcardTopicManagement({ initialData = null }) {
     []
   )
 
+  // Load số lượng items cần duyệt
+  const loadPendingCount = useCallback(async () => {
+    try {
+      const result = await searchFlashcardTopics({
+        pageNumber: 1,
+        pageSize: 1,
+        status: 3,
+      })
+      setPendingCount(result.totalCount || 0)
+    } catch (error) {
+      console.error('Error loading pending count:', error)
+      setPendingCount(0)
+    }
+  }, [])
+
   useEffect(() => {
     // Chỉ dùng initialData khi mount lần đầu và không có search/filter
     if (initialData && Array.isArray(initialData) && initialData.length > 0 && !searchTerm && level === null && status === 'all') {
@@ -94,6 +115,8 @@ export function FlashcardTopicManagement({ initialData = null }) {
       // Có search hoặc filter, load từ API
       loadData(1, pagination.pageSize, searchTerm, level, status)
     }
+    // Load số lượng pending khi component mount
+    loadPendingCount()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData])
 
@@ -123,6 +146,17 @@ export function FlashcardTopicManagement({ initialData = null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level, status])
 
+  // Cập nhật pending count khi load data với status = 3
+  useEffect(() => {
+    if (status === 3 && pagination.total > 0) {
+      setPendingCount(pagination.total)
+    } else if (status !== 3) {
+      // Refresh pending count khi không ở chế độ pending
+      loadPendingCount()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, pagination.total])
+
   const handleTableChange = (newPagination) => {
     loadData(newPagination.current, newPagination.pageSize, searchTerm, level, status)
   }
@@ -134,6 +168,11 @@ export function FlashcardTopicManagement({ initialData = null }) {
       
       // Thêm topic mới vào danh sách
       setData((prev) => [newTopic, ...prev])
+      
+      // Refresh pending count nếu topic mới có status = 3
+      if (newTopic?.status === 3) {
+        loadPendingCount()
+      }
       
       showAdminSuccess('Đã tạo chủ đề flashcard thành công')
       setCreateModalOpen(false)
@@ -152,6 +191,61 @@ export function FlashcardTopicManagement({ initialData = null }) {
     }
   }
 
+  const handleShowPendingApproval = () => {
+    setStatus(3)
+    setPagination((prev) => ({ ...prev, current: 1 }))
+  }
+
+  const handleBackToList = () => {
+    setStatus(defaultStatus)
+    setPagination((prev) => ({ ...prev, current: 1 }))
+  }
+
+  const handleOpenApprovalModal = (topicId, type, e) => {
+    e?.stopPropagation?.()
+    setTopicIdForApproval(topicId)
+    setApprovalType(type)
+    setApprovalModalOpen(true)
+  }
+
+  const handleApprovalSubmit = async (values) => {
+    if (!topicIdForApproval) return
+
+    setApprovalLoading(true)
+
+    try {
+      if (values.approvalType === 'approve') {
+        // Đồng ý phê duyệt
+        await approveTopic(topicIdForApproval)
+        showAdminSuccess('Phê duyệt chủ đề thành công')
+      } else {
+        // Từ chối phê duyệt
+        const rejectReason = values.rejectionReason?.trim() || ''
+        if (!rejectReason || rejectReason.length < 10) {
+          showAdminError('Lý do từ chối phải có ít nhất 10 ký tự')
+          setApprovalLoading(false)
+          return
+        }
+        await rejectTopic(topicIdForApproval, rejectReason)
+        showAdminSuccess('Từ chối phê duyệt chủ đề thành công')
+      }
+
+      // Reload lại danh sách sau khi phê duyệt
+      await loadData(pagination.current, pagination.pageSize, searchTerm, level, status)
+      
+      // Refresh pending count
+      await loadPendingCount()
+
+      setApprovalModalOpen(false)
+      setTopicIdForApproval(null)
+    } catch (err) {
+      const errorMessage = err?.message || err?.errors?.[0]?.description || 'Không thể phê duyệt chủ đề'
+      showAdminError(errorMessage, err?.statusCode)
+    } finally {
+      setApprovalLoading(false)
+    }
+  }
+
   // Tính toán portalPrefix một lần dựa trên currentPortal
   const portalPrefix = useMemo(() => {
     return currentPortal === 'staff' ? '/staff' : currentPortal === 'moderator' ? '/moderator' : '/admin'
@@ -166,9 +260,9 @@ export function FlashcardTopicManagement({ initialData = null }) {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      width: 140,
+      width: status === 3 && currentPortal === 'admin' ? 200 : 140,
       align: 'center',
-      render: (status) => {
+      render: (status, record) => {
         const statusMap = {
           0: { label: 'Bản nháp', color: 'default' },
           1: { label: 'Đang hoạt động', color: 'green' },
@@ -178,7 +272,64 @@ export function FlashcardTopicManagement({ initialData = null }) {
         }
         const statusInfo = statusMap[status]
         if (!statusInfo) return '-'
-        return <Tag color={statusInfo.color} style={{ fontSize: 12, padding: '2px 6px' }}>{statusInfo.label}</Tag>
+        
+        return (
+          <Space size="small" align="center">
+            <Tag color={statusInfo.color} style={{ fontSize: 12, padding: '2px 6px' }}>
+              {statusInfo.label}
+            </Tag>
+            {status === 3 && currentPortal === 'admin' && (
+              <>
+                <div
+                  onClick={(e) => handleOpenApprovalModal(record.id, 'approve', e)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    padding: '2px 4px',
+                    borderRadius: 4,
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#f6ffed'
+                    e.currentTarget.style.transform = 'scale(1.2)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                    e.currentTarget.style.transform = 'scale(1)'
+                  }}
+                  title="Phê duyệt"
+                >
+                  <CheckCircleOutlined style={{ fontSize: 16, color: '#52c41a', transition: 'color 0.2s ease' }} />
+                </div>
+                <div
+                  onClick={(e) => handleOpenApprovalModal(record.id, 'reject', e)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    padding: '2px 4px',
+                    borderRadius: 4,
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#fff1f0'
+                    e.currentTarget.style.transform = 'scale(1.2)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                    e.currentTarget.style.transform = 'scale(1)'
+                  }}
+                  title="Từ chối"
+                >
+                  <CloseCircleOutlined style={{ fontSize: 16, color: '#ff4d4f', transition: 'color 0.2s ease' }} />
+                </div>
+              </>
+            )}
+          </Space>
+        )
       },
     },
     {
@@ -245,7 +396,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
         )
       },
     },
-  ], [portalPrefix, router])
+  ], [portalPrefix, router, status, currentPortal])
 
   return (
     <>
@@ -285,16 +436,48 @@ export function FlashcardTopicManagement({ initialData = null }) {
             ))}
           </Select>
         </Space>
-        {currentPortal !== 'moderator' && (
-          <ButtonV2
-            title="Thêm chủ đề"
-            color="#F1BE4B"
-            onPress={() => setCreateModalOpen(true)}
-            style={{ minWidth: 140, paddingVertical: 10 }}
-            textStyle={{ fontSize: 14 }}
-            icon={<PlusOutlined />}
-          />
-        )}
+        <Space wrap>
+          {status === 3 ? (
+            <ButtonV2
+              title="Trở về danh sách"
+              color="#1890ff"
+              onPress={handleBackToList}
+              style={{ minWidth: 160, paddingVertical: 10 }}
+              textStyle={{ fontSize: 14 }}
+              icon={<ArrowLeftOutlined />}
+            />
+          ) : (
+            <Badge 
+              dot={pendingCount >= 1} 
+              offset={[-8, 8]}
+              styles={{
+                indicator: {
+                  border: 'none',
+                  boxShadow: 'none',
+                }
+              }}
+            >
+              <ButtonV2
+                title="Danh sách cần duyệt"
+                color="#1890ff"
+                onPress={handleShowPendingApproval}
+                style={{ minWidth: 160, paddingVertical: 10 }}
+                textStyle={{ fontSize: 14 }}
+                icon={<ClockCircleOutlined />}
+              />
+            </Badge>
+          )}
+          {currentPortal !== 'moderator' && (
+            <ButtonV2
+              title="Thêm chủ đề"
+              color="#F1BE4B"
+              onPress={() => setCreateModalOpen(true)}
+              style={{ minWidth: 140, paddingVertical: 10 }}
+              textStyle={{ fontSize: 14 }}
+              icon={<PlusOutlined />}
+            />
+          )}
+        </Space>
       </Space>
       <ManagementTable
         columns={columns}
@@ -322,6 +505,17 @@ export function FlashcardTopicManagement({ initialData = null }) {
         loading={createLoading}
         onCancel={() => setCreateModalOpen(false)}
         onSubmit={handleCreate}
+      />
+      <TopicApprovalModal
+        open={approvalModalOpen}
+        loading={approvalLoading}
+        initialApprovalType={approvalType}
+        onCancel={() => {
+          setApprovalModalOpen(false)
+          setTopicIdForApproval(null)
+          setApprovalType('approve')
+        }}
+        onSubmit={handleApprovalSubmit}
       />
     </>
   )

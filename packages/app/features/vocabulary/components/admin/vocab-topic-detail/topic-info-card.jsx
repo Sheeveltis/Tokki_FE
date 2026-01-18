@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Card, Descriptions, Tag, Image } from 'antd'
+import { Card, Descriptions, Tag, Image, Space } from 'antd'
+import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import { fetchUserDetail } from 'app/features/user/api/user-detail'
 
-export function TopicInfoCard({ topic }) {
+export function TopicInfoCard({ topic, isAdmin, onApprove, onReject, approvalLoading }) {
   if (!topic) return null
 
   // Format date
@@ -88,9 +89,77 @@ export function TopicInfoCard({ topic }) {
         <Descriptions.Item label="Mô tả">{topic.subtitle || topic._raw?.description || '-'}</Descriptions.Item>
         <Descriptions.Item label="Level">{topic.level ?? topic._raw?.level ?? '-'}</Descriptions.Item>
         <Descriptions.Item label="Trạng thái">
-          <Tag color={statusInfo.color} style={{ fontSize: 12 }}>
-            {statusInfo.label}
-          </Tag>
+          <Space size="small" align="center">
+            <Tag color={statusInfo.color} style={{ fontSize: 12 }}>
+              {statusInfo.label}
+            </Tag>
+            {topicStatus === 3 && isAdmin && (
+              <>
+                <div
+                  onClick={(e) => {
+                    e?.stopPropagation?.()
+                    onApprove?.()
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: approvalLoading ? 'not-allowed' : 'pointer',
+                    padding: '2px 4px',
+                    borderRadius: 4,
+                    transition: 'all 0.2s ease',
+                    opacity: approvalLoading ? 0.5 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!approvalLoading) {
+                      e.currentTarget.style.backgroundColor = '#f6ffed'
+                      e.currentTarget.style.transform = 'scale(1.2)'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!approvalLoading) {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                      e.currentTarget.style.transform = 'scale(1)'
+                    }
+                  }}
+                  title="Phê duyệt"
+                >
+                  <CheckCircleOutlined style={{ fontSize: 16, color: '#52c41a', transition: 'color 0.2s ease' }} />
+                </div>
+                <div
+                  onClick={(e) => {
+                    e?.stopPropagation?.()
+                    onReject?.()
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: approvalLoading ? 'not-allowed' : 'pointer',
+                    padding: '2px 4px',
+                    borderRadius: 4,
+                    transition: 'all 0.2s ease',
+                    opacity: approvalLoading ? 0.5 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!approvalLoading) {
+                      e.currentTarget.style.backgroundColor = '#fff1f0'
+                      e.currentTarget.style.transform = 'scale(1.2)'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!approvalLoading) {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                      e.currentTarget.style.transform = 'scale(1)'
+                    }
+                  }}
+                  title="Từ chối"
+                >
+                  <CloseCircleOutlined style={{ fontSize: 16, color: '#ff4d4f', transition: 'color 0.2s ease' }} />
+                </div>
+              </>
+            )}
+          </Space>
         </Descriptions.Item>
         <Descriptions.Item label="Ảnh minh họa">
           {(() => {
