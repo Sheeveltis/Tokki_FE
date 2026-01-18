@@ -1,8 +1,6 @@
-'use client'
-
 import React, { useState } from 'react'
 import { StyleSheet, View } from 'react-native'
-import { Navbar } from '../../../../components/navbar'
+import { Navbar } from '../../../../../components/navbar.jsx'
 import { LeaderboardDashboard } from './leaderboard-dashboard'
 import { Leaderboard } from './leaderboard'
 
