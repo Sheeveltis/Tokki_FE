@@ -1,6 +1,6 @@
 import { apiClient } from '../../../provider/api/client'
 import { ENDPOINTS } from '../../../provider/api/endpoints'
-import { handleApiError } from '../../admin/api'
+import { handleApiError } from '../../back-office/api/admin-index'
 
 /**
  * Tạo mới bộ câu hỏi (QuestionType)

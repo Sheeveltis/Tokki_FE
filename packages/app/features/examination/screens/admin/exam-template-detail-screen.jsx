@@ -5,10 +5,10 @@ import { useParams, useRouter } from 'solito/navigation'
 import { Card, Space, Typography, Spin, Alert, Descriptions, Tag, Modal, message, Button, Tooltip } from 'antd'
 import { QuestionCircleOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { AdminLayout } from '../../../admin/components/admin-layout.web.jsx'
+import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
 import ExamTemplatePartsForm from '../../components/admin/exam-template-detail/ExamTemplatePartsForm.jsx'
 import EditExamTemplateModal from '../../components/admin/exam-template-detail/EditExamTemplateModal.jsx'
-import { fetchExamTemplate, updateExamTemplate, deleteExamTemplate, updateExamTemplateStatus } from '../../../admin/api/index.js'
+import { fetchExamTemplate, updateExamTemplate, deleteExamTemplate, updateExamTemplateStatus } from '../../../back-office/api/admin-index.js'
 
 const { Title, Text } = Typography
 

@@ -5,7 +5,7 @@ import { useRouter } from 'solito/navigation'
 import { useParams } from 'react-router-dom'
 import { Typography, message } from 'antd'
 
-import { AdminLayout } from '../../../../admin/components/admin-layout.web.jsx'
+import { AdminLayout } from '../../../../back-office/components/admin/admin-layout.web.jsx'
 import { fetchQuestionBanksPaged } from '../../../api/question-bank-management.js'
 import { deleteQuestionType, fetchQuestionTypeById } from '../../../api/question-type-management.js'
 

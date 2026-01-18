@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Card, Form, Typography, message, Space } from 'antd'
-import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
+import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web'
 import { createBlog } from '../../api'
 import { BlogEditor } from '../../components/create-blog/blog-editor'
 import { BlogGeneralInfo } from '../../components/create-blog/blog-general-info'

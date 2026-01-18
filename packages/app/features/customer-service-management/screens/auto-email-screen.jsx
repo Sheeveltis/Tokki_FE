@@ -2,8 +2,8 @@
 
 import React from 'react'
 import { Space, Typography } from 'antd'
-import { SendEmailForm } from './components/SendEmailForm'
-import { EmailHistory } from './components/EmailHistory'
+import { SendEmailForm } from '../components/auto-email/send-email-form'
+import { EmailHistory } from '../components/auto-email/email-history'
 
 const { Title, Text } = Typography
 

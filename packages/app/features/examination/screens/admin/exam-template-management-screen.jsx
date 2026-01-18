@@ -8,8 +8,8 @@ import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import ManagementTable from '../../../../../components/ManagementTable.jsx'
 import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
 import CreateExamTemplateModal from '../../components/admin/create-exam-template/CreateExamTemplateModal.jsx'
-import { useExamTemplatesQuery } from '../../../admin/api/useAdminQueries.js'
-import { duplicateExamTemplate } from '../../../admin/api/index.js'
+import { useExamTemplatesQuery } from '../../../back-office/api/useAdminQueries.js'
+import { duplicateExamTemplate } from '../../../back-office/api/admin-index.js'
 
 // Options cho Status filter
 const statusOptions = [

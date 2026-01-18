@@ -6,11 +6,11 @@ import { Tag, Input, Space } from 'antd'
 import { EyeOutlined, SearchOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { statusUser } from '../../../../string.js'
-import { fetchRegularUsers } from '../../api'
-import ManagementTable from '../../../../../components/ManagementTable'
-import DetailDrawer from '../../../../../components/DetailDrawer'
+import { fetchRegularUsers } from '../../../back-office/api/staff-index.js'
+import ManagementTable from '../../../../../components/ManagementTable.jsx'
+import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
 import { message } from 'antd'
-import { handleApiError } from '../../api'
+import { handleApiError } from '../../../back-office/api/staff-index.js'
 
 /**
  * UserManagement cho Staff: chỉ hiển thị users thường, không có Admin/Staff

@@ -5,7 +5,7 @@ import { Alert, Card, Input, Select, Space, Spin, Table, Tag, Typography, messag
 import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
 
 import { fetchPassages, createPassage, updatePassage, deletePassage } from '../../../api/passage-management'
-import { uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary } from '../../../../admin/api/cloudinary'
+import { uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary } from '../../../../back-office/api/cloudinary.js'
 import CreatePassageModal from './CreatePassageModal'
 import UpdatePassageModal from './UpdatePassageModal'
 

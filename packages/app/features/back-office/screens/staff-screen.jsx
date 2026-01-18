@@ -3,22 +3,22 @@
 import React, { useEffect, useState, useMemo, useTransition, lazy, Suspense } from 'react'
 import { Spin } from 'antd'
 import { useRouter, useSearchParams } from 'solito/navigation'
-import { StaffLayout } from './components/staff-layout.web'
-import { fetchRegularUsers } from './api'
-import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../provider/api/client'
-import { AdminLoginForm } from '../authentication/components/admin-login/admin-login-form'
+import { StaffLayout } from '../components/staff/staff-layout.web'
+import { fetchRegularUsers } from '../api/staff-index'
+import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../../provider/api/client'
+import { AdminLoginForm } from '../../authentication/components/admin-login/admin-login-form'
 // Lazy load để giảm bundle + chỉ fetch khi cần tab
-const LazyUserManagement = lazy(() => import('../user/screens/admin/user-management-screen'))
-const LazyLessonManagement = lazy(() => import('../admin/screens/LessonManagement'))
-const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/admin/vocabulary-management-screen'))
-const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/admin/vocab-topic-management-screen'))
-const LazyBlogManagement = lazy(() => import('../blog/screens/admin/blog-management-screen'))
-const LazyChatSupport = lazy(() => import('../customer-service-management/screens/chat-support-screen'))
-const LazyAutoEmail = lazy(() => import('../admin/screens/AutoEmail'))
-const LazyFeedbackInbox = lazy(() => import('../customer-service-management/screens/feedback-inbox-screen'))
-const LazySettings = lazy(() => import('./screens/Settings'))
-const LazyQuestionTypeManagement = lazy(() => import('../examination/screens/admin/question-type-management-screen'))
-const LazyExamTemplateManagement = lazy(() => import('../examination/screens/admin/exam-template-management-screen'))
+const LazyUserManagement = lazy(() => import('../../user/screens/admin/user-management-screen'))
+const LazyLessonManagement = lazy(() => import('../../admin/screens/LessonManagement'))
+const LazyVocabularyManagement = lazy(() => import('../../vocabulary/screens/admin/vocabulary-management-screen'))
+const LazyFlashcardTopicManagement = lazy(() => import('../../vocabulary/screens/admin/vocab-topic-management-screen'))
+const LazyBlogManagement = lazy(() => import('../../blog/screens/admin/blog-management-screen'))
+const LazyChatSupport = lazy(() => import('../../customer-service-management/screens/chat-support-screen'))
+const LazyAutoEmail = lazy(() => import('../../customer-service-management/screens/auto-email-screen'))
+const LazyFeedbackInbox = lazy(() => import('../../customer-service-management/screens/feedback-inbox-screen'))
+const LazySettings = lazy(() => import('../../user/screens/staff/setting-screen'))
+const LazyQuestionTypeManagement = lazy(() => import('../../examination/screens/admin/question-type-management-screen'))
+const LazyExamTemplateManagement = lazy(() => import('../../examination/screens/admin/exam-template-management-screen'))
 
 // Cache dữ liệu để khi quay lại từ trang chi tiết không phải load lại toàn bộ
 let cachedInitialData = null

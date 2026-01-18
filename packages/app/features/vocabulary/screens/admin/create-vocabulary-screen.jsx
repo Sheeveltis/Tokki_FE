@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Card, Form, Typography, Modal } from 'antd'
-import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
+import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web'
 import { createVocabulary, uploadVocabularyImageToCloudinary } from '../../api'
 import { VocabularyFormFields } from '../../components/admin/create-vocabulary/vocabulary-form-fields'
 import { VocabularyFormActions } from '../../components/admin/create-vocabulary/vocabulary-form-actions'

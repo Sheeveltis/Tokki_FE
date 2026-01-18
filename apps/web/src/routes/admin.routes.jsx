@@ -1,7 +1,7 @@
 import React from 'react'
 import { Route } from 'react-router-dom'
 
-import { AdminScreen } from '@tokki/app/features/admin/screen'
+import { AdminScreen } from '@tokki/app/features/back-office/screens/admin-screen'
 import { CreateLessonScreen } from '@tokki/app/features/admin/screens/CreateLesson'
 import { LessonDetailScreen } from '@tokki/app/features/admin/screens/LessonDetail'
 import { CreateBlogScreen } from '@tokki/app/features/blog/screens/admin/create-blog-screen'

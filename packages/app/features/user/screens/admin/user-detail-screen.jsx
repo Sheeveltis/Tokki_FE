@@ -2,7 +2,7 @@
 
 import React, { useMemo, useTransition } from 'react'
 import { useParams, useRouter, useSearchParams } from 'solito/navigation'
-import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
+import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web'
 import AccountDetails from '../../components/admin/user-management/account-details'
 
 export function UserDetailScreen() {

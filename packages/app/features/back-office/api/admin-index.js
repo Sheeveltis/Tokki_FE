@@ -10,7 +10,7 @@ import {
   mockFeedbacks,
   mockMembershipPackages,
   mockAIStatistics,
-} from '../mockData.js'
+} from '../../admin/mockData.js'
 import { apiErrors } from '../../../string.js'
 
 const delay = (ms = 300) => new Promise((res) => setTimeout(res, ms))
@@ -352,8 +352,8 @@ export async function fetchAIStatistics() {
 }
 
 // Exam Template Management APIs
-import { apiClient } from '../../../provider/api/client'
-import { ENDPOINTS } from '../../../provider/api/endpoints'
+import { apiClient } from '../../../provider/api/client.js'
+import { ENDPOINTS } from '../../../provider/api/endpoints.js'
 
 export async function fetchExamTemplates(params = {}) {
   try {

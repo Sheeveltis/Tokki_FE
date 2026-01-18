@@ -5,7 +5,7 @@ import { useRouter } from 'solito/navigation'
 import { Card, Form, Input, Select, Space, Typography, message, DatePicker, Row, Col, Avatar, Descriptions } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { statusUser } from '../../../../string.js'
-import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
+import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
 import { createAdminStaff } from '../../api/create-admin-staff.js'
 import dayjs from 'dayjs'
 

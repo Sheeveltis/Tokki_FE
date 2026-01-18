@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react'
 import { Card, Form, Input, InputNumber, Select, Space, Typography, Divider } from 'antd'
-import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
-import { createEmailTemplate } from '../api/api'
+import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
+import { createEmailTemplate } from '../../api/auto-email.js'
 import { showAdminSuccess, showAdminError } from 'components/HelperAdmin'
 
 const { Text } = Typography

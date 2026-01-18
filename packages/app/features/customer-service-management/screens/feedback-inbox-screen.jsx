@@ -5,8 +5,8 @@ import { Card, List, Avatar, Tag, Space, Typography, Input, Select, Button } fro
 import { UserOutlined, MessageOutlined, SearchOutlined, FilterOutlined } from '@ant-design/icons'
 import { statusFeedback } from '../../../string.js'
 import { feedbackStatusColors, feedbackCategoryLabels } from '../../admin/mockData.js'
-import { updateFeedbackStatus } from '../../admin/api/index.js'
-import { useFeedbacksQuery } from '../../admin/api/useAdminQueries.js'
+import { updateFeedbackStatus } from '../../back-office/api/admin-index.js'
+import { useFeedbacksQuery } from '../../back-office/api/useAdminQueries.js'
 import { ButtonV2 } from '../../../../components/buttonV2.jsx'
 
 const { Title, Text } = Typography

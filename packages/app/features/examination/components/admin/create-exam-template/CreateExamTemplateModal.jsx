@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Modal, Form, Input, Select, message } from 'antd'
-import { createExamTemplate } from '../../../../admin/api'
+import { createExamTemplate } from '../../../../back-office/api/admin-index'
 
 const { TextArea } = Input
 

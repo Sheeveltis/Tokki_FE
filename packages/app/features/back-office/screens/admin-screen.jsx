@@ -3,30 +3,30 @@
 import React, { useMemo, useTransition, lazy, Suspense, useEffect, useState } from 'react'
 import { Spin } from 'antd'
 import { useRouter, useSearchParams } from 'solito/navigation'
-import { AdminLayout } from './components/admin-layout.web'
-import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../provider/api/client'
-import { AdminLoginForm } from '../authentication/components/admin-login/admin-login-form'
+import { AdminLayout } from '../components/admin/admin-layout.web'
+import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../../provider/api/client'
+import { AdminLoginForm } from '../../authentication/components/admin-login/admin-login-form'
 
 // Lazy load components với React.lazy (thay thế next/dynamic)
-const LazyUserManagement = lazy(() => import('../user/screens/admin/user-management-screen'))
-const LazyLessonManagement = lazy(() => import('./screens/LessonManagement'))
-const LazyVocabularyManagement = lazy(() => import('../vocabulary/screens/admin/vocabulary-management-screen'))
-const LazyFlashcardTopicManagement = lazy(() => import('../vocabulary/screens/admin/vocab-topic-management-screen'))
-const LazyBlogManagement = lazy(() => import('../blog/screens/admin/blog-management-screen'))
-const LazyChatSupport = lazy(() => import('../customer-service-management/screens/chat-support-screen'))
-const LazyAutoEmail = lazy(() => import('./screens/AutoEmail'))
-const LazyFeedbackInbox = lazy(() => import('../customer-service-management/screens/feedback-inbox-screen'))
-const LazyMembershipPackage = lazy(() => import('../revenue-management/screens/membership-package-screen'))
-const LazyPaymentManagement = lazy(() => import('../revenue-management/screens/payment-management'))
-const LazyRevenueReport = lazy(() => import('../revenue-management/screens/revenue-report-screen'))
-const LazySystemLog = lazy(() => import('./screens/SystemLog'))
-const LazyAIStatisticsReport = lazy(() => import('./screens/AIStatisticsReport'))
-const LazySettings = lazy(() => import('./screens/Settings'))
-const LazyExamTemplateManagement = lazy(() => import('../examination/screens/admin/exam-template-management-screen'))
-const LazyExamManagement = lazy(() => import('../examination/screens/admin/exam-management-screen'))
-const LazyManualEmail = lazy(() => import('../customer-service-management/screens/manual-email-screen'))
-const LazyQuestionTypeManagement = lazy(() => import('../examination/screens/admin/question-type-management-screen'))
-const LazyPassageManagement = lazy(() => import('../examination/screens/admin/passage-management-screen'))
+const LazyUserManagement = lazy(() => import('../../user/screens/admin/user-management-screen'))
+const LazyLessonManagement = lazy(() => import('../../admin/screens/LessonManagement'))
+const LazyVocabularyManagement = lazy(() => import('../../vocabulary/screens/admin/vocabulary-management-screen'))
+const LazyFlashcardTopicManagement = lazy(() => import('../../vocabulary/screens/admin/vocab-topic-management-screen'))
+const LazyBlogManagement = lazy(() => import('../../blog/screens/admin/blog-management-screen'))
+const LazyChatSupport = lazy(() => import('../../customer-service-management/screens/chat-support-screen'))
+const LazyAutoEmail = lazy(() => import('../../customer-service-management/screens/auto-email-screen'))
+const LazyFeedbackInbox = lazy(() => import('../../customer-service-management/screens/feedback-inbox-screen'))
+const LazyMembershipPackage = lazy(() => import('../../revenue-management/screens/membership-package-screen'))
+const LazyPaymentManagement = lazy(() => import('../../revenue-management/screens/payment-management'))
+const LazyRevenueReport = lazy(() => import('../../revenue-management/screens/revenue-report-screen'))
+const LazySystemLog = lazy(() => import('../../admin/screens/SystemLog'))
+const LazyAIStatisticsReport = lazy(() => import('../../admin/screens/AIStatisticsReport'))
+const LazySettings = lazy(() => import('../../admin/screens/Settings'))
+const LazyExamTemplateManagement = lazy(() => import('../../examination/screens/admin/exam-template-management-screen'))
+const LazyExamManagement = lazy(() => import('../../examination/screens/admin/exam-management-screen'))
+const LazyManualEmail = lazy(() => import('../../customer-service-management/screens/manual-email-screen'))
+const LazyQuestionTypeManagement = lazy(() => import('../../examination/screens/admin/question-type-management-screen'))
+const LazyPassageManagement = lazy(() => import('../../examination/screens/admin/passage-management-screen'))
 
 const LoadingFallback = () => <Spin />
 

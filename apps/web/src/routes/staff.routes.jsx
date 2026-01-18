@@ -1,8 +1,8 @@
 import React from 'react'
 import { Route } from 'react-router-dom'
 
-import { StaffScreen } from '@tokki/app/features/staff/screen'
-import { StaffUserDetailScreen } from '@tokki/app/features/staff/screens/UserDetail'
+import { StaffScreen } from '@tokki/app/features/back-office/screens/staff-screen'
+import { StaffUserDetailScreen } from '@tokki/app/features/user/screens/staff/user-detail-screen'
 import { LessonDetailScreen } from '@tokki/app/features/admin/screens/LessonDetail'
 import { ViewBlogScreen } from '@tokki/app/features/blog/screens/admin/view-blog-screen'
 import { EditBlogScreen } from '@tokki/app/features/blog/screens/admin/edit-blog-screen'

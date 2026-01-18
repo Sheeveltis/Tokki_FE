@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { Typography, Spin, message, Pagination } from 'antd'
 import { fetchPassageById, fetchPassages, fetchQuestionTypes, updateQuestionBank, activateQuestionBanks, deleteQuestionBank } from '../../../api/question-bank-management'
-import { uploadOptionImageToCloudinary, uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary } from '../../../../admin/api/cloudinary'
+import { uploadOptionImageToCloudinary, uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary } from '../../../../back-office/api/cloudinary'
 import { showAdminSuccess, showAdminError } from 'components/HelperAdmin'
 import { QuestionCard } from './QuestionCard'
 import { QuestionTypeSelectorModal } from './QuestionTypeSelectorModal'

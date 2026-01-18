@@ -5,8 +5,8 @@ import { useRouter } from 'solito/navigation'
 import { Card, Form, Input, Select, Space, Typography, message, Row, Col, Avatar, Descriptions } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { statusUser } from '../../../../string.js'
-import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
-import { createUser } from 'app/features/admin/api'
+import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
+import { createUser } from 'app/features/back-office/api/admin-index.js'
 
 const { Title, Text } = Typography
 

@@ -9,7 +9,7 @@ import {
   fetchPackages,
   fetchAIStatistics,
   fetchExamTemplates,
-} from './index'
+} from './admin-index'
 
 // Common options for admin data (reduce refetch noise, cache for 5 minutes)
 const commonOptions = {

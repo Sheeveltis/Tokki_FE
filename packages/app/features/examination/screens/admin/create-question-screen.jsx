@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { useRouter, useSearchParams } from 'solito/navigation'
 import { Card, Form, Space, Typography, message, Divider, Input } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { AdminLayout } from '../../../admin/components/admin-layout.web.jsx'
+import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
 import { createQuestion, activateQuestionBanks } from '../../api/create-question.js'
 import { QuestionForm } from '../../components/admin/create-question/question-form.jsx'
 import { AnswerForm } from '../../components/admin/create-question/answer-form.jsx'
@@ -59,7 +59,7 @@ export function CreateQuestionScreen() {
       }
 
       // Upload media (nếu user chọn file) chỉ khi bấm Tạo mới
-      const { uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary, uploadOptionImageToCloudinary } = await import('../../../admin/api/cloudinary.js')
+      const { uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary, uploadOptionImageToCloudinary } = await import('../../../back-office/api/cloudinary.js')
 
       let mediaUrl = values.mediaUrl || null
       if (values.mediaFile) {

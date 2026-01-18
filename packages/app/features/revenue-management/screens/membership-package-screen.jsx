@@ -4,8 +4,8 @@ import React, { useState } from 'react'
 import { Card, Table, Space, Typography, Tag, Button, Modal, Form, Input, InputNumber, message } from 'antd'
 import { ButtonV2 } from '../../../../components/buttonV2.jsx'
 import { statusPackage } from '../../../string.js'
-import { createPackage, updatePackage, deletePackage } from '../../admin/api/index.js'
-import { usePackagesQuery } from '../../admin/api/useAdminQueries.js'
+import { createPackage, updatePackage, deletePackage } from '../../back-office/api/admin-index.js'
+import { usePackagesQuery } from '../../back-office/api/useAdminQueries.js'
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 
 const { Title, Text } = Typography

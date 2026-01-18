@@ -1,7 +1,7 @@
 import { apiErrors } from '../../../string.js'
 import { apiClient } from '../../../provider/api/client'
 import { ENDPOINTS } from '../../../provider/api/endpoints'
-import { handleApiError } from '../../admin/api'
+import { handleApiError } from '../../back-office/api/admin-index.js'
 import { mockVocabularies, mockFlashcardTopics } from '../mockData'
 
 const delay = (ms = 300) => new Promise((res) => setTimeout(res, ms))

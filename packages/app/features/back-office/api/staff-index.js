@@ -1,7 +1,7 @@
 // Staff Panel API functions - reuse từ admin API
 // Staff có quyền hạn giới hạn hơn admin
 
-import { fetchLessons, fetchArticles, fetchFeedbacks, sendEmail, handleApiError as adminHandleApiError } from '../../admin/api'
+import { fetchLessons, fetchArticles, fetchFeedbacks, sendEmail, handleApiError as adminHandleApiError } from './admin-index'
 import { fetchUsers as fetchUsersApi } from '../../user/api/user-management'
 import { fetchVocabularies, fetchFlashcardTopics } from '../../vocabulary/api'
 

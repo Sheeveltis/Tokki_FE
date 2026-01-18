@@ -2,8 +2,8 @@
 
 import React, { useMemo, useTransition } from 'react'
 import { useParams, useRouter } from 'solito/navigation'
-import { StaffLayout } from '../../components/staff-layout.web'
-import AccountDetails from '../../../user/components/admin/user-management/account-details'
+import { StaffLayout } from '../../../back-office/components/staff/staff-layout.web'
+import AccountDetails from '../../components/admin/user-management/account-details'
 import { clearAuthToken } from '../../../../provider/api/client'
 
 /**

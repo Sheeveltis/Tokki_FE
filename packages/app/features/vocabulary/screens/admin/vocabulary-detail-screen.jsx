@@ -4,8 +4,8 @@ import React, { useEffect, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'solito/navigation'
 import { Space, Typography, Spin, Alert, Modal } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { AdminLayout } from 'app/features/admin/components/admin-layout.web'
-import { StaffLayout } from 'app/features/staff/components/staff-layout.web'
+import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
+import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web.jsx'
 import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
 import { updateVocabulary, fetchVocabularyDetail, uploadVocabularyImageToCloudinary, deleteVocabulary, addExampleToVocabulary, updateExample, deleteExample } from '../../api'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
@@ -518,4 +518,5 @@ export function VocabularyDetailScreen() {
 }
 
 export default VocabularyDetailScreen
+
 
