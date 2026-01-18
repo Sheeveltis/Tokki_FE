@@ -1,11 +1,9 @@
-'use client'
-
 import React, { useState, useEffect } from 'react'
 import { Card, Typography, message } from 'antd'
-import { submitQuestionBanksForApproval, approveQuestionBanks, rejectQuestionBanks } from '../../../../admin/screens/CreateQuestion/api/api'
-import { getCurrentUserRole } from '../../../../provider/api/client'
-import { QuestionFilter } from '../../../../admin/screens/QuestionBankManagement/components/QuestionFilter'
-import { QuestionCardList } from '../../../../admin/screens/QuestionBankManagement/components/QuestionCardList'
+import { submitQuestionBanksForApproval, approveQuestionBanks, rejectQuestionBanks } from '../../../api/create-question.js'
+import { getCurrentUserRole } from '../../../../../provider/api/client.js'
+import { QuestionFilter } from '../question-bank-management/QuestionFilter'
+import { QuestionCardList } from '../question-bank-management/QuestionCardList'
 
 const { Title } = Typography
 

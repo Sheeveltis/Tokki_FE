@@ -1,9 +1,7 @@
-'use client'
-
 import React from 'react'
 import { Space, Select, Input, Button } from 'antd'
 import { SearchOutlined, SendOutlined, CheckCircleOutlined } from '@ant-design/icons'
-import { getCurrentUserRole } from '../../../../../provider/api/client'
+import { getCurrentUserRole } from '../../../../../provider/api/client.js'
 
 /**
  * QuestionFilter Component

@@ -1,12 +1,10 @@
-'use client'
-
 import React from 'react'
 import { Card, Typography, Space, Button, Popconfirm, Tag, Checkbox, Input } from 'antd'
 import { EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, SendOutlined, CheckOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import { QuestionEditForm } from './QuestionEditForm'
 import { OptionsEditor } from './OptionsEditor'
 import { OptionsDisplay } from './OptionsDisplay'
-import { getCurrentUserRole } from '../../../../../provider/api/client'
+import { getCurrentUserRole } from '../../../../../provider/api/client.js'
 
 const { Text, Paragraph } = Typography
 

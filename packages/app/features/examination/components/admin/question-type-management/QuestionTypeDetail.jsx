@@ -1,14 +1,12 @@
-'use client'
-
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'solito/navigation'
 import { useParams } from 'react-router-dom'
 import { Typography, message } from 'antd'
 
-import { AdminLayout } from '../../../../admin/components/admin-layout.web.jsx'
-import StaffLayout from '../../../../staff/components/staff-layout.web.jsx'
-import { fetchQuestionBanksPaged } from '../../../../admin/screens/QuestionBankManagement/api/api'
-import { deleteQuestionType, fetchQuestionTypeById } from '../../../../admin/screens/QuestionTypeManagement/api/api'
+import { AdminLayout } from '../../../../back-office/components/admin/admin-layout.web.jsx'
+import StaffLayout from '../../../../back-office/components/staff/staff-layout.web.jsx'
+import { fetchQuestionBanksPaged } from '../../../api/question-bank-management.js'
+import { deleteQuestionType, fetchQuestionTypeById } from '../../../api/question-type-management.js'
 
 import QuestionTypeHeaderActions from './QuestionTypeHeaderActions'
 import QuestionTypeInfoCard from './QuestionTypeInfoCard'

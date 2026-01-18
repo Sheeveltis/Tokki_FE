@@ -1,31 +1,13 @@
-'use client'
-
 import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'solito/navigation'
 import { Card, Space, Typography, Spin, Alert, Descriptions, Tag, Modal, message, Button, Tooltip, Input } from 'antd'
 import { QuestionCircleOutlined } from '@ant-design/icons'
-<<<<<<< HEAD:packages/app/features/admin/screens/ExamTemplateManagement/ExamTemplateDetail/index.jsx
-import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
-import { AdminLayout } from '../../../components/admin-layout.web'
-import ExamTemplatePartsForm from './ExamTemplatePartsForm'
-import EditExamTemplateModal from './EditExamTemplateModal'
-import {
-  fetchExamTemplate,
-  updateExamTemplate,
-  deleteExamTemplate,
-  updateExamTemplateStatus,
-  submitExamTemplate,
-  approveExamTemplate,
-  rejectExamTemplate,
-} from '../../../api'
-import { getCurrentUserRole } from '../../../../../provider/api/client'
-=======
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
+import { AdminLayout } from '../../../../back-office/components/admin/admin-layout.web.jsx'
 import ExamTemplatePartsForm from '../../components/admin/exam-template-detail/ExamTemplatePartsForm.jsx'
 import EditExamTemplateModal from '../../components/admin/exam-template-detail/EditExamTemplateModal.jsx'
-import { fetchExamTemplate, updateExamTemplate, deleteExamTemplate, updateExamTemplateStatus } from '../../../back-office/api/admin-index.js'
->>>>>>> refactor/reorganization-packages-app-features:packages/app/features/examination/screens/admin/exam-template-detail-screen.jsx
+import { fetchExamTemplate, updateExamTemplate, deleteExamTemplate, updateExamTemplateStatus, submitExamTemplate, approveExamTemplate, rejectExamTemplate } from '../../../../back-office/api/admin-index.js'
+import { getCurrentUserRole } from '../../../../provider/api/client.js'
 
 const { Title, Text } = Typography
 

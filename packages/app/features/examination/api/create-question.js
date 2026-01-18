@@ -1,5 +1,5 @@
 import { apiClient } from '../../../provider/api/client'
-import { handleApiError } from '../../back-office/api/admin-index'
+import { handleApiError } from '../../back-office/api/admin-index.js'
 import { ENDPOINTS } from '../../../provider/api/endpoints'
 
 /**

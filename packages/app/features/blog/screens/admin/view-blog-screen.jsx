@@ -1,12 +1,10 @@
-'use client'
-
 import React, { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'solito/navigation'
 import { View, Text, StyleSheet, Image } from 'react-native'
 import { Button, Space, Tag, Popconfirm, message, Dropdown, Spin } from 'antd'
 import { EditOutlined, ArrowLeftOutlined, DeleteOutlined, MoreOutlined } from '@ant-design/icons'
 import { getBlogById, deleteBlog, updateBlog } from '../../api'
-import { getCurrentUserId, getCurrentUserRole } from '../../../../provider/api/client'
+import { getCurrentUserId, getCurrentUserRole } from '../../../../provider/api/client.js'
 import { BlogComments } from '../../components/blog-detail/blog-comments'
 import { HtmlViewer } from '../../components/blog-detail/html-viewer'
 import { BlogTags } from '../../components/blog-detail/blog-tags'

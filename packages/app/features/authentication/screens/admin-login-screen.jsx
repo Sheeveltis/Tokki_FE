@@ -1,11 +1,9 @@
-'use client'
-
 import React, { useEffect, useState } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { Spin } from 'antd'
 import { AdminLoginForm } from '../components/admin-login/admin-login-form'
-import { getAuthToken, getCurrentUserRole } from '../../../provider/api/client'
+import { getAuthToken, getCurrentUserRole } from '../../../provider/api/client.js'
 
 /**
  * AdminLoginScreen: Wrapper để kiểm tra authentication và role

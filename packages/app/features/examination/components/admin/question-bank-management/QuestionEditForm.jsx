@@ -1,10 +1,8 @@
-'use client'
-
 import React from 'react'
 import { Typography, Input, Select, Upload, Button, Space, message } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import { createObjectUrl, isAudioUrl } from '../../../api/upload-utils'
-import { getCurrentUserRole } from '../../../../provider/api/client'
+import { getCurrentUserRole } from '../../../../../provider/api/client.js'
 
 const { Text, Paragraph } = Typography
 const { TextArea } = Input

@@ -1,10 +1,8 @@
-'use client'
-
 import React, { useMemo, useTransition, lazy, Suspense, useEffect, useState } from 'react'
 import { Spin } from 'antd'
 import { useRouter, useSearchParams } from 'solito/navigation'
 import { AdminLayout } from '../components/admin/admin-layout.web'
-import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../../provider/api/client'
+import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../../provider/api/client.js'
 import { AdminLoginForm } from '../../authentication/components/admin-login/admin-login-form'
 
 // Lazy load components với React.lazy (thay thế next/dynamic)

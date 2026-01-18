@@ -1,13 +1,9 @@
-'use client'
-
 import React, { useState, useEffect, useMemo } from 'react'
 import { Form, Input, Select, Space, Typography, Upload, message, Switch } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
-import { fetchPassages, fetchQuestionTypeById } from '../api/api'
-import { isAudioUrl, createObjectUrl } from './upload-utils'
-import { getCurrentUserRole } from '../../../../provider/api/client'
-import { fetchPassages } from '../../../api/create-question'
-import { isAudioUrl, createObjectUrl } from '../../../api/upload-utils'
+import { fetchPassages, fetchQuestionTypeById } from '../../../api/create-question.js'
+import { isAudioUrl, createObjectUrl } from '../../../api/upload-utils.js'
+import { getCurrentUserRole } from '../../../../../provider/api/client.js'
 
 const { Title } = Typography
 const { TextArea } = Input

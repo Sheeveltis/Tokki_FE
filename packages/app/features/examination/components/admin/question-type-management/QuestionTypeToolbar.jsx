@@ -1,10 +1,8 @@
-'use client'
-
 import React from 'react'
 import { Input, Space, Select } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
-import { getCurrentUserRole } from '../../../../../provider/api/client'
+import { getCurrentUserRole } from '../../../../../provider/api/client.js'
 
 const { Option } = Select
 

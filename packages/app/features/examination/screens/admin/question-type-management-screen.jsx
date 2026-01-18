@@ -1,14 +1,12 @@
-'use client'
-
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Alert, Modal, Form, message } from 'antd'
-import DetailDrawer from '../../../../../components/DetailDrawer'
+import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
 import QuestionTypeToolbar from '../../components/admin/question-type-management/QuestionTypeToolbar'
 import QuestionTypeTable from '../../components/admin/question-type-management/QuestionTypeTable'
-import { fetchQuestionTypes } from '../../api/question-type-management'
+import { fetchQuestionTypes } from '../../api/question-type-management.js'
 import { QuestionTypeForm } from '../../components/admin/create-question-type/QuestionTypeForm.jsx'
-import { createQuestionType } from '../../api/create-question-type'
+import { createQuestionType } from '../../api/create-question-type.js'
 
 export function QuestionTypeManagement({ basePath = '/admin' }) {
   const router = useRouter()
@@ -36,7 +34,6 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
         setLoading(true)
         setError('')
 
-        // Nếu keyword rỗng => không gửi (để backend hiểu là lấy tất cả)
         const params = {
           ...(filters.keyword?.trim() ? { keyword: filters.keyword.trim() } : {}),
           ...(filters.skill ? { skill: filters.skill } : {}),

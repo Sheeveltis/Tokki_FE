@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useState, useCallback, useEffect } from 'react'
 import { Modal, Form, Input, Select, message } from 'antd'
 // TODO: Thay thế bằng API thực tế khi có

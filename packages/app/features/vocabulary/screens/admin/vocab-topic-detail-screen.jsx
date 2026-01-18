@@ -23,7 +23,7 @@ import {
   rejectTopic,
 } from '../../api'
 import { HelperAdmin, showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
-import { getCurrentUserRole } from '../../../../provider/api/client'
+import { getCurrentUserRole } from '../../../../provider/api/client.js'
 import TopicInfoCard from '../../components/admin/vocab-topic-detail/topic-info-card'
 import TopicVocabSection from '../../components/admin/vocab-topic-detail/topic-vocab-section'
 import FlashcardTopicEditModal from '../../components/admin/vocab-topic-detail/vocab-topic-edit-modal.jsx'

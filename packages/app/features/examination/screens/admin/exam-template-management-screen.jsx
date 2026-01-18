@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useState, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Input, Space, Select, message, Modal } from 'antd'

@@ -1,9 +1,7 @@
-'use client'
-
 import React, { useState, useEffect } from 'react'
 import { Card, Divider, Space, Tag, Typography, Input, Select, Button, Form, Descriptions } from 'antd'
 import { updateQuestionType } from '../../../api/question-type-management'
-import { showAdminSuccess, showAdminError } from 'components/HelperAdmin'
+import { showAdminSuccess, showAdminError } from '../../../../../../components/HelperAdmin.jsx'
 
 const { Title, Text, Paragraph } = Typography
 const { TextArea } = Input

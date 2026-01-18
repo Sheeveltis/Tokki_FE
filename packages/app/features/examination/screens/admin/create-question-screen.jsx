@@ -1,14 +1,12 @@
-'use client'
-
 import React, { useState } from 'react'
 import { useRouter, useSearchParams } from 'solito/navigation'
 import { Card, Form, Space, Typography, message, Divider, Input } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { AdminLayout } from '../../../../admin/components/admin-layout.web.jsx'
-import StaffLayout from '../../../staff/components/staff-layout.web.jsx'
-import { createQuestion, activateQuestionBanks, submitQuestionBanksForApproval } from '../../../../admin/screens/CreateQuestion/api/api'
-import { QuestionForm } from '../../../../admin/screens/CreateQuestion/components/QuestionForm.jsx'
-import { AnswerForm } from '../../../../admin/screens/CreateQuestion/components/AnswerForm.jsx'
+import { AdminLayout } from '../../../../back-office/components/admin/admin-layout.web.jsx'
+import StaffLayout from '../../../../back-office/components/staff/staff-layout.web.jsx'
+import { createQuestion, activateQuestionBanks, submitQuestionBanksForApproval } from '../../api/create-question.js'
+import { QuestionForm } from '../../components/admin/create-question/question-form.jsx'
+import { AnswerForm } from '../../components/admin/create-question/answer-form.jsx'
 
 const { Title } = Typography
 
@@ -67,7 +65,7 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
       }
 
       // Upload media (nếu user chọn file) chỉ khi bấm Tạo mới
-      const { uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary, uploadOptionImageToCloudinary } = await import('../../../../admin/screens/CreateQuestion/api/cloudinary.js')
+      const { uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary, uploadOptionImageToCloudinary } = await import('../../../back-office/api/cloudinary.js')
 
       let mediaUrl = values.mediaUrl || null
       if (values.mediaFile) {

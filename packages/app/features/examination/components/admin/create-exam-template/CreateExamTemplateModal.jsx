@@ -1,9 +1,7 @@
-'use client'
-
 import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Modal, Form, Input, Select, message } from 'antd'
-import { createExamTemplate } from '../../../../back-office/api/admin-index'
+import { createExamTemplate } from '../../../../back-office/api/admin-index.js'
 
 const { TextArea } = Input
 

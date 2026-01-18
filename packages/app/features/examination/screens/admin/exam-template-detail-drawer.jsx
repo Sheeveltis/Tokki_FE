@@ -1,9 +1,7 @@
-'use client'
-
 import React, { useState, useEffect } from 'react'
 import { Drawer, Descriptions, Tag, Spin, Alert, Space, Typography} from 'antd'
-import ExamTemplatePartsForm from '../../components/admin/exam-template-detail/ExamTemplatePartsForm'
-import { fetchExamTemplate } from '../../../api'
+import ExamTemplatePartsForm from '../../components/admin/exam-template-detail/ExamTemplatePartsForm.jsx'
+import { fetchExamTemplate } from '../../../../back-office/api/admin-index.js'
 
 const { Title, Text } = Typography
 

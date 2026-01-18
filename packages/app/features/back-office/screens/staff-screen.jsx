@@ -1,11 +1,9 @@
-'use client'
-
 import React, { useEffect, useState, useMemo, useTransition, lazy, Suspense } from 'react'
 import { Spin } from 'antd'
 import { useRouter, useSearchParams } from 'solito/navigation'
 import { StaffLayout } from '../components/staff/staff-layout.web'
 import { fetchRegularUsers } from '../api/staff-index'
-import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../../provider/api/client'
+import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../../provider/api/client.js'
 import { AdminLoginForm } from '../../authentication/components/admin-login/admin-login-form'
 // Lazy load để giảm bundle + chỉ fetch khi cần tab
 const LazyUserManagement = lazy(() => import('../../user/screens/admin/user-management-screen'))

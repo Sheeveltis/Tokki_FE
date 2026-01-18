@@ -1,12 +1,10 @@
-'use client'
-
 import React, { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'solito/navigation'
 import { Card, Form, Typography, message, Space, Spin } from 'antd'
 import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web'
 import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web'
 import { getBlogById, updateBlog } from '../../api'
-import { getCurrentUserId, getCurrentUserRole } from '../../../../provider/api/client'
+import { getCurrentUserId, getCurrentUserRole } from '../../../../provider/api/client.js'
 import { BlogEditor } from '../../components/create-blog/blog-editor'
 import { BlogGeneralInfo } from '../../components/create-blog/blog-general-info'
 import { BlogMetaInfo } from '../../components/create-blog/blog-meta-info'

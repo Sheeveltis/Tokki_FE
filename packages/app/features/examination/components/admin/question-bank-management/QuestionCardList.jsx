@@ -1,11 +1,9 @@
-'use client'
-
 import React, { useEffect, useState } from 'react'
 import { Typography, Spin, message, Pagination } from 'antd'
-import { fetchPassageById, fetchPassages, fetchQuestionTypes, updateQuestionBank, activateQuestionBanks, deleteQuestionBank } from '../api/api'
-import { submitQuestionBanksForApproval } from '../../CreateQuestion/api/api'
-import { uploadOptionImageToCloudinary, uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary } from '../../../api/cloudinary'
-import { showAdminSuccess, showAdminError } from '../../../../admin/screens/HelperAdmin/components/HelperAdmin.jsx'
+import { fetchPassageById, fetchPassages, fetchQuestionTypes, updateQuestionBank, activateQuestionBanks, deleteQuestionBank } from '../../../api/question-bank-management.js'
+import { submitQuestionBanksForApproval } from '../../../api/create-question.js'
+import { uploadOptionImageToCloudinary, uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary } from '../../../../back-office/api/cloudinary.js'
+import { showAdminSuccess, showAdminError } from '../../../../../../components/HelperAdmin.jsx'
 import { QuestionCard } from './QuestionCard'
 import { QuestionTypeSelectorModal } from './QuestionTypeSelectorModal'
 
