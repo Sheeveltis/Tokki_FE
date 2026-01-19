@@ -18,11 +18,21 @@ export function QuestionFilter({
   onConfirmApproval,
   approvalCount = 0,
   submitting = false,
+  hideStatusFilter = false,
+  hidePendingOption = false,
 }) {
   const { search, status } = filters
   const role = getCurrentUserRole()
   const isStaff = role === 'Staff'
   const isAdmin = role === 'Admin'
+
+  const statusOptions = [
+    { value: 0, label: 'Nháp' },
+    { value: 1, label: 'Đang hoạt động' },
+    { value: 2, label: 'Đã xóa' },
+    { value: 3, label: 'Chờ phê duyệt' },
+    { value: 4, label: 'Bị từ chối' },
+  ].filter((opt) => !(hidePendingOption && opt.value === 3))
 
   return (
     <Space wrap size="middle" style={{ width: '100%', marginBottom: 16, justifyContent: 'space-between' }}>
@@ -36,20 +46,16 @@ export function QuestionFilter({
           onChange={(e) => onSearchChange(e.target.value)}
         />
 
-        <Select
-          placeholder="Trạng thái"
-          allowClear
-          style={{ width: 180 }}
-          value={status}
-          onChange={(value) => onFilterChange({ ...filters, status: value })}
-          options={[
-            { value: 0, label: 'Nháp' },
-            { value: 1, label: 'Đang hoạt động' },
-            { value: 2, label: 'Đã xóa' },
-            { value: 3, label: 'Chờ phê duyệt' },
-            { value: 4, label: 'Bị từ chối' },
-          ]}
-        />
+        {!hideStatusFilter && (
+          <Select
+            placeholder="Trạng thái"
+            allowClear
+            style={{ width: 180 }}
+            value={status}
+            onChange={(value) => onFilterChange({ ...filters, status: value })}
+            options={statusOptions}
+          />
+        )}
       </Space>
 
       <Space>
