@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Typography, Spin, message, Pagination } from 'antd'
+import { Typography, Spin, Pagination } from 'antd'
 import { fetchPassageById, fetchPassages, fetchQuestionTypes, updateQuestionBank, activateQuestionBanks, deleteQuestionBank } from '../../../api/question-bank-management.js'
 import { submitQuestionBanksForApproval } from '../../../api/create-question.js'
 import { uploadOptionImageToCloudinary, uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary } from '../../../../back-office/api/cloudinary.js'
@@ -8,6 +8,15 @@ import { QuestionCard } from './QuestionCard'
 import { QuestionTypeSelectorModal } from './QuestionTypeSelectorModal'
 
 const { Text } = Typography
+
+const QUESTION_BANK_STATUS = {
+  DRAFT: 0,
+  ACTIVE: 1,
+  DELETED: 2,
+  PENDING_APPROVAL: 3,
+  REJECTED: 4,
+  ASSIGNED: 5,
+}
 
 /**
  * QuestionCardList Component
@@ -81,7 +90,7 @@ export function QuestionCardList({
         setAllPassages(passages)
       } catch (error) {
         console.error('Error loading passages:', error)
-        message.error('Không thể tải danh sách đoạn văn')
+        showAdminError('Không thể tải danh sách đoạn văn')
       } finally {
         setLoadingPassages(false)
       }
@@ -99,7 +108,7 @@ export function QuestionCardList({
         setQuestionTypes(types)
       } catch (error) {
         console.error('Error loading question types:', error)
-        message.error('Không thể tải danh sách bộ câu hỏi')
+        showAdminError('Không thể tải danh sách bộ câu hỏi')
       } finally {
         setLoadingTypes(false)
       }
@@ -212,11 +221,21 @@ export function QuestionCardList({
     if (!question) return
 
     const questionBankId = question.questionBankId || question.id
+    const status = question.status ?? QUESTION_BANK_STATUS.DRAFT
 
     try {
       setDeletingId(questionId)
-      await deleteQuestionBank(questionBankId)
-      showAdminSuccess('Đã xóa câu hỏi thành công')
+      if (status === QUESTION_BANK_STATUS.ASSIGNED) {
+        // Assigned: chỉ chuyển status -> Deleted, giữ nguyên options
+        await updateQuestionBank({ questionBankId, status: QUESTION_BANK_STATUS.DELETED })
+        showAdminSuccess('Đã chuyển câu hỏi sang trạng thái Đã xóa')
+      } else if (status === QUESTION_BANK_STATUS.DRAFT || status === QUESTION_BANK_STATUS.ACTIVE) {
+        // Draft/Active: xóa hẳn (backend sẽ xóa luôn options)
+        await deleteQuestionBank(questionBankId)
+        showAdminSuccess('Đã xóa câu hỏi thành công')
+      } else {
+        showAdminError('Chỉ có thể xóa câu hỏi ở trạng thái Nháp, Hoạt động hoặc Đã gán (Assigned)')
+      }
       if (onDeleted) {
         onRefresh ? onRefresh() : onDeleted?.(questionId)
       }
@@ -236,12 +255,12 @@ export function QuestionCardList({
     try {
       setDeletingId(questionId) // Tạm dùng để hiển thị loading
       await submitQuestionBanksForApproval([questionBankId])
-      message.success('Đã gửi câu hỏi để phê duyệt lại')
+      showAdminSuccess('Đã gửi câu hỏi để phê duyệt lại')
       if (onRefresh) {
         onRefresh()
       }
     } catch (error) {
-      message.error(error?.message || 'Gửi duyệt lại thất bại')
+      showAdminError(error?.message || 'Gửi duyệt lại thất bại')
     } finally {
       setDeletingId(null)
     }
@@ -253,6 +272,15 @@ export function QuestionCardList({
     if (!question) return
 
     const questionBankId = question.questionBankId || question.id
+    const currentStatus = question.status ?? QUESTION_BANK_STATUS.DRAFT
+    if (currentStatus === QUESTION_BANK_STATUS.ASSIGNED) {
+      showAdminError('Câu hỏi đã được gán vào đề thi (Assigned) - chỉ được phép xóa, không thể chỉnh sửa')
+      return
+    }
+    if (currentStatus !== QUESTION_BANK_STATUS.DRAFT && currentStatus !== QUESTION_BANK_STATUS.ACTIVE) {
+      showAdminError('Chỉ câu hỏi ở trạng thái Nháp hoặc Hoạt động mới được cập nhật')
+      return
+    }
     const oldQuestionTypeId = question.questionTypeId
     const finalQuestionTypeId = editForm.questionTypeId || oldQuestionTypeId
 
@@ -270,7 +298,7 @@ export function QuestionCardList({
         const questionType = questionTypes.find((t) => t.questionTypeId === finalQuestionTypeId)
         const skillName = ['Nghe', 'Đọc', 'Viết'][questionType?.skill - 1]
         const mediaTypeName = ['Text', 'Hình ảnh', 'Audio'][passage?.mediaType]
-        message.error(`Không tương thích: Kỹ năng ${skillName} không thể dùng với đoạn văn loại ${mediaTypeName}`)
+        showAdminError(`Không tương thích: Kỹ năng ${skillName} không thể dùng với đoạn văn loại ${mediaTypeName}`)
         return
       }
     }
@@ -328,7 +356,7 @@ export function QuestionCardList({
     if (editOptions && editOptions.length > 0) {
       // Validate: 2-4 options
       if (editOptions.length < 2 || editOptions.length > 4) {
-        message.error('Cần từ 2 đến 4 đáp án')
+        showAdminError('Cần từ 2 đến 4 đáp án')
         return
       }
 
@@ -337,26 +365,26 @@ export function QuestionCardList({
       const validKeys = ['1', '2', '3', '4']
       const invalidKeys = keyOptions.filter(k => !validKeys.includes(k))
       if (invalidKeys.length > 0) {
-        message.error('keyOption phải là "1", "2", "3", hoặc "4"')
+        showAdminError('keyOption phải là "1", "2", "3", hoặc "4"')
         return
       }
       const uniqueKeys = new Set(keyOptions)
       if (uniqueKeys.size !== keyOptions.length) {
-        message.error('keyOption không được trùng lặp')
+        showAdminError('keyOption không được trùng lặp')
         return
       }
 
       // Validate: each option must have content or imageUrl
       const invalidOptions = editOptions.filter(o => !o.content?.trim() && !o.imageUrl?.trim())
       if (invalidOptions.length > 0) {
-        message.error('Mỗi đáp án phải có nội dung hoặc hình ảnh')
+        showAdminError('Mỗi đáp án phải có nội dung hoặc hình ảnh')
         return
       }
 
       // Validate: exactly 1 correct answer
       const correctCount = editOptions.filter(o => o.isCorrect).length
       if (correctCount !== 1) {
-        message.error('Phải có đúng 1 đáp án đúng')
+        showAdminError('Phải có đúng 1 đáp án đúng')
         return
       }
 
@@ -380,7 +408,7 @@ export function QuestionCardList({
     if (newSkill === 3) {
       // Writing: không được có options
       if (optionsToSend.length > 0) {
-        message.error('Kỹ năng Viết không được có đáp án')
+        showAdminError('Kỹ năng Viết không được có đáp án')
         return
       }
       patchPayload.options = []
@@ -388,7 +416,7 @@ export function QuestionCardList({
       // Listening: bắt buộc MediaUrl
       const finalMedia = patchPayload.mediaUrl || finalMediaUrl
       if (!finalMedia || !finalMedia.trim()) {
-        message.error('Kỹ năng Nghe bắt buộc phải có MediaUrl')
+        showAdminError('Kỹ năng Nghe bắt buộc phải có MediaUrl')
         return
       }
       if (optionsToSend.length > 0) {
@@ -398,7 +426,7 @@ export function QuestionCardList({
       // Reading: bắt buộc Content
       const finalContent = patchPayload.content !== undefined ? patchPayload.content : editForm.content
       if (!finalContent || !finalContent.trim()) {
-        message.error('Kỹ năng Đọc bắt buộc phải có Content')
+        showAdminError('Kỹ năng Đọc bắt buộc phải có Content')
         return
       }
       if (optionsToSend.length > 0) {
@@ -417,7 +445,7 @@ export function QuestionCardList({
       if (oldSkill === 2 && newSkill === 1) {
         const finalMedia = patchPayload.mediaUrl || finalMediaUrl
         if (!finalMedia || !finalMedia.trim()) {
-          message.error('Khi đổi từ Đọc sang Nghe, bắt buộc phải có MediaUrl')
+          showAdminError('Khi đổi từ Đọc sang Nghe, bắt buộc phải có MediaUrl')
           return
         }
       }
@@ -425,7 +453,7 @@ export function QuestionCardList({
       if (oldSkill === 3 && newSkill === 1) {
         const finalMedia = patchPayload.mediaUrl || finalMediaUrl
         if (!finalMedia || !finalMedia.trim()) {
-          message.error('Khi đổi từ Viết sang Nghe, bắt buộc phải có MediaUrl')
+          showAdminError('Khi đổi từ Viết sang Nghe, bắt buộc phải có MediaUrl')
           return
         }
       }
@@ -433,14 +461,14 @@ export function QuestionCardList({
       if (oldSkill === 3 && newSkill === 2) {
         const finalContent = patchPayload.content !== undefined ? patchPayload.content : editForm.content
         if (!finalContent || !finalContent.trim()) {
-          message.error('Khi đổi từ Viết sang Đọc, bắt buộc phải có Content')
+          showAdminError('Khi đổi từ Viết sang Đọc, bắt buộc phải có Content')
           return
         }
       }
       // Reading → Writing
       if (oldSkill === 2 && newSkill === 3) {
         if (optionsToSend.length > 0) {
-          message.error('Khi đổi từ Đọc sang Viết, phải xóa toàn bộ đáp án (gửi options: [])')
+          showAdminError('Khi đổi từ Đọc sang Viết, phải xóa toàn bộ đáp án (gửi options: [])')
           return
         }
         patchPayload.options = []
@@ -449,11 +477,11 @@ export function QuestionCardList({
       if (oldSkill === 1 && newSkill === 2) {
         const finalContent = patchPayload.content !== undefined ? patchPayload.content : editForm.content
         if (!finalContent || !finalContent.trim()) {
-          message.error('Khi đổi từ Nghe sang Đọc, bắt buộc phải có Content')
+          showAdminError('Khi đổi từ Nghe sang Đọc, bắt buộc phải có Content')
           return
         }
         if (optionsToSend.length > 0) {
-          message.error('Khi đổi từ Nghe sang Đọc, phải xóa toàn bộ đáp án (gửi options: [])')
+          showAdminError('Khi đổi từ Nghe sang Đọc, phải xóa toàn bộ đáp án (gửi options: [])')
           return
         }
         patchPayload.options = []
@@ -473,7 +501,7 @@ export function QuestionCardList({
         await activateQuestionBanks([questionBankId])
       }
 
-      message.success('Đã cập nhật câu hỏi & đáp án')
+      showAdminSuccess('Đã cập nhật câu hỏi & đáp án')
 
       setEditingId(null)
       setEditForm({})
@@ -483,7 +511,7 @@ export function QuestionCardList({
         onRefresh()
       }
     } catch (error) {
-      message.error(error?.message || 'Cập nhật thất bại')
+      showAdminError(error?.message || 'Cập nhật thất bại')
     } finally {
       setSaving(false)
     }
@@ -499,7 +527,7 @@ export function QuestionCardList({
         const passage = passageMap[editForm.passageId] || allPassages.find(p => p.passageId === editForm.passageId)
         const skillName = ['Nghe', 'Đọc', 'Viết'][type.skill - 1]
         const mediaTypeName = ['Text', 'Hình ảnh', 'Audio'][passage?.mediaType]
-        message.warning(`Cảnh báo: Kỹ năng ${skillName} không tương thích với đoạn văn loại ${mediaTypeName}. Vui lòng chọn lại passage hoặc bộ câu hỏi.`)
+        showAdminError(`Kỹ năng ${skillName} không tương thích với đoạn văn loại ${mediaTypeName}. Vui lòng chọn lại passage hoặc bộ câu hỏi.`)
       }
     }
   }

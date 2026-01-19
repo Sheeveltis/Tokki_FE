@@ -8,6 +8,15 @@ import { getCurrentUserRole } from '../../../../../provider/api/client.js'
 
 const { Text, Paragraph } = Typography
 
+const QUESTION_BANK_STATUS = {
+  DRAFT: 0,
+  ACTIVE: 1,
+  DELETED: 2,
+  PENDING_APPROVAL: 3,
+  REJECTED: 4,
+  ASSIGNED: 5,
+}
+
 /**
  * Component hiển thị 1 card câu hỏi
  */
@@ -57,29 +66,31 @@ export function QuestionCard({
   const status = question.status ?? 0
   
   // Staff chỉ được tick chọn các câu hỏi nháp (status = 0)
-  const canSelect = isStaff && status === 0
+  const canSelect = isStaff && status === QUESTION_BANK_STATUS.DRAFT
   
   // Admin có thể duyệt/từ chối các câu hỏi chờ phê duyệt (status = 3)
-  const canApprove = isAdmin && status === 3
+  const canApprove = isAdmin && status === QUESTION_BANK_STATUS.PENDING_APPROVAL
   
   // Staff chỉ được xem các status: 0 (Nháp), 3 (Chờ phê duyệt), 4 (Bị từ chối), 2 (Đã xóa), 1 (Hoạt động - xem tất cả)
   // Admin xem tất cả
-  const canView = !isStaff || [0, 1, 2, 3, 4].includes(status)
+  const canView = !isStaff || [
+    QUESTION_BANK_STATUS.DRAFT,
+    QUESTION_BANK_STATUS.ACTIVE,
+    QUESTION_BANK_STATUS.DELETED,
+    QUESTION_BANK_STATUS.PENDING_APPROVAL,
+    QUESTION_BANK_STATUS.REJECTED,
+  ].includes(status)
   
-  // Staff: Chỉ được sửa khi status = 0 (Nháp) hoặc 4 (Bị từ chối)
-  // Admin: Không được sửa khi status = 1 (Hoạt động) hoặc 2 (Đã xóa)
-  const canEdit = isStaff 
-    ? (status === 0 || status === 4)
-    : (status !== 1 && status !== 2)
+  // Chỉ cho phép chỉnh sửa khi trạng thái là Draft hoặc Active (không cho PendingApproval/Assigned/Deleted)
+  const canEdit = status === QUESTION_BANK_STATUS.DRAFT || status === QUESTION_BANK_STATUS.ACTIVE
   
-  // Staff: Chỉ được xóa khi status = 0 (Nháp) hoặc 4 (Bị từ chối)
-  // Admin: Không được xóa khi status = 2 (Đã xóa)
+  // Staff: Chỉ được xóa khi status = Draft; Admin: không được xóa khi Deleted
   const canDelete = isStaff
-    ? (status === 0 || status === 4)
-    : (status !== 2)
+    ? status === QUESTION_BANK_STATUS.DRAFT
+    : status !== QUESTION_BANK_STATUS.DELETED
   
-  // Staff: Chỉ được gửi duyệt lại khi status = 4 (Bị từ chối)
-  const canResubmit = isStaff && status === 4
+  // Staff: Chỉ được gửi duyệt lại khi status = Rejected
+  const canResubmit = isStaff && status === QUESTION_BANK_STATUS.REJECTED
 
   return (
     <Card
