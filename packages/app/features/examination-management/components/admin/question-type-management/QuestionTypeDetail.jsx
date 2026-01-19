@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'solito/navigation'
 import { useParams } from 'react-router-dom'
-import { Typography, message } from 'antd'
+import { Typography } from 'antd'
 
 import { AdminLayout } from '../../../../back-office/components/admin/admin-layout.web.jsx'
 import StaffLayout from '../../../../back-office/components/staff/staff-layout.web.jsx'
+import { showAdminSuccess, showAdminError } from '../../../../../../components/HelperAdmin.jsx'
 import { fetchQuestionBanksPaged } from '../../../api/question-bank-management.js'
 import { deleteQuestionType, fetchQuestionTypeById } from '../../../api/question-type-management.js'
 
@@ -91,7 +92,7 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
         setTotalQuestions(paged?.total ?? (paged?.items?.length || 0))
       } catch (err) {
         if (!mounted) return
-        message.error(err?.message || 'Không thể tải danh sách câu hỏi')
+        showAdminError(err?.message || 'Không thể tải danh sách câu hỏi')
       } finally {
         if (!mounted) return
         setLoading(false)
@@ -148,11 +149,11 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
             try {
               setDeleting(true)
               await deleteQuestionType(questionTypeId)
-              message.success('Đã xóa loại câu hỏi thành công')
+              showAdminSuccess('Đã xóa loại câu hỏi thành công')
               router.push(`${basePath}?tab=question-bank`)
             } catch (err) {
               // message từ backend đã được map qua handleApiError
-              message.error(err?.message || 'Xóa loại câu hỏi thất bại')
+              showAdminError(err?.message || 'Xóa loại câu hỏi thất bại')
             } finally {
               setDeleting(false)
             }
@@ -173,7 +174,7 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
               const qt = await fetchQuestionTypeById(questionTypeId)
               setQuestionType(qt)
             } catch (err) {
-              message.error('Không thể tải lại dữ liệu')
+              showAdminError('Không thể tải lại dữ liệu')
             }
           }}
         />
@@ -209,7 +210,7 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
               setAllQuestions(paged?.items || [])
               setTotalQuestions(paged?.total ?? (paged?.items?.length || 0))
             } catch (err) {
-              message.error(err?.message || 'Không thể tải lại danh sách câu hỏi')
+              showAdminError(err?.message || 'Không thể tải lại danh sách câu hỏi')
             }
           }}
           onDeleted={async () => {
@@ -226,7 +227,7 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
               setAllQuestions(paged?.items || [])
               setTotalQuestions(paged?.total ?? (paged?.items?.length || 0))
             } catch (err) {
-              message.error(err?.message || 'Không thể tải lại danh sách câu hỏi')
+              showAdminError(err?.message || 'Không thể tải lại danh sách câu hỏi')
             }
           }}
         />
