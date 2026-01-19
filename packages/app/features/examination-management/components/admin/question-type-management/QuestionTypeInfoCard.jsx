@@ -11,9 +11,9 @@ export function QuestionTypeInfoCard({ questionType, isEditing: isEditingProp, o
   const [loading, setLoading] = useState(false)
   const isEditing = isEditingProp || false
   const skillEnumMap = {
-    1: { label: 'Nghe', color: 'blue' },
-    2: { label: 'Đọc', color: 'green' },
-    3: { label: 'Viết', color: 'orange' },
+    1: { label: 'Nghe',},
+    2: { label: 'Đọc',},
+    3: { label: 'Viết', },
   }
 
   const examTypeLabelMap = {
@@ -59,7 +59,7 @@ export function QuestionTypeInfoCard({ questionType, isEditing: isEditingProp, o
         name: values.name?.trim(),
         code: values.code?.trim()?.toUpperCase(),
         description: values.description?.trim(),
-        skill: values.skill,
+        // skill: không cho update
         difficulty: values.difficulty,
         examType: values.examType,
         status: values.status,
@@ -148,29 +148,25 @@ export function QuestionTypeInfoCard({ questionType, isEditing: isEditingProp, o
                   <Input size="large" placeholder="Code" />
                 </Form.Item>
               ) : (
-                <Tag color="geekblue" style={{ fontSize: 14, padding: '4px 12px' }}>
+                <Text style={{ fontSize: 14 }}>
                   {questionType?.code || '-'}
-                </Tag>
+                </Text>
               )}
             </Descriptions.Item>
 
             <Descriptions.Item label="Kỹ năng">
               {isEditing ? (
-                <Form.Item
-                  name="skill"
-                  rules={[{ required: true, message: 'Vui lòng chọn kỹ năng' }]}
-                  style={{ marginBottom: 0 }}
-                >
-                  <Select size="large" placeholder="Chọn kỹ năng">
+                <Form.Item name="skill" style={{ marginBottom: 0 }}>
+                  <Select size="large" disabled>
                     <Select.Option value={1}>Nghe</Select.Option>
                     <Select.Option value={2}>Đọc</Select.Option>
                     <Select.Option value={3}>Viết</Select.Option>
                   </Select>
                 </Form.Item>
               ) : (
-                <Tag color={skillInfo.color} style={{ fontSize: 14, padding: '4px 12px' }}>
+                <Text style={{ fontSize: 14 }}>
                   {skillInfo.label}
-                </Tag>
+                </Text>
               )}
             </Descriptions.Item>
 
@@ -188,9 +184,9 @@ export function QuestionTypeInfoCard({ questionType, isEditing: isEditingProp, o
                   </Select>
                 </Form.Item>
               ) : examType ? (
-                <Tag color="geekblue" style={{ fontSize: 14, padding: '4px 12px' }}>
+                <Text style={{ fontSize: 14 }}>
                   {examType}
-                </Tag>
+                </Text>
               ) : (
                 <Text type="secondary" style={{ fontSize: 14 }}>
                   -
@@ -212,9 +208,9 @@ export function QuestionTypeInfoCard({ questionType, isEditing: isEditingProp, o
                   </Select>
                 </Form.Item>
               ) : difficultyInfo ? (
-                <Tag color={difficultyInfo.color} style={{ fontSize: 14, padding: '4px 12px' }}>
+                <Text style={{ fontSize: 14 }}>
                   {difficultyInfo.label}
-                </Tag>
+                </Text>
               ) : (
                 <Text type="secondary" style={{ fontSize: 14 }}>
                   -
