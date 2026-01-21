@@ -17,6 +17,7 @@ export function FlashcardTopicCard({
   showBadge = true,
 }) {
   const [hovered, setHovered] = useState(false)
+  const shouldShowBadge = showBadge && (!compact || Platform.OS !== 'web')
 
   return (
     <Pressable
@@ -43,10 +44,12 @@ export function FlashcardTopicCard({
         <Text style={[styles.title, compact && styles.titleCompact]}>{title}</Text>
         <Text style={[styles.subtitle, compact && styles.subtitleCompact]}>{subtitle}</Text>
       </View>
-      {showBadge && !compact ? (
-        <View style={styles.right}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{badgeText}</Text>
+      {shouldShowBadge ? (
+        <View style={[styles.right, compact && styles.rightCompact]}>
+          <View style={[styles.badge, compact && styles.badgeCompact]}>
+            <Text style={[styles.badgeText, compact && styles.badgeTextCompact]}>
+              {badgeText}
+            </Text>
           </View>
         </View>
       ) : null}
@@ -140,6 +143,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 15,
+    lineHeight: 24,
     color: '#333',
     fontFamily: 'Epilogue, sans-serif',
   },
@@ -151,9 +155,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  rightCompact: {
+    width: 60,
+  },
   badge: {
-    width: 50,
+    minWidth: 50,
     height: 50,
+    paddingHorizontal: 6,
     borderRadius: 25,
     borderWidth: 2,
     borderColor: '#C45A32',
@@ -161,11 +169,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FDE7D4',
   },
+  badgeCompact: {
+    minWidth: 56,
+    height: 40,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+  },
   badgeText: {
     fontSize: 14,
     fontWeight: '800',
     color: '#C45A32',
     fontFamily: 'Epilogue, sans-serif',
+  },
+  badgeTextCompact: {
+    fontSize: 12,
+    textAlign: 'center',
   },
 })
 
