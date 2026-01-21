@@ -18,6 +18,7 @@ export function FlashcardListScreen({
   title = 'Flashcard', 
   levelId,
   onFavoritesPress,
+  onLearnedPress,
   route, // React Navigation prop - có thể bỏ qua
   navigation, // React Navigation prop - có thể bỏ qua
   ...otherProps // Bỏ qua các props khác từ navigation
@@ -62,6 +63,7 @@ export function FlashcardListScreen({
         onTopicPress={onTopicPress}
         onRetry={fetchTopics}
         onFavoritesPress={onFavoritesPress}
+        onLearnedPress={onLearnedPress}
         pageNumber={pageNumber}
         pageSize={pageSize}
         canNextPage={canNextPage}

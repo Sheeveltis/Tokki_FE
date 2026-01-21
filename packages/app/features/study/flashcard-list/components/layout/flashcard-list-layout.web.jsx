@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
   },
   contentWrapper: {
     width: '70%',
-    maxWidth: 1200,
+    maxWidth: '100%',
     alignItems: 'center',
     backgroundColor: '#F5F0DD',
     paddingVertical: 24,
