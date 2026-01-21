@@ -91,6 +91,7 @@ export const ENDPOINTS = {
     },
     ACCOUNT: {
       LOGIN: '/Account/login',
+      GOOGLE_LOGIN: '/Account/google-login',
       REGISTER: '/Account/register',
       FORGOT_PASSWORD_RESET: '/Account/forgot-password/reset',
       PROFILE: '/Account/profile',

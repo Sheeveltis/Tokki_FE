@@ -24,7 +24,7 @@ if (Platform.OS !== 'web') {
 }
 import { TextInput } from '../../../../../components/textInput'
 import { Button } from '../../../../../components/button'
-import { login, getUserLevel } from '../../api'
+import { login, getUserLevel, loginWithGoogle } from '../../api'
 import { setAuthToken, clearAuthToken } from '../../../../provider/api/client'
 import { heartbeatService } from '../shared/heartbeat-service'
 import { showApiNotification } from '../../utils/notification'
@@ -58,6 +58,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
   const [forgotEmail, setForgotEmail] = useState('')
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [showOtpModal, setShowOtpModal] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
 
   // Lưu token vào storage (hỗ trợ cả web và mobile)
   const setToken = async (token) => {
@@ -232,6 +233,156 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
     }
   }
 
+  // ===== GOOGLE LOGIN (web only) =====
+  // Ưu tiên lấy từ Vite env (VITE_GOOGLE_CLIENT_ID), fallback Next-style env
+  const GOOGLE_CLIENT_ID = (() => {
+    try {
+      if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GOOGLE_CLIENT_ID) {
+        return import.meta.env.VITE_GOOGLE_CLIENT_ID
+      }
+    } catch (e) {
+      // import.meta có thể không khả dụng trên native / build khác
+    }
+    if (typeof process !== 'undefined' && process?.env?.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
+      return process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    }
+    return ''
+  })()
+
+  const loadGoogleScript = () =>
+    new Promise((resolve, reject) => {
+      if (typeof window === 'undefined') {
+        reject(new Error('Google login chỉ hỗ trợ trên web.'))
+        return
+      }
+      if (window.google?.accounts?.id) {
+        resolve(window.google.accounts.id)
+        return
+      }
+      const existing = document.getElementById('google-identity-script')
+      if (existing) {
+        existing.onload = () => resolve(window.google.accounts.id)
+        existing.onerror = reject
+        return
+      }
+      const script = document.createElement('script')
+      script.src = 'https://accounts.google.com/gsi/client'
+      script.async = true
+      script.defer = true
+      script.id = 'google-identity-script'
+      script.onload = () => resolve(window.google.accounts.id)
+      script.onerror = reject
+      document.body.appendChild(script)
+    })
+
+  const handleGoogleLogin = async () => {
+    if (Platform.OS !== 'web') {
+      setError('Đăng nhập Google chỉ hỗ trợ trên web.')
+      return
+    }
+    if (!GOOGLE_CLIENT_ID) {
+      setError('Thiếu GOOGLE_CLIENT_ID. Vui lòng cấu hình VITE_GOOGLE_CLIENT_ID (hoặc NEXT_PUBLIC_GOOGLE_CLIENT_ID).')
+      return
+    }
+    if (googleLoading) return
+
+    setGoogleLoading(true)
+    setError(null)
+    setApiResponse(null)
+    setNotifyResponse(null)
+
+    try {
+      const accountsId = await loadGoogleScript()
+
+      // Debug: xác nhận origin & client_id thực tế đang được dùng
+      try {
+        console.info('[GoogleLogin] origin:', window.location.origin)
+        console.info('[GoogleLogin] client_id:', GOOGLE_CLIENT_ID)
+      } catch (e) {
+        // ignore
+      }
+
+      await accountsId.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: async (response) => {
+          const idToken = response?.credential
+          if (!idToken) {
+            setError('Không lấy được idToken từ Google.')
+            setGoogleLoading(false)
+            return
+          }
+          try {
+            const resp = await loginWithGoogle({ idToken, isComfirmToMergeAcc: false })
+            setApiResponse(resp)
+
+            if (resp.isSuccess && resp.data) {
+              const { token, fullName, role, avatarUrl } = resp.data
+
+              const adminRoles = ['Admin', 'Staff', 'Moderator']
+              if (adminRoles.includes(role)) {
+                await clearAuthToken()
+                const msg = 'Tài khoản Admin, Staff và Moderator không thể đăng nhập tại đây.'
+                setError(msg)
+                setNotifyResponse({
+                  isSuccess: false,
+                  message: msg,
+                  statusCode: 403,
+                })
+                setGoogleLoading(false)
+                return
+              }
+
+              await setAuthToken(token)
+              try {
+                const levelResp = await getUserLevel()
+                if (levelResp?.isSuccess && levelResp.data?.level != null) {
+                  const levelValue = String(levelResp.data.level)
+                  await setStorageItem('userLevel', levelValue)
+                  dispatchStorageEvent('user-level-changed')
+                }
+              } catch (e) {
+                console.error('Không thể lấy level người dùng:', e)
+              }
+
+              heartbeatService.start()
+
+              setTimeout(() => {
+                router.push('/homepage')
+              }, 500)
+            } else {
+              await clearAuthToken()
+              setNotifyResponse(resp)
+              const msg =
+                resp?.message ||
+                resp?.errors?.[0]?.description ||
+                'Đăng nhập Google thất bại. Vui lòng thử lại.'
+              setError(msg)
+              if (Platform.OS !== 'web') {
+                showApiNotification(resp)
+              }
+            }
+          } catch (err) {
+            const msg = err?.message || 'Đăng nhập Google thất bại.'
+            setError(msg)
+          } finally {
+            setGoogleLoading(false)
+          }
+        },
+      })
+
+      // Hiển thị popup chọn tài khoản Google
+      accountsId.prompt((notification) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          setGoogleLoading(false)
+        }
+      })
+    } catch (err) {
+      const msg = err?.message || 'Không thể khởi tạo Google login.'
+      setError(msg)
+      setGoogleLoading(false)
+    }
+  }
+
   const handleForgotPassword = () => {
     setShowEmailModal(true)
   }
@@ -349,9 +500,15 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
         </View>
 
         <Button
-          title="Đăng nhập bằng Google"
-          onPress={onPressGoogle}
-          disabled={false}
+          title={googleLoading ? 'Đang đăng nhập Google...' : 'Đăng nhập bằng Google'}
+          onPress={() => {
+            if (onPressGoogle) {
+              onPressGoogle()
+              return
+            }
+            handleGoogleLogin()
+          }}
+          disabled={googleLoading}
           color="#DB4437"
           style={styles.googleBtn}
         />

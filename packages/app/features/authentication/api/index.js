@@ -182,6 +182,57 @@ export const login = async ({ email, password }) => {
 }
 
 /**
+ * Đăng nhập bằng Google
+ * @param {{ idToken: string; isComfirmToMergeAcc?: boolean }} payload
+ */
+export const loginWithGoogle = async ({ idToken, isComfirmToMergeAcc = false }) => {
+  try {
+    if (!idToken) {
+      return {
+        isSuccess: false,
+        data: null,
+        errors: [
+          { code: 'Error.Validation', description: 'Thiếu idToken từ Google.' },
+        ],
+        message: 'Thiếu idToken từ Google.',
+        statusCode: 400,
+      }
+    }
+
+    const response = await apiClient.post(ENDPOINTS.ACCOUNT.GOOGLE_LOGIN, {
+      idToken,
+      isComfirmToMergeAcc,
+    })
+
+    return response.data
+  } catch (error) {
+    if (error.response?.data) {
+      return error.response.data
+    }
+
+    const rawMsg = (typeof error?.message === 'string' && error.message) || ''
+    const lowerMsg = rawMsg.toLowerCase()
+    const isConnRefused = lowerMsg.includes('err_connection_refused')
+    const isNetworkError = lowerMsg.includes('network error')
+    const fallbackMsg = 'Không thể kết nối đến server. Vui lòng thử lại sau.'
+    const finalMsg = isConnRefused || isNetworkError ? fallbackMsg : rawMsg || fallbackMsg
+
+    return {
+      isSuccess: false,
+      data: null,
+      errors: [
+        {
+          code: 'Error.Network',
+          description: finalMsg,
+        },
+      ],
+      message: finalMsg,
+      statusCode: error.response?.status || 500,
+    }
+  }
+}
+
+/**
  * Đăng ký
  * 
  * @param {Object} userData - Thông tin đăng ký
