@@ -174,6 +174,8 @@ export const ENDPOINTS = {
     },
     SPACED_REPETITION: {
       SUBMIT: '/spaced-repetition/submit',  // POST: Submit kết quả học tập
+      GET_LEARNED: '/SpacedRepetition/vocab-for-review',  // GET: Lấy danh sách từ vựng đã học (query: limit)
+      COMPLETE_TOPIC: '/SpacedRepetition/complete-topic', // POST: Hoàn thành tiến độ học topic
     },
     GAMIFICATION: {
       HEARTBEAT: '/Gamification/heartbeat',  // POST: Heartbeat để track thời gian học tập
@@ -204,8 +206,8 @@ export const ENDPOINTS = {
       UPLOAD_BLOG_IMAGE: '/Cloudinary/image/blog',  // POST: Upload ảnh blog lên Cloudinary
     },
     EXCEL: {
-      ADD_VOCAB_TO_TOPIC: (topicId) => `/Excel/add-vocab?topicId=${topicId}`,  // POST: Import từ vựng từ Excel vào chủ đề
-      EXPORT_BY_TOPIC: (topicId) => `/Excel/export-by-topic/${topicId}`,  // GET: Export từ vựng của chủ đề ra Excel
+      ADD_VOCAB_TO_TOPIC: (topicId) => `/Excel/import/vocab?topicId=${topicId}`,  // POST: Import từ vựng từ Excel vào chủ đề
+      EXPORT_BY_TOPIC: (topicId) => `/Excel/export/topic/${topicId}`,  // GET: Export từ vựng của chủ đề ra Excel
     },
     EMAIL: {
       CAMPAIGNS_CREATE: '/email-campaigns',           // POST: Tạo chiến dịch email thủ công

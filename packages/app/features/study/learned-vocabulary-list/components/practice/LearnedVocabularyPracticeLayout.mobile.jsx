@@ -1,14 +1,12 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
-import { Navbar } from '../../../../../../components/navbar'
 
 /**
- * FlashcardListLayout (Web): Layout cho trang danh sách flashcard trên web
+ * LearnedVocabularyPracticeLayout (Mobile): Layout cho trang practice từ vựng trên mobile
  */
-export function FlashcardListLayout({ children }) {
+export function LearnedVocabularyPracticeLayout({ children }) {
   return (
     <View style={styles.root}>
-      <Navbar />
       <View style={styles.contentWrapper}>
         {children}
       </View>
@@ -19,22 +17,23 @@ export function FlashcardListLayout({ children }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    minHeight: '100%',
+    width: '100%',
     backgroundColor: '#FFD7D0',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingVertical: 24,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
   },
   contentWrapper: {
-    width: '70%',
-    maxWidth: '100%',
-    minHeight: '90vh',
-    alignItems: 'center',
+    width: '100%',
+    gap: 16,
+    alignItems: 'stretch',
     backgroundColor: '#F5F0DD',
     paddingVertical: 24,
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     borderRadius: 16,
-    gap: 16,
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
   },
 })
 

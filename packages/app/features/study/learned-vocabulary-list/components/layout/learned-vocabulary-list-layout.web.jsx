@@ -3,9 +3,9 @@ import { View, StyleSheet } from 'react-native'
 import { Navbar } from '../../../../../../components/navbar'
 
 /**
- * FlashcardListLayout (Web): Layout cho trang danh sách flashcard trên web
+ * LearnedVocabularyListLayout (Web): Layout cho trang danh sách từ vựng đã học trên web
  */
-export function FlashcardListLayout({ children }) {
+export function LearnedVocabularyListLayout({ children }) {
   return (
     <View style={styles.root}>
       <Navbar />
@@ -18,8 +18,8 @@ export function FlashcardListLayout({ children }) {
 
 const styles = StyleSheet.create({
   root: {
+    height: '100%',
     flex: 1,
-    minHeight: '100%',
     backgroundColor: '#FFD7D0',
     alignItems: 'center',
     justifyContent: 'flex-start',
@@ -27,8 +27,7 @@ const styles = StyleSheet.create({
   },
   contentWrapper: {
     width: '70%',
-    maxWidth: '100%',
-    minHeight: '90vh',
+    maxWidth: 1200,
     alignItems: 'center',
     backgroundColor: '#F5F0DD',
     paddingVertical: 24,

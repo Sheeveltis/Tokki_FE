@@ -14,8 +14,10 @@ import { AlphabetTestScreen } from '@tokki/app/features/alphabet/screens/client/
 import TestScreen from '@tokki/app/features/study/flashcard-test'
 
 import FlashcardListScreen from '@tokki/app/features/study/flashcard-list'
+import FlashcardFirstLearnScreen from '@tokki/app/features/study/flashcard-first-learn'
 import FlashcardStudyScreen from '@tokki/app/features/study/flashcard-study'
 import LearnScreen from '@tokki/app/features/study/flashcard-learn'
+import LearnedVocabularyListScreen from '@tokki/app/features/study/learned-vocabulary-list'
 
 import { STUDY_PAGE_TITLES, TOPIC_TITLES } from '@tokki/app/features/study/constants'
 import { RoadmapInfoScreen } from '@tokki/app/features/roadmap/screens/roadmap-info-screen'
@@ -172,9 +174,18 @@ function FlashcardRoute() {
   return (
     <FlashcardListScreen
       levelId={levelId}
-      onTopicPress={(topicId) => navigate(`/flashcard/study?topic=${topicId}`)}
+      onTopicPress={(topic) => {
+        const topicId = topic?.id || topic?.topicId
+        if (!topicId) return
+        if (topic?.isLearned) {
+          navigate(`/flashcard/study?topic=${topicId}`)
+          return
+        }
+        navigate(`/flashcard/learn?topic=${topicId}`)
+      }}
       onBackPress={() => navigate(`/menu-study?level=${levelId}`)}
       onFavoritesPress={() => navigate('/flashcard/favorites')}
+      onLearnedPress={() => navigate('/flashcard/learned')}
       title={STUDY_PAGE_TITLES.FLASHCARD_LIST}
     />
   )
@@ -204,7 +215,7 @@ function FlashcardLearnRoute() {
   const topicTitle = topicId ? TOPIC_TITLES[topicId] || STUDY_PAGE_TITLES.FLASHCARD_STUDY : STUDY_PAGE_TITLES.FLASHCARD_STUDY
 
   return (
-    <LearnScreen
+    <FlashcardFirstLearnScreen
       topicId={topicId}
       title={`Học ${topicTitle}`}
       onBackPress={() => navigate(`/flashcard/study?topic=${topicId}`)}
@@ -291,6 +302,17 @@ function FlashcardFavoritesTestRoute() {
   )
 }
 
+function FlashcardLearnedRoute() {
+  const { navigate } = useRouteNavigation()
+
+  return (
+    <LearnedVocabularyListScreen
+      title="Từ vựng đã học"
+      onBackPress={() => navigate('/flashcard')}
+    />
+  )
+}
+
 // Roadmap Routes
 function RoadmapTestRoute() {
   const { getIntQueryParam } = useRouteNavigation()
@@ -352,6 +374,7 @@ export const studyRoutes = [
   { path: '/flashcard/favorites', element: <FlashcardFavoritesRoute /> },
   { path: '/flashcard/favorites/learn', element: <FlashcardFavoritesLearnRoute /> },
   { path: '/flashcard/favorites/test', element: <FlashcardFavoritesTestRoute /> },
+  { path: '/flashcard/learned', element: <FlashcardLearnedRoute /> },
 
   // Roadmap
   { path: '/roadmap/info', element: <RoadmapInfoScreen /> },

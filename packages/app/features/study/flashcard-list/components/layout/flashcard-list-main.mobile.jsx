@@ -1,8 +1,11 @@
 import React from 'react'
-import { View, StyleSheet, Text, TouchableOpacity, TextInput, Pressable, Platform } from 'react-native'
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Pressable, Platform, Image } from 'react-native'
 import { FlashcardTopicCard } from '../../../components/shared'
 import { NavigationPill } from '../../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
+import StarIcon from '../../../../../../assets/icon/icon-mainflow/star.svg'
+import BookIcon from '../../../../../../assets/icon/navigate-app/book.svg'
+import { normalizeImageSource } from '../../../api'
 import { studyStyles } from '../../../styles'
 import { LoadingWithContainer } from '../../../../../../components/Loading'
 
@@ -22,6 +25,8 @@ export function FlashcardListMain({
   onBackPress,
   onTopicPress,
   onRetry,
+  onFavoritesPress,
+  onLearnedPress,
   pageNumber,
   canNextPage,
   onPrevPage,
@@ -78,6 +83,30 @@ export function FlashcardListMain({
           />
         </View>
         {title ? <Text style={styles.title}>{title}</Text> : null}
+        {(onFavoritesPress || onLearnedPress) && (
+          <View style={styles.headerButtons}>
+            {onFavoritesPress ? (
+              <Pressable style={styles.favoritesButton} onPress={onFavoritesPress}>
+                <Image
+                  source={normalizeImageSource(StarIcon)}
+                  style={styles.favoritesIcon}
+                  resizeMode="contain"
+                />
+                <Text style={styles.favoritesButtonText}>Yêu thích</Text>
+              </Pressable>
+            ) : null}
+            {onLearnedPress ? (
+              <Pressable style={styles.learnedButton} onPress={onLearnedPress}>
+                <Image
+                  source={normalizeImageSource(BookIcon)}
+                  style={styles.learnedIcon}
+                  resizeMode="contain"
+                />
+                <Text style={styles.learnedButtonText}>Đã học</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        )}
       </View>
 
       <View style={styles.searchContainer}>
@@ -108,10 +137,10 @@ export function FlashcardListMain({
               subtitle={topic.subtitle}
               highlight={topic.highlight}
               muted={topic.muted}
-              badgeText="펀"
-              onPress={() => onTopicPress?.(topic.id)}
+              badgeText={topic.isLearned ? 'Đã học' : undefined}
+              showBadge={Boolean(topic.isLearned)}
+              onPress={() => onTopicPress?.(topic)}
               compact={true}
-              showBadge={false}
             />
           ))
         )}
@@ -193,6 +222,52 @@ const styles = StyleSheet.create({
   title: {
     ...studyStyles.pageTitle,
   },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    width: '100%',
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+  },
+  favoritesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#F1BE4B',
+  },
+  favoritesIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#1F1F1F',
+  },
+  favoritesButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1F1F1F',
+  },
+  learnedButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#F1BE4B',
+  },
+  learnedIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#1F1F1F',
+  },
+  learnedButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1F1F1F',
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -215,7 +290,7 @@ const styles = StyleSheet.create({
   searchButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: 100,
     backgroundColor: '#F1BE4B',
   },
   searchButtonText: {
