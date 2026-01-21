@@ -45,25 +45,27 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
   }
 
   const handleSubmit = async (values) => {
+    // Thực hiện validate sớm, tránh setLoading(true) rồi return giữa chừng
+    // khiến UI tưởng đang chạy nhưng thực ra bị kẹt.
+    // Validate options
+    if (!values.options || values.options.length < 2) {
+      showAdminError('Cần ít nhất 2 đáp án')
+      return
+    }
+
+    const correctOptions = values.options.filter((a) => a?.isCorrect)
+    if (correctOptions.length === 0) {
+      showAdminError('Cần ít nhất 1 đáp án đúng')
+      return
+    }
+
+    if (!questionTypeId) {
+      showAdminError('Vui lòng chọn loại câu hỏi')
+      return
+    }
+
     try {
       setLoading(true)
-
-      // Validate options
-      if (!values.options || values.options.length < 2) {
-        showAdminError('Cần ít nhất 2 đáp án')
-        return
-      }
-
-      const correctOptions = values.options.filter((a) => a?.isCorrect)
-      if (correctOptions.length === 0) {
-        showAdminError('Cần ít nhất 1 đáp án đúng')
-        return
-      }
-
-      if (!questionTypeId) {
-        showAdminError('Vui lòng chọn loại câu hỏi')
-        return
-      }
 
       // Upload media (nếu user chọn file) chỉ khi bấm Tạo mới
       const { uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary, uploadOptionImageToCloudinary } = await import('../../../back-office/api/cloudinary.js')
@@ -158,6 +160,14 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
               form={form}
               layout="vertical"
               onFinish={handleSubmit}
+              onFinishFailed={({ errorFields }) => {
+                const firstError = errorFields?.[0]?.errors?.[0]
+                if (firstError) {
+                  showAdminError(firstError)
+                } else {
+                  showAdminError('Vui lòng kiểm tra lại các trường bắt buộc')
+                }
+              }}
               initialValues={{
                 options: [
                   { keyOption: 1, content: '', imageUrl: '', isCorrect: false },

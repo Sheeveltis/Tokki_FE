@@ -49,9 +49,27 @@ export async function fetchQuestionTypeById(questionTypeId) {
 export async function createQuestion(payload) {
   try {
     const response = await apiClient.post(ENDPOINTS.QUESTION_BANK.CREATE, payload)
-    return response.data
+    const resData = response?.data
+
+    // Many endpoints in this codebase use { isSuccess, data, message, errors }
+    // If backend returns 200 but isSuccess=false, we still need to surface the error.
+    if (resData && typeof resData === 'object' && 'isSuccess' in resData) {
+      if (!resData.isSuccess) {
+        const message =
+          resData?.message ||
+          (Array.isArray(resData?.errors) && resData.errors[0]?.description) ||
+          'Không thể tạo câu hỏi mới'
+        throw new Error(message)
+      }
+      // Prefer returning the actual created entity/id from `data`
+      return resData.data ?? resData
+    }
+
+    // Fallback: return raw payload for older response shapes
+    return resData
   } catch (error) {
     handleApiError(error, 'Không thể tạo câu hỏi mới')
+    throw error
   }
 }
 
@@ -65,6 +83,7 @@ export async function activateQuestionBanks(questionBankIds = []) {
     return res.data
   } catch (error) {
     handleApiError(error, 'Không thể kích hoạt câu hỏi')
+    throw error
   }
 }
 
@@ -78,6 +97,7 @@ export async function submitQuestionBanksForApproval(questionBankIds = []) {
     return res.data
   } catch (error) {
     handleApiError(error, 'Không thể gửi duyệt câu hỏi')
+    throw error
   }
 }
 
@@ -91,6 +111,7 @@ export async function approveQuestionBanks(questionBankIds = []) {
     return res.data
   } catch (error) {
     handleApiError(error, 'Không thể duyệt câu hỏi')
+    throw error
   }
 }
 
@@ -105,6 +126,7 @@ export async function rejectQuestionBanks(questionBankIds = [], rejectReason = '
     return res.data
   } catch (error) {
     handleApiError(error, 'Không thể từ chối câu hỏi')
+    throw error
   }
 }
 
