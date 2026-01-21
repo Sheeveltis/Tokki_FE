@@ -162,12 +162,12 @@ const styles = StyleSheet.create({
     minWidth: 50,
     height: 50,
     paddingHorizontal: 6,
-    borderRadius: 25,
-    borderWidth: 2,
-    borderColor: '#C45A32',
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: '#23ac38',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FDE7D4',
+    backgroundColor: '#ffffff',
   },
   badgeCompact: {
     minWidth: 56,
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#C45A32',
+    color: '#23ac38',
     fontFamily: 'Epilogue, sans-serif',
   },
   badgeTextCompact: {

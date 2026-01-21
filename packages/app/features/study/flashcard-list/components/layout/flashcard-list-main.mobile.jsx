@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   searchButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: 100,
     backgroundColor: '#F1BE4B',
   },
   searchButtonText: {
