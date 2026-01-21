@@ -75,6 +75,8 @@ export const getFlashcardTopics = async (
       icon: item.imgUrl || DefaultBunny,
       muted: false,
       vocabIds: [],
+      isLearned: Boolean(item.isLearned),
+      vocabularyCount: item.vocabularyCount ?? null,
       // Giữ raw để sau này nếu cần thêm thông tin
       _raw: item,
     }))
@@ -122,11 +124,12 @@ export const getFlashcardsByTopic = async (topicId) => {
 
     const items = Array.isArray(payload?.data) ? payload.data : []
 
-    // Map về shape dùng trong FE: { id, word, meaning, imageUrl, audioUrl }
+    // Map về shape dùng trong FE: { id, word, meaning, pronunciation, imageUrl, audioUrl }
     return items.map((item) => ({
       id: item.vocabularyId,
       word: item.text,
       meaning: item.definition,
+      pronunciation: item.pronunciation || null,
       imageUrl: item.imgURL || null,
       audioUrl: item.audioUrl || null,
       _raw: item,
@@ -251,6 +254,77 @@ export const submitSpacedRepetition = async (vocabularyId, quality) => {
     return res?.data?.data || { vocabularyId, isMastered: false }
   } catch (error) {
     console.error('Error submitting spaced repetition:', error)
+    throw error
+  }
+}
+
+/**
+ * Đánh dấu hoàn thành topic (khi học xong toàn bộ từ trong topic)
+ * @param {string} topicId
+ * @returns {Promise<boolean>}
+ */
+export const completeTopic = async (topicId) => {
+  try {
+    const res = await apiClient.post(ENDPOINTS.SPACED_REPETITION.COMPLETE_TOPIC, {
+      topicId,
+    })
+    return Boolean(res?.data?.data)
+  } catch (error) {
+    console.error('Error completing topic:', error)
+    throw error
+  }
+}
+
+/**
+ * Lấy danh sách từ vựng đã học
+ * @param {Object} [options]
+ * @param {number} [options.limit=100] - Số lượng từ vựng tối đa
+ * @returns {Promise<Array>} Danh sách từ vựng đã học
+ */
+export const getLearnedVocabularies = async ({ limit = 100 } = {}) => {
+  try {
+    const params = {
+      limit,
+    }
+
+    const res = await apiClient.get(ENDPOINTS.SPACED_REPETITION.GET_LEARNED, { params })
+    const payload = res?.data
+
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể tải danh sách từ vựng đã học'
+      throw new Error(message)
+    }
+
+    // API trả về mảng trực tiếp trong data
+    const items = Array.isArray(payload?.data) ? payload.data : []
+
+    // Map về shape dùng trong FE: { id, word, meaning, imageUrl, audioUrl, pronunciation, boxLevel, streak, nextReviewAt }
+    return items.map((item) => ({
+      id: item.vocabularyId,
+      userVocabProgressId: item.userVocabProgressId,
+      word: item.text,
+      meaning: item.definition,
+      pronunciation: item.pronunciation || null,
+      imageUrl: item.imageUrl || null,
+      audioUrl: item.audioUrl || null,
+      boxLevel: item.boxLevel || 1,
+      streak: item.streak || 0,
+      nextReviewAt: item.nextReviewAt || null,
+      _raw: item,
+    }))
+  } catch (error) {
+    console.error('Error fetching learned vocabularies:', error)
+    if (error?.response?.data) {
+      const data = error.response.data
+      const message =
+        data?.message ||
+        (Array.isArray(data?.errors) && data.errors[0]?.description) ||
+        'Không thể tải danh sách từ vựng đã học'
+      throw new Error(message)
+    }
     throw error
   }
 }
