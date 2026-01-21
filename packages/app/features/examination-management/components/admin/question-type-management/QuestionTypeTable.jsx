@@ -59,7 +59,7 @@ export function QuestionTypeTable({ data, loading, onRowClick, rowKey = 'questio
           const numeric = Number(examType)
           const display = examTypeLabelMap[numeric] || examTypeLabelMap[examType] || examType
 
-          return <Tag color="geekblue">{display}</Tag>
+          return <span>{display}</span>
         },
       },
       {
@@ -70,9 +70,8 @@ export function QuestionTypeTable({ data, loading, onRowClick, rowKey = 'questio
         align: 'center',
         render: (difficulty) => {
           if (!difficulty) return '-'
-          const color = difficultyColorMap[difficulty] || 'default'
           const label = difficultyLabelMap[difficulty] || difficulty
-          return <Tag color={color}>{label}</Tag>
+          return <span>{label}</span>
         },
       },
       {
@@ -88,12 +87,12 @@ export function QuestionTypeTable({ data, loading, onRowClick, rowKey = 'questio
         width: 120,
         render: (skill) => {
           const skillMap = {
-            1: { label: 'Nghe', color: 'blue' },
-            2: { label: 'Đọc', color: 'green' },
-            3: { label: 'Viết', color: 'orange' },
+            1: { label: 'Nghe'},
+            2: { label: 'Đọc'},
+            3: { label: 'Viết'},
           }
           const skillInfo = skillMap[skill] || { label: skill, color: 'default' }
-          return <Tag color={skillInfo.color}>{skillInfo.label}</Tag>
+          return <span>{skillInfo.label}</span>
         },
       },
       {

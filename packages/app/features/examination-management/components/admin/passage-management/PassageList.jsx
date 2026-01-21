@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Alert, Card, Input, Select, Space, Spin, Table, Tag, Typography, message, Popconfirm, Button, Image } from 'antd'
+import { Alert, Card, Input, Select, Space, Spin, Table, Tag, Typography, Popconfirm, Button, Image } from 'antd'
 import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
+import { showAdminSuccess, showAdminError } from '../../../../../../components/HelperAdmin.jsx'
 
 import { fetchPassages, createPassage, updatePassage, deletePassage } from '../../../api/passage-management'
-import { uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary } from '../../../../back-office/api/cloudinary.js'
+import { uploadPassageImageToCloudinary, uploadPassageAudioToCloudinary } from '../../../../back-office/api/cloudinary.js'
 import CreatePassageModal from './CreatePassageModal'
 import UpdatePassageModal from './UpdatePassageModal'
 
@@ -153,10 +154,10 @@ export function PassageList() {
                 try {
                   setDeletingId(record.passageId)
                   await deletePassage(record.passageId)
-                  message.success('Đã xóa passage')
+                  showAdminSuccess('Đã xóa passage')
                   await load()
                 } catch (e) {
-                  message.error(e?.message || 'Xóa passage thất bại')
+                  showAdminError(e?.message || 'Xóa passage thất bại')
                 } finally {
                   setDeletingId(null)
                 }
@@ -260,13 +261,13 @@ export function PassageList() {
               if (!values.imageFile) {
                 throw new Error('MediaType = Hình ảnh: bắt buộc chọn hình ảnh')
               }
-              imageUrl = await uploadQuestionImageToCloudinary(values.imageFile)
+              imageUrl = await uploadPassageImageToCloudinary(values.imageFile)
             } else if (values.mediaType === 2) {
               // Audio: upload audio và gửi vào imageUrl (theo API spec)
               if (!values.audioFile) {
                 throw new Error('MediaType = Audio: bắt buộc chọn audio')
               }
-              imageUrl = await uploadQuestionAudioToCloudinary(values.audioFile)
+              imageUrl = await uploadPassageAudioToCloudinary(values.audioFile)
             }
 
             const payload = {
@@ -277,11 +278,11 @@ export function PassageList() {
             }
 
             await createPassage(payload)
-            message.success('Đã tạo passage')
+            showAdminSuccess('Đã tạo passage')
             setCreateOpen(false)
             await load()
           } catch (e) {
-            message.error(e?.message || 'Tạo passage thất bại')
+            showAdminError(e?.message || 'Tạo passage thất bại')
           } finally {
             setCreating(false)
           }
@@ -328,11 +329,11 @@ export function PassageList() {
             // Nếu không upload file mới, không gửi imageUrl (giữ nguyên DB)
             if (values.mediaType === 1 && values.imageFile) {
               // Upload image mới
-              const imageUrl = await uploadQuestionImageToCloudinary(values.imageFile)
+              const imageUrl = await uploadPassageImageToCloudinary(values.imageFile)
               payload.imageUrl = imageUrl
             } else if (values.mediaType === 2 && values.audioFile) {
               // Upload audio mới
-              const imageUrl = await uploadQuestionAudioToCloudinary(values.audioFile)
+              const imageUrl = await uploadPassageAudioToCloudinary(values.audioFile)
               payload.imageUrl = imageUrl
             }
             // Nếu không có file mới, không gửi imageUrl (giữ nguyên DB theo quy tắc update)
@@ -343,12 +344,12 @@ export function PassageList() {
             }
 
             await updatePassage(payload)
-            message.success('Đã cập nhật passage')
+            showAdminSuccess('Đã cập nhật passage')
             setUpdateOpen(false)
             setSelectedPassage(null)
             await load()
           } catch (e) {
-            message.error(e?.message || 'Cập nhật passage thất bại')
+            showAdminError(e?.message || 'Cập nhật passage thất bại')
           } finally {
             setUpdating(false)
           }

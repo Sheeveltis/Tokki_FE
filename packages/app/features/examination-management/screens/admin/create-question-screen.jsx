@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { useRouter, useSearchParams } from 'solito/navigation'
-import { Card, Form, Space, Typography, message, Divider, Input } from 'antd'
+import { Card, Form, Space, Typography, Divider, Input } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
+import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
 import StaffLayout from '../../../back-office/components/staff/staff-layout.web.jsx'
 import { createQuestion, activateQuestionBanks, submitQuestionBanksForApproval } from '../../api/create-question.js'
@@ -49,18 +50,18 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
 
       // Validate options
       if (!values.options || values.options.length < 2) {
-        message.error('Cần ít nhất 2 đáp án')
+        showAdminError('Cần ít nhất 2 đáp án')
         return
       }
 
       const correctOptions = values.options.filter((a) => a?.isCorrect)
       if (correctOptions.length === 0) {
-        message.error('Cần ít nhất 1 đáp án đúng')
+        showAdminError('Cần ít nhất 1 đáp án đúng')
         return
       }
 
       if (!questionTypeId) {
-        message.error('Vui lòng chọn loại câu hỏi')
+        showAdminError('Vui lòng chọn loại câu hỏi')
         return
       }
 
@@ -117,7 +118,7 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
         await submitQuestionBanksForApproval([createdId])
       }
 
-      message.success('Đã tạo câu hỏi mới thành công')
+      showAdminSuccess('Đã tạo câu hỏi mới thành công')
 
       if (questionTypeId) {
         router.push(`${basePath}/question-type/${questionTypeId}`)
@@ -126,7 +127,7 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
         router.push(`${prefix}?tab=question-bank`)
       }
     } catch (error) {
-      message.error(error.message || 'Tạo câu hỏi thất bại')
+      showAdminError(error.message || 'Tạo câu hỏi thất bại')
     } finally {
       setLoading(false)
     }

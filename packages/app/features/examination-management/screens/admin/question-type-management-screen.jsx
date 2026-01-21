@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Alert, Modal, Form, message } from 'antd'
+import { Alert, Modal, Form } from 'antd'
 import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
+import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import QuestionTypeToolbar from '../../components/admin/question-type-management/QuestionTypeToolbar'
 import QuestionTypeTable from '../../components/admin/question-type-management/QuestionTypeTable'
 import { fetchQuestionTypes } from '../../api/question-type-management.js'
@@ -115,12 +116,12 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
                 isActive: values.isActive ? 1 : 0,
               }
               await createQuestionType(payload)
-              message.success('Đã tạo bộ câu hỏi mới')
+              showAdminSuccess('Đã tạo bộ câu hỏi mới')
               setCreateModalOpen(false)
               // reload list
               setFilters((prev) => ({ ...prev })) // trigger useEffect
             } catch (err) {
-              message.error(err?.message || 'Tạo bộ câu hỏi thất bại')
+              showAdminError(err?.message || 'Tạo bộ câu hỏi thất bại')
             } finally {
               setCreating(false)
             }

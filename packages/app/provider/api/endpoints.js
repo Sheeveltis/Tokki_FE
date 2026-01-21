@@ -200,6 +200,8 @@ export const ENDPOINTS = {
       UPLOAD_OPTION_IMAGE: '/Cloudinary/image/option',
       UPLOAD_QUESTION_AUDIO: '/Cloudinary/audio/question',
       UPLOAD_OPTION_AUDIO: '/Cloudinary/audio/option',
+      UPLOAD_PASSAGE_IMAGE: '/Cloudinary/image/passage',
+      UPLOAD_PASSAGE_AUDIO: '/Cloudinary/audio/passage',
       UPLOAD_BLOG_IMAGE: '/Cloudinary/image/blog',  // POST: Upload ảnh blog lên Cloudinary
     },
     EXCEL: {

@@ -1,8 +1,9 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Modal, Form, Input, Select, Upload, message } from 'antd'
+import { Modal, Form, Input, Select, Upload } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
+import { showAdminError } from '../../../../../../components/HelperAdmin.jsx'
 
 import { createObjectUrl, revokeObjectUrl } from '../../../api/upload-utils'
 
@@ -113,7 +114,7 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
     beforeUpload: (file) => {
       const isImage = file.type.startsWith('image/')
       if (!isImage) {
-        message.error('Chỉ chấp nhận file hình ảnh!')
+        showAdminError('Chỉ chấp nhận file hình ảnh!')
         return Upload.LIST_IGNORE
       }
       form.setFieldsValue({ imageFile: file, imageUrl: null })
@@ -129,7 +130,7 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
     beforeUpload: (file) => {
       const isAudio = file.type.startsWith('audio/')
       if (!isAudio) {
-        message.error('Chỉ chấp nhận file audio!')
+        showAdminError('Chỉ chấp nhận file audio!')
         return Upload.LIST_IGNORE
       }
       form.setFieldsValue({ audioFile: file, imageUrl: null })
@@ -160,7 +161,7 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
             validateBeforeSubmit(values)
             onSubmit?.(values)
           } catch (e) {
-            message.error(e?.message || 'Dữ liệu không hợp lệ')
+            showAdminError(e?.message || 'Dữ liệu không hợp lệ')
           }
         }}
       >
