@@ -182,7 +182,11 @@ export const ENDPOINTS = {
       PROGRESS: (userId) => `/Gamification/progress/${userId}`,  // GET: Lấy thông tin progress (level, XP, streak, title)
     },
     TITLE: {
+      GET_ALL: '/Title',  // GET: Lấy danh sách danh hiệu
       GET_BY_ID: (id) => `/Title/${id}`,  // GET: Lấy thông tin title theo ID
+      CREATE: '/Title',  // POST: Tạo mới danh hiệu
+      UPDATE: (id) => `/Title/${id}`,  // PUT: Cập nhật danh hiệu
+      DELETE: (id) => `/Title/${id}`,  // DELETE: Xóa danh hiệu
     },
     LEADERBOARD: {
       GET_ALL: '/Leaderboard',  // GET: Lấy danh sách leaderboard (query: timeFrame, top)
