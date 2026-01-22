@@ -31,12 +31,29 @@ export function FlashcardFirstLearnScreen({ topicId, title = 'Học lần đầu
     playAudio,
     progress,
     isTopicCompleted,
+    showContinueDialog,
+    hasMoreFlashcards,
+    allWordsCompleted,
+    handleContinueLearning,
+    handleStopLearning,
+    completedInBatch,
+    batchSize,
   } = useFlashcardFirstLearn(topicId)
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
 
   const canContinue = currentStepKey !== 'view' || hasFlippedOnce
+
+  // Nếu đã học hết tất cả từ vựng, tự động quay về danh sách sau 2 giây
+  React.useEffect(() => {
+    if (allWordsCompleted && !showContinueDialog) {
+      const timer = setTimeout(() => {
+        onBackPress?.()
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [allWordsCompleted, showContinueDialog, onBackPress])
 
   return (
     <Layout>
@@ -63,6 +80,13 @@ export function FlashcardFirstLearnScreen({ topicId, title = 'Học lần đầu
         progress={progress}
         flashcards={flashcards}
         isTopicCompleted={isTopicCompleted}
+        showContinueDialog={showContinueDialog}
+        hasMoreFlashcards={hasMoreFlashcards}
+        allWordsCompleted={allWordsCompleted}
+        onContinueLearning={handleContinueLearning}
+        onStopLearning={handleStopLearning}
+        completedInBatch={completedInBatch}
+        batchSize={batchSize}
       />
     </Layout>
   )
