@@ -137,8 +137,8 @@ export function FlashcardListMain({
               subtitle={topic.subtitle}
               highlight={topic.highlight}
               muted={topic.muted}
-              badgeText={topic.isLearned ? 'Đã học' : undefined}
-              showBadge={Boolean(topic.isLearned)}
+              progress={topic.progress ?? 0}
+              showBadge={true}
               onPress={() => onTopicPress?.(topic)}
               compact={true}
             />

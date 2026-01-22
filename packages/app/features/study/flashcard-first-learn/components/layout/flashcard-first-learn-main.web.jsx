@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image, Platform } from 'react-native'
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image, Platform, Modal } from 'react-native'
 import { NavigationPill } from 'components/navigation-pill'
 import { normalizeImageSource } from '../../../api'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
@@ -33,6 +33,13 @@ export function FlashcardFirstLearnMain({
   onPlaySound,
   progress,
   isTopicCompleted,
+  showContinueDialog,
+  hasMoreFlashcards,
+  allWordsCompleted,
+  onContinueLearning,
+  onStopLearning,
+  completedInBatch = 0,
+  batchSize = 5,
 }) {
   // Phím tắt Enter để tiếp tục (web only)
   useEffect(() => {
@@ -262,6 +269,27 @@ export function FlashcardFirstLearnMain({
   }
 
   if (!current) {
+    // Hiển thị thông báo khi đã học hết từ vựng
+    if (allWordsCompleted) {
+      return (
+        <>
+          <View style={styles.headerTop}>
+            <NavigationPill
+              label="Quay lại"
+              icon={ArrowIcon}
+              iconStyle={{ transform: [{ scaleX: -1 }] }}
+              onPress={onBackPress}
+              textStyle={{ fontWeight: '700' }}
+            />
+          </View>
+          <View style={styles.emptyContainer}>
+            <Text style={styles.completedText}>Bạn đã học hết từ vựng!</Text>
+            <Text style={styles.completedSubtext}>Đang chuyển về danh sách từ vựng...</Text>
+          </View>
+        </>
+      )
+    }
+    
     return (
       <>
         <View style={styles.headerTop}>
@@ -311,6 +339,47 @@ export function FlashcardFirstLearnMain({
           </Text>
         </TouchableOpacity>
       )}
+
+      {/* Dialog tiếp tục học */}
+      <Modal
+        visible={showContinueDialog}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={onStopLearning}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {hasMoreFlashcards 
+                ? `Bạn đã học xong ${completedInBatch} từ!` 
+                : 'Bạn đã học hết từ vựng!'}
+            </Text>
+            <Text style={styles.modalMessage}>
+              {hasMoreFlashcards
+                ? 'Bạn có muốn tiếp tục học thêm từ vựng không?'
+                : 'Chúc mừng! Bạn đã hoàn thành tất cả từ vựng trong chủ đề này.'}
+            </Text>
+            <View style={styles.modalButtons}>
+              {hasMoreFlashcards && (
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.modalButtonPrimary]}
+                  onPress={onContinueLearning}
+                >
+                  <Text style={styles.modalButtonText}>Tiếp tục học</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSecondary]}
+                onPress={onStopLearning}
+              >
+                <Text style={[styles.modalButtonText, styles.modalButtonTextSecondary]}>
+                  {hasMoreFlashcards ? 'Dừng lại' : 'Quay lại'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </>
   )
 }
@@ -603,6 +672,71 @@ const styles = StyleSheet.create({
   retryText: { fontSize: 14, fontWeight: '700', color: '#1F1F1F' },
   emptyContainer: { padding: 40, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontSize: 16, color: '#666' },
+  completedText: { fontSize: 24, fontWeight: '800', color: '#4CAF50', marginBottom: 12 },
+  completedSubtext: { fontSize: 16, color: '#666' },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 32,
+    width: '100%',
+    maxWidth: 500,
+    alignItems: 'center',
+    gap: 20,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+    }),
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1F1F1F',
+    textAlign: 'center',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 24,
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+    justifyContent: 'center',
+  },
+  modalButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    minWidth: 140,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(Platform.OS === 'web' && { cursor: 'pointer' }),
+  },
+  modalButtonPrimary: {
+    backgroundColor: '#4CAF50',
+  },
+  modalButtonSecondary: {
+    backgroundColor: '#E0E0E0',
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  modalButtonTextSecondary: {
+    color: '#1F1F1F',
+  },
 })
 
 
