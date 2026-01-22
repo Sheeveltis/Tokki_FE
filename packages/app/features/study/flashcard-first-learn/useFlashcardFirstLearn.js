@@ -27,6 +27,8 @@ export function useFlashcardFirstLearn(topicId) {
   const [hasMoreFlashcards, setHasMoreFlashcards] = useState(true) // Còn từ vựng để học không
   const [allWordsCompleted, setAllWordsCompleted] = useState(false) // Đã học hết tất cả từ vựng
   const [completedInBatch, setCompletedInBatch] = useState(0) // Số từ đã hoàn thành trong batch hiện tại (state để trigger re-render)
+  const [nextBatch, setNextBatch] = useState(null) // Batch tiếp theo đã prefetch (Array | null)
+  const [isCheckingNextBatch, setIsCheckingNextBatch] = useState(false) // Đang kiểm tra batch tiếp theo
 
   const audioRef = useRef(null)
 
@@ -35,6 +37,7 @@ export function useFlashcardFirstLearn(topicId) {
   const completedTopicRef = useRef(false)
   const completedInBatchRef = useRef(0) // Số từ đã hoàn thành đúng (meaning step) trong batch hiện tại
   const batchWordIdsRef = useRef(new Set()) // Set các vocabularyId trong batch hiện tại
+  const prefetchInFlightRef = useRef(false)
 
   const current = queue[index] || null
   const total = queue.length
@@ -84,6 +87,7 @@ export function useFlashcardFirstLearn(topicId) {
       if (base.length === 0) {
         setHasMoreFlashcards(false)
         setAllWordsCompleted(true)
+        setNextBatch(null)
         if (isInitial) {
           setQueue([])
           setOriginalTotal(0)
@@ -91,6 +95,7 @@ export function useFlashcardFirstLearn(topicId) {
       } else {
         setHasMoreFlashcards(true)
         setAllWordsCompleted(false)
+        setNextBatch(null)
         if (isInitial) {
           setQueue(base)
           setOriginalTotal(base.length)
@@ -137,6 +142,23 @@ export function useFlashcardFirstLearn(topicId) {
       }
     }
   }, [topicId])
+
+  const resetForNewBatch = useCallback((base) => {
+    setQueue(base)
+    setOriginalTotal(base.length)
+    setCompletedSteps(0)
+    setIndex(0)
+    setStep(0)
+    setIsFlipped(false)
+    setHasFlippedOnce(false)
+    setUserAnswer('')
+    setShowResult(false)
+    setIsCorrect(false)
+    setStepResults({ listen: null, meaning: null })
+    completedInBatchRef.current = 0
+    setCompletedInBatch(0)
+    batchWordIdsRef.current = new Set(base.map((item) => item.id))
+  }, [])
 
   useEffect(() => {
     fetchFlashcards()
@@ -288,8 +310,36 @@ export function useFlashcardFirstLearn(topicId) {
     const hasCompletedCurrentBatch = completedInBatchRef.current >= batchSize
     
     if (hasCompletedCurrentBatch) {
-      // Đã học xong batch hiện tại, hiển thị dialog để tiếp tục hoặc dừng
-      setShowContinueDialog(true)
+      // Đã học xong batch hiện tại -> prefetch batch tiếp theo trước khi hỏi người dùng
+      if (!prefetchInFlightRef.current) {
+        prefetchInFlightRef.current = true
+        setIsCheckingNextBatch(true)
+        try {
+          const data = await getFlashcardsForStudy(topicId, BATCH_SIZE)
+          const next = Array.isArray(data) ? data : []
+          if (next.length === 0) {
+            setHasMoreFlashcards(false)
+            setAllWordsCompleted(true)
+            setNextBatch(null)
+            setShowContinueDialog(false)
+          } else {
+            setHasMoreFlashcards(true)
+            setAllWordsCompleted(false)
+            setNextBatch(next)
+            setShowContinueDialog(true)
+          }
+        } catch (err) {
+          console.error('Error prefetch next batch:', err)
+          setError(err.message || 'Không thể tải danh sách từ vựng tiếp theo')
+          // vẫn cho user chọn dừng
+          setHasMoreFlashcards(false)
+          setNextBatch(null)
+          setShowContinueDialog(true)
+        } finally {
+          setIsCheckingNextBatch(false)
+          prefetchInFlightRef.current = false
+        }
+      }
       return
     }
 
@@ -313,6 +363,13 @@ export function useFlashcardFirstLearn(topicId) {
   // Hàm xử lý khi người dùng chọn tiếp tục học
   const handleContinueLearning = useCallback(async () => {
     setShowContinueDialog(false)
+    // Nếu đã prefetch sẵn batch mới -> reset màn ngay
+    if (Array.isArray(nextBatch) && nextBatch.length > 0) {
+      resetForNewBatch(nextBatch)
+      setNextBatch(null)
+      return
+    }
+    // Fallback: nếu chưa có prefetch (hoặc lỗi) thì fetch lại
     setLoading(true)
     try {
       await fetchFlashcards(false) // Fetch batch mới
@@ -322,11 +379,12 @@ export function useFlashcardFirstLearn(topicId) {
     } finally {
       setLoading(false)
     }
-  }, [fetchFlashcards])
+  }, [fetchFlashcards, nextBatch, resetForNewBatch])
 
   // Hàm xử lý khi người dùng chọn dừng học
   const handleStopLearning = useCallback(() => {
     setShowContinueDialog(false)
+    setNextBatch(null)
     setAllWordsCompleted(true)
   }, [])
 
@@ -392,6 +450,7 @@ export function useFlashcardFirstLearn(topicId) {
     handleStopLearning,
     completedInBatch, // Số từ đã hoàn thành trong batch hiện tại
     batchSize: batchWordIdsRef.current.size, // Kích thước batch hiện tại
+    isCheckingNextBatch,
   }
 }
 
