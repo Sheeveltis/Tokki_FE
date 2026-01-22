@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
 import { normalizeImageSource } from '../../api'
+import CompleteStamp from '../../../../../assets/icon/decor/complete-stamp.png'
 
 /**
  * FlashcardTopicCard: hiển thị một chủ đề flashcard
@@ -46,11 +47,11 @@ export function FlashcardTopicCard({
       </View>
       {shouldShowBadge ? (
         <View style={[styles.right, compact && styles.rightCompact]}>
-          <View style={[styles.badge, compact && styles.badgeCompact]}>
-            <Text style={[styles.badgeText, compact && styles.badgeTextCompact]}>
-              {badgeText}
-            </Text>
-          </View>
+          <Image
+            source={normalizeImageSource(CompleteStamp)}
+            style={[styles.badgeStamp, compact && styles.badgeStampCompact]}
+            resizeMode="contain"
+          />
         </View>
       ) : null}
     </Pressable>
@@ -158,32 +159,13 @@ const styles = StyleSheet.create({
   rightCompact: {
     width: 60,
   },
-  badge: {
-    minWidth: 50,
-    height: 50,
-    paddingHorizontal: 6,
-    borderRadius: 50,
-    borderWidth: 3,
-    borderColor: '#23ac38',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
+  badgeStamp: {
+    width: 100,
+    height: 100,
   },
-  badgeCompact: {
-    minWidth: 56,
-    height: 40,
-    borderRadius: 20,
-    paddingHorizontal: 10,
-  },
-  badgeText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#23ac38',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  badgeTextCompact: {
-    fontSize: 12,
-    textAlign: 'center',
+  badgeStampCompact: {
+    width: 36,
+    height: 36,
   },
 })
 
