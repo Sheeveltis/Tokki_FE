@@ -27,6 +27,7 @@ export function FlashcardTestScreen({
   onBackPress,
   onClose,
   isFavoritesMode = false,
+  disableSubmit = false,
   forceAnswerMode,
   enableParts = false,
   questionsPerPart = 10,
@@ -68,7 +69,7 @@ export function FlashcardTestScreen({
     currentPartProgress,
     handlePartChange,
     allQuestions,
-  } = useFlashcardTest(topicId, isFavoritesMode, { forceAnswerMode, enableParts, questionsPerPart })
+  } = useFlashcardTest(topicId, isFavoritesMode, { forceAnswerMode, enableParts, questionsPerPart, disableSubmit })
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
