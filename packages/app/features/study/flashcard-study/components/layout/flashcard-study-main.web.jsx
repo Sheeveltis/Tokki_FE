@@ -26,9 +26,7 @@ export function FlashcardStudyMain({
   isLearned,
   favorites,
   onBackPress,
-  onLearnPress,
   onTestPress,
-  onQuizPress,
   onFavoritesPress,
   onFlip,
   onToggleFavorite,
@@ -236,44 +234,33 @@ export function FlashcardStudyMain({
           onPress={onBackPress}
           textStyle={{ fontWeight: '700' }}
         />
-        {onFavoritesPress && (
-          <Pressable style={styles.favoritesButton} onPress={onFavoritesPress}>
-            <Image
-              source={normalizeImageSource(StarIcon)}
-              style={styles.favoritesIcon}
-              resizeMode="contain"
-            />
-            <Text style={styles.favoritesButtonText}>Từ vựng yêu thích</Text>
-          </Pressable>
+        {(onFavoritesPress || onTestPress) && (
+          <View style={styles.headerButtons}>
+            {onFavoritesPress && (
+              <Pressable style={styles.favoritesButton} onPress={onFavoritesPress}>
+                <Image
+                  source={normalizeImageSource(StarIcon)}
+                  style={styles.favoritesIcon}
+                  resizeMode="contain"
+                />
+                <Text style={styles.favoritesButtonText}>Từ vựng yêu thích</Text>
+              </Pressable>
+            )}
+            {onTestPress && (
+              <Pressable style={styles.reviewButton} onPress={onTestPress}>
+                <Image
+                  source={normalizeImageSource(BunnyTest)}
+                  style={styles.reviewIcon}
+                  resizeMode="contain"
+                />
+                <Text style={styles.reviewButtonText}>Ôn tập</Text>
+              </Pressable>
+            )}
+          </View>
         )}
       </View>
       <View>
         <Text style={styles.title}>{title}</Text>
-      </View>
-
-      {/* Action buttons */}
-      <View style={styles.actions}>
-        <View style={styles.actionsLeft}>
-          <FlashcardActionButton
-            icon={BunnyStudy}
-            title="Học thẻ ghi nhớ"
-            onPress={onLearnPress}
-          />
-          {onQuizPress && (
-            <FlashcardActionButton
-              icon={BunnyStudy}
-              title="Học trắc nghiệm"
-              onPress={onQuizPress}
-            />
-          )}
-        </View>
-        <View style={styles.actionsRight}>
-          <FlashcardActionButton
-            icon={BunnyTest}
-            title="Kiểm tra"
-            onPress={onTestPress}
-          />
-        </View>
       </View>
 
       {/* Flashcard */}
@@ -340,6 +327,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
   },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   favoritesButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -363,25 +355,31 @@ const styles = StyleSheet.create({
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
   },
+  reviewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#F1BE4B',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+    }),
+  },
+  reviewIcon: {
+    width: 20,
+    height: 20,
+  },
+  reviewButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
+  },
   title: {
     ...studyStyles.pageTitle,
     flex: 1,
-  },
-  actions: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
-  actionsLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  actionsRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   cardContainer: {
     width: '100%',
