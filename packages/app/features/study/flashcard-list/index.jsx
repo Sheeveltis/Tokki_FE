@@ -46,6 +46,19 @@ export function FlashcardListScreen({
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
 
+  // Wrapper function để kiểm tra progress và điều hướng phù hợp
+  const handleTopicPress = (topic) => {
+    // Nếu progress là 100% (kiểm tra cả số nguyên và số thập phân), điều hướng đến trang study (ôn tập)
+    const progress = topic?.progress ?? 0
+    if (progress >= 100) {
+      // Đánh dấu topic là đã học để onTopicPress điều hướng đến /flashcard/study
+      onTopicPress?.({ ...topic, isLearned: true })
+      return
+    }
+    // Ngược lại, điều hướng như bình thường (học lần đầu)
+    onTopicPress?.(topic)
+  }
+
   return (
     <Layout>
       <Main
@@ -60,7 +73,7 @@ export function FlashcardListScreen({
         selectedLevel={selectedLevel}
         onLevelChange={handleLevelChange}
         onBackPress={onBackPress}
-        onTopicPress={onTopicPress}
+        onTopicPress={handleTopicPress}
         onRetry={fetchTopics}
         onFavoritesPress={onFavoritesPress}
         onLearnedPress={onLearnedPress}
