@@ -26,6 +26,9 @@ export function LearnedVocabularyListMain({
   onPrevPage,
   onNextPage,
   reviewCount = 0,
+  practiceCount = 20,
+  onPracticeCountChange,
+  maxPracticeCount = 0,
   onStartPractice,
 }) {
   // Render loading state
@@ -98,7 +101,7 @@ export function LearnedVocabularyListMain({
             <Text style={styles.instructionsText}>
               Có 2 chế độ ôn tập được hệ thống chọn ngẫu nhiên: (1) Nghe và viết lại từ, (2) Đọc nghĩa và viết lại từ.{'\n'}
               Bạn chỉ cần làm lần lượt cho đến khi hết danh sách — trả lời sai vẫn tiếp tục để giữ nhịp học.{'\n'}
-              Mỗi ngày sẽ có ngẫu nhiên 20 từ vựng để bạn ôn lại.{'\n\n'}
+              Bạn có thể chọn số lượng từ vựng muốn học mỗi lần ôn tập.{'\n\n'}
               Tokki chúc bạn học thật tốt nhé.
             </Text>
           </View>
@@ -114,6 +117,30 @@ export function LearnedVocabularyListMain({
                 ? `Bạn có ${reviewCount} từ vựng cần ôn tập`
                 : 'Bắt đầu học từ vựng'}
             </Text>
+            <View style={styles.practiceCountSelector}>
+              <Text style={styles.practiceCountLabel}>Số lượng từ muốn học:</Text>
+              <View style={styles.practiceCountInputWrapper}>
+                <TextInput
+                  style={styles.practiceCountInput}
+                  value={practiceCount.toString()}
+                  onChangeText={(text) => {
+                    if (text === '') {
+                      onPracticeCountChange(1)
+                      return
+                    }
+                    const num = parseInt(text, 10)
+                    if (!isNaN(num) && num > 0) {
+                      // Giới hạn tối đa là maxPracticeCount
+                      const finalNum = Math.min(num, maxPracticeCount)
+                      onPracticeCountChange(finalNum)
+                    }
+                  }}
+                  keyboardType="numeric"
+                  maxLength={4}
+                />
+                <Text style={styles.practiceCountMax}>/ {maxPracticeCount}</Text>
+              </View>
+            </View>
             <TouchableOpacity 
               style={styles.practiceButton}
               onPress={onStartPractice}
@@ -313,6 +340,43 @@ const styles = StyleSheet.create({
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
+  },
+  practiceCountSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  practiceCountLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  practiceCountInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  practiceCountInput: {
+    width: 70,
+    height: 36,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+  },
+  practiceCountMax: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
   },
   practiceButton: {
     paddingHorizontal: 20,
