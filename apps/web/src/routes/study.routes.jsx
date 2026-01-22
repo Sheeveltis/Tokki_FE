@@ -216,7 +216,7 @@ function FlashcardLearnRoute() {
     <FlashcardFirstLearnScreen
       topicId={topicId}
       title={`Học ${topicTitle}`}
-      onBackPress={() => navigate(`/flashcard/study?topic=${topicId}`)}
+      onBackPress={() => navigate('/flashcard')}
     />
   )
 }
