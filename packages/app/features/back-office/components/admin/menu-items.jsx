@@ -17,6 +17,7 @@ import {
   FormOutlined,
   QuestionCircleOutlined,
   FileDoneOutlined,
+  TrophyOutlined,
 } from '@ant-design/icons'
 
 export const adminMenuItems = [
@@ -27,6 +28,7 @@ export const adminMenuItems = [
     children: [
       { key: 'users-admin', icon: <TeamOutlined />, label: 'Admin & Staff' },
       { key: 'users-all', icon: <UserOutlined />, label: 'Tất cả Users' },
+      { key: 'title-management', icon: <TrophyOutlined />, label: 'Quản lí danh hiệu' },
     ],
   },
   {
