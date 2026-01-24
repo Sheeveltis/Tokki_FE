@@ -208,6 +208,7 @@ export const ENDPOINTS = {
       UPLOAD_PASSAGE_IMAGE: '/Cloudinary/image/passage',
       UPLOAD_PASSAGE_AUDIO: '/Cloudinary/audio/passage',
       UPLOAD_BLOG_IMAGE: '/Cloudinary/image/blog',  // POST: Upload ảnh blog lên Cloudinary
+      UPLOAD_TITLE_IMAGE: '/Cloudinary/image/title',  // POST: Upload ảnh title lên Cloudinary
     },
     EXCEL: {
       ADD_VOCAB_TO_TOPIC: (topicId) => `/Excel/import/vocab?topicId=${topicId}`,  // POST: Import từ vựng từ Excel vào chủ đề
@@ -215,7 +216,9 @@ export const ENDPOINTS = {
     },
     EMAIL: {
       CAMPAIGNS_CREATE: '/email-campaigns',           // POST: Tạo chiến dịch email thủ công
+      CAMPAIGNS_LIST: '/email-campaigns',             // GET: Lấy lịch sử chiến dịch email (query: PageNumber, PageSize, Status, TargetGroup, ScheduledFrom, ScheduledTo, CreatedFrom, CreatedTo)
       TEMPLATE_CREATE: '/EmailTemplate',              // POST: Tạo email template tự động
+      TEMPLATE_LIST: '/EmailTemplate',                // GET: Lấy danh sách email template (query: PageNumber, PageSize, Status, Type, TargetGroup, Value, SearchName, SearchSubject)
     },
     EXAM_TEMPLATES: {
       ADMIN_LIST: '/ExamTemplates/admin',              // GET: Lấy danh sách exam templates cho admin (query: PageNumber, PageSize, SearchTerm, Status, Type)

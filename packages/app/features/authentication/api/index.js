@@ -145,14 +145,22 @@ export const login = async ({ email, password }) => {
     }
 
     // Gọi API
+    console.log('[Login API] Calling:', ENDPOINTS.ACCOUNT.LOGIN)
+    console.log('[Login API] Payload:', { email, password: '***' })
     const response = await apiClient.post(ENDPOINTS.ACCOUNT.LOGIN, {
       email,
       password,
     })
+    console.log('[Login API] Response:', response.data)
 
     // Trả về response từ API (đã được format sẵn)
     return response.data
   } catch (error) {
+    console.error('[Login API] Error:', error)
+    console.error('[Login API] Error response:', error.response)
+    console.error('[Login API] Error status:', error.response?.status)
+    console.error('[Login API] Error data:', error.response?.data)
+    
     // Nếu backend có trả về body chuẩn thì ưu tiên dùng luôn
     if (error.response?.data) {
       return error.response.data

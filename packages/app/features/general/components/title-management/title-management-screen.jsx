@@ -6,6 +6,7 @@ import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import { fetchTitles, createTitle, updateTitle, deleteTitle } from '../../api/title'
+import { uploadTitleImageToCloudinary } from '../../../back-office/api/cloudinary'
 import CreateTitleModal from './CreateTitleModal'
 import UpdateTitleModal from './UpdateTitleModal'
 
@@ -96,19 +97,14 @@ export function TitleManagementScreen() {
         title: 'Icon',
         dataIndex: 'iconUrl',
         key: 'iconUrl',
-        width: 140,
+        width: 80,
         render: (val) =>
           val ? (
-            <Space>
-              <img
-                src={val}
-                alt="icon"
-                style={{ width: 24, height: 24, objectFit: 'contain', borderRadius: 4, border: '1px solid #d9d9d9' }}
-              />
-              <Text type="secondary" style={{ maxWidth: 140 }} ellipsis>
-                {val}
-              </Text>
-            </Space>
+            <img
+              src={val}
+              alt="icon"
+              style={{ width: 40, height: 40, objectFit: 'contain', borderRadius: 4, border: '1px solid #d9d9d9' }}
+            />
           ) : (
             '-'
           ),
@@ -177,8 +173,31 @@ export function TitleManagementScreen() {
   const handleCreate = async (payload) => {
     try {
       setCreating(true)
-      await createTitle(payload)
-      showAdminSuccess('Đã tạo danh hiệu mới thành công')
+      
+      // Upload ảnh lên Cloudinary nếu có iconFile
+      let iconUrl = payload.iconUrl
+      if (payload.iconFile) {
+        try {
+          const uploadResult = await uploadTitleImageToCloudinary(payload.iconFile)
+          iconUrl = uploadResult?.url || uploadResult?.secureUrl || uploadResult
+        } catch (uploadError) {
+          showAdminError(uploadError?.message || 'Không thể upload ảnh lên Cloudinary')
+          return
+        }
+      }
+
+      // Tạo payload cuối cùng với iconUrl từ Cloudinary
+      const finalPayload = {
+        name: payload.name,
+        description: payload.description,
+        requiredXP: payload.requiredXP,
+        colorHex: payload.colorHex,
+        iconUrl: iconUrl || '',
+        isSystemGiven: payload.isSystemGiven,
+      }
+
+      const result = await createTitle(finalPayload)
+      showAdminSuccess(result?.message || 'Đã tạo danh hiệu mới thành công')
       setCreateOpen(false)
       await loadData()
     } catch (e) {
@@ -196,8 +215,31 @@ export function TitleManagementScreen() {
         showAdminError('Không tìm thấy ID danh hiệu')
         return
       }
-      await updateTitle(titleId, payload)
-      showAdminSuccess('Đã cập nhật danh hiệu thành công')
+
+      // Upload ảnh lên Cloudinary nếu có iconFile mới
+      let iconUrl = payload.iconUrl || selectedTitle?.iconUrl
+      if (payload.iconFile) {
+        try {
+          const uploadResult = await uploadTitleImageToCloudinary(payload.iconFile)
+          iconUrl = uploadResult?.url || uploadResult?.secureUrl || uploadResult
+        } catch (uploadError) {
+          showAdminError(uploadError?.message || 'Không thể upload ảnh lên Cloudinary')
+          return
+        }
+      }
+
+      // Tạo payload cuối cùng với iconUrl từ Cloudinary
+      const finalPayload = {
+        name: payload.name,
+        description: payload.description,
+        requiredXP: payload.requiredXP,
+        colorHex: payload.colorHex,
+        iconUrl: iconUrl || '',
+        isSystemGiven: payload.isSystemGiven,
+      }
+
+      const result = await updateTitle(titleId, finalPayload)
+      showAdminSuccess(result?.message || 'Đã cập nhật danh hiệu thành công')
       setUpdateOpen(false)
       setSelectedTitle(null)
       await loadData()
@@ -217,8 +259,8 @@ export function TitleManagementScreen() {
 
     try {
       setDeletingId(titleId)
-      await deleteTitle(titleId)
-      showAdminSuccess('Đã xóa danh hiệu thành công')
+      const result = await deleteTitle(titleId)
+      showAdminSuccess(result?.message || 'Đã xóa danh hiệu thành công')
       await loadData()
     } catch (e) {
       showAdminError(e?.message || 'Không thể xóa danh hiệu')

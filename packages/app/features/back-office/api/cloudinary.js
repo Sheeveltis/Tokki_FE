@@ -37,3 +37,6 @@ export const uploadPassageAudioToCloudinary = (file) =>
 export const uploadPassageImageToCloudinary = (file) =>
   postCloudinary(ENDPOINTS.CLOUDINARY.UPLOAD_PASSAGE_IMAGE, file)
 
+export const uploadTitleImageToCloudinary = (file) =>
+  postCloudinary(ENDPOINTS.CLOUDINARY.UPLOAD_TITLE_IMAGE, file)
+
