@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react'
-import { Card, Typography, message } from 'antd'
+import { Card, Typography, Tabs } from 'antd'
+import { showAdminSuccess, showAdminError } from '../../../../../../components/HelperAdmin.jsx'
 import { submitQuestionBanksForApproval, approveQuestionBanks, rejectQuestionBanks } from '../../../api/create-question.js'
 import { getCurrentUserRole } from '../../../../../provider/api/client.js'
 import { QuestionFilter } from '../question-bank-management/QuestionFilter'
 import { QuestionCardList } from '../question-bank-management/QuestionCardList'
 
 const { Title } = Typography
+
+const QUESTION_BANK_STATUS = {
+  DRAFT: 0,
+  ACTIVE: 1,
+  DELETED: 2,
+  PENDING_APPROVAL: 3,
+  REJECTED: 4,
+  ASSIGNED: 5,
+}
 
 export function QuestionListSection({
   title,
@@ -84,20 +94,20 @@ export function QuestionListSection({
       .filter(Boolean)
 
     if (questionBankIds.length === 0) {
-      message.error('Không tìm thấy ID câu hỏi để gửi duyệt')
+      showAdminError('Không tìm thấy ID câu hỏi để gửi duyệt')
       return
     }
 
     try {
       setSubmitting(true)
       await submitQuestionBanksForApproval(questionBankIds)
-      message.success(`Đã gửi ${questionBankIds.length} câu hỏi để phê duyệt`)
+      showAdminSuccess(`Đã gửi ${questionBankIds.length} câu hỏi để phê duyệt`)
       setSelectedQuestions(new Set())
       if (onRefresh) {
         onRefresh()
       }
     } catch (error) {
-      message.error(error?.message || 'Gửi duyệt thất bại')
+      showAdminError(error?.message || 'Gửi duyệt thất bại')
     } finally {
       setSubmitting(false)
     }
@@ -135,14 +145,14 @@ export function QuestionListSection({
         await rejectQuestionBanks([item.questionId], item.reason)
       }
 
-      message.success(`Đã xử lý ${approveIds.length} duyệt, ${rejectItems.length} từ chối`)
+      showAdminSuccess(`Đã xử lý ${approveIds.length} duyệt, ${rejectItems.length} từ chối`)
       setApprovalStatuses({})
       setRejectReasons({})
       if (onRefresh) {
         onRefresh()
       }
     } catch (error) {
-      message.error(error?.message || 'Xử lý phê duyệt thất bại')
+      showAdminError(error?.message || 'Xử lý phê duyệt thất bại')
     } finally {
       setSubmitting(false)
     }
@@ -151,15 +161,59 @@ export function QuestionListSection({
   // Đếm số câu hỏi đã chọn duyệt/từ chối
   const approvalCount = Object.values(approvalStatuses).filter((s) => s === 'approve' || s === 'reject').length
 
+  // Tabs: All vs Pending Approval
+  const tabItems = [
+    { key: 'all', label: 'Tất cả các câu hỏi' },
+    { key: 'pending', label: 'Các câu hỏi đang chờ duyệt' },
+  ]
+
+  const activeTabKey =
+    filters.status === QUESTION_BANK_STATUS.PENDING_APPROVAL ? 'pending' : 'all'
+
+  const handleTabChange = (key) => {
+    const nextStatus = key === 'pending' ? QUESTION_BANK_STATUS.PENDING_APPROVAL : null
+    onFilterChange?.({
+      ...filters,
+      status: nextStatus,
+    })
+  }
+
+  // Filter data based on active tab
+  const filteredData =
+    activeTabKey === 'pending'
+      ? (data || []).filter((q) => (q.status ?? null) === QUESTION_BANK_STATUS.PENDING_APPROVAL)
+      : (data || []).filter((q) => (q.status ?? null) !== QUESTION_BANK_STATUS.PENDING_APPROVAL)
+
+  const displayTotal = filteredData.length
+
   return (
     <Card>
       <Title level={4} style={{ marginBottom: 16 }}>
-        {title} ({total})
+        {title} ({displayTotal})
       </Title>
+
+      <Tabs
+        items={tabItems}
+        activeKey={activeTabKey}
+        onChange={handleTabChange}
+        style={{ marginBottom: 12 }}
+      />
 
       <QuestionFilter 
         filters={filters} 
-        onFilterChange={onFilterChange} 
+        onFilterChange={(next) => {
+          // Ở tab "pending": luôn giữ status = PendingApproval, không cho chọn status khác
+          if (activeTabKey === 'pending') {
+            onFilterChange?.({ ...next, status: QUESTION_BANK_STATUS.PENDING_APPROVAL })
+            return
+          }
+          // Ở tab "all": không cho chọn PendingApproval (đã có tab riêng), chuyển về null
+          if (next.status === QUESTION_BANK_STATUS.PENDING_APPROVAL) {
+            onFilterChange?.({ ...next, status: null })
+            return
+          }
+          onFilterChange?.(next)
+        }} 
         onSearchChange={onSearchChange}
         // Staff: nút gửi duyệt
         onSubmitSelectedForApproval={isStaff ? handleSubmitSelectedForApproval : null}
@@ -168,10 +222,13 @@ export function QuestionListSection({
         onConfirmApproval={isAdmin ? handleConfirmApproval : null}
         approvalCount={approvalCount}
         submitting={submitting}
+        // Ẩn filter status ở tab pending; ở tab all thì bỏ option pending
+        hideStatusFilter={activeTabKey === 'pending'}
+        hidePendingOption={activeTabKey === 'all'}
       />
 
       <QuestionCardList
-        data={data}
+        data={filteredData}
         loading={loading}
         onDeleted={onDeleted}
         onRefresh={onRefresh}

@@ -4,6 +4,7 @@ import { FlashcardTopicCard } from '../../../components/shared'
 import { NavigationPill } from '../../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
 import StarIcon from '../../../../../../assets/icon/icon-mainflow/star.svg'
+import BookIcon from '../../../../../../assets/icon/navigate-app/book.svg'
 import { normalizeImageSource } from '../../../api'
 import { studyStyles } from '../../../styles'
 import { LoadingWithContainer } from '../../../../../../components/Loading'
@@ -26,6 +27,7 @@ export function FlashcardListMain({
   onTopicPress,
   onRetry,
   onFavoritesPress,
+  onLearnedPress,
   pageNumber,
   canNextPage,
   onPrevPage,
@@ -62,6 +64,7 @@ export function FlashcardListMain({
               textStyle={{ fontWeight: '700' }}
             />
           </View>
+        <View style={styles.headerButtons}>
           {onFavoritesPress ? (
             <Pressable style={styles.favoritesButton} onPress={onFavoritesPress}>
               <Image
@@ -72,8 +75,19 @@ export function FlashcardListMain({
               <Text style={styles.favoritesButtonText}>Từ vựng yêu thích</Text>
             </Pressable>
           ) : null}
+          {onLearnedPress ? (
+            <Pressable style={styles.learnedButton} onPress={onLearnedPress}>
+              <Image
+                source={normalizeImageSource(BookIcon)}
+                style={styles.learnedIcon}
+                resizeMode="contain"
+              />
+              <Text style={styles.learnedButtonText}>Từ vựng đã học</Text>
+            </Pressable>
+          ) : null}
         </View>
-        <View style={styles.titleContainer}>
+      </View>
+      <View style={styles.titleContainer}>
           {title ? <Text style={styles.title}>{title}</Text> : null}
         </View>
         <View style={styles.errorContainer}>
@@ -99,16 +113,28 @@ export function FlashcardListMain({
             textStyle={{ fontWeight: '700' }}
           />
         </View>
-        {onFavoritesPress ? (
-          <Pressable style={styles.favoritesButton} onPress={onFavoritesPress}>
-            <Image
-              source={normalizeImageSource(StarIcon)}
-              style={styles.favoritesIcon}
-              resizeMode="contain"
-            />
-            <Text style={styles.favoritesButtonText}>Từ vựng yêu thích</Text>
-          </Pressable>
-        ) : null}
+        <View style={styles.headerButtons}>
+          {onFavoritesPress ? (
+            <Pressable style={styles.favoritesButton} onPress={onFavoritesPress}>
+              <Image
+                source={normalizeImageSource(StarIcon)}
+                style={styles.favoritesIcon}
+                resizeMode="contain"
+              />
+              <Text style={styles.favoritesButtonText}>Từ vựng yêu thích</Text>
+            </Pressable>
+          ) : null}
+          {onLearnedPress ? (
+            <Pressable style={styles.learnedButton} onPress={onLearnedPress}>
+              <Image
+                source={normalizeImageSource(BookIcon)}
+                style={styles.learnedIcon}
+                resizeMode="contain"
+              />
+              <Text style={styles.learnedButtonText}>Ôn tập từ vựng</Text>
+            </Pressable>
+          ) : null}
+        </View>
       </View>
       <View style={styles.titleContainer}>
         {title ? <Text style={styles.title}>{title}</Text> : null}
@@ -193,8 +219,9 @@ export function FlashcardListMain({
               subtitle={topic.subtitle}
               highlight={topic.highlight}
               muted={topic.muted}
-              badgeText="펀"
-              onPress={() => onTopicPress?.(topic.id)}
+              progress={topic.progress ?? 0}
+              showBadge={true}
+              onPress={() => onTopicPress?.(topic)}
             />
           ))
         )}
@@ -251,6 +278,12 @@ const styles = StyleSheet.create({
     ...studyStyles.pageTitle,
     textAlign: 'center',
   },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 0,
+  },
   favoritesButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -259,10 +292,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     backgroundColor: '#F1BE4B',
-    flexShrink: 0,
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
     }),
+  },
+  learnedButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#F1BE4B',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+    }),
+  },
+  learnedIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#1F1F1F',
+  },
+  learnedButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
   },
   favoritesIcon: {
     width: 20,
@@ -426,9 +481,9 @@ const styles = StyleSheet.create({
     color: '#1F1F1F',
   },
   listContainer: {
-    width: '90%',
-    maxWidth: 1200,
-    gap: 16,
+    width: '80%',
+    maxWidth: '100%',
+    gap: 30,
   },
   errorContainer: {
     flex: 1,

@@ -23,9 +23,9 @@ export default function AccountManage({ mode = 'all', basePath = '/admin', initi
   const [selectedUserId, setSelectedUserId] = useState(null)
   const [showDetail, setShowDetail] = useState(false)
 
-  const isAdminStaffRole = (role) => [1, 2].includes(Number(role))
+  const isAdminStaffRole = (role) => [1, 2, 4].includes(Number(role))
   // Người dùng + Thành viên VIP (theo mô tả: 0 & 3; chấp nhận 4 nếu BE dùng)
-  const isUserRole = (role) => [0, 3, 4].includes(Number(role))
+  const isUserRole = (role) => [0, 3].includes(Number(role))
 
   const loadUsers = async ({ page = pageNumber, size = pageSize, q = search } = {}) => {
     try {

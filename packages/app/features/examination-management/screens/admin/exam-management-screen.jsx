@@ -43,7 +43,7 @@ export function ExamManagement({ initialData = null }) {
           active: { color: 'blue', text: 'Đang hoạt động' },
         }
         const statusInfo = statusMap[status] || { color: 'default', text: status }
-        return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>
+        return <Tag color={statusInfo.color} style={{ fontSize: 12 }}>{statusInfo.text}</Tag>
       }
     },
     { title: 'Số câu hỏi', dataIndex: 'questionCount', key: 'questionCount' },

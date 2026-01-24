@@ -12,7 +12,6 @@ import {
   searchVocabulariesForTopic,
   addVocabulariesToTopicAndReload,
   removeVocabulariesFromTopicAndReload,
-  publishTopic,
   updateFlashcardTopic,
   deleteTopic,
   uploadTopicImageToCloudinary,
@@ -30,6 +29,7 @@ import FlashcardTopicEditModal from '../../components/admin/vocab-topic-detail/v
 import QuickAddVocabularyModal from '../../components/admin/vocab-topic-detail/quick-add-vocabulary-modal'
 import VocabularyGuideModal from '../../components/admin/vocab-topic-detail/vocabulary-guide-modal'
 import TopicApprovalModal from '../../components/admin/vocab-topic-detail/topic-approval-modal'
+import TopicStatusChangeModal from '../../components/admin/vocab-topic-detail/topic-status-change-modal'
 
 const { Title, Text } = Typography
 
@@ -64,7 +64,6 @@ export function FlashcardTopicDetailScreen() {
   const [detailTopic, setDetailTopic] = useState(null)
   const [adding, setAdding] = useState(false)
   const [removing, setRemoving] = useState(false)
-  const [publishing, setPublishing] = useState(false)
   const [submittingForApproval, setSubmittingForApproval] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [editLoading, setEditLoading] = useState(false)
@@ -76,6 +75,10 @@ export function FlashcardTopicDetailScreen() {
   const [guideModalOpen, setGuideModalOpen] = useState(false)
   const [approvalModalOpen, setApprovalModalOpen] = useState(false)
   const [approvalLoading, setApprovalLoading] = useState(false)
+  const [topicIdForApproval, setTopicIdForApproval] = useState(null)
+  const [approvalType, setApprovalType] = useState('approve')
+  const [statusChangeModalOpen, setStatusChangeModalOpen] = useState(false)
+  const [statusChangeLoading, setStatusChangeLoading] = useState(false)
   const [excelImportResult, setExcelImportResult] = useState(null)
   const searchTimeoutRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -369,54 +372,6 @@ export function FlashcardTopicDetailScreen() {
     }
   }
 
-  const handlePublish = () => {
-    if (!topicId) return
-
-    Modal.confirm({
-      title: 'Xác nhận công khai chủ đề',
-      content: `Bạn chắc chắn muốn công khai chủ đề "${detailTopic?.title || detailTopic?._raw?.topicName || topicId}"?`,
-      okText: 'Công khai',
-      cancelText: 'Hủy',
-      okButtonProps: { type: 'primary' },
-      onOk: async () => {
-        try {
-          setPublishing(true)
-          setApiResponse(null)
-
-          await publishTopic(topicId)
-
-          // Reload lại chi tiết chủ đề từ API để hiển thị dữ liệu mới nhất
-          try {
-            const refreshedDetail = await fetchFlashcardTopicDetail(topicId)
-            if (refreshedDetail?.topic) {
-              setDetailTopic(refreshedDetail.topic)
-              setTopicVocabIds(refreshedDetail.topic.vocabIds || [])
-              setTopicVocabularies(refreshedDetail.vocabularies || [])
-            }
-          } catch (reloadError) {
-            console.error('Error reloading topic detail:', reloadError)
-          }
-
-          setApiResponse({
-            isSuccess: true,
-            message: 'Công khai chủ đề thành công',
-            statusCode: 200,
-          })
-        } catch (err) {
-          console.error('Error publishing topic:', err)
-          setApiResponse({
-            isSuccess: false,
-            message: err?.message || err?.errors?.[0]?.description || 'Công khai chủ đề thất bại',
-            errors: err?.errors || [],
-            statusCode: err?.statusCode || 500,
-          })
-        } finally {
-          setPublishing(false)
-        }
-      },
-    })
-  }
-
   const handleSubmitForApproval = async () => {
     const topicStatus = detailTopic?._raw?.status ?? detailTopic?.status
     const isDraft = topicStatus === 0
@@ -483,8 +438,81 @@ export function FlashcardTopicDetailScreen() {
     }
   }
 
-  const handleApproval = async (values) => {
+  const handleOpenApprovalModal = (type) => {
     const topicIdForApproval = detailTopic?.id || detailTopic?._raw?.topicId
+    if (!topicIdForApproval) {
+      showAdminError('Không tìm thấy ID chủ đề')
+      return
+    }
+    setTopicIdForApproval(topicIdForApproval)
+    setApprovalType(type)
+    setApprovalModalOpen(true)
+  }
+
+  const handleStatusChange = async (values) => {
+    if (!topicId) {
+      showAdminError('Không tìm thấy ID chủ đề')
+      return
+    }
+
+    const newStatus = values.status
+    const currentStatus = detailTopic?._raw?.status ?? detailTopic?.status
+
+    if (newStatus === currentStatus) {
+      showAdminError('Trạng thái đã được chọn')
+      setStatusChangeModalOpen(false)
+      return
+    }
+
+    setStatusChangeLoading(true)
+    setApiResponse(null)
+
+    try {
+      await updateFlashcardTopic(topicId, {
+        status: newStatus,
+      })
+
+      // Reload lại chi tiết chủ đề sau khi chuyển trạng thái
+      try {
+        const refreshedDetail = await fetchFlashcardTopicDetail(topicId)
+        if (refreshedDetail?.topic) {
+          setDetailTopic(refreshedDetail.topic)
+          setTopicVocabIds(refreshedDetail.topic.vocabIds || [])
+          setTopicVocabularies(refreshedDetail.vocabularies || [])
+        }
+      } catch (reloadError) {
+        console.error('Error reloading topic detail after status change:', reloadError)
+      }
+
+      const statusLabels = {
+        0: 'Bản nháp',
+        1: 'Đang hoạt động',
+        2: 'Đã xóa',
+        3: 'Chờ phê duyệt',
+        4: 'Bị từ chối phê duyệt',
+      }
+
+      setApiResponse({
+        isSuccess: true,
+        message: `Chuyển trạng thái sang "${statusLabels[newStatus]}" thành công`,
+        statusCode: 200,
+      })
+      setStatusChangeModalOpen(false)
+    } catch (err) {
+      console.error('Error changing topic status:', err)
+      const errorMessage = err?.message || err?.errors?.[0]?.description || 'Không thể chuyển trạng thái chủ đề'
+      setApiResponse({
+        isSuccess: false,
+        message: errorMessage,
+        errors: err?.errors || [],
+        statusCode: err?.statusCode || err?.status || 500,
+      })
+    } finally {
+      setStatusChangeLoading(false)
+    }
+  }
+
+  const handleApproval = async (values) => {
     if (!topicIdForApproval) {
       showAdminError('Không tìm thấy ID chủ đề')
       return
@@ -545,6 +573,7 @@ export function FlashcardTopicDetailScreen() {
           statusCode: 200,
         })
         setApprovalModalOpen(false)
+        setTopicIdForApproval(null)
       }
     } catch (err) {
       console.error('Error approving/rejecting topic:', err)
@@ -793,13 +822,13 @@ export function FlashcardTopicDetailScreen() {
                       style={{ minWidth: 110, paddingVertical: 10 }}
                       textStyle={{ fontSize: 14 }}
                     />
-                    {isPendingApproval && isModerator && !isDeleted && (
+                    {!isDeleted && isAdmin && (
                       <ButtonV2
-                        title="Phê duyệt"
+                        title="Chuyển trạng thái"
                         color="sage"
-                        onPress={() => setApprovalModalOpen(true)}
-                        disabled={approvalLoading}
-                        style={{ minWidth: 120, paddingVertical: 10 }}
+                        onPress={() => setStatusChangeModalOpen(true)}
+                        disabled={statusChangeLoading}
+                        style={{ minWidth: 140, paddingVertical: 10 }}
                         textStyle={{ fontSize: 14 }}
                       />
                     )}
@@ -810,16 +839,6 @@ export function FlashcardTopicDetailScreen() {
                         onPress={handleSubmitForApproval}
                         disabled={submittingForApproval}
                         style={{ minWidth: 140, paddingVertical: 10 }}
-                        textStyle={{ fontSize: 14 }}
-                      />
-                    )}
-                    {isDraft && !isDeleted && isAdmin && (
-                      <ButtonV2
-                        title={publishing ? 'Đang công khai...' : 'Công khai'}
-                        color="sage"
-                        onPress={handlePublish}
-                        disabled={publishing}
-                        style={{ minWidth: 120, paddingVertical: 10 }}
                         textStyle={{ fontSize: 14 }}
                       />
                     )}
@@ -855,7 +874,16 @@ export function FlashcardTopicDetailScreen() {
           </Space>
 
           <HelperAdmin response={apiResponse} />
-          <TopicInfoCard topic={detailTopic} />
+          <TopicInfoCard 
+            topic={detailTopic} 
+            isAdmin={(() => {
+              const userRole = getCurrentUserRole()
+              return userRole === 'Admin'
+            })()}
+            onApprove={() => handleOpenApprovalModal('approve')}
+            onReject={() => handleOpenApprovalModal('reject')}
+            approvalLoading={approvalLoading}
+          />
           <FlashcardTopicEditModal
             open={editOpen}
             loading={editLoading}
@@ -930,8 +958,20 @@ export function FlashcardTopicDetailScreen() {
           <TopicApprovalModal
             open={approvalModalOpen}
             loading={approvalLoading}
-            onCancel={() => setApprovalModalOpen(false)}
+            initialApprovalType={approvalType}
+            onCancel={() => {
+              setApprovalModalOpen(false)
+              setTopicIdForApproval(null)
+              setApprovalType('approve')
+            }}
             onSubmit={handleApproval}
+          />
+          <TopicStatusChangeModal
+            open={statusChangeModalOpen}
+            loading={statusChangeLoading}
+            currentStatus={detailTopic?._raw?.status ?? detailTopic?.status}
+            onCancel={() => setStatusChangeModalOpen(false)}
+            onSubmit={handleStatusChange}
           />
         </Space>
       </div>

@@ -19,6 +19,7 @@ export function FlashcardListLayout({ children }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    minHeight: '100%',
     backgroundColor: '#FFD7D0',
     alignItems: 'center',
     justifyContent: 'flex-start',
@@ -26,7 +27,8 @@ const styles = StyleSheet.create({
   },
   contentWrapper: {
     width: '70%',
-    maxWidth: 1200,
+    maxWidth: '100%',
+    minHeight: '90vh',
     alignItems: 'center',
     backgroundColor: '#F5F0DD',
     paddingVertical: 24,

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
 import { normalizeImageSource } from '../../api'
+import CompleteStamp from '../../../../../assets/icon/decor/complete-stamp.png'
 
 /**
  * FlashcardTopicCard: hiển thị một chủ đề flashcard
@@ -15,8 +16,12 @@ export function FlashcardTopicCard({
   onPress,
   compact = false,
   showBadge = true,
+  progress = 0,
 }) {
   const [hovered, setHovered] = useState(false)
+  const shouldShowBadge = showBadge && (!compact || Platform.OS !== 'web')
+  const isComplete = progress >= 100
+  const showProgress = !isComplete
 
   return (
     <Pressable
@@ -43,11 +48,19 @@ export function FlashcardTopicCard({
         <Text style={[styles.title, compact && styles.titleCompact]}>{title}</Text>
         <Text style={[styles.subtitle, compact && styles.subtitleCompact]}>{subtitle}</Text>
       </View>
-      {showBadge && !compact ? (
-        <View style={styles.right}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{badgeText}</Text>
-          </View>
+      {shouldShowBadge ? (
+        <View style={[styles.right, compact && styles.rightCompact]}>
+          {isComplete ? (
+            <Image
+              source={normalizeImageSource(CompleteStamp)}
+              style={[styles.badgeStamp, compact && styles.badgeStampCompact]}
+              resizeMode="contain"
+            />
+          ) : showProgress ? (
+            <Text style={[styles.progressText, compact && styles.progressTextCompact]}>
+              {progress}%
+            </Text>
+          ) : null}
         </View>
       ) : null}
     </Pressable>
@@ -140,6 +153,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 15,
+    lineHeight: 24,
     color: '#333',
     fontFamily: 'Epilogue, sans-serif',
   },
@@ -151,21 +165,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  badge: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 2,
-    borderColor: '#C45A32',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FDE7D4',
+  rightCompact: {
+    width: 60,
   },
-  badgeText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#C45A32',
+  badgeStamp: {
+    width: 100,
+    height: 100,
+  },
+  badgeStampCompact: {
+    width: 36,
+    height: 36,
+  },
+  progressText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
+  },
+  progressTextCompact: {
+    fontSize: 14,
+    fontWeight: '700',
   },
 })
 

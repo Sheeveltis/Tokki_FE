@@ -132,6 +132,7 @@ export const ENDPOINTS = {
       STAFF_SUBMIT_FOR_APPROVAL: (topicId) => `/Topics/staff/submit-for-approval/${topicId}`,
       MODERATOR_APPROVE: (topicId) => `/Topics/moderator/approve-topic/${topicId}`,
       MODERATOR_REJECT: (topicId) => `/Topics/moderator/reject-topic/${topicId}`,
+      USER_STUDY: '/Topics/user/study', // GET: Lấy danh sách từ vựng để học (query: topicId, count)
     },
     VOCABULARY: {
       ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
@@ -172,7 +173,9 @@ export const ENDPOINTS = {
       REMOVE: '/Favorites',    // DELETE: Xóa khỏi danh sách yêu thích
     },
     SPACED_REPETITION: {
-      SUBMIT: '/spaced-repetition/submit',  // POST: Submit kết quả học tập
+      SUBMIT: '/SpacedRepetition/submit',  // POST: Submit kết quả học tập (body: { vocabularyId, isCorrect } hoặc { vocabularyId, quality })
+      GET_LEARNED: '/SpacedRepetition/vocab-for-review',  // GET: Lấy danh sách từ vựng đã học (query: limit)
+      COMPLETE_TOPIC: '/SpacedRepetition/complete-topic', // POST: Hoàn thành tiến độ học topic
     },
     GAMIFICATION: {
       HEARTBEAT: '/Gamification/heartbeat',  // POST: Heartbeat để track thời gian học tập
@@ -198,11 +201,13 @@ export const ENDPOINTS = {
       UPLOAD_OPTION_IMAGE: '/Cloudinary/image/option',
       UPLOAD_QUESTION_AUDIO: '/Cloudinary/audio/question',
       UPLOAD_OPTION_AUDIO: '/Cloudinary/audio/option',
+      UPLOAD_PASSAGE_IMAGE: '/Cloudinary/image/passage',
+      UPLOAD_PASSAGE_AUDIO: '/Cloudinary/audio/passage',
       UPLOAD_BLOG_IMAGE: '/Cloudinary/image/blog',  // POST: Upload ảnh blog lên Cloudinary
     },
     EXCEL: {
-      ADD_VOCAB_TO_TOPIC: (topicId) => `/Excel/add-vocab?topicId=${topicId}`,  // POST: Import từ vựng từ Excel vào chủ đề
-      EXPORT_BY_TOPIC: (topicId) => `/Excel/export-by-topic/${topicId}`,  // GET: Export từ vựng của chủ đề ra Excel
+      ADD_VOCAB_TO_TOPIC: (topicId) => `/Excel/import/vocab?topicId=${topicId}`,  // POST: Import từ vựng từ Excel vào chủ đề
+      EXPORT_BY_TOPIC: (topicId) => `/Excel/export/topic/${topicId}`,  // GET: Export từ vựng của chủ đề ra Excel
     },
     EMAIL: {
       CAMPAIGNS_CREATE: '/email-campaigns',           // POST: Tạo chiến dịch email thủ công
