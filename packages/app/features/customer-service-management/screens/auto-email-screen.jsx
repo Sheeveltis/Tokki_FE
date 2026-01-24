@@ -3,7 +3,7 @@
 import React from 'react'
 import { Space, Typography } from 'antd'
 import { SendEmailForm } from '../components/auto-email/send-email-form'
-import { EmailHistory } from '../components/auto-email/email-history'
+import { EmailHistory } from '../components/manual-email/email-history'
 
 const { Title, Text } = Typography
 
