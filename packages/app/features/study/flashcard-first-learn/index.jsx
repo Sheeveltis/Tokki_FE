@@ -31,12 +31,46 @@ export function FlashcardFirstLearnScreen({ topicId, title = 'Học lần đầu
     playAudio,
     progress,
     isTopicCompleted,
+    showContinueDialog,
+    hasMoreFlashcards,
+    allWordsCompleted,
+    handleContinueLearning,
+    handleStopLearning,
+    completedInBatch,
+    batchSize,
   } = useFlashcardFirstLearn(topicId)
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
 
   const canContinue = currentStepKey !== 'view' || hasFlippedOnce
+
+  // Ensure we only navigate back once even if multiple state transitions happen.
+  const didNavigateBackRef = React.useRef(false)
+
+  const safeBack = React.useCallback(() => {
+    if (didNavigateBackRef.current) return
+    didNavigateBackRef.current = true
+    onBackPress?.()
+  }, [onBackPress])
+
+  // When user chooses to stop learning from the modal, navigate back immediately (deterministic),
+  // instead of relying on the "allWordsCompleted" auto-back effect timing.
+  const handleStopAndExit = React.useCallback(() => {
+    handleStopLearning()
+    safeBack()
+  }, [handleStopLearning, safeBack])
+
+  // Nếu đã học hết tất cả từ vựng, tự động quay về danh sách sau 2 giây
+  React.useEffect(() => {
+    if (didNavigateBackRef.current) return
+    if (allWordsCompleted && !showContinueDialog) {
+      const timer = setTimeout(() => {
+        safeBack()
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [allWordsCompleted, showContinueDialog, safeBack])
 
   return (
     <Layout>
@@ -63,6 +97,13 @@ export function FlashcardFirstLearnScreen({ topicId, title = 'Học lần đầu
         progress={progress}
         flashcards={flashcards}
         isTopicCompleted={isTopicCompleted}
+        showContinueDialog={showContinueDialog}
+        hasMoreFlashcards={hasMoreFlashcards}
+        allWordsCompleted={allWordsCompleted}
+        onContinueLearning={handleContinueLearning}
+        onStopLearning={handleStopAndExit}
+        completedInBatch={completedInBatch}
+        batchSize={batchSize}
       />
     </Layout>
   )

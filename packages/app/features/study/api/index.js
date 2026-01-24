@@ -75,7 +75,7 @@ export const getFlashcardTopics = async (
       icon: item.imgUrl || DefaultBunny,
       muted: false,
       vocabIds: [],
-      isLearned: Boolean(item.isLearned),
+      progress: typeof item.progress === 'number' ? item.progress : 0,
       vocabularyCount: item.vocabularyCount ?? null,
       // Giữ raw để sau này nếu cần thêm thông tin
       _raw: item,
@@ -137,6 +137,54 @@ export const getFlashcardsByTopic = async (topicId) => {
   } catch (error) {
     console.error('Error fetching flashcards by topic:', error)
     // Ném lỗi ra cho layer sử dụng tự xử lý (hiển thị message / fallback)
+    if (error?.response?.data) {
+      const data = error.response.data
+      const message =
+        data?.message ||
+        (Array.isArray(data?.errors) && data.errors[0]?.description) ||
+        'Không thể tải danh sách từ vựng'
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+/**
+ * Lấy danh sách từ vựng để học (batch learning)
+ * @param {string} topicId - Topic ID
+ * @param {number} count - Số lượng từ vựng cần lấy (mặc định 5)
+ * @returns {Promise<Array>} Danh sách flashcards
+ */
+export const getFlashcardsForStudy = async (topicId, count = 5) => {
+  try {
+    const res = await apiClient.get(ENDPOINTS.TOPIC.USER_STUDY, {
+      params: { topicId, count },
+    })
+
+    const payload = res?.data
+
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể tải danh sách từ vựng'
+      throw new Error(message)
+    }
+
+    const items = Array.isArray(payload?.data) ? payload.data : []
+
+    // Map về shape dùng trong FE: { id, word, meaning, pronunciation, imageUrl, audioUrl }
+    return items.map((item) => ({
+      id: item.vocabularyId,
+      word: item.text,
+      meaning: item.definition,
+      pronunciation: item.pronunciation || null,
+      imageUrl: item.imgURL || null,
+      audioUrl: item.audioUrl || null,
+      _raw: item,
+    }))
+  } catch (error) {
+    console.error('Error fetching flashcards for study:', error)
     if (error?.response?.data) {
       const data = error.response.data
       const message =
@@ -250,6 +298,25 @@ export const submitSpacedRepetition = async (vocabularyId, quality) => {
     const res = await apiClient.post(ENDPOINTS.SPACED_REPETITION.SUBMIT, {
       vocabularyId,
       quality,
+    })
+    return res?.data?.data || { vocabularyId, isMastered: false }
+  } catch (error) {
+    console.error('Error submitting spaced repetition:', error)
+    throw error
+  }
+}
+
+/**
+ * Submit kết quả spaced repetition với isCorrect (dùng cho flashcard-first-learn)
+ * @param {string} vocabularyId - Vocabulary ID
+ * @param {boolean} isCorrect - Kết quả học tập: true nếu đúng, false nếu sai
+ * @returns {Promise<{vocabularyId: string, isMastered: boolean}>}
+ */
+export const submitSpacedRepetitionWithCorrect = async (vocabularyId, isCorrect) => {
+  try {
+    const res = await apiClient.post(ENDPOINTS.SPACED_REPETITION.SUBMIT, {
+      vocabularyId,
+      isCorrect,
     })
     return res?.data?.data || { vocabularyId, isMastered: false }
   } catch (error) {

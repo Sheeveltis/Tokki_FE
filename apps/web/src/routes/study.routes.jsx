@@ -201,9 +201,7 @@ function FlashcardStudyRoute() {
       title={topicTitle}
       topicId={topicId}
       onBackPress={() => navigate('/flashcard')}
-      onLearnPress={() => navigate(`/flashcard/learn?topic=${topicId}`)}
-      onQuizPress={() => navigate(`/flashcard/quiz?topic=${topicId}`)}
-      onTestPress={() => navigate(`/flashcard/test?topic=${topicId}`)}
+      onTestPress={() => navigate(`/flashcard/test?topic=${topicId}&noSubmit=1`)}
       onFavoritesPress={() => navigate('/flashcard/favorites')}
     />
   )
@@ -218,7 +216,7 @@ function FlashcardLearnRoute() {
     <FlashcardFirstLearnScreen
       topicId={topicId}
       title={`Học ${topicTitle}`}
-      onBackPress={() => navigate(`/flashcard/study?topic=${topicId}`)}
+      onBackPress={() => navigate('/flashcard')}
     />
   )
 }
@@ -226,6 +224,7 @@ function FlashcardLearnRoute() {
 function FlashcardTestRoute() {
   const { navigate, getQueryParam } = useRouteNavigation()
   const topicId = getQueryParam('topic')
+  const noSubmit = getQueryParam('noSubmit')
   const topicTitle = topicId ? TOPIC_TITLES[topicId] || STUDY_PAGE_TITLES.FLASHCARD_STUDY : STUDY_PAGE_TITLES.FLASHCARD_STUDY
 
   return (
@@ -233,6 +232,7 @@ function FlashcardTestRoute() {
       topicId={topicId}
       title={`Kiểm tra ${topicTitle}`}
       forceAnswerMode="mix"
+      disableSubmit={noSubmit === '1'}
       onBackPress={() => navigate(`/flashcard/study?topic=${topicId}`)}
       onClose={() => navigate(`/flashcard/study?topic=${topicId}`)}
     />
@@ -267,8 +267,7 @@ function FlashcardFavoritesRoute() {
       topicId={null}
       isFavoritesMode
       onBackPress={() => navigate('/flashcard')}
-      onLearnPress={() => navigate('/flashcard/favorites/learn')}
-      onTestPress={() => navigate('/flashcard/favorites/test')}
+      onTestPress={() => navigate('/flashcard/favorites/test?noSubmit=1')}
       onFavoritesPress={undefined}
     />
   )
@@ -288,7 +287,8 @@ function FlashcardFavoritesLearnRoute() {
 }
 
 function FlashcardFavoritesTestRoute() {
-  const { navigate } = useRouteNavigation()
+  const { navigate, getQueryParam } = useRouteNavigation()
+  const noSubmit = getQueryParam('noSubmit')
 
   return (
     <TestScreen
@@ -296,6 +296,7 @@ function FlashcardFavoritesTestRoute() {
       isFavoritesMode={true}
       title="Kiểm tra Từ Vựng Yêu Thích"
       forceAnswerMode="mix"
+      disableSubmit={noSubmit === '1'}
       onBackPress={() => navigate('/flashcard/favorites')}
       onClose={() => navigate('/flashcard/favorites')}
     />

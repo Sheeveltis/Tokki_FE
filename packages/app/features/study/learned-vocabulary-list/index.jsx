@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Platform } from 'react-native'
 import { useLearnedVocabularyList } from './useLearnedVocabularyList'
 import { 
@@ -24,6 +24,7 @@ export function LearnedVocabularyListScreen({
   ...otherProps // Bỏ qua các props khác từ navigation
 }) {
   const [mode, setMode] = useState('list') // 'list' | 'practice'
+  const [practiceCount, setPracticeCount] = useState(20) // Số lượng từ muốn học
   
   const {
     vocabularies,
@@ -43,10 +44,28 @@ export function LearnedVocabularyListScreen({
     handleNextPage,
     reviewVocabularies,
     reviewCount,
+    allVocabularies, // Cần thêm để lấy tất cả từ vựng
   } = useLearnedVocabularyList()
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
+
+  // Tính maxPracticeCount dựa trên số lượng từ vựng có sẵn
+  const maxPracticeCount = reviewVocabularies.length > 0 ? reviewVocabularies.length : allVocabularies.length
+
+  // Điều chỉnh practiceCount nếu vượt quá maxPracticeCount
+  useEffect(() => {
+    if (maxPracticeCount > 0 && practiceCount > maxPracticeCount) {
+      setPracticeCount(maxPracticeCount)
+    }
+  }, [maxPracticeCount])
+
+  // Lấy số lượng từ vựng để practice dựa trên lựa chọn của người dùng
+  const getPracticeVocabularies = () => {
+    const sourceVocabularies = reviewVocabularies.length > 0 ? reviewVocabularies : allVocabularies
+    // Lấy số lượng từ đã chọn (tối đa là số lượng có sẵn)
+    return sourceVocabularies.slice(0, Math.min(practiceCount, sourceVocabularies.length))
+  }
 
   // Nếu đang ở chế độ practice, hiển thị component practice
   if (mode === 'practice') {
@@ -54,7 +73,7 @@ export function LearnedVocabularyListScreen({
     return (
       <PracticeLayout>
         <LearnedVocabularyPracticeMode
-          vocabularies={reviewVocabularies.length > 0 ? reviewVocabularies : vocabularies}
+          vocabularies={getPracticeVocabularies()}
           onBack={() => setMode('list')}
           onPracticeComplete={() => {
             setMode('list')
@@ -87,6 +106,9 @@ export function LearnedVocabularyListScreen({
         onPrevPage={handlePrevPage}
         onNextPage={handleNextPage}
         reviewCount={reviewCount}
+        practiceCount={practiceCount}
+        onPracticeCountChange={setPracticeCount}
+        maxPracticeCount={maxPracticeCount}
         onStartPractice={() => setMode('practice')}
       />
     </Layout>

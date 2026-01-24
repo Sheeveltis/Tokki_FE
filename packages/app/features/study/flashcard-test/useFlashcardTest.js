@@ -9,7 +9,7 @@ import KoreanImage from '../../../../assets/icon/icon-mainflow/korean.png'
  * @param {{ forceAnswerMode?: 'multipleChoice' | 'typeAnswer' | 'mix', enableParts?: boolean, questionsPerPart?: number }} [options] - Tùy chọn cấu hình
  */
 export function useFlashcardTest(topicId, isFavoritesMode = false, options = {}) {
-  const { forceAnswerMode, enableParts = false, questionsPerPart = 10 } = options
+  const { forceAnswerMode, enableParts = false, questionsPerPart = 10, disableSubmit = false } = options
   const [flashcards, setFlashcards] = useState([])
   const [originalFlashcards, setOriginalFlashcards] = useState([]) // Lưu thứ tự ban đầu
   const [isShuffled, setIsShuffled] = useState(false) // Track trạng thái random
@@ -370,9 +370,9 @@ export function useFlashcardTest(topicId, isFavoritesMode = false, options = {})
       [questionId]: true,
     }))
 
-    // Gọi API spaced repetition
+    // Gọi API spaced repetition (trừ khi disableSubmit = true)
     const question = questions.find(q => q.id === questionId)
-    if (question?.vocabularyId) {
+    if (!disableSubmit && question?.vocabularyId) {
       try {
         // QualityVocab: 0 (Again) nếu sai, 2 (Easy) nếu đúng
         const quality = isCorrect ? 2 : 0
@@ -406,7 +406,7 @@ export function useFlashcardTest(topicId, isFavoritesMode = false, options = {})
       // Lưu timer vào ref để cleanup sau
       timersRef.current.push(timer)
     }
-  }, [selectedAnswers, isSubmitted, questions, enableParts, allQuestions])
+  }, [selectedAnswers, isSubmitted, questions, enableParts, allQuestions, disableSubmit])
 
   const handleTypedAnswer = useCallback(async (questionId, typedText) => {
     if (isSubmitted) return
@@ -432,8 +432,8 @@ export function useFlashcardTest(topicId, isFavoritesMode = false, options = {})
         [questionId]: true,
       }))
 
-      // Gọi API spaced repetition
-      if (question.vocabularyId) {
+      // Gọi API spaced repetition (trừ khi disableSubmit = true)
+      if (!disableSubmit && question.vocabularyId) {
         try {
           // QualityVocab: 0 (Again) nếu sai, 2 (Easy) nếu đúng hoàn toàn
           const quality = isCorrect ? 2 : 0
@@ -468,7 +468,7 @@ export function useFlashcardTest(topicId, isFavoritesMode = false, options = {})
         timersRef.current.push(timer)
       }
     }
-  }, [isSubmitted, questions])
+  }, [isSubmitted, questions, disableSubmit])
 
   // Tính lại điểm mỗi khi selectedAnswers hoặc typedAnswers thay đổi
   // Tính điểm từ TẤT CẢ câu hỏi, không chỉ part hiện tại

@@ -16,9 +16,12 @@ export function FlashcardTopicCard({
   onPress,
   compact = false,
   showBadge = true,
+  progress = 0,
 }) {
   const [hovered, setHovered] = useState(false)
   const shouldShowBadge = showBadge && (!compact || Platform.OS !== 'web')
+  const isComplete = progress >= 100
+  const showProgress = !isComplete
 
   return (
     <Pressable
@@ -47,11 +50,17 @@ export function FlashcardTopicCard({
       </View>
       {shouldShowBadge ? (
         <View style={[styles.right, compact && styles.rightCompact]}>
-          <Image
-            source={normalizeImageSource(CompleteStamp)}
-            style={[styles.badgeStamp, compact && styles.badgeStampCompact]}
-            resizeMode="contain"
-          />
+          {isComplete ? (
+            <Image
+              source={normalizeImageSource(CompleteStamp)}
+              style={[styles.badgeStamp, compact && styles.badgeStampCompact]}
+              resizeMode="contain"
+            />
+          ) : showProgress ? (
+            <Text style={[styles.progressText, compact && styles.progressTextCompact]}>
+              {progress}%
+            </Text>
+          ) : null}
         </View>
       ) : null}
     </Pressable>
@@ -166,6 +175,16 @@ const styles = StyleSheet.create({
   badgeStampCompact: {
     width: 36,
     height: 36,
+  },
+  progressText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  progressTextCompact: {
+    fontSize: 14,
+    fontWeight: '700',
   },
 })
 

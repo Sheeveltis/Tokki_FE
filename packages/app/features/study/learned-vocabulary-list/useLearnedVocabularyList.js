@@ -117,6 +117,7 @@ export function useLearnedVocabularyList() {
 
   return {
     vocabularies,
+    allVocabularies, // Export để có thể lấy tất cả từ vựng
     loading,
     isInitialLoading,
     error,

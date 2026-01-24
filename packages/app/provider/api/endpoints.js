@@ -133,6 +133,7 @@ export const ENDPOINTS = {
       STAFF_SUBMIT_FOR_APPROVAL: (topicId) => `/Topics/staff/submit-for-approval/${topicId}`,
       MODERATOR_APPROVE: (topicId) => `/Topics/moderator/approve-topic/${topicId}`,
       MODERATOR_REJECT: (topicId) => `/Topics/moderator/reject-topic/${topicId}`,
+      USER_STUDY: '/Topics/user/study', // GET: Lấy danh sách từ vựng để học (query: topicId, count)
     },
     VOCABULARY: {
       ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
@@ -173,7 +174,7 @@ export const ENDPOINTS = {
       REMOVE: '/Favorites',    // DELETE: Xóa khỏi danh sách yêu thích
     },
     SPACED_REPETITION: {
-      SUBMIT: '/spaced-repetition/submit',  // POST: Submit kết quả học tập
+      SUBMIT: '/SpacedRepetition/submit',  // POST: Submit kết quả học tập (body: { vocabularyId, isCorrect } hoặc { vocabularyId, quality })
       GET_LEARNED: '/SpacedRepetition/vocab-for-review',  // GET: Lấy danh sách từ vựng đã học (query: limit)
       COMPLETE_TOPIC: '/SpacedRepetition/complete-topic', // POST: Hoàn thành tiến độ học topic
     },
