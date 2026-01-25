@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { Card, Form, Input, Select, Space, Typography, Switch, DatePicker, Divider } from 'antd'
 import { ButtonV2 } from '../../../../components/buttonV2.jsx'
 import { sendEmailCampaign } from '../api/manual-email.js'
+import { EmailHistory } from '../components/auto-email/email-history'
 import { showAdminSuccess, showAdminError } from 'components/HelperAdmin'
 
 const { Title, Text } = Typography
@@ -50,8 +51,8 @@ export function ManualEmailScreen() {
         scheduledTime: isSendNow ? null : values.scheduledTime || null,
       }
 
-      await sendEmailCampaign(payload)
-      showAdminSuccess('Đã gửi email thành công')
+      const result = await sendEmailCampaign(payload)
+      showAdminSuccess(result?.message || 'Đã gửi email thành công')
       form.resetFields()
       setIsSchedule(false)
       setIsSendNow(false)
@@ -177,6 +178,8 @@ export function ManualEmailScreen() {
             </Form.Item>
           </Form>
         </Card>
+
+        <EmailHistory />
       </Space>
     </div>
   )

@@ -37,12 +37,9 @@ export const staffRoutes = [
   { path: '/staff/blog/:id', element: <ViewBlogScreen /> },
   { path: '/staff/vocab/:id', element: <VocabularyDetailScreen /> },
   // Staff - Question Type / Question Bank detail
-  { path: '/staff/question-type/:id', element: <QuestionTypeDetailScreen /> },
-  { path: '/staff/question-type', element: <QuestionTypeManagement /> },
-  // Staff - Exam Templates detail (dùng lại màn admin)
-  { path: '/staff/exam-templates/:id', element: <ExamTemplateDetailScreen /> },
   { path: '/staff/question-type/:id', element: <QuestionTypeDetailScreen basePath="/staff" layout="staff" /> },
   { path: '/staff/question-type', element: <QuestionTypeManagement basePath="/staff" /> },
+  { path: '/staff/exam-templates/:id', element: <ExamTemplateDetailScreen /> },
   { path: '/staff/question-bank/create', element: <CreateQuestionScreen basePath="/staff" layout="staff" /> },
 ]
 

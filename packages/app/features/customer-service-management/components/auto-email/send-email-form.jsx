@@ -33,8 +33,8 @@ export function SendEmailForm() {
         description: values.description?.trim(),
       }
 
-      await createEmailTemplate(payload)
-      showAdminSuccess('Đã tạo email template thành công')
+      const result = await createEmailTemplate(payload)
+      showAdminSuccess(result?.message || 'Đã tạo email template thành công')
       form.resetFields()
     } catch (error) {
       showAdminError(error?.message || 'Tạo email template thất bại')

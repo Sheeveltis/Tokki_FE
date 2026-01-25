@@ -11,10 +11,9 @@ import LoginHeroImage2 from '../../../../assets/loginBackground.png'
 /**
  * @param {{
  *   onPressSignUp?: () => void
- *   onPressGoogle?: () => void
  * }} props
  */
-export function LoginScreen({ onPressSignUp, onPressGoogle }) {
+export function LoginScreen({ onPressSignUp }) {
   const router = useRouter()
 
   const handlePressSignUp = () => {
@@ -27,18 +26,12 @@ export function LoginScreen({ onPressSignUp, onPressGoogle }) {
     router.push('/register')
   }
 
-  const handlePressGoogle = () => {
-    // TODO: tích hợp đăng nhập bằng Google
-    onPressGoogle?.()
-  }
-
   return (
     <AuthLayout
       hero={<LoginHero backgroundSource={LoginHeroImage} overlaySource={LoginHeroImage2} />}
       panel={
         <LoginPanel
           onPressSignUp={handlePressSignUp}
-          onPressGoogle={handlePressGoogle}
         />
       }
     />
