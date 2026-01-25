@@ -11,7 +11,8 @@ import { Platform } from 'react-native'
  *
  * Ví dụ: Nếu IP của máy là 192.168.1.100, thì MOBILE_DOMAIN = 'http://192.168.1.100:5031'
  */
-  const WEB_DOMAIN = 'https://tokki-be-hneqd2a3dfhmfnhq.koreacentral-01.azurewebsites.net'
+  // const WEB_DOMAIN = 'https://tokki-be-hneqd2a3dfhmfnhq.koreacentral-01.azurewebsites.net'
+  const WEB_DOMAIN = 'http://localhost:5031'
   // ⚠️ THAY ĐỔI IP NÀY THÀNH IP THỰC TẾ CỦA MÁY BẠN
 // Tìm IP bằng cách: Windows (ipconfig) hoặc Mac/Linux (ifconfig)
 const MOBILE_DOMAIN = 'http://192.168.1.100:5031' // Thay đổi IP này!
