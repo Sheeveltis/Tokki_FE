@@ -3,7 +3,7 @@ import { Route } from 'react-router-dom'
 
 import { AdminScreen } from '@tokki/app/features/back-office/screens/admin-screen'
 import { CreateLessonScreen } from '@tokki/app/features/admin/screens/CreateLesson'
-import { LessonDetailScreen } from '@tokki/app/features/admin/screens/LessonDetail'
+import { LessonDetailScreen } from '@tokki/app/features/examination-management/screens/admin/lesson-detail-screen'
 import { CreateBlogScreen } from '@tokki/app/features/blog/screens/admin/create-blog-screen'
 import { ViewBlogScreen } from '@tokki/app/features/blog/screens/admin/view-blog-screen'
 import { EditBlogScreen } from '@tokki/app/features/blog/screens/admin/edit-blog-screen'
@@ -15,6 +15,8 @@ import { QuestionTypeManagement } from '@tokki/app/features/examination-manageme
 import { QuestionTypeDetailScreen } from '@tokki/app/features/examination-management/components/admin/question-type-management/QuestionTypeDetail'
 import { PassageManagementScreen } from '@tokki/app/features/examination-management/screens/admin/passage-management-screen'
 import { ExamTemplateDetailScreen } from '@tokki/app/features/examination-management/screens/admin/exam-template-detail-screen'
+import { ExamDetailScreen } from '@tokki/app/features/examination-management/screens/admin/exam-detail-screen'
+import { CreateExamScreen } from '@tokki/app/features/examination-management/screens/admin/create-exam-screen'
 import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocab-topic-detail-screen'
 import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocabulary-detail-screen'
 import { CreateVocabularyScreen } from '@tokki/app/features/vocabulary/screens/admin/create-vocabulary-screen'
@@ -67,6 +69,10 @@ export const adminRoutes = [
 
   // Admin - Exam Templates Module
   { path: '/admin/exam-templates/:id', element: <ExamTemplateDetailScreen /> },
+
+  // Admin - Exams Module
+  { path: '/admin/exams/create', element: <CreateExamScreen /> },
+  { path: '/admin/exams/:id', element: <ExamDetailScreen /> },
 ]
 
 /**
