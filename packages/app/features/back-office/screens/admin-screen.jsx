@@ -7,7 +7,7 @@ import { AdminLoginForm } from '../../authentication/components/admin-login/admi
 
 // Lazy load components với React.lazy (thay thế next/dynamic)
 const LazyUserManagement = lazy(() => import('../../user/screens/admin/user-management-screen'))
-const LazyLessonManagement = lazy(() => import('../../admin/screens/LessonManagement'))
+const LazyLessonManagement = lazy(() => import('../../examination-management/screens/admin/lesson-management-screen'))
 const LazyVocabularyManagement = lazy(() => import('../../vocabulary/screens/admin/vocabulary-management-screen'))
 const LazyFlashcardTopicManagement = lazy(() => import('../../vocabulary/screens/admin/vocab-topic-management-screen'))
 const LazyBlogManagement = lazy(() => import('../../blog/screens/admin/blog-management-screen'))
