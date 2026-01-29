@@ -235,5 +235,17 @@ export const ENDPOINTS = {
       UPDATE_TEMPLATE_PART: (templatePartId) => `/ExamTemplates/TemplateParts/${templatePartId}`,  // PUT: Cập nhật một template part (templatePartId trong URL)
       DUPLICATE: (id) => `/ExamTemplates/${id}/duplicate`,  // POST: Sao chép exam template
     },
+    EXAMS: {
+      ADMIN_LIST: '/Exams/admin',              // GET: Lấy danh sách exams cho admin (query: PageNumber, PageSize, Status, Type)
+      ADMIN_DETAIL: '/Exams/admin/detail',     // GET: Lấy chi tiết exam cho admin (query: examId)
+      GET_BY_ID: (id) => `/Exams/${id}`,      // GET: Lấy chi tiết exam
+      CREATE: '/Exams',                        // POST: Tạo exam mới
+      UPDATE: (id) => `/Exams/${id}`,          // PUT: Cập nhật exam
+      UPDATE_STATUS: (id) => `/Exams/${id}/status`, // PUT: Cập nhật trạng thái exam
+      DELETE: (id) => `/Exams/${id}`,         // DELETE: Xóa exam
+      GET_QUESTIONS_BY_PART: '/Exams/get-questions-by-part', // GET: Lấy danh sách câu hỏi theo templatePartId
+      UPDATE_EXAM_QUESTION: '/Exams/update-exam-question', // PUT: Cập nhật 1 câu hỏi trong đề (body: { examId, questionBankId, questionNo })
+      REGENERATE_PART: '/Exams/regenerate-part', // POST: Random/regenerate lại bộ câu hỏi của một phần (body: { examId, templatePartId })
+    },
     
   }
