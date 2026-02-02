@@ -32,7 +32,7 @@ export function ExamManagement({ initialData = null }) {
   const queryClient = useQueryClient()
   const [pageNumber, setPageNumber] = useState(1)
   const [pageSize] = useState(20)
-  const [statusFilter, setStatusFilter] = useState(undefined) // undefined = tất cả
+  const [statusFilter, setStatusFilter] = useState('ALL') // 'ALL' = tất cả trạng thái
   const [typeFilter, setTypeFilter] = useState(undefined) // undefined = tất cả
   const [drawerItem, setDrawerItem] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -59,7 +59,7 @@ export function ExamManagement({ initialData = null }) {
     PageNumber: pageNumber,
     PageSize: pageSize,
     SearchTerm: debouncedSearchTerm || undefined,
-    Status: statusFilter,
+    Status: statusFilter === 'ALL' ? undefined : statusFilter,
     Type: typeFilter,
   })
 
@@ -159,8 +159,16 @@ export function ExamManagement({ initialData = null }) {
             allowClear
             style={{ width: 150 }}
             value={statusFilter}
-            onChange={(value) => setStatusFilter(value)}
+            onChange={(value) => {
+              // Khi clear thì quay về "Tất cả trạng thái"
+              if (value == null) {
+                setStatusFilter('ALL')
+              } else {
+                setStatusFilter(value)
+              }
+            }}
           >
+            <Option value="ALL">Tất cả trạng thái</Option>
             <Option value={0}>Nháp</Option>
             <Option value={1}>Đã xuất bản</Option>
             <Option value={2}>Đã xóa</Option>

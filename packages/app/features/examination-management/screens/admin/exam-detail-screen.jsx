@@ -11,6 +11,7 @@ import { fetchExamDetailAdmin, regenerateExamPart, updateExamQuestion, updateExa
 import { useQueryClient } from '@tanstack/react-query'
 import ExamStatusChangeModal from '../../components/admin/exam-detail/exam-status-change-modal.jsx'
 import ExamQuestionSelectModal from '../../components/admin/exam-detail/exam-question-select-modal.jsx'
+import EditExamInfoModal from '../../components/admin/exam-detail/edit-exam-info-modal.jsx'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -35,6 +36,7 @@ export function ExamDetailScreen() {
   const examId = params?.id
   const [statusChangeModalOpen, setStatusChangeModalOpen] = useState(false)
   const [statusChangeLoading, setStatusChangeLoading] = useState(false)
+  const [editInfoModalOpen, setEditInfoModalOpen] = useState(false)
   const [templatePartsState, setTemplatePartsState] = useState(null)
   const [questionSelectModalOpen, setQuestionSelectModalOpen] = useState(false)
   const [currentTemplatePartId, setCurrentTemplatePartId] = useState(null)
@@ -139,8 +141,14 @@ export function ExamDetailScreen() {
 
   const statusInfo = STATUS_MAP[exam.status] || { color: 'default', text: `Status ${exam.status}` }
   const typeText = TYPE_MAP[exam.type] || exam.type
+  // Không cho phép chỉnh sửa nếu đề đang hoạt động (1) hoặc đã xóa (2)
+  const isLockedExam = exam.status === 1 || exam.status === 2
 
   const handleOpenStatusModal = () => {
+    if (isLockedExam) {
+      message.info('Đề thi này không cho phép thay đổi trạng thái.')
+      return
+    }
     setStatusChangeModalOpen(true)
   }
 
@@ -164,13 +172,43 @@ export function ExamDetailScreen() {
     }
   }
 
+  const handleOpenEditInfoModal = () => {
+    if (isLockedExam) {
+      message.info('Đề thi này không cho phép chỉnh sửa thông tin.')
+      return
+    }
+    setEditInfoModalOpen(true)
+  }
+
+  const handleSubmitEditInfo = async () => {
+    const idToUpdate = exam?.examId || examId
+    if (!idToUpdate) return
+
+    try {
+      await queryClient.invalidateQueries({ queryKey: ['exam', 'admin', 'detail', idToUpdate] })
+      await queryClient.invalidateQueries({ queryKey: ['exams', 'admin'] })
+      // Refresh template parts nếu có thay đổi examTemplateId
+      await refreshTemplatePartsFromServer(idToUpdate, pendingUpdatesRef.current)
+    } catch (err) {
+      console.error('Failed to refresh exam data after edit', err)
+    }
+  }
+
   const handleOpenQuestionSelectModal = (templatePartId, questionIndex) => {
+    if (isLockedExam) {
+      message.info('Đề thi này không cho phép thay đổi câu hỏi.')
+      return
+    }
     setCurrentTemplatePartId(templatePartId)
     setCurrentQuestionIndex(questionIndex)
     setQuestionSelectModalOpen(true)
   }
 
   const handleSelectQuestion = (selectedQuestion) => {
+    if (isLockedExam) {
+      message.info('Đề thi này không cho phép thay đổi câu hỏi.')
+      return
+    }
     // Lưu câu vừa chọn và mở modal xem trước để xác nhận
     setPendingSelectedQuestion(selectedQuestion)
     setConfirmQuestionModalOpen(true)
@@ -178,6 +216,12 @@ export function ExamDetailScreen() {
   }
 
   const handleConfirmSelectedQuestion = () => {
+    if (isLockedExam) {
+      message.info('Đề thi này không cho phép thay đổi câu hỏi.')
+      setConfirmQuestionModalOpen(false)
+      setPendingSelectedQuestion(null)
+      return
+    }
     if (!currentTemplatePartId || currentQuestionIndex == null || !pendingSelectedQuestion) {
       setConfirmQuestionModalOpen(false)
       setPendingSelectedQuestion(null)
@@ -259,6 +303,10 @@ export function ExamDetailScreen() {
   }
 
   const handleUndoQuestion = (templatePartId, questionIndex) => {
+    if (isLockedExam) {
+      message.info('Đề thi này không cho phép hoàn tác câu hỏi.')
+      return
+    }
     const key = `${templatePartId}:${questionIndex}`
     const oldQ = previousQuestionsMap?.[key]
     if (!oldQ) {
@@ -295,6 +343,10 @@ export function ExamDetailScreen() {
   }
 
   const handleSaveSingleChange = (templatePartId, questionIndex) => {
+    if (isLockedExam) {
+      message.info('Đề thi này không cho phép lưu thay đổi.')
+      return
+    }
     const key = `${templatePartId}:${questionIndex}`
     const payload = pendingExamQuestionUpdates?.[key]
     const idToUpdate = exam?.examId || examId
@@ -346,6 +398,10 @@ export function ExamDetailScreen() {
   }
 
   const handleSaveBulkChanges = () => {
+    if (isLockedExam) {
+      message.info('Đề thi này không cho phép lưu thay đổi.')
+      return
+    }
     const idToUpdate = exam?.examId || examId
     if (!idToUpdate) return
     const entries = Object.entries(pendingExamQuestionUpdates || {})
@@ -395,6 +451,10 @@ export function ExamDetailScreen() {
   }
 
   const handleRegenerateTemplatePart = async (templatePartId) => {
+    if (isLockedExam) {
+      message.info('Đề thi này không cho phép đổi lại bộ câu hỏi.')
+      return
+    }
     const idToUpdate = exam?.examId || examId
     if (!idToUpdate || !templatePartId) return
 
@@ -443,7 +503,7 @@ export function ExamDetailScreen() {
                 title="Chuyển trạng thái"
                 color="#1890ff"
                 onPress={handleOpenStatusModal}
-                disabled={statusChangeLoading}
+                disabled={statusChangeLoading || isLockedExam}
                 style={{ minWidth: 140, paddingVertical: 10 }}
                 textStyle={{ fontSize: 14 }}
               />
@@ -471,6 +531,13 @@ export function ExamDetailScreen() {
           templatePartId={currentTemplatePartId}
           onCancel={() => setQuestionSelectModalOpen(false)}
           onSelect={handleSelectQuestion}
+        />
+
+        <EditExamInfoModal
+          open={editInfoModalOpen}
+          exam={exam}
+          onCancel={() => setEditInfoModalOpen(false)}
+          onSuccess={handleSubmitEditInfo}
         />
 
         {/* Modal xem trước câu hỏi mới chọn để xác nhận */}
@@ -677,7 +744,20 @@ export function ExamDetailScreen() {
         </Modal>
 
         {/* Thông tin cơ bản */}
-        <Card title="Thông tin cơ bản" style={{ marginBottom: '24px' }}>
+        <Card
+          title="Thông tin cơ bản"
+          extra={
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={handleOpenEditInfoModal}
+              disabled={isLockedExam}
+            >
+              Chỉnh sửa
+            </Button>
+          }
+          style={{ marginBottom: '24px' }}
+        >
           <Descriptions column={1} bordered size="middle">
             <Descriptions.Item label="ID Đề thi">
               {exam.examId || '-'}
@@ -707,7 +787,7 @@ export function ExamDetailScreen() {
               const partId = templatePart?.templatePartId
               const partPendingCount = Object.keys(pendingExamQuestionUpdates || {}).filter((k) => k.startsWith(`${partId}:`)).length
               const isRegenerating = regeneratingPartId === partId
-              const canRegenerate = !!partId && !isRegenerating
+              const canRegenerate = !!partId && !isRegenerating && !isLockedExam
               return (
             <Card
               key={templatePart.templatePartId || partIndex}
@@ -768,49 +848,79 @@ export function ExamDetailScreen() {
                       key={question.questionNo || qIndex}
                       size="small"
                       title={
-                        <Space>
-                          <Text strong>Câu {question.questionNo || qIndex + 1}</Text>
-                          {question.isCorrect !== undefined && (
-                            <Tag color={question.isCorrect ? 'green' : 'red'} style={{ fontSize: 12 }}>
-                              {question.isCorrect ? 'Đúng' : 'Sai'}
-                            </Tag>
-                          )}
-                          <EditOutlined
-                            style={{ marginLeft: 8, color: '#1890ff', cursor: 'pointer' }}
-                            onClick={() => handleOpenQuestionSelectModal(templatePart.templatePartId, qIndex)}
-                          />
-                          <Tooltip title="Lưu đổi câu này">
-                            <SaveOutlined
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: 8,
+                          }}
+                        >
+                          <Space>
+                            <Text strong>Câu {question.questionNo || qIndex + 1}</Text>
+                            {question.isCorrect !== undefined && (
+                              <Tag color={question.isCorrect ? 'green' : 'red'} style={{ fontSize: 12 }}>
+                                {question.isCorrect ? 'Đúng' : 'Sai'}
+                              </Tag>
+                            )}
+                          </Space>
+                          <Space>
+                            <EditOutlined
                               style={{
-                                marginLeft: 10,
-                                color:
-                                  savingUpdateKey === `${templatePart.templatePartId}:${qIndex}`
-                                    ? '#1890ff'
-                                    : pendingExamQuestionUpdates?.[`${templatePart.templatePartId}:${qIndex}`]
-                                      ? '#52c41a'
-                                      : '#bfbfbf',
-                                cursor: pendingExamQuestionUpdates?.[`${templatePart.templatePartId}:${qIndex}`] ? 'pointer' : 'not-allowed',
+                                marginLeft: 8,
+                                color: isLockedExam ? '#bfbfbf' : '#1890ff',
+                                cursor: isLockedExam ? 'not-allowed' : 'pointer',
                               }}
-                              onClick={() => handleSaveSingleChange(templatePart.templatePartId, qIndex)}
+                              onClick={() => {
+                                if (!isLockedExam) {
+                                  handleOpenQuestionSelectModal(templatePart.templatePartId, qIndex)
+                                }
+                              }}
                             />
-                          </Tooltip>
-                          <Tooltip title="Xem lại câu cũ">
-                            <EyeOutlined
-                              style={{ marginLeft: 10, color: '#595959', cursor: 'pointer' }}
-                              onClick={() => handleViewOldQuestion(templatePart.templatePartId, qIndex)}
-                            />
-                          </Tooltip>
-                          <Popconfirm
-                            title="Hoàn tác về câu cũ?"
-                            okText="Hoàn tác"
-                            cancelText="Hủy"
-                            onConfirm={() => handleUndoQuestion(templatePart.templatePartId, qIndex)}
-                          >
-                            <Tooltip title="Hoàn tác câu cũ">
-                              <UndoOutlined style={{ marginLeft: 10, color: '#fa8c16', cursor: 'pointer' }} />
+                            <Tooltip title="Lưu đổi câu này">
+                              <SaveOutlined
+                                style={{
+                                  marginLeft: 10,
+                                  color: isLockedExam
+                                    ? '#bfbfbf'
+                                    : savingUpdateKey === `${templatePart.templatePartId}:${qIndex}`
+                                      ? '#1890ff'
+                                      : pendingExamQuestionUpdates?.[`${templatePart.templatePartId}:${qIndex}`]
+                                        ? '#52c41a'
+                                        : '#bfbfbf',
+                                  cursor:
+                                    !isLockedExam && pendingExamQuestionUpdates?.[`${templatePart.templatePartId}:${qIndex}`]
+                                      ? 'pointer'
+                                      : 'not-allowed',
+                                }}
+                                onClick={() => handleSaveSingleChange(templatePart.templatePartId, qIndex)}
+                              />
                             </Tooltip>
-                          </Popconfirm>
-                        </Space>
+                            <Tooltip title="Xem lại câu cũ">
+                              <EyeOutlined
+                                style={{ marginLeft: 10, color: '#595959', cursor: 'pointer' }}
+                                onClick={() => handleViewOldQuestion(templatePart.templatePartId, qIndex)}
+                              />
+                            </Tooltip>
+                            <Popconfirm
+                              title="Hoàn tác về câu cũ?"
+                              okText="Hoàn tác"
+                              cancelText="Hủy"
+                              disabled={isLockedExam}
+                              onConfirm={() => handleUndoQuestion(templatePart.templatePartId, qIndex)}
+                            >
+                              <Tooltip title="Hoàn tác câu cũ">
+                                <UndoOutlined
+                                  style={{
+                                    marginLeft: 10,
+                                    color: isLockedExam ? '#ffd8bf' : '#fa8c16',
+                                    cursor: isLockedExam ? 'not-allowed' : 'pointer',
+                                  }}
+                                />
+                              </Tooltip>
+                            </Popconfirm>
+                          </Space>
+                        </div>
                       }
                       style={{
                         border: isHighlighted ? '1px solid #ffe58f' : undefined,
@@ -957,7 +1067,7 @@ export function ExamDetailScreen() {
               type="primary"
               onClick={handleSaveBulkChanges}
               loading={bulkSaving}
-              disabled={Object.keys(pendingExamQuestionUpdates || {}).length === 0}
+              disabled={isLockedExam || Object.keys(pendingExamQuestionUpdates || {}).length === 0}
             >
               Lưu đổi hàng loạt
             </Button>

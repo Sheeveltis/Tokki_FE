@@ -98,24 +98,24 @@ export function ExamQuestionSelectModal({ open, templatePartId, onCancel, onSele
       title: 'Đáp án đúng',
       key: 'correctOption',
       width: 180,
+      align: 'center',
       render: (_, record) => {
         const correct = (record.options || []).find((o) => o.isCorrect)
-        if (!correct) return <Tag color="default">-</Tag>
-        return (
-          <Tag color="green">
-            {correct.keyOption}. {correct.content}
-          </Tag>
-        )
+        if (!correct) return <span>-</span>
+        return <span>{correct.keyOption}. {correct.content}</span>
       },
     },
     {
       title: '',
       key: 'action',
       width: 140,
+      align: 'center',
       render: (_, record) => (
-        <Button type="primary" size="small" onClick={() => onSelect?.(record)} icon={<FileSearchOutlined />}>
-          Xem & chọn
-        </Button>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <Button type="primary" size="small" onClick={() => onSelect?.(record)} icon={<FileSearchOutlined />}>
+            Xem
+          </Button>
+        </div>
       ),
     },
   ]
@@ -153,6 +153,9 @@ export function ExamQuestionSelectModal({ open, templatePartId, onCancel, onSele
           borderRadius: 12,
           padding: 16,
           boxShadow: '0 1px 3px rgba(15, 23, 42, 0.08)',
+          maxHeight: 520,
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         <div
@@ -167,7 +170,7 @@ export function ExamQuestionSelectModal({ open, templatePartId, onCancel, onSele
           <div style={{ flex: 1 }}>
             <Search
               allowClear
-              placeholder="Tìm kiếm nội dung câu hỏi (tiếng Hàn, tiếng Việt, ...)"
+              placeholder="Tìm kiếm câu hỏi"
               enterButton={
                 <>
                   <SearchOutlined /> Tìm kiếm
@@ -178,23 +181,38 @@ export function ExamQuestionSelectModal({ open, templatePartId, onCancel, onSele
               value={searchText}
             />
           </div>
-          <Text type="secondary" style={{ whiteSpace: 'nowrap', fontSize: 12 }}>
-            Tổng số câu: <strong>{totalCount}</strong>
-          </Text>
         </div>
 
-        <Spin spinning={loading}>
-          <Table rowKey="questionBankId" columns={columns} dataSource={items} pagination={false} size="middle" />
-        </Spin>
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+          <Spin spinning={loading}>
+            <Table
+              rowKey="questionBankId"
+              columns={columns}
+              dataSource={items}
+              pagination={false}
+              size="middle"
+            />
+          </Spin>
+        </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: 12,
+            gap: 12,
+          }}
+        >
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            Tổng số câu: <strong>{totalCount}</strong>
+          </Text>
           <Pagination
             current={pageNumber}
             pageSize={pageSize}
             total={totalCount}
-            showSizeChanger
+            showSizeChanger={false}
             onChange={handlePageChange}
-            onShowSizeChange={handlePageChange}
             size="small"
           />
         </div>
