@@ -5,6 +5,8 @@ import HomeIcon from '../assets/icon/navigate-app/home.svg'
 import StarIcon from '../assets/icon/icon-mainflow/star.svg'
 import AppIcon from '../assets/icon/icon-mainflow/app.svg'
 import ChatIcon from '../assets/icon/navigate-app/folder.svg'
+import FlashcardIcon from '../assets/icon/navigate-app/folder.svg'
+import BlogIcon from '../assets/icon/navigate-app/chat.svg'
 import UserIcon from '../assets/user.png'
 import { getCurrentUserInfo, getAuthToken } from '../app/provider/api/client'
 
@@ -81,7 +83,17 @@ const renderIcon = (Icon, style, isActive = false) => {
  * - Icons from left to right: Home - Flashcard - Menu - Blog - Profile
  */
 export function NavbarMobile() {
-  const navigation = useNavigation()
+  // Chỉ sử dụng navigation hook trên mobile
+  let navigation = null
+  if (Platform.OS !== 'web') {
+    try {
+      navigation = useNavigation()
+    } catch (error) {
+      // Navigation not available, continue anyway
+      console.warn('NavbarMobile: Navigation not available', error)
+    }
+  }
+
   const userInfo = getCurrentUserInfo()
   const avatarUrl = userInfo?.avatarUrl
 
@@ -94,14 +106,16 @@ export function NavbarMobile() {
 
   // Try to get current route name safely
   let currentRouteName = null
-  try {
-    const state = navigation.getState()
-    if (state && state.routes && state.routes.length > 0) {
-      const currentRoute = state.routes[state.index]
-      currentRouteName = currentRoute?.name
+  if (navigation) {
+    try {
+      const state = navigation.getState()
+      if (state && state.routes && state.routes.length > 0) {
+        const currentRoute = state.routes[state.index]
+        currentRouteName = currentRoute?.name
+      }
+    } catch (error) {
+      // Navigation state not available, continue anyway
     }
-  } catch (error) {
-    // Navigation state not available, continue anyway
   }
 
   // Hide navbar on auth screens
@@ -115,6 +129,7 @@ export function NavbarMobile() {
 
 
   const handleHomePress = () => {
+    if (!navigation) return
     try {
       navigation.navigate('home')
     } catch (error) {
@@ -123,8 +138,18 @@ export function NavbarMobile() {
   }
 
   const handleStarPress = () => {
+    if (!navigation) return
     try {
       navigation.navigate('study')
+    } catch (error) {
+      console.error('Navigation error:', error)
+    }
+  }
+
+  const handleFlashcardPress = () => {
+    if (!navigation) return
+    try {
+      navigation.navigate('flashcard-list')
     } catch (error) {
       console.error('Navigation error:', error)
     }
@@ -137,6 +162,7 @@ export function NavbarMobile() {
   }
 
   const handleBlogPress = () => {
+    if (!navigation) return
     try {
       navigation.navigate('blog')
     } catch (error) {
@@ -145,6 +171,7 @@ export function NavbarMobile() {
   }
 
   const handleProfilePress = () => {
+    if (!navigation) return
     try {
       navigation.navigate('menu-mobile')
     } catch (error) {
@@ -237,9 +264,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 8,
   },
+  icon: {
+    width: 24,
+    height: 24,
+  },
   avatarIcon: {
-    width: 60,
+    width: 40,
     height: 40,
+    borderRadius: 20,
   },
   iconContainer: {
     alignItems: 'center',

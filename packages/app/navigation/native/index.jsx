@@ -124,7 +124,7 @@ export function NativeNavigation() {
           headerShown: false,
         }}
       />
-      {/* <Stack.Screen
+      <Stack.Screen
         name="flashcard-learn"
         component={LearnScreen}
         options={{
@@ -144,7 +144,7 @@ export function NativeNavigation() {
         options={{
           headerShown: false,
         }}
-      /> */}
+      />
       </Stack.Navigator>
     </View>
   )

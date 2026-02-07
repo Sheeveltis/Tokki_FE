@@ -20,9 +20,12 @@ export function FlashcardListScreen({
   onFavoritesPress,
   onLearnedPress,
   route, // React Navigation prop - có thể bỏ qua
-  navigation, // React Navigation prop - có thể bỏ qua
+  navigation: navigationProp, // React Navigation prop - có thể bỏ qua
   ...otherProps // Bỏ qua các props khác từ navigation
 }) {
+  // Lấy navigation - chỉ sử dụng prop, không gọi hook để tránh lỗi trên web
+  const navigation = navigationProp
+
   // Lấy levelId từ route params nếu có
   const routeLevelId = route?.params?.levelId || levelId
   const {
@@ -48,15 +51,33 @@ export function FlashcardListScreen({
 
   // Wrapper function để kiểm tra progress và điều hướng phù hợp
   const handleTopicPress = (topic) => {
-    // Nếu progress là 100% (kiểm tra cả số nguyên và số thập phân), điều hướng đến trang study (ôn tập)
-    const progress = topic?.progress ?? 0
-    if (progress >= 100) {
-      // Đánh dấu topic là đã học để onTopicPress điều hướng đến /flashcard/study
-      onTopicPress?.({ ...topic, isLearned: true })
+    const topicId = topic?.id || topic?.topicId
+    if (!topicId) return
+
+    // Nếu có onTopicPress từ props (web), sử dụng nó
+    if (onTopicPress) {
+      // Nếu progress là 100% (kiểm tra cả số nguyên và số thập phân), điều hướng đến trang study (ôn tập)
+      const progress = topic?.progress ?? 0
+      if (progress >= 100) {
+        // Đánh dấu topic là đã học để onTopicPress điều hướng đến /flashcard/study
+        onTopicPress({ ...topic, isLearned: true })
+        return
+      }
+      // Ngược lại, điều hướng như bình thường (học lần đầu)
+      onTopicPress(topic)
       return
     }
-    // Ngược lại, điều hướng như bình thường (học lần đầu)
-    onTopicPress?.(topic)
+
+    // Nếu không có onTopicPress (mobile), xử lý navigation trực tiếp
+    if (Platform.OS !== 'web' && navigation) {
+      if (topic?.isLearned || (topic?.progress ?? 0) >= 100) {
+        // Điều hướng đến trang study (ôn tập)
+        navigation.navigate('flashcard-study', { topicId: String(topicId) })
+      } else {
+        // Điều hướng đến trang learn (học lần đầu)
+        navigation.navigate('flashcard-learn', { topicId: String(topicId) })
+      }
+    }
   }
 
   return (
