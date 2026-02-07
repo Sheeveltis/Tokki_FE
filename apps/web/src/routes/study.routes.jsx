@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Suspense, lazy } from 'react'
-import { Route } from 'react-router-dom'
+import { Route, useParams } from 'react-router-dom'
 import { useRouteNavigation } from './utils/navigation-helpers'
 import { createLazyRouteContainer } from './utils/route-container'
 
@@ -22,6 +22,9 @@ import LearnedVocabularyListScreen from '@tokki/app/features/study/learned-vocab
 import { STUDY_PAGE_TITLES, TOPIC_TITLES } from '@tokki/app/features/study/constants'
 import { RoadmapInfoScreen } from '@tokki/app/features/roadmap/screens/roadmap-info-screen'
 import { RoadmapTestScreen } from '@tokki/app/features/roadmap/screens/roadmap-test-screen'
+import { RoadmapLearningScreen } from '@tokki/app/features/roadmap/screens/roadmap-learning-screen'
+import { RoadmapTipsScreen } from '@tokki/app/features/roadmap/screens/roadmap-tips-screen'
+import { RoadmapPracticeScreen } from '@tokki/app/features/roadmap/screens/roadmap-practice-screen'
 const AlphabetDrawingScreen = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
 
 /**
@@ -321,6 +324,26 @@ function RoadmapTestRoute() {
   return <RoadmapTestScreen level={level} />
 }
 
+function RoadmapLearningRoute() {
+  const { getIntQueryParam } = useRouteNavigation()
+  const level = getIntQueryParam('level', 1)
+  return <RoadmapLearningScreen level={level} />
+}
+
+function RoadmapTipsRoute() {
+  const { id } = useParams()
+  return <RoadmapTipsScreen tipId={id} />
+}
+
+function RoadmapTipsIndexRoute() {
+  return <RoadmapTipsScreen tipId="listen-guide" />
+}
+
+function RoadmapPracticeRoute() {
+  const { id } = useParams()
+  return <RoadmapPracticeScreen practiceId={id} />
+}
+
 function AlphabetLettersDrawingRoute() {
   const { navigate } = useRouteNavigation()
   const LazyComponent = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
@@ -380,6 +403,10 @@ export const studyRoutes = [
   // Roadmap
   { path: '/roadmap/info', element: <RoadmapInfoScreen /> },
   { path: '/roadmap/test', element: <RoadmapTestRoute /> },
+  { path: '/roadmap/learning', element: <RoadmapLearningRoute /> },
+  { path: '/roadmap/learning/practice/:id', element: <RoadmapPracticeRoute /> },
+  { path: '/roadmap/learning/tips/:id', element: <RoadmapTipsRoute /> },
+  { path: '/roadmap/tips', element: <RoadmapTipsIndexRoute /> },
 ]
 
 /**
