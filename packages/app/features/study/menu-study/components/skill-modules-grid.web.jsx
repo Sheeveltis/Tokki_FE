@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   },
   moduleTitle: {
     fontSize: Platform.OS === 'web' ? 20 : 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
     flex: 1,
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   },
   itemLabel: {
     fontSize: Platform.OS === 'web' ? 14 : 15,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
     flex: 1,

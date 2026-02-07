@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     }),
   },
   levelButtonActive: {
-    backgroundColor: '#1F1F1F',
+    backgroundColor: '#F1BE4B',
     borderColor: '#D39A1C',
   },
   levelButtonPressed: {

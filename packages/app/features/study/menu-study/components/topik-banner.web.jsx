@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   },
   bannerText: {
     fontSize: Platform.OS === 'web' ? 40 : 22,
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: Platform.OS === 'web' ? 0.5 : 0.3,
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
