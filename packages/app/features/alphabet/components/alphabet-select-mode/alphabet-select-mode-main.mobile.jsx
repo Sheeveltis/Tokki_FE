@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native'
-import { NavigationPill } from 'components/navigation-pill'
+import { NavigationPill } from '../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
 import { normalizeImageSource } from '../../../study/api'
 import { studyStyles } from '../../../study/styles'

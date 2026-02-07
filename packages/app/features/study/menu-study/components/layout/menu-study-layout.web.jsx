@@ -1,9 +1,9 @@
 import React from 'react'
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native'
-import { Navbar } from 'components/navbar'
+import { Navbar } from '../../../../../../components/navbar'
 import { QuickLevelTestButton } from '../../../components/quick-level-test-button.web'
 import { StudyStatsCards } from '../../../components/study-stats-cards.web'
-import { NavigationPill } from 'components/navigation-pill'
+import { NavigationPill } from '../../../../../../components/navigation-pill'
 import { studyStyles } from '../../../styles'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
 

@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
-import { Navbar } from 'components/navbar'
+import { NavbarMobile } from '../../../../../../components/navbar-mobile'
 
 /**
  * FlashcardStudyLayout (Mobile): Layout cho trang học flashcard trên mobile
@@ -8,10 +8,10 @@ import { Navbar } from 'components/navbar'
 export function FlashcardStudyLayout({ children }) {
   return (
     <View style={styles.root}>
-      <Navbar />
       <View style={styles.contentWrapper}>
         {children}
       </View>
+      <NavbarMobile />
     </View>
   )
 }
@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFD7D0',
     alignItems: 'center',
     paddingVertical: 16,
+    position: 'relative', // Cần để navbar absolute hoạt động đúng
   },
   contentWrapper: {
     width: '100%',
@@ -30,6 +31,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F5F0DD',
     paddingVertical: 24,
+    paddingBottom: 100, // Padding bottom để tránh bị che bởi navbar
     borderRadius: 16,
   },
 })

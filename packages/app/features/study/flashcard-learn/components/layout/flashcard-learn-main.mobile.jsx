@@ -1,9 +1,9 @@
 import React from 'react'
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native'
-import { NavigationPill } from 'components/navigation-pill'
+import { NavigationPill } from '../../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
 import StarIcon from '../../../../../../assets/icon/icon-mainflow/star.svg'
-import { FlipCard } from 'components/FlipCard'
+import { FlipCard } from '../../../../../../components/FlipCard'
 import { normalizeImageSource } from '../../../api'
 import { studyStyles } from '../../../styles'
 import { LoadingWithContainer } from '../../../../../../components/Loading'
@@ -122,23 +122,29 @@ export function FlashcardLearnMain({
 
       {/* Flashcard */}
       <View style={styles.cardContainer}>
-        <FlipCard
-          word={current.word || ''}
-          meaning={current.meaning || ''}
-          image={current.imageUrl || undefined}
-          width="100%"
-          height={500}
-          frontColor="#79964E"
-          backColor="#79964E"
-          borderWidth={12}
-          borderRadius={12}
-          flipOnHover={false}
-          isFlipped={isFlipped}
-          onFlip={onFlip}
-          starIcon={normalizeImageSource(StarIcon)}
-          isFavorite={isFavorite}
-          onToggleFavorite={onToggleFavorite}
-        />
+        {current && current.id ? (
+          <FlipCard
+            word={current.word || ''}
+            meaning={current.meaning || ''}
+            image={current.imageUrl || undefined}
+            width="100%"
+            height={500}
+            frontColor="#79964E"
+            backColor="#79964E"
+            borderWidth={12}
+            borderRadius={12}
+            flipOnHover={false}
+            isFlipped={isFlipped}
+            onFlip={onFlip}
+            starIcon={normalizeImageSource(StarIcon)}
+            isFavorite={isFavorite}
+            onToggleFavorite={onToggleFavorite}
+          />
+        ) : (
+          <View style={styles.emptyCardContainer}>
+            <Text style={styles.emptyCardText}>Đang tải từ vựng...</Text>
+          </View>
+        )}
       </View>
 
       {/* Action Buttons */}
@@ -305,6 +311,22 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#666',
+    textAlign: 'center',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  emptyCardContainer: {
+    width: '100%',
+    height: 524,
+    backgroundColor: '#79964E',
+    borderRadius: 12,
+    borderWidth: 12,
+    borderColor: '#79964E',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyCardText: {
+    fontSize: 18,
+    color: '#FFFFFF',
     textAlign: 'center',
     fontFamily: 'Epilogue, sans-serif',
   },

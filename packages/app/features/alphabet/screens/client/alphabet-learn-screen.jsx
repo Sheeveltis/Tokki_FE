@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { Platform, View, Modal, StyleSheet } from 'react-native'
 import { useAlphabetLearn } from '../../api/alphabet-learn-logic'
 import { ALPHABET_LETTERS } from '../../../study/mockData'
-import { MessageModal } from 'components/MessageModal'
+import { MessageModal } from '../../../../../components/MessageModal'
 import { 
   AlphabetLearnLayout as WebLayout,
   AlphabetLearnMain as WebMain,

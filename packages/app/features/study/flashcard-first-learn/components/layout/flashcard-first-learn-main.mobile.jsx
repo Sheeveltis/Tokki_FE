@@ -1,11 +1,11 @@
 import React from 'react'
 import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image, Modal } from 'react-native'
-import { NavigationPill } from 'components/navigation-pill'
+import { NavigationPill } from '../../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
 import { normalizeImageSource } from '../../../api'
 import { studyStyles } from '../../../styles'
 import { LoadingWithContainer } from '../../../../../../components/Loading'
-import { FlipCard } from 'components/FlipCard'
+import { FlipCard } from '../../../../../../components/FlipCard'
 import SoundIcon from '../../../../../../assets/icon/icon-mainflow/sound.svg'
 
 export function FlashcardFirstLearnMain({

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { View, StyleSheet, ScrollView, Platform, TouchableOpacity, Text } from 'react-native'
-import { Navbar } from 'components/navbar'
+import { Navbar } from '../../../../components/navbar'
 import { QuickLevelTestButton } from './quick-level-test-button.web'
 import { StudyStatsCards } from './study-stats-cards.web'
 import { MessageModal } from 'components/MessageModal'
