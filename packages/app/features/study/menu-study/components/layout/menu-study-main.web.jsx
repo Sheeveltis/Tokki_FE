@@ -13,6 +13,7 @@ export function MenuStudyMain({
   showLoginRequest,
   onCloseLoginRequest,
   onAlphabetPress,
+  onTopikRoadmapPress,
 }) {
 
   return (
@@ -26,7 +27,7 @@ export function MenuStudyMain({
       )}
 
       {/* Banner TOPIK Learning Path */}
-      <TopikBanner levelId={levelId} />
+      <TopikBanner levelId={levelId} onPress={onTopikRoadmapPress} />
       
 
       {/* Grid các skill modules */}
