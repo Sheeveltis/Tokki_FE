@@ -10,7 +10,7 @@ import { LoginScreen } from 'app/features/authentication/screens/login-screen.na
 import { RegisterScreen } from 'app/features/authentication/screens/register-screen.native'
 import { ForgotPasswordScreen } from 'app/features/authentication/screens/forgot-password-screen'
 import { PremiumScreen } from 'app/features/payment/screens/premium-screen'
-import { PackageScreen } from 'app/features/payment/payment-package/package-screen'
+import { PackageScreen } from 'app/features/payment/screens/package-screen'
 import { PaymentScreen } from 'app/features/payment/screens/payment-screen'
 import { PaymentSuccessScreen } from 'app/features/payment/payment-success/payment-success-screen'
 import { PaymentFailedScreen } from 'app/features/payment/screens/payment-failed-screen'
