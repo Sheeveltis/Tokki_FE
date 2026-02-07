@@ -35,6 +35,8 @@ import LogoImage from '../../../../../assets/logo-text.png'
 import { NavigationPill } from '../../../../../components/navigation-pill'
 import { InputEmail } from '../shared/input-email'
 import { InputOTP } from '../shared/input-otp'
+// Import helper function - Metro/Webpack sẽ tự động resolve đúng file (.web.js cho web, .js cho native)
+import { getGoogleClientId } from './get-google-client-id'
 
 /**
  * LoginPanel: toàn bộ cột bên phải của màn đăng nhập (tiêu đề + form + ghi chú)
@@ -234,20 +236,8 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
   }
 
   // ===== GOOGLE LOGIN (web only) =====
-  // Ưu tiên lấy từ Vite env (VITE_GOOGLE_CLIENT_ID), fallback Next-style env
-  const GOOGLE_CLIENT_ID = (() => {
-    try {
-      if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GOOGLE_CLIENT_ID) {
-        return import.meta.env.VITE_GOOGLE_CLIENT_ID
-      }
-    } catch (e) {
-      // import.meta có thể không khả dụng trên native / build khác
-    }
-    if (typeof process !== 'undefined' && process?.env?.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
-      return process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-    }
-    return ''
-  })()
+  // Lấy Google Client ID từ env vars (hỗ trợ cả Vite và Next.js)
+  const GOOGLE_CLIENT_ID = getGoogleClientId()
 
   const loadGoogleScript = () =>
     new Promise((resolve, reject) => {

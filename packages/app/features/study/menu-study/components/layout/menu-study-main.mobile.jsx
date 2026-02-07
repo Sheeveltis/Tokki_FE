@@ -2,7 +2,7 @@ import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import { TopikBanner } from '../topik-banner.web'
 import { SkillModulesGrid } from '../skill-modules-grid.web'
-import { LoginRequest } from 'components/loginRequest'
+import { LoginRequest } from '../../../../../../components/loginRequest'
 
 /**
  * MenuStudyMain (Mobile): Nội dung chính của trang menu học tập
@@ -13,6 +13,7 @@ export function MenuStudyMain({
   showLoginRequest,
   onCloseLoginRequest,
   onAlphabetPress,
+  onTopikRoadmapPress,
 }) {
 
   return (
@@ -26,7 +27,7 @@ export function MenuStudyMain({
       )}
 
       {/* Banner TOPIK Learning Path */}
-      <TopikBanner levelId={levelId} />
+      <TopikBanner levelId={levelId} onPress={onTopikRoadmapPress} />
       
 
       {/* Grid các skill modules */}
@@ -47,7 +48,8 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     alignItems: 'center',
-    gap: 24,
+    gap: 12,
+    paddingTop: 4,
   },
   modalOverlay: {
     position: 'absolute',
@@ -58,12 +60,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     paddingHorizontal: 16,
   },
   modalCard: {
-    maxWidth: 640,
+    maxWidth: '90%',
     width: '100%',
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
   },
 })
 

@@ -128,7 +128,7 @@ export function TopikBanner({
                   {
                     opacity: patternOpacity,
                     transform: [
-                      { scale: 4}, // Phóng to 1.5x để khi di chuyển không bị ra khỏi khung
+                      { scale: Platform.OS === 'web' ? 4 : 3}, // Phóng to để khi di chuyển không bị ra khỏi khung
                       { translateX },
                     ],
                   },
@@ -169,13 +169,10 @@ export function TopikBanner({
 const styles = StyleSheet.create({
   banner: {
     width: '100%',
-    borderRadius: 16,
-    paddingVertical: 20,
-    paddingHorizontal: 24,
-    shadowColor: '#000000',
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
+    borderRadius: Platform.OS === 'web' ? 16 : 14,
+    paddingVertical: Platform.OS === 'web' ? 20 : 12,
+    paddingHorizontal: Platform.OS === 'web' ? 24 : 16,
+    elevation: Platform.OS === 'android' ? 3 : 0,
     overflow: 'hidden',
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
@@ -223,23 +220,25 @@ const styles = StyleSheet.create({
   leftSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: 90,
+    width: Platform.OS === 'web' ? 90 : 60,
     justifyContent: 'flex-start',
   },
   bunny: {
-    width: 80,
-    height: 80,
+    width: Platform.OS === 'web' ? 80 : 50,
+    height: Platform.OS === 'web' ? 80 : 50,
   },
   centerSection: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: Platform.OS === 'web' ? 0 : 8,
   },
   bannerText: {
-    fontSize: 40,
+    fontSize: Platform.OS === 'web' ? 40 : 22,
     fontWeight: '700',
-    letterSpacing: 0.5,
+    letterSpacing: Platform.OS === 'web' ? 0.5 : 0.3,
     fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
     ...(Platform.OS === 'web' && {
       transitionProperty: 'color',
       transitionDuration: '200ms',
@@ -247,12 +246,12 @@ const styles = StyleSheet.create({
     }),
   },
   rightSection: {
-    width: 120,
+    width: Platform.OS === 'web' ? 120 : 40,
     alignItems: 'flex-end',
     justifyContent: 'center',
   },
   arrow: {
-    fontSize: 32,
+    fontSize: Platform.OS === 'web' ? 32 : 20,
     fontWeight: '700',
     ...(Platform.OS === 'web' && {
       transitionProperty: 'color',

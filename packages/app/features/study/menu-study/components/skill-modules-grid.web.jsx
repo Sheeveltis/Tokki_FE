@@ -3,6 +3,42 @@ import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native
 import { SKILL_MODULES } from '../../mockData'
 import { normalizeImageSource } from '../../api'
 
+// Helper function để render icon - hỗ trợ cả SVG component và Image source
+const renderIcon = (icon, style, resizeMode = 'contain') => {
+  if (!icon) return null
+  
+  // Kiểm tra xem có phải là React component không (SVG component)
+  const isReactComponent = icon && (
+    (typeof icon === 'function') || 
+    (typeof icon === 'object' && icon.$$typeof) ||
+    (typeof icon === 'object' && icon.default && (typeof icon.default === 'function' || icon.default.$$typeof))
+  )
+  
+  if (isReactComponent) {
+    // Render SVG component
+    const IconComponent = typeof icon === 'function' ? icon : (icon.default || icon)
+    return (
+      <View style={[style, { alignItems: 'center', justifyContent: 'center' }]}>
+        <IconComponent width={style.width || 28} height={style.height || 28} />
+      </View>
+    )
+  }
+  
+  // Render Image với normalizeImageSource
+  const iconSource = normalizeImageSource(icon)
+  if (iconSource) {
+    return (
+      <Image
+        source={iconSource}
+        style={style}
+        resizeMode={resizeMode}
+      />
+    )
+  }
+  
+  return null
+}
+
 export function SkillModulesGrid({ levelId, onModulePress }) {
   const [hoveredItem, setHoveredItem] = useState(null)
 
@@ -21,11 +57,7 @@ export function SkillModulesGrid({ levelId, onModulePress }) {
         >
           {/* Header - luôn hiển thị cho tất cả modules */}
           <View style={styles.moduleHeader}>
-            <Image
-              source={normalizeImageSource(module.icon)}
-              style={styles.moduleIcon}
-              resizeMode={module.isImageModule ? 'cover' : 'contain'}
-            />
+            {renderIcon(module.icon, styles.moduleIcon, module.isImageModule ? 'cover' : 'contain')}
             <Text style={styles.moduleTitle}>{module.title}</Text>
           </View>
 
@@ -33,11 +65,7 @@ export function SkillModulesGrid({ levelId, onModulePress }) {
           {module.isImageModule ? (
             // Hiển thị hình ảnh trong card cho image modules
             <View style={styles.imageContentContainer}>
-              <Image
-                source={normalizeImageSource(module.icon)}
-                style={styles.moduleImage}
-                resizeMode="cover"
-              />
+              {renderIcon(module.icon, styles.moduleImage, 'cover')}
             </View>
           ) : (
             // Hiển thị items cho các module thông thường
@@ -59,11 +87,11 @@ export function SkillModulesGrid({ levelId, onModulePress }) {
                       >
                         {({ pressed }) => (
                           <>
-                            <Image
-                              source={normalizeImageSource(item.icon)}
-                              style={[styles.itemIcon, (pressed || isActive) && { tintColor: '#FFFFFF' }]}
-                              resizeMode="contain"
-                            />
+                            {renderIcon(
+                              item.icon, 
+                              [styles.itemIcon, (pressed || isActive) && { tintColor: '#FFFFFF' }],
+                              'contain'
+                            )}
                             <Text style={[styles.itemLabel, (pressed || isActive) && { color: '#FFFFFF' }]}>
                               {item.label}
                             </Text>
@@ -89,23 +117,27 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 20,
+    gap: Platform.OS === 'web' ? 20 : 16,
     justifyContent: 'center',
+    paddingHorizontal: Platform.OS === 'web' ? 0 : 4,
   },
   moduleCard: {
-    width: '30%',
-    minWidth: 250,
+    width: Platform.OS === 'web' ? '30%' : '100%',
+    minWidth: Platform.OS === 'web' ? 250 : '100%',
+    maxWidth: Platform.OS === 'web' ? 'none' : '100%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: Platform.OS === 'web' ? 16 : 14,
+    padding: Platform.OS === 'web' ? 20 : 16,
     borderWidth: 2,
     borderColor: '#F4B8AF',
     shadowColor: '#00000015',
     shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowRadius: Platform.OS === 'web' ? 8 : 6,
     shadowOffset: { width: 0, height: 4 },
-    gap: 16,
+    elevation: Platform.OS === 'android' ? 3 : 0,
+    gap: Platform.OS === 'web' ? 16 : 12,
     overflow: 'hidden',
+    marginBottom: Platform.OS === 'web' ? 0 : 4,
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
       transitionProperty: 'transform, box-shadow',
@@ -118,10 +150,10 @@ const styles = StyleSheet.create({
   },
   imageContentContainer: {
     width: '100%',
-    height: 200,
-    borderRadius: 12,
+    height: Platform.OS === 'web' ? 200 : 160,
+    borderRadius: Platform.OS === 'web' ? 12 : 10,
     overflow: 'hidden',
-    marginTop: 8,
+    marginTop: Platform.OS === 'web' ? 8 : 6,
   },
   moduleImage: {
     width: '100%',
@@ -130,33 +162,35 @@ const styles = StyleSheet.create({
   moduleHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: Platform.OS === 'web' ? 12 : 10,
     borderBottomWidth: 2,
     borderBottomColor: '#F4B8AF',
-    paddingBottom: 12,
+    paddingBottom: Platform.OS === 'web' ? 12 : 10,
   },
   moduleIcon: {
-    width: 32,
-    height: 32,
+    width: Platform.OS === 'web' ? 32 : 28,
+    height: Platform.OS === 'web' ? 32 : 28,
     borderRadius: 4,
   },
   moduleTitle: {
-    fontSize: 20,
+    fontSize: Platform.OS === 'web' ? 20 : 18,
     fontWeight: '700',
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
+    flex: 1,
   },
   itemsContainer: {
-    gap: 12,
+    gap: Platform.OS === 'web' ? 12 : 10,
   },
   itemButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    gap: Platform.OS === 'web' ? 12 : 10,
+    paddingVertical: Platform.OS === 'web' ? 10 : 12,
+    paddingHorizontal: Platform.OS === 'web' ? 12 : 14,
+    borderRadius: Platform.OS === 'web' ? 8 : 10,
     backgroundColor: '#F4EDE7',
+    minHeight: Platform.OS === 'web' ? 'auto' : 48,
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
       transitionProperty: 'background-color, color',
@@ -167,14 +201,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF9100',
   },
   itemIcon: {
-    width: 24,
-    height: 24,
+    width: Platform.OS === 'web' ? 24 : 22,
+    height: Platform.OS === 'web' ? 24 : 22,
   },
   itemLabel: {
-    fontSize: 14,
+    fontSize: Platform.OS === 'web' ? 14 : 15,
     fontWeight: '600',
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
+    flex: 1,
   },
   emptyContent: {
     flex: 1,

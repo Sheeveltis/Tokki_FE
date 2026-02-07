@@ -12,9 +12,9 @@ import { ForgotPasswordScreen } from 'app/features/authentication/screens/forgot
 import { PremiumScreen } from 'app/features/payment/screens/premium-screen'
 import { PackageScreen } from 'app/features/payment/screens/package-screen'
 import { PaymentScreen } from 'app/features/payment/screens/payment-screen'
-import { PaymentSuccessScreen } from 'app/features/payment/payment-success/payment-success-screen'
+import { PaymentSuccessScreen } from 'app/features/payment/screens/payment-success-screen'
 import { PaymentFailedScreen } from 'app/features/payment/screens/payment-failed-screen'
-import { RoadmapInfoScreen } from 'app/features/roadmap/roadmap-info/roadmap-info-screen'
+import { RoadmapInfoScreen } from 'app/features/roadmap/screens/roadmap-info-screen'
 import { RoadmapTestScreen } from 'app/features/roadmap/screens/roadmap-test-screen'
 import { ProfileScreen } from 'app/features/user/screens/client/profile-screen'
 import { MenuMobileScreenWrapper } from 'app/features/user/screens/mobile'
@@ -23,6 +23,7 @@ import { FlashcardListScreen } from 'app/features/study/flashcard-list'
 import { LearnScreen } from 'app/features/study/flashcard-learn'
 import { FlashcardStudyScreen } from 'app/features/study/flashcard-study'
 import { FlashcardTestScreen } from 'app/features/study/flashcard-test'
+import { MenuStudyScreen } from 'app/features/study/menu-study/menu-study-screen.native'
 
 const Stack = createNativeStackNavigator()
 
@@ -30,7 +31,7 @@ export function NativeNavigation() {
   return (
     <View style={styles.container}>
       <Stack.Navigator 
-      initialRouteName="login"
+      initialRouteName="menu-study"
       screenListeners={{
         state: (e) => {
           console.log('Navigation state changed:', e.data?.state)
@@ -112,6 +113,13 @@ export function NativeNavigation() {
       <Stack.Screen
         name="flashcard-list"
         component={FlashcardListScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="menu-study"
+        component={MenuStudyScreen}
         options={{
           headerShown: false,
         }}
