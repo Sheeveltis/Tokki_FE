@@ -1,4 +1,5 @@
 import React from 'react'
+import { Platform, View, Text, Image, StyleSheet, Pressable, Animated } from 'react-native'
 import SoundIcon from '../assets/icon/icon-mainflow/sound.svg'
 
 /**
@@ -126,7 +127,22 @@ export function FlipCard({
 
   // Render flashcard content nếu có word/meaning
   const renderFlashcardContent = () => {
-    if (word || meaning) {
+    // Nếu có custom content, ưu tiên custom content
+    if (frontContent || backContent) {
+      return {
+        front: frontContent,
+        back: backContent,
+      }
+    }
+    
+    // Nếu có word, meaning, hoặc image, render flashcard mode
+    // Kiểm tra xem có prop nào được truyền vào không (kể cả undefined/null/empty string)
+    // Vì nếu có prop được truyền vào, nghĩa là đang ở flashcard mode
+    const hasWord = word !== undefined
+    const hasMeaning = meaning !== undefined
+    const hasImage = image !== undefined && image !== null
+    
+    if (hasWord || hasMeaning || hasImage) {
       // Flashcard mode
       const imageSrc = typeof image === 'string' 
         ? image 
@@ -134,119 +150,179 @@ export function FlipCard({
           ? image.uri 
           : null
 
-      return {
-        // Mặt trước: chỉ hiển thị từ (word)
-        front: (
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            padding: '20px',
-            width: '100%',
-            height: '100%',
-          }}>
-            {word && (
-              <p style={{ 
-                margin: 0, 
-                fontSize: '28px', 
-                fontWeight: '700',
-                textAlign: 'center',
-                wordBreak: 'break-word',
-              }}>
-                {word}
-              </p>
-            )}
-          </div>
-        ),
-        // Mặt sau: hình + nghĩa
-        back: (
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            alignItems: 'center', 
-            justifyContent: 'center',
-            padding: '20px',
-            width: '100%',
-            height: '100%',
-          }}>
-            {image && (
-              <div style={{ 
-                marginBottom: meaning ? '16px' : '0',
-                maxWidth: '80%',
-                maxHeight: '60%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                {typeof image === 'string' || (image && image.uri) ? (
-                  <img 
-                    src={imageSrc} 
-                    alt={word || 'Flashcard'} 
-                    style={{ 
-                      width: '400px', 
-                      height: '300px', 
-                      objectFit: 'fill',
-                      borderRadius: '8px',
-                    }} 
-                  />
-                ) : (
-                  image
-                )}
-              </div>
-            )}
-            {meaning && (
-              <p style={{ 
-                margin: 0, 
-                fontSize: '24px', 
-                fontWeight: '600',
-                textAlign: 'center',
-                wordBreak: 'break-word',
-              }}>
-                {meaning}
-              </p>
-            )}
-          </div>
-        ),
+      const isWeb = Platform.OS === 'web'
+
+      if (isWeb) {
+        // Web version với HTML elements
+        return {
+          // Mặt trước: chỉ hiển thị từ (word)
+          front: (
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              padding: '20px',
+              width: '100%',
+              height: '100%',
+            }}>
+              {word && (
+                <p style={{ 
+                  margin: 0, 
+                  fontSize: '28px', 
+                  fontWeight: '700',
+                  textAlign: 'center',
+                  wordBreak: 'break-word',
+                }}>
+                  {word}
+                </p>
+              )}
+            </div>
+          ),
+          // Mặt sau: hình + nghĩa
+          back: (
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'center', 
+              justifyContent: 'center',
+              padding: '20px',
+              width: '100%',
+              height: '100%',
+            }}>
+              {image && (
+                <div style={{ 
+                  marginBottom: meaning ? '16px' : '0',
+                  maxWidth: '80%',
+                  maxHeight: '60%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  {typeof image === 'string' || (image && image.uri) ? (
+                    <img 
+                      src={imageSrc} 
+                      alt={word || 'Flashcard'} 
+                      style={{ 
+                        width: '400px', 
+                        height: '300px', 
+                        objectFit: 'fill',
+                        borderRadius: '8px',
+                      }} 
+                    />
+                  ) : (
+                    image
+                  )}
+                </div>
+              )}
+              {meaning && (
+                <p style={{ 
+                  margin: 0, 
+                  fontSize: '24px', 
+                  fontWeight: '600',
+                  textAlign: 'center',
+                  wordBreak: 'break-word',
+                }}>
+                  {meaning}
+                </p>
+              )}
+            </div>
+          ),
+        }
+      } else {
+        // React Native version
+        return {
+          // Mặt trước: chỉ hiển thị từ (word)
+          front: (
+            <View style={{ 
+              flex: 1,
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              padding: 20,
+              width: '100%',
+              height: '100%',
+            }}>
+              {word && (
+                <Text style={{ 
+                  fontSize: 28, 
+                  fontWeight: '700',
+                  textAlign: 'center',
+                }}>
+                  {word}
+                </Text>
+              )}
+            </View>
+          ),
+          // Mặt sau: hình + nghĩa
+          back: (
+            <View style={{ 
+              flex: 1,
+              flexDirection: 'column',
+              alignItems: 'center', 
+              justifyContent: 'center',
+              padding: 20,
+              width: '100%',
+              height: '100%',
+            }}>
+              {image && (
+                <View style={{ 
+                  marginBottom: meaning ? 16 : 0,
+                  maxWidth: '80%',
+                  maxHeight: '60%',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  {typeof image === 'string' || (image && image.uri) ? (
+                    <Image 
+                      source={{ uri: imageSrc }} 
+                      style={{ 
+                        width: 400, 
+                        height: 300, 
+                        resizeMode: 'cover',
+                        borderRadius: 8,
+                      }} 
+                    />
+                  ) : (
+                    image
+                  )}
+                </View>
+              )}
+              {meaning && (
+                <Text style={{ 
+                  fontSize: 24, 
+                  fontWeight: '600',
+                  textAlign: 'center',
+                }}>
+                  {meaning}
+                </Text>
+              )}
+            </View>
+          ),
+        }
       }
     }
     
-    // Custom content mode
+    // Fallback: trả về empty content nếu không có dữ liệu
+    const isWeb = Platform.OS === 'web'
+    const EmptyContent = isWeb ? (
+      <div style={{ width: '100%', height: '100%' }} />
+    ) : (
+      <View style={{ width: '100%', height: '100%' }} />
+    )
     return {
-      front: frontContent,
-      back: backContent,
+      front: EmptyContent,
+      back: EmptyContent,
     }
   }
 
   const content = renderFlashcardContent()
+  const isWeb = Platform.OS === 'web'
 
   // Render sound icon nếu có
   const renderSoundIcon = () => {
     // Hiển thị icon sound khi có onPlaySound
     if (!onPlaySound) return null
-    
-    const soundStyle = {
-      position: 'absolute',
-      top: '8px',
-      right: starIcon && onToggleFavorite ? '52px' : '8px',
-      zIndex: 10,
-      cursor: 'pointer',
-      padding: '8px',
-      borderRadius: '20px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: '44px',
-      height: '44px',
-      transition: 'opacity 0.2s',
-    }
-
-    const iconStyle = {
-      width: '28px',
-      height: '28px',
-      filter: 'opacity(0.5)',
-      transition: 'filter 0.2s',
-    }
 
     // Xử lý SoundIcon - có thể là string URL, object với src/uri/default
     const soundSrc = typeof SoundIcon === 'string' 
@@ -255,140 +331,307 @@ export function FlipCard({
     
     if (!soundSrc) return null
 
-    return (
-      <div 
-        style={soundStyle} 
-        onClick={(e) => { 
-          e.stopPropagation(); 
-          if (onPlaySound) {
-            onPlaySound(); 
-          }
-        }}
-        onMouseDown={(e) => e.stopPropagation()}
-        onMouseEnter={(e) => { 
-          const img = e.currentTarget.querySelector('img')
-          if (img) {
-            img.style.filter = 'opacity(1)'
-          }
-        }}
-        onMouseLeave={(e) => { 
-          const img = e.currentTarget.querySelector('img')
-          if (img) {
-            img.style.filter = 'opacity(0.5)'
-          }
-        }}
-      >
-        <img 
-          src={soundSrc} 
-          alt="Play sound" 
-          style={iconStyle}
-        />
-      </div>
-    )
+    if (isWeb) {
+      const soundStyle = {
+        position: 'absolute',
+        top: '8px',
+        right: starIcon && onToggleFavorite ? '52px' : '8px',
+        zIndex: 10,
+        cursor: 'pointer',
+        padding: '8px',
+        borderRadius: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '44px',
+        height: '44px',
+        transition: 'opacity 0.2s',
+      }
+
+      const iconStyle = {
+        width: '28px',
+        height: '28px',
+        filter: 'opacity(0.5)',
+        transition: 'filter 0.2s',
+      }
+
+      return (
+        <div 
+          style={soundStyle} 
+          onClick={(e) => { 
+            e.stopPropagation(); 
+            if (onPlaySound) {
+              onPlaySound(); 
+            }
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onMouseEnter={(e) => { 
+            const img = e.currentTarget.querySelector('img')
+            if (img) {
+              img.style.filter = 'opacity(1)'
+            }
+          }}
+          onMouseLeave={(e) => { 
+            const img = e.currentTarget.querySelector('img')
+            if (img) {
+              img.style.filter = 'opacity(0.5)'
+            }
+          }}
+        >
+          <img 
+            src={soundSrc} 
+            alt="Play sound" 
+            style={iconStyle}
+          />
+        </div>
+      )
+    } else {
+      // React Native version
+      // Đảm bảo soundSrc được xử lý đúng
+      const imageSource = typeof soundSrc === 'string' 
+        ? { uri: soundSrc }
+        : typeof soundSrc === 'number'
+        ? soundSrc
+        : soundSrc
+        
+      return (
+        <Pressable
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: starIcon && onToggleFavorite ? 52 : 8,
+            zIndex: 10,
+            padding: 8,
+            borderRadius: 20,
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 44,
+            height: 44,
+          }}
+          onPress={(e) => {
+            e?.stopPropagation?.()
+            if (onPlaySound) {
+              onPlaySound()
+            }
+          }}
+        >
+          <Image
+            source={imageSource}
+            style={{
+              width: 28,
+              height: 28,
+              opacity: 0.5,
+            }}
+          />
+        </Pressable>
+      )
+    }
   }
 
   // Render star icon nếu có
   const renderStarIcon = () => {
     if (!starIcon || !onToggleFavorite) return null
-    
-    const starStyle = {
-      position: 'absolute',
-      top: '8px',
-      right: '8px',
-      zIndex: 10,
-      cursor: 'pointer',
-      padding: '8px',
-      borderRadius: '20px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: '44px',
-      height: '44px',
-    }
 
-    const iconStyle = {
-      width: '28px',
-      height: '28px',
-      transition: 'filter 0.2s',
-    }
+    if (isWeb) {
+      const starStyle = {
+        position: 'absolute',
+        top: '8px',
+        right: '8px',
+        zIndex: 10,
+        cursor: 'pointer',
+        padding: '8px',
+        borderRadius: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '44px',
+        height: '44px',
+      }
 
-    // Nếu starIcon là React component hoặc element
-    if (React.isValidElement(starIcon)) {
-      return (
-        <div 
-          style={starStyle} 
-          onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          {React.cloneElement(starIcon, { 
-            style: { 
-              ...iconStyle, 
-              filter: isFavorite 
-                ? 'brightness(0) saturate(100%) invert(85%) sepia(50%) saturate(2000%) hue-rotate(5deg) brightness(1.1)' 
-                : 'opacity(0.5)',
-              ...starIcon.props?.style 
-            } 
-          })}
-        </div>
-      )
-    }
+      const iconStyle = {
+        width: '28px',
+        height: '28px',
+        transition: 'filter 0.2s',
+      }
 
-    // Nếu starIcon là string (URL) hoặc object
-    const starSrc = typeof starIcon === 'string' ? starIcon : (starIcon?.src || starIcon?.uri)
-    if (starSrc) {
-      return (
-        <div 
-          style={starStyle} 
-          onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          <img 
-            src={starSrc} 
-            alt="Favorite" 
+      // Nếu starIcon là React component hoặc element
+      if (React.isValidElement(starIcon)) {
+        return (
+          <div 
+            style={starStyle} 
+            onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            {React.cloneElement(starIcon, { 
+              style: { 
+                ...iconStyle, 
+                filter: isFavorite 
+                  ? 'brightness(0) saturate(100%) invert(85%) sepia(50%) saturate(2000%) hue-rotate(5deg) brightness(1.1)' 
+                  : 'opacity(0.5)',
+                ...starIcon.props?.style 
+              } 
+            })}
+          </div>
+        )
+      }
+
+      // Nếu starIcon là string (URL) hoặc object
+      const starSrc = typeof starIcon === 'string' ? starIcon : (starIcon?.src || starIcon?.uri)
+      if (starSrc) {
+        return (
+          <div 
+            style={starStyle} 
+            onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <img 
+              src={starSrc} 
+              alt="Favorite" 
+              style={{
+                ...iconStyle,
+                filter: isFavorite 
+                  ? 'brightness(0) saturate(100%) invert(85%) sepia(50%) saturate(2000%) hue-rotate(5deg) brightness(1.1)' 
+                  : 'opacity(0.5)',
+              }}
+            />
+          </div>
+        )
+      }
+    } else {
+      // React Native version
+      // Xử lý nhiều trường hợp: string, object với uri/src, hoặc React component
+      let starSrc = null
+      
+      if (typeof starIcon === 'string') {
+        starSrc = starIcon
+      } else if (starIcon && typeof starIcon === 'object') {
+        // Nếu là object có uri hoặc src
+        starSrc = starIcon.uri || starIcon.src
+        // Nếu normalizeImageSource đã trả về { uri: '...' }
+        if (!starSrc && starIcon.uri) {
+          starSrc = starIcon.uri
+        }
+      }
+      
+      // Nếu không tìm thấy src, thử kiểm tra xem có phải là React component không
+      if (!starSrc && React.isValidElement(starIcon)) {
+        // Nếu là React component, không thể render trực tiếp trên React Native
+        // Cần convert sang Image với source
+        return null
+      }
+      
+      if (starSrc) {
+        // Đảm bảo starSrc là string hoặc number (require)
+        const imageSource = typeof starSrc === 'string' 
+          ? { uri: starSrc }
+          : typeof starSrc === 'number'
+          ? starSrc
+          : starSrc
+          
+        return (
+          <Pressable
             style={{
-              ...iconStyle,
-              filter: isFavorite 
-                ? 'brightness(0) saturate(100%) invert(85%) sepia(50%) saturate(2000%) hue-rotate(5deg) brightness(1.1)' 
-                : 'opacity(0.5)',
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              zIndex: 10,
+              padding: 8,
+              borderRadius: 20,
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 44,
+              height: 44,
             }}
-          />
-        </div>
-      )
+            onPress={(e) => {
+              e?.stopPropagation?.()
+              onToggleFavorite()
+            }}
+          >
+            <Image
+              source={imageSource}
+              style={{
+                width: 28,
+                height: 28,
+                opacity: isFavorite ? 1 : 0.5,
+                tintColor: isFavorite ? '#F1BE4B' : undefined,
+              }}
+            />
+          </Pressable>
+        )
+      }
     }
 
     return null
   }
 
-  return (
-    <>
-      <style>{`
-        .flip-card-hover:hover .flip-card-inner {
-          transform: rotateY(180deg) !important;
-        }
-        .flip-card-clickable {
-          cursor: pointer;
-        }
-      `}</style>
-      <div
-        className={`flip-card ${hoverClass} ${className} ${!flipOnHover ? 'flip-card-clickable' : ''}`}
-        style={cardStyle}
-        onClick={!flipOnHover ? handleFlip : undefined}
-      >
-        <div className="flip-card-inner" style={cardInnerStyle}>
-          <div className="flip-card-front" style={cardFrontStyle}>
-            {content.front}
-            {renderSoundIcon()}
-            {renderStarIcon()}
+  if (isWeb) {
+    // Web version với HTML và CSS
+    return (
+      <>
+        <style>{`
+          .flip-card-hover:hover .flip-card-inner {
+            transform: rotateY(180deg) !important;
+          }
+          .flip-card-clickable {
+            cursor: pointer;
+          }
+        `}</style>
+        <div
+          className={`flip-card ${hoverClass} ${className} ${!flipOnHover ? 'flip-card-clickable' : ''}`}
+          style={cardStyle}
+          onClick={!flipOnHover ? handleFlip : undefined}
+        >
+          <div className="flip-card-inner" style={cardInnerStyle}>
+            <div className="flip-card-front" style={cardFrontStyle}>
+              {content.front}
+              {renderSoundIcon()}
+              {renderStarIcon()}
+            </div>
+            <div className="flip-card-back" style={cardBackStyle}>
+              {content.back}
+              {renderSoundIcon()}
+              {renderStarIcon()}
+            </div>
           </div>
-          <div className="flip-card-back" style={cardBackStyle}>
+        </div>
+      </>
+    )
+  } else {
+    // React Native version - đơn giản hóa: chỉ hiển thị mặt trước hoặc sau
+    return (
+      <Pressable
+        style={[
+          {
+            width: widthValue,
+            height: heightValue,
+            backgroundColor: isFlipped ? backColor : frontColor,
+            borderWidth: borderWidth,
+            borderColor: isFlipped ? backColor : frontColor,
+            borderRadius: borderRadius,
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+          },
+          style,
+        ]}
+        onPress={handleFlip}
+      >
+        {isFlipped ? (
+          <>
             {content.back}
             {renderSoundIcon()}
             {renderStarIcon()}
-          </div>
-        </div>
-      </div>
-    </>
-  )
+          </>
+        ) : (
+          <>
+            {content.front}
+            {renderSoundIcon()}
+            {renderStarIcon()}
+          </>
+        )}
+      </Pressable>
+    )
+  }
 }
 
 export default FlipCard
