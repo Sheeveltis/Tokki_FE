@@ -58,8 +58,8 @@ const renderIcon = (Icon, style, isActive = false) => {
     // Nếu là React component (SVG component), render trực tiếp
     const IconComponent = typeof Icon === 'function' ? Icon : (Icon.default || Icon)
     return (
-      <View style={[styles.iconContainer, isActive && styles.iconContainerActive, style]}>
-        <IconComponent width={40} height={40} fill="#000" />
+      <View style={[styles.iconContainer, isActive && styles.iconContainerActive]}>
+        <IconComponent width={24} height={24} fill="#000" />
       </View>
     )
   }
@@ -68,9 +68,7 @@ const renderIcon = (Icon, style, isActive = false) => {
   const iconSource = normalizeImageSource(Icon)
   if (iconSource) {
     return (
-      <View style={[styles.iconContainer, isActive && styles.iconContainerActive]}>
-        <Image source={iconSource} style={[styles.icon, style]} resizeMode="contain" />
-      </View>
+      <Image source={iconSource} style={[styles.icon, style]} resizeMode="contain" />
     )
   }
   
@@ -183,20 +181,12 @@ export function NavbarMobile() {
     <View style={styles.container}>
       {/* Home - Leftmost */}
         <TouchableOpacity style={styles.iconButton} onPress={handleHomePress} activeOpacity={0.7}>
-          <Image
-            source={normalizeImageSource(HomeIcon)}
-            style={styles.icon}
-            resizeMode="contain"
-          />
+          {renderIcon(HomeIcon, styles.icon)}
         </TouchableOpacity>
 
         {/* Flashcard - Second from left */}
         <TouchableOpacity style={styles.iconButton} onPress={handleFlashcardPress} activeOpacity={0.7}>
-          <Image
-            source={normalizeImageSource(FlashcardIcon)}
-            style={styles.icon}
-            resizeMode="contain"
-          />
+          {renderIcon(FlashcardIcon, styles.icon)}
         </TouchableOpacity>
 
         {/* Menu - Center */}
@@ -218,20 +208,24 @@ export function NavbarMobile() {
 
         {/* Blog - Second from right */}
         <TouchableOpacity style={styles.iconButton} onPress={handleBlogPress} activeOpacity={0.7}>
-          <Image
-            source={normalizeImageSource(BlogIcon)}
-            style={styles.icon}
-            resizeMode="contain"
-          />
+          {renderIcon(BlogIcon, styles.icon)}
         </TouchableOpacity>
 
         {/* Profile - Rightmost */}
         <TouchableOpacity style={styles.iconButton} onPress={handleProfilePress} activeOpacity={0.7}>
-          <Image
-            source={normalizeImageSource(avatarUrl || UserIcon)}
-            style={styles.avatarIcon}
-            resizeMode="cover"
-          />
+          {avatarUrl ? (
+            <Image
+              source={normalizeImageSource(avatarUrl)}
+              style={styles.avatarIcon}
+              resizeMode="cover"
+            />
+          ) : (
+            <Image
+              source={normalizeImageSource(UserIcon)}
+              style={styles.avatarIcon}
+              resizeMode="cover"
+            />
+          )}
       </TouchableOpacity>
     </View>
   )
