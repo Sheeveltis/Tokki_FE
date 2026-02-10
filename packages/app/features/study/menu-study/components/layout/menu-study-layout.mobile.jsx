@@ -28,15 +28,13 @@ export function MenuStudyLayout({
         nestedScrollEnabled={true}
       >
         <View style={styles.contentWrapper}>
-          {/* Nút Trở lại */}
           <View style={styles.backButtonContainer}>
             <NavigationPill
               label="Quay lại"
-              to={undefined}
               icon={ArrowIcon}
+              iconStyle={{ transform: [{ scaleX: -1 }] }}
               onPress={onBackPress}
               textStyle={{ fontWeight: '700' }}
-              iconStyle={{ transform: [{ scaleX: -1 }] }}
             />
           </View>
 
@@ -75,8 +73,6 @@ const styles = StyleSheet.create({
   },
   contentWrapper: {
     width: '100%',
-    maxWidth: '100%',
-    alignItems: 'center',
     gap: 20,
     paddingVertical: 20,
     paddingHorizontal: 12,
@@ -86,7 +82,6 @@ const styles = StyleSheet.create({
   backButtonContainer: {
     alignSelf: 'flex-start',
     marginBottom: 4,
-    width: '100%',
   },
   titleContainer: {
     width: '100%',
