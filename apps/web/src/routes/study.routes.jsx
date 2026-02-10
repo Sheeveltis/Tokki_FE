@@ -180,10 +180,15 @@ function FlashcardRoute() {
       onTopicPress={(topic) => {
         const topicId = topic?.id || topic?.topicId
         if (!topicId) return
-        if (topic?.isLearned) {
+        const progress = topic?.progress ?? 0
+        const isProgressComplete = progress >= 100
+        
+        // Nếu progress === 100%, điều hướng đến trang study (FlashcardStudyScreen)
+        if (isProgressComplete || topic?.isProgressComplete) {
           navigate(`/flashcard/study?topic=${topicId}`)
           return
         }
+        // Ngược lại, điều hướng đến học lần đầu (FlashcardFirstLearnScreen)
         navigate(`/flashcard/learn?topic=${topicId}`)
       }}
       onBackPress={() => navigate(`/menu-study?level=${levelId}`)}
