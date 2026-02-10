@@ -54,6 +54,14 @@ export function FlashcardStudyScreen({
 
   // Lấy topicId từ route params hoặc props
   const topicId = route?.params?.topicId || topicIdProp
+  
+  // Lấy isFavoritesMode từ route params hoặc props
+  const favoritesMode = route?.params?.isFavoritesMode ?? isFavoritesMode
+  
+  // Đặt title mặc định cho favorites mode
+  const screenTitle = favoritesMode && title === 'Flashcard' 
+    ? 'Từ vựng yêu thích' 
+    : title
 
   // Handler cho nút back
   const handleBackPress = () => {
@@ -85,7 +93,7 @@ export function FlashcardStudyScreen({
     loading,
     error,
     fetchFlashcards,
-  } = useFlashcardStudy(topicId, isFavoritesMode)
+  } = useFlashcardStudy(topicId, favoritesMode)
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
@@ -93,7 +101,7 @@ export function FlashcardStudyScreen({
   return (
     <Layout>
       <Main
-        title={title}
+        title={screenTitle}
         flashcards={flashcards}
         current={current}
         currentIndex={currentIndex}
@@ -117,7 +125,7 @@ export function FlashcardStudyScreen({
         loading={loading}
         error={error}
         onRetry={fetchFlashcards}
-        isFavoritesMode={isFavoritesMode}
+        isFavoritesMode={favoritesMode}
       />
     </Layout>
   )

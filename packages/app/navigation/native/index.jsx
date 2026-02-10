@@ -23,6 +23,7 @@ import { FlashcardListScreen } from 'app/features/study/flashcard-list'
 import { LearnScreen } from 'app/features/study/flashcard-learn'
 import { FlashcardStudyScreen } from 'app/features/study/flashcard-study'
 import { FlashcardTestScreen } from 'app/features/study/flashcard-test'
+import { FlashcardFirstLearnScreen } from 'app/features/study/flashcard-first-learn'
 import { MenuStudyScreen } from 'app/features/study/menu-study/menu-study-screen.native'
 
 const Stack = createNativeStackNavigator()
@@ -31,7 +32,7 @@ export function NativeNavigation() {
   return (
     <View style={styles.container}>
       <Stack.Navigator 
-      initialRouteName="menu-study"
+      initialRouteName="login"
       screenListeners={{
         state: (e) => {
           console.log('Navigation state changed:', e.data?.state)
@@ -67,7 +68,7 @@ export function NativeNavigation() {
         name="blog-detail"
         component={BlogDetailScreen}
       />
-       <Stack.Screen
+       {/* <Stack.Screen
         name="payment-package"
         component={PackageScreen}
       />
@@ -86,7 +87,7 @@ export function NativeNavigation() {
       <Stack.Screen
         name="payment-failed"
         component={PaymentFailedScreen}
-      />
+      /> */}
       <Stack.Screen
         name="roadmap-info"
         component={RoadmapInfoScreen}
@@ -127,6 +128,13 @@ export function NativeNavigation() {
       <Stack.Screen
         name="flashcard-learn"
         component={LearnScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="flashcard-first-learn"
+        component={FlashcardFirstLearnScreen}
         options={{
           headerShown: false,
         }}

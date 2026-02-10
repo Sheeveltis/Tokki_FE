@@ -8,7 +8,50 @@ import {
   FlashcardFirstLearnMainMobile as MobileMain,
 } from './components'
 
-export function FlashcardFirstLearnScreen({ topicId, title = 'Học lần đầu', onBackPress }) {
+// Conditional import để tránh lỗi trên web
+let useRoute, useNavigation
+if (Platform.OS !== 'web') {
+  try {
+    const navModule = require('@react-navigation/native')
+    useRoute = navModule.useRoute
+    useNavigation = navModule.useNavigation
+  } catch (e) {
+    // Ignore if not available
+  }
+}
+
+export function FlashcardFirstLearnScreen({ 
+  topicId: topicIdProp, 
+  title = 'Học lần đầu', 
+  onBackPress: onBackPressProp,
+  route: routeProp,
+  navigation: navigationProp,
+}) {
+  // Lấy route và navigation từ hooks nếu không có trong props
+  // Chỉ sử dụng hooks trên mobile để tránh lỗi trên web
+  let route = routeProp
+  let navigation = navigationProp
+  
+  if (Platform.OS !== 'web' && useRoute && useNavigation) {
+    if (!route) {
+      route = useRoute()
+    }
+    if (!navigation) {
+      navigation = useNavigation()
+    }
+  }
+
+  // Lấy topicId từ route params hoặc props
+  const topicId = route?.params?.topicId || topicIdProp
+
+  // Handler cho nút back
+  const handleBackPress = () => {
+    if (onBackPressProp) {
+      onBackPressProp()
+    } else if (navigation?.canGoBack?.()) {
+      navigation.goBack()
+    }
+  }
   const {
     flashcards,
     current,
@@ -51,8 +94,8 @@ export function FlashcardFirstLearnScreen({ topicId, title = 'Học lần đầu
   const safeBack = React.useCallback(() => {
     if (didNavigateBackRef.current) return
     didNavigateBackRef.current = true
-    onBackPress?.()
-  }, [onBackPress])
+    handleBackPress()
+  }, [handleBackPress])
 
   // When user chooses to stop learning from the modal, navigate back immediately (deterministic),
   // instead of relying on the "allWordsCompleted" auto-back effect timing.
@@ -91,7 +134,7 @@ export function FlashcardFirstLearnScreen({ topicId, title = 'Học lần đầu
         onSubmit={handleSubmit}
         onContinue={handleContinue}
         canContinue={canContinue}
-        onBackPress={onBackPress}
+        onBackPress={handleBackPress}
         onRetry={fetchFlashcards}
         onPlaySound={playAudio}
         progress={progress}

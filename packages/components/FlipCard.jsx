@@ -61,11 +61,12 @@ export function FlipCard({
   const isFlipped = controlledFlipped !== undefined ? controlledFlipped : internalFlipped
 
   const handleFlip = () => {
+    const newFlippedState = !isFlipped
     if (controlledFlipped === undefined) {
-      setInternalFlipped(!internalFlipped)
+      setInternalFlipped(newFlippedState)
     }
     if (onFlip) {
-      onFlip(!isFlipped)
+      onFlip(newFlippedState)
     }
   }
 
@@ -409,11 +410,15 @@ export function FlipCard({
             height: 44,
           }}
           onPress={(e) => {
-            e?.stopPropagation?.()
+            if (e?.stopPropagation) {
+              e.stopPropagation()
+            }
             if (onPlaySound) {
               onPlaySound()
             }
           }}
+          onStartShouldSetResponder={() => true}
+          onMoveShouldSetResponder={() => true}
         >
           <Image
             source={imageSource}
@@ -543,9 +548,13 @@ export function FlipCard({
               height: 44,
             }}
             onPress={(e) => {
-              e?.stopPropagation?.()
+              if (e?.stopPropagation) {
+                e.stopPropagation()
+              }
               onToggleFavorite()
             }}
+            onStartShouldSetResponder={() => true}
+            onMoveShouldSetResponder={() => true}
           >
             <Image
               source={imageSource}
@@ -597,38 +606,102 @@ export function FlipCard({
       </>
     )
   } else {
-    // React Native version - đơn giản hóa: chỉ hiển thị mặt trước hoặc sau
+    // React Native version - sử dụng Animated API để tạo animation flip
+    const flipAnimation = React.useRef(new Animated.Value(isFlipped ? 1 : 0)).current
+
+    React.useEffect(() => {
+      Animated.timing(flipAnimation, {
+        toValue: isFlipped ? 1 : 0,
+        duration: 300,
+        useNativeDriver: true, // Dùng useNativeDriver cho opacity (được hỗ trợ tốt)
+      }).start()
+    }, [isFlipped, flipAnimation])
+
+    // Sử dụng Animated.Value để tạo fade animation mượt
+    const frontOpacity = flipAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [1, 0],
+    })
+
+    const backOpacity = flipAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+    })
+
+    const frontAnimatedStyle = {
+      opacity: frontOpacity,
+    }
+
+    const backAnimatedStyle = {
+      opacity: backOpacity,
+    }
+
     return (
       <Pressable
         style={[
           {
             width: widthValue,
             height: heightValue,
-            backgroundColor: isFlipped ? backColor : frontColor,
-            borderWidth: borderWidth,
-            borderColor: isFlipped ? backColor : frontColor,
             borderRadius: borderRadius,
-            alignItems: 'center',
-            justifyContent: 'center',
             position: 'relative',
           },
           style,
         ]}
-        onPress={handleFlip}
+        onPress={() => {
+          handleFlip()
+        }}
+        activeOpacity={0.9}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        android_ripple={{ color: 'rgba(255, 255, 255, 0.1)' }}
       >
-        {isFlipped ? (
-          <>
-            {content.back}
-            {renderSoundIcon()}
-            {renderStarIcon()}
-          </>
-        ) : (
-          <>
-            {content.front}
-            {renderSoundIcon()}
-            {renderStarIcon()}
-          </>
-        )}
+        <Animated.View
+          style={[
+            {
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundColor: frontColor,
+              borderWidth: borderWidth,
+              borderColor: frontColor,
+              borderRadius: borderRadius,
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            },
+            frontAnimatedStyle,
+          ]}
+          pointerEvents={isFlipped ? 'none' : 'auto'}
+        >
+          {content?.front || null}
+          {renderSoundIcon()}
+          {renderStarIcon()}
+        </Animated.View>
+        <Animated.View
+          style={[
+            {
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundColor: backColor,
+              borderWidth: borderWidth,
+              borderColor: backColor,
+              borderRadius: borderRadius,
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            },
+            backAnimatedStyle,
+          ]}
+          pointerEvents={isFlipped ? 'auto' : 'none'}
+        >
+          {content?.back || null}
+          {renderSoundIcon()}
+          {renderStarIcon()}
+        </Animated.View>
       </Pressable>
     )
   }

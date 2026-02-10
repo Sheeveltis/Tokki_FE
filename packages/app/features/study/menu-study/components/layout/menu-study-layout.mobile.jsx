@@ -58,7 +58,7 @@ export function MenuStudyLayout({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FFD7D0',
+    backgroundColor: '#FDF8EE',
     position: 'relative',
   },
   scrollView: {
@@ -78,10 +78,8 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
     alignItems: 'center',
     gap: 20,
-    backgroundColor: '#F5F0DD',
     paddingVertical: 20,
     paddingHorizontal: 12,
-    borderRadius: 20,
     marginTop: 8,
     marginBottom: 16,
   },
