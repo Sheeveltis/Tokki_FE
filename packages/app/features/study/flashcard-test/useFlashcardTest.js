@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { Platform } from 'react-native'
 import { getFlashcardsByTopic, getFavoriteVocabularies, submitSpacedRepetition } from '../api'
 import KoreanImage from '../../../../assets/icon/icon-mainflow/korean.png'
 
@@ -628,9 +629,14 @@ export function useFlashcardTest(topicId, isFavoritesMode = false, options = {})
       }
     }
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
+    // Chỉ thêm event listener trên web platform
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+      window.addEventListener('keydown', handleKeyDown)
+      return () => {
+        if (typeof window.removeEventListener === 'function') {
+          window.removeEventListener('keydown', handleKeyDown)
+        }
+      }
     }
   }, [enableParts, isSubmitted, parts, currentPart, currentQuestionIndex, showResults, handleNextQuestion])
 
