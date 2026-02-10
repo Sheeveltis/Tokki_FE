@@ -35,6 +35,7 @@ export function LoginScreen({ onPressSignUp }) {
       panel={
         <LoginPanel
           onPressSignUp={handlePressSignUp}
+          navigation={navigation}
         />
       }
     />

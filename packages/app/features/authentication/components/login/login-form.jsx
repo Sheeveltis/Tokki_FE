@@ -44,12 +44,14 @@ import { getGoogleClientId } from './get-google-client-id'
  * @param {{
  *   onPressSignUp?: () => void
  *   onPressGoogle?: () => void
+ *   navigation?: any - Navigation object từ React Navigation (cho native)
  * }} props
  */
-export function LoginPanel({ onPressSignUp, onPressGoogle }) {
+export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigationProp }) {
   const router = useRouter()
-  // Sử dụng navigation cho native, router cho web
-  const navigation = useNavigation ? useNavigation() : null
+  // Sử dụng navigation prop nếu có, nếu không thì thử dùng useNavigation hook
+  const navigationHook = useNavigation ? useNavigation() : null
+  const navigation = navigationProp || navigationHook
   const insets = useSafeAreaInsets() // Lấy safe area insets để tránh navigation bar
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -194,7 +196,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
         heartbeatService.start()
 
         // Chuyển trang sau khi hiển thị thông báo
-        // Native: chuyển đến payment-package để test giao diện (dùng React Navigation)
+        // Native: chuyển đến menu-study (dùng React Navigation)
         // Web: chuyển đến homepage (dùng solito router)
         setTimeout(() => {
           if (Platform.OS === 'web') {
@@ -202,10 +204,10 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
           } else {
             // Trên native, dùng React Navigation
             if (navigation) {
-              navigation.navigate('payment-package')
+              navigation.navigate('menu-study')
             } else {
               // Fallback nếu navigation không có
-              router.push('/payment-package')
+              router.push('/menu-study')
             }
           }
         }, 500) // Delay nhỏ để user thấy thông báo
