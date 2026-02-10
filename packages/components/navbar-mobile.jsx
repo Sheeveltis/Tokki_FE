@@ -2,12 +2,10 @@ import React from 'react'
 import { View, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import HomeIcon from '../assets/icon/navigate-app/home.svg'
-import StarIcon from '../assets/icon/icon-mainflow/star.svg'
-import AppIcon from '../assets/icon/icon-mainflow/app.svg'
-import ChatIcon from '../assets/icon/navigate-app/folder.svg'
+import LayersIcon from '../assets/icon/navigate-app/layers-svgrepo-com.svg'
 import FlashcardIcon from '../assets/icon/navigate-app/folder.svg'
 import BlogIcon from '../assets/icon/navigate-app/chat.svg'
-import UserIcon from '../assets/user.png'
+import UserIcon from '../assets/icon/navigate-app/user-svgrepo-com.svg'
 import { getCurrentUserInfo, getAuthToken } from '../app/provider/api/client'
 
 /**
@@ -59,7 +57,7 @@ const renderIcon = (Icon, style, isActive = false) => {
     const IconComponent = typeof Icon === 'function' ? Icon : (Icon.default || Icon)
     return (
       <View style={[styles.iconContainer, isActive && styles.iconContainerActive]}>
-        <IconComponent width={24} height={24} fill="#000" />
+        <IconComponent width={30} height={30} fill="#000" />
       </View>
     )
   }
@@ -135,15 +133,6 @@ export function NavbarMobile() {
     }
   }
 
-  const handleStarPress = () => {
-    if (!navigation) return
-    try {
-      navigation.navigate('study')
-    } catch (error) {
-      console.error('Navigation error:', error)
-    }
-  }
-
   const handleFlashcardPress = () => {
     if (!navigation) return
     try {
@@ -181,51 +170,37 @@ export function NavbarMobile() {
     <View style={styles.container}>
       {/* Home - Leftmost */}
         <TouchableOpacity style={styles.iconButton} onPress={handleHomePress} activeOpacity={0.7}>
-          {renderIcon(HomeIcon, styles.icon)}
+          {renderIcon(HomeIcon, styles.icon, currentRouteName === 'home')}
         </TouchableOpacity>
 
         {/* Flashcard - Second from left */}
         <TouchableOpacity style={styles.iconButton} onPress={handleFlashcardPress} activeOpacity={0.7}>
-          {renderIcon(FlashcardIcon, styles.icon)}
+          {renderIcon(FlashcardIcon, styles.icon, currentRouteName === 'flashcard-list')}
         </TouchableOpacity>
 
         {/* Menu - Center */}
         <TouchableOpacity style={styles.iconButton} onPress={handleMenuPress} activeOpacity={0.7}>
-          <View style={styles.menuIconContainer}>
-            <View style={styles.menuIconGrid}>
-              <View style={styles.menuDot} />
-              <View style={styles.menuDot} />
-              <View style={styles.menuDot} />
-              <View style={styles.menuDot} />
-              <View style={styles.menuDot} />
-              <View style={styles.menuDot} />
-              <View style={styles.menuDot} />
-              <View style={styles.menuDot} />
-              <View style={styles.menuDot} />
-            </View>
-          </View>
+          {renderIcon(LayersIcon, styles.icon, currentRouteName === 'menu')}
         </TouchableOpacity>
 
         {/* Blog - Second from right */}
         <TouchableOpacity style={styles.iconButton} onPress={handleBlogPress} activeOpacity={0.7}>
-          {renderIcon(BlogIcon, styles.icon)}
+          {renderIcon(BlogIcon, styles.icon, currentRouteName === 'blog')}
         </TouchableOpacity>
 
         {/* Profile - Rightmost */}
         <TouchableOpacity style={styles.iconButton} onPress={handleProfilePress} activeOpacity={0.7}>
-          {avatarUrl ? (
-            <Image
-              source={normalizeImageSource(avatarUrl)}
-              style={styles.avatarIcon}
-              resizeMode="cover"
-            />
-          ) : (
-            <Image
-              source={normalizeImageSource(UserIcon)}
-              style={styles.avatarIcon}
-              resizeMode="cover"
-            />
-          )}
+          <View style={[styles.avatarContainer, currentRouteName === 'menu-mobile' && styles.avatarContainerActive]}>
+            {avatarUrl ? (
+              <Image
+                source={normalizeImageSource(avatarUrl)}
+                style={styles.avatarIcon}
+                resizeMode="cover"
+              />
+            ) : (
+              renderIcon(UserIcon, styles.icon, currentRouteName === 'menu-mobile')
+            )}
+          </View>
       </TouchableOpacity>
     </View>
   )
@@ -259,40 +234,43 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   icon: {
-    width: 24,
-    height: 24,
+    width: 50,
+    height: 50,
   },
   avatarIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
   },
   iconContainer: {
+    width: 50,
+    height: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 4,
-    // Đảm bảo SVG được căn giữa
   },
   iconContainerActive: {
-    backgroundColor: '#F5E6D3', // Light beige background
-    borderRadius: 20,
-    padding: 8,
+    backgroundColor: '#F5E6D3',
+    borderRadius: 15,
   },
   avatarContainer: {
-    padding: 4,
+    width: 46,
+    height: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatarContainerActive: {
-    backgroundColor: '#F5E6D3', // Light beige background
-    borderRadius: 20,
-    padding: 8,
+    backgroundColor: '#F5E6D3',
+    borderRadius: 15,
   },
   iconPlaceholder: {
     backgroundColor: '#000',
     borderRadius: 2,
   },
   menuIconContainer: {
-    width: 24,
-    height: 24,
+    width: 36,
+    height: 36,
+    backgroundColor: '#FFF9E1',
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -305,9 +283,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   menuDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
     backgroundColor: '#000',
   },
 })
