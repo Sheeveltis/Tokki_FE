@@ -10,6 +10,18 @@ import {
   FlashcardLearnMainMobile as MobileMain
 } from './components'
 
+// Conditional import để tránh lỗi trên web
+let useRoute, useNavigation
+if (Platform.OS !== 'web') {
+  try {
+    const navModule = require('@react-navigation/native')
+    useRoute = navModule.useRoute
+    useNavigation = navModule.useNavigation
+  } catch (e) {
+    // Ignore if not available
+  }
+}
+
 /**
  * LearnScreen: Trang học flashcard chi tiết
  * Điều phối giữa web và mobile layout
@@ -17,14 +29,43 @@ import {
  *   topicId?: string
  *   title?: string
  *   onBackPress?: () => void
+ *   route?: object
+ *   navigation?: object
  * }} props
  */
 export function LearnScreen({
-  topicId,
+  topicId: topicIdProp,
   title = 'Học Từ Vựng',
-  onBackPress,
+  onBackPress: onBackPressProp,
   isFavoritesMode = false,
+  route: routeProp,
+  navigation: navigationProp,
 }) {
+  // Lấy route và navigation từ hooks nếu không có trong props
+  // Chỉ sử dụng hooks trên mobile để tránh lỗi trên web
+  let route = routeProp
+  let navigation = navigationProp
+  
+  if (Platform.OS !== 'web' && useRoute && useNavigation) {
+    if (!route) {
+      route = useRoute()
+    }
+    if (!navigation) {
+      navigation = useNavigation()
+    }
+  }
+
+  // Lấy topicId từ route params hoặc props
+  const topicId = route?.params?.topicId || topicIdProp
+
+  // Handler cho nút back
+  const handleBackPress = () => {
+    if (onBackPressProp) {
+      onBackPressProp()
+    } else if (navigation?.canGoBack?.()) {
+      navigation.goBack()
+    }
+  }
   const [slideDirection, setSlideDirection] = useState(null) // 'left' | 'right' | null
   
   const {
@@ -111,7 +152,7 @@ export function LearnScreen({
         loading={loading}
         error={error}
         flashcards={flashcards}
-        onBackPress={onBackPress}
+        onBackPress={handleBackPress}
         onFlip={setIsFlipped}
         onToggleFavorite={toggleFavorite}
         onMarkAsLearned={handleMarkAsLearned}

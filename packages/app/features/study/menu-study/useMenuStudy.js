@@ -27,11 +27,20 @@ export function useMenuStudy(router, levelId) {
     router.push('/alphabet')
   }
 
+  const handleTopikRoadmapPress = () => {
+    if (!levelId) {
+      router.push('/roadmap/info')
+      return
+    }
+    router.push(`/roadmap/learning?level=${levelId}`)
+  }
+
   return {
     showLoginRequest,
     setShowLoginRequest,
     handleModulePress,
     handleAlphabetPress,
+    handleTopikRoadmapPress,
   }
 }
 

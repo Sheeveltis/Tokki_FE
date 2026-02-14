@@ -3,7 +3,7 @@ import { Route } from 'react-router-dom'
 
 import { StaffScreen } from '@tokki/app/features/back-office/screens/staff-screen'
 import { StaffUserDetailScreen } from '@tokki/app/features/user/screens/staff/user-detail-screen'
-import { LessonDetailScreen } from '@tokki/app/features/admin/screens/LessonDetail'
+import { LessonDetailScreen } from '@tokki/app/features/examination-management/screens/admin/lesson-detail-screen'
 import { ExamTemplateDetailScreen } from '@tokki/app/features/examination-management/screens/admin/exam-template-detail-screen'
 import { CreateQuestionScreen } from '@tokki/app/features/examination-management/screens/admin/create-question-screen'
 import { ViewBlogScreen } from '@tokki/app/features/blog/screens/admin/view-blog-screen'

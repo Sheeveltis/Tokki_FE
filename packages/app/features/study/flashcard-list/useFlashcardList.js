@@ -1,5 +1,25 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { Platform } from 'react-native'
 import { getFlashcardTopics } from '../api'
+
+// Import useFocusEffect chỉ trên mobile (React Navigation)
+let useFocusEffect = null
+if (Platform.OS !== 'web') {
+  try {
+    const navModule = require('@react-navigation/native')
+    useFocusEffect = navModule.useFocusEffect
+  } catch (e) {
+    // React Navigation không có sẵn, bỏ qua
+  }
+}
+
+// Wrapper hook để sử dụng useFocusEffect an toàn (chỉ chạy khi có React Navigation)
+function useSafeFocusEffect(callback) {
+  if (useFocusEffect) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useFocusEffect(callback)
+  }
+}
 
 /**
  * Hook xử lý logic cho FlashcardListScreen
@@ -44,6 +64,19 @@ export function useFlashcardList(levelId) {
   useEffect(() => {
     fetchTopics()
   }, [fetchTopics])
+
+  // Refresh topic list khi screen được focus (quay lại từ màn hình khác)
+  // Điều này đảm bảo tiến độ được cập nhật sau khi học xong topic
+  // Chỉ sử dụng trên mobile (React Navigation)
+  const refreshOnFocus = useCallback(() => {
+    // Chỉ refresh nếu không phải lần load đầu tiên (tránh double fetch)
+    if (!isInitialLoading) {
+      fetchTopics()
+    }
+  }, [fetchTopics, isInitialLoading])
+
+  // Sử dụng useFocusEffect an toàn (chỉ chạy khi có React Navigation)
+  useSafeFocusEffect(refreshOnFocus)
 
   // Đồng bộ selectedLevel khi prop levelId thay đổi
   useEffect(() => {

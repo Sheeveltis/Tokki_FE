@@ -3,19 +3,18 @@ import { Platform } from 'react-native'
 /**
  * Cấu hình API Domain
  * - Web: sử dụng localhost
- * - Mobile: sử dụng IP của máy chủ backend (cần thay đổi theo IP thực tế của máy bạn)
+ * - Mobile Emulator: sử dụng 10.0.2.2 (IP đặc biệt của Android Emulator để truy cập localhost của máy host)
+ * - Mobile Device thật: sử dụng IP của máy chủ backend (cần thay đổi theo IP thực tế của máy bạn)
  *
- * Để lấy IP của máy:
- * - Windows: mở CMD và chạy `ipconfig`, tìm "IPv4 Address" (thường là 192.168.x.x)
- * - Mac/Linux: mở Terminal và chạy `ifconfig` hoặc `ip addr`, tìm IP của WiFi/Ethernet
- *
- * Ví dụ: Nếu IP của máy là 192.168.1.100, thì MOBILE_DOMAIN = 'http://192.168.1.100:5031'
+ * Lưu ý:
+ * - Android Emulator: dùng 10.0.2.2 để truy cập localhost của máy host
+ * - Device thật: dùng IP thật của máy (ví dụ: 116.106.201.3 hoặc 192.168.x.x)
+ * - Để lấy IP của máy: Windows (ipconfig) hoặc Mac/Linux (ifconfig)
  */
-  // const WEB_DOMAIN = 'https://tokki-be-hneqd2a3dfhmfnhq.koreacentral-01.azurewebsites.net'
-  const WEB_DOMAIN = 'http://localhost:5031'
-  // ⚠️ THAY ĐỔI IP NÀY THÀNH IP THỰC TẾ CỦA MÁY BẠN
-// Tìm IP bằng cách: Windows (ipconfig) hoặc Mac/Linux (ifconfig)
-const MOBILE_DOMAIN = 'http://192.168.1.100:5031' // Thay đổi IP này!
+const WEB_DOMAIN = 'http://localhost:5031'
+// Cho Android Emulator: dùng 10.0.2.2 để truy cập localhost của máy host
+// Cho Device thật: thay bằng IP thật của máy (ví dụ: http://116.106.201.3:5031)
+const MOBILE_DOMAIN = 'http://10.0.2.2:5031' // IP đặc biệt cho Android Emulator
 
 const PREFIX = '/api'
 
@@ -235,6 +234,18 @@ export const ENDPOINTS = {
       TEMPLATE_PARTS: '/ExamTemplates/TemplateParts',  // POST: Thêm/cập nhật template parts
       UPDATE_TEMPLATE_PART: (templatePartId) => `/ExamTemplates/TemplateParts/${templatePartId}`,  // PUT: Cập nhật một template part (templatePartId trong URL)
       DUPLICATE: (id) => `/ExamTemplates/${id}/duplicate`,  // POST: Sao chép exam template
+    },
+    EXAMS: {
+      ADMIN_LIST: '/Exams/admin',              // GET: Lấy danh sách exams cho admin (query: PageNumber, PageSize, Status, Type)
+      ADMIN_DETAIL: '/Exams/admin/detail',     // GET: Lấy chi tiết exam cho admin (query: examId)
+      GET_BY_ID: (id) => `/Exams/${id}`,      // GET: Lấy chi tiết exam
+      CREATE: '/Exams',                        // POST: Tạo exam mới
+      UPDATE: (id) => `/Exams/${id}`,          // PUT: Cập nhật exam
+      UPDATE_STATUS: (id) => `/Exams/${id}/status`, // PUT: Cập nhật trạng thái exam
+      DELETE: (id) => `/Exams/${id}`,         // DELETE: Xóa exam
+      GET_QUESTIONS_BY_PART: '/Exams/get-questions-by-part', // GET: Lấy danh sách câu hỏi theo templatePartId
+      UPDATE_EXAM_QUESTION: '/Exams/update-exam-question', // PUT: Cập nhật 1 câu hỏi trong đề (body: { examId, questionBankId, questionNo })
+      REGENERATE_PART: '/Exams/regenerate-part', // POST: Random/regenerate lại bộ câu hỏi của một phần (body: { examId, templatePartId })
     },
     
   }

@@ -60,6 +60,7 @@ export function useFlashcardStudy(topicId, isFavoritesMode = false) {
   }, [fetchFlashcards])
 
   // Filter flashcards: chỉ lấy những card chưa học (trừ khi là chế độ favorites)
+  // Lưu ý: Trong trang study, nếu tất cả đã học thì vẫn hiển thị tất cả để ôn tập
   const unlearnedFlashcards = isFavoritesMode 
     ? flashcards 
     : flashcards.filter((_, idx) => !learned.has(idx))
@@ -69,43 +70,48 @@ export function useFlashcardStudy(topicId, isFavoritesMode = false) {
         .map((_, idx) => idx)
         .filter((idx) => !learned.has(idx))
 
-  // Map index trong unlearned list về index gốc trong FLASHCARDS
+  // Nếu không còn từ nào chưa học, hiển thị tất cả để ôn tập
+  const displayIndices = unlearnedIndices.length > 0 
+    ? unlearnedIndices 
+    : flashcards.map((_, idx) => idx)
+
+  // Map index trong display list về index gốc trong FLASHCARDS
   const originalIndex =
-    unlearnedIndices.length > 0
-      ? unlearnedIndices[index % unlearnedIndices.length]
+    displayIndices.length > 0
+      ? displayIndices[index % displayIndices.length]
       : undefined
   const current =
     originalIndex !== undefined ? flashcards[originalIndex] || {} : {}
   const isFavorite = originalIndex !== undefined ? favorites.has(originalIndex) : false
   const isLearned = originalIndex !== undefined ? learned.has(originalIndex) : false
 
-  // Reset index nếu vượt quá số lượng card chưa học
+  // Reset index nếu vượt quá số lượng card
   useEffect(() => {
-    if (unlearnedIndices.length > 0 && index >= unlearnedIndices.length) {
+    if (displayIndices.length > 0 && index >= displayIndices.length) {
       setIndex(0)
     }
-  }, [unlearnedIndices.length, index])
+  }, [displayIndices.length, index])
 
   const handleNext = () => {
     setIsFlipped(false)
-    if (unlearnedIndices.length > 0) {
-      setIndex((prev) => (prev + 1) % unlearnedIndices.length)
+    if (displayIndices.length > 0) {
+      setIndex((prev) => (prev + 1) % displayIndices.length)
     }
   }
 
   const handlePrev = () => {
     setIsFlipped(false)
-    if (unlearnedIndices.length > 0) {
-      setIndex((prev) => (prev - 1 + unlearnedIndices.length) % unlearnedIndices.length)
+    if (displayIndices.length > 0) {
+      setIndex((prev) => (prev - 1 + displayIndices.length) % displayIndices.length)
     }
   }
 
   const handleSelectFlashcard = (newIndex) => {
     setIsFlipped(false)
-    // Tìm index trong unlearnedIndices tương ứng với newIndex (index gốc)
-    const unlearnedIndex = unlearnedIndices.findIndex((idx) => idx === newIndex)
-    if (unlearnedIndex !== -1) {
-      setIndex(unlearnedIndex)
+    // Tìm index trong displayIndices tương ứng với newIndex (index gốc)
+    const displayIndex = displayIndices.findIndex((idx) => idx === newIndex)
+    if (displayIndex !== -1) {
+      setIndex(displayIndex)
     }
   }
 

@@ -34,6 +34,10 @@ config.resolver = {
   ...config.resolver,
   assetExts: config.resolver.assetExts.filter((ext) => ext !== 'svg'),
   sourceExts: [...config.resolver.sourceExts, 'svg'],
+  alias: {
+    'components': path.resolve(workspaceRoot, 'packages/components'),
+    'app': path.resolve(workspaceRoot, 'packages/app'),
+  },
 }
 
 module.exports = config

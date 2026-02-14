@@ -94,7 +94,11 @@ export const Navbar = ({
 
   // Detect token in localStorage (web) - sử dụng getAuthToken để tự động giải mã
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    // Chỉ chạy trên web platform
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return
+    // Kiểm tra xem window.addEventListener có tồn tại không
+    if (typeof window.addEventListener !== 'function') return
+    
     const checkToken = () => {
       // Sử dụng getAuthToken để tự động giải mã token
       const token = getAuthToken()
@@ -110,8 +114,10 @@ export const Navbar = ({
     window.addEventListener('storage', onStorage)
     window.addEventListener('token-changed', onTokenChanged)
     return () => {
-      window.removeEventListener('storage', onStorage)
-      window.removeEventListener('token-changed', onTokenChanged)
+      if (typeof window.removeEventListener === 'function') {
+        window.removeEventListener('storage', onStorage)
+        window.removeEventListener('token-changed', onTokenChanged)
+      }
     }
   }, [])
 

@@ -1,5 +1,6 @@
 import React from 'react'
 import { Platform } from 'react-native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import { useFlashcardList } from './useFlashcardList'
 import { 
   FlashcardListLayout as WebLayout,
@@ -19,10 +20,14 @@ export function FlashcardListScreen({
   levelId,
   onFavoritesPress,
   onLearnedPress,
-  route, // React Navigation prop - có thể bỏ qua
-  navigation, // React Navigation prop - có thể bỏ qua
+  route: routeProp, // React Navigation prop - có thể bỏ qua
+  navigation: navigationProp, // React Navigation prop - có thể bỏ qua
   ...otherProps // Bỏ qua các props khác từ navigation
 }) {
+  // Sử dụng hooks từ React Navigation nếu có, nếu không dùng props
+  const navigation = navigationProp || (Platform.OS !== 'web' ? useNavigation() : null)
+  const route = routeProp || (Platform.OS !== 'web' ? useRoute() : null)
+
   // Lấy levelId từ route params nếu có
   const routeLevelId = route?.params?.levelId || levelId
   const {
@@ -46,17 +51,68 @@ export function FlashcardListScreen({
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
 
-  // Wrapper function để kiểm tra progress và điều hướng phù hợp
-  const handleTopicPress = (topic) => {
-    // Nếu progress là 100% (kiểm tra cả số nguyên và số thập phân), điều hướng đến trang study (ôn tập)
-    const progress = topic?.progress ?? 0
-    if (progress >= 100) {
-      // Đánh dấu topic là đã học để onTopicPress điều hướng đến /flashcard/study
-      onTopicPress?.({ ...topic, isLearned: true })
+  // Handler cho nút back
+  const handleBackPress = () => {
+    if (onBackPress) {
+      onBackPress()
       return
     }
-    // Ngược lại, điều hướng như bình thường (học lần đầu)
-    onTopicPress?.(topic)
+    
+    // Nếu không có onBackPress từ props, sử dụng navigation
+    if (navigation && navigation.canGoBack()) {
+      navigation.goBack()
+    }
+  }
+
+  // Handler cho nút favorites
+  const handleFavoritesPress = () => {
+    // Nếu có onFavoritesPress từ props (web), sử dụng nó
+    if (onFavoritesPress) {
+      onFavoritesPress()
+      return
+    }
+
+    // Nếu không có onFavoritesPress (mobile), xử lý navigation trực tiếp
+    // Điều hướng đến trang study với chế độ favorites
+    if (Platform.OS !== 'web' && navigation) {
+      navigation.navigate('flashcard-study', { 
+        isFavoritesMode: true 
+      })
+    }
+  }
+
+  // Wrapper function để kiểm tra progress và điều hướng phù hợp
+  // Logic: nếu progress === 100% thì điều hướng đến trang study (FlashcardStudyScreen), ngược lại điều hướng đến học lần đầu
+  const handleTopicPress = (topic) => {
+    const topicId = topic?.id || topic?.topicId
+    if (!topicId) return
+
+    const progress = topic?.progress ?? 0
+    const isProgressComplete = progress >= 100
+
+    // Nếu có onTopicPress từ props (web), sử dụng nó
+    if (onTopicPress) {
+      // Nếu progress === 100%, điều hướng đến trang study (FlashcardStudyScreen)
+      if (isProgressComplete) {
+        onTopicPress({ ...topic, progress: 100, isProgressComplete: true })
+        return
+      }
+      // Ngược lại, điều hướng đến học lần đầu (FlashcardFirstLearnScreen)
+      onTopicPress(topic)
+      return
+    }
+
+    // Nếu không có onTopicPress (mobile), xử lý navigation trực tiếp
+    // Logic: nếu progress === 100% thì điều hướng đến trang study, ngược lại điều hướng đến học lần đầu
+    if (Platform.OS !== 'web' && navigation) {
+      if (isProgressComplete) {
+        // Điều hướng đến trang study (FlashcardStudyScreen)
+        navigation.navigate('flashcard-study', { topicId: String(topicId) })
+      } else {
+        // Điều hướng đến trang học lần đầu (FlashcardFirstLearnScreen)
+        navigation.navigate('flashcard-first-learn', { topicId: String(topicId) })
+      }
+    }
   }
 
   return (
@@ -72,10 +128,10 @@ export function FlashcardListScreen({
         onSearchSubmit={handleSearchSubmit}
         selectedLevel={selectedLevel}
         onLevelChange={handleLevelChange}
-        onBackPress={onBackPress}
+        onBackPress={handleBackPress}
         onTopicPress={handleTopicPress}
         onRetry={fetchTopics}
-        onFavoritesPress={onFavoritesPress}
+        onFavoritesPress={handleFavoritesPress}
         onLearnedPress={onLearnedPress}
         pageNumber={pageNumber}
         pageSize={pageSize}

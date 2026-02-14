@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet, ScrollView } from 'react-native'
-import { Navbar } from 'components/navbar'
+import { NavbarMobile } from '../../../../../../components/navbar-mobile'
 
 /**
  * StudySelectionLayout (Mobile): Bố cục trang chọn lộ trình học cho mobile
@@ -13,7 +13,7 @@ export function StudySelectionLayout({
 }) {
   return (
     <View style={styles.root}>
-      <Navbar />
+      <NavbarMobile />
       
       {/* Content chính trong ScrollView */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
