@@ -14,7 +14,7 @@ const normalizeImageSource = (src) => {
   return src
 }
 
-export function MatchingCardRuleHeader() {
+export function SolitareRuleHeader() {
   const router = useRouter()
 
   return (
@@ -35,10 +35,8 @@ export function MatchingCardRuleHeader() {
           <View style={styles.iconCircle}>
             <Image source={normalizeImageSource(GameCardIcon)} style={styles.icon} resizeMode="contain" />
           </View>
-          <Text style={styles.title}>Lật thẻ bài từ vựng</Text>
+          <Text style={styles.title}>Solitaire</Text>
         </View>
-
-       
       </View>
     </View>
   )
@@ -50,7 +48,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingTop: 24,
     paddingBottom: 24,
-    height: "10vh",
+    height: '10vh',
   },
   row: {
     flexDirection: 'row',
@@ -66,7 +64,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,
-    paddingRight:100,
+    paddingRight: 100,
   },
   iconCircle: {
     width: 30,
@@ -101,4 +99,7 @@ const styles = StyleSheet.create({
     transform: [{ scaleX: -1 }],
   },
 })
+
+export default SolitareRuleHeader
+
 
