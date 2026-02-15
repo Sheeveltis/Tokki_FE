@@ -68,17 +68,45 @@ export function MinigameLayout() {
     router.push(url)
   }
 
+  const goToSolitareRule = (gameId) => {
+    const query = new URLSearchParams()
+    if (levelId) {
+      query.set('level', levelId)
+    }
+    if (gameId) {
+      query.set('gameId', gameId)
+    }
+    const url =
+      query.toString().length > 0
+        ? `/minigame/solitare/solitare-rule?${query.toString()}`
+        : '/minigame/solitare/solitare-rule'
+    router.push(url)
+  }
+
+  const goToWordleRule = (gameId) => {
+    const query = new URLSearchParams()
+    if (levelId) {
+      query.set('level', levelId)
+    }
+    if (gameId) {
+      query.set('gameId', gameId)
+    }
+    const url =
+      query.toString().length > 0
+        ? `/minigame/wordle/wordle-rule?${query.toString()}`
+        : '/minigame/wordle/wordle-rule'
+    router.push(url)
+  }
+
   const handleGamePress = (game) => {
     // Route based on gameType
-    // 1 = Matching Card, 2 = Solitaire, 3 = Typing Practice
+    // 1 = Matching Card, 2 = Solitaire, 3 = Typing Practice (Wordle)
     if (game.gameType === 1) {
       goToMatchingCardRule(game.gameId)
     } else if (game.gameType === 2) {
-      // TODO: Navigate to Solitaire
-      console.log('Solitaire game:', game.gameId)
+      goToSolitareRule(game.gameId)
     } else if (game.gameType === 3) {
-      // TODO: Navigate to Typing Practice
-      console.log('Typing Practice game:', game.gameId)
+      goToWordleRule(game.gameId)
     }
   }
 
