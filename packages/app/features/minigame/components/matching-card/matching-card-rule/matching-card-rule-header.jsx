@@ -5,7 +5,6 @@ import { NavigationPill } from 'components/navigation-pill'
 
 import GameCardIcon from '../../../../../../assets/icon/icon-mainflow/game-card.svg'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
-import { MinigameRankingButton } from '../../shared/minigame-ranking-button'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
