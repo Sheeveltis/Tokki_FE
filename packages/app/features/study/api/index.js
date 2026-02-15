@@ -9,12 +9,28 @@ import DefaultBunny from '../../../../assets/bunny/14.png'
 export const normalizeImageSource = (src) => {
   if (!src) return null
   if (typeof src === 'number' || src.uri) return src
+  // Xử lý object có src property (SVG component thường có)
   if (typeof src === 'object' && src.src) {
     return { uri: src.src }
+  }
+  // Xử lý object có default property (một số bundler wrap SVG như vậy)
+  if (typeof src === 'object' && src.default) {
+    const defaultSrc = src.default
+    if (typeof defaultSrc === 'string') {
+      return { uri: defaultSrc }
+    }
+    if (typeof defaultSrc === 'object' && defaultSrc.src) {
+      return { uri: defaultSrc.src }
+    }
+    if (typeof defaultSrc === 'object' && defaultSrc.uri) {
+      return { uri: defaultSrc.uri }
+    }
+    return defaultSrc
   }
   if (typeof src === 'string') {
     return { uri: src }
   }
+  // Trả về nguyên bản nếu không xử lý được
   return src
 }
 
@@ -136,7 +152,19 @@ export const getFlashcardsByTopic = async (topicId) => {
     }))
   } catch (error) {
     console.error('Error fetching flashcards by topic:', error)
-    // Ném lỗi ra cho layer sử dụng tự xử lý (hiển thị message / fallback)
+    // Fallback về mock data khi có lỗi (để test trên mobile khi chưa có backend)
+    console.warn('Using mock data for topic:', topicId)
+    try {
+      const { getMockVocabulariesByTopic } = await import('../../vocabulary/mockData')
+      const mockData = getMockVocabulariesByTopic(topicId)
+      if (mockData && mockData.length > 0) {
+        return mockData
+      }
+    } catch (mockError) {
+      console.error('Error loading mock data:', mockError)
+    }
+    
+    // Nếu không có mock data, ném lỗi
     if (error?.response?.data) {
       const data = error.response.data
       const message =
@@ -185,6 +213,20 @@ export const getFlashcardsForStudy = async (topicId, count = 5) => {
     }))
   } catch (error) {
     console.error('Error fetching flashcards for study:', error)
+    // Fallback về mock data khi có lỗi (để test trên mobile khi chưa có backend)
+    console.warn('Using mock data for study topic:', topicId)
+    try {
+      const { getMockVocabulariesByTopic } = await import('../../vocabulary/mockData')
+      const mockData = getMockVocabulariesByTopic(topicId)
+      if (mockData && mockData.length > 0) {
+        // Trả về số lượng theo count, nhưng không quá số lượng có sẵn
+        return mockData.slice(0, count)
+      }
+    } catch (mockError) {
+      console.error('Error loading mock data:', mockError)
+    }
+    
+    // Nếu không có mock data, ném lỗi
     if (error?.response?.data) {
       const data = error.response.data
       const message =
@@ -241,6 +283,32 @@ export const getFavoriteVocabularies = async ({ pageNumber = 1, pageSize = 100, 
     }))
   } catch (error) {
     console.error('Error fetching favorite vocabularies:', error)
+    // Fallback về mock data khi có lỗi (để test trên mobile khi chưa có backend)
+    console.warn('Using mock data for favorite vocabularies')
+    try {
+      const { getMockFavoriteVocabularies } = await import('../../vocabulary/mockData')
+      const mockData = getMockFavoriteVocabularies()
+      if (mockData && mockData.length > 0) {
+        // Áp dụng pagination và search nếu có
+        let filtered = mockData
+        if (searchTerm) {
+          const term = searchTerm.toLowerCase()
+          filtered = mockData.filter(
+            (v) =>
+              v.word.toLowerCase().includes(term) ||
+              v.meaning.toLowerCase().includes(term)
+          )
+        }
+        // Pagination
+        const startIndex = (pageNumber - 1) * pageSize
+        const endIndex = startIndex + pageSize
+        const paginated = filtered.slice(startIndex, endIndex)
+        return paginated
+      }
+    } catch (mockError) {
+      console.error('Error loading mock data:', mockError)
+    }
+    
     if (error?.response?.data) {
       const data = error.response.data
       const message =
@@ -384,6 +452,19 @@ export const getLearnedVocabularies = async ({ limit = 100 } = {}) => {
     }))
   } catch (error) {
     console.error('Error fetching learned vocabularies:', error)
+    // Fallback về mock data khi có lỗi (để test trên mobile khi chưa có backend)
+    console.warn('Using mock data for learned vocabularies')
+    try {
+      const { getMockLearnedVocabularies } = await import('../../vocabulary/mockData')
+      const mockData = getMockLearnedVocabularies()
+      if (mockData && mockData.length > 0) {
+        // Trả về số lượng theo limit
+        return mockData.slice(0, limit)
+      }
+    } catch (mockError) {
+      console.error('Error loading mock data:', mockError)
+    }
+    
     if (error?.response?.data) {
       const data = error.response.data
       const message =

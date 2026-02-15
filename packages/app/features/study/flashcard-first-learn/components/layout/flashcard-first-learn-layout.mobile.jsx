@@ -1,12 +1,10 @@
 import React from 'react'
-import { View, StyleSheet, Platform } from 'react-native'
-import { NavbarMobile } from '../../../../../../components/navbar-mobile'
+import { View, StyleSheet } from 'react-native'
 
 export function FlashcardFirstLearnLayout({ children }) {
   return (
     <View style={styles.root}>
       <View style={styles.contentWrapper}>{children}</View>
-      {Platform.OS !== 'web' && <NavbarMobile />}
     </View>
   )
 }
@@ -17,15 +15,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F0DD',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingVertical: 24,
   },
   contentWrapper: {
+    flex: 1,
     width: '100%',
     paddingHorizontal: 16,
     alignItems: 'center',
     backgroundColor: 'transparent',
-    paddingVertical: 24,
-    paddingBottom: 100,
+    paddingTop: 24,
+    paddingBottom: 24,
     borderRadius: 0,
     gap: 16,
   },

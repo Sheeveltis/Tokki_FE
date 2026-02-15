@@ -35,6 +35,8 @@ import LogoImage from '../../../../../assets/logo-text.png'
 import { NavigationPill } from '../../../../../components/navigation-pill'
 import { InputEmail } from '../shared/input-email'
 import { InputOTP } from '../shared/input-otp'
+// Import helper function - Metro/Webpack sẽ tự động resolve đúng file (.web.js cho web, .js cho native)
+import { getGoogleClientId } from './get-google-client-id'
 
 /**
  * LoginPanel: toàn bộ cột bên phải của màn đăng nhập (tiêu đề + form + ghi chú)
@@ -42,12 +44,14 @@ import { InputOTP } from '../shared/input-otp'
  * @param {{
  *   onPressSignUp?: () => void
  *   onPressGoogle?: () => void
+ *   navigation?: any - Navigation object từ React Navigation (cho native)
  * }} props
  */
-export function LoginPanel({ onPressSignUp, onPressGoogle }) {
+export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigationProp }) {
   const router = useRouter()
-  // Sử dụng navigation cho native, router cho web
-  const navigation = useNavigation ? useNavigation() : null
+  // Sử dụng navigation prop nếu có, nếu không thì thử dùng useNavigation hook
+  const navigationHook = useNavigation ? useNavigation() : null
+  const navigation = navigationProp || navigationHook
   const insets = useSafeAreaInsets() // Lấy safe area insets để tránh navigation bar
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -192,7 +196,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
         heartbeatService.start()
 
         // Chuyển trang sau khi hiển thị thông báo
-        // Native: chuyển đến payment-package để test giao diện (dùng React Navigation)
+        // Native: chuyển đến menu-study (dùng React Navigation)
         // Web: chuyển đến homepage (dùng solito router)
         setTimeout(() => {
           if (Platform.OS === 'web') {
@@ -200,10 +204,10 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
           } else {
             // Trên native, dùng React Navigation
             if (navigation) {
-              navigation.navigate('payment-package')
+              navigation.navigate('menu-study')
             } else {
               // Fallback nếu navigation không có
-              router.push('/payment-package')
+              router.push('/menu-study')
             }
           }
         }, 500) // Delay nhỏ để user thấy thông báo
@@ -234,20 +238,8 @@ export function LoginPanel({ onPressSignUp, onPressGoogle }) {
   }
 
   // ===== GOOGLE LOGIN (web only) =====
-  // Ưu tiên lấy từ Vite env (VITE_GOOGLE_CLIENT_ID), fallback Next-style env
-  const GOOGLE_CLIENT_ID = (() => {
-    try {
-      if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GOOGLE_CLIENT_ID) {
-        return import.meta.env.VITE_GOOGLE_CLIENT_ID
-      }
-    } catch (e) {
-      // import.meta có thể không khả dụng trên native / build khác
-    }
-    if (typeof process !== 'undefined' && process?.env?.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
-      return process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-    }
-    return ''
-  })()
+  // Lấy Google Client ID từ env vars (hỗ trợ cả Vite và Next.js)
+  const GOOGLE_CLIENT_ID = getGoogleClientId()
 
   const loadGoogleScript = () =>
     new Promise((resolve, reject) => {

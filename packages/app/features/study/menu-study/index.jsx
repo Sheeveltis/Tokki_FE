@@ -35,6 +35,7 @@ export function MenuStudy({
     setShowLoginRequest,
     handleModulePress,
     handleAlphabetPress,
+    handleTopikRoadmapPress,
   } = useMenuStudy(router, levelId)
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
@@ -54,6 +55,7 @@ export function MenuStudy({
         showLoginRequest={showLoginRequest}
         onCloseLoginRequest={() => setShowLoginRequest(false)}
         onAlphabetPress={handleAlphabetPress}
+        onTopikRoadmapPress={handleTopikRoadmapPress}
       />
     </Layout>
   )

@@ -1,10 +1,11 @@
-import React from 'react'
-import { View, StyleSheet, Text, TouchableOpacity, TextInput, Pressable, Platform, Image } from 'react-native'
+import React, { useState } from 'react'
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Pressable, Platform, Image, Modal } from 'react-native'
 import { FlashcardTopicCard } from '../../../components/shared'
 import { NavigationPill } from '../../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
 import StarIcon from '../../../../../../assets/icon/icon-mainflow/star.svg'
 import BookIcon from '../../../../../../assets/icon/navigate-app/book.svg'
+import SearchIcon from '../../../../../../assets/icon/navigate-app/search.svg'
 import { normalizeImageSource } from '../../../api'
 import { studyStyles } from '../../../styles'
 import { LoadingWithContainer } from '../../../../../../components/Loading'
@@ -32,6 +33,41 @@ export function FlashcardListMain({
   onPrevPage,
   onNextPage,
 }) {
+  const [isSearchVisible, setIsSearchVisible] = useState(false)
+
+  // Helper function để render icon (hỗ trợ cả SVG component và image source)
+  const renderIcon = (IconComponent, style) => {
+    if (!IconComponent) return null
+    
+    // Kiểm tra xem có phải là React component không (SVG component)
+    const isReactComponent = IconComponent && (
+      (typeof IconComponent === 'function') || 
+      (typeof IconComponent === 'object' && IconComponent.$$typeof) ||
+      (typeof IconComponent === 'object' && IconComponent.default && (typeof IconComponent.default === 'function' || IconComponent.default.$$typeof))
+    )
+    
+    if (isReactComponent) {
+      // Render như React component (SVG)
+      // Loại bỏ tintColor và resizeMode khỏi style vì SVG không hỗ trợ
+      const { tintColor, resizeMode, ...svgStyle } = style || {}
+      const Component = typeof IconComponent === 'function' ? IconComponent : (IconComponent.default || IconComponent)
+      const width = svgStyle?.width || 20
+      const height = svgStyle?.height || 20
+      return (
+        <View style={[{ width, height, alignItems: 'center', justifyContent: 'center' }, svgStyle]}>
+          <Component width={width} height={height} />
+        </View>
+      )
+    }
+    
+    // Fallback: thử dùng Image với normalizeImageSource
+    const iconSource = normalizeImageSource(IconComponent)
+    if (iconSource) {
+      return <Image source={iconSource} style={style} resizeMode="contain" />
+    }
+    
+    return null
+  }
   // Render loading state
   if (loading) {
     return (
@@ -51,12 +87,22 @@ export function FlashcardListMain({
     return (
       <>
         <View style={styles.header}>
-          <View style={styles.backBtn}>
-            <NavigationPill
-              label="Quay lại"
-              onPress={onBackPress}
-              textStyle={{ fontWeight: '700' }}
-            />
+          <View style={styles.headerTop}>
+            <View style={styles.backBtn}>
+              <NavigationPill
+                label="Quay lại"
+                onPress={onBackPress}
+                textStyle={{ fontWeight: '700' }}
+              />
+            </View>
+            <Pressable 
+              style={styles.searchIconButton}
+              onPress={() => setIsSearchVisible(true)}
+            >
+              <View style={styles.searchIcon}>
+                <SearchIcon width={24} height={24} />
+              </View>
+            </Pressable>
           </View>
           {title ? <Text style={styles.title}>{title}</Text> : null}
         </View>
@@ -66,6 +112,58 @@ export function FlashcardListMain({
             <Text style={styles.retryButtonText}>Thử lại</Text>
           </TouchableOpacity>
         </View>
+        <Modal
+          visible={isSearchVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setIsSearchVisible(false)}
+        >
+          <Pressable 
+            style={styles.modalOverlay}
+            onPress={() => setIsSearchVisible(false)}
+          >
+            <Pressable 
+              style={styles.modalContent}
+              onPress={(e) => e.stopPropagation()}
+            >
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Tìm kiếm</Text>
+                <TouchableOpacity 
+                  style={styles.modalCloseButton}
+                  onPress={() => setIsSearchVisible(false)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.modalCloseText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.modalSearchContainer}>
+                <TextInput
+                  value={searchTerm}
+                  placeholder="Tìm kiếm chủ đề..."
+                  placeholderTextColor="#999"
+                  onChangeText={onSearchChange}
+                  onSubmitEditing={() => {
+                    onSearchSubmit()
+                    setIsSearchVisible(false)
+                  }}
+                  style={styles.modalSearchInput}
+                  returnKeyType="search"
+                  autoFocus={true}
+                />
+                <TouchableOpacity 
+                  style={styles.modalSearchButton} 
+                  onPress={() => {
+                    onSearchSubmit()
+                    setIsSearchVisible(false)
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.modalSearchButtonText}>Tìm</Text>
+                </TouchableOpacity>
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
       </>
     )
   }
@@ -73,35 +171,37 @@ export function FlashcardListMain({
   return (
     <>
       <View style={styles.header}>
-        <View style={styles.backBtn}>
-          <NavigationPill
-            label="Quay lại"
-            icon={ArrowIcon}
-            iconStyle={{ transform: [{ scaleX: -1 }] }}
-            onPress={onBackPress}
-            textStyle={{ fontWeight: '700' }}
-          />
+        <View style={styles.headerTop}>
+          <View style={styles.backBtn}>
+            <NavigationPill
+              label="Quay lại"
+              icon={ArrowIcon}
+              iconStyle={{ transform: [{ scaleX: -1 }] }}
+              onPress={onBackPress}
+              textStyle={{ fontWeight: '700' }}
+            />
+          </View>
+          <Pressable 
+            style={styles.searchIconButton}
+            onPress={() => setIsSearchVisible(true)}
+          >
+            <View style={styles.searchIcon}>
+              <SearchIcon width={24} height={24} />
+            </View>
+          </Pressable>
         </View>
         {title ? <Text style={styles.title}>{title}</Text> : null}
         {(onFavoritesPress || onLearnedPress) && (
           <View style={styles.headerButtons}>
             {onFavoritesPress ? (
               <Pressable style={styles.favoritesButton} onPress={onFavoritesPress}>
-                <Image
-                  source={normalizeImageSource(StarIcon)}
-                  style={styles.favoritesIcon}
-                  resizeMode="contain"
-                />
+                {renderIcon(StarIcon, styles.favoritesIcon)}
                 <Text style={styles.favoritesButtonText}>Yêu thích</Text>
               </Pressable>
             ) : null}
             {onLearnedPress ? (
               <Pressable style={styles.learnedButton} onPress={onLearnedPress}>
-                <Image
-                  source={normalizeImageSource(BookIcon)}
-                  style={styles.learnedIcon}
-                  resizeMode="contain"
-                />
+                {renderIcon(BookIcon, styles.learnedIcon)}
                 <Text style={styles.learnedButtonText}>Đã học</Text>
               </Pressable>
             ) : null}
@@ -109,19 +209,58 @@ export function FlashcardListMain({
         )}
       </View>
 
-      <View style={styles.searchContainer}>
-        <TextInput
-          value={searchTerm}
-          placeholder="Tìm kiếm chủ đề..."
-          onChangeText={onSearchChange}
-          onSubmitEditing={onSearchSubmit}
-          style={styles.searchInput}
-          returnKeyType="search"
-        />
-        <TouchableOpacity style={styles.searchButton} onPress={onSearchSubmit}>
-          <Text style={styles.searchButtonText}>Tìm</Text>
-        </TouchableOpacity>
-      </View>
+      <Modal
+        visible={isSearchVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsSearchVisible(false)}
+      >
+        <Pressable 
+          style={styles.modalOverlay}
+          onPress={() => setIsSearchVisible(false)}
+        >
+          <Pressable 
+            style={styles.modalContent}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Tìm kiếm</Text>
+              <TouchableOpacity 
+                style={styles.modalCloseButton}
+                onPress={() => setIsSearchVisible(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.modalCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalSearchContainer}>
+              <TextInput
+                value={searchTerm}
+                placeholder="Tìm kiếm chủ đề..."
+                placeholderTextColor="#999"
+                onChangeText={onSearchChange}
+                onSubmitEditing={() => {
+                  onSearchSubmit()
+                  setIsSearchVisible(false)
+                }}
+                style={styles.modalSearchInput}
+                returnKeyType="search"
+                autoFocus={true}
+              />
+              <TouchableOpacity 
+                style={styles.modalSearchButton} 
+                onPress={() => {
+                  onSearchSubmit()
+                  setIsSearchVisible(false)
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.modalSearchButtonText}>Tìm</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       <View style={styles.listContainer}>
         {topics.length === 0 ? (
@@ -216,8 +355,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  headerTop: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 0,
+    paddingVertical: 10,
+  },
   backBtn: {
-    alignSelf: 'flex-start',
+    flexShrink: 0,
+  },
+  searchIconButton: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchIcon: {
+    width: 24,
+    height: 24,
   },
   title: {
     ...studyStyles.pageTitle,
@@ -268,35 +425,83 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1F1F1F',
   },
-  searchContainer: {
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    width: '100%',
-    marginTop: 8,
-    marginBottom: 16,
-    paddingHorizontal: 16,
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    paddingHorizontal: 12,
-    borderRadius: 100,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    fontSize: 14,
-  },
-  searchButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 100,
-    backgroundColor: '#F1BE4B',
-  },
-  searchButtonText: {
-    fontSize: 14,
+  modalTitle: {
+    fontSize: 24,
     fontWeight: '700',
     color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  modalCloseButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCloseText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#666',
+    lineHeight: 20,
+  },
+  modalSearchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    width: '100%',
+  },
+  modalSearchInput: {
+    flex: 1,
+    height: 52,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    backgroundColor: '#F8F8F8',
+    borderWidth: 2,
+    borderColor: '#E8E8E8',
+    fontSize: 16,
+    fontFamily: 'Epilogue, sans-serif',
+    color: '#1F1F1F',
+  },
+  modalSearchButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: '#F1BE4B',
+    minWidth: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalSearchButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
   },
   paginationContainer: {
     width: '100%',
@@ -358,7 +563,7 @@ const styles = StyleSheet.create({
     }),
   },
   levelButtonActive: {
-    backgroundColor: '#1F1F1F',
+    backgroundColor: '#F1BE4B',
     borderColor: '#D39A1C',
   },
   levelButtonPressed: {

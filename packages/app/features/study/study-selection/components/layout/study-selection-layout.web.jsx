@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet, ScrollView, Platform } from 'react-native'
-import { Navbar } from 'components/navbar'
+import { Navbar } from '../../../../../../components/navbar'
 import { QuickLevelTestButton } from '../../../components/quick-level-test-button.web'
 import { StudyStatsCards } from '../../../components/study-stats-cards.web'
 

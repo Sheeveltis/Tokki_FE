@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
-import { Navbar } from 'components/navbar'
+import { Navbar } from '../../../../../components/navbar'
 
 /**
  * AlphabetStudyLayout (Web): Layout cho trang học chữ cái Hàn Quốc trên web

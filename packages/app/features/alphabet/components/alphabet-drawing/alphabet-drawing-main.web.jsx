@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
 import { ReactSketchCanvas } from 'react-sketch-canvas'
-import { NavigationPill } from 'components/navigation-pill'
+import { NavigationPill } from '../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
 import BunnyHigh from '../../../../../assets/bunny/10.png'
 import BunnyMedium from '../../../../../assets/bunny/7.png'

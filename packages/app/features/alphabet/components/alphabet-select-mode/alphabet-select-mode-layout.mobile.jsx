@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
-import { Navbar } from 'components/navbar'
+import { Navbar } from '../../../../../components/navbar'
 
 /**
  * AlphabetSelectModeLayout (Mobile): Layout cho trang chọn học phần chữ cái Hàn Quốc trên mobile

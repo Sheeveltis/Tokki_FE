@@ -1,12 +1,78 @@
-import React from 'react'
-import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image, Modal } from 'react-native'
-import { NavigationPill } from 'components/navigation-pill'
+import React, { useEffect, useRef } from 'react'
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image, Modal, Dimensions, Platform } from 'react-native'
+import { NavigationPill } from '../../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
 import { normalizeImageSource } from '../../../api'
 import { studyStyles } from '../../../styles'
 import { LoadingWithContainer } from '../../../../../../components/Loading'
-import { FlipCard } from 'components/FlipCard'
+import { FlipCardMobile } from '../../../../../../components/FlipCardMobile'
 import SoundIcon from '../../../../../../assets/icon/icon-mainflow/sound.svg'
+// Import sound effects - sử dụng require() cho React Native
+// Trong React Native, require() trả về một số (module ID) hoặc object
+let CorrectSfx = null
+let WrongSfx = null
+
+try {
+  const correctModule = require('../../../../../../assets/sound-effect/correct.wav')
+  const wrongModule = require('../../../../../../assets/sound-effect/wrong.wav')
+  
+  // Xử lý các trường hợp khác nhau của require()
+  // Trường hợp 1: require() trả về number trực tiếp (module ID)
+  if (typeof correctModule === 'number') {
+    CorrectSfx = correctModule
+  } 
+  // Trường hợp 2: require() trả về object có default
+  else if (correctModule && typeof correctModule === 'object') {
+    CorrectSfx = correctModule.default || correctModule
+  }
+  // Trường hợp 3: require() trả về string (URL)
+  else if (typeof correctModule === 'string') {
+    CorrectSfx = correctModule
+  }
+  else {
+    CorrectSfx = correctModule
+  }
+  
+  if (typeof wrongModule === 'number') {
+    WrongSfx = wrongModule
+  } 
+  else if (wrongModule && typeof wrongModule === 'object') {
+    WrongSfx = wrongModule.default || wrongModule
+  }
+  else if (typeof wrongModule === 'string') {
+    WrongSfx = wrongModule
+  }
+  else {
+    WrongSfx = wrongModule
+  }
+} catch (e) {
+  // Thử load lại với đường dẫn khác nếu có thể
+  try {
+    // Fallback: thử với đường dẫn từ root
+    CorrectSfx = require('../../../../../assets/sound-effect/correct.wav')
+    WrongSfx = require('../../../../../assets/sound-effect/wrong.wav')
+  } catch (e2) {
+    // Fallback failed
+  }
+}
+
+
+// Import expo-av và expo-asset cho mobile (nếu có)
+let ExpoAudio = null
+let ExpoAudioMode = null
+let Asset = null
+if (Platform.OS !== 'web') {
+  try {
+    const expoAv = require('expo-av')
+    ExpoAudio = expoAv.Audio
+    ExpoAudioMode = expoAv.Audio
+  } catch (e) {
+  }
+  try {
+    Asset = require('expo-asset').Asset
+  } catch (e) {
+  }
+}
 
 export function FlashcardFirstLearnMain({
   title,
@@ -38,12 +104,299 @@ export function FlashcardFirstLearnMain({
   completedInBatch = 0,
   batchSize = 5,
 }) {
+  // SFX đúng/sai sau khi bấm "Kiểm tra" (chỉ bước 2 & 3, mobile)
+  const lastSfxKeyRef = useRef('')
+  const lastIsCorrectRef = useRef(null)
+  const lastStepKeyRef = useRef('')
+  
+  // Preload sound assets và set audio mode khi component mount (chỉ mobile)
+  useEffect(() => {
+    if (Platform.OS === 'web') return
+    if (!ExpoAudioMode) return
+    
+    const setupAudio = async () => {
+      try {
+        // Set audio mode trước
+        await ExpoAudioMode.setAudioModeAsync({
+          playsInSilentModeIOS: true,
+          allowsRecordingIOS: false,
+          staysActiveInBackground: false,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: false,
+        })
+        
+        // Preload sound assets nếu có Asset và sound files
+        if (Asset && CorrectSfx && WrongSfx) {
+          try {
+            const correctAsset = Asset.fromModule(CorrectSfx)
+            const wrongAsset = Asset.fromModule(WrongSfx)
+            
+            if (!correctAsset.downloaded) {
+              await correctAsset.downloadAsync()
+            }
+            if (!wrongAsset.downloaded) {
+              await wrongAsset.downloadAsync()
+            }
+          } catch (preloadErr) {
+          }
+        }
+      } catch (e) {
+        // Failed to set audio mode
+      }
+    }
+    
+    setupAudio()
+  }, [])
+  
+  useEffect(() => {
+    if (Platform.OS === 'web') return
+    if (!showResult) {
+      // Reset khi không show result để cho phép phát lại khi show result
+      lastSfxKeyRef.current = ''
+      return
+    }
+    // Chỉ phát sound ở bước 2 (listen) và bước 3 (meaning)
+    if (currentStepKey !== 'listen' && currentStepKey !== 'meaning') return
+
+    const vocabId = current?.id || ''
+    const sfxKey = `${vocabId}:${currentStepKey}:${isCorrect ? 'correct' : 'wrong'}`
+    
+    // Reset key nếu step key hoặc isCorrect thay đổi (cho phép phát lại khi chuyển từ wrong sang correct hoặc ngược lại)
+    if (lastStepKeyRef.current !== currentStepKey || lastIsCorrectRef.current !== isCorrect) {
+      lastSfxKeyRef.current = ''
+      lastStepKeyRef.current = currentStepKey
+      lastIsCorrectRef.current = isCorrect
+    }
+    
+    if (lastSfxKeyRef.current === sfxKey) {
+      return
+    }
+    lastSfxKeyRef.current = sfxKey
+
+    const playSoundEffect = async () => {
+      try {
+        const src = isCorrect ? CorrectSfx : WrongSfx
+        
+        // Kiểm tra xem sound file có tồn tại không
+        if (!src) {
+          return
+        }
+        
+        
+        if (Platform.OS === 'web') {
+          // Web: sử dụng HTML5 Audio
+          const audioSrc = typeof src === 'string' 
+            ? src 
+            : (src?.default || src?.src || src)
+          const audio = typeof window !== 'undefined' && window.Audio ? new window.Audio(audioSrc) : null
+          if (audio) {
+            audio.volume = 1
+            audio.play().catch((err) => {
+            })
+          } else {
+          }
+        } else {
+          // Mobile: sử dụng expo-av
+          if (!ExpoAudio) {
+            return
+          }
+          
+          // Normalize sound source - có thể là require() (number), string, hoặc object
+          // Trong React Native với expo-av, require() cho local files trả về number (module ID)
+          // Cần sử dụng Asset.fromModule() để resolve thành URI thực tế
+          let soundSource = null
+          
+          if (typeof src === 'number') {
+            // require() trả về number (module ID)
+            // Sử dụng Asset.fromModule() để resolve thành URI nếu có Asset
+            if (Asset) {
+              try {
+                const asset = Asset.fromModule(src)
+                // Đảm bảo asset đã được download
+                if (!asset.downloaded) {
+                  await asset.downloadAsync()
+                }
+                soundSource = { uri: asset.localUri || asset.uri }
+              } catch (assetErr) {
+                // Fallback: thử dùng number trực tiếp
+                soundSource = src
+              }
+            } else {
+              // Không có Asset, thử dùng number trực tiếp
+              soundSource = src
+            }
+          } else if (typeof src === 'string') {
+            // String URL - có thể là local file path hoặc remote URL
+            // Metro bundler không hỗ trợ dynamic require(), nên dùng trực tiếp làm URI
+            soundSource = { uri: src }
+          } else if (src && typeof src === 'object') {
+            // Object có thể có default, src, hoặc uri
+            if (src.default !== undefined) {
+              const defaultSrc = src.default
+              if (typeof defaultSrc === 'number') {
+                soundSource = defaultSrc
+              } else if (typeof defaultSrc === 'string') {
+                soundSource = { uri: defaultSrc }
+              } else {
+                soundSource = defaultSrc
+              }
+            } else if (src.src !== undefined) {
+              soundSource = typeof src.src === 'string' ? { uri: src.src } : src.src
+            } else if (src.uri !== undefined) {
+              soundSource = { uri: src.uri }
+            } else {
+              // Thử dùng object trực tiếp nếu có thể
+              soundSource = src
+            }
+          }
+          
+          if (soundSource === null || soundSource === undefined) {
+            return
+          }
+          
+          
+          try {
+            const { sound } = await ExpoAudio.Sound.createAsync(
+              soundSource,
+              { 
+                shouldPlay: true, 
+                volume: 1.0,
+                isMuted: false,
+              }
+            )
+            
+            // Kiểm tra status ngay sau khi tạo
+            const initialStatus = await sound.getStatusAsync()
+            
+            if (initialStatus.error) {
+              await sound.unloadAsync()
+              return
+            }
+            
+            sound.setOnPlaybackStatusUpdate((status) => {
+              if (status.isLoaded) {
+                if (status.didJustFinish) {
+                  sound.unloadAsync().catch(() => {
+                    // Error unloading sound
+                  })
+                } else if (status.error) {
+                  // Playback error
+                } else if (status.isPlaying) {
+                }
+              } else if (status.error) {
+                // Sound load error
+              }
+            })
+            
+            // Đảm bảo sound được play - kiểm tra lại sau một chút
+            setTimeout(async () => {
+              try {
+                const status = await sound.getStatusAsync()
+                if (status.isLoaded && !status.isPlaying && !status.error) {
+                  await sound.playAsync()
+                }
+              } catch (playErr) {
+                // Error ensuring sound plays
+              }
+            }, 100)
+          } catch (createErr) {
+            // Thử lại với cách khác nếu là number
+            if (typeof soundSource === 'number' && Asset) {
+              try {
+                const asset = Asset.fromModule(soundSource)
+                if (!asset.downloaded) {
+                  await asset.downloadAsync()
+                }
+                const retrySource = { uri: asset.localUri || asset.uri }
+                const { sound } = await ExpoAudio.Sound.createAsync(
+                  retrySource,
+                  { shouldPlay: true, volume: 1.0, isMuted: false }
+                )
+              } catch (retryErr) {
+                // Retry also failed
+              }
+            }
+          }
+        }
+      } catch (e) {
+        // Error playing sound effect
+      }
+    }
+
+    playSoundEffect()
+  }, [showResult, currentStepKey, isCorrect, current?.id])
+
+  // Helper function để kiểm tra xem icon có phải là React component không (SVG component)
+  const isReactComponent = (icon) => {
+    if (!icon) return false
+    return (
+      (typeof icon === 'function') || 
+      (typeof icon === 'object' && icon.$$typeof) ||
+      (typeof icon === 'object' && icon.default && (typeof icon.default === 'function' || icon.default.$$typeof))
+    )
+  }
+
+  // Helper function để render SoundIcon - hỗ trợ cả React component (SVG) và Image source
+  // Tương tự như cách navbar-mobile.jsx xử lý SVG icons
+  const renderSoundIcon = (size = 32) => {
+    if (!SoundIcon) {
+      return null
+    }
+    
+    // Thử render trực tiếp như component trước (SVG thường được transform thành component)
+    try {
+      // Trường hợp 1: SoundIcon là function (React component từ @svgr/react-native-svg-transformer)
+      if (typeof SoundIcon === 'function') {
+        const IconComponent = SoundIcon
+        return <IconComponent width={size} height={size} fill="#1F1F1F" />
+      }
+      
+      // Trường hợp 2: SoundIcon có default property là function
+      if (SoundIcon && typeof SoundIcon === 'object' && SoundIcon.default) {
+        if (typeof SoundIcon.default === 'function') {
+          const IconComponent = SoundIcon.default
+          return <IconComponent width={size} height={size} fill="#1F1F1F" />
+        }
+      }
+      
+      // Trường hợp 3: Kiểm tra với isReactComponent helper
+      const isComponent = isReactComponent(SoundIcon)
+      if (isComponent) {
+        const IconComponent = typeof SoundIcon === 'function' ? SoundIcon : (SoundIcon.default || SoundIcon)
+        return <IconComponent width={size} height={size} fill="#1F1F1F" />
+      }
+    } catch (error) {
+      // Error rendering SoundIcon as component
+    }
+    
+    // Fallback: Nếu không phải component, thử dùng Image với normalizeImageSource
+    try {
+      const iconSource = normalizeImageSource(SoundIcon)
+      if (iconSource) {
+        return (
+          <Image
+            source={iconSource}
+            style={{ width: size, height: size }}
+            resizeMode="contain"
+          />
+        )
+      }
+    } catch (error) {
+      // Error rendering SoundIcon as Image
+    }
+    
+    // Nếu tất cả đều fail, render một View trống với background để debug
+    return (
+      <View style={{ width: size, height: size, backgroundColor: '#FF0000', borderRadius: size / 2 }} />
+    )
+  }
+
   const renderStep = () => {
     if (!current) return null
     if (currentStepKey === 'view') {
       return (
         <View style={styles.flipCardWrapper}>
-          <FlipCard
+          <FlipCardMobile
             frontContent={
               <View style={styles.flipFront}>
                 <Text style={styles.flipWord}>{current.word || ''}</Text>
@@ -65,12 +418,11 @@ export function FlashcardFirstLearnMain({
               </View>
             }
             width="100%"
-            height={500}
+            height={Dimensions.get('window').height * 0.6}
             frontColor="#79964E"
             backColor="#79964E"
             borderWidth={12}
             borderRadius={12}
-            flipOnHover={false}
             isFlipped={isFlipped}
             onFlip={onFlip}
             onPlaySound={current?.audioUrl ? onPlaySound : undefined}
@@ -89,11 +441,7 @@ export function FlashcardFirstLearnMain({
           {currentStepKey === 'listen' ? (
             <View style={styles.audioRow}>
               <TouchableOpacity style={styles.audioButton} onPress={onPlaySound}>
-                <Image
-                  source={normalizeImageSource(SoundIcon)}
-                  style={styles.audioIcon}
-                  resizeMode="contain"
-                />
+                {renderSoundIcon(32)}
               </TouchableOpacity>
             </View>
           ) : (
@@ -134,13 +482,18 @@ export function FlashcardFirstLearnMain({
         ) : null}
         <View style={styles.resultContent}>
           <View style={styles.resultHeader}>
-            <TouchableOpacity style={styles.audioButtonSmall} onPress={onPlaySound}>
-              <Image
-                source={normalizeImageSource(SoundIcon)}
-                style={styles.audioIconSmall}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
+            {current?.audioUrl && onPlaySound ? (
+              <TouchableOpacity 
+                style={styles.audioButtonSmall} 
+                onPress={() => {
+                  if (onPlaySound) {
+                    onPlaySound()
+                  }
+                }}
+              >
+                {renderSoundIcon(24)}
+              </TouchableOpacity>
+            ) : null}
             <Text style={[styles.cardWord, styles.resultTextOnColor]}>
               {current.word}
             </Text>
@@ -239,7 +592,7 @@ export function FlashcardFirstLearnMain({
   }
 
   return (
-    <>
+    <View style={styles.container}>
       <View style={styles.headerTop}>
         <NavigationPill
           label="Quay lại"
@@ -250,8 +603,10 @@ export function FlashcardFirstLearnMain({
         />
       </View>
 
-      <View style={styles.progressBar}>
-        <View style={[styles.progressFill, { width: `${progress}%` }]} />
+      <View style={styles.progressBarContainer}>
+        <View style={styles.progressBar}>
+          <View style={[styles.progressFill, { width: `${progress}%` }]} />
+        </View>
       </View>
 
       <View style={styles.stepContainer}>
@@ -310,17 +665,23 @@ export function FlashcardFirstLearnMain({
           </View>
         </View>
       </Modal>
-    </>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    width: '100%',
+  },
   headerTop: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
   },
   titleRow: {
     width: '100%',
@@ -336,15 +697,21 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 16,
+    minHeight: 0,
   },
   progressText: {
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
   },
+  progressBarContainer: {
+    width: '100%',
+    paddingHorizontal: 16,
+  },
   progressBar: {
     width: '100%',
-    height: 10,
+    height: 15,
     borderRadius: 999,
     backgroundColor: '#E0E0E0',
     overflow: 'hidden',
@@ -358,10 +725,10 @@ const styles = StyleSheet.create({
   },
   flipCardWrapper: {
     width: '100%',
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
+    gap: 16,
+    paddingVertical: 20,
   },
   flipFront: {
     width: '100%',
@@ -418,7 +785,12 @@ const styles = StyleSheet.create({
   cardWord: { fontSize: 24, fontWeight: '800', color: '#1F1F1F', textTransform: 'capitalize' },
   cardPronun: { fontSize: 15, color: '#666', fontStyle: 'italic' },
   cardMeaning: { fontSize: 16, color: '#1F1F1F', textAlign: 'center' },
-  cardHint: { fontSize: 12, color: '#777' },
+  cardHint: { 
+    fontSize: 12, 
+    color: '#777',
+    textAlign: 'center',
+    marginTop: 8,
+  },
   practiceBox: {
     width: '100%',
     height: 360,
@@ -501,10 +873,15 @@ const styles = StyleSheet.create({
   wrongText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   nextButton: {
     marginTop: 8,
+    marginBottom: 16,
+    marginHorizontal: 16,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
     backgroundColor: '#4CAF50',
+    alignSelf: 'center',
+    minWidth: 200,
+    alignItems: 'center',
   },
   nextButtonDisabled: {
     opacity: 0.6,

@@ -46,7 +46,13 @@ export function FlashcardTopicCard({
       <View style={[styles.divider, compact && styles.dividerCompact]} />
       <View style={[styles.middle, compact && styles.middleCompact]}>
         <Text style={[styles.title, compact && styles.titleCompact]}>{title}</Text>
-        <Text style={[styles.subtitle, compact && styles.subtitleCompact]}>{subtitle}</Text>
+        <Text 
+          style={[styles.subtitle, compact && styles.subtitleCompact]}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
+          {subtitle}
+        </Text>
       </View>
       {shouldShowBadge ? (
         <View style={[styles.right, compact && styles.rightCompact]}>
@@ -137,9 +143,11 @@ const styles = StyleSheet.create({
   middle: {
     flex: 1,
     gap: 6,
+    minHeight: 80, // Đảm bảo chiều cao tối thiểu để bố cục đồng nhất
   },
   middleCompact: {
     gap: 2,
+    minHeight: Platform.OS === 'web' ? 50 : 48, // Đảm bảo chiều cao tối thiểu cho compact mode
   },
   title: {
     fontSize: 30,
@@ -156,9 +164,14 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: '#333',
     fontFamily: 'Epilogue, sans-serif',
+    maxHeight: 48, // 2 dòng với lineHeight 24
+    minHeight: 48, // Đảm bảo chiều cao cố định để bố cục đồng nhất
   },
   subtitleCompact: {
     fontSize: Platform.OS === 'web' ? 13 : 11,
+    lineHeight: Platform.OS === 'web' ? 18 : 16,
+    maxHeight: Platform.OS === 'web' ? 36 : 32, // 2 dòng
+    minHeight: Platform.OS === 'web' ? 36 : 32, // Đảm bảo chiều cao cố định để bố cục đồng nhất
   },
   right: {
     width: 80,

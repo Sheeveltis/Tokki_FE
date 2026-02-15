@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Animated } from 'react-native'
-import { NavigationPill } from 'components/navigation-pill'
+import { NavigationPill } from '../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
 import StarIcon from '../../../../../assets/icon/icon-mainflow/star.svg'
-import { FlipCard } from 'components/FlipCard'
+import { FlipCardMobile } from '../../../../../components/FlipCardMobile'
 import { normalizeImageSource } from '../../../study/api'
 import { studyStyles } from '../../../study/styles'
 import { ALPHABET_LETTERS } from '../../../study/mockData'
@@ -119,7 +119,7 @@ export function AlphabetLearnMain({
             cardAnimatedStyle,
           ]}
         >
-          <FlipCard
+          <FlipCardMobile
             word={current.word || ''}
             meaning={current.meaning || ''}
             width="100%"
@@ -128,7 +128,6 @@ export function AlphabetLearnMain({
             backColor="#79964E"
             borderWidth={12}
             borderRadius={12}
-            flipOnHover={false}
             isFlipped={isFlipped}
             onFlip={onFlip}
             starIcon={normalizeImageSource(StarIcon)}
