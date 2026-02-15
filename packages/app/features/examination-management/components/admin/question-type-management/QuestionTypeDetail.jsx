@@ -142,6 +142,7 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
     <LayoutComponent defaultKey="question-bank" onNavigate={handleNavigate}>
       <div style={{ padding: 24 }}>
         <QuestionTypeHeaderActions
+          questionTypeId={questionTypeId}
           onBack={() => router.push(`${basePath}?tab=question-bank`)}
           onEdit={() => setIsEditing(true)}
           deleting={deleting}
@@ -160,6 +161,24 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
           }}
           onAddQuestion={() => {
             router.push(`${basePath}/question-bank/create?questionTypeId=${questionTypeId}`)
+          }}
+          onImported={async () => {
+            try {
+              const status = filters.status !== null && filters.status !== undefined ? filters.status : undefined
+              const searchTerm = filters.search?.trim() ? filters.search.trim() : undefined
+              const paged = await fetchQuestionBanksPaged({
+                QuestionTypeId: questionTypeId,
+                Status: status,
+                SearchTerm: searchTerm,
+                PageNumber: 1,
+                PageSize: PAGE_SIZE,
+              })
+              setAllQuestions(paged?.items || [])
+              setTotalQuestions(paged?.total ?? (paged?.items?.length || 0))
+              setPageNumber(1)
+            } catch (err) {
+              showAdminError(err?.message || 'Không thể tải lại danh sách câu hỏi')
+            }
           }}
         />
 

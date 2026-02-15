@@ -107,3 +107,30 @@ export async function activateQuestionBanks(questionBankIds = []) {
   return res.data
 }
 
+/**
+ * Import questions from Excel file
+ * @param {string} questionTypeId - Question Type ID
+ * @param {File} file - Excel file to import
+ * @returns {Promise<Object>} Response data
+ */
+export async function importQuestionsExcel(questionTypeId, file) {
+  if (!questionTypeId) throw new Error('QuestionTypeId là bắt buộc')
+  if (!file) throw new Error('File Excel là bắt buộc')
+  if (typeof file.size === 'number' && file.size <= 0) throw new Error('File Excel không hợp lệ')
+
+  const formData = new FormData()
+  formData.append('QuestionTypeId', questionTypeId)
+  formData.append('ExcelFile', file)
+
+  // Let axios set the multipart boundary automatically
+  const response = await apiClient.post(ENDPOINTS.EXCEL.IMPORT_QUESTIONS, formData, {
+    // Override apiClient default JSON content-type so axios can set multipart boundary
+    headers: {
+      'Content-Type': undefined,
+    },
+    timeout: 0, // No timeout for file processing
+  })
+
+  return response.data
+}
+
