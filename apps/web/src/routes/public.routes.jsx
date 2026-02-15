@@ -19,6 +19,12 @@ import MatchingCardTopicScreen from '@tokki/app/features/minigame/screens/matchi
 import MatchingCardRuleScreen from '@tokki/app/features/minigame/screens/matching-card/matching-card-rule-screen'
 import MatchingCardScreen from '@tokki/app/features/minigame/screens/matching-card/matching-card-screen'
 import MatchingCardResultScreen from '@tokki/app/features/minigame/screens/matching-card/matching-card-result-screen'
+import { SolitareRuleScreen } from '@tokki/app/features/minigame/screens/solitare/solitare-rule-screen'
+import SolitarePlayScreen from '@tokki/app/features/minigame/screens/solitare/solitare-play-screen'
+import { SolitarePlayWeb } from '@tokki/app/features/minigame/components/solitare/solitare-play/solitare-play-web/solitare-play-web'
+import { SolitareResultScreen } from '@tokki/app/features/minigame/screens/solitare/solitare-result-screen'
+import { WordleRuleScreen } from '@tokki/app/features/minigame/screens/wordle/wordle-rule-screen'
+import { WordlePlayScreen } from '@tokki/app/features/minigame/screens/wordle/wordle-play-screen'
 import { DictionarySearchScreen } from '@tokki/app/features/vocabulary/screens/client/dictionary-search-screen'
 import { DictionaryVocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/client/dictionary-detail-screen'
 import { Navbar } from 'components/navbar'
@@ -142,6 +148,53 @@ function MatchingCardResultRoute() {
   )
 }
 
+// Solitare Routes
+function SolitareRuleRoute() {
+  const { getQueryParam } = useRouteNavigation()
+  const levelId = getQueryParam('level')
+  return <SolitareRuleScreen levelId={levelId} />
+}
+
+function SolitarePlayRoute() {
+  const { navigate } = useRouteNavigation()
+
+  const handleFinish = (score, timeLeft) => {
+    navigate(`/minigame/solitare/solitare-result?score=${score}&time=${timeLeft}`)
+  }
+
+  return <SolitarePlayWeb onFinish={handleFinish} />
+}
+
+function SolitareResultRoute() {
+  const { navigate, getQueryParam } = useRouteNavigation()
+
+  const score = Number(getQueryParam('score') || '0')
+  const timeLeft = Number(getQueryParam('time') || '0')
+
+  const handleReplay = () => {
+    navigate('/minigame')
+  }
+
+  return <SolitareResultScreen score={score} timeLeft={timeLeft} onReplay={handleReplay} />
+}
+
+// Wordle Routes
+function WordleRuleRoute() {
+  const { getQueryParam, navigate } = useRouteNavigation()
+  const levelId = getQueryParam('level')
+  const gameId = getQueryParam('gameId')
+
+  const handleStart = () => {
+    navigate(`/minigame/wordle/wordle-play?level=${levelId || ''}&gameId=${gameId || ''}`)
+  }
+
+  return <WordleRuleScreen onStart={handleStart} />
+}
+
+function WordlePlayRoute() {
+  return <WordlePlayScreen />
+}
+
 // Dictionary Routes
 function DictionaryRoute() {
   return (
@@ -251,6 +304,13 @@ export const publicRoutes = [
   { path: '/minigame/matching-card/matching-card-rule', element: <MatchingCardRuleRoute /> },
   { path: '/minigame/matching-card/matching-card-play', element: <MatchingCardPlayRoute /> },
   { path: '/minigame/matching-card/matching-card-result', element: <MatchingCardResultRoute /> },
+  { path: '/minigame/solitare/solitare-rule', element: <SolitareRuleRoute /> },
+  { path: '/minigame/solitare/solitare-play', element: <SolitarePlayRoute /> },
+  { path: '/minigame/solitare/solitare-result', element: <SolitareResultRoute /> },
+
+  // Wordle
+  { path: '/minigame/wordle/wordle-rule', element: <WordleRuleRoute /> },
+  { path: '/minigame/wordle/wordle-play', element: <WordlePlayRoute /> },
 
   // Dictionary
   { path: '/dictionary', element: <DictionaryRoute /> },
