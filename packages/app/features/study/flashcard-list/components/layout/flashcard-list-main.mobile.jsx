@@ -202,7 +202,7 @@ export function FlashcardListMain({
             {onLearnedPress ? (
               <Pressable style={styles.learnedButton} onPress={onLearnedPress}>
                 {renderIcon(BookIcon, styles.learnedIcon)}
-                <Text style={styles.learnedButtonText}>Đã học</Text>
+                <Text style={styles.learnedButtonText}>Từ vựng đã học</Text>
               </Pressable>
             ) : null}
           </View>

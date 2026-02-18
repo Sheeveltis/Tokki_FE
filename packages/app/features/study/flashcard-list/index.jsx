@@ -81,6 +81,21 @@ export function FlashcardListScreen({
     }
   }
 
+  // Handler cho nút learned vocabulary
+  const handleLearnedPress = () => {
+    // Nếu có onLearnedPress từ props (web), sử dụng nó
+    if (onLearnedPress) {
+      onLearnedPress()
+      return
+    }
+
+    // Nếu không có onLearnedPress (mobile), xử lý navigation trực tiếp
+    // Điều hướng đến trang từ vựng đã học
+    if (Platform.OS !== 'web' && navigation) {
+      navigation.navigate('learned-vocabulary-list')
+    }
+  }
+
   // Wrapper function để kiểm tra progress và điều hướng phù hợp
   // Logic: nếu progress === 100% thì điều hướng đến trang study (FlashcardStudyScreen), ngược lại điều hướng đến học lần đầu
   const handleTopicPress = (topic) => {
@@ -132,7 +147,7 @@ export function FlashcardListScreen({
         onTopicPress={handleTopicPress}
         onRetry={fetchTopics}
         onFavoritesPress={handleFavoritesPress}
-        onLearnedPress={onLearnedPress}
+        onLearnedPress={handleLearnedPress}
         pageNumber={pageNumber}
         pageSize={pageSize}
         canNextPage={canNextPage}

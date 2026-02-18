@@ -96,15 +96,6 @@ export function LearnedVocabularyListMain({
               Mỗi ngày hệ thống sẽ tự động tạo danh sách từ vựng cần ôn tập dựa trên lịch sử học của bạn. Hãy nhớ vào học thường xuyên để đạt hiệu quả tốt nhất nhé!
             </Text>
           </View>
-          <Text style={styles.instructionsTitle}>Cách ôn tập</Text>
-          <View style={styles.instructionsContent}>
-            <Text style={styles.instructionsText}>
-              Có 2 chế độ ôn tập được hệ thống chọn ngẫu nhiên: (1) Nghe và viết lại từ, (2) Đọc nghĩa và viết lại từ.{'\n'}
-              Bạn chỉ cần làm lần lượt cho đến khi hết danh sách — trả lời sai vẫn tiếp tục để giữ nhịp học.{'\n'}
-              Bạn có thể chọn số lượng từ vựng muốn học mỗi lần ôn tập.{'\n\n'}
-              Tokki chúc bạn học thật tốt nhé.
-            </Text>
-          </View>
         </View>
       )}
 
@@ -135,7 +126,7 @@ export function LearnedVocabularyListMain({
                       onPracticeCountChange(finalNum)
                     }
                   }}
-                  keyboardType="numeric"
+                  keyboardType="number-pad"
                   maxLength={4}
                 />
                 <Text style={styles.practiceCountMax}>/ {maxPracticeCount}</Text>
@@ -321,36 +312,43 @@ const styles = StyleSheet.create({
   practiceBanner: {
     width: '100%',
     backgroundColor: '#FFF4E6',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 8,
+    borderRadius: 16,
+    padding: 20,
+    marginTop: 12,
     marginBottom: 16,
     marginHorizontal: 16,
     borderWidth: 1,
     borderColor: '#F1BE4B',
+    shadowColor: '#F1BE4B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 3,
   },
   practiceBannerContent: {
     flexDirection: 'column',
     alignItems: 'stretch',
-    gap: 12,
+    gap: 16,
   },
   practiceBannerText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
+    lineHeight: 22,
   },
   practiceCountSelector: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
+    flexWrap: 'wrap',
   },
   practiceCountLabel: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#666',
+    fontWeight: '600',
+    color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
   },
   practiceCountInputWrapper: {
@@ -360,33 +358,43 @@ const styles = StyleSheet.create({
   },
   practiceCountInput: {
     width: 70,
-    height: 36,
-    paddingHorizontal: 10,
-    borderRadius: 8,
+    height: 40,
+    paddingHorizontal: 12,
+    borderRadius: 10,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    fontSize: 14,
-    fontWeight: '600',
+    borderWidth: 2,
+    borderColor: '#F1BE4B',
+    fontSize: 15,
+    fontWeight: '700',
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
+    shadowColor: '#F1BE4B',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   practiceCountMax: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#666',
     fontFamily: 'Epilogue, sans-serif',
   },
   practiceButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
     backgroundColor: '#F1BE4B',
     alignItems: 'center',
+    shadowColor: '#F1BE4B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   practiceButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
@@ -394,30 +402,37 @@ const styles = StyleSheet.create({
   instructionsBox: {
     width: '100%',
     backgroundColor: '#E8F4FD',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 8,
-    marginBottom: 16,
+    borderRadius: 16,
+    padding: 20,
+    marginTop: 12,
+    marginBottom: 12,
     marginHorizontal: 16,
     borderWidth: 1,
     borderColor: '#B3D9F2',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   instructionsTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
-    marginBottom: 10,
+    marginBottom: 12,
+    marginTop: 4,
   },
   instructionsContent: {
     gap: 6,
+    marginBottom: 12,
   },
   instructionsText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '400',
     color: '#333',
     fontFamily: 'Epilogue, sans-serif',
-    lineHeight: 20,
+    lineHeight: 22,
   },
 })
 

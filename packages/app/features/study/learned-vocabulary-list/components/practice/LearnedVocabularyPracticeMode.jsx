@@ -3,7 +3,28 @@ import { View, StyleSheet, Text, TouchableOpacity, TextInput, Platform, Image } 
 import { submitSpacedRepetition } from '../../../api'
 import { NavigationPill } from '../../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
+import SoundIcon from '../../../../../../assets/icon/icon-mainflow/sound.svg'
+import CheckedIcon from '../../../../../../assets/checked.png'
+import IncorrectIcon from '../../../../../../assets/incorrect.png'
 import { normalizeImageSource } from '../../../api'
+
+// Import sound effects
+const CorrectSound = require('../../../../../../assets/sound-effect/correct.wav')
+const WrongSound = require('../../../../../../assets/sound-effect/wrong.wav')
+
+// Import expo-av cho mobile (nếu có)
+let ExpoAudio = null
+let ExpoAudioMode = null
+if (Platform.OS !== 'web') {
+  try {
+    const expoAv = require('expo-av')
+    ExpoAudio = expoAv.Audio
+    ExpoAudioMode = expoAv.Audio
+  } catch (e) {
+    // expo-av chưa được cài đặt
+    console.warn('expo-av not available, audio playback may not work on mobile', e)
+  }
+}
 
 const GROUP_SIZE = 5
 
@@ -27,7 +48,74 @@ export function LearnedVocabularyPracticeMode({
   const [hasAnswered, setHasAnswered] = useState(false)
   
   const audioRef = useRef(null)
+  const soundRef = useRef(null)
+  const soundEffectRef = useRef(null)
   const inputRef = useRef(null)
+
+  // Setup audio mode khi component mount (chỉ mobile)
+  useEffect(() => {
+    if (Platform.OS === 'web') return
+    if (!ExpoAudioMode) return
+    
+    const setupAudio = async () => {
+      try {
+        // Set audio mode trước
+        await ExpoAudioMode.setAudioModeAsync({
+          playsInSilentModeIOS: true,
+          allowsRecordingIOS: false,
+          staysActiveInBackground: false,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: false,
+        })
+      } catch (e) {
+        // Failed to set audio mode
+        console.warn('Failed to set audio mode:', e)
+      }
+    }
+    
+    setupAudio()
+  }, [])
+
+  // Cleanup audio
+  const cleanupAudio = useCallback(async () => {
+    try {
+      // Web: cleanup HTML5 Audio
+      if (audioRef.current) {
+        try {
+          audioRef.current.pause()
+          audioRef.current.currentTime = 0
+        } catch (e) {
+          // Ignore errors
+        }
+        audioRef.current = null
+      }
+      // Mobile: cleanup expo-av sound
+      if (soundRef.current) {
+        try {
+          await soundRef.current.unloadAsync()
+        } catch (e) {
+          // Ignore errors
+        }
+        soundRef.current = null
+      }
+      // Cleanup sound effect
+      if (soundEffectRef.current) {
+        try {
+          if (Platform.OS === 'web') {
+            soundEffectRef.current.pause()
+            soundEffectRef.current.currentTime = 0
+          } else {
+            await soundEffectRef.current.unloadAsync()
+          }
+        } catch (e) {
+          // Ignore errors
+        }
+        soundEffectRef.current = null
+      }
+    } catch (error) {
+      console.error('Error cleaning up audio:', error)
+    }
+  }, [])
 
   // Chia từ vựng thành các nhóm 5 từ
   const groups = useMemo(() => {
@@ -140,31 +228,186 @@ export function LearnedVocabularyPracticeMode({
   }, [currentQueueIndex, currentPractice])
 
   // Phát âm thanh
-  const handlePlaySound = useCallback(() => {
-    if (!currentVocab?.audioUrl) return
-
-    if (audioRef.current) {
-      audioRef.current.pause()
-      audioRef.current.currentTime = 0
+  const handlePlaySound = useCallback(async () => {
+    if (!currentVocab?.audioUrl) {
+      console.warn('[Audio] No audioUrl for current word')
+      return
     }
 
-    const audio = new Audio(currentVocab.audioUrl)
-    audioRef.current = audio
+    console.log('[Audio] Attempting to play:', currentVocab.audioUrl)
 
-    audio.play().catch((error) => {
-      console.error('Error playing audio:', error)
-    })
+    try {
+      if (Platform.OS === 'web') {
+        // Web: sử dụng HTML5 Audio
+        await cleanupAudio()
+        // Kiểm tra kỹ hơn để tránh lỗi trên mobile
+        if (typeof window === 'undefined' || !window.Audio) {
+          console.error('[Audio] Audio API not available')
+          return
+        }
+        const AudioConstructor = window.Audio
+        const audio = new AudioConstructor(currentVocab.audioUrl)
+        audioRef.current = audio
+        audio.volume = 1.0
+        audio.play().catch((err) => {
+          console.error('[Audio] Error playing audio on web:', err)
+        })
+        audio.addEventListener('ended', () => {
+          console.log('[Audio] Audio finished playing')
+          audioRef.current = null
+        })
+        console.log('[Audio] Audio started playing on web')
+      } else {
+        // Mobile: sử dụng expo-av
+        if (!ExpoAudio) {
+          console.error('[Audio] expo-av not available, cannot play audio on mobile')
+          return
+        }
+        try {
+          await cleanupAudio()
+          console.log('[Audio] Creating sound with URI:', currentVocab.audioUrl)
+          const { sound } = await ExpoAudio.Sound.createAsync(
+            { uri: currentVocab.audioUrl },
+            { 
+              shouldPlay: true,
+              volume: 1.0,
+              isMuted: false,
+            }
+          )
+          soundRef.current = sound
+          console.log('[Audio] Sound created, setting up status listener')
+          
+          // Kiểm tra status ngay sau khi tạo
+          const initialStatus = await sound.getStatusAsync()
+          console.log('[Audio] Initial status:', {
+            isLoaded: initialStatus.isLoaded,
+            isPlaying: initialStatus.isPlaying,
+            error: initialStatus.error,
+            durationMillis: initialStatus.durationMillis,
+          })
+          
+          if (initialStatus.error) {
+            console.error('[Audio] Error in initial status:', initialStatus.error)
+            await sound.unloadAsync()
+            soundRef.current = null
+            return
+          }
+          
+          sound.setOnPlaybackStatusUpdate((status) => {
+            if (status.isLoaded) {
+              if (status.didJustFinish) {
+                console.log('[Audio] Audio finished playing')
+                soundRef.current = null
+              } else if (status.error) {
+                console.error('[Audio] Playback error:', status.error)
+              } else if (status.isPlaying) {
+                console.log('[Audio] Audio is playing')
+              }
+            } else if (status.error) {
+              console.error('[Audio] Sound load error:', status.error)
+              soundRef.current = null
+            }
+          })
+          
+          // Đảm bảo sound được play
+          setTimeout(async () => {
+            try {
+              const status = await sound.getStatusAsync()
+              console.log('[Audio] Status after delay:', {
+                isLoaded: status.isLoaded,
+                isPlaying: status.isPlaying,
+                error: status.error,
+              })
+              if (status.isLoaded && !status.isPlaying && !status.error) {
+                console.log('[Audio] Audio not playing, attempting to play...')
+                await sound.playAsync()
+              }
+            } catch (playErr) {
+              console.error('[Audio] Error ensuring audio plays:', playErr)
+            }
+          }, 100)
+          
+          console.log('[Audio] Audio started playing on mobile')
+        } catch (err) {
+          console.error('[Audio] Error playing audio on mobile:', err)
+        }
+      }
+    } catch (error) {
+      console.error('[Audio] Error playing audio:', error)
+    }
+  }, [currentVocab, cleanupAudio])
 
-    audio.addEventListener('ended', () => {
-      audioRef.current = null
-    })
-  }, [currentVocab])
+  // Phát âm thanh effect (correct/wrong)
+  const playSoundEffect = useCallback(async (soundFile) => {
+    if (!soundFile) return
 
-  // Phát âm chậm
-  const handlePlaySlowSound = useCallback(() => {
-    if (!currentVocab?.audioUrl) return
-    handlePlaySound()
-  }, [currentVocab, handlePlaySound])
+    try {
+      if (Platform.OS === 'web') {
+        // Web: sử dụng HTML5 Audio
+        if (typeof window === 'undefined' || !window.Audio) {
+          return
+        }
+        // Cleanup sound effect cũ nếu có
+        if (soundEffectRef.current) {
+          try {
+            soundEffectRef.current.pause()
+            soundEffectRef.current.currentTime = 0
+          } catch (e) {
+            // Ignore errors
+          }
+        }
+        // normalizeImageSource trả về URI cho web
+        const soundUri = typeof soundFile === 'string' ? soundFile : (soundFile.uri || soundFile)
+        const audio = new window.Audio(soundUri)
+        soundEffectRef.current = audio
+        audio.volume = 1.0
+        audio.play().catch((err) => {
+          console.error('[SoundEffect] Error playing audio on web:', err)
+        })
+        audio.addEventListener('ended', () => {
+          soundEffectRef.current = null
+        })
+      } else {
+        // Mobile: sử dụng expo-av
+        if (!ExpoAudio) {
+          return
+        }
+        try {
+          // Cleanup sound effect cũ nếu có
+          if (soundEffectRef.current) {
+            try {
+              await soundEffectRef.current.unloadAsync()
+            } catch (e) {
+              // Ignore errors
+            }
+          }
+          // expo-av cần require() trực tiếp hoặc uri
+          // soundFile có thể là number (require result) hoặc object với uri
+          const soundSource = typeof soundFile === 'number' 
+            ? soundFile 
+            : (soundFile.uri ? { uri: soundFile.uri } : soundFile)
+          const { sound } = await ExpoAudio.Sound.createAsync(
+            soundSource,
+            { 
+              shouldPlay: true,
+              volume: 1.0,
+              isMuted: false,
+            }
+          )
+          soundEffectRef.current = sound
+          sound.setOnPlaybackStatusUpdate((status) => {
+            if (status.isLoaded && status.didJustFinish) {
+              soundEffectRef.current = null
+            }
+          })
+        } catch (err) {
+          console.error('[SoundEffect] Error playing audio on mobile:', err)
+        }
+      }
+    } catch (error) {
+      console.error('[SoundEffect] Error playing sound effect:', error)
+    }
+  }, [])
 
   // Kiểm tra đáp án
   const checkAnswer = useCallback(() => {
@@ -178,8 +421,15 @@ export function LearnedVocabularyPracticeMode({
     setShowResult(true)
     setHasAnswered(true)
 
+    // Phát âm âm thanh effect
+    if (correct) {
+      playSoundEffect(Platform.OS === 'web' ? normalizeImageSource(CorrectSound) : CorrectSound)
+    } else {
+      playSoundEffect(Platform.OS === 'web' ? normalizeImageSource(WrongSound) : WrongSound)
+    }
+
     submitAnswer(correct ? 2 : 0)
-  }, [currentVocab, userAnswer, hasAnswered])
+  }, [currentVocab, userAnswer, hasAnswered, playSoundEffect])
 
   // Submit kết quả
   const submitAnswer = useCallback(async (quality) => {
@@ -231,15 +481,49 @@ export function LearnedVocabularyPracticeMode({
     }
   }, [currentMode, currentVocabIndex, currentQueueIndex, currentVocab, handlePlaySound, hasAnswered])
 
-  // Cleanup audio
+  // Cleanup audio khi unmount
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current = null
-      }
+      cleanupAudio()
     }
-  }, [])
+  }, [cleanupAudio])
+
+  // Helper function để render SoundIcon
+  const renderSoundIcon = (size = 32) => {
+    if (!SoundIcon) {
+      return null
+    }
+    
+    try {
+      // Kiểm tra xem có phải là React component không (SVG component)
+      const isReactComponent = SoundIcon && (
+        (typeof SoundIcon === 'function') || 
+        (typeof SoundIcon === 'object' && SoundIcon.$$typeof) ||
+        (typeof SoundIcon === 'object' && SoundIcon.default && (typeof SoundIcon.default === 'function' || SoundIcon.default.$$typeof))
+      )
+      
+      if (isReactComponent) {
+        // Render như React component (SVG)
+        const Component = typeof SoundIcon === 'function' ? SoundIcon : (SoundIcon.default || SoundIcon)
+        return (
+          <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+            <Component width={size} height={size} />
+          </View>
+        )
+      }
+      
+      // Fallback: thử dùng Image với normalizeImageSource
+      const iconSource = normalizeImageSource(SoundIcon)
+      if (iconSource) {
+        return <Image source={iconSource} style={{ width: size, height: size }} resizeMode="contain" />
+      }
+      
+      return null
+    } catch (error) {
+      console.error('Error rendering SoundIcon:', error)
+      return null
+    }
+  }
 
   if (!currentPractice || !currentVocab) {
     return (
@@ -325,15 +609,7 @@ export function LearnedVocabularyPracticeMode({
                     style={styles.audioButton}
                     onPress={handlePlaySound}
                   >
-                    <View style={styles.audioButtonIcon}>
-                      <Text style={styles.audioButtonIconText}>🔊</Text>
-                    </View>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.audioButtonSmall}
-                    onPress={handlePlaySlowSound}
-                  >
-                    <Text style={styles.snailIcon}>🐌</Text>
+                    {renderSoundIcon(40)}
                   </TouchableOpacity>
                 </View>
                 <TextInput
@@ -368,13 +644,23 @@ export function LearnedVocabularyPracticeMode({
             <View style={styles.resultHeader}>
               {isCorrect ? (
                 <View style={styles.resultCorrect}>
-                  <Text style={styles.resultIcon}>✓</Text>
-                  <Text style={styles.resultText}>Đúng rồi!</Text>
+                  <Image 
+                    source={normalizeImageSource(CheckedIcon)} 
+                    style={styles.resultIconImageCorrect}
+                    resizeMode="contain"
+                    tintColor="#4CAF50"
+                  />
+                  <Text style={styles.resultTextCorrect}>Đúng rồi!</Text>
                 </View>
               ) : (
                 <View style={styles.resultWrong}>
-                  <Text style={styles.resultIcon}>✗</Text>
-                  <Text style={styles.resultText}>Sai rồi!</Text>
+                  <Image 
+                    source={normalizeImageSource(IncorrectIcon)} 
+                    style={styles.resultIconImageWrong}
+                    resizeMode="contain"
+                    tintColor="#F44336"
+                  />
+                  <Text style={styles.resultTextWrong}>Sai rồi!</Text>
                 </View>
               )}
             </View>
@@ -393,7 +679,7 @@ export function LearnedVocabularyPracticeMode({
                     style={styles.audioButtonSmall}
                     onPress={handlePlaySound}
                   >
-                    <Text style={styles.audioButtonIconText}>🔊</Text>
+                    {renderSoundIcon(24)}
                   </TouchableOpacity>
                   <Text style={styles.flashcardWord}>{currentVocab.word}</Text>
                 </View>
@@ -434,6 +720,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     alignItems: 'center',
+    paddingHorizontal: 16,
   },
   headerTop: {
     width: '100%',
@@ -441,69 +728,80 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     gap: 12,
+    marginBottom: 16,
+    paddingTop: 24,
   },
   progressContainer: {
     width: '100%',
-    marginTop: 16,
-    marginBottom: 24,
+    marginTop: 8,
+    marginBottom: 20,
   },
   progressBar: {
     width: '100%',
-    height: 8,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 4,
+    height: 10,
+    backgroundColor: '#E8E8E8',
+    borderRadius: 5,
     overflow: 'hidden',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   progressFill: {
     height: '100%',
     backgroundColor: '#F1BE4B',
-    borderRadius: 4,
+    borderRadius: 5,
   },
   progressText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#666',
+    color: '#1F1F1F',
     textAlign: 'center',
     fontFamily: 'Epilogue, sans-serif',
   },
   practiceContainer: {
     width: '100%',
     alignItems: 'center',
+    flex: 1,
   },
   questionContainer: {
     width: '100%',
     maxWidth: 600,
     alignItems: 'center',
-    gap: 24,
+    gap: 20,
   },
   instructionText: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
+    marginBottom: 8,
   },
   meaningBox: {
     width: '100%',
     maxWidth: 500,
-    padding: 20,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
+    padding: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderColor: '#F1BE4B',
+    shadowColor: '#F1BE4B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 3,
   },
   meaningText: {
-    fontSize: 28,
-    fontWeight: '600',
+    fontSize: 26,
+    fontWeight: '700',
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
+    lineHeight: 34,
   },
   audioButtonsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+    marginBottom: 8,
   },
   audioButton: {
     width: 80,
@@ -512,6 +810,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1BE4B',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#F1BE4B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
     }),
@@ -529,34 +832,25 @@ const styles = StyleSheet.create({
       cursor: 'pointer',
     }),
   },
-  audioButtonIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  audioButtonIconText: {
-    fontSize: 24,
-  },
-  snailIcon: {
-    fontSize: 24,
-  },
   answerInput: {
     width: '100%',
     maxWidth: 500,
-    height: 60,
+    height: 56,
     paddingHorizontal: 20,
-    borderRadius: 12,
+    borderRadius: 14,
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
     borderColor: '#E0E0E0',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '500',
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
   answerInputCorrect: {
     borderColor: '#4CAF50',
@@ -569,10 +863,15 @@ const styles = StyleSheet.create({
   submitButton: {
     width: '100%',
     maxWidth: 500,
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 14,
+    borderRadius: 14,
     backgroundColor: '#F1BE4B',
     alignItems: 'center',
+    shadowColor: '#F1BE4B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
     }),
@@ -593,11 +892,12 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 600,
     alignItems: 'center',
-    gap: 24,
+    gap: 20,
   },
   resultHeader: {
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+    marginBottom: 8,
   },
   resultCorrect: {
     flexDirection: 'row',
@@ -610,24 +910,65 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   resultIcon: {
-    fontSize: 48,
+    fontSize: 40,
     fontWeight: '700',
   },
+  resultIconCorrect: {
+    fontSize: 40,
+    fontWeight: '700',
+    color: '#4CAF50',
+  },
+  resultIconWrong: {
+    fontSize: 40,
+    fontWeight: '700',
+    color: '#F44336',
+  },
+  resultIconImage: {
+    width: 40,
+    height: 40,
+  },
+  resultIconImageCorrect: {
+    width: 40,
+    height: 40,
+    tintColor: '#4CAF50',
+  },
+  resultIconImageWrong: {
+    width: 40,
+    height: 40,
+    tintColor: '#F44336',
+  },
   resultText: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
     color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  resultTextCorrect: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#4CAF50',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  resultTextWrong: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#F44336',
     fontFamily: 'Epilogue, sans-serif',
   },
   flashcard: {
     width: '100%',
     maxWidth: 600,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 18,
+    padding: 20,
     borderWidth: 2,
     borderColor: '#F1BE4B',
     gap: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   flashcardImage: {
     width: '100%',
@@ -686,16 +1027,21 @@ const styles = StyleSheet.create({
   nextButton: {
     width: '100%',
     maxWidth: 500,
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 14,
+    borderRadius: 14,
     backgroundColor: '#4CAF50',
     alignItems: 'center',
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
     }),
   },
   nextButtonText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#FFFFFF',
     fontFamily: 'Epilogue, sans-serif',
@@ -705,10 +1051,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
+    width: '100%',
   },
   emptyText: {
     fontSize: 16,
     color: '#666',
     fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
   },
 })
