@@ -112,21 +112,17 @@ const getQuantityByLevel = (level) => {
  * @param {string} level - 'Easy', 'Medium', 'Hard'
  * @returns {Promise<Array>} Promise resolves to columns array
  */
+import { apiClient } from '../../../provider/api/client'
+import { ENDPOINTS } from '../../../provider/api/endpoints'
+
 export const getSolitareLayout = async (level = 'Easy') => {
   try {
     const quantity = getQuantityByLevel(level)
-    const response = await fetch(`http://localhost:5031/api/minigame/solitaire?quantity=${quantity}`, {
-      method: 'GET',
-      headers: {
-        accept: '*/*',
-      },
+    const response = await apiClient.get(ENDPOINTS.MINIGAME.SOLITAIRE, {
+      params: { quantity },
     })
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`)
-    }
-
-    const result = await response.json()
+    const result = response.data
 
     if (!result.isSuccess || !result.data) {
       throw new Error('Invalid API response')
