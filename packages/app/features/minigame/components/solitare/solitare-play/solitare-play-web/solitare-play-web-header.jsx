@@ -11,7 +11,7 @@ const formatTime = (seconds) => {
 // Styles for header component
 const styles = {
   headerRow: {
-    padding: '0 100px',
+    padding: '0px 100px',
     marginTop: '-50px',
     position: 'relative',
     top: '-10px',
@@ -21,13 +21,13 @@ const styles = {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 15,
   },
   timeBox: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 120,
+    minWidth: 100,
   },
   bannerWrapper: {
     position: 'relative',
@@ -62,7 +62,7 @@ const styles = {
   },
   scoreBanner: {
     width: 160,
-    height: 100,
+    height: 90,
     objectFit: 'contain',
   },
   scoreText: {

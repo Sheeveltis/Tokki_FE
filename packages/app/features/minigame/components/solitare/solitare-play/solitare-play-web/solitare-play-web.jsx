@@ -14,20 +14,24 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'flex-start',
     width: '100%',
-    minHeight: '100vh',
+    height: '100vh',
+    overflow: 'hidden',
     backgroundImage: `url(${BackgroundSolite})`,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     backgroundRepeat: 'no-repeat',
     paddingBottom: '12px',
+    boxSizing: 'border-box',
   },
   inner: {
     width: '100%',
     maxWidth: 1250,
+    height: '100%',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'stretch',
     flexShrink: 0,
+    overflow: 'hidden',
   },
 }
 
@@ -55,25 +59,52 @@ export function SolitarePlayWeb({ level = 'Easy', onFinish }) {
   const isProcessingDrop = useRef(false)
   const completedColumnsRef = useRef(new Set())
 
+  const injectTopicCardsIntoLayout = (layout) => {
+    // For each column, insert 1 topic card at a random non-top position.
+    // Topic card uses same topicId as the card below it to avoid breaking existing move rules.
+    return layout.map((col) => {
+      if (!col.cards || col.cards.length < 3) return col
+
+      const insertPos = 1 + Math.floor(Math.random() * (col.cards.length - 2))
+      const below = col.cards[insertPos - 1]
+
+      const topicCard = {
+        id: `topic-${col.id}-${below.topicId}-${insertPos}`,
+        topicId: below.topicId,
+        topicName: below.topicName,
+        text: below.topicName || below.text,
+        isTopic: true,
+      }
+
+      const nextCards = [...col.cards]
+      nextCards.splice(insertPos, 0, topicCard)
+
+      return { ...col, cards: nextCards }
+    })
+  }
+
   useEffect(() => {
     getSolitareLayout(level)
       .then((layout) => {
-        setColumns(layout)
+        const withTopicCards = injectTopicCardsIntoLayout(layout)
+
+        setColumns(withTopicCards)
         setSlots([
           ...Array(4).fill(null).map(() => ({ topicId: null, name: null, cards: [], isTempSlot: true })),
         ])
-        
-        // Count total cards per topic from the layout
+
+        // Count total cards per topic from the layout (ignore topic cards)
         const counts = {}
-        layout.forEach(col => {
+        withTopicCards.forEach(col => {
           col.cards.forEach(card => {
+            if (card.isTopic) return
             counts[card.topicId] = (counts[card.topicId] || 0) + 1
           })
         })
         setTopicCardCounts(counts)
 
         const initialFlipped = new Set()
-        layout.forEach((col) => {
+        withTopicCards.forEach((col) => {
           if (col.cards.length > 0) {
             const topCard = col.cards[col.cards.length - 1]
             initialFlipped.add(topCard.id)
@@ -279,15 +310,36 @@ export function SolitarePlayWeb({ level = 'Easy', onFinish }) {
         if (rect) {
           const col = columns[targetIndex]
           targetX = rect.left + window.scrollX + rect.width / 2
-          targetY = col.cards.length === 0 
-            ? rect.top + window.scrollY + 80 
-            : rect.bottom + window.scrollY - 80 
+          
+          // Calculate targetY based on the last card position in the column
+          if (col.cards.length === 0) {
+            targetY = rect.top + window.scrollY + 80
+          } else {
+            // Find the last card in the column and use its position
+            const lastCard = col.cards[col.cards.length - 1]
+            const lastCardEl = cardRefs.current[lastCard.id]
+            if (lastCardEl) {
+              const lastCardRect = lastCardEl.getBoundingClientRect()
+              // Position new card below the last card with stack offset
+              const stackOffset = 50 // Match CARD_STACK_OFFSET from column-card
+              targetY = lastCardRect.bottom + window.scrollY - stackOffset
+            } else {
+              // Fallback: calculate based on card count and stack offset
+              const stackOffset = 95
+              const cardHeight = 144
+              const paddingTop = 10
+              targetY = rect.top + window.scrollY + paddingTop + (col.cards.length * (cardHeight - stackOffset)) + cardHeight / 2
+            }
+          }
           targetType = 'column'
           targetFound = true
         }
       }
 
       if (targetFound) {
+        // Check if dropping from slot to column - add bounce animation
+        const isFromSlotToColumn = draggedCards.isFromSlot && targetType === 'column'
+        
         setMovingCard({
           cards: draggedCards.cards,
           fromX: e.pageX - draggedCards.offsetX,
@@ -296,6 +348,7 @@ export function SolitarePlayWeb({ level = 'Easy', onFinish }) {
           toY: targetY,
           targetType,
           targetIndex,
+          isFromSlotToColumn, // Flag to trigger bounce animation
         })
       } else {
         setMovingCard({
@@ -349,6 +402,12 @@ export function SolitarePlayWeb({ level = 'Easy', onFinish }) {
     const slot = slots[slotIndex]
     const { cards, isFromSlot, slotIndex: fromSlotIndex, columnIndex, startCardIndex } = dragData
 
+    // Block topic cards from being dropped into slots
+    const draggedCard = cards[0]
+    if (draggedCard.isTopic) {
+      return
+    }
+
     if (slot.isTempSlot) {
       if (cards.length !== 1 || slot.cards.length > 0) return
       if (isFromSlot) moveCardsFromSlotToSlot(fromSlotIndex, slotIndex, cards)
@@ -372,7 +431,16 @@ export function SolitarePlayWeb({ level = 'Easy', onFinish }) {
     if (!targetCol || (columnIndex === targetColumnIndex && !isFromSlot)) return
 
     const draggedCard = cards[0]
-    if (targetCol.cards.length === 0 || targetCol.cards[targetCol.cards.length - 1].topicId === draggedCard.topicId) {
+    const targetColTopCard = targetCol.cards.length > 0 ? targetCol.cards[targetCol.cards.length - 1] : null
+
+    // Block topic cards from being placed on top of other cards
+    // Only allow non-topic cards to be placed on topic cards
+    if (draggedCard.isTopic && targetColTopCard && !targetColTopCard.isTopic) {
+      return
+    }
+
+    // Normal drop logic: empty column or matching topicId
+    if (targetCol.cards.length === 0 || (targetColTopCard && targetColTopCard.topicId === draggedCard.topicId)) {
       if (isFromSlot) moveCardsFromSlotToColumn(fromSlotIndex, targetColumnIndex, cards)
       else {
         moveCardsToColumn(columnIndex, startCardIndex, targetColumnIndex, cards)
