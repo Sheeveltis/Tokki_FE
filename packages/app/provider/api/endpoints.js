@@ -151,6 +151,7 @@ export const ENDPOINTS = {
     },
     MINIGAME: {
       MATCHING_CARDS: '/minigame/matching-cards',
+      SOLITAIRE: '/minigame/solitaire',
     },
     GAMES: {
       USER_GET_ALL: '/Games/user/get-all', // GET: Lấy danh sách games cho user (query: pageNumber, pageSize)
