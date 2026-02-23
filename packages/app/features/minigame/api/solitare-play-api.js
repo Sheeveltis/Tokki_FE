@@ -128,9 +128,22 @@ export const getSolitareLayout = async (level = 'Easy') => {
       throw new Error('Invalid API response')
     }
 
-    // Flatten all vocabularies from all topics into cards
-    const allCards = []
+    // Lọc topic theo unique topicId, giới hạn tối đa 7 topic
+    const uniqueTopicsMap = {}
     result.data.forEach((topic) => {
+      if (!uniqueTopicsMap[topic.topicId]) {
+        uniqueTopicsMap[topic.topicId] = topic
+      }
+    })
+    let uniqueTopics = Object.values(uniqueTopicsMap)
+    // Shuffle topics để random
+    uniqueTopics = uniqueTopics.sort(() => Math.random() - 0.5)
+    // Giới hạn tối đa 7 topic
+    const selectedTopics = uniqueTopics.slice(0, 7)
+
+    // Flatten all vocabularies from selected topics into cards
+    const allCards = []
+    selectedTopics.forEach((topic) => {
       topic.vocabularies.forEach((vocab) => {
         allCards.push({
           id: vocab.vocabId,

@@ -75,8 +75,8 @@ export function SolitarePlayWebColumnCard({
   }
 
   const showFront = isTop || isFlipped
-  const canDrag = isTop || isFlipped
-  
+  const canDrag = isTop || isFlipped 
+
   // Calculate dynamic card height based on maxHeight prop
   const cardHeight = maxHeight || `${WEB_CARD_HEIGHT}px`
   const cardStyle = {
@@ -91,6 +91,10 @@ export function SolitarePlayWebColumnCard({
   }
 
   if (card.isTopic) {
+    // Topic card: chỉ hiển thị text khi đang ở trên cùng (không bị card nào đè lên)
+    // Khi đã có moving card đặt lên (topic ở dưới), ẩn text để tránh bị trùng.
+    const topicText = isTop ? card.text : ''
+
     return (
       <motion.div
         key={card.id}
@@ -104,7 +108,7 @@ export function SolitarePlayWebColumnCard({
         whileHover={canDrag && !isMoving ? { scale: 1.02 } : undefined}
         layout={false}
       >
-        <SolitarePlayWebTopicCard text={showFront ? card.text : ''} style={{ height: '100%' }} />
+        <SolitarePlayWebTopicCard text={topicText} style={{ height: '100%' }} />
       </motion.div>
     )
   }

@@ -1,6 +1,7 @@
 import React from 'react'
 
 import BannerSolitare from '../../../../../../../assets/BannerSolitare.png'
+import MenuIcon from '../../../../../../../assets/menu-solitare.png'
 
 const formatTime = (seconds) => {
   const m = Math.floor(seconds / 60)
@@ -82,9 +83,24 @@ const styles = {
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
   },
+  menuButton: {
+    position: 'absolute',
+    top: 80,
+    right: 0,
+    cursor: 'pointer',
+    border: 'none',
+    background: 'transparent',
+    padding: 0,
+    zIndex: 10,
+    outline: 'none',
+  },
+  menuIcon: {
+    width: 80,
+    height: 'auto',
+  },
 }
 
-export function SolitarePlayWebHeader({ timeLeft, score, isGameWon = false, level = 'Easy' }) {
+export function SolitarePlayWebHeader({ timeLeft, score, isGameWon = false, level = 'Easy', onMenuClick }) {
   return (
     <div style={styles.headerRow}>
       <div style={styles.headerContainer}>
@@ -105,6 +121,17 @@ export function SolitarePlayWebHeader({ timeLeft, score, isGameWon = false, leve
           <img src={BannerSolitare} alt="" style={styles.scoreBanner} />
           <span style={styles.scoreText}>{score}</span>
         </div>
+
+        {onMenuClick && (
+          <button 
+            style={styles.menuButton}
+            onClick={onMenuClick}
+            onMouseDown={(e) => e.preventDefault()}
+            aria-label="Menu"
+          >
+            <img src={MenuIcon} alt="Menu" style={styles.menuIcon} />
+          </button>
+        )}
       </div>
     </div>
   )

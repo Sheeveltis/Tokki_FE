@@ -140,11 +140,11 @@ export function SolitarePlayWebMovingCard({ movingCard, onAnimationComplete, mou
         } else {
           // Normal column to column or other animations
           return {
-            type: 'spring',
-            stiffness: 250,
-            damping: 25,
-            mass: 1,
-            onComplete: onAnimationComplete
+        type: 'spring',
+        stiffness: 250,
+        damping: 25,
+        mass: 1,
+        onComplete: onAnimationComplete
           }
         }
       })() : {
@@ -170,9 +170,9 @@ export function SolitarePlayWebMovingCard({ movingCard, onAnimationComplete, mou
                 <SolitarePlayWebTopicCard text={card.text} />
               ) : (
                 <>
-                  <img src={FrontImage} alt="" style={styles.cardImage} />
-                  <img src={LeafImage} alt="" style={styles.leaf} />
-                  <span style={styles.cardText}>{card.text}</span>
+              <img src={FrontImage} alt="" style={styles.cardImage} />
+              <img src={LeafImage} alt="" style={styles.leaf} />
+              <span style={styles.cardText}>{card.text}</span>
                 </>
               )}
             </div>
