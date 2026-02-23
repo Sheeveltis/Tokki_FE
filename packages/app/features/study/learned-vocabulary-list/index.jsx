@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Platform } from 'react-native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import { useLearnedVocabularyList } from './useLearnedVocabularyList'
 import { 
   LearnedVocabularyListLayout as WebLayout,
@@ -19,10 +20,14 @@ import { LearnedVocabularyPracticeLayout as PracticeMobileLayout } from './compo
 export function LearnedVocabularyListScreen({ 
   onBackPress, 
   title = 'Từ vựng đã học',
-  route, // React Navigation prop - có thể bỏ qua
-  navigation, // React Navigation prop - có thể bỏ qua
+  route: routeProp, // React Navigation prop - có thể bỏ qua
+  navigation: navigationProp, // React Navigation prop - có thể bỏ qua
   ...otherProps // Bỏ qua các props khác từ navigation
 }) {
+  // Sử dụng hooks từ React Navigation nếu có, nếu không dùng props
+  const navigation = navigationProp || (Platform.OS !== 'web' ? useNavigation() : null)
+  const route = routeProp || (Platform.OS !== 'web' ? useRoute() : null)
+
   const [mode, setMode] = useState('list') // 'list' | 'practice'
   const [practiceCount, setPracticeCount] = useState(20) // Số lượng từ muốn học
   
@@ -49,6 +54,19 @@ export function LearnedVocabularyListScreen({
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
+
+  // Handler cho nút back
+  const handleBackPress = () => {
+    if (onBackPress) {
+      onBackPress()
+      return
+    }
+    
+    // Nếu không có onBackPress từ props, sử dụng navigation
+    if (navigation && navigation.canGoBack()) {
+      navigation.goBack()
+    }
+  }
 
   // Tính maxPracticeCount dựa trên số lượng từ vựng có sẵn
   const maxPracticeCount = reviewVocabularies.length > 0 ? reviewVocabularies.length : allVocabularies.length
@@ -96,7 +114,7 @@ export function LearnedVocabularyListScreen({
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
         onSearchSubmit={handleSearchSubmit}
-        onBackPress={onBackPress}
+        onBackPress={handleBackPress}
         onRetry={fetchVocabularies}
         pageNumber={pageNumber}
         pageSize={pageSize}

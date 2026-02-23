@@ -25,6 +25,7 @@ import { FlashcardStudyScreen } from 'app/features/study/flashcard-study'
 import { FlashcardTestScreen } from 'app/features/study/flashcard-test'
 import { FlashcardFirstLearnScreen } from 'app/features/study/flashcard-first-learn'
 import { MenuStudyScreen } from 'app/features/study/menu-study/menu-study-screen.native'
+import { LearnedVocabularyListScreen } from 'app/features/study/learned-vocabulary-list'
 
 const Stack = createNativeStackNavigator()
 
@@ -149,6 +150,13 @@ export function NativeNavigation() {
       <Stack.Screen
         name="flashcard-test"
         component={FlashcardTestScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="learned-vocabulary-list"
+        component={LearnedVocabularyListScreen}
         options={{
           headerShown: false,
         }}
