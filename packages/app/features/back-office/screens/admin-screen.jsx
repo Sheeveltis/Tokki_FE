@@ -46,8 +46,9 @@ export function AdminScreen() {
       try {
         const token = getAuthToken()
         
-        if (!token) {
-          // Chưa đăng nhập
+        // Kiểm tra token trước
+        if (!token || token === 'null' || token === 'undefined') {
+          // Chưa đăng nhập hoặc token không hợp lệ
           setIsAuthorized(false)
           setChecking(false)
           return
@@ -56,6 +57,7 @@ export function AdminScreen() {
         // Kiểm tra role - chỉ Admin mới được truy cập
         const role = getCurrentUserRole()
         
+        // Nếu không có role hoặc role không phải Admin
         if (!role || role !== allowedRole) {
           // Không có quyền - redirect về dashboard tương ứng với role
           setIsAuthorized(false)
@@ -83,12 +85,19 @@ export function AdminScreen() {
         setChecking(false)
       } catch (error) {
         console.error('Error checking auth:', error)
+        // Trong trường hợp lỗi, không authorize và hiển thị login form
         setIsAuthorized(false)
         setChecking(false)
       }
     }
 
-    checkAuth()
+    // Đảm bảo window đã sẵn sàng (cho web)
+    if (typeof window !== 'undefined') {
+      checkAuth()
+    } else {
+      // SSR hoặc mobile - chạy ngay
+      checkAuth()
+    }
   }, [router])
 
   // Memoize screens để tránh tạo lại components mỗi lần render

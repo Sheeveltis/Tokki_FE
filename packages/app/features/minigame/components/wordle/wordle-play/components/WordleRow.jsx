@@ -2,15 +2,16 @@ import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import { WordleCell } from './WordleCell'
 
-export function WordleRow({ guess, statuses, length = 5 }) {
+// feedbacks: mảng các object { character, blockColor, initialStatus, vowelStatus, finalStatus }
+export function WordleRow({ feedbacks, length = 5 }) {
   const cells = []
 
   for (let i = 0; i < length; i++) {
+    const fb = feedbacks?.[i] || null
     cells.push(
       <WordleCell
         key={i}
-        letter={guess?.[i] || ''}
-        status={statuses?.[i] || 'empty'}
+        feedback={fb}
       />
     )
   }

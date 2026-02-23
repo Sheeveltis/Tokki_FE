@@ -151,6 +151,12 @@ export const ENDPOINTS = {
     },
     MINIGAME: {
       MATCHING_CARDS: '/minigame/matching-cards',
+      SOLITAIRE: '/minigame/solitaire',
+      WORDLE: '/minigame/wordle',
+      WORDLE_SUBMIT_SENTENCE: '/minigame/wordle/submit-sentence',
+      WORDLE_RESULT: (dailyWordleId) => `/minigame/wordle/result/${dailyWordleId}`,
+      WORDLE_PUBLISH_SENTENCE: '/minigame/wordle/publish-sentence',
+      WORDLE_TOP_SENTENCES: (dailyWordleId) => `/minigame/wordle/${dailyWordleId}/top-sentences`,
     },
     GAMES: {
       USER_GET_ALL: '/Games/user/get-all', // GET: Lấy danh sách games cho user (query: pageNumber, pageSize)

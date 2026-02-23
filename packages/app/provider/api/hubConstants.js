@@ -1,4 +1,4 @@
-const DOMAIN = 'http://localhost:5031'
+const DOMAIN = 'https://tokki-be-hneqd2a3dfhmfnhq.koreacentral-01.azurewebsites.net'
 const CHAT_PREFIX = '/chatHub'
 export const CHAT_BASE_URL = `${DOMAIN}${CHAT_PREFIX}`
 export const CHAT_HUB = {

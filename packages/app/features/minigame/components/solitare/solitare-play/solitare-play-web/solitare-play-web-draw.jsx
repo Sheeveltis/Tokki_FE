@@ -4,9 +4,9 @@ import DrawRecImage from '../../../../../../../assets/DrawRec.png'
 import DrawVocabImage from '../../../../../../../assets/DrawVocab.png'
 import LeafImage from '../../../../../../../assets/icon/decor/18.png'
 
-// Constants - same size as column card
-const WEB_CARD_WIDTH = 100
-const WEB_CARD_HEIGHT = 160
+// Constants - reduced size for draw
+const WEB_CARD_WIDTH = 90
+const WEB_CARD_HEIGHT = 144
 
 // Styles for draw component
 const styles = {
@@ -18,7 +18,7 @@ const styles = {
   drawRecImage: {
     width: 'auto',
     height: 'auto',
-    maxWidth: 450,
+    maxWidth: 400,
     objectFit: 'contain',
     backgroundColor: 'transparent',
   },
@@ -30,12 +30,12 @@ const styles = {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 30,
+    gap: 20,
   },
   card: {
     width: WEB_CARD_WIDTH,
     height: WEB_CARD_HEIGHT,
-    borderRadius: 18,
+    borderRadius: 12,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -51,16 +51,16 @@ const styles = {
   },
   leaf: {
     position: 'absolute',
-    top: -25,
-    width: 40,
-    height: 40,
+    top: -18,
+    width: 28,
+    height: 28,
     zIndex: 2,
   },
   vocabImage: {
-    width: 280,
-    height: 280,
+    width: 180,
+    height: 180,
     objectFit: 'contain',
-    marginTop: 8,
+    marginTop: 6,
   },
 }
 

@@ -8,12 +8,17 @@ import { SolitarePlayWebDraw } from './solitare-play-web-draw'
 const styles = {
   bodyWrapper: {
     flex: 1,
-    minHeight: 400,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    minHeight: 0,
   },
   board: {
     position: 'relative',
     width: '100%',
     height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
     borderRadius: 30,
     overflow: 'hidden',
     boxSizing: 'border-box',
@@ -23,33 +28,44 @@ const styles = {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 20,
-    gap: 20,
+    marginBottom: 60,
+    marginTop: 4,
+    gap: 15,
+    flexShrink: 0,
+    height: 'auto',
+    maxHeight: '140px',
   },
   topicRow: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 30,
+    gap: 15,
     flex: 1,
   },
   columnsRow: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'stretch',
     flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
+    gap: 8,
+    marginTop: 10,
   },
   column: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    minWidth: 100,
-    minHeight: 160,
-    borderRadius: 18,
+    justifyContent: 'flex-start',
+    flex: 1,
+    minWidth: 0,
+    borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     border: '2px dashed rgba(255, 255, 255, 0.2)',
     position: 'relative',
+    overflow: 'visible',
+    paddingTop: 10,
   },
 }
 
@@ -102,16 +118,32 @@ export function SolitarePlayWebBody({
         </div>
 
         <div style={styles.columnsRow}>
-          {columns.map((column, colIndex) => (
-            <div
-              key={column.id}
-              style={styles.column}
-              data-column-index={colIndex}
-              ref={(r) => {
-                if (r) setColumnRef(colIndex, r)
-              }}
-            >
-              {column.cards.map((card, cardIndex) => {
+          {columns.map((column, colIndex) => {
+            // Calculate card height: only reduce when too many cards, keep default size when few cards
+            const cardCount = column.cards.length
+            const DEFAULT_CARD_HEIGHT = 144 // Match temporary slot size
+            const MAX_CARDS_BEFORE_SHRINK = 8 // Only shrink if more than this many cards
+            
+            let maxCardHeight = `${DEFAULT_CARD_HEIGHT}px`
+            
+            if (cardCount > MAX_CARDS_BEFORE_SHRINK) {
+              // Only reduce height when there are too many cards
+              const stackOffset = 122 // Card overlap offset (reduced proportionally)
+              const totalOverlap = (cardCount - 1) * stackOffset
+              const availableHeight = `calc(100% - 20px)` // Reserve padding
+              maxCardHeight = `calc((${availableHeight} + ${totalOverlap}px) / ${cardCount})`
+            }
+            
+            return (
+              <div
+                key={column.id}
+                style={styles.column}
+                data-column-index={colIndex}
+                ref={(r) => {
+                  if (r) setColumnRef(colIndex, r)
+                }}
+              >
+                {column.cards.map((card, cardIndex) => {
                 const isTop = cardIndex === column.cards.length - 1
                 
                 // Xác định card có đang được kéo hoặc đang animate không
@@ -122,23 +154,25 @@ export function SolitarePlayWebBody({
                 
                 const isAnimateMoving = movingCard && movingCard.cards?.some(c => c.id === card.id)
 
-                return (
-                  <SolitarePlayWebColumnCard
-                    key={card.id}
-                    card={{ ...card, columnIndex: colIndex }}
-                    cardIndex={cardIndex}
-                    isTop={isTop}
-                    isSelected={false}
-                    isMoving={!!isBeingDragged || !!isAnimateMoving}
-                    stacked={cardIndex !== 0}
-                    isFlipped={flippedCards.has(card.id)}
-                    setCardRef={setCardRef}
-                    onMouseDown={(e, c, idx) => onMouseDown(e, c, idx, colIndex)}
-                  />
-                )
-              })}
-            </div>
-          ))}
+                  return (
+                    <SolitarePlayWebColumnCard
+                      key={card.id}
+                      card={{ ...card, columnIndex: colIndex }}
+                      cardIndex={cardIndex}
+                      isTop={isTop}
+                      isSelected={false}
+                      isMoving={!!isBeingDragged || !!isAnimateMoving}
+                      stacked={cardIndex !== 0}
+                      isFlipped={flippedCards.has(card.id)}
+                      setCardRef={setCardRef}
+                      onMouseDown={(e, c, idx) => onMouseDown(e, c, idx, colIndex)}
+                      maxHeight={maxCardHeight}
+                    />
+                  )
+                })}
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>

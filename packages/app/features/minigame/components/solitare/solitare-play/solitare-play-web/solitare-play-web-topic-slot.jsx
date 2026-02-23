@@ -5,9 +5,9 @@ import LeafImage from '../../../../../../../assets/icon/decor/18.png'
 import FrontImage from '../../../../../../../assets/front.png'
 import BesideImage from '../../../../../../../assets/beside.png'
 
-// Constants - use same size as column card to keep format
-const CARD_WIDTH = 100
-const CARD_HEIGHT = 160
+// Constants - increased size for temporary slots
+const CARD_WIDTH = 90
+const CARD_HEIGHT = 144
 
 // Styles for ô tạm (temporary slot) component - peach card style
 const styles = {

@@ -7,6 +7,7 @@
     "@react-navigation/native-stack": "^7.2.1",
     "@tanstack/react-query": "^5.90.12",
     "dripsy": "^4.3.3",
+    "hangul-js": "^0.2.6",
     "moti": "^0.30.0",
     "react-native-render-html": "^6.3.4",
     "solito": "next"
