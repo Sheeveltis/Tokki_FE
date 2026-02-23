@@ -25,6 +25,7 @@ import { SolitarePlayWeb } from '@tokki/app/features/minigame/components/solitar
 import { SolitareResultScreen } from '@tokki/app/features/minigame/screens/solitare/solitare-result-screen'
 import { WordleRuleScreen } from '@tokki/app/features/minigame/screens/wordle/wordle-rule-screen'
 import { WordlePlayScreen } from '@tokki/app/features/minigame/screens/wordle/wordle-play-screen'
+import { WordleBoardScreen } from '@tokki/app/features/minigame/screens/wordle/wordle-board.screen'
 import { DictionarySearchScreen } from '@tokki/app/features/vocabulary/screens/client/dictionary-search-screen'
 import { DictionaryVocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/client/dictionary-detail-screen'
 import { Navbar } from 'components/navbar'
@@ -195,6 +196,10 @@ function WordlePlayRoute() {
   return <WordlePlayScreen />
 }
 
+function WordleBoardRoute() {
+  return <WordleBoardScreen />
+}
+
 // Dictionary Routes
 function DictionaryRoute() {
   return (
@@ -311,6 +316,7 @@ export const publicRoutes = [
   // Wordle
   { path: '/minigame/wordle/wordle-rule', element: <WordleRuleRoute /> },
   { path: '/minigame/wordle/wordle-play', element: <WordlePlayRoute /> },
+  { path: '/minigame/wordle/wordle-board', element: <WordleBoardRoute /> },
 
   // Dictionary
   { path: '/dictionary', element: <DictionaryRoute /> },
