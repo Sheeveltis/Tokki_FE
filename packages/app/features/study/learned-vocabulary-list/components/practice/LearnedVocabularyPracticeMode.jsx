@@ -8,9 +8,8 @@ import CheckedIcon from '../../../../../../assets/checked.png'
 import IncorrectIcon from '../../../../../../assets/incorrect.png'
 import { normalizeImageSource } from '../../../api'
 
-// Import sound effects
-const CorrectSound = require('../../../../../../assets/sound-effect/correct.wav')
-const WrongSound = require('../../../../../../assets/sound-effect/wrong.wav')
+import CorrectSound from '../../../../../../assets/sound-effect/correct.wav'
+import WrongSound from '../../../../../../assets/sound-effect/wrong.wav'
 
 // Import expo-av cho mobile (nếu có)
 let ExpoAudio = null

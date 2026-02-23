@@ -1,5 +1,8 @@
 // Mock data for TOPIK test questions
-// This will be replaced with real API calls later
+// Hiện tại vẫn giữ mock để fallback khi API lỗi
+
+import { apiClient } from '../../../provider/api/client'
+import { ENDPOINTS } from '../../../provider/api/endpoints'
 
 export const getTestQuestions = (level = 1) => {
   // Mock questions data for each level
@@ -108,3 +111,51 @@ export const formatTime = (totalSeconds) => {
   return `${String(minutes).padStart(2, '0')} : ${String(seconds).padStart(2, '0')}`
 }
 
+const DEFAULT_EXAM_ID = 'kjyv9q3dac'
+
+export const startExam = async (examId = DEFAULT_EXAM_ID, isShuffle = true) => {
+  const url = ENDPOINTS.USER_EXAM?.TAKE_EXAM
+    ? ENDPOINTS.USER_EXAM.TAKE_EXAM(examId, isShuffle)
+    : `/UserExam/user/take-exam?examId=${encodeURIComponent(examId)}&isShuffle=${isShuffle}`
+
+  const response = await apiClient.post(url, {})
+  return response?.data?.data || null
+}
+
+export const mapExamToTestQuestions = (examData) => {
+  if (!examData || !examData.part) return []
+
+  const { part } = examData
+  const allQuestions = []
+  let questionCounter = 1
+
+  const pushQuestionsFromSection = (sectionArray, defaultType) => {
+    if (!Array.isArray(sectionArray)) return
+
+    sectionArray.forEach((p) => {
+      ;(p.questions || []).forEach((q) => {
+        const options = (q.options || []).map((opt) => opt.content)
+        const mediaType = (q.mediaType || '').toLowerCase()
+        const type =
+          mediaType === 'audio' || defaultType === 'audio'
+            ? 'audio'
+            : 'text'
+
+        allQuestions.push({
+          id: q.questionId,
+          questionNumber: questionCounter++,
+          type,
+          questionText: q.content || '',
+          audioUrl: q.mediaUrl || null,
+          options,
+          rawQuestion: q,
+        })
+      })
+    })
+  }
+
+  pushQuestionsFromSection(part.listening, 'audio')
+  pushQuestionsFromSection(part.reading, 'text')
+
+  return allQuestions
+}

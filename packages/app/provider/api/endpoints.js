@@ -248,5 +248,17 @@ export const ENDPOINTS = {
       UPDATE_EXAM_QUESTION: '/Exams/update-exam-question', // PUT: Cập nhật 1 câu hỏi trong đề (body: { examId, questionBankId, questionNo })
       REGENERATE_PART: '/Exams/regenerate-part', // POST: Random/regenerate lại bộ câu hỏi của một phần (body: { examId, templatePartId })
     },
-    
+    USER_EXAM: {
+      TAKE_EXAM: (examId, isShuffle = true) =>
+        `/UserExam/user/take-exam?examId=${encodeURIComponent(examId)}&isShuffle=${isShuffle}`,
+      SYNC_PROGRESS: '/UserExam/sync-progress',
+      SYNC_MCQ: '/UserExam/sync/mcq',
+      SYNC_WRITING: '/UserExam/sync/writing',
+      SUBMIT: '/UserExam/user/submit',
+      DETAIL_IN_PROGRESS: (userExamId) =>
+        `/UserExam/user/detail/in-progress?UserExamId=${encodeURIComponent(userExamId)}`,
+      RESULT: (userExamId) => `/UserExam/${encodeURIComponent(userExamId)}/result`,
+      IS_GRADED: (userExamId) => `/UserExam/${encodeURIComponent(userExamId)}/is-graded`,
+      HISTORY: '/UserExam/user/history',
+    },
   }

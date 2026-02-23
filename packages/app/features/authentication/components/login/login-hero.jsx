@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Image, StyleSheet } from 'react-native'
+import { View, Image, StyleSheet, Platform } from 'react-native'
 
 /**
  * LoginHero: cột bên trái màn đăng nhập
@@ -63,15 +63,20 @@ const styles = StyleSheet.create({
     width: '120%',
     height: '120%',
     resizeMode: 'contain',
-    // iOS shadow - glow effect
-    shadowColor: '#F4900C',
-    shadowOffset: {
-      width: 20,
-      height: 20,
-    },
-    shadowOpacity: 1,
-    shadowRadius: 20,
-    // Android shadow
+    // Shadow / glow
+    ...(Platform.OS === 'web'
+      ? {
+          boxShadow: '0px 0px 40px rgba(244, 144, 12, 0.8)',
+        }
+      : {
+          shadowColor: '#F4900C',
+          shadowOffset: {
+            width: 20,
+            height: 20,
+          },
+          shadowOpacity: 1,
+          shadowRadius: 20,
+        }),
     elevation: 8,
   },
 })

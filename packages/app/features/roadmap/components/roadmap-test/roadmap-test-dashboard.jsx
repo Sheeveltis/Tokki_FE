@@ -10,6 +10,8 @@ export function RoadmapTestDashboard({
   answers = {},
   onAnswerSelect,
   onSubmit,
+  onSave,
+  isSaving = false,
   currentQuestion = 1,
   onQuestionSelect,
 }) {
@@ -68,7 +70,7 @@ export function RoadmapTestDashboard({
         ))}
       </View>
 
-      {/* Navigation and Submit */}
+      {/* Navigation, Save and Submit */}
       <View style={styles.bottomSection}>
         {totalPages > 1 && (
           <View style={styles.pageIndicatorContainer}>
@@ -86,6 +88,19 @@ export function RoadmapTestDashboard({
               </Pressable>
             )}
           </View>
+        )}
+        {onSave && (
+          <Pressable
+            onPress={onSave}
+            disabled={isSaving}
+            style={({ pressed }) => [
+              styles.saveButton,
+              pressed && styles.saveButtonPressed,
+              isSaving && styles.saveButtonDisabled,
+            ]}
+          >
+            <Text style={styles.saveButtonText}>{isSaving ? 'Đang lưu...' : 'Lưu bài'}</Text>
+          </Pressable>
         )}
         <Pressable onPress={onSubmit} style={({ pressed }) => [styles.submitButton, pressed && styles.submitButtonPressed]}>
           <Text style={styles.submitButtonText}>Nộp Bài</Text>
@@ -173,6 +188,29 @@ const styles = StyleSheet.create({
   },
   arrowText: {
     fontSize: 16,
+    fontWeight: '600',
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  saveButton: {
+    backgroundColor: '#FFF4DA',
+    minWidth: 140,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E8C96A',
+  },
+  saveButtonPressed: {
+    opacity: 0.9,
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
+  },
+  saveButtonText: {
+    fontSize: 15,
     fontWeight: '600',
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',

@@ -21,8 +21,6 @@ export function FlashcardListMain({
   searchTerm,
   onSearchChange,
   onSearchSubmit,
-  selectedLevel,
-  onLevelChange,
   onBackPress,
   onTopicPress,
   onRetry,
@@ -311,32 +309,6 @@ export function FlashcardListMain({
         >
           <Text style={styles.paginationButtonText}>Sau</Text>
         </Pressable>
-      </View>
-
-      <View style={styles.levelContainer}>
-        {[1, 2, 3, 4, 5, 6].map((level) => {
-          const isActive = Number(selectedLevel) === level
-          return (
-            <Pressable
-              key={level}
-              onPress={() => onLevelChange?.(level)}
-              style={({ pressed }) => [
-                styles.levelButton,
-                isActive && styles.levelButtonActive,
-                pressed && styles.levelButtonPressed,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.levelButtonText,
-                  isActive && styles.levelButtonTextActive,
-                ]}
-              >
-                {level}
-              </Text>
-            </Pressable>
-          )
-        })}
       </View>
     </>
   )

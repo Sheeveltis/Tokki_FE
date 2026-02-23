@@ -21,8 +21,6 @@ export function FlashcardListMain({
   searchTerm,
   onSearchChange,
   onSearchSubmit,
-  selectedLevel,
-  onLevelChange,
   onBackPress,
   onTopicPress,
   onRetry,
@@ -172,37 +170,6 @@ export function FlashcardListMain({
         >
           <Text style={styles.searchButtonText}>Tìm</Text>
         </TouchableOpacity>
-      </View>
-
-      <View style={styles.levelSelectContainer}>
-        <Text style={styles.levelSelectLabel}>Level:</Text>
-        <View style={styles.levelSelectMobile}>
-          {[1, 2, 3, 4, 5, 6].map((level) => {
-            const isActive = Number(selectedLevel) === level
-            return (
-              <Pressable
-                key={level}
-                onPress={() => !loading && onLevelChange?.(level)}
-                disabled={loading}
-                style={({ pressed }) => [
-                  styles.levelButton,
-                  isActive && styles.levelButtonActive,
-                  pressed && styles.levelButtonPressed,
-                  loading && styles.levelButtonDisabled,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.levelButtonText,
-                    isActive && styles.levelButtonTextActive,
-                  ]}
-                >
-                  {level}
-                </Text>
-              </Pressable>
-            )
-          })}
-        </View>
       </View>
 
       <View style={styles.listContainer}>

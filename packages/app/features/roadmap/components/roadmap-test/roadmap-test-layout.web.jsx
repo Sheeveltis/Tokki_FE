@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react'
-import { StyleSheet, View, Image } from 'react-native'
+import React, { useState, useEffect, useRef } from 'react'
+import { StyleSheet, View, Image, Text, Alert, Platform, Modal, Pressable } from 'react-native'
+import { useRouter } from 'solito/navigation'
 import { RoadmapTestQuestion } from './roadmap-test-question'
 import { RoadmapTestDashboard } from './roadmap-test-dashboard'
 import { RoadmapTestButton } from './roadmap-test-button'
+import { ToastNotification } from './toast-notification'
 import { getTestQuestions, getTestConfig, formatTime } from '../../api/roadmap-test'
+import { apiClient } from '../../../../provider/api/client'
+import { ENDPOINTS } from '../../../../provider/api/endpoints'
 import CarrotImage from '../../../../../assets/carrot.png'
-import { NavigationPill } from '../../../../../components/navigation-pill'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -15,26 +18,451 @@ const normalizeImageSource = (src) => {
   return src
 }
 
+const DEFAULT_EXAM_ID = 'kjyv9q3dac'
+
+const isQ51 = (questionTypeCode) => String(questionTypeCode || '').slice(-3) === 'Q51'
+
+const parseQ51AnswerContent = (answerContent) => {
+  const text = String(answerContent || '')
+  if (!text) return { b: '', a: '' }
+
+  // Robust parse by marker positions; supports same-line or multi-line and any order
+  const idxA = text.indexOf('㉠')
+  const idxB = text.indexOf('㉡')
+
+  const cleanValue = (s) => String(s || '').replace(/^:\s*/, '').trim()
+
+  // If both markers exist, split by whichever comes first
+  if (idxA >= 0 && idxB >= 0) {
+    if (idxA < idxB) {
+      const aRaw = text.slice(idxA + 2, idxB)
+      const bRaw = text.slice(idxB + 2)
+      return { a: cleanValue(aRaw), b: cleanValue(bRaw) }
+    } else {
+      const bRaw = text.slice(idxB + 2, idxA)
+      const aRaw = text.slice(idxA + 2)
+      return { a: cleanValue(aRaw), b: cleanValue(bRaw) }
+    }
+  }
+
+  // If only one marker exists, best-effort: return it and leave the other empty
+  if (idxA >= 0) return { a: cleanValue(text.slice(idxA + 2)), b: '' }
+  if (idxB >= 0) return { a: '', b: cleanValue(text.slice(idxB + 2)) }
+
+  // No markers: fallback split first newline into 2 parts (assume b then a)
+  const [b = '', ...rest] = text.split('\n')
+  return { b: String(b).trimEnd(), a: rest.join('\n').trimEnd() }
+}
+
+const serializeWritingAnswerForApi = (answerValue, questionTypeCode) => {
+  if (!isQ51(questionTypeCode)) return String(answerValue ?? '')
+  const b = String(answerValue?.b ?? '')
+  const a = String(answerValue?.a ?? '')
+  // Match backend-friendly format (can be same-line): "㉠:... ㉡:..."
+  return `㉠:${a} ㉡:${b}`.trim()
+}
+
+// Map questionTypeCode Q51–Q54 -> TopikWriting grading endpoint path
+const getTopikWritingEndpointPath = (questionTypeCode) => {
+  if (!questionTypeCode) return null
+  const code = String(questionTypeCode).slice(-3).toUpperCase()
+  switch (code) {
+    case 'Q51':
+      return '/TopikWriting/question51'
+    case 'Q52':
+      return '/TopikWriting/question52'
+    case 'Q53':
+      return '/TopikWriting/question53'
+    case 'Q54':
+      return '/TopikWriting/question54'
+    default:
+      return null
+  }
+}
+
+// Grade TopikWriting questions (Q51–Q54) và đợi kết quả
+// Chỉ chạy API grading cho các câu Q51, Q52, Q53, Q54 nếu có trong đề thi
+// Dùng userQuestionId của từng câu writing làm userExamWritingAnswerId khi POST
+const gradeTopikWriting = async (sectionsSnapshot) => {
+  try {
+    const sectionsToUse = Array.isArray(sectionsSnapshot) ? sectionsSnapshot : []
+    const gradingPromises = []
+
+    sectionsToUse.forEach((section) => {
+      if (!section || section.key !== 'writing') return
+
+      section.questions.forEach((q) => {
+        if (!q || q.type !== 'writing' || !q.rawQuestion) return
+
+        const raw = q.rawQuestion
+        const questionTypeCode =
+          q.questionTypeCode || raw.questionTypeCode || raw.questionType?.code
+        
+        // Chỉ xử lý các câu Q51, Q52, Q53, Q54
+        const code = questionTypeCode ? String(questionTypeCode).slice(-3).toUpperCase() : ''
+        if (!['Q51', 'Q52', 'Q53', 'Q54'].includes(code)) return
+
+        const gradingPath = getTopikWritingEndpointPath(questionTypeCode)
+        // Dùng userQuestionId của từng câu writing làm userExamWritingAnswerId
+        const userQuestionId = raw.userQuestionId
+
+        if (!gradingPath || !userQuestionId) return
+
+        gradingPromises.push(
+          apiClient.post(gradingPath, {
+            userExamWritingAnswerId: userQuestionId,
+          })
+        )
+      })
+    })
+
+    // Đợi tất cả các API grading hoàn thành
+    if (gradingPromises.length > 0) {
+      await Promise.allSettled(gradingPromises)
+    }
+  } catch (error) {
+    console.error('Failed to grade TopikWriting questions:', error)
+    // Không throw error để không chặn flow submit
+  }
+}
+
+const buildMcqAnswersPayload = (section, sectionAnswers) => {
+  if (!section || !Array.isArray(section.questions)) return []
+  const answers = []
+
+  section.questions.forEach((q) => {
+    if (!q || q.type === 'writing') return
+    const raw = q.rawQuestion
+    if (!raw?.userQuestionId) return
+
+    const answerIndex = sectionAnswers?.[q.questionNumber]
+    if (typeof answerIndex !== 'number' || answerIndex <= 0) return
+
+    const opt = (raw.options || [])[answerIndex - 1] // UI is 1-based
+    if (!opt?.optionId) return
+
+    answers.push({
+      userQuestionId: raw.userQuestionId,
+      selectedOptionId: opt.optionId,
+    })
+  })
+
+  return answers
+}
+
+const buildAllMcqAnswersPayload = (sections, allAnswersState) => {
+  if (!Array.isArray(sections) || !allAnswersState) return []
+  const merged = []
+  const seen = new Set()
+
+  sections.forEach((section) => {
+    if (!section || section.key === 'writing') return
+    const sectionAnswers = allAnswersState[section.key] || {}
+    const list = buildMcqAnswersPayload(section, sectionAnswers)
+    list.forEach((item) => {
+      if (!item?.userQuestionId || !item?.selectedOptionId) return
+      // If duplicates happen, keep last occurrence
+      if (seen.has(item.userQuestionId)) return
+      seen.add(item.userQuestionId)
+      merged.push(item)
+    })
+  })
+
+  return merged
+}
+
+// Bước 1: Take exam để lấy userExamId
+const startExam = async (examId = DEFAULT_EXAM_ID, isShuffle = true) => {
+  const url = ENDPOINTS.USER_EXAM?.TAKE_EXAM
+    ? ENDPOINTS.USER_EXAM.TAKE_EXAM(examId, isShuffle)
+    : `/UserExam/user/take-exam?examId=${encodeURIComponent(examId)}&isShuffle=${isShuffle}`
+
+  const response = await apiClient.post(url, {})
+  return response?.data?.data || null // { userExamId }
+}
+
+// Bước 2: Lấy chi tiết bài thi đang làm dở từ userExamId
+const getExamDetailInProgress = async (userExamId) => {
+  if (!userExamId) return null
+  const url = ENDPOINTS.USER_EXAM?.DETAIL_IN_PROGRESS
+    ? ENDPOINTS.USER_EXAM.DETAIL_IN_PROGRESS(userExamId)
+    : `/UserExam/user/detail/in-progress?UserExamId=${encodeURIComponent(userExamId)}`
+
+  const response = await apiClient.get(url)
+  return response?.data?.data || null
+}
+
+// Map dữ liệu exam thành 3 phần: listening / reading / writing (nếu có)
+const mapExamToSections = (examData) => {
+  if (!examData || !examData.part) return []
+
+  const { part } = examData
+
+  const buildSection = (key, label, sectionArray, defaultType) => {
+    if (!Array.isArray(sectionArray) || sectionArray.length === 0) return null
+
+    const questions = []
+    let questionCounter = 1
+
+    sectionArray.forEach((p) => {
+      // Xử lý cấu trúc mới: questionGroups với sharedMediaUrl/sharedMediaType
+      const questionGroups = p.questionGroups || []
+      
+      questionGroups.forEach((group) => {
+        const sharedMediaUrl = group.sharedMediaUrl
+        const sharedMediaType = (group.sharedMediaType || '').toLowerCase()
+        
+        // Xác định type dựa trên defaultType (ưu tiên) hoặc sharedMediaType
+        // Nếu defaultType là 'writing', luôn giữ là 'writing' (có thể có image kèm theo)
+        let type = defaultType
+        if (defaultType === 'writing') {
+          type = 'writing'
+        } else if (sharedMediaType === 'audio') {
+          type = 'audio'
+        } else if (sharedMediaType === 'image') {
+          type = 'image'
+        } else {
+          type = 'text'
+        }
+
+        // Duyệt qua các câu hỏi trong group
+        ;(group.questions || []).forEach((q) => {
+          const options = (q.options || []).map((opt) => opt.content)
+          // Writing: dùng sharedPassageContent hoặc partName khi content trống; đáp án lấy từ answerContent
+          const questionText =
+            q.content ||
+            (type === 'writing' ? group.sharedPassageContent || p.partName || '' : '')
+
+          questions.push({
+            id: q.userQuestionId || q.questionId, // dùng userQuestionId nếu có
+            questionNumber: questionCounter++, // số thứ tự trong phần
+            type,
+            questionText,
+            audioUrl: type === 'audio' ? sharedMediaUrl : null,
+            imageUrl: type === 'image' || type === 'writing' ? sharedMediaUrl : null,
+            options,
+            questionTypeCode: q.questionTypeCode || null,
+            rawQuestion: q, // lưu raw để lấy userQuestionId, answerContent khi sync
+          })
+        })
+      })
+
+      // Fallback: nếu không có questionGroups, thử dùng questions trực tiếp (backward compatibility)
+      if (questionGroups.length === 0 && p.questions) {
+        ;(p.questions || []).forEach((q) => {
+          const options = (q.options || []).map((opt) => opt.content)
+          const mediaType = (q.mediaType || '').toLowerCase()
+          
+          // Xác định type dựa trên defaultType (ưu tiên) hoặc mediaType
+          // Nếu defaultType là 'writing', luôn giữ là 'writing' (có thể có image kèm theo)
+          let type = defaultType
+          if (defaultType === 'writing') {
+            type = 'writing'
+          } else if (mediaType === 'audio') {
+            type = 'audio'
+          } else if (mediaType === 'image') {
+            type = 'image'
+          } else {
+            type = 'text'
+          }
+
+          // Writing: đáp án lấy từ answerContent (không phải content)
+          const questionText = q.content || (type === 'writing' ? p.partName || '' : '')
+
+          questions.push({
+            id: q.userQuestionId || q.questionId,
+            questionNumber: questionCounter++,
+            type,
+            questionText,
+            audioUrl: type === 'audio' ? q.mediaUrl : null,
+            imageUrl: type === 'image' || type === 'writing' ? q.mediaUrl : null,
+            options,
+            questionTypeCode: q.questionTypeCode || null,
+            rawQuestion: q,
+          })
+        })
+      }
+    })
+
+    // Nếu không có câu hỏi nào, không hiển thị section này
+    if (questions.length === 0) return null
+
+    return {
+      key,
+      label,
+      title: sectionArray[0]?.partName || '',
+      description: sectionArray[0]?.description || '',
+      questions,
+    }
+  }
+
+  const sections = [
+    buildSection('listening', 'Nghe', part.listening, 'audio'),
+    buildSection('reading', 'Đọc', part.reading, 'text'),
+    buildSection('writing', 'Viết', part.writing, 'writing'),
+  ].filter(Boolean)
+
+  return sections
+}
+
+// Khôi phục đáp án đã chọn từ selectedOptionId trong examData
+const restoreAnswersFromSections = (sections) => {
+  const restoredAnswers = {}
+
+  sections.forEach((section) => {
+    const sectionAnswers = {}
+
+    section.questions.forEach((q) => {
+      const raw = q.rawQuestion
+      if (!raw) return
+
+      // Nếu có selectedOptionId (đã chọn trước đó), tìm index của option đó
+      if (raw.selectedOptionId) {
+        const optionIndex = (raw.options || []).findIndex(
+          (opt) => opt.optionId === raw.selectedOptionId
+        )
+        if (optionIndex >= 0) {
+          // UI dùng 1-based index (1, 2, 3, 4)
+          sectionAnswers[q.questionNumber] = optionIndex + 1
+        }
+      }
+
+      // Writing: dùng answerContent (không phải content) - kể cả khi rỗng
+      if (q.type === 'writing') {
+        const questionTypeCode = q.questionTypeCode || raw.questionTypeCode || raw.questionType?.code
+        const rawAnswerContent = raw.answerContent ?? ''
+        sectionAnswers[q.questionNumber] = isQ51(questionTypeCode)
+          ? parseQ51AnswerContent(rawAnswerContent)
+          : rawAnswerContent
+      }
+    })
+
+    if (Object.keys(sectionAnswers).length > 0) {
+      restoredAnswers[section.key] = sectionAnswers
+    }
+  })
+
+  return restoredAnswers
+}
+
 export function RoadmapTestLayout({ level = 1 }) {
+  const router = useRouter()
+  const [userExamId, setUserExamId] = useState(null)
+  const [sections, setSections] = useState([])
+  const [activeSectionKey, setActiveSectionKey] = useState(null)
   const [currentQuestion, setCurrentQuestion] = useState(1)
-  const [answers, setAnswers] = useState({})
+  const [answers, setAnswers] = useState({}) // answers theo section: { [sectionKey]: { [questionNo]: optionIndex } }
   const [timeRemaining, setTimeRemaining] = useState('08 : 00')
   const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(0)
-  const [questions, setQuestions] = useState([])
   const [totalQuestions, setTotalQuestions] = useState(8)
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [submitConfirmVisible, setSubmitConfirmVisible] = useState(false)
+  const submitConfirmResolverRef = useRef(null)
+  const [backConfirmVisible, setBackConfirmVisible] = useState(false)
+  const backConfirmResolverRef = useRef(null)
+  const [toastVisible, setToastVisible] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
+  const [toastType, setToastType] = useState('success')
 
-  // Load test data based on level
+  // Load exam data (ưu tiên gọi API thật, fallback sang mock theo level nếu lỗi)
   useEffect(() => {
-    const testConfig = getTestConfig(level)
-    const testQuestions = getTestQuestions(level)
-    
-    setTotalQuestions(testConfig.totalQuestions)
-    setQuestions(testQuestions)
-    
-    // Calculate initial time
-    const totalSeconds = testConfig.totalTime
-    setTimeRemainingSeconds(totalSeconds)
-    setTimeRemaining(formatTime(totalSeconds))
+    let isMounted = true
+
+    const loadExam = async () => {
+      setIsLoading(true)
+      setLoadError(null)
+
+      try {
+        // 1) Take exam để backend tạo/ghi nhận userExamId
+        const takeExamResult = await startExam()
+        // Handle different possible response structures:
+        // - { userExamId: '...' }
+        // - { data: { userExamId: '...' } }
+        // - userExamId directly (string/number)
+        let userExamId = null
+        if (takeExamResult) {
+          if (typeof takeExamResult === 'string' || typeof takeExamResult === 'number') {
+            userExamId = takeExamResult
+          } else if (takeExamResult.userExamId) {
+            userExamId = takeExamResult.userExamId
+          } else if (takeExamResult.data?.userExamId) {
+            userExamId = takeExamResult.data.userExamId
+          }
+
+        }
+        if (!isMounted || !userExamId) {
+          throw new Error('No userExamId returned from take-exam')
+        }
+
+        setUserExamId(userExamId)
+
+        // 2) Lấy chi tiết bài đang làm từ userExamId
+        const examData = await getExamDetailInProgress(userExamId)
+        if (!isMounted || !examData) {
+          throw new Error('No exam detail data')
+        }
+
+        const mappedSections = mapExamToSections(examData)
+
+        // Khôi phục đáp án đã chọn trước đó (nếu user quay lại)
+        const restoredAnswers = restoreAnswersFromSections(mappedSections)
+
+        setSections(mappedSections)
+        setActiveSectionKey(mappedSections[0]?.key || null)
+        setTotalQuestions(
+          examData.totalQuestions ||
+            mappedSections.reduce((sum, s) => sum + s.questions.length, 0)
+        )
+
+        const totalSeconds =
+          typeof examData.timeRemaining === 'number' && examData.timeRemaining > 0
+            ? examData.timeRemaining
+            : examData.duration
+            ? examData.duration * 60
+            : getTestConfig(level).totalTime
+
+        setTimeRemainingSeconds(totalSeconds)
+        setTimeRemaining(formatTime(totalSeconds))
+        setCurrentQuestion(1)
+        setAnswers(restoredAnswers)
+      } catch (error) {
+        console.error('Failed to load exam from API, fallback to mock:', error)
+
+        const testConfig = getTestConfig(level)
+        const testQuestions = getTestQuestions(level)
+
+        setTotalQuestions(testConfig.totalQuestions)
+        setSections([
+          {
+            key: 'mock',
+            label: 'Đề mẫu',
+            title: 'Đề luyện tập',
+            description: '',
+            questions: testQuestions,
+          },
+        ])
+        setActiveSectionKey('mock')
+
+        const totalSeconds = testConfig.totalTime
+        setTimeRemainingSeconds(totalSeconds)
+        setTimeRemaining(formatTime(totalSeconds))
+
+        setLoadError('Không tải được đề thi thật, đang dùng dữ liệu mẫu.')
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadExam()
+
+    return () => {
+      isMounted = false
+    }
   }, [level])
 
   // Countdown timer
@@ -59,19 +487,130 @@ export function RoadmapTestLayout({ level = 1 }) {
     return () => clearInterval(timer)
   }, [timeRemainingSeconds])
 
-  // Handle answer selection from question component
-  const handleQuestionAnswerSelect = (answerIndex) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [currentQuestion]: answerIndex,
-    }))
+  // Dùng ref để lưu latest values cho auto-save
+  const sectionsRef = useRef(sections)
+  const answersRef = useRef(answers)
+
+  useEffect(() => {
+    sectionsRef.current = sections
+  }, [sections])
+
+  useEffect(() => {
+    answersRef.current = answers
+  }, [answers])
+
+  // Auto-save writing answers mỗi 20s
+  // Lưu ý: cần phụ thuộc vào `sections` để khi đề thi (và phần writing) được load xong
+  // thì interval mới được tạo. Nếu để [] thì lần mount đầu sectionsRef.current.length === 0
+  // và interval sẽ không bao giờ được tạo => không gọi API sync/writing.
+  useEffect(() => {
+    if (sectionsRef.current.length === 0) return
+
+    const hasWritingSection = sectionsRef.current.some((section) => section.key === 'writing')
+    if (!hasWritingSection) return
+
+    const interval = setInterval(() => {
+      // Duyệt qua tất cả writing questions và sync nếu có thay đổi
+      sectionsRef.current.forEach((section) => {
+        if (section.key !== 'writing') return
+
+        const sectionAnswers = answersRef.current[section.key] || {}
+        section.questions.forEach((q) => {
+          if (q.type === 'writing' && q.rawQuestion) {
+            const raw = q.rawQuestion
+            const answerText = sectionAnswers[q.questionNumber]
+            if (raw.userQuestionId && answerText !== undefined) {
+              const questionTypeCode = q.questionTypeCode || raw.questionTypeCode || raw.questionType?.code
+              syncWritingAnswer(
+                raw.userQuestionId,
+                serializeWritingAnswerForApi(answerText, questionTypeCode) || ''
+              )
+            }
+          }
+        })
+      })
+    }, 20000) // 20 giây
+
+    return () => clearInterval(interval)
+  }, [sections])
+
+  // Lưu đáp án MCQ (listening/reading) ngay khi user chọn
+  const syncMcqAnswers = async (answersList) => {
+    if (!Array.isArray(answersList) || answersList.length === 0) return
+
+    try {
+      await apiClient.put(ENDPOINTS.USER_EXAM.SYNC_MCQ, {
+        answers: answersList,
+      })
+      // Không hiện thông báo để không làm phiền user
+    } catch (error) {
+      console.error('Failed to sync MCQ answer:', error)
+      // Không hiện alert để không làm gián đoạn flow làm bài
+    }
   }
 
-  // Handle answer selection from dashboard component
-  const handleDashboardAnswerSelect = (questionNum, answerIndex) => {
+  // Lưu đáp án Writing (tự luận)
+  const syncWritingAnswer = async (userQuestionId, answerContent) => {
+    if (!userQuestionId) return
+
+    try {
+      await apiClient.put(ENDPOINTS.USER_EXAM.SYNC_WRITING, {
+        userQuestionId,
+        answerContent: answerContent || '',
+      })
+      // Không hiện thông báo để không làm phiền user
+    } catch (error) {
+      console.error('Failed to sync writing answer:', error)
+      // Không hiện alert để không làm gián đoạn flow làm bài
+    }
+  }
+
+  // Shared handler: cập nhật đáp án (dùng cho question area và dashboard)
+  const handleAnswerSelect = (questionNum, answerIndex) => {
+    if (!activeSectionKey) return
+    const activeSection = sections.find((s) => s.key === activeSectionKey)
+    const questionData = activeSection?.questions?.find((q) => q.questionNumber === questionNum)
+    if (!questionData) return
+
+    setAnswers((prev) => {
+      const next = {
+        ...prev,
+        [activeSectionKey]: {
+          ...(prev[activeSectionKey] || {}),
+          [questionNum]: answerIndex,
+        },
+      }
+      if (questionData.type !== 'writing') {
+        const answersList = buildAllMcqAnswersPayload(sectionsRef.current, next)
+        syncMcqAnswers(answersList)
+      }
+      return next
+    })
+  }
+
+  const handleQuestionAnswerSelect = (answerIndex) => {
+    handleAnswerSelect(currentQuestion, answerIndex)
+  }
+
+  // Handle writing answer change (tự luận)
+  const handleWritingAnswerChange = (text) => {
+    if (!activeSectionKey) return
+
+    const questionData = currentQuestionData
+    if (!questionData || questionData.type !== 'writing') return
+
+    // Writing là lưu riêng từng câu (theo userQuestionId). Nhưng state đang key theo questionNumber.
+    // Khi user đổi section/tab hoặc bấm Lưu bài ngay sau khi gõ, `currentQuestion` có thể đã thay đổi
+    // khiến đáp án bị set vào câu khác => nút Lưu bài không thấy để sync.
+    // => luôn dùng questionNumber snapshot từ currentQuestionData.
+    const questionNumber = questionData.questionNumber
+
     setAnswers((prev) => ({
       ...prev,
-      [questionNum]: answerIndex,
+      [activeSectionKey]: {
+        ...(prev[activeSectionKey] || {}),
+        [questionNumber]: text,
+      },
     }))
   }
 
@@ -82,7 +621,9 @@ export function RoadmapTestLayout({ level = 1 }) {
 
   // Navigate to next question
   const handleNextQuestion = () => {
-    if (currentQuestion < totalQuestions) {
+    const activeSection = sections.find((s) => s.key === activeSectionKey)
+    const sectionTotal = activeSection?.questions.length || 0
+    if (currentQuestion < sectionTotal) {
       setCurrentQuestion(currentQuestion + 1)
     }
   }
@@ -95,68 +636,412 @@ export function RoadmapTestLayout({ level = 1 }) {
   }
 
   // Handle submit
-  const handleSubmit = () => {
-    console.log('Submitted answers:', answers)
-    // TODO: Implement submit logic
-    // Stop timer when submitting
-    setTimeRemainingSeconds(0)
+  const confirmSubmit = () =>
+    new Promise((resolve) => {
+      submitConfirmResolverRef.current = resolve
+      setSubmitConfirmVisible(true)
+    })
+
+  const handleCloseSubmitConfirm = () => {
+    setSubmitConfirmVisible(false)
+    const resolve = submitConfirmResolverRef.current
+    submitConfirmResolverRef.current = null
+    if (typeof resolve === 'function') resolve(false)
   }
 
-  const currentQuestionData = questions.find((q) => q.questionNumber === currentQuestion) || questions[0]
+  const handleConfirmSubmit = () => {
+    setSubmitConfirmVisible(false)
+    const resolve = submitConfirmResolverRef.current
+    submitConfirmResolverRef.current = null
+    if (typeof resolve === 'function') resolve(true)
+  }
+
+  const handleSubmit = async () => {
+    if (isSubmitting) return
+
+    setTimeRemainingSeconds(0)
+
+    if (!userExamId) {
+      Alert.alert('Thông báo', 'Bạn đang làm đề mẫu. Kết quả không được lưu.')
+      return
+    }
+
+    const confirmed = await confirmSubmit()
+    if (!confirmed) return
+
+    setIsSubmitting(true)
+    try {
+      // 1) Submit exam
+      const submitResp = await apiClient.post(ENDPOINTS.USER_EXAM.SUBMIT, {
+        userExamId,
+      })
+
+      const submittedUserExamId = submitResp?.data?.data?.userExamId || userExamId
+      const isSubmitSuccess = submitResp?.data?.isSuccess !== false
+
+      if (!isSubmitSuccess || !submittedUserExamId) {
+        Alert.alert('Lỗi', 'Không thể nộp bài. Vui lòng thử lại.')
+        return
+      }
+
+      // 2) Chạy API grading cho các câu writing Q51, Q52, Q53, Q54 (nếu có)
+      const sectionsSnapshot = sectionsRef.current.length ? sectionsRef.current : sections
+      await gradeTopikWriting(sectionsSnapshot)
+
+      // 3) GET result để đảm bảo kết quả đã được tính toán
+      try {
+        const resultUrl = ENDPOINTS.USER_EXAM.RESULT(submittedUserExamId)
+        await apiClient.get(resultUrl)
+      } catch (resultError) {
+        console.error('Failed to fetch result after grading:', resultError)
+        // Tiếp tục navigate ngay cả khi GET result lỗi (result page sẽ tự fetch lại)
+      }
+
+      // 4) Navigate to result page
+      router.push(`/roadmap/test/result?userExamId=${encodeURIComponent(submittedUserExamId)}`)
+    } catch (error) {
+      console.error('Failed to submit exam:', error)
+      Alert.alert('Lỗi', 'Không thể nộp bài. Vui lòng thử lại.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleChangeSection = (sectionKey) => {
+    if (sectionKey === activeSectionKey) return
+    setActiveSectionKey(sectionKey)
+    setCurrentQuestion(1)
+  }
+
+  // Handle back to learning page
+  const confirmBack = () =>
+    new Promise((resolve) => {
+      backConfirmResolverRef.current = resolve
+      setBackConfirmVisible(true)
+    })
+
+  const handleCloseBackConfirm = () => {
+    setBackConfirmVisible(false)
+    const resolve = backConfirmResolverRef.current
+    backConfirmResolverRef.current = null
+    if (typeof resolve === 'function') resolve(false)
+  }
+
+  const handleConfirmBack = () => {
+    setBackConfirmVisible(false)
+    const resolve = backConfirmResolverRef.current
+    backConfirmResolverRef.current = null
+    if (typeof resolve === 'function') resolve(true)
+  }
+
+  const handleBackToLearning = async () => {
+    const confirmed = await confirmBack()
+    if (!confirmed) return
+
+    // Navigate to learning page with current level
+    router.push(`/roadmap/learning?level=${level}`)
+  }
+
+  const activeSection = sections.find((s) => s.key === activeSectionKey)
+  const sectionQuestions = activeSection?.questions || []
+  const currentQuestionData =
+    sectionQuestions.find((q) => q.questionNumber === currentQuestion) || sectionQuestions[0]
+
+  const handleManualSave = async () => {
+    if (isSaving) return
+    setIsSaving(true)
+    try {
+      // Dùng ref nếu có (luôn là snapshot mới nhất), fallback sang state
+      const currentSections = sectionsRef.current.length ? sectionsRef.current : sections
+      const currentAnswers = Object.keys(answersRef.current || {}).length
+        ? answersRef.current
+        : answers
+
+      // 1) Lưu toàn bộ đáp án trắc nghiệm (listening/reading)
+      const mcqAnswersPayload = buildAllMcqAnswersPayload(currentSections, currentAnswers)
+      if (mcqAnswersPayload.length > 0) {
+        await syncMcqAnswers(mcqAnswersPayload)
+      }
+
+      // 2) Lưu toàn bộ đáp án Writing
+      const writingSection = currentSections.find((section) => section.key === 'writing')
+      if (writingSection) {
+        const writingAnswers = currentAnswers[writingSection.key] || {}
+        const writingPromises = []
+
+        writingSection.questions.forEach((q) => {
+          if (q.type !== 'writing' || !q.rawQuestion) return
+
+          const raw = q.rawQuestion
+          const answerValue = writingAnswers[q.questionNumber]
+          // Nếu answerValue là undefined, vẫn gửi chuỗi rỗng để xóa/cập nhật nếu cần, 
+          // trừ khi user chưa bao giờ chạm vào câu đó.
+          if (answerValue === undefined || !raw.userQuestionId) return
+
+          const questionTypeCode =
+            q.questionTypeCode || raw.questionTypeCode || raw.questionType?.code
+          const serializedAnswer = serializeWritingAnswerForApi(
+            answerValue,
+            questionTypeCode
+          )
+
+          writingPromises.push(
+            syncWritingAnswer(raw.userQuestionId, serializedAnswer || '')
+          )
+        })
+
+        if (writingPromises.length > 0) {
+          // Sử dụng Promise.allSettled để đảm bảo nếu một câu lỗi thì các câu khác vẫn được lưu
+          await Promise.allSettled(writingPromises)
+        }
+      }
+
+      // Hiển thị toast notification thành công
+      setToastMessage('Đáp án của bạn đã được lưu thành công!')
+      setToastType('success')
+      setToastVisible(true)
+    } catch (error) {
+      console.error('Failed to manually save answers:', error)
+      // Hiển thị toast notification lỗi
+      setToastMessage('Không thể lưu bài. Vui lòng thử lại.')
+      setToastType('error')
+      setToastVisible(true)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <Text style={styles.loadingText}>Đang tải đề thi...</Text>
+        {loadError ? <Text style={styles.loadErrorText}>{loadError}</Text> : null}
+      </View>
+    )
+  }
 
   return (
     <View style={styles.container}>
-      <View style={styles.contentRow}>
-        {/* Left: Question */}
-        <View style={styles.questionContainer}>
-          <NavigationPill style={styles.backHome} label="Trang chủ" to="/homepage" />
-          {currentQuestionData && (
-            <RoadmapTestQuestion
-              questionNumber={currentQuestionData.questionNumber}
-              type={currentQuestionData.type}
-              questionText={currentQuestionData.questionText}
-              audioUrl={currentQuestionData.audioUrl}
-              options={currentQuestionData.options}
-              selectedAnswer={answers[currentQuestion]}
-              onAnswerSelect={handleQuestionAnswerSelect}
-            />
-          )}
-          
-          {/* Navigation Buttons */}
-          <View style={styles.navigationButtons}>
-            {currentQuestion > 1 ? (
-              <RoadmapTestButton
-                title="← Trở lại"
-                onPress={handlePrevQuestion}
-                style={styles.navButtonLeft}
-              />
-            ) : (
-              <View style={styles.navButtonLeft} />
-            )}
-            {currentQuestion < totalQuestions && (
-              <RoadmapTestButton
-                title="Câu tiếp theo →"
-                onPress={handleNextQuestion}
-                style={styles.navButtonRight}
-              />
-            )}
+      {/* Toast Notification */}
+      <ToastNotification
+        visible={toastVisible}
+        message={toastMessage}
+        type={toastType}
+        onHide={() => setToastVisible(false)}
+        duration={3000}
+      />
+
+      <View style={styles.innerWrapper}>
+        {/* Close button */}
+        <Pressable
+          onPress={handleBackToLearning}
+          style={({ pressed }) => [
+            styles.headerCloseButton,
+            pressed && styles.headerCloseButtonPressed,
+          ]}
+          hitSlop={8}
+        >
+          <Text style={styles.headerCloseButtonText}>×</Text>
+        </Pressable>
+
+        {/* Header */}
+        <View style={styles.headerRow}>
+          <View style={styles.headerTextBlock}>
+            <View style={styles.examTitleRow}>
+              <View style={styles.examChip}>
+                <Image source={normalizeImageSource(CarrotImage)} style={styles.examChipIcon} resizeMode="contain" />
+              </View>
+              <View>
+                <Text style={styles.examTitleText}>
+                  {`Đề luyện tập TOPIK${activeSection?.label ? ` • ${activeSection.label}` : ''}`}
+                </Text>
+                <Text style={styles.examSubtitleText}>Làm bài theo từng phần: nghe, đọc, viết.</Text>
+              </View>
+            </View>
+          </View>
+          <View style={styles.headerRightSection}>
+            <View style={styles.timerBox}>
+              <Text style={styles.timerLabel}>Thời gian còn lại</Text>
+              <Text style={styles.timerValue}>{timeRemaining}</Text>
+            </View>
           </View>
         </View>
 
-        {/* Right: Dashboard */}
-        <View style={styles.dashboardContainer}>
-          <RoadmapTestDashboard
-            totalQuestions={totalQuestions}
-            timeRemaining={timeRemaining}
-            answers={answers}
-            onAnswerSelect={handleDashboardAnswerSelect}
-            onSubmit={handleSubmit}
-            currentQuestion={currentQuestion}
-            onQuestionSelect={handleQuestionSelect}
-          />
+        {/* Section tabs */}
+        <View style={styles.sectionTabsRow}>
+          {sections.map((section) => (
+            <RoadmapTestButton
+              key={section.key}
+              title={section.label}
+              onPress={() => handleChangeSection(section.key)}
+              style={[
+                styles.sectionTab,
+                activeSectionKey === section.key && styles.sectionTabActive,
+              ]}
+            />
+          ))}
+        </View>
+
+        <View style={styles.contentRow}>
+          {/* Left: Question */}
+          <View style={styles.questionContainer}>
+            {/* Instruction for current section (moved down from header) */}
+            {(activeSection?.title || activeSection?.description) && (
+              <View style={styles.instructionBox}>
+                {!!activeSection?.title && (
+                  <Text style={styles.instructionTitle}>{String(activeSection.title)}</Text>
+                )}
+                {!!activeSection?.description && (
+                  <Text style={styles.instructionSubtitle}>{String(activeSection.description)}</Text>
+                )}
+              </View>
+            )}
+
+            {currentQuestionData && (
+              <RoadmapTestQuestion
+                questionNumber={currentQuestionData.questionNumber}
+                type={currentQuestionData.type}
+                questionText={currentQuestionData.questionText}
+                audioUrl={currentQuestionData.audioUrl}
+                imageUrl={currentQuestionData.imageUrl}
+                options={currentQuestionData.options}
+                questionTypeCode={currentQuestionData.questionTypeCode}
+                selectedAnswer={(answers[activeSectionKey] || {})[currentQuestion]}
+                onAnswerSelect={handleQuestionAnswerSelect}
+                onAnswerChange={
+                  currentQuestionData.type === 'writing' ? handleWritingAnswerChange : undefined
+                }
+              />
+            )}
+
+            {/* Navigation Buttons */}
+            <View style={styles.navigationButtons}>
+              {currentQuestion > 1 ? (
+                <RoadmapTestButton
+                  title="← Câu trước"
+                  onPress={handlePrevQuestion}
+                  style={styles.navButtonLeft}
+                />
+              ) : (
+                <View style={styles.navButtonLeft} />
+              )}
+              {currentQuestion < sectionQuestions.length && (
+                <RoadmapTestButton
+                  title="Câu tiếp theo →"
+                  onPress={handleNextQuestion}
+                  style={styles.navButtonRight}
+                />
+              )}
+            </View>
+          </View>
+
+          {/* Right: Dashboard */}
+          <View style={styles.dashboardContainer}>
+            <RoadmapTestDashboard
+              totalQuestions={sectionQuestions.length}
+              timeRemaining={timeRemaining}
+              answers={answers[activeSectionKey] || {}}
+              onAnswerSelect={handleAnswerSelect}
+              onSubmit={handleSubmit}
+              onSave={handleManualSave}
+              isSaving={isSaving}
+              currentQuestion={currentQuestion}
+              onQuestionSelect={handleQuestionSelect}
+            />
+          </View>
         </View>
       </View>
-      <Image source={normalizeImageSource(CarrotImage)} style={styles.carrot} />
+      <Image source={normalizeImageSource(CarrotImage)} style={styles.carrot} resizeMode="contain" />
+
+      {/* Submit confirm modal */}
+      <Modal
+        visible={submitConfirmVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCloseSubmitConfirm}
+      >
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmModal}>
+            <Text style={styles.confirmTitle}>Xác nhận nộp bài</Text>
+            <Text style={styles.confirmMessage}>
+              Bạn có chắc chắn muốn nộp bài? Sau khi nộp, bạn sẽ không thể chỉnh sửa đáp án.
+            </Text>
+
+            <View style={styles.confirmActions}>
+              <Pressable
+                onPress={handleCloseSubmitConfirm}
+                style={({ pressed }) => [
+                  styles.confirmButton,
+                  styles.confirmButtonCancel,
+                  pressed && styles.confirmButtonPressed,
+                ]}
+              >
+                <Text style={styles.confirmButtonCancelText}>Hủy</Text>
+              </Pressable>
+              <Pressable
+                onPress={handleConfirmSubmit}
+                style={({ pressed }) => [
+                  styles.confirmButton,
+                  styles.confirmButtonOk,
+                  pressed && styles.confirmButtonPressed,
+                ]}
+              >
+                <Text style={styles.confirmButtonOkText}>Nộp bài</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Back to learning confirm modal */}
+      <Modal
+        visible={backConfirmVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCloseBackConfirm}
+      >
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmModal}>
+            <Pressable
+              onPress={handleCloseBackConfirm}
+              style={({ pressed }) => [
+                styles.closeButton,
+                pressed && styles.closeButtonPressed,
+              ]}
+              hitSlop={8}
+            >
+              <Text style={styles.closeButtonText}>×</Text>
+            </Pressable>
+            <Text style={styles.confirmTitle}>Xác nhận quay lại</Text>
+            <Text style={styles.confirmMessage}>
+              Bạn có chắc chắn muốn quay lại trang học tập? Tiến độ làm bài của bạn sẽ được lưu tự động.
+            </Text>
+
+            <View style={styles.confirmActions}>
+              <Pressable
+                onPress={handleCloseBackConfirm}
+                style={({ pressed }) => [
+                  styles.confirmButton,
+                  styles.confirmButtonCancel,
+                  pressed && styles.confirmButtonPressed,
+                ]}
+              >
+                <Text style={styles.confirmButtonCancelText}>Hủy</Text>
+              </Pressable>
+              <Pressable
+                onPress={handleConfirmBack}
+                style={({ pressed }) => [
+                  styles.confirmButton,
+                  styles.confirmButtonOk,
+                  pressed && styles.confirmButtonPressed,
+                ]}
+              >
+                <Text style={styles.confirmButtonOkText}>Quay lại</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }
@@ -164,11 +1049,146 @@ export function RoadmapTestLayout({ level = 1 }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F0DD',
-    padding: 24,
+    backgroundColor: '#FFEFE1',
+    paddingVertical: 32,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    minHeight: '100vh',
+  },
+  innerWrapper: {
+    width: '80%',
+    maxWidth: 1200,
+    backgroundColor: '#FDF7EC',
+    borderRadius: 24,
+    paddingHorizontal: 32,
+    paddingVertical: 24,
+    gap: 16,
     position: 'relative',
-    paddingTop:73,
-
+  },
+  headerCloseButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFF2CC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 100,
+  },
+  headerCloseButtonPressed: {
+    opacity: 0.7,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  headerCloseButtonText: {
+    fontSize: 28,
+    fontWeight: '300',
+    color: '#1C1C1C',
+    lineHeight: 28,
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+    columnGap: 16,
+  },
+  headerTextBlock: {
+    flex: 1,
+    gap: 4,
+  },
+  instructionBox: {
+    backgroundColor: '#FFF3E6',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#F5D6BE',
+  },
+  instructionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 22,
+  },
+  instructionSubtitle: {
+    marginTop: 6,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#4B4B4B',
+    fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 20,
+  },
+  examTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  examChip: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFE0B3',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  examChipIcon: {
+    width: 26,
+    height: 26,
+  },
+  examTitleText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  examSubtitleText: {
+    fontSize: 14,
+    color: '#5F5F5F',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  headerRightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingRight: 40, // Tạo không gian cho nút X
+  },
+  timerBox: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    backgroundColor: '#FFF2CC',
+    alignItems: 'center',
+    minWidth: 150,
+  },
+  timerLabel: {
+    fontSize: 12,
+    color: '#5F5F5F',
+    marginBottom: 2,
+    textAlign: 'center',
+  },
+  timerValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1C1C1C',
+    textAlign: 'center',
+  },
+  sectionTabsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  sectionTab: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 999,
+    backgroundColor: '#FFF4DA',
+  },
+  sectionTabActive: {
+    backgroundColor: '#FFC56E',
   },
   contentRow: {
     flexDirection: 'row',
@@ -178,11 +1198,11 @@ const styles = StyleSheet.create({
   questionContainer: {
     flex: 1,
     gap: 16,
-    top: 30,
+    marginTop: 4,
   },
   backHome: {
     alignSelf: 'flex-start',
-    marginBottom: 8,
+    marginRight: 12,
   },
   navigationButtons: {
     flexDirection: 'row',
@@ -192,27 +1212,136 @@ const styles = StyleSheet.create({
   },
   navButtonLeft: {
     alignSelf: 'flex-start',
-    minWidth: 120,
+    minWidth: 140,
     paddingVertical: 10,
     paddingHorizontal: 20,
   },
   navButtonRight: {
     alignSelf: 'flex-end',
-    minWidth: 120,
+    minWidth: 160,
     paddingVertical: 10,
     paddingHorizontal: 20,
   },
   dashboardContainer: {
-    width: 400,
+    width: 380,
+  },
+  confirmOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  confirmModal: {
+    backgroundColor: '#FDF7EC',
+    borderRadius: 24,
+    padding: 24,
+    width: '100%',
+    maxWidth: 520,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.08)',
+    position: 'relative',
+    ...(Platform.OS === 'web' && { boxShadow: '0px 10px 28px rgba(0,0,0,0.25)' }),
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  closeButtonPressed: {
+    opacity: 0.7,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  closeButtonText: {
+    fontSize: 24,
+    fontWeight: '300',
+    color: '#1C1C1C',
+    lineHeight: 24,
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  confirmTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1C1C1C',
+    textAlign: 'center',
+    marginBottom: 10,
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  confirmMessage: {
+    fontSize: 15,
+    color: '#1C1C1C',
+    lineHeight: 22,
+    textAlign: 'center',
+    marginBottom: 18,
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  confirmActions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  confirmButton: {
+    minWidth: 140,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confirmButtonPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.99 }],
+  },
+  confirmButtonCancel: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.15)',
+  },
+  confirmButtonOk: {
+    backgroundColor: '#E8B4B8',
+  },
+  confirmButtonCancelText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  confirmButtonOkText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    fontFamily: 'Epilogue, sans-serif',
   },
   carrot: {
     position: 'absolute',
-    top: 100,
-    right: 350,
-    width: 200,
-    height: 100,
+    top: 24,
+    right: 80,
+    width: 120,
+    height: 70,
     zIndex: 10,
-    resizeMode: 'contain',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  loadErrorText: {
+    fontSize: 14,
+    color: '#E65100',
+    fontFamily: 'Epilogue, sans-serif',
   },
 })
 

@@ -22,11 +22,12 @@ export function RoadmapTestAnswer({
   return (
     <View style={[styles.container, containerStyle, { gap }]}>
       {[1, 2, 3, 4].map((num) => {
-        const isSelected = selectedAnswer === num - 1
+        // selectedAnswer được lưu dạng 1-based (1, 2, 3, 4) để khớp với logic buildMcqAnswersPayload
+        const isSelected = selectedAnswer === num
         return (
           <Pressable
             key={num}
-            onPress={() => handleAnswerSelect(num - 1)}
+            onPress={() => handleAnswerSelect(num)}
             style={[
               styles.answerButton,
               { width: buttonSize, height: buttonSize, borderRadius: buttonSize / 2 },

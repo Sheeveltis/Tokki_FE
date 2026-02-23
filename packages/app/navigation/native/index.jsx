@@ -16,6 +16,8 @@ import { PaymentSuccessScreen } from 'app/features/payment/screens/payment-succe
 import { PaymentFailedScreen } from 'app/features/payment/screens/payment-failed-screen'
 import { RoadmapInfoScreen } from 'app/features/roadmap/screens/roadmap-info-screen'
 import { RoadmapTestScreen } from 'app/features/roadmap/screens/roadmap-test-screen'
+import { RoadmapTestResultScreen } from 'app/features/roadmap/screens/roadmap-test-result-screen'
+import { RoadmapTestResultDetailScreen } from 'app/features/roadmap/screens/roadmap-test-result-detail-screen'
 import { ProfileScreen } from 'app/features/user/screens/client/profile-screen'
 import { MenuMobileScreenWrapper } from 'app/features/user/screens/mobile'
 import { ErrorScreen } from 'app/features/general/screens/error-screen'
@@ -96,6 +98,14 @@ export function NativeNavigation() {
       <Stack.Screen
         name="roadmap-test"
         component={RoadmapTestScreen}
+      />
+      <Stack.Screen
+        name="roadmap-test-result"
+        component={RoadmapTestResultScreen}
+      />
+      <Stack.Screen
+        name="roadmap-test-result-detail"
+        component={RoadmapTestResultDetailScreen}
       />
       <Stack.Screen
         name="user-profile"

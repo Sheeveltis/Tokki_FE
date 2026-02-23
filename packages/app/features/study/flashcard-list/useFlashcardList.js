@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Platform } from 'react-native'
 import { getFlashcardTopics } from '../api'
+import { getUserLevel } from '../../authentication/api'
+import { getStorageItem, setStorageItem } from '../../../helpers/storage'
 
 // Import useFocusEffect chỉ trên mobile (React Navigation)
 let useFocusEffect = null
@@ -31,25 +33,78 @@ export function useFlashcardList(levelId) {
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
-  const [selectedLevel, setSelectedLevel] = useState(levelId ?? null)
+  const [userLevel, setUserLevel] = useState(null)
+  const [isLevelResolved, setIsLevelResolved] = useState(false)
 
   const [pageNumber, setPageNumber] = useState(1)
   const pageSize = 5
 
   const debounceTimerRef = useRef(null)
 
-  // Fetch flashcard topics từ API
+  // Resolve level của user (ưu tiên lấy từ storage, fallback gọi API)
+  useEffect(() => {
+    let cancelled = false
+
+    const resolve = async () => {
+      try {
+        const stored = await getStorageItem('userLevel')
+        const storedLevel = stored != null ? parseInt(String(stored), 10) : NaN
+        if (!Number.isNaN(storedLevel) && storedLevel >= 1 && storedLevel <= 6) {
+          if (!cancelled) {
+            setUserLevel(storedLevel)
+            setIsLevelResolved(true)
+          }
+          return
+        }
+
+        const resp = await getUserLevel()
+        const apiLevel = resp?.data?.level
+        const parsed = apiLevel != null ? parseInt(String(apiLevel), 10) : NaN
+        if (resp?.isSuccess && !Number.isNaN(parsed) && parsed >= 1 && parsed <= 6) {
+          try {
+            await setStorageItem('userLevel', String(parsed))
+          } catch (e) {
+            // Không chặn flow nếu lưu storage fail
+          }
+          if (!cancelled) {
+            setUserLevel(parsed)
+            setIsLevelResolved(true)
+          }
+          return
+        }
+
+        if (!cancelled) {
+          setUserLevel(null)
+          setIsLevelResolved(true)
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setUserLevel(null)
+          setIsLevelResolved(true)
+        }
+      }
+    }
+
+    resolve()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const effectiveLevelId = userLevel ?? levelId ?? null
+
   const fetchTopics = useCallback(async () => {
+    if (!isLevelResolved) return
     try {
       setLoading(true)
       setError(null)
-      const data = await getFlashcardTopics(selectedLevel ?? levelId, {
+      const data = await getFlashcardTopics(effectiveLevelId, {
         pageNumber,
         pageSize,
         searchTerm: debouncedSearchTerm || undefined,
       })
       setTopics(Array.isArray(data) ? data : [])
-      setIsInitialLoading(false) // Đánh dấu đã load lần đầu xong
+      setIsInitialLoading(false)
     } catch (err) {
       console.error('Error fetching flashcard topics:', err)
       setError(err.message || 'Không thể tải danh sách chủ đề flashcard')
@@ -58,46 +113,30 @@ export function useFlashcardList(levelId) {
     } finally {
       setLoading(false)
     }
-  }, [levelId, debouncedSearchTerm, selectedLevel, pageNumber])
+  }, [debouncedSearchTerm, effectiveLevelId, isLevelResolved, pageNumber])
 
-  // Load data khi component mount, debouncedSearchTerm hoặc selectedLevel thay đổi
   useEffect(() => {
+    if (!isLevelResolved) return
     fetchTopics()
-  }, [fetchTopics])
+  }, [fetchTopics, isLevelResolved])
 
-  // Refresh topic list khi screen được focus (quay lại từ màn hình khác)
-  // Điều này đảm bảo tiến độ được cập nhật sau khi học xong topic
-  // Chỉ sử dụng trên mobile (React Navigation)
   const refreshOnFocus = useCallback(() => {
-    // Chỉ refresh nếu không phải lần load đầu tiên (tránh double fetch)
-    if (!isInitialLoading) {
+    if (isLevelResolved && !isInitialLoading) {
       fetchTopics()
     }
-  }, [fetchTopics, isInitialLoading])
+  }, [fetchTopics, isInitialLoading, isLevelResolved])
 
-  // Sử dụng useFocusEffect an toàn (chỉ chạy khi có React Navigation)
   useSafeFocusEffect(refreshOnFocus)
 
-  // Đồng bộ selectedLevel khi prop levelId thay đổi
   useEffect(() => {
-    if (levelId !== undefined && levelId !== null) {
-      setSelectedLevel(levelId)
-    }
-  }, [levelId])
-
-  // Debounce searchTerm - chỉ cập nhật debouncedSearchTerm sau 500ms khi người dùng ngừng gõ
-  useEffect(() => {
-    // Clear timer cũ nếu có
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
     }
 
-    // Tạo timer mới
     debounceTimerRef.current = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm)
     }, 500)
 
-    // Cleanup khi component unmount hoặc searchTerm thay đổi
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current)
@@ -110,23 +149,11 @@ export function useFlashcardList(levelId) {
   }
 
   const handleSearchSubmit = () => {
-    // Hủy debounce timer và tìm kiếm ngay
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
     }
     setPageNumber(1)
     setDebouncedSearchTerm(searchTerm)
-  }
-
-  const handleLevelChange = (level) => {
-    setSelectedLevel(level)
-    setPageNumber(1)
-    // Hủy debounce timer và cập nhật debouncedSearchTerm ngay khi đổi level
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
-    }
-    setDebouncedSearchTerm(searchTerm)
-    // fetchTopics sẽ tự động chạy qua useEffect khi debouncedSearchTerm hoặc selectedLevel thay đổi
   }
 
   const canNextPage = topics.length === pageSize
@@ -149,8 +176,6 @@ export function useFlashcardList(levelId) {
     searchTerm,
     handleSearchChange,
     handleSearchSubmit,
-    selectedLevel,
-    handleLevelChange,
 
     pageNumber,
     pageSize,
@@ -159,4 +184,3 @@ export function useFlashcardList(levelId) {
     handleNextPage,
   }
 }
-

@@ -39,8 +39,6 @@ export function FlashcardListScreen({
     searchTerm,
     handleSearchChange,
     handleSearchSubmit,
-    selectedLevel,
-    handleLevelChange,
     pageNumber,
     pageSize,
     canNextPage,
@@ -141,8 +139,6 @@ export function FlashcardListScreen({
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
         onSearchSubmit={handleSearchSubmit}
-        selectedLevel={selectedLevel}
-        onLevelChange={handleLevelChange}
         onBackPress={handleBackPress}
         onTopicPress={handleTopicPress}
         onRetry={fetchTopics}

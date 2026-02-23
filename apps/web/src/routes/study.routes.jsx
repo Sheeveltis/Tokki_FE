@@ -22,6 +22,8 @@ import LearnedVocabularyListScreen from '@tokki/app/features/study/learned-vocab
 import { STUDY_PAGE_TITLES, TOPIC_TITLES } from '@tokki/app/features/study/constants'
 import { RoadmapInfoScreen } from '@tokki/app/features/roadmap/screens/roadmap-info-screen'
 import { RoadmapTestScreen } from '@tokki/app/features/roadmap/screens/roadmap-test-screen'
+import { RoadmapTestResultScreen } from '@tokki/app/features/roadmap/screens/roadmap-test-result-screen'
+import { RoadmapTestResultDetailScreen } from '@tokki/app/features/roadmap/screens/roadmap-test-result-detail-screen'
 import { RoadmapLearningScreen } from '@tokki/app/features/roadmap/screens/roadmap-learning-screen'
 import { RoadmapTipsScreen } from '@tokki/app/features/roadmap/screens/roadmap-tips-screen'
 import { RoadmapPracticeScreen } from '@tokki/app/features/roadmap/screens/roadmap-practice-screen'
@@ -408,6 +410,8 @@ export const studyRoutes = [
   // Roadmap
   { path: '/roadmap/info', element: <RoadmapInfoScreen /> },
   { path: '/roadmap/test', element: <RoadmapTestRoute /> },
+  { path: '/roadmap/test/result', element: <RoadmapTestResultScreen /> },
+  { path: '/roadmap/test/result/detail', element: <RoadmapTestResultDetailScreen /> },
   { path: '/roadmap/learning', element: <RoadmapLearningRoute /> },
   { path: '/roadmap/learning/practice/:id', element: <RoadmapPracticeRoute /> },
   { path: '/roadmap/learning/tips/:id', element: <RoadmapTipsRoute /> },
