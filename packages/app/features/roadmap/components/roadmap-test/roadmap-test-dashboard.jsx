@@ -1,50 +1,50 @@
-import React, { useState } from 'react'
+import React, { useMemo } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { RoadmapTestAnswer } from './roadmap-test-answer'
-
-const QUESTIONS_PER_PAGE = 8
 
 export function RoadmapTestDashboard({
-  totalQuestions = 8,
-  timeRemaining = '08 : 00',
+  totalQuestions = 8, // dùng cho fallback
+  questionNumbers = [], // danh sách questionNo thật của section hiện tại
   answers = {},
-  onAnswerSelect,
   onSubmit,
   onSave,
   isSaving = false,
   currentQuestion = 1,
   onQuestionSelect,
 }) {
-  const [currentPage, setCurrentPage] = useState(1)
+  // Dùng danh sách questionNumbers từ API, fallback sang 1..totalQuestions nếu chưa truyền vào
+  // Sắp xếp theo thứ tự tăng dần
+  const allQuestionNumbers =
+    questionNumbers && questionNumbers.length > 0
+      ? [...questionNumbers].sort((a, b) => a - b)
+      : Array.from({ length: totalQuestions }, (_, i) => i + 1)
 
-  const totalPages = Math.ceil(totalQuestions / QUESTIONS_PER_PAGE)
-  const startQuestion = (currentPage - 1) * QUESTIONS_PER_PAGE + 1
-  const endQuestion = Math.min(currentPage * QUESTIONS_PER_PAGE, totalQuestions)
-  const questionsOnPage = Array.from({ length: endQuestion - startQuestion + 1 }, (_, i) => startQuestion + i)
+  const effectiveTotalQuestions = allQuestionNumbers.length
+  // Hiển thị tất cả câu, không chia trang
+  const questionsOnPage = allQuestionNumbers
 
-  const handleAnswerSelect = (questionNum, answerIndex) => {
-    if (onAnswerSelect) {
-      onAnswerSelect(questionNum, answerIndex)
+  const answeredCount = useMemo(() => {
+    const isAnswered = (v) => {
+      if (typeof v === 'number') return v > 0
+      if (typeof v === 'string') return v.trim().length > 0
+      if (v && typeof v === 'object') {
+        return String(v.a || '').trim().length > 0 || String(v.b || '').trim().length > 0
+      }
+      return false
     }
-  }
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1)
-    }
-  }
+    return Object.values(answers || {}).filter(isAnswered).length
+  }, [answers])
 
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1)
-    }
-  }
 
   return (
     <View style={styles.container}>
-      {/* Timer */}
-      <View style={styles.timerContainer}>
-        <Text style={styles.timerText}>{timeRemaining}</Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Bảng câu hỏi</Text>
+        <Text style={styles.headerSubtitle}>
+          {effectiveTotalQuestions} câu
+          {typeof answeredCount === 'number' ? ` • Đã làm ${answeredCount}` : ''}
+        </Text>
       </View>
 
       {/* Questions Grid */}
@@ -54,41 +54,36 @@ export function RoadmapTestDashboard({
             key={questionNum}
             onPress={() => onQuestionSelect && onQuestionSelect(questionNum)}
             style={[
-              styles.questionRow,
-              currentQuestion === questionNum && styles.questionRowActive,
+              styles.questionBox,
+              currentQuestion === questionNum && styles.questionBoxActive,
+              currentQuestion !== questionNum &&
+                answers?.[questionNum] !== undefined &&
+                answers?.[questionNum] !== null &&
+                (typeof answers?.[questionNum] === 'number'
+                  ? answers?.[questionNum] > 0
+                  : typeof answers?.[questionNum] === 'string'
+                  ? String(answers?.[questionNum]).trim().length > 0
+                  : typeof answers?.[questionNum] === 'object'
+                  ? String(answers?.[questionNum]?.a || '').trim().length > 0 ||
+                    String(answers?.[questionNum]?.b || '').trim().length > 0
+                  : false) &&
+                styles.questionBoxAnswered,
             ]}
           >
-            <Text style={styles.questionLabel}>({questionNum})</Text>
-            <RoadmapTestAnswer
-              selectedAnswer={answers[questionNum]}
-              onAnswerSelect={(answerIndex) => handleAnswerSelect(questionNum, answerIndex)}
-              containerStyle={styles.answerButtonsRow}
-              buttonSize={40}
-              gap={12}
-            />
+            <Text
+              style={[
+                styles.questionNumber,
+                currentQuestion === questionNum && styles.questionNumberActive,
+              ]}
+            >
+              {questionNum}
+            </Text>
           </Pressable>
         ))}
       </View>
 
       {/* Navigation, Save and Submit */}
       <View style={styles.bottomSection}>
-        {totalPages > 1 && (
-          <View style={styles.pageIndicatorContainer}>
-            {currentPage > 1 && (
-              <Pressable onPress={handlePrevPage} style={styles.arrowButton}>
-                <Text style={styles.arrowText}>←</Text>
-              </Pressable>
-            )}
-            <Text style={styles.pageIndicator}>
-              ({currentPage})
-            </Text>
-            {currentPage < totalPages && (
-              <Pressable onPress={handleNextPage} style={styles.arrowButton}>
-                <Text style={styles.arrowText}>→</Text>
-              </Pressable>
-            )}
-          </View>
-        )}
         {onSave && (
           <Pressable
             onPress={onSave}
@@ -120,51 +115,58 @@ const styles = StyleSheet.create({
     maxWidth: 600,
     alignSelf: 'center',
     borderRadius: 30,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: -4 },
-    elevation: 8,
-    // Inner shadow for web
-    ...(typeof window !== 'undefined' && {
-      boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 -4px 8px rgba(0, 0, 0, 0.15)',
-    }),
   },
-  timerContainer: {
+  header: {
+    gap: 6,
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 6,
   },
-  timerText: {
-    fontSize: 24,
-    fontWeight: '700',
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '800',
     color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4A4A4A',
     fontFamily: 'Epilogue, sans-serif',
   },
   questionsContainer: {
-    gap: 16,
-  },
-  questionRow: {
+    width: 288, // Cố định width cho 5 ô: (5 * 48px) + (4 * 12px gap) = 240 + 48 = 288px
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    columnGap: 12,
+    rowGap: 12,
+    justifyContent: 'flex-start',
+  },
+  questionBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     alignItems: 'center',
-    gap: 16,
-    paddingVertical: 4,
-    paddingHorizontal: 4,
-    borderRadius: 8,
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF', // chưa làm
+    borderWidth: 1,
+    borderColor: '#E8E0C8',
   },
-  questionRowActive: {
-    backgroundColor: '#FFE7A5',
-    paddingVertical: 6,
-    paddingHorizontal: 6,
+  questionBoxAnswered: {
+    backgroundColor: '#F6B4C3', // hồng - đã làm
+    borderColor: '#E99AAF',
   },
-  questionLabel: {
+  questionBoxActive: {
+    backgroundColor: '#FFE7A5', // vàng - đang chọn
+    borderColor: '#E8C96A',
+  },
+  questionNumber: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '800',
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
-    minWidth: 40,
   },
-  answerButtonsRow: {
-    flex: 1,
+  questionNumberActive: {
+    color: '#1C1C1C',
   },
   bottomSection: {
     alignItems: 'center',
