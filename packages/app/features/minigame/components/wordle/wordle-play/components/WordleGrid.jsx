@@ -1,32 +1,49 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import { WordleRow } from './WordleRow'
+import { WordleTargetRow } from './WordleTargetRow'
+import { WordleInputRow } from './WordleInputRow'
 
-export function WordleGrid({ guesses, statuses, maxGuesses = 6, wordLength = 5 }) {
-  const rows = []
+// rows: mảng các feedbacks từ API, mỗi phần tử là một mảng feedback cho 1 lượt đoán
+export function WordleGrid({ rows = [], maxGuesses = 6, wordLength = 5, targetWord = '', currentGuess = '', jamoSequences = [], gameState = 'playing', onCellClick }) {
+  const renderedRows = []
+  const currentRowIndex = rows.length
 
   for (let i = 0; i < maxGuesses; i++) {
-    rows.push(
+    // Nếu là row hiện tại đang nhập và gameState === 'playing', hiển thị input row
+    if (i === currentRowIndex && gameState === 'playing') {
+      renderedRows.push(
+        <WordleInputRow
+          key={i}
+          currentGuess={currentGuess}
+          jamoSequences={jamoSequences}
+          length={wordLength}
+          onCellClick={onCellClick}
+        />
+      )
+    } else {
+      renderedRows.push(
       <WordleRow
         key={i}
-        guess={guesses[i] || ''}
-        statuses={statuses[i]}
+          feedbacks={rows[i]}
         length={wordLength}
       />
     )
+    }
   }
 
   return (
     <View style={styles.grid}>
-      {rows}
+      <WordleTargetRow wordLength={wordLength} targetWord={targetWord} />
+      {renderedRows}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   grid: {
-    paddingVertical: 20,
-    gap: 5,
+    paddingVertical: 10,
+    gap: 3,
   },
 })
 
