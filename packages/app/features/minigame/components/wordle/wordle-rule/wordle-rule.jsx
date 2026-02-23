@@ -44,7 +44,7 @@ export function WordleRule({ onStart }) {
 
             {onStart ? (
               <View style={styles.ctaButton} onStartShouldSetResponder={() => true} onResponderRelease={onStart}>
-                <Text style={styles.ctaText}>Bắt đầu</Text>
+                <Text style={styles.ctaText}>Chọn độ khó</Text>
               </View>
             ) : null}
           </View>
