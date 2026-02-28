@@ -18,6 +18,7 @@ export function WordleSentenceFlow({
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [feedbackLoading, setFeedbackLoading] = useState(false)
   const [showPublishPopup, setShowPublishPopup] = useState(false)
+  const [showNamePopup, setShowNamePopup] = useState(false)
   const [publishLoading, setPublishLoading] = useState(false)
   const [submissionId, setSubmissionId] = useState('')
 
@@ -102,11 +103,8 @@ export function WordleSentenceFlow({
     const totalScore = Number(feedbackData.aiFeedback.totalScore ?? 0)
     setShowFeedbackModal(false)
 
-    if (totalScore > 80) {
-      setShowPublishPopup(true)
-    } else if (onNavigateToBoard) {
-      onNavigateToBoard()
-    }
+    // Sau khi xem feedback: luôn hỏi có muốn công khai câu văn không
+    setShowPublishPopup(true)
   }
 
   const handlePublishConfirm = async () => {
@@ -116,18 +114,9 @@ export function WordleSentenceFlow({
       return
     }
 
-    try {
-      setPublishLoading(true)
-      await publishWordleSentence(submissionId, true, false)
-      setShowPublishPopup(false)
-      if (onNavigateToBoard) {
-        onNavigateToBoard()
-      }
-    } catch (error) {
-      console.error('[WordleSentenceFlow] Error publishing sentence:', error)
-    } finally {
-      setPublishLoading(false)
-    }
+    // Người dùng chọn "Có" cho việc công khai câu văn -> hỏi tiếp về tên
+    setShowPublishPopup(false)
+    setShowNamePopup(true)
   }
 
   const handlePublishCancel = async () => {
@@ -137,15 +126,38 @@ export function WordleSentenceFlow({
       return
     }
 
+    // Người dùng chọn "Không" cho việc công khai câu văn -> không công khai, vào bảng luôn
     try {
       setPublishLoading(true)
       await publishWordleSentence(submissionId, false, true)
+    } catch (error) {
+      console.error('[WordleSentenceFlow] Error setting sentence to private:', error)
+    } finally {
       setShowPublishPopup(false)
+      setPublishLoading(false)
+      if (onNavigateToBoard) {
+        onNavigateToBoard()
+      }
+    }
+  }
+
+  const handleNameChoice = async (isAnonymous) => {
+    if (!submissionId) {
+      console.error('[WordleSentenceFlow] Missing submissionId')
+      setShowNamePopup(false)
+      return
+    }
+
+    try {
+      setPublishLoading(true)
+      // Công khai câu văn, tuỳ chọn ẩn tên
+      await publishWordleSentence(submissionId, true, isAnonymous)
+      setShowNamePopup(false)
       if (onNavigateToBoard) {
         onNavigateToBoard()
       }
     } catch (error) {
-      console.error('[WordleSentenceFlow] Error setting sentence to private:', error)
+      console.error('[WordleSentenceFlow] Error publishing sentence with name option:', error)
     } finally {
       setPublishLoading(false)
     }
@@ -233,6 +245,40 @@ export function WordleSentenceFlow({
         onCancel={handlePublishCancel}
       />
 
+      {/* Popup hỏi có muốn công khai tên hay ẩn danh */}
+      {showNamePopup && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmCard}>
+            <Text style={styles.confirmTitle}>Bạn có muốn công khai tên của bạn không?</Text>
+            <Text style={styles.confirmMessage}>
+              Nếu bạn chọn ẩn danh, câu văn vẫn được công khai nhưng sẽ không hiển thị tên của bạn.
+            </Text>
+            <View style={styles.confirmButtons}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.confirmButtonSecondary,
+                  pressed && styles.confirmButtonPressed,
+                ]}
+                onPress={() => handleNameChoice(true)}
+                disabled={publishLoading}
+              >
+                <Text style={styles.confirmSecondaryText}>Không (ẩn danh)</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.confirmButtonPrimary,
+                  pressed && styles.confirmButtonPressed,
+                ]}
+                onPress={() => handleNameChoice(false)}
+                disabled={publishLoading}
+              >
+                <Text style={styles.confirmPrimaryText}>Có</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      )}
+
       {/* Result box + nút chơi lại */}
       {(gameState === 'lost' || (gameState === 'won' && isSentenceSubmitted)) && (
         <View style={styles.resultBox}>
@@ -256,8 +302,8 @@ export function WordleSentenceFlow({
 const styles = StyleSheet.create({
   sentenceBox: {
     backgroundColor: '#fff',
-    width: '95%',
-    maxWidth: 800,
+    width: '100%',
+    maxWidth: 1200,
     padding: 20,
     borderRadius: 16,
     alignItems: 'center',
@@ -310,7 +356,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   modalOverlay: {
-    position: 'absolute',
+    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
     top: 0,
     left: 0,
     right: 0,

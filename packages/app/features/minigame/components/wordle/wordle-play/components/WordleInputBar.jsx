@@ -35,7 +35,7 @@ export function WordleInputBar({ value, onChange, onSubmit, disabled, maxLength 
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     marginVertical: 15,
     flexDirection: 'row',
     alignItems: 'flex-start',
