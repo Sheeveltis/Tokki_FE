@@ -171,3 +171,22 @@ export const getWordleTopSentences = async (dailyWordleId, top = 20) => {
   }
 }
 
+/**
+ * Toggle like cho một câu văn trong Wordle board
+ * API: POST /api/minigame/wordle/sentence/toggle-like
+ * body: { submissionId }
+ */
+export const toggleWordleSentenceLike = async (submissionId) => {
+  try {
+    const response = await apiClient.post('/minigame/wordle/sentence/toggle-like', {
+      submissionId,
+    })
+    const data = response?.data
+    // Trả về data chuẩn bên trong nếu có
+    if (data && data.data) return data.data
+    return data
+  } catch (error) {
+    console.error('[toggleWordleSentenceLike] Error toggling like:', error)
+    throw error
+  }
+}
