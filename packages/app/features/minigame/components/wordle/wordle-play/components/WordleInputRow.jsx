@@ -1,45 +1,55 @@
 import React from 'react'
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native'
 
+const INPUT_ROW_CSS = `
+.wordle-cell-pressable:focus,
+.wordle-cell-pressable:focus-visible {
+  outline: none;
+}
+
+.wordle-hidden-input,
+.wordle-hidden-input:focus,
+.wordle-hidden-input:focus-visible {
+  outline: none;
+}
+`
+
 /**
  * Row hiển thị currentGuess đang được nhập
  * Cho phép click vào từng cell để focus và nhập
- * currentGuess: chuỗi ký tự Hangul đã ghép
- * jamoSequences: mảng các sequence jamo cho mỗi ô
+ * gridCells: mảng các ký tự Hangul đã ghép cho mỗi ô (từ cellToDisplay)
+ * activeIndex: index ô đang được focus (do parent control)
  */
-export function WordleInputRow({ currentGuess = '', jamoSequences = [], length = 5, onCellClick }) {
+export function WordleInputRow({ gridCells = [], length = 5, onCellClick, activeIndex }) {
   const cells = []
-  
-  // Tìm ô đang nhập: ô cuối cùng có jamo nhưng chưa đủ 3, hoặc ô tiếp theo nếu tất cả đã đủ 3
-  let activeIndex = 0
-  for (let i = 0; i < jamoSequences.length; i++) {
-    const seq = jamoSequences[i] || []
-    if (seq.length < 3) {
-      activeIndex = i
-      break
+
+  // Nếu parent không truyền activeIndex thì fallback: chọn ô trống đầu tiên
+  let effectiveActiveIndex = typeof activeIndex === 'number' ? activeIndex : 0
+  if (typeof activeIndex !== 'number') {
+    let foundEmpty = false
+    for (let i = 0; i < length; i++) {
+      const ch = gridCells[i] || ''
+      if (!ch && !foundEmpty) {
+        effectiveActiveIndex = i
+        foundEmpty = true
+        break
+      }
     }
-    // Nếu tất cả các ô đã đủ 3 jamo, activeIndex sẽ là ô tiếp theo
-    if (i === jamoSequences.length - 1 && seq.length >= 3) {
-      activeIndex = jamoSequences.length
+    if (!foundEmpty) {
+      // Tất cả ô trước đó đều có ít nhất 1 jamo → active ở ô tiếp theo
+      effectiveActiveIndex = Math.min(jamoSequences.length, length - 1)
     }
-  }
-  // Nếu chưa có ô nào, activeIndex = 0
-  if (jamoSequences.length === 0) {
-    activeIndex = 0
   }
 
   for (let i = 0; i < length; i++) {
-    // Hiển thị ký tự Hangul đã ghép từ currentGuess, nếu chưa có thì hiển thị jamo riêng lẻ
-    const hangulChar = currentGuess[i] || ''
-    const jamoSequence = jamoSequences[i] || []
-    // Nếu đã có ký tự Hangul thì hiển thị nó, nếu chưa thì hiển thị jamo riêng lẻ
-    const displayText = hangulChar || (jamoSequence.length > 0 ? jamoSequence.join(' ') : '')
-    const isActive = i === activeIndex // Ô đang được focus
+    const displayText = gridCells[i] || ''
+    const isActive = i === effectiveActiveIndex // Ô đang được focus
 
     cells.push(
       <Pressable
         key={i}
         style={[styles.wrapper, isActive && styles.wrapperActive]}
+        className="wordle-cell-pressable"
         onPress={() => {
           if (onCellClick) {
             onCellClick(i)
@@ -72,9 +82,14 @@ export function WordleInputRow({ currentGuess = '', jamoSequences = [], length =
   }
 
   return (
-    <View style={styles.row}>
-      {cells}
-    </View>
+    <>
+      {Platform.OS === 'web' && (
+        <style dangerouslySetInnerHTML={{ __html: INPUT_ROW_CSS }} />
+      )}
+      <View style={styles.row}>
+        {cells}
+      </View>
+    </>
   )
 }
 
@@ -82,6 +97,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'center',
+    position: 'relative',
   },
   wrapper: {
     alignItems: 'center',

@@ -44,11 +44,16 @@ export function WordleCell({ feedback }) {
     <View style={styles.wrapper}>
       <View style={styles.dotsRow}>
         {dots.map((dot) => {
-          const isGreen = dot.status === 'green'
+          const status = dot.status
+          const isGreen = status === 'green'
+          const isYellow = status === 'yellow'
           return (
             <View
               key={dot.key}
-              style={[styles.dot, isGreen ? styles.dotActive : styles.dotInactive]}
+              style={[
+                styles.dot,
+                isGreen ? styles.dotGreen : isYellow ? styles.dotYellow : styles.dotInactive,
+              ]}
             />
           )
         })}
@@ -76,8 +81,11 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
   },
-  dotActive: {
+  dotGreen: {
     backgroundColor: '#4CAF50',
+  },
+  dotYellow: {
+    backgroundColor: '#C9B458',
   },
   dotInactive: {
     backgroundColor: '#B0BEC5',

@@ -5,7 +5,16 @@ import { WordleTargetRow } from './WordleTargetRow'
 import { WordleInputRow } from './WordleInputRow'
 
 // rows: mảng các feedbacks từ API, mỗi phần tử là một mảng feedback cho 1 lượt đoán
-export function WordleGrid({ rows = [], maxGuesses = 6, wordLength = 5, targetWord = '', currentGuess = '', jamoSequences = [], gameState = 'playing', onCellClick }) {
+export function WordleGrid({
+  rows = [],
+  maxGuesses = 6,
+  wordLength = 5,
+  targetWord = '',
+  gridCells = [],
+  gameState = 'playing',
+  onCellClick,
+  activeColIndex = 0,
+}) {
   const renderedRows = []
   const currentRowIndex = rows.length
 
@@ -15,10 +24,10 @@ export function WordleGrid({ rows = [], maxGuesses = 6, wordLength = 5, targetWo
       renderedRows.push(
         <WordleInputRow
           key={i}
-          currentGuess={currentGuess}
-          jamoSequences={jamoSequences}
+          gridCells={gridCells}
           length={wordLength}
           onCellClick={onCellClick}
+          activeIndex={activeColIndex}
         />
       )
     } else {

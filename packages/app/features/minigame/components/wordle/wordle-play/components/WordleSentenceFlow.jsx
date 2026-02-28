@@ -1,0 +1,416 @@
+import React, { useEffect, useState } from 'react'
+import { View, Text, StyleSheet, Pressable, ActivityIndicator, Platform } from 'react-native'
+import { WordleInputBar } from './WordleInputBar'
+import { WordleFeedbackModal } from './WordleFeedbackModal'
+import { WordlePublishPopup } from './WordlePublishPopup'
+import { submitWordleSentence, publishWordleSentence } from '../../../../api/wordle-level-api'
+
+export function WordleSentenceFlow({
+  gameState,
+  dailyWordleId,
+  onNavigateToBoard,
+  onRestart,
+}) {
+  const [sentence, setSentence] = useState('')
+  const [isSentenceSubmitted, setIsSentenceSubmitted] = useState(false)
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false)
+  const [feedbackData, setFeedbackData] = useState(null)
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
+  const [feedbackLoading, setFeedbackLoading] = useState(false)
+  const [showPublishPopup, setShowPublishPopup] = useState(false)
+  const [publishLoading, setPublishLoading] = useState(false)
+  const [submissionId, setSubmissionId] = useState('')
+
+  // Reset toàn bộ state sentence khi restart game
+  useEffect(() => {
+    if (gameState === 'playing') {
+      setSentence('')
+      setIsSentenceSubmitted(false)
+      setShowSubmitConfirm(false)
+      setFeedbackData(null)
+      setShowFeedbackModal(false)
+      setFeedbackLoading(false)
+      setShowPublishPopup(false)
+      setPublishLoading(false)
+      setSubmissionId('')
+    }
+  }, [gameState])
+
+  const handleSentenceSubmit = () => {
+    if (!sentence.trim()) {
+      console.error('[WordleSentenceFlow] Sentence is empty')
+      return
+    }
+    if (!dailyWordleId) {
+      console.error('[WordleSentenceFlow] Missing dailyWordleId')
+      return
+    }
+    setShowSubmitConfirm(true)
+  }
+
+  const handleConfirmSubmitSentence = async () => {
+    if (!sentence.trim()) {
+      setShowSubmitConfirm(false)
+      return
+    }
+    if (!dailyWordleId) {
+      console.error('[WordleSentenceFlow] Missing dailyWordleId')
+      setShowSubmitConfirm(false)
+      return
+    }
+
+    setShowSubmitConfirm(false)
+
+    try {
+      setFeedbackLoading(true)
+      // Giới hạn 150 ký tự
+      const sentenceContent = sentence.trim().substring(0, 150)
+
+      const response = await submitWordleSentence(dailyWordleId, sentenceContent)
+
+      const id = response?.submissionId || response?.data?.submissionId || response?.id
+      if (id) {
+        setSubmissionId(id)
+      }
+
+      const feedbackPayload = {
+        targetWord: response?.targetWord || '',
+        meaningText: response?.meaning || '',
+        aiFeedback: response?.aiFeedback || {},
+      }
+
+      setFeedbackData(feedbackPayload)
+      setIsSentenceSubmitted(true)
+      setShowFeedbackModal(true)
+    } catch (error) {
+      console.error('[WordleSentenceFlow] Error submitting sentence:', error)
+    } finally {
+      setFeedbackLoading(false)
+    }
+  }
+
+  const handleCancelSubmitSentence = () => {
+    setShowSubmitConfirm(false)
+  }
+
+  const handleFeedbackConfirm = () => {
+    if (!feedbackData?.aiFeedback) {
+      setShowFeedbackModal(false)
+      return
+    }
+
+    const totalScore = Number(feedbackData.aiFeedback.totalScore ?? 0)
+    setShowFeedbackModal(false)
+
+    if (totalScore > 80) {
+      setShowPublishPopup(true)
+    } else if (onNavigateToBoard) {
+      onNavigateToBoard()
+    }
+  }
+
+  const handlePublishConfirm = async () => {
+    if (!submissionId) {
+      console.error('[WordleSentenceFlow] Missing submissionId')
+      setShowPublishPopup(false)
+      return
+    }
+
+    try {
+      setPublishLoading(true)
+      await publishWordleSentence(submissionId, true, false)
+      setShowPublishPopup(false)
+      if (onNavigateToBoard) {
+        onNavigateToBoard()
+      }
+    } catch (error) {
+      console.error('[WordleSentenceFlow] Error publishing sentence:', error)
+    } finally {
+      setPublishLoading(false)
+    }
+  }
+
+  const handlePublishCancel = async () => {
+    if (!submissionId) {
+      console.error('[WordleSentenceFlow] Missing submissionId')
+      setShowPublishPopup(false)
+      return
+    }
+
+    try {
+      setPublishLoading(true)
+      await publishWordleSentence(submissionId, false, true)
+      setShowPublishPopup(false)
+      if (onNavigateToBoard) {
+        onNavigateToBoard()
+      }
+    } catch (error) {
+      console.error('[WordleSentenceFlow] Error setting sentence to private:', error)
+    } finally {
+      setPublishLoading(false)
+    }
+  }
+
+  const handleRestart = () => {
+    if (onRestart) {
+      onRestart()
+    }
+  }
+
+  return (
+    <View>
+      {/* InputBar - chỉ hiện khi đoán xong từ */}
+      {gameState === 'won' && !isSentenceSubmitted && (
+        <View style={styles.sentenceBox}>
+          <Text style={styles.sentenceTitle}>
+            Hãy nhập 1 câu có chứa từ mà bạn đã đoán đúng
+          </Text>
+          <WordleInputBar
+            value={sentence}
+            onChange={setSentence}
+            onSubmit={handleSentenceSubmit}
+            maxLength={150}
+            disabled={false}
+          />
+        </View>
+      )}
+
+      {/* Popup confirm trước khi gửi câu văn cho AI chấm điểm */}
+      {showSubmitConfirm && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmCard}>
+            <Text style={styles.confirmTitle}>Bạn có chắc chắn muốn gửi câu văn này?</Text>
+            <Text style={styles.confirmMessage}>
+              Câu của bạn sẽ được gửi để AI chấm điểm và đưa ra nhận xét.
+            </Text>
+            <View style={styles.confirmButtons}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.confirmButtonSecondary,
+                  pressed && styles.confirmButtonPressed,
+                ]}
+                onPress={handleCancelSubmitSentence}
+              >
+                <Text style={styles.confirmSecondaryText}>Hủy</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.confirmButtonPrimary,
+                  pressed && styles.confirmButtonPressed,
+                ]}
+                onPress={handleConfirmSubmitSentence}
+              >
+                <Text style={styles.confirmPrimaryText}>Gửi</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Loading overlay khi đang chờ AI chấm điểm câu văn */}
+      {feedbackLoading && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color="#4CAF50" />
+            <Text style={styles.loadingText}>Đang chấm điểm câu văn...</Text>
+          </View>
+        </View>
+      )}
+
+      {/* Modal feedback chi tiết sau khi submit câu */}
+      <WordleFeedbackModal
+        visible={showFeedbackModal}
+        loading={feedbackLoading}
+        data={feedbackData}
+        onConfirm={handleFeedbackConfirm}
+      />
+
+      {/* Popup hỏi có muốn công khai câu văn */}
+      <WordlePublishPopup
+        visible={showPublishPopup}
+        loading={publishLoading}
+        onConfirm={handlePublishConfirm}
+        onCancel={handlePublishCancel}
+      />
+
+      {/* Result box + nút chơi lại */}
+      {(gameState === 'lost' || (gameState === 'won' && isSentenceSubmitted)) && (
+        <View style={styles.resultBox}>
+          <Text style={styles.resultText}>
+            {gameState === 'won'
+              ? '🎉 Chúc mừng bạn đã hoàn thành thử thách!'
+              : '😢 Rất tiếc! Hãy thử lại lần sau!'}
+          </Text>
+          {gameState === 'won' && (
+            <Text style={styles.finalSentence}>Câu văn của bạn: "{sentence}"</Text>
+          )}
+          <Pressable style={styles.restartBtn} onPress={handleRestart}>
+            <Text style={styles.restartText}>Chơi lại</Text>
+          </Pressable>
+        </View>
+      )}
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  sentenceBox: {
+    backgroundColor: '#fff',
+    width: '95%',
+    maxWidth: 800,
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+    marginTop: 20,
+  },
+  sentenceTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#6aaa64',
+    marginBottom: 5,
+  },
+  resultBox: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+    marginTop: 20,
+  },
+  resultText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  finalSentence: {
+    fontSize: 16,
+    fontStyle: 'italic',
+    color: '#444',
+    marginBottom: 20,
+    textAlign: 'center',
+    paddingHorizontal: 10,
+  },
+  restartBtn: {
+    backgroundColor: '#7FA14D',
+    paddingHorizontal: 30,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  restartText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 3200,
+  },
+  confirmCard: {
+    width: '90%',
+    maxWidth: 420,
+    backgroundColor: '#FFF5E6',
+    borderRadius: 24,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  confirmTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1C1C1C',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  confirmMessage: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#4E342E',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  confirmButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  confirmButtonPrimary: {
+    flex: 1,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 10,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confirmButtonSecondary: {
+    flex: 1,
+    backgroundColor: '#CFD8DC',
+    paddingVertical: 10,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confirmButtonPressed: {
+    opacity: 0.85,
+  },
+  confirmPrimaryText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  confirmSecondaryText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#37474F',
+  },
+  loadingOverlay: {
+    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 3300,
+  },
+  loadingCard: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 12,
+    elevation: 8,
+    minWidth: 260,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1B5E20',
+    textAlign: 'center',
+  },
+})
+
