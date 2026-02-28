@@ -29,31 +29,40 @@ export function WordleLevelPopup({ loading, levelsData = [], onClose, onSelectLe
     { id: 3, label: 'Mức độ', desc: 'Khó', bunny: HardBunny },
   ]
 
-  // Map isWon status từ levelsData
+  // Map status từ levelsData (won + hết lượt chơi)
   const levelsWithStatus = levels.map((level) => {
     const levelData = levelsData.find((ld) => ld.level === level.id)
+    const attemptCount = levelData?.attemptCount ?? 0
+    const maxAttempts = levelData?.maxAttempts ?? 0
+    const isWon = !!levelData?.isWon
+    const isOutOfAttempts = maxAttempts > 0 && attemptCount >= maxAttempts
+
     return {
       ...level,
-      isWon: levelData?.isWon || false,
+      isWon,
+      isOutOfAttempts,
+      attemptCount,
+      maxAttempts,
     }
   })
 
-  // Tìm level đầu tiên chưa won để làm default
-  const defaultLevel = levelsWithStatus.find((l) => !l.isWon) || levelsWithStatus[1]
+  // Tìm level đầu tiên chưa won và chưa hết lượt để làm default
+  const defaultLevel =
+    levelsWithStatus.find((l) => !l.isWon && !l.isOutOfAttempts) || levelsWithStatus[1]
   const [selectedId, setSelectedId] = React.useState(defaultLevel?.id || 2)
 
   const handleConfirm = () => {
     if (loading) return
     const selectedLevel = levelsWithStatus.find((l) => l.id === selectedId)
-    // Không cho confirm nếu level đã won
-    if (selectedLevel?.isWon) return
+    // Không cho confirm nếu level đã won hoặc đã dùng hết lượt chơi
+    if (selectedLevel?.isWon || selectedLevel?.isOutOfAttempts) return
     onSelectLevel(selectedId)
   }
 
   const handleLevelPress = (levelId) => {
     const level = levelsWithStatus.find((l) => l.id === levelId)
-    // Không cho chọn level đã won
-    if (level?.isWon) return
+    // Không cho chọn level đã won hoặc đã hết lượt
+    if (level?.isWon || level?.isOutOfAttempts) return
     setSelectedId(levelId)
   }
 
@@ -66,14 +75,15 @@ export function WordleLevelPopup({ loading, levelsData = [], onClose, onSelectLe
           {levelsWithStatus.map((level) => {
             const isSelected = level.id === selectedId
             const isWon = level.isWon
-            const isDisabled = isWon || loading
+            const isOutOfAttempts = level.isOutOfAttempts
+            const isDisabled = isWon || isOutOfAttempts || loading
             return (
               <Pressable
                 key={level.id}
                 style={[
                   styles.levelItem,
-                  isSelected && !isWon && styles.levelItemSelected,
-                  isWon && styles.levelItemWon,
+                  isSelected && !isWon && !isOutOfAttempts && styles.levelItemSelected,
+                  (isWon || isOutOfAttempts) && styles.levelItemWon,
                 ]}
                 disabled={isDisabled}
                 onPress={() => handleLevelPress(level.id)}

@@ -32,9 +32,13 @@ export function WordleRuleScreen({ basePath = '/minigame/wordle' }) {
         return
       }
 
-      // Kiểm tra nếu level đã won thì không cho chọn
-      if (levelData.isWon) {
-        console.log('[WordleRuleScreen] Level already won, cannot select')
+      const attemptCount = levelData.attemptCount ?? 0
+      const maxAttempts = levelData.maxAttempts ?? 0
+      const isOutOfAttempts = maxAttempts > 0 && attemptCount >= maxAttempts
+
+      // Nếu level đã thắng hoặc đã dùng hết lượt chơi thì không cho chọn
+      if (levelData.isWon || isOutOfAttempts) {
+        console.log('[WordleRuleScreen] Level already completed or out of attempts, cannot select')
         return
       }
 
@@ -42,6 +46,9 @@ export function WordleRuleScreen({ basePath = '/minigame/wordle' }) {
       query.set('level', String(difficultyLevel))
       if (levelData.dailyWordleId) query.set('dailyWordleId', String(levelData.dailyWordleId))
       if (levelData.wordLength) query.set('wordLength', String(levelData.wordLength))
+      if (Number.isFinite(attemptCount)) query.set('attemptCount', String(attemptCount))
+      if (Number.isFinite(maxAttempts) && maxAttempts > 0)
+        query.set('maxAttempts', String(maxAttempts))
 
       router.push(`${basePath}/wordle-play?${query.toString()}`)
     } catch (error) {

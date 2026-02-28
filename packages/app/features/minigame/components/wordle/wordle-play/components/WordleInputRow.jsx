@@ -56,7 +56,10 @@ export function WordleInputRow({ gridCells = [], length = 5, onCellClick, active
           }
         }}
       >
-        <View style={styles.dotsRow}>
+        <View
+          style={styles.dotsRow}
+          {...(i === 0 ? { nativeID: 'tour-feedback-dots' } : {})}
+        >
           {/* 3 chấm trống khi chưa có feedback */}
           {[0, 1, 2].map((idx) => (
             <View

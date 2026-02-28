@@ -9,8 +9,20 @@ export function WordlePlayScreen() {
   const dailyWordleId = searchParams?.get('dailyWordleId') || ''
   const wordLengthParam = searchParams?.get('wordLength')
   const wordLength = wordLengthParam ? Number(wordLengthParam) : undefined
+  const attemptCountParam = searchParams?.get('attemptCount')
+  const maxAttemptsParam = searchParams?.get('maxAttempts')
+  const attemptCount = attemptCountParam ? Number(attemptCountParam) : 0
+  const maxAttempts = maxAttemptsParam ? Number(maxAttemptsParam) : undefined
 
-  return <WordlePlayWeb level={level} dailyWordleId={dailyWordleId} initialWordLength={wordLength} />
+  return (
+    <WordlePlayWeb
+      level={level}
+      dailyWordleId={dailyWordleId}
+      initialWordLength={wordLength}
+      initialAttemptCount={attemptCount}
+      maxAttempts={maxAttempts}
+    />
+  )
 }
 
 export default WordlePlayScreen
