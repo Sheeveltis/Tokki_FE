@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { View, Text, StyleSheet, Platform } from 'react-native'
 import { motion } from 'framer-motion'
 
@@ -9,7 +9,26 @@ const HANGUL_ROWS = [
   ['ㅋ', 'ㅌ', 'ㅊ', 'ㅍ', 'ㅠ', 'ㅜ', 'ㅡ', 'ㅆ', 'ㄲ', 'ㄸ', 'ㅉ', 'ㅃ'],
 ]
 
-export function WordleKeyboard({ keyStatuses, onPress }) {
+export function WordleKeyboard({ rows = [], onKeyPress }) {
+  // Tính trạng thái từng phím dựa trên feedbacks từ API
+  const keyStatuses = useMemo(() => {
+    const map = {}
+    rows.forEach((row) => {
+      row.forEach((fb) => {
+        const { character, blockColor } = fb || {}
+        if (!character) return
+        const color = (blockColor || '').toLowerCase()
+        if (color === 'green') {
+          map[character] = 'correct'
+        } else if (color === 'yellow' && map[character] !== 'correct') {
+          map[character] = 'present'
+        } else if (color === 'gray' && !map[character]) {
+          map[character] = 'absent'
+        }
+      })
+    })
+    return map
+  }, [rows])
   const renderKey = (key) => {
     const status = keyStatuses?.[key]
     let keyStyle = [styles.key]
@@ -32,6 +51,17 @@ export function WordleKeyboard({ keyStatuses, onPress }) {
             textStyle = [styles.keyText, styles.whiteText]
           }
 
+    const handleKeyClick = () => {
+      if (!onKeyPress) return
+      if (key === 'Xóa') {
+        onKeyPress('BACKSPACE')
+      } else if (key === 'Gửi') {
+        onKeyPress('ENTER')
+      } else {
+        onKeyPress(key)
+      }
+    }
+
     if (Platform.OS === 'web') {
       return (
         <motion.div
@@ -51,12 +81,11 @@ export function WordleKeyboard({ keyStatuses, onPress }) {
             y: 5,
             boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
           }}
-          onClick={() => onPress(key)}
+          onClick={handleKeyClick}
           onMouseDown={(e) => {
-            // Ngăn chặn text selection khi click đúp
-            if (e.detail > 1) {
-              e.preventDefault()
-            }
+            // Giữ focus ở hidden IME input (tránh blur khi click bàn phím ảo)
+            // + ngăn text selection trên web
+            e.preventDefault()
           }}
         >
           <Text 
@@ -72,10 +101,10 @@ export function WordleKeyboard({ keyStatuses, onPress }) {
     // Fallback cho React Native
           return (
       <View
-              key={key}
-              style={keyStyle}
-        onTouchStart={() => onPress(key)}
-            >
+        key={key}
+        style={keyStyle}
+        onTouchStart={handleKeyClick}
+      >
         <Text 
           style={textStyle}
           selectable={false}

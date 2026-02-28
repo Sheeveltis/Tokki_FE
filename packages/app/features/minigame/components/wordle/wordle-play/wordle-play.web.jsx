@@ -1,140 +1,242 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'
-import { View, Text, StyleSheet, ImageBackground, Pressable, Platform, ActivityIndicator } from 'react-native'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { View, Text, StyleSheet, Image, ImageBackground, Pressable, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
 
 import { WordleGrid } from './components/WordleGrid'
-import { WordleInputBar } from './components/WordleInputBar'
 import { WordleKeyboard } from './components/WordleKeyboard'
-import { WordlePublishPopup } from './components/WordlePublishPopup'
-import { WordleFeedbackModal } from './components/WordleFeedbackModal'
+import { VolumeControl } from './components/VolumeControl'
+import { WordleSentenceFlow } from './components/WordleSentenceFlow'
+import { WordleMenuPopup } from './components/WordleMenuPopup'
+import { useKoreanWordleIME } from './useKoreanWordleIME'
 import BackgroundImage from '../../../../../../assets/BackgroundSolite.png'
-import ThemeMusic from '../../../../../../assets/sound-effect/solitare/theme.mp3'
+import MenuIcon from '../../../../../../assets/menu-solitare.png'
 import TapSound from '../../../../../../assets/sound-effect/solitare/tap.wav'
 import FailSound from '../../../../../../assets/sound-effect/solitare/fail.wav'
 import SuccessSound from '../../../../../../assets/sound-effect/solitare/success.wav'
-import { submitWordleGuess, getWordleResult, submitWordleSentence, publishWordleSentence } from '../../../api/wordle-level-api'
+import { submitWordleGuess, getWordleResult } from '../../../api/wordle-level-api'
 
-// Các jamo Hangul cho bàn phím
-const HANGUL_JAMO = [
-  'ㅂ', 'ㅈ', 'ㄷ', 'ㄱ', 'ㅅ', 'ㅛ', 'ㅕ', 'ㅑ', 'ㅐ', 'ㅔ',
-  'ㅁ', 'ㄴ', 'ㅇ', 'ㄹ', 'ㅎ', 'ㅗ', 'ㅓ', 'ㅏ', 'ㅣ',
-  'ㅋ', 'ㅌ', 'ㅊ', 'ㅍ', 'ㅠ', 'ㅜ', 'ㅡ', 'ㅆ', 'ㄲ', 'ㄸ', 'ㅉ', 'ㅃ'
-]
-
-// Mapping jamo to Hangul composition indices
-const INITIAL_CONSONANTS = {
-  'ㄱ': 0, 'ㄲ': 1, 'ㄴ': 2, 'ㄷ': 3, 'ㄸ': 4, 'ㄹ': 5, 'ㅁ': 6, 'ㅂ': 7, 'ㅃ': 8,
-  'ㅅ': 9, 'ㅆ': 10, 'ㅇ': 11, 'ㅈ': 12, 'ㅉ': 13, 'ㅊ': 14, 'ㅋ': 15, 'ㅌ': 16, 'ㅍ': 17, 'ㅎ': 18
-}
-
-const VOWELS = {
-  'ㅏ': 0, 'ㅐ': 1, 'ㅑ': 2, 'ㅒ': 3, 'ㅓ': 4, 'ㅔ': 5, 'ㅕ': 6, 'ㅖ': 7,
-  'ㅗ': 8, 'ㅘ': 9, 'ㅙ': 10, 'ㅚ': 11, 'ㅛ': 12, 'ㅜ': 13, 'ㅝ': 14, 'ㅞ': 15,
-  'ㅟ': 16, 'ㅠ': 17, 'ㅡ': 18, 'ㅢ': 19, 'ㅣ': 20
-}
-
-const FINAL_CONSONANTS = {
-  'ㄱ': 1, 'ㄲ': 2, 'ㄳ': 3, 'ㄴ': 4, 'ㄵ': 5, 'ㄶ': 6, 'ㄷ': 7, 'ㄹ': 8,
-  'ㄺ': 9, 'ㄻ': 10, 'ㄼ': 11, 'ㄽ': 12, 'ㄾ': 13, 'ㄿ': 14, 'ㅀ': 15,
-  'ㅁ': 16, 'ㅂ': 17, 'ㅄ': 18, 'ㅅ': 19, 'ㅆ': 20, 'ㅇ': 21, 'ㅈ': 22,
-  'ㅊ': 23, 'ㅋ': 24, 'ㅌ': 25, 'ㅍ': 26, 'ㅎ': 27
-}
-
-// Mapping các nguyên âm kép (diphthongs)
-const DIPHTHONGS = {
-  'ㅗㅏ': 'ㅘ',  // ㅗ + ㅏ = ㅘ
-  'ㅜㅓ': 'ㅝ',  // ㅜ + ㅓ = ㅝ
-  'ㅡㅣ': 'ㅢ',  // ㅡ + ㅣ = ㅢ
-  'ㅗㅣ': 'ㅚ',  // ㅗ + ㅣ = ㅚ
-}
-
-// Hàm ghép jamo thành ký tự Hangul
-function composeHangul(jamoSequence) {
-  if (!jamoSequence || jamoSequence.length === 0) return ''
-  
-  // Tạo một bản sao để xử lý
-  let processedSequence = [...jamoSequence]
-  
-  // Xử lý các nguyên âm kép trước
-  // Kiểm tra từ đầu đến cuối để tìm các cặp nguyên âm kép
-  for (let i = 0; i < processedSequence.length - 1; i++) {
-    const pair = processedSequence[i] + processedSequence[i + 1]
-    if (DIPHTHONGS[pair]) {
-      // Thay thế cặp nguyên âm bằng nguyên âm kép
-      processedSequence.splice(i, 2, DIPHTHONGS[pair])
-      break // Chỉ xử lý một cặp tại một thời điểm
-    }
-  }
-  
-  let initial = null
-  let vowel = null
-  let final = null
-  
-  for (const jamo of processedSequence) {
-    if (INITIAL_CONSONANTS.hasOwnProperty(jamo) && initial === null) {
-      initial = INITIAL_CONSONANTS[jamo]
-    } else if (VOWELS.hasOwnProperty(jamo) && vowel === null && initial !== null) {
-      vowel = VOWELS[jamo]
-    } else if (FINAL_CONSONANTS.hasOwnProperty(jamo) && vowel !== null && final === null) {
-      final = FINAL_CONSONANTS[jamo]
-    }
-  }
-  
-  // Nếu chưa đủ initial và vowel, trả về chuỗi jamo gốc
-  if (initial === null || vowel === null) {
-    return jamoSequence.join('')
-  }
-  
-  // Ghép thành ký tự Hangul: (initial * 588) + (vowel * 28) + final + 0xAC00
-  const codePoint = 0xAC00 + (initial * 588) + (vowel * 28) + (final || 0)
-  return String.fromCharCode(codePoint)
-}
-
-export function WordlePlayWeb({ level = 1, dailyWordleId, initialWordLength }) {
+export function WordlePlayWeb({ level: _level = 1, dailyWordleId, initialWordLength }) {
   const router = useRouter()
   const WORD_LENGTH = initialWordLength || 2
   const MAX_GUESSES = 6
   const TOPIC_NAME = '' // backend có thể trả sau
   const [rows, setRows] = useState([]) // mỗi row = mảng feedbacks từ API
-  const [currentGuess, setCurrentGuess] = useState('') // Chuỗi ký tự Hangul đã ghép
-  const [currentJamoSequences, setCurrentJamoSequences] = useState([]) // Mảng các sequence jamo cho mỗi ô
   const [gameState, setGameState] = useState('playing') // 'playing', 'won', 'lost'
-  const [sentence, setSentence] = useState('')
-  const [isSentenceSubmitted, setIsSentenceSubmitted] = useState(false)
   const [targetWord, setTargetWord] = useState('') // Từ đã đoán đúng
-  const [showPublishPopup, setShowPublishPopup] = useState(false)
-  const [submissionId, setSubmissionId] = useState('')
-  const [publishLoading, setPublishLoading] = useState(false)
-  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false)
-  const [feedbackData, setFeedbackData] = useState(null)
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
-  const [feedbackLoading, setFeedbackLoading] = useState(false)
+  const [showMenuPopup, setShowMenuPopup] = useState(false)
   
-  // Audio refs
-  const backgroundMusicRef = useRef(null)
+  // Audio refs (sound effects)
   const tapSoundRef = useRef(null)
   const failSoundRef = useRef(null)
   const successSoundRef = useRef(null)
-  
-  // Dùng các jamo Hangul cố định cho bàn phím
-  const keyboardKeys = HANGUL_JAMO
 
-  // Initialize audio
-  useEffect(() => {
-    // Background music
-    if (!backgroundMusicRef.current) {
-      backgroundMusicRef.current = new Audio(ThemeMusic)
-      backgroundMusicRef.current.loop = true
-      backgroundMusicRef.current.volume = 0.5
-      
-      const playPromise = backgroundMusicRef.current.play()
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.log('Background music will play after user interaction')
-        })
-      }
+  // Korean IME cho active row
+  const {
+    gridCells,
+    activeColIndex,
+    activeColIndexRef,
+    focusCell,
+    handlePhysicalKeyDown,
+    handleVirtualKey,
+    handleIMEText,
+    resetRow,
+    getCommittedWord,
+  } = useKoreanWordleIME({
+    wordLength: WORD_LENGTH,
+    onSubmitRow: (word) => {
+      submitRow(word)
+    },
+  })
+
+  const hiddenImeInputRef = useRef(null)
+  const composingRef = useRef(false)
+  const compositionStartColRef = useRef(0)
+  const lastComposingTextRef = useRef('')
+
+  const focusHiddenImeInput = useCallback(() => {
+    if (Platform.OS !== 'web') return
+    const input = hiddenImeInputRef.current
+    if (!input) return
+    try {
+      input.focus()
+    } catch (e) {
+      // ignore
     }
+  }, [])
 
+  const clearHiddenImeInput = useCallback(() => {
+    const input = hiddenImeInputRef.current
+    if (!input) return
+    input.value = ''
+  }, [])
+
+  const handleHiddenInputCompositionStart = useCallback(() => {
+    composingRef.current = true
+    // Dùng ref để tránh stale state khi IME events đến nhanh (vd gõ "가" rồi "나" bị đè ô 1)
+    compositionStartColRef.current = activeColIndexRef?.current ?? activeColIndex
+    lastComposingTextRef.current = ''
+  }, [activeColIndex, activeColIndexRef])
+
+  const handleHiddenInputCompositionUpdate = useCallback(
+    (e) => {
+      if (gameState !== 'playing') return
+      const input = hiddenImeInputRef.current
+      const composingText = e?.data || input?.value || ''
+      if (!composingText) return
+      lastComposingTextRef.current = composingText
+      // Phase update: preview theo startCol của phiên composition (để IME có thể đổi "관" -> "과나")
+      handleIMEText(composingText, { phase: 'update', startCol: compositionStartColRef.current })
+    },
+    [gameState, handleIMEText]
+  )
+
+  const handleHiddenInputCompositionEnd = useCallback(
+    (e) => {
+      composingRef.current = false
+      const input = hiddenImeInputRef.current
+      // Một số browser/IME không set e.data ở compositionend, nên fallback sang ref/value
+      const committedText = e?.data || lastComposingTextRef.current || input?.value || ''
+      if (gameState === 'playing' && committedText) {
+        // Phase end: commit hoàn toàn, được phép move cột nếu cần
+        handleIMEText(committedText, { phase: 'end', startCol: compositionStartColRef.current })
+      }
+      lastComposingTextRef.current = ''
+      if (input) {
+        input.value = ''
+      }
+    },
+    [gameState, handleIMEText]
+  )
+
+  const handleHiddenInputBeforeInput = useCallback(
+    (e) => {
+      if (gameState !== 'playing') return
+      const nativeEvt = e.nativeEvent || e
+      const inputType = nativeEvt?.inputType
+      const data = nativeEvt?.data || ''
+  
+      // 1) chặn paste
+      if (inputType === 'insertFromPaste') {
+        e.preventDefault?.()
+        return
+      }
+  
+      // 2) gõ ký tự thường (không phải composition)
+      if (inputType === 'insertText' && !nativeEvt?.isComposing) {
+        e.preventDefault?.()
+        if (data) {
+          handleIMEText(data, {
+            phase: 'end',
+            startCol: activeColIndexRef?.current ?? activeColIndex,
+          })
+        }
+        return
+      }
+  
+      // 3) backspace
+      if (inputType === 'deleteContentBackward') {
+        e.preventDefault?.()
+        handleVirtualKey('BACKSPACE')
+        return
+      }
+  
+      // 4) enter
+      if (inputType === 'insertLineBreak') {
+        e.preventDefault?.()
+        handleVirtualKey('ENTER')
+        return
+      }
+    },
+    [activeColIndex, activeColIndexRef, gameState, handleIMEText, handleVirtualKey]
+  )
+
+  const handleHiddenInputInput = useCallback(
+    (e) => {
+      const input = hiddenImeInputRef.current
+      const value = e?.target?.value || input?.value || ''
+      if (gameState !== 'playing' || !value) return
+
+      // Nếu đang composing, để IME xử lý qua compositionupdate/end
+      if (composingRef.current) {
+        // IMPORTANT: Không clear input.value trong lúc composing (Microsoft IME có thể bị mất state)
+        return
+      }
+
+      // Không có composition → text đã finalized
+      handleIMEText(value, {
+        phase: 'end',
+        startCol: activeColIndexRef?.current ?? activeColIndex,
+      })
+      if (input) {
+        input.value = ''
+      }
+    },
+    [activeColIndex, activeColIndexRef, gameState, handleIMEText]
+  )
+
+  const handleHiddenInputBlur = useCallback(() => {
+    requestAnimationFrame(() => {
+      focusHiddenImeInput()
+    })
+  }, [focusHiddenImeInput])
+
+  const handleHiddenInputKeyDown = useCallback(
+    (e) => {
+      if (gameState !== 'playing') return
+
+      // đang IME composing thì để composition events xử lý
+      if (composingRef.current || e?.isComposing) return
+
+      // không chặn Ctrl/Meta/Alt để tránh phá shortcut trình duyệt
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+
+      const key = e?.key
+
+      // Ngăn browser nhập trực tiếp vào input (đặc biệt với phím printable)
+      // rồi route qua cùng logic như virtual keyboard / IME
+      if (
+        key === 'Backspace' ||
+        key === 'Enter' ||
+        key === 'ArrowLeft' ||
+        key === 'ArrowRight' ||
+        key === ' ' ||
+        (typeof key === 'string' && key.length === 1)
+      ) {
+        e.preventDefault?.()
+      }
+
+      handlePhysicalKeyDown(e)
+
+      // đảm bảo hidden input luôn rỗng, tránh browser giữ text
+      clearHiddenImeInput()
+    },
+    [gameState, handlePhysicalKeyDown, clearHiddenImeInput]
+  )
+
+  const handleHiddenInputPaste = useCallback((e) => {
+    // chặn paste (nhưng không đụng tới các shortcut khác)
+    e.preventDefault?.()
+    e.stopPropagation?.()
+    return false
+  }, [])
+
+  const handleCellClick = useCallback(
+    (index) => {
+      focusCell(index)
+      focusHiddenImeInput()
+    },
+    [focusCell, focusHiddenImeInput]
+  )
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return
+    if (gameState !== 'playing') return
+    focusHiddenImeInput()
+    clearHiddenImeInput()
+  }, [gameState, focusHiddenImeInput, clearHiddenImeInput])
+
+  // Initialize sound effects
+  useEffect(() => {
     // Tap sound
     if (!tapSoundRef.current) {
       tapSoundRef.current = new Audio(TapSound)
@@ -153,148 +255,15 @@ export function WordlePlayWeb({ level = 1, dailyWordleId, initialWordLength }) {
       successSoundRef.current.volume = 0.8
     }
 
-    return () => {
-      if (backgroundMusicRef.current) {
-        backgroundMusicRef.current.pause()
-        backgroundMusicRef.current = null
-      }
-    }
+    return () => {}
   }, [])
 
-  const handleKeyClick = (key) => {
+  // NOTE: Không bắt keydown/paste ở window để tránh phá hành vi browser.
+  // Thay vào đó: bắt ngay trên hidden IME input (focus-trap) để mọi input đi qua cùng logic.
+
+  const submitRow = async (guessWord) => {
     if (gameState !== 'playing') return
-
-    // Phát tap sound khi click phím (trừ nút Gửi và Xóa)
-    if (key !== 'Gửi' && key !== 'Xóa' && tapSoundRef.current) {
-      tapSoundRef.current.currentTime = 0
-      tapSoundRef.current.play().catch(err => console.log('Tap sound play error:', err))
-    }
-
-    if (key === 'Xóa') {
-      // Xóa jamo cuối cùng trong ô hiện tại
-      setCurrentJamoSequences(prev => {
-        const newSequences = [...prev]
-        if (newSequences.length === 0) return prev
-        
-        const lastIndex = newSequences.length - 1
-        const lastSequence = newSequences[lastIndex]
-        
-        if (lastSequence && lastSequence.length > 0) {
-          // Xóa jamo cuối cùng trong ô cuối
-          newSequences[lastIndex] = lastSequence.slice(0, -1)
-          // Nếu ô đó trở thành rỗng, xóa cả ô đó
-          if (newSequences[lastIndex].length === 0) {
-            newSequences.pop()
-          }
-        } else {
-          // Nếu ô cuối đã rỗng, xóa cả ô đó
-          newSequences.pop()
-        }
-        
-        // Cập nhật currentGuess
-        const newGuess = newSequences.map(seq => composeHangul(seq)).join('')
-        setCurrentGuess(newGuess)
-        return newSequences
-      })
-    } else if (key === 'Gửi') {
-      handleSubmit()
-    } else if (currentJamoSequences.length < WORD_LENGTH || 
-               (currentJamoSequences.length > 0 && currentJamoSequences[currentJamoSequences.length - 1].length < 3)) {
-      // Thêm jamo vào ô đang nhập (ô cuối cùng chưa đủ 3 jamo)
-      setCurrentJamoSequences(prev => {
-        const newSequences = [...prev]
-        
-        // Tìm ô cuối cùng chưa đủ 3 jamo
-        let targetIndex = -1
-        for (let i = 0; i < newSequences.length; i++) {
-          const seq = newSequences[i] || []
-          if (seq.length < 3) {
-            targetIndex = i
-            break
-          }
-        }
-        
-        // Nếu tất cả các ô đã đủ 3 jamo và chưa đủ WORD_LENGTH ô, tạo ô mới
-        if (targetIndex === -1 && newSequences.length < WORD_LENGTH) {
-          targetIndex = newSequences.length
-        }
-        
-        // Nếu không tìm thấy ô hợp lệ, không thêm
-        if (targetIndex === -1 || targetIndex >= WORD_LENGTH) {
-          return prev
-        }
-        
-        if (!newSequences[targetIndex]) {
-          newSequences[targetIndex] = []
-        }
-        
-        // Chỉ thêm nếu chưa đủ 3 jamo
-        if (newSequences[targetIndex].length < 3) {
-          newSequences[targetIndex] = [...newSequences[targetIndex], key]
-        }
-        
-        // Cập nhật currentGuess với ký tự Hangul đã ghép
-        const newGuess = newSequences.map(seq => composeHangul(seq)).join('')
-        setCurrentGuess(newGuess)
-        return newSequences
-      })
-    }
-  }
-
-  // Hỗ trợ bàn phím vật lý và ngăn chặn paste
-  useEffect(() => {
-    const handlePaste = (e) => {
-      e.preventDefault()
-      e.stopPropagation()
-      return false
-    }
-
-    const handleKeyDown = (e) => {
-      if (gameState !== 'playing') return
-
-      if (e.key === 'Backspace') {
-        e.preventDefault()
-        handleKeyClick('Xóa')
-      } else if (e.key === 'Enter') {
-        e.preventDefault()
-        handleKeyClick('Gửi')
-      } else if (e.ctrlKey && (e.key === 'v' || e.key === 'V')) {
-        // Ngăn chặn paste
-        e.preventDefault()
-        e.stopPropagation()
-        return false
-      } else {
-        // Cho phép nhập jamo từ bàn phím vật lý
-        if (keyboardKeys.includes(e.key)) {
-          e.preventDefault()
-          handleKeyClick(e.key)
-        }
-      }
-    }
-
-    if (Platform.OS === 'web') {
-      window.addEventListener('keydown', handleKeyDown)
-      window.addEventListener('paste', handlePaste)
-      // Ngăn chặn drag & drop
-      window.addEventListener('dragover', (e) => e.preventDefault())
-      window.addEventListener('drop', (e) => e.preventDefault())
-    }
-    return () => {
-      if (Platform.OS === 'web') {
-        window.removeEventListener('keydown', handleKeyDown)
-        window.removeEventListener('paste', handlePaste)
-        window.removeEventListener('dragover', (e) => e.preventDefault())
-        window.removeEventListener('drop', (e) => e.preventDefault())
-      }
-    }
-  }, [gameState, currentGuess, keyboardKeys])
-
-  const handleSubmit = async () => {
-    if (gameState !== 'playing') return
-    // Kiểm tra xem tất cả các ô đã có đủ 3 jamo chưa
-    const allCellsComplete = currentJamoSequences.length === WORD_LENGTH && 
-                              currentJamoSequences.every(seq => seq && seq.length === 3)
-    if (!allCellsComplete || currentGuess.length !== WORD_LENGTH) return
+    if (!guessWord || guessWord.length !== WORD_LENGTH) return
     if (!dailyWordleId) {
       console.error('[WordlePlayWeb] Missing dailyWordleId')
       return
@@ -302,9 +271,8 @@ export function WordlePlayWeb({ level = 1, dailyWordleId, initialWordLength }) {
 
     try {
       // guessWord là chuỗi không có khoảng cách giữa các chữ
-      const guessWord = currentGuess.replace(/\s/g, '')
-      
-      const data = await submitWordleGuess(dailyWordleId, guessWord)
+      const normalizedGuess = guessWord.replace(/\s/g, '')
+      const data = await submitWordleGuess(dailyWordleId, normalizedGuess)
       const { isWon, isGameOver, feedbacks } = data || {}
 
       if (Array.isArray(feedbacks)) {
@@ -346,169 +314,49 @@ export function WordlePlayWeb({ level = 1, dailyWordleId, initialWordLength }) {
         if (isWon && !allGreen) {
           const guessedWord = feedbacks.map(fb => fb.character || '').join('')
           setTargetWord(guessedWord)
-          setGameState('won')
+      setGameState('won')
         } else if (isGameOver) {
-          setGameState('lost')
-        }
-      }
+      setGameState('lost')
+    }
+  }
 
       // Reset để nhập lượt tiếp theo
-      setCurrentGuess('')
-      setCurrentJamoSequences([])
+      resetRow()
     } catch (error) {
       console.error('[WordlePlayWeb] submit guess error:', error)
     }
 
   }
 
-  // B1: khi bấm submit trên InputBar -> hỏi confirm trước
-  const handleSentenceSubmit = () => {
-    if (!sentence.trim()) {
-      console.error('[WordlePlayWeb] Sentence is empty')
-      return
-    }
-    if (!dailyWordleId) {
-      console.error('[WordlePlayWeb] Missing dailyWordleId')
-      return
-    }
-    setShowSubmitConfirm(true)
+  // Handle menu popup
+  const handleMenuClick = () => {
+    setShowMenuPopup(true)
   }
 
-  // B2: sau khi confirm mới gọi API submit-sentence và hiển thị feedback modal
-  const handleConfirmSubmitSentence = async () => {
-    if (!sentence.trim()) {
-      setShowSubmitConfirm(false)
-      return
-    }
-    if (!dailyWordleId) {
-      console.error('[WordlePlayWeb] Missing dailyWordleId')
-      setShowSubmitConfirm(false)
-      return
-    }
-
-    setShowSubmitConfirm(false)
-
-    try {
-      setFeedbackLoading(true)
-      // Giới hạn 150 ký tự
-      const sentenceContent = sentence.trim().substring(0, 150)
-
-      const response = await submitWordleSentence(dailyWordleId, sentenceContent)
-
-      // Lấy submissionId từ response
-      const id = response?.submissionId || response?.data?.submissionId || response?.id
-      if (id) {
-        setSubmissionId(id)
-      }
-
-      // Lưu feedback để hiển thị trong modal
-      const feedbackPayload = {
-        targetWord: response?.targetWord || '',
-        meaningText: response?.meaning || '',
-        aiFeedback: response?.aiFeedback || {},
-      }
-
-      setFeedbackData(feedbackPayload)
-      setIsSentenceSubmitted(true)
-      setShowFeedbackModal(true)
-    } catch (error) {
-      console.error('[WordlePlayWeb] Error submitting sentence:', error)
-    } finally {
-      setFeedbackLoading(false)
-    }
+  const handleContinue = () => {
+    setShowMenuPopup(false)
   }
 
-  const handleCancelSubmitSentence = () => {
-    setShowSubmitConfirm(false)
+  const handleQuit = () => {
+    setShowMenuPopup(false)
+    router.back()
   }
-
-  // B3: sau khi xem feedback, quyết định có được phép publish hay không
-  const handleFeedbackConfirm = () => {
-    if (!feedbackData?.aiFeedback) {
-      setShowFeedbackModal(false)
-      return
-    }
-
-    const totalScore = Number(feedbackData.aiFeedback.totalScore ?? 0)
-    setShowFeedbackModal(false)
-
-    if (totalScore > 80) {
-      // Cho phép publish -> hiện popup publish
-      setShowPublishPopup(true)
-    } else {
-      // Không đủ điểm -> chuyển thẳng sang bảng xếp hạng
-      router.push(`/minigame/wordle/wordle-board?dailyWordleId=${dailyWordleId}`)
-    }
-  }
-
-  const handlePublishConfirm = async () => {
-    if (!submissionId) {
-      console.error('[WordlePlayWeb] Missing submissionId')
-      setShowPublishPopup(false)
-      return
-    }
-
-    try {
-      setPublishLoading(true)
-      await publishWordleSentence(submissionId, true, false) // isPublic: true, isAnonymous: false
-      setShowPublishPopup(false)
-      // Navigate đến wordle-board sau khi publish thành công
-      router.push(`/minigame/wordle/wordle-board?dailyWordleId=${dailyWordleId}`)
-    } catch (error) {
-      console.error('[WordlePlayWeb] Error publishing sentence:', error)
-    } finally {
-      setPublishLoading(false)
-    }
-  }
-
-  const handlePublishCancel = async () => {
-    if (!submissionId) {
-      console.error('[WordlePlayWeb] Missing submissionId')
-      setShowPublishPopup(false)
-      return
-    }
-
-    try {
-      setPublishLoading(true)
-      await publishWordleSentence(submissionId, false, true) // isPublic: false, isAnonymous: true
-      setShowPublishPopup(false)
-      // Navigate đến wordle-board sau khi set private thành công
-      router.push(`/minigame/wordle/wordle-board?dailyWordleId=${dailyWordleId}`)
-    } catch (error) {
-      console.error('[WordlePlayWeb] Error setting sentence to private:', error)
-    } finally {
-      setPublishLoading(false)
-    }
-  }
-
-  // Tính toán trạng thái của từng phím dựa trên feedbacks từ API
-  const keyStatuses = useMemo(() => {
-    const map = {}
-    rows.forEach((row) => {
-      row.forEach((fb) => {
-        const { character, blockColor } = fb || {}
-        if (!character) return
-        const color = (blockColor || '').toLowerCase()
-        if (color === 'green') {
-          map[character] = 'correct'
-        } else if (color === 'yellow' && map[character] !== 'correct') {
-          map[character] = 'present'
-        } else if (color === 'gray' && !map[character]) {
-          map[character] = 'absent'
-        }
-      })
-    })
-    return map
-  }, [rows])
 
   return (
     <ImageBackground source={BackgroundImage} style={styles.container}>
       <View style={styles.overlay}>
         <View style={styles.header}>
+          {/* Volume control (Howler + slider) góc trái */}
+          <View style={styles.volumeWrapper}>
+            <VolumeControl />
+          </View>
+
           <Text style={styles.title}>Wordle</Text>
           <Text style={styles.topic}>Chủ đề: {TOPIC_NAME}</Text>
-          <Pressable style={styles.backBtn} onPress={() => router.back()}>
-            <Text style={styles.backText}>← Trở lại</Text>
+          
+          {/* Menu button - right side (dùng icon gỗ giống Solitare) */}
+          <Pressable style={styles.menuBtn} onPress={handleMenuClick}>
+            <Image source={MenuIcon} style={styles.menuIcon} />
           </Pressable>
         </View>
 
@@ -521,21 +369,10 @@ export function WordlePlayWeb({ level = 1, dailyWordleId, initialWordLength }) {
                 maxGuesses={MAX_GUESSES}
                 wordLength={WORD_LENGTH}
                 targetWord={targetWord}
-                currentGuess={currentGuess}
-                jamoSequences={currentJamoSequences}
+                gridCells={gridCells}
                 gameState={gameState}
-                onCellClick={(index) => {
-                  // Khi click vào cell, focus vào ô đó
-                  if (index <= currentGuess.length) {
-                    // Cắt currentGuess và currentJamoSequences đến index đó
-                    setCurrentJamoSequences(prev => {
-                      const newSequences = prev.slice(0, index)
-                      const newGuess = newSequences.map(seq => composeHangul(seq)).join('')
-                      setCurrentGuess(newGuess)
-                      return newSequences
-                    })
-                  }
-                }}
+                activeColIndex={activeColIndex}
+                onCellClick={handleCellClick}
               />
             </View>
           </View>
@@ -544,107 +381,52 @@ export function WordlePlayWeb({ level = 1, dailyWordleId, initialWordLength }) {
           {gameState === 'playing' && (
             <View style={styles.keyboardContainer}>
               <WordleKeyboard
-                keyStatuses={keyStatuses}
-                onPress={handleKeyClick}
+                rows={rows}
+                onKeyPress={handleVirtualKey}
               />
             </View>
           )}
 
-          {/* InputBar - chỉ hiện khi đoán xong từ */}
-          {gameState === 'won' && !isSentenceSubmitted && (
-            <View style={styles.sentenceBox}>
-              <Text style={styles.sentenceTitle}>Hãy nhập 1 câu có chứa từ mà bạn đã đoán đúng</Text>
-              <WordleInputBar
-                value={sentence}
-                onChange={setSentence}
-                onSubmit={handleSentenceSubmit}
-                maxLength={150}
-                disabled={false}
-              />
-            </View>
-          )}
-
-          {/* Popup confirm trước khi gửi câu văn cho AI chấm điểm */}
-          {showSubmitConfirm && (
-            <View style={styles.modalOverlay}>
-              <View style={styles.confirmCard}>
-                <Text style={styles.confirmTitle}>Bạn có chắc chắn muốn gửi câu văn này?</Text>
-                <Text style={styles.confirmMessage}>
-                  Câu của bạn sẽ được gửi để AI chấm điểm và đưa ra nhận xét.
-                </Text>
-                <View style={styles.confirmButtons}>
-                  <Pressable
-                    style={({ pressed }) => [
-                      styles.confirmButtonSecondary,
-                      pressed && styles.confirmButtonPressed,
-                    ]}
-                    onPress={handleCancelSubmitSentence}
-                  >
-                    <Text style={styles.confirmSecondaryText}>Hủy</Text>
-                  </Pressable>
-                  <Pressable
-                    style={({ pressed }) => [
-                      styles.confirmButtonPrimary,
-                      pressed && styles.confirmButtonPressed,
-                    ]}
-                    onPress={handleConfirmSubmitSentence}
-                  >
-                    <Text style={styles.confirmPrimaryText}>Gửi</Text>
-                  </Pressable>
-                </View>
-              </View>
-            </View>
-          )}
-
-          {/* Loading overlay khi đang chờ AI chấm điểm câu văn */}
-          {feedbackLoading && (
-            <View style={styles.loadingOverlay}>
-              <View style={styles.loadingCard}>
-                <ActivityIndicator size="large" color="#4CAF50" />
-                <Text style={styles.loadingText}>Đang chấm điểm câu văn...</Text>
-              </View>
-            </View>
-          )}
-
-          {/* Modal feedback chi tiết sau khi submit câu */}
-          <WordleFeedbackModal
-            visible={showFeedbackModal}
-            loading={feedbackLoading}
-            data={feedbackData}
-            onConfirm={handleFeedbackConfirm}
+          <WordleSentenceFlow
+            gameState={gameState}
+            dailyWordleId={dailyWordleId}
+            onNavigateToBoard={() =>
+              router.push(`/minigame/wordle/wordle-board?dailyWordleId=${dailyWordleId}`)
+            }
+            onRestart={() => {
+              setRows([])
+              setGameState('playing')
+              resetRow()
+              setTargetWord('')
+            }}
           />
-
-          {/* Popup hỏi có muốn công khai câu văn */}
-          <WordlePublishPopup
-            visible={showPublishPopup}
-            loading={publishLoading}
-            onConfirm={handlePublishConfirm}
-            onCancel={handlePublishCancel}
-          />
-
-          {(gameState === 'lost' || (gameState === 'won' && isSentenceSubmitted)) && (
-            <View style={styles.resultBox}>
-              <Text style={styles.resultText}>
-                {gameState === 'won' ? '🎉 Chúc mừng bạn đã hoàn thành thử thách!' : '😢 Rất tiếc! Hãy thử lại lần sau!'}
-              </Text>
-              {gameState === 'won' && (
-                <Text style={styles.finalSentence}>Câu văn của bạn: "{sentence}"</Text>
-              )}
-              <Pressable style={styles.restartBtn} onPress={() => {
-      setRows([])
-      setGameState('playing')
-      setCurrentGuess('')
-      setCurrentJamoSequences([])
-      setSentence('')
-      setIsSentenceSubmitted(false)
-      setTargetWord('')
-              }}>
-                <Text style={styles.restartText}>Chơi lại</Text>
-              </Pressable>
-            </View>
-          )}
         </View>
       </View>
+
+      {/* Hidden IME input for Korean composition on web */}
+      {Platform.OS === 'web' && (
+        <input
+          ref={hiddenImeInputRef}
+          style={styles.hiddenImeInput}
+          autoCorrect="off"
+          autoCapitalize="none"
+          spellCheck={false}
+          tabIndex={-1}
+          onKeyDown={handleHiddenInputKeyDown}
+          onPaste={handleHiddenInputPaste}
+          onCompositionStart={handleHiddenInputCompositionStart}
+          onCompositionUpdate={handleHiddenInputCompositionUpdate}
+          onCompositionEnd={handleHiddenInputCompositionEnd}
+          onBeforeInput={handleHiddenInputBeforeInput}
+          onInput={handleHiddenInputInput}
+          onBlur={handleHiddenInputBlur}
+        />
+      )}
+
+      {/* Menu Popup */}
+      {showMenuPopup && (
+        <WordleMenuPopup onContinue={handleContinue} onQuit={handleQuit} />
+      )}
     </ImageBackground>
   )
 }
@@ -667,6 +449,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 10,
   },
+  volumeWrapper: {
+    position: 'absolute',
+    left: 20,
+    top: 0,
+  },
   title: {
     fontSize: 24,
     fontWeight: '900',
@@ -679,18 +466,17 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontWeight: '600',
   },
-  backBtn: {
+  menuBtn: {
     position: 'absolute',
     right: 20,
     top: 0,
-    backgroundColor: '#F1BE4B',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
-  backText: {
-    fontWeight: '700',
-    fontSize: 14,
+  menuIcon: {
+    width: 80,
+    height: 36,
+    resizeMode: 'contain',
   },
   content: {
     flex: 1,
@@ -865,7 +651,7 @@ const styles = StyleSheet.create({
     color: '#37474F',
   },
   loadingOverlay: {
-    position: 'absolute',
+    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
     top: 0,
     left: 0,
     right: 0,
@@ -902,6 +688,19 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: '#E0E0E0',
     marginTop: 16,
+  },
+  hiddenImeInput: {
+    position: 'absolute',
+    left: -9999,
+    width: 1,
+    height: 1,
+    opacity: 0,
+    borderWidth: 0,
+    outlineStyle: 'none',
+    boxShadow: 'none',
+    backgroundColor: 'transparent',
+    caretColor: 'transparent',
+    pointerEvents: 'none',
   },
 })
 
