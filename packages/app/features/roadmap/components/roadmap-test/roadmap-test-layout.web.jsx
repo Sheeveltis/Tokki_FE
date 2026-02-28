@@ -20,6 +20,10 @@ const normalizeImageSource = (src) => {
 
 const DEFAULT_EXAM_ID = 'kjyv9q3dac'
 
+// Đảm bảo trong 1 lần load bundle chỉ gọi API take-exam đúng 1 lần
+// (kể cả khi React StrictMode mount/unmount component 2 lần)
+let startExamOncePromise = null
+
 const isQ51 = (questionTypeCode) => String(questionTypeCode || '').slice(-3) === 'Q51'
 
 const parseQ51AnswerContent = (answerContent) => {
@@ -173,12 +177,28 @@ const buildAllMcqAnswersPayload = (sections, allAnswersState) => {
 
 // Bước 1: Take exam để lấy userExamId
 const startExam = async (examId = DEFAULT_EXAM_ID, isShuffle = true) => {
+  // Nếu đã có promise đang/đã gọi rồi thì luôn dùng lại (tránh gọi 2 lần API)
+  if (startExamOncePromise) {
+    return startExamOncePromise
+  }
+
   const url = ENDPOINTS.USER_EXAM?.TAKE_EXAM
     ? ENDPOINTS.USER_EXAM.TAKE_EXAM(examId, isShuffle)
     : `/UserExam/user/take-exam?examId=${encodeURIComponent(examId)}&isShuffle=${isShuffle}`
 
-  const response = await apiClient.post(url, {})
-  return response?.data?.data || null // { userExamId }
+  startExamOncePromise = (async () => {
+    try {
+      const response = await apiClient.post(url, {})
+      // API backend bọc trong { isSuccess, data: { userExamId }, ... }
+      return response?.data?.data || null // { userExamId }
+    } catch (error) {
+      // Nếu lỗi thì reset để lần sau có thể thử lại
+      startExamOncePromise = null
+      throw error
+    }
+  })()
+
+  return startExamOncePromise
 }
 
 // Bước 2: Lấy chi tiết bài thi đang làm dở từ userExamId
@@ -565,6 +585,51 @@ export function RoadmapTestLayout({ level = 1 }) {
     }
   }
 
+  // Sync tất cả đáp án (MCQ + Writing) trước khi submit
+  const syncAllAnswersBeforeSubmit = async () => {
+    if (!userExamId) return
+
+    try {
+      const sectionsSnapshot = sectionsRef.current.length ? sectionsRef.current : sections
+      const answersSnapshot = answersRef.current || answers
+
+      // 1. Sync tất cả MCQ answers (listening + reading)
+      const allMcqAnswers = buildAllMcqAnswersPayload(sectionsSnapshot, answersSnapshot)
+      if (allMcqAnswers.length > 0) {
+        await syncMcqAnswers(allMcqAnswers)
+      }
+
+      // 2. Sync tất cả Writing answers
+      const writingSyncPromises = []
+      sectionsSnapshot.forEach((section) => {
+        if (section.key !== 'writing') return
+
+        const sectionAnswers = answersSnapshot[section.key] || {}
+        section.questions.forEach((q) => {
+          if (q.type !== 'writing' || !q.rawQuestion) return
+
+          const raw = q.rawQuestion
+          const answerText = sectionAnswers[q.questionNumber]
+          if (answerText === undefined || !raw.userQuestionId) return
+
+          const questionTypeCode =
+            q.questionTypeCode || raw.questionTypeCode || raw.questionType?.code
+          const answerContent =
+            serializeWritingAnswerForApi(answerText, questionTypeCode) || ''
+
+          writingSyncPromises.push(syncWritingAnswer(raw.userQuestionId, answerContent))
+        })
+      })
+
+      if (writingSyncPromises.length > 0) {
+        await Promise.allSettled(writingSyncPromises)
+      }
+    } catch (error) {
+      console.error('Error syncing all answers before submit:', error)
+      // Không throw để không chặn submit
+    }
+  }
+
   // Shared handler: cập nhật đáp án (dùng cho question area và dashboard)
   const handleAnswerSelect = (questionNum, answerIndex) => {
     if (!activeSectionKey) return
@@ -671,6 +736,9 @@ export function RoadmapTestLayout({ level = 1 }) {
 
     setIsSubmitting(true)
     try {
+      // 0) Sync tất cả đáp án (MCQ + Writing) trước khi submit
+      await syncAllAnswersBeforeSubmit()
+
       // 1) Submit exam
       const submitResp = await apiClient.post(ENDPOINTS.USER_EXAM.SUBMIT, {
         userExamId,
@@ -697,8 +765,16 @@ export function RoadmapTestLayout({ level = 1 }) {
         // Tiếp tục navigate ngay cả khi GET result lỗi (result page sẽ tự fetch lại)
       }
 
-      // 4) Navigate to result page
-      router.push(`/roadmap/test/result?userExamId=${encodeURIComponent(submittedUserExamId)}`)
+      // 4) Navigate to result page (kèm level để "Làm đề khác" quay về đúng level)
+      router.push(
+        `/roadmap/test/result?userExamId=${encodeURIComponent(
+          submittedUserExamId
+        )}&level=${encodeURIComponent(String(level))}`
+      )
+
+      // Sau khi đã nộp xong và chuyển sang màn hình kết quả,
+      // lần vào làm bài tiếp theo phải tạo userExamId mới
+      startExamOncePromise = null
     } catch (error) {
       console.error('Failed to submit exam:', error)
       Alert.alert('Lỗi', 'Không thể nộp bài. Vui lòng thử lại.')

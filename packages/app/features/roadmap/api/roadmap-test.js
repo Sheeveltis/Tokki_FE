@@ -159,3 +159,24 @@ export const mapExamToTestQuestions = (examData) => {
 
   return allQuestions
 }
+
+/**
+ * Lấy lịch sử làm bài của user với phân trang
+ * @param {number} pageNumber - Số trang (bắt đầu từ 1)
+ * @param {number} pageSize - Số lượng items mỗi trang
+ * @returns {Promise<Object>} - Response từ API
+ */
+export const getExamHistory = async (pageNumber = 1, pageSize = 10) => {
+  const url = ENDPOINTS.USER_EXAM?.HISTORY
+    ? ENDPOINTS.USER_EXAM.HISTORY
+    : '/UserExam/user/history'
+
+  const response = await apiClient.get(url, {
+    params: {
+      pageNumber,
+      pageSize,
+    },
+  })
+
+  return response?.data || null
+}
