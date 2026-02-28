@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from 'solito/navigation'
 
 import { WordleBoardContent } from './component/WordleBoardContent'
 import BackgroundImage from '../../../../../../assets/BackgroundSolite.png'
-import { getWordleTopSentences } from '../../../api/wordle-level-api'
+import { getWordleTopSentences, toggleWordleSentenceLike } from '../../../api/wordle-level-api'
 
 export function WordleBoardWeb({ dailyWordleId: propDailyWordleId }) {
   const searchParams = useSearchParams()
@@ -37,20 +37,27 @@ export function WordleBoardWeb({ dailyWordleId: propDailyWordleId }) {
   }, [dailyWordleId])
 
   const handleLike = async (submissionId, isLiked) => {
-    // TODO: Implement like API call
-    console.log('[WordleBoardWeb] Like clicked:', submissionId, isLiked)
-    // Update local state
-    setSentences(prev =>
-      prev.map(item =>
-        item.submissionId === submissionId
-          ? {
-              ...item,
-              isLiked: isLiked,
-              likeCount: isLiked ? (item.likeCount || 0) + 1 : Math.max(0, (item.likeCount || 0) - 1),
-            }
-          : item
+    try {
+      // Nếu đã like rồi thì không cho bỏ like (chỉ 1 chiều)
+      if (!isLiked) return
+
+      await toggleWordleSentenceLike(submissionId)
+
+      // API thành công → tăng likeCount lên 1, set isLiked = true
+      setSentences(prev =>
+        prev.map(item =>
+          item.submissionId === submissionId
+            ? {
+                ...item,
+                isLiked: true,
+                likeCount: (item.likeCount || 0) + 1,
+              }
+            : item
+        )
       )
-    )
+    } catch (error) {
+      console.error('[WordleBoardWeb] Error toggling like:', error)
+    }
   }
 
   return (
