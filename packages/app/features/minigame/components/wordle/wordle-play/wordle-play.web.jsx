@@ -7,6 +7,7 @@ import { WordleKeyboard } from './components/WordleKeyboard'
 import { VolumeControl } from './components/VolumeControl'
 import { WordleSentenceFlow } from './components/WordleSentenceFlow'
 import { WordleMenuPopup } from './components/WordleMenuPopup'
+import { HowToPlayTour, hasSeenHowToPlayTour } from './components/HowToPlayTour'
 import { useKoreanWordleIME } from './useKoreanWordleIME'
 import BackgroundImage from '../../../../../../assets/BackgroundSolite.png'
 import MenuIcon from '../../../../../../assets/menu-solitare.png'
@@ -15,15 +16,28 @@ import FailSound from '../../../../../../assets/sound-effect/solitare/fail.wav'
 import SuccessSound from '../../../../../../assets/sound-effect/solitare/success.wav'
 import { submitWordleGuess, getWordleResult } from '../../../api/wordle-level-api'
 
-export function WordlePlayWeb({ level: _level = 1, dailyWordleId, initialWordLength }) {
+export function WordlePlayWeb({
+  level: _level = 1,
+  dailyWordleId,
+  initialWordLength,
+  initialAttemptCount = 0,
+  maxAttempts,
+}) {
   const router = useRouter()
   const WORD_LENGTH = initialWordLength || 2
-  const MAX_GUESSES = 6
+  const usedAttempts = initialAttemptCount || 0
+  const configuredMaxAttempts =
+    typeof maxAttempts === 'number' && maxAttempts > 0 ? maxAttempts : 6
+  // Số ô/ lượt đoán còn lại = maxAttempts - attemptCount
+  const MAX_GUESSES = Math.max(0, configuredMaxAttempts - usedAttempts)
   const TOPIC_NAME = '' // backend có thể trả sau
   const [rows, setRows] = useState([]) // mỗi row = mảng feedbacks từ API
   const [gameState, setGameState] = useState('playing') // 'playing', 'won', 'lost'
   const [targetWord, setTargetWord] = useState('') // Từ đã đoán đúng
   const [showMenuPopup, setShowMenuPopup] = useState(false)
+
+  // How-to-play tour (react-joyride)
+  const [tourRun, setTourRun] = useState(false)
   
   // Audio refs (sound effects)
   const tapSoundRef = useRef(null)
@@ -137,13 +151,6 @@ export function WordlePlayWeb({ level: _level = 1, dailyWordleId, initialWordLen
       if (inputType === 'deleteContentBackward') {
         e.preventDefault?.()
         handleVirtualKey('BACKSPACE')
-        return
-      }
-  
-      // 4) enter
-      if (inputType === 'insertLineBreak') {
-        e.preventDefault?.()
-        handleVirtualKey('ENTER')
         return
       }
     },
@@ -263,6 +270,7 @@ export function WordlePlayWeb({ level: _level = 1, dailyWordleId, initialWordLen
 
   const submitRow = async (guessWord) => {
     if (gameState !== 'playing') return
+    if (rows.length >= MAX_GUESSES) return
     if (!guessWord || guessWord.length !== WORD_LENGTH) return
     if (!dailyWordleId) {
       console.error('[WordlePlayWeb] Missing dailyWordleId')
@@ -342,6 +350,34 @@ export function WordlePlayWeb({ level: _level = 1, dailyWordleId, initialWordLen
     router.back()
   }
 
+  const restartTour = useCallback(() => {
+    setTourRun(false)
+    requestAnimationFrame(() => {
+      setTourRun(true)
+    })
+  }, [])
+
+  const handleHowToPlay = useCallback(() => {
+    // close menu first so spotlight can see targets behind it
+    setShowMenuPopup(false)
+    requestAnimationFrame(() => {
+      restartTour()
+    })
+  }, [restartTour])
+
+  // Auto-run tour only once on first enter (web), using localStorage
+  useEffect(() => {
+    try {
+      if (hasSeenHowToPlayTour()) return
+      // Delay 1 frame so targets are mounted before Joyride starts
+      requestAnimationFrame(() => {
+        restartTour()
+      })
+    } catch (e) {
+      // ignore
+    }
+  }, [restartTour])
+
   return (
     <ImageBackground source={BackgroundImage} style={styles.container}>
       <View style={styles.overlay}>
@@ -354,16 +390,21 @@ export function WordlePlayWeb({ level: _level = 1, dailyWordleId, initialWordLen
           <Text style={styles.title}>Wordle</Text>
           <Text style={styles.topic}>Chủ đề: {TOPIC_NAME}</Text>
           
-          {/* Menu button - right side (dùng icon gỗ giống Solitare) */}
-          <Pressable style={styles.menuBtn} onPress={handleMenuClick}>
-            <Image source={MenuIcon} style={styles.menuIcon} />
-          </Pressable>
+          {/* Actions góc phải: Cách chơi + Menu */}
+          <View style={styles.headerRightActions}>
+            <Pressable style={styles.howToBtn} onPress={handleHowToPlay}>
+              <Text style={styles.howToText}>Cách chơi</Text>
+            </Pressable>
+            <Pressable nativeID="tour-menu" style={styles.menuBtn} onPress={handleMenuClick}>
+              <Image source={MenuIcon} style={styles.menuIcon} />
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.content}>
           <View style={styles.gameLayout}>
             {/* Grid ở giữa */}
-            <View style={styles.gridContainer}>
+            <View nativeID="tour-grid" style={styles.gridContainer}>
               <WordleGrid
                 rows={rows}
                 maxGuesses={MAX_GUESSES}
@@ -379,7 +420,7 @@ export function WordlePlayWeb({ level: _level = 1, dailyWordleId, initialWordLen
 
           {/* Keyboard ở giữa - chỉ hiện khi đang chơi */}
           {gameState === 'playing' && (
-            <View style={styles.keyboardContainer}>
+            <View nativeID="tour-keyboard" style={styles.keyboardContainer}>
               <WordleKeyboard
                 rows={rows}
                 onKeyPress={handleVirtualKey}
@@ -403,6 +444,11 @@ export function WordlePlayWeb({ level: _level = 1, dailyWordleId, initialWordLen
         </View>
       </View>
 
+      <HowToPlayTour
+        run={tourRun}
+        setRun={setTourRun}
+      />
+
       {/* Hidden IME input for Korean composition on web */}
       {Platform.OS === 'web' && (
         <input
@@ -424,9 +470,7 @@ export function WordlePlayWeb({ level: _level = 1, dailyWordleId, initialWordLen
       )}
 
       {/* Menu Popup */}
-      {showMenuPopup && (
-        <WordleMenuPopup onContinue={handleContinue} onQuit={handleQuit} />
-      )}
+      {showMenuPopup && <WordleMenuPopup onContinue={handleContinue} onQuit={handleQuit} />}
     </ImageBackground>
   )
 }
@@ -466,12 +510,38 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontWeight: '600',
   },
-  menuBtn: {
+  headerRightActions: {
     position: 'absolute',
     right: 20,
     top: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  menuBtn: {
     paddingHorizontal: 0,
     paddingVertical: 0,
+  },
+  howToBtn: {
+    paddingVertical: 7,
+    paddingHorizontal: 25,
+    borderRadius: 12,
+    backgroundColor: '#8B4513',
+    borderWidth: 3,
+    borderColor: '#654321',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  howToText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    ...(Platform.OS === 'web' && { fontFamily: 'Epilogue, sans-serif' }),
   },
   menuIcon: {
     width: 80,
