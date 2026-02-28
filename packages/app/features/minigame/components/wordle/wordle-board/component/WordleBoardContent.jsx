@@ -1,21 +1,29 @@
 import React from 'react'
 import { View, Text, StyleSheet, Image, Pressable, Platform, ScrollView } from 'react-native'
+import DefaultAvatar from '../../../../../../../assets/user.png'
 
 /**
  * Component hiển thị một item trong bảng xếp hạng
  */
 function WordleBoardItem({ item, index, onLike }) {
   const handleLike = () => {
+    // Đã like rồi thì không cho bấm tắt tim
+    if (item.isLiked) return
     if (onLike) {
-      onLike(item.submissionId, !item.isLiked)
+      onLike(item.submissionId, true)
     }
   }
 
-  // Xử lý avatarUrl - nếu rỗng hoặc null thì dùng placeholder
-  // Cloudinary URL sẽ được sử dụng trực tiếp
-  const avatarSource = item.avatarUrl && item.avatarUrl.trim() !== ''
-    ? { uri: item.avatarUrl }
-    : { uri: 'https://via.placeholder.com/48?text=?' } // Placeholder nếu không có avatar
+  // Avatar: nếu avatarUrl rỗng hoặc null thì dùng avatar mặc định
+  const hasAvatar = item.avatarUrl && item.avatarUrl.trim() !== ''
+  const avatarSource = hasAvatar ? { uri: item.avatarUrl } : DefaultAvatar
+
+  // Title / Danh hiệu
+  const rawTitleName = item.titleName || ''
+  const hasTitle = !!rawTitleName
+  const titleText = hasTitle ? rawTitleName : 'Không có danh hiệu'
+  const titleColor = hasTitle ? item.titleColorHex || '#4E342E' : '#9E9E9E'
+  const titleIconSource = item.titleIconUrl ? { uri: item.titleIconUrl } : null
 
   return (
     <View style={styles.item}>
@@ -37,11 +45,32 @@ function WordleBoardItem({ item, index, onLike }) {
           />
         </View>
 
-        {/* User info */}
+        {/* User info + Title */}
         <View style={styles.userInfo}>
-          <Text style={styles.userName} numberOfLines={1}>
-            {item.userName || 'Anonymous'}
-          </Text>
+          <View style={styles.nameTitleRow}>
+            <Text style={styles.userName} numberOfLines={1}>
+              {item.userName || 'Anonymous'}
+            </Text>
+            <Text style={styles.titleSeparator}> | </Text>
+            {hasTitle ? (
+              <View style={styles.userTitleContainer}>
+                {titleIconSource && (
+                  <Image source={titleIconSource} style={styles.userTitleIcon} />
+                )}
+                <Text
+                  style={[styles.userTitleText, { color: titleColor }]}
+                  numberOfLines={1}
+                >
+                  {titleText}
+                </Text>
+              </View>
+            ) : (
+              <Text style={styles.userTitleEmpty} numberOfLines={1}>
+                Không có danh hiệu
+              </Text>
+            )}
+          </View>
+
           <Text style={styles.sentenceContent} numberOfLines={2}>
             {item.sentenceContent}
           </Text>
@@ -175,10 +204,48 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 4,
   },
+  nameTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   userName: {
     fontSize: 16,
     fontWeight: '700',
     color: '#1C1C1C',
+    fontFamily: Platform.select({
+      web: 'Epilogue, sans-serif',
+      default: undefined,
+    }),
+  },
+  titleSeparator: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8F8F8F',
+  },
+  userTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    maxWidth: 160,
+  },
+  userTitleIcon: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+  },
+  userTitleText: {
+    fontSize: 13,
+    fontWeight: '700',
+    fontFamily: Platform.select({
+      web: 'Epilogue, sans-serif',
+      default: undefined,
+    }),
+  },
+  userTitleEmpty: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#9E9E9E',
     fontFamily: Platform.select({
       web: 'Epilogue, sans-serif',
       default: undefined,
