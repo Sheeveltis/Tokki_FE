@@ -35,6 +35,7 @@ export function WordlePlayWeb({
   const [gameState, setGameState] = useState('playing') // 'playing', 'won', 'lost'
   const [targetWord, setTargetWord] = useState('') // Từ đã đoán đúng
   const [showMenuPopup, setShowMenuPopup] = useState(false)
+  const [wordResult, setWordResult] = useState(null) // dữ liệu từ API result (định nghĩa, ảnh, audio)
 
   // How-to-play tour (react-joyride)
   const [tourRun, setTourRun] = useState(false)
@@ -182,10 +183,12 @@ export function WordlePlayWeb({
   )
 
   const handleHiddenInputBlur = useCallback(() => {
+    // Chỉ giữ focus-trap khi đang chơi; sau khi thắng/thua thì cho phép focus vào InputBar
+    if (gameState !== 'playing') return
     requestAnimationFrame(() => {
       focusHiddenImeInput()
     })
-  }, [focusHiddenImeInput])
+  }, [focusHiddenImeInput, gameState])
 
   const handleHiddenInputKeyDown = useCallback(
     (e) => {
@@ -304,11 +307,11 @@ export function WordlePlayWeb({
           setTargetWord(guessedWord)
           setGameState('won')
           
-          // Gọi API để lấy kết quả
+          // Gọi API để lấy kết quả (định nghĩa, ảnh, audio...)
           try {
             const result = await getWordleResult(dailyWordleId)
             console.log('[WordlePlayWeb] Wordle result:', result)
-            // Có thể xử lý result ở đây nếu cần
+            setWordResult(result || null)
           } catch (error) {
             console.error('[WordlePlayWeb] Error fetching wordle result:', error)
           }
@@ -365,6 +368,18 @@ export function WordlePlayWeb({
     })
   }, [restartTour])
 
+  const handlePlayWordAudio = useCallback(() => {
+    if (Platform.OS !== 'web') return
+    const url = wordResult?.audioUrl
+    if (!url) return
+    try {
+      const audio = new Audio(url)
+      audio.play().catch((err) => console.log('[WordlePlayWeb] play word audio error:', err))
+    } catch (e) {
+      console.error('[WordlePlayWeb] Failed to create audio element:', e)
+    }
+  }, [wordResult])
+
   // Auto-run tour only once on first enter (web), using localStorage
   useEffect(() => {
     try {
@@ -403,11 +418,36 @@ export function WordlePlayWeb({
 
         <View style={styles.content}>
           <View style={styles.gameLayout}>
+            {/* Thông tin từ vựng sau khi đoán đúng */}
+            {gameState === 'won' && wordResult && (
+              <View style={styles.wordInfoCard}>
+                <Text style={styles.wordInfoWord}>{wordResult.word || targetWord}</Text>
+                {!!wordResult.definition && (
+                  <>
+                    <Text style={styles.wordInfoLabel}>Định nghĩa</Text>
+                    <Text style={styles.wordInfoDefinition}>{wordResult.definition}</Text>
+                  </>
+                )}
+                {!!wordResult.imageUrl && (
+                  <Image
+                    source={{ uri: wordResult.imageUrl }}
+                    style={styles.wordInfoImage}
+                    resizeMode="contain"
+                  />
+                )}
+                {!!wordResult.audioUrl && (
+                  <Pressable style={styles.wordInfoAudioButton} onPress={handlePlayWordAudio}>
+                    <Text style={styles.wordInfoAudioText}>🔊 Nghe phát âm</Text>
+                  </Pressable>
+                )}
+              </View>
+            )}
+
             {/* Grid ở giữa */}
             <View nativeID="tour-grid" style={styles.gridContainer}>
               <WordleGrid
-                rows={rows}
-                maxGuesses={MAX_GUESSES}
+                rows={gameState === 'won' ? [] : rows}
+                maxGuesses={gameState === 'won' ? 0 : MAX_GUESSES}
                 wordLength={WORD_LENGTH}
                 targetWord={targetWord}
                 gridCells={gridCells}
@@ -439,6 +479,7 @@ export function WordlePlayWeb({
               setGameState('playing')
               resetRow()
               setTargetWord('')
+              setWordResult(null)
             }}
           />
         </View>
@@ -575,9 +616,62 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     minHeight: 0,
   },
+  wordInfoCard: {
+    width: '100%',
+    maxWidth: 250,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    marginBottom: 16,
+    alignItems: 'flex-start',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+    alignItems: 'center',
+  },
+  wordInfoWord: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1a1a1b',
+    marginBottom: 4,
+  },
+  wordInfoLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#6AAA64',
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  wordInfoDefinition: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 10,
+  },
+  wordInfoImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 12,
+    marginBottom: 10,
+    backgroundColor: '#F5F5F5',
+  },
+  wordInfoAudioButton: {
+    marginTop: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    backgroundColor: '#6AAA64',
+  },
+  wordInfoAudioText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
   sentenceBox: {
     backgroundColor: '#fff',
-    width: '95%',
+    width: '100%',
     maxWidth: 800,
     padding: 20,
     borderRadius: 16,
