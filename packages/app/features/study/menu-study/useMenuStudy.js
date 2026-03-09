@@ -10,8 +10,9 @@ export function useMenuStudy(router, levelId) {
   const [showLoginRequest, setShowLoginRequest] = useState(false)
 
   const handleModulePress = (moduleId, itemLabel) => {
-    // Các module yêu cầu đăng nhập
-    if (isLoginRequiredModule(moduleId)) {
+    // Tạm thời bỏ chặn đăng nhập cho speaking để vào màn pronunciation theo yêu cầu
+    const shouldRequireLogin = isLoginRequiredModule(moduleId) && moduleId !== 'speaking'
+    if (shouldRequireLogin) {
       setShowLoginRequest(true)
       return
     }
