@@ -135,6 +135,17 @@ export const ENDPOINTS = {
       MODERATOR_REJECT: (topicId) => `/Topics/moderator/reject-topic/${topicId}`,
       USER_STUDY: '/Topics/user/study', // GET: Lấy danh sách từ vựng để học (query: topicId, count)
     },
+    PRONUNCIATION: {
+      EVALUATE: '/Pronunciation/evaluate', // POST: Đánh giá phát âm
+    },
+    PRONUNCIATION_EXAMPLE: {
+      GET_BY_RULE_ID: (ruleId) => `/PronunciationExample/rules/${ruleId}/examples`, // GET: Lấy danh sách ví dụ theo rule
+      GET_BY_ID: (exampleId) => `/PronunciationExample/examples/${exampleId}`, // GET: Lấy chi tiết ví dụ
+    },
+    PRONUNCIATION_RULES: {
+      CREATE: '/PronunciationRules', // POST: Tạo pronunciation rule
+      GET_ALL: '/PronunciationRules/rules', // GET: Lấy danh sách pronunciation rules
+    },
     VOCABULARY: {
       ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
       ADMIN_CREATE: '/Vocabulary/admin/create-a-vocabulary',
