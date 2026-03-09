@@ -1,13 +1,21 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
+import svgr from 'vite-plugin-svgr'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    svgr({
+      svgrOptions: {
+        exportType: 'default',
+      },
+      include: '**/*.svg',
+    })
+  ],
   resolve: {
     alias: {
-      // React và React DOM - đảm bảo single instance
       'react': path.resolve(__dirname, 'node_modules/react'),
       'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
       // react-native on web
@@ -46,7 +54,7 @@ export default defineConfig({
     },
     exclude: [
       'react-native',
-      'react-native-safe-area-context', // Exclude safe area context trên web
+      'react-native-safe-area-context',
     ],
     include: ['react', 'react-dom', '@tanstack/react-query'],
   },
