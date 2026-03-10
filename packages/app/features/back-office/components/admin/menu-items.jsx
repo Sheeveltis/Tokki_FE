@@ -26,9 +26,8 @@ export const adminMenuItems = [
     icon: <UserOutlined />,
     label: 'Quản lý Người dùng',
     children: [
-      { key: 'users-admin', icon: <TeamOutlined />, label: 'Admin & Staff' },
-      { key: 'users-all', icon: <UserOutlined />, label: 'Tất cả Users' },
-      { key: 'title-management', icon: <TrophyOutlined />, label: 'Quản lí danh hiệu' },
+      { key: 'users-all', icon: <UserOutlined />, label: 'Tài khoản' },
+      { key: 'title-management', icon: <TrophyOutlined />, label: 'Danh hiệu' },
     ],
   },
   {
@@ -45,8 +44,8 @@ export const adminMenuItems = [
     icon: <DatabaseOutlined />,
     label: 'Quản lý Từ vựng',
     children: [
-      { key: 'vocabulary-words', icon: <DatabaseOutlined />, label: 'Quản lý từ vựng' },
-      { key: 'vocabulary-topics', icon: <BookOutlined />, label: 'Quản lý chủ đề' },
+      { key: 'vocabulary-words', icon: <DatabaseOutlined />, label: 'Từ vựng' },
+      { key: 'vocabulary-topics', icon: <BookOutlined />, label: 'Chủ đề' },
     ],
   },
   {
@@ -56,7 +55,7 @@ export const adminMenuItems = [
     children: [
       { key: 'exam-template', icon: <FormOutlined />, label: 'Cấu trúc đề' },
       { key: 'question-bank', icon: <QuestionCircleOutlined />, label: 'Bộ câu hỏi' },
-      { key: 'passage-management', icon: <FileTextOutlined />, label: 'Quản lí Passage' },
+      { key: 'passage-management', icon: <FileTextOutlined />, label: 'Passage' },
       { key: 'exam-management', icon: <FileDoneOutlined />, label: 'Đề' },
     ],
   },
@@ -76,8 +75,8 @@ export const adminMenuItems = [
     icon: <DollarOutlined />,
     label: 'Quản lý doanh thu',
     children: [
-      { key: 'membership-package', icon: <ShopOutlined />, label: 'Quản lý gói thành viên' },
-      { key: 'payment-management', icon: <DollarOutlined />, label: 'Quản lý thanh toán' },
+      { key: 'membership-package', icon: <ShopOutlined />, label: 'Gói thành viên' },
+      { key: 'payment-management', icon: <DollarOutlined />, label: 'Thanh toán' },
       { key: 'revenue-report', icon: <PieChartOutlined />, label: 'Báo cáo doanh thu' },
     ],
   },
