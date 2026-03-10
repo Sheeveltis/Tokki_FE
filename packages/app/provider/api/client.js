@@ -12,51 +12,60 @@ import {
 } from '../../helpers/token-decoder'
 import { setStorageItem, getStorageItem, removeStorageItem, dispatchStorageEvent } from '../../helpers/storage'
 
-// Lưu token đơn giản: ưu tiên storage, fallback bộ nhớ tạm
 const TOKEN_KEY = 'token'
 let inMemoryToken = null
-let storageCache = null // Cache để tránh async call nhiều lần
+let storageCache = null
+let isLoggingOut = false // Cờ chặn gọi hàm redirect nhiều lần
 
 export const setAuthToken = async (token) => {
   inMemoryToken = token || null
   storageCache = token || null
   
   if (token) {
-    // Mã hóa token trước khi lưu vào storage
     const encryptedToken = encryptToken(token)
     await setStorageItem(TOKEN_KEY, encryptedToken)
   } else {
     await removeStorageItem(TOKEN_KEY)
   }
   
-  // Dispatch event cho web
   dispatchStorageEvent('token-changed')
 }
 
-export const clearAuthToken = () => setAuthToken(null)
+// THAY ĐỔI: Thêm async/await để đảm bảo dọn dẹp xong mới đi tiếp
+export const clearAuthToken = async () => {
+  inMemoryToken = null
+  storageCache = null
+  await setAuthToken(null)
+}
 
-// Synchronous version cho backward compatibility (sử dụng cache)
+// Kiểm tra nhanh xem token có đúng định dạng JWT không (bắt đầu bằng eyJ)
+const isValidJWTFormat = (token) => {
+  return token && typeof token === 'string' && token.startsWith('eyJ');
+}
+
 export const getAuthToken = () => {
   if (inMemoryToken) return inMemoryToken
   if (storageCache) return storageCache
   
-  // Nếu là web, có thể đọc sync từ localStorage
   if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
     const stored = window.localStorage.getItem(TOKEN_KEY)
     if (stored) {
       const decryptedToken = decryptToken(stored)
-      if (decryptedToken) {
+      // Chặn luôn nếu decrypt ra chuỗi rác
+      if (decryptedToken && decryptedToken !== stored && isValidJWTFormat(decryptedToken)) {
         inMemoryToken = decryptedToken
         storageCache = decryptedToken
         return decryptedToken
+      } else if (!decryptedToken || !isValidJWTFormat(decryptedToken)) {
+        // Dọn rác
+        inMemoryToken = null
+        storageCache = null
       }
     }
   }
-  
   return null
 }
 
-// Async version để đọc từ AsyncStorage trên mobile
 export const getAuthTokenAsync = async () => {
   if (inMemoryToken) return inMemoryToken
   if (storageCache) return storageCache
@@ -64,80 +73,46 @@ export const getAuthTokenAsync = async () => {
   const stored = await getStorageItem(TOKEN_KEY)
   if (stored) {
     const decryptedToken = decryptToken(stored)
-    if (decryptedToken) {
+    if (decryptedToken && decryptedToken !== stored && isValidJWTFormat(decryptedToken)) {
       inMemoryToken = decryptedToken
       storageCache = decryptedToken
       return decryptedToken
     }
   }
-  
   return null
 }
 
-/**
- * Lấy thông tin user từ token đã lưu
- * @returns {Object|null} - Object chứa thông tin user (userId, email, fullName, role, v.v.) hoặc null
- */
 export const getCurrentUserInfo = () => {
   const token = getAuthToken()
-  if (!token) return null
-  return getUserInfoFromToken(token)
+  return token ? getUserInfoFromToken(token) : null
 }
 
-/**
- * Lấy userId từ token đã lưu
- * @returns {string|null} - UserId hoặc null
- */
 export const getCurrentUserId = () => {
   const token = getAuthToken()
-  if (!token) return null
-  return getUserIdFromToken(token)
+  return token ? getUserIdFromToken(token) : null
 }
 
-/**
- * Lấy email từ token đã lưu
- * @returns {string|null} - Email hoặc null
- */
 export const getCurrentUserEmail = () => {
   const token = getAuthToken()
-  if (!token) return null
-  return getEmailFromToken(token)
+  return token ? getEmailFromToken(token) : null
 }
 
-/**
- * Lấy fullName từ token đã lưu
- * @returns {string|null} - FullName hoặc null
- */
 export const getCurrentUserFullName = () => {
   const token = getAuthToken()
-  if (!token) return null
-  return getFullNameFromToken(token)
+  return token ? getFullNameFromToken(token) : null
 }
 
-/**
- * Lấy role từ token đã lưu
- * @returns {string|null} - Role hoặc null
- */
 export const getCurrentUserRole = () => {
   const token = getAuthToken()
-  if (!token) return null
-  return getRoleFromToken(token)
+  return token ? getRoleFromToken(token) : null
 }
 
-/**
- * Kiểm tra token hiện tại có hết hạn không
- * @returns {boolean} - true nếu token đã hết hạn, false nếu còn hiệu lực
- */
 export const isCurrentTokenExpired = () => {
   const token = getAuthToken()
   if (!token) return true
   return isTokenExpired(token)
 }
 
-/**
- * API Client sử dụng axios
- * Tự động thêm base URL và xử lý request/response
- */
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
@@ -146,45 +121,41 @@ export const apiClient = axios.create({
   },
 })
 
-// Request interceptor - tự động thêm token
+// THAY ĐỔI: Chuyển sang async để hỗ trợ đọc token trên Mobile mượt mà hơn
 apiClient.interceptors.request.use(
-  (config) => {
-    const token = getAuthToken()
-    // Chỉ thêm token nếu token hợp lệ (không phải null, undefined, hoặc string 'null')
-    if (token && token !== 'null' && token !== 'undefined' && typeof token === 'string' && token.trim() !== '') {
+  async (config) => {
+    // Ưu tiên đọc sync (cho Web/Memory), nếu không có và là Mobile thì đọc async
+    let token = getAuthToken()
+    if (!token && Platform.OS !== 'web') {
+      token = await getAuthTokenAsync()
+    }
+    
+    // Bật log này lên khi debug, comment lại khi lên production
+    // console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, token ? "✅ Token Found" : "❌ No Token");
+
+    if (token && isValidJWTFormat(token)) {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
   },
-  (error) => {
-    return Promise.reject(error)
-  }
+  (error) => Promise.reject(error)
 )
 
-/**
- * Helper function để tự động logout khi token hết hạn
- */
 const handleTokenExpired = async (options = {}) => {
-  // Clear token
+  // THAY ĐỔI: Chặn gọi nhiều lần nếu trang bắn nhiều API cùng lúc bị 401
+  if (isLoggingOut) return; 
+  isLoggingOut = true;
+
   await clearAuthToken()
+  await removeStorageItem('userId') // Token_key đã được xóa trong clearAuthToken
   
-  // Clear from storage
-  await removeStorageItem('token')
-  await removeStorageItem('userId')
-  
-  // Dispatch event để navbar cập nhật
-  dispatchStorageEvent('token-changed')
-  
-  // Redirect to login page (chỉ trên web)
   if (!options?.skipRedirect && Platform.OS === 'web' && typeof window !== 'undefined') {
     const currentPath = window.location.pathname
-    
-    // Nếu đang ở trang login hoặc register, không redirect
     if (currentPath === '/login' || currentPath === '/register') {
-      return
+      isLoggingOut = false;
+      return;
     }
     
-    // Nếu đang ở admin/staff/moderator route, redirect về route đó để hiển thị login form tương ứng
     if (currentPath.startsWith('/admin')) {
       window.location.href = '/admin'
     } else if (currentPath.startsWith('/staff')) {
@@ -192,44 +163,37 @@ const handleTokenExpired = async (options = {}) => {
     } else if (currentPath.startsWith('/moderator')) {
       window.location.href = '/moderator'
     } else {
-      // Các route khác redirect về /login
       window.location.href = '/login'
     }
+  } else {
+    // Trả lại cờ cho Mobile (vì Mobile dùng React Navigation)
+    isLoggingOut = false; 
   }
-  // Trên mobile, navigation sẽ được xử lý bởi navigation system
 }
 
-// Response interceptor - xử lý error chung
 apiClient.interceptors.response.use(
-  (response) => {
-    return response
-  },
+  (response) => response,
   (error) => {
-    // Xử lý error chung ở đây
-    console.error('API Error:', error.response?.data || error.message)
+    const status = error.response?.status;
     
-    // Nếu token hết hạn hoặc không hợp lệ (401 Unauthorized), tự động logout
-    if (error.response?.status === 401) {
-      // Chỉ handle token expired nếu đang ở admin/staff/moderator route
+    // Log lỗi gọn gàng hơn
+    console.error(`[API Error ${status}]`, error.config?.url, error.response?.data?.message || '');
+    
+    if (status === 401) {
       const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
-      if (currentPath.startsWith('/admin') || currentPath.startsWith('/staff') || currentPath.startsWith('/moderator')) {
+      if (currentPath.includes('/admin') || currentPath.includes('/staff') || currentPath.includes('/moderator')) {
         handleTokenExpired()
       }
     }
     
-    // Nếu là 404 và đang ở admin/staff route, có thể là do token null
-    if (error.response?.status === 404) {
-      const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+    if (status === 404) {
       const token = getAuthToken()
-      // Nếu không có token và đang ở admin/staff route, có thể cần redirect
-      if ((!token || token === 'null' || token === 'undefined') && 
-          (currentPath.startsWith('/admin') || currentPath.startsWith('/staff'))) {
-        // Không làm gì ở đây, để component tự xử lý
-        console.warn('404 error on admin/staff route with null token')
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+      if (!token && (currentPath.startsWith('/admin') || currentPath.startsWith('/staff'))) {
+        console.warn('404 error on protected route with null token. Possible sync issue.')
       }
     }
     
     return Promise.reject(error)
   }
 )
-
