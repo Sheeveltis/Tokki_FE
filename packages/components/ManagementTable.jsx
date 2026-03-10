@@ -4,7 +4,7 @@ import { Table } from 'antd'
 /**
  * Thin wrapper quanh AntD Table để tái sử dụng trong Admin screens.
  */
-export function ManagementTable({
+export default function ManagementTable({
   columns,
   dataSource,
   loading = false,
@@ -12,10 +12,9 @@ export function ManagementTable({
   rowKey = 'id',
   pagination,
   onChange,
+  scroll, 
 }) {
-  // Đảm bảo dataSource luôn là array
   const safeDataSource = Array.isArray(dataSource) ? dataSource : []
-  
   return (
     <Table
       size="middle"
@@ -25,6 +24,7 @@ export function ManagementTable({
       loading={loading}
       pagination={pagination !== undefined ? pagination : { pageSize: 8 }}
       onChange={onChange}
+      scroll={scroll} 
       onRow={(record) => ({
         onClick: () => onRowClick && onRowClick(record),
         style: { cursor: onRowClick ? 'pointer' : 'default' },
@@ -32,6 +32,4 @@ export function ManagementTable({
     />
   )
 }
-
-export default ManagementTable
 
