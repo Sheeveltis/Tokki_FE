@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Tag, Select, Space, message, Tooltip } from 'antd'
+import { Select, Space, message, Tooltip } from 'antd'
 import { EyeOutlined, DownloadOutlined, UploadOutlined, FilterOutlined } from '@ant-design/icons'
 
-import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
 import { fetchUsers } from '../../../api/user-management.js'
 import AccountDetails from './account-details'
 
@@ -150,12 +149,7 @@ export default function AccountManage({ basePath = '/admin' }) {
   // ==========================================
   
   if (selectedUserId) {
-    return (
-      <div style={{ padding: 12 }}>
-        <ButtonV2 title="Quay lại danh sách" color="mint" onPress={() => setSelectedUserId(null)} style={{ marginBottom: 16, minWidth: 160 }} />
-        <AccountDetails userId={selectedUserId} onAfterChange={() => loadData(filters)} />
-      </div>
-    )
+    return <AccountDetails userId={selectedUserId} onAfterChange={() => loadData(filters)} />
   }
 
   return (

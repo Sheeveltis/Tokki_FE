@@ -1,8 +1,7 @@
-import React, { useRef, useState, useEffect } from 'react'
-import { Input, Space } from 'antd'
+import { useRef, useState, useEffect } from 'react'
+import { Input, Space, Button } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import ManagementTable from '../ManagementTable' 
-import { ButtonV2 } from '../buttonV2'
 
 // --- SUB-COMPONENT: Nút thao tác động ---
 const ActionGroup = ({ actions = [] }) => {
@@ -12,15 +11,15 @@ const ActionGroup = ({ actions = [] }) => {
       {actions.map((action, index) => {
         if (action.hidden) return null
         return (
-          <ButtonV2
+          <Button
             key={action.key || index}
-            title={action.label}
-            color={action.color || '#F1BE4B'}
-            onPress={action.onPress}
+            onClick={action.onPress}
             icon={action.icon}
-            style={{ minWidth: 80, paddingVertical: 10, ...action.style }}
-            textStyle={{ fontSize: 14, ...action.textStyle }}
-          />
+            style={{ minWidth: 80, ...action.style }}
+            type="primary"
+          >
+            {action.label}
+          </Button>
         )
       })}
     </Space>
