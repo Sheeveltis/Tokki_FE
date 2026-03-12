@@ -1,17 +1,29 @@
 import React, { useState, useEffect } from 'react'
+import { View, StyleSheet } from 'react-native'
 import { useRouter } from 'solito/navigation'
 
 import WordleRule from '../../components/wordle/wordle-rule/wordle-rule'
 import { getWordleLevelByDifficulty, getWordleLevels } from '../../api/wordle-level-api'
 import WordleLevelPopup from '../../components/wordle/wordle-rule/wordle-level-popup'
+import { LoginRequest } from '../../../../../components/loginRequest'
+import { getAuthToken, isCurrentTokenExpired } from '../../../../provider/api/client'
 
 export function WordleRuleScreen({ basePath = '/minigame/wordle' }) {
   const router = useRouter()
   const [showLevelPopup, setShowLevelPopup] = useState(false)
   const [loadingLevel, setLoadingLevel] = useState(false)
   const [levelsData, setLevelsData] = useState([])
+  const [showLoginRequest, setShowLoginRequest] = useState(false)
 
   const handleOpenLevelPopup = async () => {
+    const token = getAuthToken()
+    const isAuthed = Boolean(token) && !isCurrentTokenExpired()
+
+    if (!isAuthed) {
+      setShowLoginRequest(true)
+      return
+    }
+
     setShowLevelPopup(true)
     // Fetch levels data khi mở popup
     try {
@@ -70,9 +82,28 @@ export function WordleRuleScreen({ basePath = '/minigame/wordle' }) {
           onSelectLevel={handleSelectLevel}
         />
       )}
+      {showLoginRequest && (
+        <View style={styles.loginOverlay}>
+          <LoginRequest onClose={() => setShowLoginRequest(false)} />
+        </View>
+      )}
     </>
   )
 }
+
+const styles = StyleSheet.create({
+  loginOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    zIndex: 2000,
+  },
+})
 
 export default WordleRuleScreen
 
