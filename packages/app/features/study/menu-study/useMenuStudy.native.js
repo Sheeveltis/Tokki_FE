@@ -31,6 +31,8 @@ export function useMenuStudy(navigation, levelId) {
     // Map web routes sang React Navigation screen names
     const routeMap = {
       '/flashcard': 'flashcard-list',
+      '/pronunciation': 'pronunciation',
+      '/speaking': 'pronunciation',
       '/alphabet': 'alphabet', // Cần thêm screen này nếu chưa có
       '/minigame': 'minigame', // Cần thêm screen này nếu chưa có
       '/roadmap/info': 'roadmap-info',
@@ -46,8 +48,9 @@ export function useMenuStudy(navigation, levelId) {
   }
 
   const handleModulePress = (moduleId, itemLabel) => {
-    // Các module yêu cầu đăng nhập
-    if (isLoginRequiredModule(moduleId)) {
+    // Tạm thời bỏ chặn đăng nhập cho speaking để vào màn pronunciation theo yêu cầu
+    const shouldRequireLogin = isLoginRequiredModule(moduleId) && moduleId !== 'speaking'
+    if (shouldRequireLogin) {
       setShowLoginRequest(true)
       return
     }

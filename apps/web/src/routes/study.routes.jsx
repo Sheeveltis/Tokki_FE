@@ -18,6 +18,9 @@ import FlashcardFirstLearnScreen from '@tokki/app/features/study/flashcard-first
 import FlashcardStudyScreen from '@tokki/app/features/study/flashcard-study'
 import LearnScreen from '@tokki/app/features/study/flashcard-learn'
 import LearnedVocabularyListScreen from '@tokki/app/features/study/learned-vocabulary-list'
+import { PronunciationRulesScreen } from '@tokki/app/features/pronunciation/screens/pronunciation-rules-screen'
+import { PronunciationExamplesScreen } from '@tokki/app/features/pronunciation/screens/pronunciation-examples-screen'
+import { PronunciationExampleDetailScreen } from '@tokki/app/features/pronunciation/screens/pronunciation-example-detail-screen'
 
 import { STUDY_PAGE_TITLES, TOPIC_TITLES } from '@tokki/app/features/study/constants'
 import { RoadmapInfoScreen } from '@tokki/app/features/roadmap/screens/roadmap-info-screen'
@@ -324,6 +327,49 @@ function FlashcardLearnedRoute() {
   )
 }
 
+function PronunciationRulesRoute() {
+  const { navigate } = useRouteNavigation()
+
+  return (
+    <PronunciationRulesScreen
+      onBackPress={() => navigate('/menu-study?level=1')}
+      onRulePress={(rule) => navigate(`/pronunciation/examples?ruleId=${rule?.id}`)}
+    />
+  )
+}
+
+function PronunciationExamplesRoute() {
+  const { navigate, getQueryParam } = useRouteNavigation()
+  const ruleId = getQueryParam('ruleId')
+  const ruleTitle = getQueryParam('ruleTitle')
+
+  return (
+    <PronunciationExamplesScreen
+      ruleId={ruleId}
+      ruleTitle={ruleTitle}
+      onBackPress={() => navigate('/pronunciation')}
+      onExamplePress={(example) => 
+        navigate(`/pronunciation/example-detail?exampleId=${example?.id}&ruleId=${ruleId}`)
+      }
+    />
+  )
+}
+
+function PronunciationExampleDetailRoute() {
+  const { navigate, getQueryParam } = useRouteNavigation()
+  const exampleId = getQueryParam('exampleId')
+  const ruleId = getQueryParam('ruleId')
+  const ruleTitle = getQueryParam('ruleTitle')
+
+  return (
+    <PronunciationExampleDetailScreen
+      exampleId={exampleId}
+      onBackPress={() => 
+        navigate(`/pronunciation/examples?ruleId=${ruleId}&ruleTitle=${encodeURIComponent(ruleTitle || '')}`)
+      }
+    />
+  )
+}
 // Roadmap Routes
 function RoadmapTestRoute() {
   const { getIntQueryParam } = useRouteNavigation()
@@ -406,6 +452,11 @@ export const studyRoutes = [
   { path: '/flashcard/favorites/learn', element: <FlashcardFavoritesLearnRoute /> },
   { path: '/flashcard/favorites/test', element: <FlashcardFavoritesTestRoute /> },
   { path: '/flashcard/learned', element: <FlashcardLearnedRoute /> },
+
+  // Pronunciation
+  { path: '/pronunciation', element: <PronunciationRulesRoute /> },
+  { path: '/pronunciation/examples', element: <PronunciationExamplesRoute /> },
+  { path: '/pronunciation/example-detail', element: <PronunciationExampleDetailRoute /> },
 
   // Roadmap
   { path: '/roadmap/info', element: <RoadmapInfoScreen /> },

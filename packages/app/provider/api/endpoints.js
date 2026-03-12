@@ -11,10 +11,10 @@ import { Platform } from 'react-native'
  * - Device thật: dùng IP thật của máy (ví dụ: 116.106.201.3 hoặc 192.168.x.x)
  * - Để lấy IP của máy: Windows (ipconfig) hoặc Mac/Linux (ifconfig)
  */
-const WEB_DOMAIN = 'http://localhost:5031'
+const WEB_DOMAIN = 'https://localhost:5031'
 // Cho Android Emulator: dùng 10.0.2.2 để truy cập localhost của máy host
 // Cho Device thật: thay bằng IP thật của máy (ví dụ: http://116.106.201.3:5031)
-const MOBILE_DOMAIN = 'http://10.0.2.2:5031' // IP đặc biệt cho Android Emulator
+const MOBILE_DOMAIN = 'https://10.0.2.2:5031' // IP đặc biệt cho Android Emulator
 
 const PREFIX = '/api'
 
@@ -134,6 +134,17 @@ export const ENDPOINTS = {
       MODERATOR_APPROVE: (topicId) => `/Topics/moderator/approve-topic/${topicId}`,
       MODERATOR_REJECT: (topicId) => `/Topics/moderator/reject-topic/${topicId}`,
       USER_STUDY: '/Topics/user/study', // GET: Lấy danh sách từ vựng để học (query: topicId, count)
+    },
+    PRONUNCIATION: {
+      EVALUATE: '/Pronunciation/evaluate', // POST: Đánh giá phát âm
+    },
+    PRONUNCIATION_EXAMPLE: {
+      GET_BY_RULE_ID: (ruleId) => `/PronunciationExample/rules/${ruleId}/examples`, // GET: Lấy danh sách ví dụ theo rule
+      GET_BY_ID: (exampleId) => `/PronunciationExample/examples/${exampleId}`, // GET: Lấy chi tiết ví dụ
+    },
+    PRONUNCIATION_RULES: {
+      CREATE: '/PronunciationRules', // POST: Tạo pronunciation rule
+      GET_ALL: '/PronunciationRules/rules', // GET: Lấy danh sách pronunciation rules
     },
     VOCABULARY: {
       ADMIN_GET_ALL: '/Vocabulary/admin/get-all',

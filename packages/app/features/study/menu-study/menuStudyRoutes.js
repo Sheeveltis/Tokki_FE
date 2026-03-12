@@ -14,20 +14,13 @@
 export function getMenuStudyRoute({ moduleId, itemLabel, levelId }) {
   // Module TỪ VỰNG - đi tới trang flashcard
   if (moduleId === 'vocabulary') {
-    // Phân biệt từng item theo label
     switch (itemLabel) {
       case 'Minigame':
-        // Trang tổng minigame (đang dùng cho Matching Card, có query level)
-        if (levelId) {
-          return `/minigame?level=${levelId}`
-        }
+        if (levelId) return `/minigame?level=${levelId}`
         return '/minigame'
       case 'Chủ đề':
       default:
-        // Chủ đề từ vựng đi tới flashcard theo level
-        if (levelId) {
-          return `/flashcard?level=${levelId}`
-        }
+        if (levelId) return `/flashcard?level=${levelId}`
         return '/flashcard'
     }
   }
@@ -57,11 +50,11 @@ export function getMenuStudyRoute({ moduleId, itemLabel, levelId }) {
   if (moduleId === 'speaking') {
     switch (itemLabel) {
       case 'Nghe chép chính tả':
-        return '/speaking/dictation'
+        return '/pronunciation/dictation'
       case 'Luyện nói với A.I':
-        return '/speaking/ai-practice'
+        return '/pronunciation'
       default:
-        return '/speaking'
+        return '/pronunciation'
     }
   }
 
@@ -81,12 +74,12 @@ export function getMenuStudyRoute({ moduleId, itemLabel, levelId }) {
     }
   }
 
-  // Module VIẾT (image module)
+  // Module VIẾT
   if (moduleId === 'writing') {
     return '/writing'
   }
 
-  // Module NGỮ PHÁP (image module)
+  // Module NGỮ PHÁP
   if (moduleId === 'grammar') {
     return '/grammar'
   }
@@ -102,5 +95,3 @@ export function getMenuStudyRoute({ moduleId, itemLabel, levelId }) {
 export function isLoginRequiredModule(moduleId) {
   return moduleId === 'speaking' || moduleId === 'writing'
 }
-
-
