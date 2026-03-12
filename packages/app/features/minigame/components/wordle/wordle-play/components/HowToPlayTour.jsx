@@ -176,7 +176,7 @@ export function HowToPlayTour({ run, setRun, onEnded }) {
                 không có phụ âm cuối.
               </li>
               <li>
-                Nhớ tắt Unikey và hãy dùng bàn phím hangul để nhập từ nhé !
+                Nhớ tắt Unikey và hãy dùng bàn phím hangul để nhập từ nhé
               </li>
             </ul>
           </div>
