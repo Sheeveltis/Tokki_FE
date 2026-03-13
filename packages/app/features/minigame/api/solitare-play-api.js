@@ -83,12 +83,15 @@ export const getMockSolitareLayout = (maxTopics = 7) => {
  * @returns {number} quantity
  */
 const getQuantityByLevel = (level) => {
+  const normalizedLevel = String(level || '').toLowerCase()
+
   const levelMap = {
-    Easy: 25,
-    Medium: 30,
-    Hard: 35,
+    easy: 30,
+    medium: 40,
+    hard: 50,
   }
-  return levelMap[level] || 25
+
+  return levelMap[normalizedLevel] || 25
 }
 
 /**
@@ -115,9 +118,11 @@ const getQuantityByLevel = (level) => {
 import { apiClient } from '../../../provider/api/client'
 import { ENDPOINTS } from '../../../provider/api/endpoints'
 
-export const getSolitareLayout = async (level = 'Easy') => {
+export const getSolitareLayout = async (level = 'easy') => {
   try {
     const quantity = getQuantityByLevel(level)
+    console.log('[Solitaire API] level =', level)
+    console.log('[Solitaire API] quantity =', quantity)
     const response = await apiClient.get(ENDPOINTS.MINIGAME.SOLITAIRE, {
       params: { quantity },
     })
@@ -128,7 +133,7 @@ export const getSolitareLayout = async (level = 'Easy') => {
       throw new Error('Invalid API response')
     }
 
-    // Lọc topic theo unique topicId, giới hạn tối đa 7 topic
+    // Lọc topic theo unique topicId (không giới hạn số lượng topic)
     const uniqueTopicsMap = {}
     result.data.forEach((topic) => {
       if (!uniqueTopicsMap[topic.topicId]) {
@@ -138,8 +143,8 @@ export const getSolitareLayout = async (level = 'Easy') => {
     let uniqueTopics = Object.values(uniqueTopicsMap)
     // Shuffle topics để random
     uniqueTopics = uniqueTopics.sort(() => Math.random() - 0.5)
-    // Giới hạn tối đa 7 topic
-    const selectedTopics = uniqueTopics.slice(0, 7)
+    // Lấy tất cả topic đã trả về
+    const selectedTopics = uniqueTopics
 
     // Flatten all vocabularies from selected topics into cards
     const allCards = []
@@ -164,8 +169,8 @@ export const getSolitareLayout = async (level = 'Easy') => {
       allCards[j] = temp
     }
 
-    // Create columns (7 columns)
-    const columnCount = 7
+    // Create columns (theo số topic)
+    const columnCount = Math.max(selectedTopics.length, 1)
     const columns = Array.from({ length: columnCount }).map((_, index) => ({
       id: `column-${index}`,
       cards: [],
