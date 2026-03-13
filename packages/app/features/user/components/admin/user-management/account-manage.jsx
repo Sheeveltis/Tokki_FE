@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Select, Space, message, Tooltip } from 'antd'
-import { EyeOutlined, DownloadOutlined, UploadOutlined, FilterOutlined } from '@ant-design/icons'
+import { EyeOutlined, DownloadOutlined, UploadOutlined, FilterOutlined, PlusOutlined } from '@ant-design/icons'
 
 import { fetchUsers } from '../../../api/user-management.js'
 import AccountDetails from './account-details'
@@ -37,7 +37,7 @@ export default function AccountManage({ basePath = '/admin' }) {
   const [loading, setLoading] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState(null)
   
-  const [filters, setFilters] = useState({ search: '', status: null, role: null, page: 1, size: 10 })
+  const [filters, setFilters] = useState({ search: '', status: null, role: null, page: 1, size: 20 })
 
   const loadData = async (currentFilters) => {
     setLoading(true)
@@ -85,12 +85,43 @@ export default function AccountManage({ basePath = '/admin' }) {
   // ==========================================
   const columns = [
     { 
-      title: 'STT', key: 'stt', align: 'center', width: 60,
+      // Thay vì title: 'STT'
+      title: () => (
+        <Tooltip title="Số thứ tự">
+          <span>STT</span>
+        </Tooltip>
+      ), 
+      key: 'stt', 
+      align: 'center', 
+      width: 60,
       render: (_, __, index) => (filters.page - 1) * filters.size + index + 1 
     },
-    { title: 'Họ tên', dataIndex: 'fullName', render: (_, r) => r.fullName || r.name || '' },
-    { title: 'Email', dataIndex: 'email' },
-    { title: 'Vai trò', dataIndex: 'role', render: val => getRoleLabel(val) },
+    { 
+      title: () => (
+        <Tooltip title="Họ và tên đầy đủ của người dùng">
+          <span>Họ tên</span>
+        </Tooltip>
+      ), 
+      dataIndex: 'fullName', 
+      render: (_, r) => r.fullName || r.name || '' 
+    },
+    { 
+      title: () => (
+        <Tooltip title="Địa chỉ email đăng ký">
+          <span>Email</span>
+        </Tooltip>
+      ), 
+      dataIndex: 'email' 
+    },
+    { 
+      title: () => (
+        <Tooltip title="Phân quyền hệ thống">
+          <span>Vai trò</span>
+        </Tooltip>
+      ), 
+      dataIndex: 'role', 
+      render: val => getRoleLabel(val) 
+    },
     {
       title: 'Trạng thái', dataIndex: 'status', align: 'center', width: 100,
       render: val => {
@@ -124,7 +155,7 @@ export default function AccountManage({ basePath = '/admin' }) {
   const actions = [
     { label: 'Import', icon: <UploadOutlined />, color: '#107c41', onPress: () => message.info('Tính năng Import sắp ra mắt') },
     { label: 'Export', icon: <DownloadOutlined />, color: '#107c41', onPress: () => message.success('Đang tải file Excel...') },
-    { label: 'Thêm mới', color: '#F1BE4B', onPress: () => router.push(`${basePath}/users/create-admin-staff`) }
+    { label: 'Thêm mới', icon: <PlusOutlined />, color: '#F1BE4B', onPress: () => router.push(`${basePath}/users/create-admin-staff`) }
   ]
 
   const extraFilters = (
@@ -144,12 +175,18 @@ export default function AccountManage({ basePath = '/admin' }) {
     </Space>
   )
 
-  // ==========================================
-  // 4. RENDER
-  // ==========================================
   
   if (selectedUserId) {
-    return <AccountDetails userId={selectedUserId} onAfterChange={() => loadData(filters)} />
+    return (
+      <AccountDetails 
+        userId={selectedUserId} 
+        onBack={() => setSelectedUserId(null)} 
+        onAfterChange={() => {
+          loadData(filters); // Chỉ load lại data ngầm để cập nhật dữ liệu mới nhất
+          // KHÔNG set selectedUserId về null ở đây nữa
+        }} 
+      />
+    )
   }
 
   return (
