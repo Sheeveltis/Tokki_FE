@@ -45,7 +45,7 @@ const styles = {
 const SCORE_PER_CARD = 10 // Points per card when placed correctly
 const TIME_BONUS_MULTIPLIER = 0.1
 
-export function SolitarePlayWeb({ level = 'Easy', onFinish }) {
+export function SolitarePlayWeb({ level = 'easy', onFinish }) {
   const [columns, setColumns] = useState([])
   const [slots, setSlots] = useState([])
   const [draggedCards, setDraggedCards] = useState(null) 
@@ -193,6 +193,7 @@ export function SolitarePlayWeb({ level = 'Easy', onFinish }) {
   }
 
   useEffect(() => {
+    console.log('[SolitarePlayWeb] received level =', level)
     getSolitareLayout(level)
       .then((layout) => {
         const withTopicCards = injectTopicCardsIntoLayout(layout)
@@ -495,17 +496,28 @@ export function SolitarePlayWeb({ level = 'Easy', onFinish }) {
   const isColumnLocked = (columnIndex) => {
     const col = columns[columnIndex]
     if (!col || col.cards.length === 0) return false
-
-    const firstTopicId = col.cards[0].topicId
-    if (!firstTopicId) return false
-
-    const isHomogeneous = col.cards.every(c => c.topicId === firstTopicId)
+  
+    const topicCard = col.cards.find(c => c.isTopic)
+    if (!topicCard) return false
+  
+    const topicId = topicCard.topicId
+    if (!topicId) return false
+  
+    // topic card phải ở đáy cột
+    if (!col.cards[0]?.isTopic || String(col.cards[0].topicId) !== String(topicId)) {
+      return false
+    }
+  
+    // toàn bộ cards trong cột phải cùng topic
+    const isHomogeneous = col.cards.every(c => String(c.topicId) === String(topicId))
     if (!isHomogeneous) return false
-
-    const required = topicCardCounts[firstTopicId]
+  
+    const required = topicCardCounts[topicId]
     if (!required) return false
-
-    return col.cards.length === required
+  
+    const vocabCount = col.cards.filter(c => !c.isTopic).length
+  
+    return vocabCount === required
   }
 
   const markCardsPlaced = (cards) => {
@@ -522,7 +534,10 @@ export function SolitarePlayWeb({ level = 'Easy', onFinish }) {
 
     // Check if topic card is at the bottom
     const topicCard = nextCards.find(c => c.isTopic)
-    if (!topicCard || nextCards[nextCards.length - 1].id !== topicCard.id) return
+    if (!topicCard) return
+
+    // Topic card phải nằm ở đáy cột = đầu mảng
+    if (nextCards[0].id !== topicCard.id) return
 
     const topicId = topicCard.topicId
     if (!topicId) return
