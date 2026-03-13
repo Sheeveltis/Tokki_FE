@@ -1,13 +1,12 @@
 import React, { useState, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Input, Space, Select, message, Modal, Tag } from 'antd'
-import { EyeOutlined, SearchOutlined, CopyOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import ManagementTable from '../../../../../components/ManagementTable.jsx'
+import { Space, Select, message, Modal } from 'antd'
+import { EyeOutlined, CopyOutlined, FilterOutlined, PlusOutlined } from '@ant-design/icons'
 import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
 import CreateExamTemplateModal from '../../components/admin/create-exam-template/CreateExamTemplateModal.jsx'
 import { useExamTemplatesQuery } from '../../../back-office/api/useAdminQueries.js'
 import { duplicateExamTemplate } from '../../../back-office/api/admin-index.js'
+import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 
 // Options cho Status filter
 const statusOptions = [
@@ -49,7 +48,7 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
   const [pageNumber, setPageNumber] = useState(1)
   const [status, setStatus] = useState(1)
   const [type, setType] = useState(null) // null = lấy tất cả loại đề
-  const pageSize = 10
+  const pageSize = 20
 
   // Debounce search để tránh gọi API quá nhiều
   const [debouncedSearch,  setDebouncedSearch] = useState('')
@@ -62,6 +61,11 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
 
     return () => clearTimeout(timer)
   }, [search])
+
+  const handleSearchSubmit = () => {
+    setDebouncedSearch(search)
+    setPageNumber(1)
+  }
 
   // Reset về trang 1 khi filter thay đổi
   React.useEffect(() => {
@@ -111,10 +115,24 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
+      align: 'center',
+      width: 100,
       render: (status, record) => {
         const statusValue = status ?? record.Status ?? record.status ?? 0
         const statusInfo = getStatusInfo(statusValue)
-        return <Tag color={statusInfo.color} style={{ fontSize: 12 }}>{statusInfo.label}</Tag>
+        return (
+          <div
+            title={statusInfo.label}
+            style={{
+              width: 12,
+              height: 12,
+              borderRadius: '50%',
+              backgroundColor: statusInfo.color === 'default' ? '#8c8c8c' : statusInfo.color,
+              margin: '0 auto',
+              boxShadow: '0 0 4px rgba(0,0,0,0.25)'
+            }}
+          />
+        )
       }
     },
     {
@@ -153,56 +171,18 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
 
         return (
           <Space size="middle" style={{ justifyContent: 'center' }}>
-            <div
+            <EyeOutlined
+              style={{ fontSize: 18, cursor: 'pointer', padding: 8, color: '#1890ff' }}
+              title="Xem chi tiết"
               onClick={(e) => {
                 e?.stopPropagation?.()
                 router.push(`${basePath}/exam-templates/${id}`)
               }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                padding: '4px 8px',
-                borderRadius: 4,
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f0f0f0'
-                e.currentTarget.style.transform = 'scale(1.1)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent'
-                e.currentTarget.style.transform = 'scale(1)'
-              }}
-              title="Xem chi tiết"
-            >
-              <EyeOutlined style={{ fontSize: 18, color: '#111', transition: 'color 0.2s ease' }} />
-            </div>
-            <div
-              onClick={handleDuplicate}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                padding: '4px 8px',
-                borderRadius: 4,
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f0f0f0'
-                e.currentTarget.style.transform = 'scale(1.1)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent'
-                e.currentTarget.style.transform = 'scale(1)'
-              }}
+            />
+            <CopyOutlined
+              style={{ fontSize: 18, cursor: 'pointer', padding: 8, color: '#1890ff' }}
               title="Sao chép mẫu đề"
-            >
-              <CopyOutlined style={{ fontSize: 18, color: '#1890ff', transition: 'color 0.2s ease' }} />
-            </div>
-            <div
+              onClick={handleDuplicate}
             />
           </Space>
         )
@@ -210,55 +190,61 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
     },
   ]
 
+  const actions = [
+    {
+      label: 'Thêm mẫu đề',
+      icon: <PlusOutlined />,
+      color: '#F1BE4B',
+      style: { backgroundColor: '#F1BE4B', borderColor: '#F1BE4B', color: '#111' },
+      onPress: () => setCreateModalOpen(true)
+    }
+  ]
+
+  const extraFilters = (
+    <Space wrap>
+      <Select
+        allowClear
+        placeholder="Chọn trạng thái"
+        suffixIcon={<FilterOutlined />}
+        style={{ width: 160 }}
+        value={status}
+        onChange={(value) => setStatus(value)}
+        options={statusOptions}
+      />
+      <Select
+        allowClear
+        placeholder="Chọn loại đề"
+        suffixIcon={<FilterOutlined />}
+        style={{ width: 160 }}
+        value={type}
+        onChange={(value) => setType(value)}
+        options={typeOptions}
+      />
+    </Space>
+  )
+
   return (
     <>
-      <Space orientation="vertical" size="middle" style={{ width: '100%', marginBottom: 12 }}>
-        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-          <Space>
-            <Input
-              allowClear
-              prefix={<SearchOutlined />}
-              placeholder="Tìm theo tên, mô tả, loại đề"
-              style={{ width: 300 }}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <Select
-              placeholder="Chọn trạng thái"
-              style={{ width: 160 }}
-              value={status}
-              onChange={(value) => setStatus(value)}
-              options={statusOptions}
-            />
-            <Select
-              placeholder="Chọn loại đề"
-              style={{ width: 160 }}
-              value={type}
-              onChange={(value) => setType(value)}
-              options={typeOptions}
-            />
-          </Space>
-          <ButtonV2
-            title="Thêm mẫu đề"
-            color="#F1BE4B"
-            onPress={() => setCreateModalOpen(true)}
-            style={{ minWidth: 120, paddingVertical: 10 }}
-            textStyle={{ fontSize: 14 }}
-          />
-        </Space>
-      </Space>
-      <ManagementTable
-        columns={columns}
-        dataSource={filteredData}
-        loading={isLoading && !initialData}
-        onRowClick={(record) => setDrawerItem(record)}
-        rowKey={(record) => record.id || record.ExamTemplateId || record.examTemplateId || record.name}
-        pagination={{
-          current: pageNumber,
-          pageSize: pageSize,
-          total: examTemplatesData?.totalCount || 0,
-          showSizeChanger: false,
-          onChange: (page) => setPageNumber(page),
+      <ManagementLayout
+        searchPlaceholder="Tìm theo tên, mô tả, loại đề"
+        searchValue={search}
+        onSearchChange={setSearch}
+        onSearchSubmit={handleSearchSubmit}
+        extraFilters={extraFilters}
+        actions={actions}
+        tableProps={{
+          columns,
+          dataSource: filteredData,
+          loading: isLoading && !initialData,
+          onRowClick: (record) => setDrawerItem(record),
+          rowKey: (record) => record.id || record.ExamTemplateId || record.examTemplateId || record.name,
+          pagination: {
+            current: pageNumber,
+            pageSize: pageSize,
+            total: examTemplatesData?.totalCount || 0,
+            showSizeChanger: false,
+            onChange: (page) => setPageNumber(page),
+          }
         }}
       />
       <DetailDrawer
@@ -268,7 +254,7 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
         data={drawerItem || {}}
       />
       {createModalOpen && (
-          <CreateExamTemplateModal
+        <CreateExamTemplateModal
           open={createModalOpen}
           onCancel={() => setCreateModalOpen(false)}
           onSuccess={(examTemplateId) => {
