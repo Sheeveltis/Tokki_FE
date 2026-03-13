@@ -155,7 +155,7 @@ export default function AccountManage({ basePath = '/admin' }) {
   const actions = [
     { label: 'Import', icon: <UploadOutlined />, color: '#107c41', onPress: () => message.info('Tính năng Import sắp ra mắt') },
     { label: 'Export', icon: <DownloadOutlined />, color: '#107c41', onPress: () => message.success('Đang tải file Excel...') },
-    { label: 'Thêm mới', icon: <PlusOutlined />, color: '#F1BE4B', onPress: () => router.push(`${basePath}/users/create-admin-staff`) }
+    { label: 'Thêm mới', icon: <PlusOutlined />, color: '#F1BE4B', style: { backgroundColor: '#F1BE4B', borderColor: '#F1BE4B', color: '#111' }, onPress: () => router.push(`${basePath}/users/create-admin-staff`) }
   ]
 
   const extraFilters = (

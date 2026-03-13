@@ -1,18 +1,13 @@
 'use client'
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Input, Space, Select, Tag } from 'antd'
-import { EyeOutlined, PlusOutlined, SearchOutlined, GlobalOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
+import { Select, Space, Tooltip } from 'antd'
+import { EyeOutlined, PlusOutlined, GlobalOutlined, FilterOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { fetchVocabularies } from '../../api/index.js'
-import ManagementTable from '../../../../../components/ManagementTable.jsx'
-import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
-
-const { Option } = Select
+import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 
 const STATUS_OPTIONS = [
-  { value: undefined, label: 'Tất cả' },
   { value: 1, label: 'Hoạt động' },
   { value: 0, label: 'Không hoạt động' },
   { value: 2, label: 'Đã xóa' },
@@ -22,14 +17,12 @@ export function VocabularyManagement({ initialData = null }) {
   const router = useRouter()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(!initialData)
-  const [drawerItem, setDrawerItem] = useState(null)
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState(1)
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 20,
     total: 0,
   })
+  const [filters, setFilters] = useState({ search: '', status: 1, page: 1, size: 20 })
 
   // Xác định cổng hiện tại dựa vào URL
   const getCurrentPortal = () => {
@@ -102,7 +95,13 @@ export function VocabularyManagement({ initialData = null }) {
 
   useEffect(() => {
     // Chỉ dùng initialData khi mount lần đầu và không có search/filter
-    if (initialData && Array.isArray(initialData) && initialData.length > 0 && !search && status === undefined) {
+    if (
+      initialData &&
+      Array.isArray(initialData) &&
+      initialData.length > 0 &&
+      !filters.search &&
+      filters.status === undefined
+    ) {
       setData(initialData)
       setPagination((prev) => ({
         ...prev,
@@ -110,196 +109,213 @@ export function VocabularyManagement({ initialData = null }) {
       }))
     } else {
       // Có search hoặc filter, hoặc không có initialData, load từ API
-      loadData(1, 20, status, search)
+      loadData(filters.page, filters.size, filters.status, filters.search)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData])
 
-  // Reload khi status thay đổi
   useEffect(() => {
-    // Luôn load từ API khi có filter hoặc search
-    loadData(1, pagination.pageSize, status, search)
+    loadData(filters.page, filters.size, filters.status, filters.search)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status])
+  }, [filters.page, filters.size, filters.status])
 
-  // Debounce search
   useEffect(() => {
-    // Luôn load từ API khi search
     const timer = setTimeout(() => {
-      loadData(1, pagination.pageSize, status, search)
-    }, 500) // Debounce 500ms
+      loadData(1, filters.size, filters.status, filters.search)
+    }, 500)
 
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search])
+  }, [filters.search])
 
-  const handleTableChange = (newPagination) => {
-    loadData(newPagination.current, newPagination.pageSize, status, search)
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value, page: 1 }))
+  }
+
+  const handlePaginationChange = (newPage, newSize) => {
+    setFilters((prev) => {
+      const isSizeChanged = prev.size !== newSize
+      return {
+        ...prev,
+        size: newSize,
+        page: isSizeChanged ? 1 : newPage,
+      }
+    })
   }
 
   const columns = useMemo(() => [
     {
-      title: 'ID',
+      title: () => (
+        <Tooltip title="Số thứ tự">
+          <span>STT</span>
+        </Tooltip>
+      ),
+      key: 'stt',
+      align: 'center',
+      width: 70,
+      render: (_, __, index) => (filters.page - 1) * filters.size + index + 1,
+    },
+    {
+      title: () => (
+        <Tooltip title="ID của từ vựng">
+          <span>ID</span>
+        </Tooltip>
+      ),
       dataIndex: 'vocabularyId',
       key: 'vocabularyId',
-      width: 250,
+      width: 240,
       render: (_, record) => record.vocabularyId || record.id || '-',
     },
-    { title: 'Từ', dataIndex: 'text', key: 'text' },
-    { title: 'Phiên âm', dataIndex: 'pronunciation', key: 'pronunciation' },
-    { title: 'Nghĩa', dataIndex: 'definition', key: 'definition' },
+    {
+      title: () => (
+        <Tooltip title="Từ vựng tiếng Hàn">
+          <span>Từ</span>
+        </Tooltip>
+      ),
+      dataIndex: 'text',
+      key: 'text',
+    },
+    {
+      title: () => (
+        <Tooltip title="Phiên âm của từ">
+          <span>Phiên âm</span>
+        </Tooltip>
+      ),
+      dataIndex: 'pronunciation',
+      key: 'pronunciation',
+    },
+    {
+      title: () => (
+        <Tooltip title="Nghĩa tiếng Việt">
+          <span>Nghĩa</span>
+        </Tooltip>
+      ),
+      dataIndex: 'definition',
+      key: 'definition',
+    },
     {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      width: 140,
+      width: 120,
       align: 'center',
       render: (status) => {
         const statusMap = {
-          1: { label: 'Hoạt động', color: 'green' },
-          0: { label: 'Không hoạt động', color: 'orange' },
-          2: { label: 'Đã xóa', color: 'red' },
+          1: { label: 'Hoạt động', color: '#52c41a' },
+          0: { label: 'Không hoạt động', color: '#fa8c16' },
+          2: { label: 'Đã xóa', color: '#f5222d' },
         }
-        const statusInfo = statusMap[status] || { label: 'Không xác định', color: 'default' }
-        return <Tag color={statusInfo.color}>{statusInfo.label}</Tag>
+        const statusInfo = statusMap[status] || { label: 'Không xác định', color: '#8c8c8c' }
+        return (
+          <Tooltip title={statusInfo.label} color={statusInfo.color} placement="top">
+            <div
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: '50%',
+                backgroundColor: statusInfo.color,
+                margin: '0 auto',
+                boxShadow: '0 0 4px rgba(0,0,0,0.3)',
+                cursor: 'pointer',
+              }}
+            />
+          </Tooltip>
+        )
       },
     },
     {
-      title: 'Thao tác',
+      title: 'Xem',
       key: 'actions',
       align: 'center',
-      width: 140,
+      width: 120,
       render: (_, record) => {
         const vocabId = record.vocabularyId || record.id
         return (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            <div
-              onClick={(e) => {
-                e?.stopPropagation?.()
-                router.push(`${portalPrefix}/vocab/${vocabId}`)
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                padding: '4px 8px',
-                borderRadius: 4,
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f0f0f0'
-                e.currentTarget.style.transform = 'scale(1.1)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent'
-                e.currentTarget.style.transform = 'scale(1)'
-              }}
-              title="Xem chi tiết (Admin)"
-            >
-              <EyeOutlined style={{ fontSize: 18, color: '#111', transition: 'color 0.2s ease' }} />
-            </div>
-            <div
-              onClick={(e) => {
-                e?.stopPropagation?.()
+            <EyeOutlined
+              style={{ fontSize: 18, cursor: 'pointer', padding: 8, color: '#1890ff' }}
+              onClick={() => router.push(`${portalPrefix}/vocab/${vocabId}`)}
+            />
+            <GlobalOutlined
+              style={{ fontSize: 18, cursor: 'pointer', padding: 8, color: '#1890ff' }}
+              onClick={() => {
                 if (vocabId) {
                   window.open(`/dictionary/${vocabId}`, '_blank')
                 }
               }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                padding: '4px 8px',
-                borderRadius: 4,
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#e6f7ff'
-                e.currentTarget.style.transform = 'scale(1.1)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent'
-                e.currentTarget.style.transform = 'scale(1)'
-              }}
-              title="Xem trên web user"
-            >
-              <GlobalOutlined style={{ fontSize: 18, color: '#1890ff', transition: 'color 0.2s ease' }} />
-            </div>
+            />
           </div>
         )
       },
     },
-  ], [portalPrefix, router])
+  ], [filters.page, filters.size, portalPrefix, router])
+
+  const actions = [
+    {
+      label: 'Import',
+      icon: <UploadOutlined />,
+      color: '#107c41',
+      onPress: () => console.info('Import vocabularies'),
+    },
+    {
+      label: 'Export',
+      icon: <DownloadOutlined />,
+      color: '#107c41',
+      onPress: () => console.info('Export vocabularies'),
+    },
+    {
+      label: 'Từ điển',
+      icon: <GlobalOutlined />,
+      color: '#6366F1',
+      onPress: () => router.push('/dictionary'),
+      style: { backgroundColor: '#6366F1', borderColor: '#6366F1' },
+    },
+    {
+      label: 'Thêm mới',
+      icon: <PlusOutlined />,
+      color: '#F1BE4B',
+      onPress: () => router.push(`${portalPrefix}/vocab/create`),
+      style: { backgroundColor: '#F1BE4B', borderColor: '#F1BE4B', color: '#111' },
+    },
+  ]
+
+  const extraFilters = (
+    <Space wrap>
+      <Select
+        allowClear
+        placeholder="Lọc theo trạng thái"
+        suffixIcon={<FilterOutlined />}
+        style={{ width: 180 }}
+        value={filters.status}
+        onChange={(val) => handleFilterChange('status', val)}
+        options={STATUS_OPTIONS.map((option) => ({ value: option.value, label: option.label }))}
+      />
+    </Space>
+  )
 
   return (
-    <>
-      <Space style={{ marginBottom: 12, width: '100%', justifyContent: 'space-between' }}>
-        <Space>
-          <Input
-            allowClear
-            prefix={<SearchOutlined />}
-            placeholder="Tìm theo ID hoặc tiếng Hàn"
-            style={{ maxWidth: 360 }}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <Select
-            value={status}
-            onChange={setStatus}
-            placeholder="Lọc theo trạng thái"
-            style={{ minWidth: 160 }}
-            allowClear
-          >
-            {STATUS_OPTIONS.map((option) => (
-              <Option key={option.value ?? 'all'} value={option.value}>
-                {option.label}
-              </Option>
-            ))}
-          </Select>
-        </Space>
-        <Space>
-          <ButtonV2
-            title="Từ điển"
-            color="#6366F1"
-            onPress={() => router.push('/dictionary')}
-            style={{ minWidth: 100, paddingVertical: 10 }}
-            textStyle={{ fontSize: 14 }}
-          />
-          <ButtonV2
-            title="Thêm"
-            color="#F1BE4B"
-            onPress={() => router.push(`${portalPrefix}/vocab/create`)}
-            style={{ minWidth: 80, paddingVertical: 10 }}
-            textStyle={{ fontSize: 14 }}
-            icon={<PlusOutlined />}
-          />
-        </Space>
-      </Space>
-      <ManagementTable
-        columns={columns}
-        dataSource={data}
-        loading={loading}
-        onRowClick={(record) => setDrawerItem(record)}
-        pagination={{
-          current: pagination.current,
-          pageSize: pagination.pageSize,
+    <ManagementLayout
+      searchPlaceholder="Tìm theo ID hoặc tiếng Hàn"
+      searchValue={filters.search}
+      onSearchChange={(val) => setFilters((prev) => ({ ...prev, search: val }))}
+      onSearchSubmit={() => handleFilterChange('search', filters.search)}
+      extraFilters={extraFilters}
+      actions={actions}
+      tableProps={{
+        columns,
+        dataSource: data,
+        loading,
+        pagination: {
+          current: filters.page,
+          pageSize: filters.size,
           total: pagination.total,
           showSizeChanger: true,
-          showTotal: (total, range) =>
-            `${range[0]}-${range[1]} của ${total} từ vựng`,
+          showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} từ vựng`,
           pageSizeOptions: ['10', '20', '50', '100'],
-        }}
-        onChange={handleTableChange}
-      />
-      <DetailDrawer
-        open={!!drawerItem}
-        onClose={() => setDrawerItem(null)}
-        title="Chi tiết từ vựng"
-        data={drawerItem || {}}
-      />
-    </>
+          onChange: handlePaginationChange,
+        },
+      }}
+    />
   )
 }
 

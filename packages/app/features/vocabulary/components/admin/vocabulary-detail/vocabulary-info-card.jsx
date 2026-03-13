@@ -1,15 +1,11 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { useRouter } from 'solito/navigation'
+import { useEffect, useState } from 'react'
 import { Card, Descriptions, Image, Tag, Space, Button, Table } from 'antd'
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { fetchUserDetail } from 'app/features/user/api/user-detail'
-import { ButtonV2 } from 'components/buttonV2.jsx'
 
 export function VocabularyInfoCard({ vocab, onAddExample, onEditExample, onDeleteExample, deletingExampleId }) {
-  const router = useRouter()
-  
   if (!vocab) return null
 
   const topics = Array.isArray(vocab?.topics) ? vocab.topics : []
@@ -102,9 +98,9 @@ export function VocabularyInfoCard({ vocab, onAddExample, onEditExample, onDelet
   }, [examples])
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      <Card>
-        <Descriptions column={1} bordered size="middle">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
+      <Card style={{ width: '100%' }}>
+        <Descriptions column={1} bordered size="middle" style={{ width: '100%' }}>
           <Descriptions.Item label="Từ">{vocab.text || '-'}</Descriptions.Item>
           <Descriptions.Item label="Phiên âm">{vocab.pronunciation || '-'}</Descriptions.Item>
           <Descriptions.Item label="Định nghĩa">{vocab.definition || '-'}</Descriptions.Item>
@@ -206,8 +202,8 @@ export function VocabularyInfoCard({ vocab, onAddExample, onEditExample, onDelet
       </Card>
 
       {topics.length > 0 && (
-        <Card title="Danh sách chủ đề" style={{ marginTop: 16 }}>
-          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+        <Card title="Danh sách chủ đề" style={{ width: '100%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
             {topics.map((topic) => (
               <div
                 key={topic.topicId}
@@ -232,16 +228,16 @@ export function VocabularyInfoCard({ vocab, onAddExample, onEditExample, onDelet
                     {topic.topicName || '-'}
                   </Tag>
                 </div>
-                <ButtonV2
-                  title="Xem chi tiết"
-                  color="mint"
-                  onPress={() => window.open(`/admin/vocab-topic/${topic.topicId}`, '_blank')}
-                  style={{ marginLeft: 12, minWidth: 140, paddingVertical: 10 }}
-                  textStyle={{ fontSize: 14 }}
-                />
+                <Button
+                  type="primary"
+                  onClick={() => window.open(`/admin/vocab-topic/${topic.topicId}`, '_blank')}
+                  style={{ marginLeft: 12, minWidth: 140 }}
+                >
+                  Xem chi tiết
+                </Button>
               </div>
             ))}
-          </Space>
+          </div>
         </Card>
       )}
 
@@ -249,16 +245,12 @@ export function VocabularyInfoCard({ vocab, onAddExample, onEditExample, onDelet
         title="Câu mẫu"
         extra={
           onAddExample ? (
-            <ButtonV2
-              title="Thêm câu mẫu"
-              color="poppy"
-              onPress={onAddExample}
-              style={{ minWidth: 140, paddingVertical: 8 }}
-              textStyle={{ fontSize: 14 }}
-            />
+            <Button type="primary" onClick={onAddExample} style={{ minWidth: 140 }}>
+              Thêm câu mẫu
+            </Button>
           ) : null
         }
-        style={{ marginTop: 16 }}
+        style={{ width: '100%' }}
       >
         {examples.length > 0 ? (
           <Table
@@ -379,7 +371,7 @@ export function VocabularyInfoCard({ vocab, onAddExample, onEditExample, onDelet
           </div>
         )}
       </Card>
-    </Space>
+    </div>
   )
 }
 

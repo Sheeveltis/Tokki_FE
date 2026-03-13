@@ -1,9 +1,8 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'solito/navigation'
-import { Space, Typography, Spin, Alert, Modal } from 'antd'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
+import { Space, Typography, Spin, Alert, Modal, Button } from 'antd'
 import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
 import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web.jsx'
 import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
@@ -362,32 +361,19 @@ export function VocabularyDetailScreen() {
     if (error) {
       return (
         <div style={{ padding: 24 }}>
-          <Alert type="error" message="Lỗi" description={error} />
-          <ButtonV2 
-            title="Quay lại" 
-            style={{ marginTop: 10, minWidth: 120 }} 
-            onPress={() => {
-              if (currentPortal === 'staff') {
-                router.push('/staff?tab=vocabulary-words')
-              } else if (currentPortal === 'moderator') {
-                router.push('/moderator?tab=approve-vocabulary')
-              } else {
-                router.push('/admin?tab=vocabulary-words')
-              }
-            }} 
+          <Alert
+            type="error"
+            description={(
+              <div>
+                <strong>Lỗi</strong>
+                <div>{error}</div>
+              </div>
+            )}
           />
-        </div>
-      )
-    }
-
-    if (!detailVocab) {
-      return (
-        <div style={{ padding: 24 }}>
-          <Alert type="warning" message="Không tìm thấy từ vựng" />
-          <ButtonV2
-            title="Quay lại danh sách"
-            style={{ marginTop: 12, minWidth: 140 }}
-            onPress={() => {
+          <Button
+            type="primary"
+            style={{ marginTop: 10, minWidth: 120 }}
+            onClick={() => {
               if (currentPortal === 'staff') {
                 router.push('/staff?tab=vocabulary-words')
               } else if (currentPortal === 'moderator') {
@@ -396,14 +382,46 @@ export function VocabularyDetailScreen() {
                 router.push('/admin?tab=vocabulary-words')
               }
             }}
+          >
+            Quay lại
+          </Button>
+        </div>
+      )
+    }
+
+    if (!detailVocab) {
+      return (
+        <div style={{ padding: 24 }}>
+          <Alert
+            type="warning"
+            description={(
+              <div>
+                <strong>Không tìm thấy từ vựng</strong>
+              </div>
+            )}
           />
+          <Button
+            type="primary"
+            style={{ marginTop: 12, minWidth: 140 }}
+            onClick={() => {
+              if (currentPortal === 'staff') {
+                router.push('/staff?tab=vocabulary-words')
+              } else if (currentPortal === 'moderator') {
+                router.push('/moderator?tab=approve-vocabulary')
+              } else {
+                router.push('/admin?tab=vocabulary-words')
+              }
+            }}
+          >
+            Quay lại danh sách
+          </Button>
         </div>
       )
     }
 
     return (
       <div style={{ padding: 24 }}>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
           <Space style={{ justifyContent: 'space-between', width: '100%' }}>
             <div>
               <Title level={3} style={{ marginBottom: 4 }}>
@@ -412,10 +430,8 @@ export function VocabularyDetailScreen() {
               <Text type="secondary">ID: {detailVocab.vocabularyId || detailVocab.id}</Text>
             </div>
             <Space>
-              <ButtonV2
-                title="Quay lại"
-                color="mint"
-                onPress={() => {
+              <Button
+                onClick={() => {
                   if (currentPortal === 'staff') {
                     router.push('/staff?tab=vocabulary-words')
                   } else if (currentPortal === 'moderator') {
@@ -424,24 +440,15 @@ export function VocabularyDetailScreen() {
                     router.push('/admin?tab=vocabulary-words')
                   }
                 }}
-                style={{ minWidth: 100, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
-              <ButtonV2
-                title={deleteLoading ? 'Đang xóa...' : 'Xóa'}
-                color="charcoal"
-                onPress={handleDelete}
-                disabled={deleteLoading}
-                style={{ minWidth: 90, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
-              <ButtonV2
-                title="Chỉnh sửa"
-                color="poppy"
-                onPress={() => setEditOpen(true)}
-                style={{ minWidth: 110, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
+              >
+                Quay lại
+              </Button>
+              <Button danger loading={deleteLoading} onClick={handleDelete}>
+                {deleteLoading ? 'Đang xóa...' : 'Xóa'}
+              </Button>
+              <Button type="primary" onClick={() => setEditOpen(true)}>
+                Chỉnh sửa
+              </Button>
             </Space>
           </Space>
 
@@ -475,7 +482,8 @@ export function VocabularyDetailScreen() {
             }}
             onSubmit={handleUpdateExample}
           />
-        </Space>
+          </div>
+        {/* </Space> */}
       </div>
     )
   })()
