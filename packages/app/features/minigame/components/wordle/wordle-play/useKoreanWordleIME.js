@@ -66,27 +66,27 @@ export function useKoreanWordleIME({ wordLength, maxGuesses = 6, onSubmitRow }) 
   const handleVirtualKey = useCallback(
     (key) => {
       if (!key) return
-
-      if (key === 'BACKSPACE' || key === 'ENTER' || key === 'ARROW_LEFT' || key === 'ARROW_RIGHT') {
-        setRowStateWithRef((prev) => {
-          const next = reduceRowState(prev, key, wordLength)
-          // ENTER xử lý submit ở đây
-          if (key === 'ENTER' && next.activeColIndex === wordLength - 1) {
-            const word = getCommittedWordFromCells(next.cells)
-            if (word && word.length === wordLength && typeof onSubmitRow === 'function') {
-              onSubmitRow(word)
-            }
-          }
-          return next
-        })
+  
+      // ENTER xử lý submit riêng, KHÔNG đặt trong setState updater
+      if (key === 'ENTER') {
+        const word = getCommittedWordFromCells(rowState.cells)
+        if (word && word.length === wordLength && typeof onSubmitRow === 'function') {
+          onSubmitRow(word)
+        }
         return
       }
-
+  
+      // control keys
+      if (key === 'BACKSPACE' || key === 'ARROW_LEFT' || key === 'ARROW_RIGHT') {
+        setRowStateWithRef((prev) => reduceRowState(prev, key, wordLength))
+        return
+      }
+  
       // jamo input
       const ch = String(key)
       setRowStateWithRef((prev) => reduceRowState(prev, ch, wordLength))
     },
-    [onSubmitRow, setRowStateWithRef, wordLength]
+    [onSubmitRow, rowState.cells, setRowStateWithRef, wordLength]
   )
 
   // Bàn phím vật lý: chỉ nhận jamo, hangul syllable, backspace, enter, arrows

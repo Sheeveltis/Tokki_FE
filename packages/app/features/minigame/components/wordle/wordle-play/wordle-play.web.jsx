@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { View, Text, StyleSheet, Image, ImageBackground, Pressable, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
 
@@ -28,9 +28,8 @@ export function WordlePlayWeb({
   const usedAttempts = initialAttemptCount || 0
   const configuredMaxAttempts =
     typeof maxAttempts === 'number' && maxAttempts > 0 ? maxAttempts : 6
-  // Số ô/ lượt đoán còn lại = maxAttempts - attemptCount
   const MAX_GUESSES = Math.max(0, configuredMaxAttempts - usedAttempts)
-  const TOPIC_NAME = '' // backend có thể trả sau
+  const TOPIC_NAME = '' 
   const [rows, setRows] = useState([]) // mỗi row = mảng feedbacks từ API
   const [gameState, setGameState] = useState('playing') // 'playing', 'won', 'lost'
   const [targetWord, setTargetWord] = useState('') // Từ đã đoán đúng
@@ -44,6 +43,7 @@ export function WordlePlayWeb({
   const tapSoundRef = useRef(null)
   const failSoundRef = useRef(null)
   const successSoundRef = useRef(null)
+  const isSubmittingRef = useRef(false)
 
   // Korean IME cho active row
   const {
@@ -55,7 +55,6 @@ export function WordlePlayWeb({
     handleVirtualKey,
     handleIMEText,
     resetRow,
-    getCommittedWord,
   } = useKoreanWordleIME({
     wordLength: WORD_LENGTH,
     onSubmitRow: (word) => {
@@ -272,12 +271,12 @@ export function WordlePlayWeb({
   // Thay vào đó: bắt ngay trên hidden IME input (focus-trap) để mọi input đi qua cùng logic.
 
   const submitRow = async (guessWord) => {
+    if (isSubmittingRef.current) return
     if (gameState !== 'playing') return
     if (rows.length >= MAX_GUESSES) return
     if (!guessWord || guessWord.length !== WORD_LENGTH) return
     if (!dailyWordleId) {
-      console.error('[WordlePlayWeb] Missing dailyWordleId')
-      return
+      isSubmittingRef.current = true
     }
 
     try {
@@ -325,18 +324,19 @@ export function WordlePlayWeb({
         if (isWon && !allGreen) {
           const guessedWord = feedbacks.map(fb => fb.character || '').join('')
           setTargetWord(guessedWord)
-      setGameState('won')
+          setGameState('won')
         } else if (isGameOver) {
-      setGameState('lost')
-    }
-  }
+          setGameState('lost')
+        }
+      }
 
       // Reset để nhập lượt tiếp theo
       resetRow()
     } catch (error) {
       console.error('[WordlePlayWeb] submit guess error:', error)
+    } finally {
+      isSubmittingRef.current = false
     }
-
   }
 
   // Handle menu popup
@@ -353,20 +353,13 @@ export function WordlePlayWeb({
     router.back()
   }
 
-  const restartTour = useCallback(() => {
-    setTourRun(false)
-    requestAnimationFrame(() => {
-      setTourRun(true)
-    })
-  }, [])
-
   const handleHowToPlay = useCallback(() => {
     // close menu first so spotlight can see targets behind it
     setShowMenuPopup(false)
     requestAnimationFrame(() => {
-      restartTour()
+      setTourRun(true)
     })
-  }, [restartTour])
+  }, [])
 
   const handlePlayWordAudio = useCallback(() => {
     if (Platform.OS !== 'web') return
@@ -386,12 +379,12 @@ export function WordlePlayWeb({
       if (hasSeenHowToPlayTour()) return
       // Delay 1 frame so targets are mounted before Joyride starts
       requestAnimationFrame(() => {
-        restartTour()
+        setTourRun(true)
       })
     } catch (e) {
       // ignore
     }
-  }, [restartTour])
+  }, [])
 
   return (
     <ImageBackground source={BackgroundImage} style={styles.container}>

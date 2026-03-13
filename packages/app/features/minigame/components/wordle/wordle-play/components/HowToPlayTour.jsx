@@ -175,6 +175,9 @@ export function HowToPlayTour({ run, setRun, onEnded }) {
                 Nếu bạn chỉ nhập 2 kí tự (ví dụ 가) mà dấu chấm số 3 có màu xanh thì có nghĩa là ô đó
                 không có phụ âm cuối.
               </li>
+              <li>
+                Nhớ tắt Unikey và hãy dùng bàn phím hangul để nhập từ nhé
+              </li>
             </ul>
           </div>
         ),
