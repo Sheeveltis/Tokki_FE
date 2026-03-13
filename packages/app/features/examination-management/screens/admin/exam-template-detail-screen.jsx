@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'solito/navigation'
-import { Card, Space, Typography, Spin, Alert, Descriptions, Tag, Modal, message, Button, Tooltip, Input } from 'antd'
+import { Card, Space, Typography, Spin, Alert, Descriptions, Modal, message, Button, Tooltip } from 'antd'
 import { QuestionCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
 import ExamTemplatePartsForm from '../../components/admin/exam-template-detail/ExamTemplatePartsForm.jsx'
 import EditExamTemplateModal from '../../components/admin/exam-template-detail/EditExamTemplateModal.jsx'
@@ -42,7 +41,6 @@ export function ExamTemplateDetailScreen() {
   const [approvalModalOpen, setApprovalModalOpen] = useState(false)
   const [approvalLoading, setApprovalLoading] = useState(false)
   const [approvalMode, setApprovalMode] = useState('approve') // 'approve' | 'reject'
-  const [rejectReason, setRejectReason] = useState('')
   const [submittingForApproval, setSubmittingForApproval] = useState(false)
   const [statusChangeModalOpen, setStatusChangeModalOpen] = useState(false)
   const [statusChangeLoading, setStatusChangeLoading] = useState(false)
@@ -186,7 +184,6 @@ export function ExamTemplateDetailScreen() {
     }
 
     setApprovalMode(type)
-    setRejectReason('')
     setApprovalModalOpen(true)
   }
 
@@ -258,7 +255,6 @@ export function ExamTemplateDetailScreen() {
       setExamTemplate(data)
       setApprovalModalOpen(false)
       setApprovalMode('approve')
-      setRejectReason('')
     } catch (err) {
       message.error(err?.message || 'Thao tác phê duyệt / từ chối thất bại')
     } finally {
@@ -341,74 +337,70 @@ export function ExamTemplateDetailScreen() {
 
   return (
     <AdminLayout defaultKey="exam-template" onNavigate={handleNavigate}>
-      <div style={{ padding: 24 }}>
-        <Space orientation="vertical" size="large" style={{ width: '100%' }}>
+      <div style={{ padding: 20 }}>
+        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              flexWrap: 'wrap',
+              gap: 12,
+            }}
+          >
             <div>
-              <Title level={3} style={{ marginBottom: 8 }}>
+              <Title level={3} style={{ marginBottom: 4 }}>
                 Chi tiết mẫu đề
               </Title>
               <Text type="secondary">ID: {examTemplate.examTemplateId}</Text>
             </div>
-            <Space>
+            <Space size="small" wrap>
               {/* Staff: nút Gửi duyệt khi Nháp hoặc Từ chối */}
               {isStaff && [0, 4].includes(examTemplate.status ?? 0) && (
-                <ButtonV2
-                  title="Gửi duyệt"
-                  color="#52c41a"
-                  onPress={handleSubmitForApproval}
-                  disabled={submittingForApproval}
-                  style={{ minWidth: 120, paddingVertical: 10 }}
-                  textStyle={{ fontSize: 14 }}
-                />
+                <Button
+                  type="primary"
+                  onClick={handleSubmitForApproval}
+                  loading={submittingForApproval}
+                >
+                  Gửi duyệt
+                </Button>
               )}
               {/* Admin: nút chuyển trạng thái */}
               {isAdmin && (
-                <ButtonV2
-                  title="Chuyển trạng thái"
-                  color="#1890ff"
-                  onPress={() => setStatusChangeModalOpen(true)}
-                  disabled={statusChangeLoading}
-                  style={{ minWidth: 140, paddingVertical: 10 }}
-                  textStyle={{ fontSize: 14 }}
-                />
+                <Button
+                  type="primary"
+                  onClick={() => setStatusChangeModalOpen(true)}
+                  loading={statusChangeLoading}
+                >
+                  Chuyển trạng thái
+                </Button>
               )}
               {/* Chỉnh sửa thông tin cơ bản
                   - Admin: luôn được chỉnh sửa
                   - Staff: chỉ được chỉnh sửa khi trạng thái là Draft (0) hoặc Từ chối (4)
               */}
-              <ButtonV2
-                title="Chỉnh sửa"
-                color="#F1BE4B"
-                onPress={handleEdit}
+              <Button
+                onClick={handleEdit}
                 disabled={isStaff && ![0, 4].includes(examTemplate.status ?? 0)}
-                style={{ minWidth: 100, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
+              >
+                Chỉnh sửa
+              </Button>
               {/* Chỉ cho phép xóa khi không phải trạng thái Đã xuất bản */}
               {examTemplate.status !== 1 && (
-                <ButtonV2
-                  title="Xóa"
-                  color="#ff4d4f"
-                  onPress={handleDelete}
-                  disabled={deleting}
-                  style={{ minWidth: 100, paddingVertical: 10 }}
-                  textStyle={{ fontSize: 14 }}
-                />
+                <Button danger onClick={handleDelete} loading={deleting}>
+                  Xóa
+                </Button>
               )}
-              <ButtonV2
-                title="Quay lại"
-                color="charcoal"
-                onPress={() => router.push('/admin?tab=exam-template')}
-                style={{ minWidth: 100, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
+              <Button onClick={() => router.push('/admin?tab=exam-template')}>
+                Quay lại
+              </Button>
             </Space>
           </div>
 
           {/* Thông tin cơ bản */}
           <Card
+            size="small"
             title="Thông tin cơ bản"
             extra={
               <Tooltip title="Hướng dẫn Thông tin cơ bản">
@@ -419,7 +411,11 @@ export function ExamTemplateDetailScreen() {
               </Tooltip>
             }
           >
-            <Descriptions column={1} bordered size="middle">
+            <Descriptions
+              column={{ xs: 1, sm: 2 }}
+              bordered
+              size="small"
+            >
               <Descriptions.Item label="Tên mẫu đề">
                 {examTemplate.name || '-'}
               </Descriptions.Item>
@@ -431,9 +427,7 @@ export function ExamTemplateDetailScreen() {
               </Descriptions.Item>
               <Descriptions.Item label="Trạng thái">
                 <Space size="small" align="center">
-                  <Tag color={getStatusInfo(examTemplate.status ?? 0).color} style={{ fontSize: 12 }}>
-                    {getStatusInfo(examTemplate.status ?? 0).label}
-                  </Tag>
+                  <Text>{getStatusInfo(examTemplate.status ?? 0).label}</Text>
                   {examTemplate.status === 3 && isAdmin && (
                     <>
                       <div
@@ -513,6 +507,7 @@ export function ExamTemplateDetailScreen() {
 
           {/* Quản lý các phần */}
           <Card
+            size="small"
             title="Quản lý các phần của đề thi"
             extra={
               <Tooltip title="Hướng dẫn Quản lý các phần">
@@ -561,7 +556,6 @@ export function ExamTemplateDetailScreen() {
           onCancel={() => {
             setApprovalModalOpen(false)
             setApprovalMode('approve')
-            setRejectReason('')
           }}
           onSubmit={handleApprovalSubmit}
         />
