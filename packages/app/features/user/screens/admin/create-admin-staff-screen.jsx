@@ -21,6 +21,13 @@ export function CreateAdminStaffScreen() {
   const phoneNumber = Form.useWatch('phoneNumber', form)
   const role = Form.useWatch('role', form)
 
+  const getApiErrorMessage = (err, fallback) => {
+    const apiMessage = err?.response?.data?.message
+    const apiErrors = err?.response?.data?.errors
+    const firstError = Array.isArray(apiErrors) && apiErrors.length ? apiErrors[0]?.description : null
+    return apiMessage || firstError || err?.message || fallback
+  }
+
   const handleSubmit = async (values) => {
     try {
       setLoading(true)
@@ -32,34 +39,20 @@ export function CreateAdminStaffScreen() {
         phoneNumber: values.phoneNumber,
         dateOfBirth: values.dateOfBirth?.format('YYYY-MM-DD'),
         role: roleEnum,
+        status: 'Active',
       }
-      await createAdminStaff(payload)
-      message.success('Đã tạo Admin/Staff mới thành công')
+      const response = await createAdminStaff(payload)
+      message.success(response?.data || response?.message || 'Đã tạo Admin/Staff mới thành công')
       router.push('/admin?tab=users-admin')
     } catch (error) {
-      // Lấy error message từ response
-      const errorData = error.response?.data
-      let errorMessage = 'Tạo Admin/Staff thất bại'
-      
-      // Ưu tiên lấy description từ errors array
-      if (errorData?.errors && Array.isArray(errorData.errors) && errorData.errors.length > 0) {
-        errorMessage = errorData.errors[0].description || errorData.message || errorMessage
-      } else if (errorData?.message) {
-        errorMessage = errorData.message
-      } else if (error.message) {
-        errorMessage = error.message
-      }
-      
-      message.error(errorMessage)
+      message.error(getApiErrorMessage(error, 'Tạo Admin/Staff thất bại'))
     } finally {
       setLoading(false)
     }
   }
 
-  const handleCancel = () => {
-    startTransition(() => {
-      router.push('/admin?tab=users-admin')
-    })
+  const handleBack = () => {
+    router.push('/admin?tab=users-admin')
   }
 
   const handleNavigate = (key) => {
@@ -95,7 +88,7 @@ export function CreateAdminStaffScreen() {
           {/* Back Button */}
           <div style={{ marginBottom: 8 }}>
             <Button
-              onClick={handleCancel}
+              onClick={handleBack}
               style={{ minWidth: 120, paddingTop: 10, paddingBottom: 10 }}
             >
               Quay lại
@@ -105,12 +98,13 @@ export function CreateAdminStaffScreen() {
           <Form
             form={form}
             layout="vertical"
+            initialValues={{ role: 'Staff' }}
             onFinish={handleSubmit}
           >
-            {/* Row 1: Header + Thông tin cá nhân */}
+            {/* Row 1: Header */}
             <Row gutter={[16, 0]} style={{ margin: 0, width: '100%' }}>
               {/* Card: Avatar + Thông tin */}
-              <Col xs={24} sm={24} md={12}>
+              <Col xs={24} sm={24} md={24}>
                 <Card style={{ borderRadius: 8, height: '100%' }}>
                   <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
                     {/* Avatar Section */}
@@ -179,7 +173,7 @@ export function CreateAdminStaffScreen() {
                       {/* Action Buttons */}
                       <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
                         <Button
-                          onClick={handleCancel}
+                          onClick={handleBack}
                           style={{ minWidth: 140, paddingTop: 10, paddingBottom: 10 }}
                         >
                           Hủy
@@ -197,32 +191,6 @@ export function CreateAdminStaffScreen() {
                   </div>
                 </Card>
               </Col>
-
-              {/* Card: Thông tin cá nhân */}
-              <Col xs={24} sm={24} md={12}>
-                <Card
-                  title="Thông tin cá nhân"
-                  style={{ borderRadius: 8, height: '100%' }}
-                >
-                  <Descriptions column={1} size="small" bordered>
-                    <Descriptions.Item label="Họ tên">
-                      <Form.Item name="fullName" noStyle rules={[{ required: true, message: 'Vui lòng nhập tên' }]}>
-                        <Input placeholder="Tên Admin/Staff" size="small" maxLength={35} />
-                      </Form.Item>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Ngày sinh">
-                      <Form.Item name="dateOfBirth" noStyle rules={[{ required: true, message: 'Vui lòng chọn ngày sinh' }]}>
-                        <DatePicker
-                          format="YYYY-MM-DD"
-                          style={{ width: '100%' }}
-                          size="small"
-                          placeholder="Chọn ngày sinh"
-                        />
-                      </Form.Item>
-                    </Descriptions.Item>
-                  </Descriptions>
-                </Card>
-              </Col>
             </Row>
 
             {/* Row 2: Thông tin tài khoản */}
@@ -233,24 +201,39 @@ export function CreateAdminStaffScreen() {
                   style={{ borderRadius: 8, height: '100%' }}
                 >
                   <Descriptions column={1} size="small" bordered>
+                    <Descriptions.Item label="Họ tên">
+                      <Form.Item name="fullName" noStyle rules={[{ required: true, message: 'Vui lòng nhập tên' }]}>
+                        <Input placeholder="Tên Admin/Staff" size="middle" maxLength={35} />
+                      </Form.Item>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Ngày sinh">
+                      <Form.Item name="dateOfBirth" noStyle rules={[{ required: true, message: 'Vui lòng chọn ngày sinh' }]}>
+                        <DatePicker
+                          format="YYYY-MM-DD"
+                          style={{ width: '100%' }}
+                          size="middle"
+                          placeholder="Chọn ngày sinh"
+                        />
+                      </Form.Item>
+                    </Descriptions.Item>
                     <Descriptions.Item label="Email">
                       <Form.Item name="email" noStyle rules={[
                         { required: true, message: 'Vui lòng nhập email' },
                         { type: 'email', message: 'Email không hợp lệ' },
                       ]}>
-                        <Input placeholder="email@example.com" size="small" />
+                        <Input placeholder="email@example.com" size="middle" />
                       </Form.Item>
                     </Descriptions.Item>
                     <Descriptions.Item label="Số điện thoại">
                       <Form.Item name="phoneNumber" noStyle rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}>
-                        <Input placeholder="Số điện thoại" size="small" />
+                        <Input placeholder="Số điện thoại" size="middle" />
                       </Form.Item>
                     </Descriptions.Item>
                     <Descriptions.Item label="Vai trò">
-                      <Form.Item name="role" noStyle rules={[{ required: true, message: 'Vui lòng chọn vai trò' }]} initialValue="Staff">
+                      <Form.Item name="role" noStyle rules={[{ required: true, message: 'Vui lòng chọn vai trò' }]}>
                         <Select
                           style={{ width: '100%' }}
-                          size="small"
+                            size="middle"
                           options={[
                             { value: 'Admin', label: 'Quản trị viên' },
                             { value: 'Staff', label: 'Nhân viên' },
@@ -259,24 +242,24 @@ export function CreateAdminStaffScreen() {
                       </Form.Item>
                     </Descriptions.Item>
                     <Descriptions.Item label="Trạng thái">
-                      <Form.Item name="status" noStyle rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]} initialValue="Active">
-                        <Select
-                          style={{ width: '100%' }}
-                          size="small"
-                          options={[
-                            { value: 'Active', label: statusUser.Active },
-                            { value: 'Suspended', label: statusUser.Suspended },
-                          ]}
-                        />
-                      </Form.Item>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="User ID">
-                      <Text type="secondary" style={{ fontSize: 12 }}>-</Text>
+                      <Text style={{ fontSize: 12 }}>{statusUser.Active}</Text>
                     </Descriptions.Item>
                   </Descriptions>
                 </Card>
               </Col>
             </Row>
+
+            {/* Bottom Save Button */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
+              <Button
+                type="primary"
+                onClick={() => form.submit()}
+                loading={loading}
+                style={{ minWidth: 140, paddingTop: 10, paddingBottom: 10 }}
+              >
+                {loading ? 'Đang lưu...' : 'Lưu'}
+              </Button>
+            </div>
           </Form>
         </div>
       </div>
