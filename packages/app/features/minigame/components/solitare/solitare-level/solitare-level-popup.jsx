@@ -25,10 +25,10 @@ const DEFAULT_LEVELS = [
  * Hiện tại chỉ hiển thị UI và trả về id level,
  * KHÔNG xử lý quantity hay gọi API. Sau này có API sẽ gắn vào onConfirm.
  *
- * @param {{
+ *  @param {{
  *  visible: boolean
  *  onClose?: () => void
- *  onConfirm?: (level: { id: string }) => void
+ *  onConfirm?: (level: string) => void
  * }} props
  */
 export function SolitareLevelPopup({ visible, onClose, onConfirm }) {
@@ -39,9 +39,8 @@ export function SolitareLevelPopup({ visible, onClose, onConfirm }) {
   }
 
   const handleConfirm = () => {
-    const level = DEFAULT_LEVELS.find((lv) => lv.id === current)
-    if (level && typeof onConfirm === 'function') {
-      onConfirm({ id: level.id })
+    if (typeof onConfirm === 'function') {
+      onConfirm(current)
     }
   }
 

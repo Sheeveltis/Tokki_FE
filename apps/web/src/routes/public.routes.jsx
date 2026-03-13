@@ -163,7 +163,7 @@ function SolitarePlayRoute() {
     navigate(`/minigame/solitare/solitare-result?score=${score}&time=${timeLeft}`)
   }
 
-  return <SolitarePlayWeb onFinish={handleFinish} />
+  return <SolitarePlayScreen onFinish={handleFinish} />
 }
 
 function SolitareResultRoute() {
