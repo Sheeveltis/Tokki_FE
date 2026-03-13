@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Card, Descriptions, Space, Spin, Typography, Tag, message, Input, Select, Row, Col, Avatar, DatePicker, Upload, Modal, Button } from 'antd'
+import { Card, Descriptions, Space, Spin, Typography, message, Input, Select, Row, Col, Avatar, DatePicker, Upload, Modal, Button } from 'antd'
 import { EditOutlined, UploadOutlined } from '@ant-design/icons'
 import { useRouter } from 'solito/navigation'
 import dayjs from 'dayjs'
@@ -97,6 +97,13 @@ export default function AccountDetails({ userId, onAfterChange }) {
     setConfirmOpen(true)
   }
 
+  const getApiErrorMessage = (err, fallback) => {
+    const apiMessage = err?.response?.data?.message
+    const apiErrors = err?.response?.data?.errors
+    const firstError = Array.isArray(apiErrors) && apiErrors.length ? apiErrors[0]?.description : null
+    return apiMessage || firstError || err?.message || fallback
+  }
+
   const handleConfirmUpdate = async () => {
     try {
       setSaving(true)
@@ -118,8 +125,9 @@ export default function AccountDetails({ userId, onAfterChange }) {
       await reloadUserDetail(true)
     } catch (err) {
       console.error(err)
-      showAdminError?.(err?.message || 'Cập nhật tài khoản thất bại')
-      message.error(err?.message || 'Cập nhật tài khoản thất bại')
+      const errorMessage = getApiErrorMessage(err, 'Cập nhật tài khoản thất bại')
+      showAdminError?.(errorMessage)
+      message.error(errorMessage)
     } finally {
       setSaving(false)
     }
@@ -169,8 +177,9 @@ export default function AccountDetails({ userId, onAfterChange }) {
       onAfterChange?.()
     } catch (err) {
       console.error('Error updating avatar:', err)
-      showAdminError?.(err?.message || 'Không thể cập nhật avatar')
-      message.error(err?.message || 'Không thể cập nhật avatar')
+      const errorMessage = getApiErrorMessage(err, 'Không thể cập nhật avatar')
+      showAdminError?.(errorMessage)
+      message.error(errorMessage)
     } finally {
       setUpdatingAvatar(false)
     }
