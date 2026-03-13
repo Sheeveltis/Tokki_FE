@@ -26,19 +26,22 @@ export function SolitareRuleScreen({ levelId }) {
   }
 
   const handleConfirmLevel = (level) => {
-    const nextLevelId = level?.id || selectedLevelId || 'medium'
+    const nextLevelId = level || selectedLevelId || 'medium'
+  
+    console.log('[RuleScreen] selected level =', nextLevelId)
+  
     setSelectedLevelId(nextLevelId)
     setLevelPopupVisible(false)
-
+  
     const query = new URLSearchParams()
     if (gameId) query.set('gameId', gameId)
     if (nextLevelId) query.set('level', String(nextLevelId))
-
+  
     const url =
       query.toString().length > 0
         ? `/minigame/solitare/solitare-play?${query.toString()}`
         : '/minigame/solitare/solitare-play'
-
+  
     router.push(url)
   }
 
