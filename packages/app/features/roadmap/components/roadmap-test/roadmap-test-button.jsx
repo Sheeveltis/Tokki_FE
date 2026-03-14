@@ -1,7 +1,13 @@
-import React from 'react'
-import { Pressable, StyleSheet, Text } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 
-export function RoadmapTestButton({ title = 'Button', onPress, disabled = false, style }) {
+export function RoadmapTestButton({
+  title = 'Button',
+  onPress,
+  disabled = false,
+  style,
+  children,
+  textStyle,
+}) {
   return (
     <Pressable
       onPress={onPress}
@@ -13,7 +19,13 @@ export function RoadmapTestButton({ title = 'Button', onPress, disabled = false,
         style,
       ]}
     >
-      <Text style={[styles.buttonText, disabled && styles.buttonTextDisabled]}>{title}</Text>
+      {children ? (
+        <View style={styles.contentRow}>{children}</View>
+      ) : (
+        <Text style={[styles.buttonText, disabled && styles.buttonTextDisabled, textStyle]}>
+          {title}
+        </Text>
+      )}
     </Pressable>
   )
 }
@@ -43,6 +55,11 @@ const styles = StyleSheet.create({
   },
   buttonTextDisabled: {
     opacity: 0.6,
+  },
+  contentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
 })
 
