@@ -1,5 +1,5 @@
-import React from 'react'
-import { StyleSheet, View, Text, ScrollView, Pressable, Platform } from 'react-native'
+import React, { useState } from 'react'
+import { StyleSheet, View, Text, ScrollView, Pressable, Platform, Modal } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { Navbar } from '../../../../../components/navbar'
 import { RoadmapTestButton } from './roadmap-test-button'
@@ -73,8 +73,18 @@ export function RoadmapTestResultLayout({
   isLoading,
   error,
   isGraded = false,
+  analysisData = null,
+  analysisLoading = false,
+  durationOptions = [],
+  durationLoading = false,
+  durationError = null,
+  isDurationModalOpen = false,
+  onOpenDurationModal,
+  onCloseDurationModal,
 }) {
   const router = useRouter()
+  const [analysisExpanded, setAnalysisExpanded] = useState(false)
+  const [selectedDuration, setSelectedDuration] = useState(null)
 
   if (isLoading) {
     return (
@@ -104,6 +114,7 @@ export function RoadmapTestResultLayout({
   }
 
   const { userName, examTitle, listening, reading, writing, totalScore } = resultData
+  const hasDurationOptions = Array.isArray(durationOptions) && durationOptions.length > 0
   const toDetail = (sectionKey) =>
     `/roadmap/test/result/detail?userExamId=${encodeURIComponent(userExamId || '')}&section=${encodeURIComponent(
       sectionKey
@@ -174,7 +185,81 @@ export function RoadmapTestResultLayout({
             )}
           </View>
 
+          {(analysisLoading || analysisData) && (
+            <View style={styles.analysisCard}>
+              <Pressable
+                onPress={() => setAnalysisExpanded((prev) => !prev)}
+                style={({ pressed }) => [
+                  styles.analysisHeader,
+                  pressed && styles.analysisHeaderPressed,
+                ]}
+              >
+                <View style={styles.analysisHeaderLeft}>
+                  <Text style={styles.analysisTitle}>Phân tích điểm yếu</Text>
+                  <Text style={styles.analysisSubtitle}>
+                    {analysisExpanded ? 'Thu gọn' : 'Mở xem chi tiết'}
+                  </Text>
+                </View>
+                <Text style={styles.analysisChevron}>{analysisExpanded ? '▲' : '▼'}</Text>
+              </Pressable>
+
+              {analysisExpanded && (
+                <View style={styles.analysisBody}>
+                  {analysisLoading && (
+                    <Text style={styles.analysisLoadingText}>Đang tải phân tích...</Text>
+                  )}
+                  {!analysisLoading && analysisData && (
+                    <View style={styles.analysisGrid}>
+                      <View style={styles.analysisSection}>
+                        <Text style={styles.analysisSectionTitle}>Nghe</Text>
+                        {analysisData.listeningIssues?.length ? (
+                          analysisData.listeningIssues.map((item) => (
+                            <Text key={item.questionTypeId} style={styles.analysisItemText}>
+                              • {item.name || item.code}
+                            </Text>
+                          ))
+                        ) : (
+                          <Text style={styles.analysisEmptyText}>Không có lỗi</Text>
+                        )}
+                      </View>
+                      <View style={styles.analysisSection}>
+                        <Text style={styles.analysisSectionTitle}>Đọc</Text>
+                        {analysisData.readingIssues?.length ? (
+                          analysisData.readingIssues.map((item) => (
+                            <Text key={item.questionTypeId} style={styles.analysisItemText}>
+                              • {item.name || item.code}
+                            </Text>
+                          ))
+                        ) : (
+                          <Text style={styles.analysisEmptyText}>Không có lỗi</Text>
+                        )}
+                      </View>
+                      <View style={styles.analysisSection}>
+                        <Text style={styles.analysisSectionTitle}>Viết</Text>
+                        {analysisData.writingIssues?.length ? (
+                          analysisData.writingIssues.map((item) => (
+                            <Text key={item.questionTypeId} style={styles.analysisItemText}>
+                              • {item.name || item.code}
+                            </Text>
+                          ))
+                        ) : (
+                          <Text style={styles.analysisEmptyText}>Không có lỗi</Text>
+                        )}
+                      </View>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+          )}
+
           <View style={styles.actionsRow}>
+            <RoadmapTestButton
+              title="Tạo lộ trình"
+              onPress={onOpenDurationModal}
+              disabled={!hasDurationOptions && !durationLoading}
+              style={[styles.actionButton, styles.actionButtonPrimary]}
+            />
             <RoadmapTestButton
               title="Về trang lộ trình"
               onPress={() => router.push('/roadmap/info')}
@@ -183,6 +268,92 @@ export function RoadmapTestResultLayout({
           </View>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={isDurationModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={onCloseDurationModal}
+      >
+        <View style={styles.durationOverlay}>
+          <View style={styles.durationModal}>
+            <Text style={styles.durationTitle}>Chọn thời gian học</Text>
+            <Text style={styles.durationSubtitle}>
+              Chúng tôi đề xuất thời lượng phù hợp để cải thiện điểm yếu của bạn.
+            </Text>
+
+            {durationLoading && (
+              <Text style={styles.durationLoadingText}>Đang tải đề xuất...</Text>
+            )}
+
+            {!durationLoading && durationError && (
+              <Text style={styles.durationErrorText}>{durationError}</Text>
+            )}
+
+            {!durationLoading && !durationError && hasDurationOptions && (
+              <View style={styles.durationOptions}>
+                {durationOptions.map((option) => (
+                  <Pressable
+                    key={option.days}
+                    onPress={() => setSelectedDuration(option.days)}
+                    style={({ pressed }) => [
+                      styles.durationOption,
+                      selectedDuration === option.days && styles.durationOptionActive,
+                      option.available === false && styles.durationOptionDisabled,
+                      pressed && option.available !== false && styles.durationOptionPressed,
+                    ]}
+                    disabled={option.available === false}
+                  >
+                    <View style={styles.durationOptionHeader}>
+                      <Text
+                        style={[
+                          styles.durationOptionDays,
+                          selectedDuration === option.days && styles.durationOptionDaysActive,
+                        ]}
+                      >
+                        {option.days} ngày
+                      </Text>
+                      {option.recommended && (
+                        <Text style={styles.durationBadge}>Khuyến nghị</Text>
+                      )}
+                    </View>
+                    <Text style={styles.durationReason}>{option.reason}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+
+            <View style={styles.durationActions}>
+              <Pressable
+                onPress={onCloseDurationModal}
+                style={({ pressed }) => [
+                  styles.durationButton,
+                  styles.durationButtonSecondary,
+                  pressed && styles.durationButtonPressed,
+                ]}
+              >
+                <Text style={styles.durationButtonSecondaryText}>Để sau</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  if (!selectedDuration) return
+                  onCloseDurationModal?.()
+                  router.push('/roadmap/learning')
+                }}
+                style={({ pressed }) => [
+                  styles.durationButton,
+                  styles.durationButtonPrimary,
+                  !selectedDuration && styles.durationButtonDisabled,
+                  pressed && selectedDuration && styles.durationButtonPressed,
+                ]}
+                disabled={!selectedDuration}
+              >
+                <Text style={styles.durationButtonPrimaryText}>Tạo lộ trình</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }
@@ -344,6 +515,85 @@ const styles = StyleSheet.create({
     color: '#8E8E8E',
     fontFamily: 'Epilogue, sans-serif',
   },
+  analysisCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#FFE0B3',
+    overflow: 'hidden',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0px 10px 24px rgba(0, 0, 0, 0.06)',
+    }),
+  },
+  analysisHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: '#FFF6E8',
+  },
+  analysisHeaderPressed: {
+    opacity: 0.9,
+  },
+  analysisHeaderLeft: {
+    gap: 4,
+  },
+  analysisTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  analysisSubtitle: {
+    fontSize: 13,
+    color: '#8E8E8E',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  analysisChevron: {
+    fontSize: 14,
+    color: '#5F5F5F',
+    fontWeight: '700',
+  },
+  analysisBody: {
+    padding: 20,
+    backgroundColor: '#FFFFFF',
+    gap: 16,
+  },
+  analysisLoadingText: {
+    fontSize: 14,
+    color: '#8E8E8E',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  analysisGrid: {
+    gap: 16,
+  },
+  analysisSection: {
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#FFF9F2',
+    borderWidth: 1,
+    borderColor: '#FFE6C8',
+    gap: 6,
+  },
+  analysisSectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#8E6B2B',
+    fontFamily: 'Epilogue, sans-serif',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  analysisItemText: {
+    fontSize: 14,
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  analysisEmptyText: {
+    fontSize: 14,
+    color: '#8E8E8E',
+    fontFamily: 'Epilogue, sans-serif',
+  },
   actionsRow: {
     flexDirection: 'row',
     gap: 16,
@@ -355,7 +605,137 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
   },
+  actionButtonPrimary: {
+    backgroundColor: '#FFB74D',
+  },
   actionButtonSecondary: {
     backgroundColor: '#FFF4DA',
+  },
+  durationOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  durationModal: {
+    width: '100%',
+    maxWidth: 560,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    gap: 16,
+    borderWidth: 1,
+    borderColor: '#FFE0B3',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0px 14px 30px rgba(0,0,0,0.15)',
+    }),
+  },
+  durationTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  durationSubtitle: {
+    fontSize: 14,
+    color: '#6F6F6F',
+    fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 20,
+  },
+  durationLoadingText: {
+    fontSize: 14,
+    color: '#8E8E8E',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  durationErrorText: {
+    fontSize: 14,
+    color: '#C62828',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  durationOptions: {
+    gap: 12,
+  },
+  durationOption: {
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#FFE0B3',
+    backgroundColor: '#FFF9F2',
+    gap: 8,
+  },
+  durationOptionPressed: {
+    opacity: 0.9,
+  },
+  durationOptionActive: {
+    borderColor: '#FF9800',
+    backgroundColor: '#FFF1D6',
+  },
+  durationOptionDisabled: {
+    opacity: 0.6,
+  },
+  durationOptionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  durationOptionDays: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  durationOptionDaysActive: {
+    color: '#E65100',
+  },
+  durationBadge: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    backgroundColor: '#FF9800',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  durationReason: {
+    fontSize: 13,
+    color: '#5F5F5F',
+    fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 18,
+  },
+  durationActions: {
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'flex-end',
+  },
+  durationButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+  },
+  durationButtonPrimary: {
+    backgroundColor: '#FFB74D',
+  },
+  durationButtonSecondary: {
+    backgroundColor: '#FFF4DA',
+  },
+  durationButtonDisabled: {
+    opacity: 0.6,
+  },
+  durationButtonPressed: {
+    opacity: 0.85,
+  },
+  durationButtonPrimaryText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  durationButtonSecondaryText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6F6F6F',
+    fontFamily: 'Epilogue, sans-serif',
   },
 })

@@ -168,11 +168,11 @@ export function RoadmapTestQuestion({
     }
   }
 
-  // Check if this is Q51 type (has 2 parts: ㉠ and ㉡)
-  const isQ51 = questionTypeCode && String(questionTypeCode).slice(-3) === 'Q51'
+  // Check if this is Q51/Q52 type (has 2 parts: ㉠ and ㉡)
+  const isTwoPartWriting = questionTypeCode && ['Q51', 'Q52'].includes(String(questionTypeCode).slice(-3))
 
-  // Parse Q51 answer from selectedAnswer (could be object {a, b} or string)
-  const parseQ51Answer = () => {
+  // Parse Q51/Q52 answer from selectedAnswer (could be object {a, b} or string)
+  const parseTwoPartAnswer = () => {
     if (!selectedAnswer) return { a: '', b: '' }
     if (typeof selectedAnswer === 'object' && selectedAnswer !== null) {
       return { a: selectedAnswer.a || '', b: selectedAnswer.b || '' }
@@ -197,12 +197,12 @@ export function RoadmapTestQuestion({
     return { a: '', b: '' }
   }
 
-  const q51Answer = isQ51 ? parseQ51Answer() : null
+  const twoPartAnswer = isTwoPartWriting ? parseTwoPartAnswer() : null
 
-  const handleQ51Change = (part, value) => {
+  const handleTwoPartChange = (part, value) => {
     if (!onAnswerChange) return
     const newAnswer = {
-      ...q51Answer,
+      ...twoPartAnswer,
       [part]: value,
     }
     onAnswerChange(newAnswer)
@@ -261,8 +261,8 @@ export function RoadmapTestQuestion({
             </View>
           )}
           
-          {isQ51 ? (
-            // Q51: 2 separate inputs for ㉠ and ㉡
+          {isTwoPartWriting ? (
+            // Q51/Q52: 2 separate inputs for ㉠ and ㉡
             <>
               <Text style={styles.writingLabel}>Nhập câu trả lời:</Text>
               <View style={styles.q51Container}>
@@ -270,16 +270,16 @@ export function RoadmapTestQuestion({
                   <Text style={styles.q51PartLabel}>㉠:</Text>
                   {Platform.OS === 'web' ? (
                     <textarea
-                      value={q51Answer?.a || ''}
-                      onChange={(e) => handleQ51Change('a', e.target.value)}
+                      value={twoPartAnswer?.a || ''}
+                      onChange={(e) => handleTwoPartChange('a', e.target.value)}
                       placeholder="Nhập phần ㉠..."
                       style={styles.q51Textarea}
                       rows={4}
                     />
                   ) : (
                     <TextInput
-                      value={q51Answer?.a || ''}
-                      onChangeText={(text) => handleQ51Change('a', text)}
+                      value={twoPartAnswer?.a || ''}
+                      onChangeText={(text) => handleTwoPartChange('a', text)}
                       placeholder="Nhập phần ㉠..."
                       style={styles.q51TextInput}
                       multiline
@@ -291,16 +291,16 @@ export function RoadmapTestQuestion({
                   <Text style={styles.q51PartLabel}>㉡:</Text>
                   {Platform.OS === 'web' ? (
                     <textarea
-                      value={q51Answer?.b || ''}
-                      onChange={(e) => handleQ51Change('b', e.target.value)}
+                      value={twoPartAnswer?.b || ''}
+                      onChange={(e) => handleTwoPartChange('b', e.target.value)}
                       placeholder="Nhập phần ㉡..."
                       style={styles.q51Textarea}
                       rows={4}
                     />
                   ) : (
                     <TextInput
-                      value={q51Answer?.b || ''}
-                      onChangeText={(text) => handleQ51Change('b', text)}
+                      value={twoPartAnswer?.b || ''}
+                      onChangeText={(text) => handleTwoPartChange('b', text)}
                       placeholder="Nhập phần ㉡..."
                       style={styles.q51TextInput}
                       multiline

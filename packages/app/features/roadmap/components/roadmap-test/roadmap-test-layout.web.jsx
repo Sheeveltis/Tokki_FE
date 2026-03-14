@@ -23,10 +23,14 @@ const DEFAULT_EXAM_ID = 'kjyv9q3dac'
 // Đảm bảo trong 1 lần load bundle chỉ gọi API take-exam đúng 1 lần
 // (kể cả khi React StrictMode mount/unmount component 2 lần)
 let startExamOncePromise = null
+let startExamCacheKey = null
 
-const isQ51 = (questionTypeCode) => String(questionTypeCode || '').slice(-3) === 'Q51'
+const isTwoPartWriting = (questionTypeCode) => {
+  const code = String(questionTypeCode || '').slice(-3).toUpperCase()
+  return code === 'Q51' || code === 'Q52'
+}
 
-const parseQ51AnswerContent = (answerContent) => {
+const parseTwoPartAnswerContent = (answerContent) => {
   const text = String(answerContent || '')
   if (!text) return { b: '', a: '' }
 
@@ -59,7 +63,7 @@ const parseQ51AnswerContent = (answerContent) => {
 }
 
 const serializeWritingAnswerForApi = (answerValue, questionTypeCode) => {
-  if (!isQ51(questionTypeCode)) return String(answerValue ?? '')
+  if (!isTwoPartWriting(questionTypeCode)) return String(answerValue ?? '')
   const b = String(answerValue?.b ?? '')
   const a = String(answerValue?.a ?? '')
   // Match backend-friendly format (can be same-line): "㉠:... ㉡:..."
@@ -177,10 +181,13 @@ const buildAllMcqAnswersPayload = (sections, allAnswersState) => {
 
 // Bước 1: Take exam để lấy userExamId
 const startExam = async (examId = DEFAULT_EXAM_ID, isShuffle = true) => {
-  // Nếu đã có promise đang/đã gọi rồi thì luôn dùng lại (tránh gọi 2 lần API)
-  if (startExamOncePromise) {
+  const cacheKey = `${examId || ''}:${isShuffle}`
+  // Nếu đã có promise đang/đã gọi rồi với cùng tham số thì luôn dùng lại (tránh gọi 2 lần API)
+  if (startExamOncePromise && startExamCacheKey === cacheKey) {
     return startExamOncePromise
   }
+
+  startExamCacheKey = cacheKey
 
   const url = ENDPOINTS.USER_EXAM?.TAKE_EXAM
     ? ENDPOINTS.USER_EXAM.TAKE_EXAM(examId, isShuffle)
@@ -194,6 +201,7 @@ const startExam = async (examId = DEFAULT_EXAM_ID, isShuffle = true) => {
     } catch (error) {
       // Nếu lỗi thì reset để lần sau có thể thử lại
       startExamOncePromise = null
+      startExamCacheKey = null
       throw error
     }
   })()
@@ -210,6 +218,17 @@ const getExamDetailInProgress = async (userExamId) => {
 
   const response = await apiClient.get(url)
   return response?.data?.data || null
+}
+
+const getExamIdByConfigKey = async (examKey) => {
+  if (!examKey) return null
+
+  const url = ENDPOINTS.SYSTEM_CONFIGS?.GET_BY_KEY
+    ? ENDPOINTS.SYSTEM_CONFIGS.GET_BY_KEY(examKey)
+    : `/system-configs/${encodeURIComponent(examKey)}`
+
+  const response = await apiClient.get(url)
+  return response?.data?.data?.value || null
 }
 
 // Map dữ liệu exam thành 3 phần: listening / reading / writing (nếu có)
@@ -351,8 +370,8 @@ const restoreAnswersFromSections = (sections) => {
       if (q.type === 'writing') {
         const questionTypeCode = q.questionTypeCode || raw.questionTypeCode || raw.questionType?.code
         const rawAnswerContent = raw.answerContent ?? ''
-        sectionAnswers[q.questionNumber] = isQ51(questionTypeCode)
-          ? parseQ51AnswerContent(rawAnswerContent)
+        sectionAnswers[q.questionNumber] = isTwoPartWriting(questionTypeCode)
+          ? parseTwoPartAnswerContent(rawAnswerContent)
           : rawAnswerContent
       }
     })
@@ -365,7 +384,7 @@ const restoreAnswersFromSections = (sections) => {
   return restoredAnswers
 }
 
-export function RoadmapTestLayout({ level = 1 }) {
+export function RoadmapTestLayout({ level = 1, examKey = null }) {
   const router = useRouter()
   const [userExamId, setUserExamId] = useState(null)
   const [sections, setSections] = useState([])
@@ -396,8 +415,10 @@ export function RoadmapTestLayout({ level = 1 }) {
       setLoadError(null)
 
       try {
-        // 1) Take exam để backend tạo/ghi nhận userExamId
-        const takeExamResult = await startExam()
+        // 1) Resolve examId từ examKey (nếu có), sau đó take exam để backend tạo/ghi nhận userExamId
+        const resolvedExamId = examKey ? await getExamIdByConfigKey(examKey) : null
+        const examIdToUse = resolvedExamId || DEFAULT_EXAM_ID
+        const takeExamResult = await startExam(examIdToUse)
         // Handle different possible response structures:
         // - { userExamId: '...' }
         // - { data: { userExamId: '...' } }
@@ -483,7 +504,7 @@ export function RoadmapTestLayout({ level = 1 }) {
     return () => {
       isMounted = false
     }
-  }, [level])
+  }, [level, examKey])
 
   // Countdown timer
   useEffect(() => {
