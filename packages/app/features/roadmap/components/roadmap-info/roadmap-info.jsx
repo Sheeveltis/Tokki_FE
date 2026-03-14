@@ -38,15 +38,8 @@ export function RoadmapInfo({ onStart, initialLevel = 1 }) {
         <Text style={styles.callToAction}>Hãy cùng nhau chinh phục TOPIK nhé</Text>
         <Text style={styles.instruction}>Để bắt đầu, vui lòng làm bài kiểm tra trình độ của bạn</Text>
 
-        {/* Test Info */}
-        <View style={styles.testInfo}>
-          <Text style={styles.testDetail}>Thời gian: {formattedTime}</Text>
-          <Text style={styles.testDetail}>Số câu: {levelInfo.questions}</Text>
-        </View>
-
         {/* Level Selection */}
         <View style={styles.levelSection}>
-          <Text style={styles.levelLabel}>Chọn cấp độ để bắt đầu</Text>
           <Pressable onPress={() => setIsDropdownOpen(true)} style={styles.dropdownButton}>
             <Text style={styles.dropdownText}>{selectedLevelData.label}</Text>
             <Text style={styles.dropdownArrow}>▼</Text>
@@ -156,7 +149,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    borderRadius: 100,
     borderWidth: 1,
     borderColor: '#FFD7D0',
     paddingHorizontal: 16,
@@ -166,7 +159,7 @@ const styles = StyleSheet.create({
   startButton: {
     marginTop: 10,
     backgroundColor: '#FF6B6B', // Màu đỏ cam giống nút History
-    borderRadius: 8,
+    borderRadius: 100,
     paddingHorizontal: 40,
     paddingVertical: 14,
     shadowColor: '#000',
