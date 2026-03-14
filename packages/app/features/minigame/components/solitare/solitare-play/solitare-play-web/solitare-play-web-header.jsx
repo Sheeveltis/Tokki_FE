@@ -1,5 +1,3 @@
-import React from 'react'
-
 import BannerSolitare from '../../../../../../../assets/BannerSolitare.png'
 import MenuIcon from '../../../../../../../assets/menu-solitare.png'
 
@@ -112,6 +110,28 @@ const styles = {
     borderRadius: 10,
     zIndex: 10,
   },
+  soundButton: {
+    position: 'absolute',
+    top: 200,
+    right: 0,
+    cursor: 'pointer',
+    border: 'none',
+    background: '#fff7ea',
+    color: '#222',
+    fontWeight: 700,
+    fontSize: 16,
+    width: 44,
+    height: 44,
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.12)',
+    zIndex: 10,
+  },
+  soundButtonMuted: {
+    color: '#b0bec5',
+  },
 }
 
 export function SolitarePlayWebHeader({
@@ -120,7 +140,9 @@ export function SolitarePlayWebHeader({
   isGameWon = false,
   level = 'Easy',
   onMenuClick,
-  onGuideClick
+  onGuideClick,
+  onToggleSound,
+  isMuted = false,
 }) {
   return (
     <div style={styles.headerRow}>
@@ -132,7 +154,7 @@ export function SolitarePlayWebHeader({
       </div>
 
       <div style={styles.bannerWrapper}>
-        <div style={styles.bannerTarget} data-tour="solitaire-level">
+        <div style={styles.bannerWrapper} data-tour="solitaire-level">
           <img src={BannerSolitare} alt="" style={styles.bannerImage} />
           <span style={styles.bannerText}>
             {isGameWon ? '🎊 Chiến thắng!' : `Level ${level}`}
@@ -162,6 +184,18 @@ export function SolitarePlayWebHeader({
           onClick={onGuideClick}
         >
           Cách Chơi
+        </button>
+      )}
+      {onToggleSound && (
+        <button
+          style={{
+            ...styles.soundButton,
+            ...(isMuted ? styles.soundButtonMuted : null),
+          }}
+          onClick={onToggleSound}
+          aria-label={isMuted ? 'Unmute' : 'Mute'}
+        >
+          {isMuted ? '🔇' : '🔊'}
         </button>
       )}
       </div>

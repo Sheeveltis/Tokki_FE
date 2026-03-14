@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import BackgroundSolite from '../../../../../../../assets/BackgroundSolite.png'
@@ -71,6 +71,7 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
   const backgroundMusicRef = useRef(null)
   const tickSoundRef = useRef(null)
   const winSoundRef = useRef(null)
+  const [isMuted, setIsMuted] = useState(false)
 
   const injectTopicCardsIntoLayout = (layout) => {
     // Mỗi topicId chỉ có đúng 1 topic card trong toàn bộ layout (KHÔNG ĐƯỢC LẶP)
@@ -236,7 +237,7 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
       // Try to play music (may require user interaction)
       const playPromise = backgroundMusicRef.current.play()
       if (playPromise !== undefined) {
-        playPromise.catch(error => {
+        playPromise.catch(() => {
           // Auto-play was prevented, user needs to interact first
           console.log('Background music will play after user interaction')
         })
@@ -250,6 +251,24 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
       }
     }
   }, [])
+
+  // Toggle mute for background music
+  useEffect(() => {
+    if (!backgroundMusicRef.current) return
+    const volume = isMuted ? 0 : 0.5
+    backgroundMusicRef.current.volume = volume
+
+    if (isMuted) {
+      backgroundMusicRef.current.pause()
+    } else {
+      const playPromise = backgroundMusicRef.current.play()
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // ignore autoplay errors
+        })
+      }
+    }
+  }, [isMuted])
 
   // Initialize tick sound effect
   useEffect(() => {
@@ -286,7 +305,7 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
       tickSoundRef.current.currentTime = 0
       const playPromise = tickSoundRef.current.play()
       if (playPromise !== undefined) {
-        playPromise.catch(error => {
+        playPromise.catch(() => {
           // Ignore play errors (may be blocked by browser)
         })
       }
@@ -301,7 +320,7 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
       // Resume music if game is still active
       const playPromise = backgroundMusicRef.current.play()
       if (playPromise !== undefined) {
-        playPromise.catch(error => {
+        playPromise.catch(() => {
           // Ignore play errors
         })
       }
@@ -349,7 +368,7 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
         winSoundRef.current.currentTime = 0
         const playPromise = winSoundRef.current.play()
         if (playPromise !== undefined) {
-          playPromise.catch(error => {
+          playPromise.catch(() => {
             // Ignore play errors
           })
         }
@@ -954,6 +973,10 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
     setShowMenuPopup(true)
   }
 
+  const handleToggleSound = () => {
+    setIsMuted((prev) => !prev)
+  }
+
   const handleContinue = () => {
     setShowMenuPopup(false)
   }
@@ -987,6 +1010,8 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
           level={level}
           onMenuClick={handleMenuClick}
           onGuideClick={handleGuide}
+          onToggleSound={handleToggleSound}
+          isMuted={isMuted}
         />
         <SolitarePlayWebBody
           slots={slots}
