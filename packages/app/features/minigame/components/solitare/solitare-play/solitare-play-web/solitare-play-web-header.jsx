@@ -98,40 +98,72 @@ const styles = {
     width: 80,
     height: 'auto',
   },
+  guideButton: {
+    position: 'absolute',
+    top: 140,
+    right: 0,
+    cursor: 'pointer',
+    border: 'none',
+    background: '#8B4513',
+    color: '#fff',
+    fontWeight: 700,
+    fontSize: 14,
+    padding: '8px 12px',
+    borderRadius: 10,
+    zIndex: 10,
+  },
 }
 
-export function SolitarePlayWebHeader({ timeLeft, score, isGameWon = false, level = 'Easy', onMenuClick }) {
+export function SolitarePlayWebHeader({
+  timeLeft,
+  score,
+  isGameWon = false,
+  level = 'Easy',
+  onMenuClick,
+  onGuideClick
+}) {
   return (
     <div style={styles.headerRow}>
       <div style={styles.headerContainer}>
-        <div style={styles.timeBox}>
-          <span style={styles.timeText}>
-            {isGameWon ? '🎉 Hoàn thành!' : formatTime(timeLeft)}
-          </span>
-        </div>
+      <div style={styles.timeBox} data-tour="solitaire-timer">
+        <span style={styles.timeText}>
+          {isGameWon ? '🎉 Hoàn thành!' : formatTime(timeLeft)}
+        </span>
+      </div>
 
-        <div style={styles.bannerWrapper}>
+      <div style={styles.bannerWrapper}>
+        <div style={styles.bannerTarget} data-tour="solitaire-level">
           <img src={BannerSolitare} alt="" style={styles.bannerImage} />
           <span style={styles.bannerText}>
             {isGameWon ? '🎊 Chiến thắng!' : `Level ${level}`}
           </span>
         </div>
+      </div>
 
-        <div style={styles.scoreBox}>
-          <img src={BannerSolitare} alt="" style={styles.scoreBanner} />
-          <span style={styles.scoreText}>{score}</span>
-        </div>
+      <div style={styles.scoreBox} data-tour="solitaire-score">
+        <img src={BannerSolitare} alt="" style={styles.scoreBanner} />
+        <span style={styles.scoreText}>{score}</span>
+      </div>
 
-        {onMenuClick && (
-          <button 
-            style={styles.menuButton}
-            onClick={onMenuClick}
-            onMouseDown={(e) => e.preventDefault()}
-            aria-label="Menu"
-          >
-            <img src={MenuIcon} alt="Menu" style={styles.menuIcon} />
-          </button>
-        )}
+      {onMenuClick && (
+        <button
+          data-tour="solitaire-menu"
+          style={styles.menuButton}
+          onClick={onMenuClick}
+          onMouseDown={(e) => e.preventDefault()}
+          aria-label="Menu"
+        >
+          <img src={MenuIcon} alt="Menu" style={styles.menuIcon} />
+        </button>
+      )}
+      {onGuideClick && (
+        <button
+          style={styles.guideButton}
+          onClick={onGuideClick}
+        >
+          Cách Chơi
+        </button>
+      )}
       </div>
     </div>
   )

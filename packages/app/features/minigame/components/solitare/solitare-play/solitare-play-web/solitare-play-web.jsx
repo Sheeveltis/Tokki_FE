@@ -11,6 +11,7 @@ import { SolitarePlayWebHeader } from './solitare-play-web-header'
 import { SolitarePlayWebBody } from './solitare-play-web-body'
 import { SolitarePlayWebMovingCard } from './solitare-play-web-moving-card'
 import { SolitareGameOverPopup } from './solitare-game-over-popup'
+import { SolitarePlayWebTour } from './solitare-play-web-tour'
 
 // Styles for main component
 const styles = {
@@ -61,7 +62,7 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
   const [topicCardCounts, setTopicCardCounts] = useState({})
   const [showMenuPopup, setShowMenuPopup] = useState(false)
   const [floatingScores, setFloatingScores] = useState([]) // score animations
-  
+  const [runTour, setRunTour] = useState(false)
   const cardRefs = useRef({})
   const slotRefs = useRef({})
   const columnRefs = useRef({})
@@ -940,6 +941,14 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
   const setCardRef = (cardId, el) => { cardRefs.current[cardId] = el }
   const setColumnRef = (index, el) => { columnRefs.current[index] = el }
 
+  const handleGuide = () => {
+    setRunTour(false)
+  
+    setTimeout(() => {
+      setRunTour(true)
+    }, 100)
+  }
+
   const handleMenuClick = () => {
     playTickSound()
     setShowMenuPopup(true)
@@ -956,6 +965,18 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
     }
   }
 
+  useEffect(() => {
+    const seen = localStorage.getItem('solitaire-tour-seen')
+  
+    if (!seen) {
+      const timer = setTimeout(() => {
+        setRunTour(true)
+        localStorage.setItem('solitaire-tour-seen', '1')
+      }, 500)
+  
+      return () => clearTimeout(timer)
+    }
+  }, [])
   return (
     <div style={styles.page}>
       <div style={styles.inner}>
@@ -965,6 +986,7 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
           isGameWon={isGameWon} 
           level={level}
           onMenuClick={handleMenuClick}
+          onGuideClick={handleGuide}
         />
         <SolitarePlayWebBody
           slots={slots}
@@ -985,6 +1007,10 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
         onAnimationComplete={handleCardAnimationComplete}
       />
 
+      <SolitarePlayWebTour
+        run={runTour}
+        onFinish={() => setRunTour(false)}
+      />
       {/* Floating score animations */}
       {floatingScores.map((fs) => (
         <motion.div

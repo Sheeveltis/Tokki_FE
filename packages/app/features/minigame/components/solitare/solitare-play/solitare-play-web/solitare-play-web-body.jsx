@@ -89,35 +89,46 @@ export function SolitarePlayWebBody({
       <div style={styles.board}>
         {/* Top section: DrawRec on left, 4 temp slots on right */}
         <div style={styles.topSection}>
-          {/* DrawRec with 2 cards */}
-          <SolitarePlayWebDraw />
+          <div data-tour="solitaire-draw">
+            <SolitarePlayWebDraw />
+          </div>
 
           {/* 4 temporary slots */}
           <div style={styles.topicRow}>
-            {tempSlots.map((slot, index) => (
-              <div
-                key={`temp-slot-${index}`}
-                data-slot-index={index}
-              >
-                <SolitarePlayWebTopicSlot
-                  slot={slot}
-                  index={index}
-                  setSlotRef={setSlotRef}
-                  celebrate={celebrateSlot === index}
-                  isTempSlot={true}
-                  onMouseDown={onMouseDown}
-                  flippedCards={flippedCards}
-                  isMoving={
-                    (draggedCards && draggedCards.isFromSlot && draggedCards.slotIndex === index) ||
-                    (movingCard && movingCard.targetType === 'slot' && movingCard.targetIndex === index)
-                  }
-                />
-              </div>
-            ))}
+            <div
+              data-tour="solitaire-temp-slots"
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: 15,
+                justifyContent: 'flex-end',
+              }}
+            >
+              {tempSlots.map((slot, index) => (
+                <div
+                  key={`temp-slot-${index}`}
+                  data-slot-index={index}
+                >
+                  <SolitarePlayWebTopicSlot
+                    slot={slot}
+                    index={index}
+                    setSlotRef={setSlotRef}
+                    celebrate={celebrateSlot === index}
+                    isTempSlot={true}
+                    onMouseDown={onMouseDown}
+                    flippedCards={flippedCards}
+                    isMoving={
+                      (draggedCards && draggedCards.isFromSlot && draggedCards.slotIndex === index) ||
+                      (movingCard && movingCard.targetType === 'slot' && movingCard.targetIndex === index)
+                    }
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div style={styles.columnsRow}>
+        <div style={styles.columnsRow} data-tour="solitaire-columns">
           {columns.map((column, colIndex) => {
             // Calculate card height: only reduce when too many cards, keep default size when few cards
             const cardCount = column.cards.length
