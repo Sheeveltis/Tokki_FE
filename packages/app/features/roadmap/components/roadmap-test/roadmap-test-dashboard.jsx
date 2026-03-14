@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 export function RoadmapTestDashboard({
@@ -169,9 +169,12 @@ const styles = StyleSheet.create({
     color: '#1C1C1C',
   },
   bottomSection: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 12,
     paddingTop: 8,
+    width: '100%',
   },
   pageIndicatorContainer: {
     flexDirection: 'row',
@@ -195,34 +198,40 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
   },
   saveButton: {
-    backgroundColor: '#FFF4DA',
-    minWidth: 140,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
+    backgroundColor: '#F8C2A1',
+    flex: 1,
+    maxWidth: 200,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 100,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#E8C96A',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   saveButtonPressed: {
+    transform: [{ scale: 0.98 }],
     opacity: 0.9,
   },
   saveButtonDisabled: {
     opacity: 0.6,
   },
   saveButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1C1C1C',
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
     fontFamily: 'Epilogue, sans-serif',
   },
   submitButton: {
     backgroundColor: '#E8B4B8',
-    minWidth: 200,
+    flex: 1,
+    maxWidth: 200,
     paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 12,
+    paddingHorizontal: 16,
+    borderRadius: 100,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',

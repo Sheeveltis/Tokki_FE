@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Pressable, StyleSheet, Text, View, Platform, TextInput } from 'react-native'
-import { RoadmapTestAnswer } from './roadmap-test-answer'
 
 export function RoadmapTestQuestion({
   questionNumber = 1,
@@ -14,22 +13,12 @@ export function RoadmapTestQuestion({
   onAnswerSelect,
   onAnswerChange, // For writing type
 }) {
-  const [currentTime, setCurrentTime] = useState(0)
-  const [totalTime, setTotalTime] = useState(0)
-  const [isPlaying, setIsPlaying] = useState(false)
+  const [, setCurrentTime] = useState(0)
+  const [, setTotalTime] = useState(0)
+  const [, setIsPlaying] = useState(false)
   const [volume, setVolume] = useState(100)
-  const [progress, setProgress] = useState(0)
-  const [progressBarLayout, setProgressBarLayout] = useState({ width: 0, x: 0 })
-  const [volumeSliderLayout, setVolumeSliderLayout] = useState({ width: 0, x: 0 })
+  const [, setProgress] = useState(0)
   const audioRef = useRef(null)
-
-  // Format seconds to MM:SS
-  const formatTime = (seconds) => {
-    if (!seconds || isNaN(seconds)) return '00:00'
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
-  }
 
   // Initialize audio element when audioUrl changes
   useEffect(() => {
@@ -79,7 +68,7 @@ export function RoadmapTestQuestion({
       audio.addEventListener('volumechange', handleVolumeChange)
 
       // Set initial volume
-      audio.volume = volume / 100
+      audio.volume = (volume || 100) / 100
 
       return () => {
         // Stop and cleanup audio
@@ -100,73 +89,7 @@ export function RoadmapTestQuestion({
     }
   }, [audioUrl, type, volume])
 
-  const handlePlayPause = () => {
-    if (Platform.OS === 'web' && audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause()
-      } else {
-        audioRef.current.play().catch((error) => {
-          console.error('Error playing audio:', error)
-        })
-      }
-    }
-  }
 
-  const handleProgressClick = (event) => {
-    if (Platform.OS === 'web' && audioRef.current && totalTime > 0 && progressBarLayout.width > 0) {
-      let clickX
-      
-      // Try to get click position from native event (React Native Web)
-      if (event.nativeEvent && typeof event.nativeEvent.locationX === 'number') {
-        clickX = event.nativeEvent.locationX
-      } else if (event.nativeEvent && event.nativeEvent.pageX) {
-        // Fallback: calculate from pageX
-        clickX = event.nativeEvent.pageX - progressBarLayout.x
-      } else {
-        return
-      }
-      
-      const percentage = Math.max(0, Math.min(1, clickX / progressBarLayout.width))
-      const newTime = percentage * totalTime
-      audioRef.current.currentTime = newTime
-    }
-  }
-
-  const handleVolumeClick = (event) => {
-    if (volumeSliderLayout.width > 0) {
-      let clickX
-      
-      // Try to get click position from native event (React Native Web)
-      if (event.nativeEvent && typeof event.nativeEvent.locationX === 'number') {
-        clickX = event.nativeEvent.locationX
-      } else if (event.nativeEvent && event.nativeEvent.pageX) {
-        // Fallback: calculate from pageX
-        clickX = event.nativeEvent.pageX - volumeSliderLayout.x
-      } else if (Platform.OS === 'web' && event.nativeEvent) {
-        // Try to get from target element
-        const target = event.nativeEvent.target
-        if (target) {
-          const rect = target.getBoundingClientRect()
-          clickX = event.nativeEvent.pageX - rect.left
-        } else {
-          return
-        }
-      } else {
-        return
-      }
-      
-      const percentage = Math.max(0, Math.min(100, (clickX / volumeSliderLayout.width) * 100))
-      handleVolumeChange(percentage)
-    }
-  }
-
-  const handleVolumeChange = (newVolume) => {
-    const clampedVolume = Math.max(0, Math.min(100, newVolume))
-    setVolume(clampedVolume)
-    if (Platform.OS === 'web' && audioRef.current) {
-      audioRef.current.volume = clampedVolume / 100
-    }
-  }
 
   // Check if this is Q51/Q52 type (has 2 parts: ㉠ and ㉡)
   const isTwoPartWriting = questionTypeCode && ['Q51', 'Q52'].includes(String(questionTypeCode).slice(-3))
@@ -209,6 +132,33 @@ export function RoadmapTestQuestion({
   }
 
 
+  const hasImageOptions = options.some((option) => option?.imageUrl)
+
+  const normalizeHtmlText = (value) => {
+    if (!value) return ''
+    return String(value)
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/?[^>]+(>|$)/g, '')
+  }
+
+  const renderHtmlText = (value, style) => {
+    if (Platform.OS === 'web') {
+      return (
+        <span
+          style={{ 
+            ...style, 
+            display: 'block', 
+            lineHeight: '1.5', // Điều chỉnh tỉ lệ này (1.4 - 1.6) để dòng khít lại
+            wordBreak: 'break-word' 
+          }}
+          dangerouslySetInnerHTML={{ __html: String(value || '') }}
+        />
+      )
+    }
+  
+    return <Text style={style}>{normalizeHtmlText(value)}</Text>
+  }
+
   return (
     <View style={styles.container}>
       {/* Question Title */}
@@ -229,18 +179,7 @@ export function RoadmapTestQuestion({
         )
       ) : (
         <View style={styles.questionTextContainer}>
-          <Text style={styles.questionText}>{questionText || 'Câu hỏi mẫu'}</Text>
-        </View>
-      )}
-
-      {/* Options */}
-      {type !== 'writing' && (
-        <View style={styles.optionsContainer}>
-          {options.map((option, index) => (
-            <Text key={index} style={styles.optionText}>
-              {index + 1}: {option}
-            </Text>
-          ))}
+          {renderHtmlText(questionText || 'Câu hỏi mẫu', styles.questionText)}
         </View>
       )}
 
@@ -340,13 +279,46 @@ export function RoadmapTestQuestion({
           )}
         </View>
       ) : (
-        <RoadmapTestAnswer
-          selectedAnswer={selectedAnswer}
-          onAnswerSelect={onAnswerSelect}
-          containerStyle={styles.answerButtonsContainer}
-          buttonSize={40}
-          gap={16}
-        />
+        <View
+          style={[
+            styles.optionsContainer,
+            hasImageOptions && styles.optionsImageContainer,
+            styles.answerSelectContainer,
+          ]}
+        >
+          {options.map((option, index) => {
+            const answerNumber = index + 1
+            const isSelected = selectedAnswer === answerNumber
+            return (
+              <Pressable
+                key={answerNumber}
+                onPress={() => onAnswerSelect?.(answerNumber)}
+                style={[
+                  styles.answerOption,
+                  option?.imageUrl && styles.answerOptionWithImage,
+                  isSelected && styles.answerOptionSelected,
+                ]}
+              >
+                <Text style={styles.answerOptionLabel}>{answerNumber}.</Text>
+                {option?.imageUrl ? (
+                  Platform.OS === 'web' ? (
+                    <img
+                      src={option.imageUrl}
+                      alt={`Option ${answerNumber}`}
+                      style={styles.optionImage}
+                    />
+                  ) : (
+                    <Text style={styles.optionImagePlaceholder}>
+                      [Image: {option.imageUrl}]
+                    </Text>
+                  )
+                ) : (
+                  <Text style={styles.optionText}>{option?.content || ''}</Text>
+                )}
+              </Pressable>
+            )
+          })}
+        </View>
       )}
     </View>
   )
@@ -532,23 +504,83 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   questionText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
-    lineHeight: 24,
+    fontWeight: '500',
   },
   optionsContainer: {
     gap: 12,
   },
+  optionsImageContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    columnGap: 16,
+    rowGap: 16,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  optionItemImage: {
+    width: '48%',
+  },
+  optionLabel: {
+    fontSize: 16,
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 24,
+    fontWeight: '600',
+    minWidth: 20,
+  },
   optionText: {
+    flex: 1,
     fontSize: 16,
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
     lineHeight: 24,
   },
-  answerButtonsContainer: {
-    justifyContent: 'flex-start',
-    paddingLeft: 15,
+  answerSelectContainer: {
+    gap: 12,
+  },
+  answerOption: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E6E2DA',
+  },
+  answerOptionWithImage: {
+    width: '48%',
+  },
+  answerOptionSelected: {
+    backgroundColor: '#FFE5B3',
+    borderColor: '#F1B24A',
+  },
+  answerOptionLabel: {
+    fontSize: 16,
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+    fontWeight: '700',
+    lineHeight: 24,
+    minWidth: 20,
+  },
+  optionImage: {
+    maxWidth: '100%',
+    width: '80%',
+    height: 'auto',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  optionImagePlaceholder: {
+    fontSize: 14,
+    color: '#999',
+    fontStyle: 'italic',
   },
   writingContainer: {
     gap: 12,
@@ -581,9 +613,11 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
     borderRadius: 8,
     resize: 'vertical',
-    outline: 'none',
     ...(Platform.OS === 'web' && {
       boxSizing: 'border-box',
+      outlineStyle: 'none',
+      outlineWidth: 0,
+      outlineColor: 'transparent',
     }),
   },
   writingTextInput: {
@@ -623,9 +657,11 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
     borderRadius: 8,
     resize: 'vertical',
-    outline: 'none',
     ...(Platform.OS === 'web' && {
       boxSizing: 'border-box',
+      outlineStyle: 'none',
+      outlineWidth: 0,
+      outlineColor: 'transparent',
     }),
   },
   q51TextInput: {
