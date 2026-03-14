@@ -52,11 +52,12 @@ export default defineConfig({
         '.js': 'jsx',
       },
     },
-    exclude: [
-      'react-native',
-      'react-native-safe-area-context',
+    include: [
+      'react', 
+      'react-dom', 
+      '@tanstack/react-query', 
+      'react-native-web' 
     ],
-    include: ['react', 'react-dom', '@tanstack/react-query'],
   },
   define: {
     global: 'globalThis',
