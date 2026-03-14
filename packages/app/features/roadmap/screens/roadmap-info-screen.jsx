@@ -1,7 +1,19 @@
+'use client'
+
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'solito/navigation'
 import { RoadmapInfoLayout } from '../components/roadmap-info/roadmap-info-layout.web'
 import { getUserLevel } from '../../authentication/api'
+
+// Định nghĩa mapping giữa level và key bài thi
+const ENTRANCE_EXAM_KEYS = {
+  1: 'ENTRANCE_EXAM_TOPIK_1',
+  2: 'ENTRANCE_EXAM_TOPIK_2',
+  3: 'ENTRANCE_EXAM_TOPIK_3',
+  4: 'ENTRANCE_EXAM_TOPIK_4',
+  5: 'ENTRANCE_EXAM_TOPIK_5',
+  6: 'ENTRANCE_EXAM_TOPIK_6',
+}
 
 export function RoadmapInfoScreen() {
   const router = useRouter()
@@ -44,7 +56,11 @@ export function RoadmapInfoScreen() {
   }, [router])
 
   const handleStart = (level) => {
-    router.push(`/roadmap/test?level=${level}`)
+    // Lấy exam key dựa trên level người dùng chọn
+    const examKey = ENTRANCE_EXAM_KEYS[level]
+    
+    // Truyền cả level và examKey qua query params để trang test sử dụng
+    router.push(`/roadmap/test?level=${level}&examKey=${examKey}`)
   }
 
   if (isChecking) {

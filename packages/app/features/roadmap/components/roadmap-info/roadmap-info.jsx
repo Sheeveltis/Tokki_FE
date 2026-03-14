@@ -88,116 +88,101 @@ export function RoadmapInfo({ onStart, initialLevel = 1 }) {
   )
 }
 
+
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'transparent',
-    gap: 20,
+    gap: 24,
     width: '100%',
   },
   introCard: {
-    backgroundColor: '#FFF8F0',
-    borderRadius: 30,
-    paddingVertical: 20,
+    backgroundColor: '#FDF7EC', 
+    borderRadius: 16,           
+    paddingVertical: 24,
     paddingHorizontal: 24,
     gap: 12,
+    borderWidth: 1,
+    borderColor: '#FFD7D0',     // Thêm viền nhẹ cho đồng bộ
   },
   introTitle: {
-    fontSize: 20,
+    fontSize: 22,               // Tăng size giống title bên Learning
     fontWeight: '700',
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
   },
   introText: {
     fontSize: 15,
-    color: '#2C2C2C',
+    color: '#4A4A4A',           // Màu text phụ giống subtitle bên Learning
     fontFamily: 'Epilogue, sans-serif',
     lineHeight: 22,
   },
   content: {
-    gap: 16,
+    gap: 20,
     alignItems: 'center',
     width: '100%',
   },
   callToAction: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
   },
   instruction: {
     fontSize: 15,
-    color: '#2C2C2C',
+    color: '#4A4A4A',
     fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
   },
   testInfo: {
-    gap: 8,
+    flexDirection: 'row',       // Để thời gian và số câu nằm ngang cho hiện đại
+    gap: 20,
     alignItems: 'center',
+    backgroundColor: '#FFE5E0', // Màu nền nhẹ cho thông số
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 12,
   },
   testDetail: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1C1C1C',
+    color: '#FF6B6B',           // Màu đỏ cam thương hiệu
     fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
   },
   levelSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 12,
-    width: '100%',
-  },
-  levelLabel: {
-    fontSize: 15,
-    color: '#2C2C2C',
-    fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
   },
   dropdownButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF8F0',
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#D9D9D9',
+    borderColor: '#FFD7D0',
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
     gap: 8,
-    minWidth: 140,
-  },
-  dropdownText: {
-    fontSize: 15,
-    color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
-    fontWeight: '600',
-  },
-  dropdownArrow: {
-    fontSize: 12,
-    color: '#666',
-    fontFamily: 'Epilogue, sans-serif',
   },
   startButton: {
-    alignSelf: 'center',
-    backgroundColor: '#FFF8F0',
-    borderRadius: 16,
-    paddingHorizontal: 32,
+    marginTop: 10,
+    backgroundColor: '#FF6B6B', // Màu đỏ cam giống nút History
+    borderRadius: 8,
+    paddingHorizontal: 40,
     paddingVertical: 14,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
     elevation: 3,
   },
   startButtonPressed: {
+    backgroundColor: '#FF5252',
     transform: [{ scale: 0.98 }],
   },
   startButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1C1C1C',
+    color: '#FFFFFF',           // Chữ trắng trên nền đỏ cam
     fontFamily: 'Epilogue, sans-serif',
   },
   modalOverlay: {
