@@ -75,8 +75,8 @@ const styles = StyleSheet.create({
     }),
   },
   bunny: {
-    width: 200,
-    height: 200,
+    width: 190,
+    height: 190,
     marginBottom: 12,
   },
   textBlock: {

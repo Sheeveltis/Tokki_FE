@@ -115,16 +115,7 @@ export function MatchingCardResultLayout({
   }, [gameId, topicId, levelId, score, hasPlayed])
   return (
     <View style={styles.page}>
-      <View style={styles.headerWrapper}>
-        <MatchingCardHeader
-          topicId={topicId}
-          topicName={topicName}
-          score={score}
-          initialSeconds={timeLeft}
-          staticMode
-          showControls={false}
-        />
-      </View>
+      
 
       <View style={styles.contentWrapper}>
         <MatchingCardResultContent
@@ -158,21 +149,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F3EEDC',
   },
-  headerWrapper: {
-    width: '30%',
-    paddingTop: 16,
-    paddingHorizontal: 32,
-    left: 535,
-  },
   contentWrapper: {
-    flex: 0.9,
+    flex: 0.5,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
   carrotGround: {
     width: '100%',
-    height: 190,
+    height: 179,
   },
 })
 
