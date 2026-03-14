@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
 import { normalizeImageSource } from '../../../../study/api'
 
@@ -28,6 +28,8 @@ const TOPIC_NAMES = {
  *  onTick?: (seconds: number) => void
  *  staticMode?: boolean
  *  showControls?: boolean
+ *  onToggleSound?: () => void
+ *  isMuted?: boolean
  * }} props
  */
 export function MatchingCardHeader({
@@ -41,6 +43,8 @@ export function MatchingCardHeader({
   onTick,
   staticMode = false,
   showControls = true,
+  onToggleSound,
+  isMuted = false,
 }) {
   const [seconds, setSeconds] = useState(initialSeconds)
   const timerRef = useRef(null)
@@ -122,6 +126,14 @@ export function MatchingCardHeader({
             <FinishButton onPress={onFinish} />
           </>
         )}
+        {typeof onToggleSound === 'function' && (
+          <Pressable
+            onPress={onToggleSound}
+            style={[styles.soundButton, isMuted ? styles.soundButtonMuted : null]}
+          >
+            <Text style={styles.soundIcon}>{isMuted ? '🔇' : '🔊'}</Text>
+          </Pressable>
+        )}
       </View>
     </View>
   )
@@ -182,5 +194,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#1C1C1C',
+  },
+  soundButton: {
+    marginLeft: 6,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFF7EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E4D9C1',
+  },
+  soundButtonMuted: {
+    opacity: 0.6,
+  },
+  soundIcon: {
+    fontSize: 16,
   },
 })
