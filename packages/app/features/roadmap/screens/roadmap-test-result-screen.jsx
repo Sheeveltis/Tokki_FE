@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Platform } from 'react-native'
 import { useSearchParams } from 'solito/navigation'
 import { RoadmapTestResultLayout } from '../components/roadmap-test/roadmap-test-result-layout.web'
@@ -28,9 +28,9 @@ export function RoadmapTestResultScreen() {
   const [isGraded, setIsGraded] = useState(false)
   const [analysisData, setAnalysisData] = useState(null)
   const [analysisLoading, setAnalysisLoading] = useState(false)
-  const [durationOptions, setDurationOptions] = useState([])
-  const [durationLoading, setDurationLoading] = useState(false)
-  const [durationError, setDurationError] = useState(null)
+  const [feedbackData, setFeedbackData] = useState(null)
+  const [feedbackLoading, setFeedbackLoading] = useState(false)
+  const [feedbackError, setFeedbackError] = useState(null)
   const [isDurationModalOpen, setIsDurationModalOpen] = useState(false)
   const isGradedRef = useRef(false)
 
@@ -73,43 +73,31 @@ export function RoadmapTestResultScreen() {
     }
   }, [userExamId])
 
-  const fetchDurationRecommendation = useCallback(async (analysisPayload) => {
-    if (!analysisPayload || !targetAim) return
+  const fetchFeedback = useCallback(async () => {
+    if (!userExamId || !targetAim) return
 
-    const weakTypeIds = [
-      ...(analysisPayload.listeningIssues || []),
-      ...(analysisPayload.readingIssues || []),
-      ...(analysisPayload.writingIssues || []),
-    ]
-      .map((item) => item?.questionTypeId)
-      .filter(Boolean)
-
-    if (weakTypeIds.length === 0) {
-      setDurationOptions([])
-      setDurationError('Không có dạng yếu để đề xuất lộ trình.')
-      return
-    }
-
-    setDurationLoading(true)
-    setDurationError(null)
+    setFeedbackLoading(true)
+    setFeedbackError(null)
     try {
-      const url = ENDPOINTS.ROADMAP.DURATION_RECOMMENDATION
+      const url = ENDPOINTS.ROADMAP.FEEDBACK
       const response = await apiClient.get(url, {
         params: {
+          userExamId,
           targetAim,
-          weakTypeIds,
         },
       })
-      const data = response?.data?.data
-      setDurationOptions(Array.isArray(data?.options) ? data.options : [])
+      const data = response?.data?.data || null
+      setFeedbackData(data)
+      return data
     } catch (err) {
-      console.error('Failed to fetch duration recommendation:', err)
-      setDurationOptions([])
-      setDurationError('Không thể tải đề xuất thời lượng. Vui lòng thử lại.')
+      console.error('Failed to fetch roadmap feedback:', err)
+      setFeedbackData(null)
+      setFeedbackError('Không thể tải thông tin phản hồi. Vui lòng thử lại.')
+      return null
     } finally {
-      setDurationLoading(false)
+      setFeedbackLoading(false)
     }
-  }, [targetAim])
+  }, [userExamId, targetAim])
 
   // Check if writing is graded
   const checkIsGraded = useCallback(async () => {
@@ -125,17 +113,15 @@ export function RoadmapTestResultScreen() {
         setIsGraded(true)
         // Refresh result data when writing is graded
         await fetchResult()
-        const analysisPayload = await fetchAnalysis()
-        if (analysisPayload) {
-          await fetchDurationRecommendation(analysisPayload)
-        }
+        await fetchAnalysis()
+        await fetchFeedback()
         setIsDurationModalOpen(true)
       }
     } catch (err) {
       console.error('Failed to check if exam is graded:', err)
       // Không set error để không làm gián đoạn UI
     }
-  }, [userExamId, fetchResult, fetchAnalysis, fetchDurationRecommendation])
+  }, [userExamId, fetchResult, fetchAnalysis, fetchFeedback])
 
   useEffect(() => {
     if (!userExamId) {
@@ -145,12 +131,9 @@ export function RoadmapTestResultScreen() {
     }
 
     fetchResult()
-    fetchAnalysis().then((analysisPayload) => {
-      if (analysisPayload) {
-        fetchDurationRecommendation(analysisPayload)
-      }
-    })
-  }, [userExamId, fetchResult, fetchAnalysis, fetchDurationRecommendation])
+    fetchAnalysis()
+    fetchFeedback()
+  }, [userExamId, fetchResult, fetchAnalysis, fetchFeedback])
 
   // Poll for grading status every 10 seconds
   useEffect(() => {
@@ -178,9 +161,9 @@ export function RoadmapTestResultScreen() {
       isGraded={isGraded}
       analysisData={analysisData}
       analysisLoading={analysisLoading}
-      durationOptions={durationOptions}
-      durationLoading={durationLoading}
-      durationError={durationError}
+      feedbackData={feedbackData}
+      feedbackLoading={feedbackLoading}
+      feedbackError={feedbackError}
       isDurationModalOpen={isDurationModalOpen}
       onOpenDurationModal={() => setIsDurationModalOpen(true)}
       onCloseDurationModal={() => setIsDurationModalOpen(false)}

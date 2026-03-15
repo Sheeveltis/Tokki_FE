@@ -281,6 +281,7 @@ export const ENDPOINTS = {
     },
     ROADMAP: {
       DURATION_RECOMMENDATION: '/Roadmap/duration-recommendation',
+      FEEDBACK: '/Roadmap/feedback',
     },
     SYSTEM_CONFIGS: {
       GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,

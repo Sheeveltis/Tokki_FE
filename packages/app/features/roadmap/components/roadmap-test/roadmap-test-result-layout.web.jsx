@@ -75,9 +75,9 @@ export function RoadmapTestResultLayout({
   isGraded = false,
   analysisData = null,
   analysisLoading = false,
-  durationOptions = [],
-  durationLoading = false,
-  durationError = null,
+  feedbackData = null,
+  feedbackLoading = false,
+  feedbackError = null,
   isDurationModalOpen = false,
   onOpenDurationModal,
   onCloseDurationModal,
@@ -85,6 +85,7 @@ export function RoadmapTestResultLayout({
   const router = useRouter()
   const [analysisExpanded, setAnalysisExpanded] = useState(false)
   const [selectedDuration, setSelectedDuration] = useState(null)
+  const [modalStep, setModalStep] = useState(0)
 
   if (isLoading) {
     return (
@@ -114,7 +115,9 @@ export function RoadmapTestResultLayout({
   }
 
   const { userName, examTitle, listening, reading, writing, totalScore } = resultData
+  const durationOptions = feedbackData?.durationOptions || []
   const hasDurationOptions = Array.isArray(durationOptions) && durationOptions.length > 0
+  const hasFeedback = Boolean(feedbackData)
   const toDetail = (sectionKey) =>
     `/roadmap/test/result/detail?userExamId=${encodeURIComponent(userExamId || '')}&section=${encodeURIComponent(
       sectionKey
@@ -256,8 +259,12 @@ export function RoadmapTestResultLayout({
           <View style={styles.actionsRow}>
             <RoadmapTestButton
               title="Tạo lộ trình"
-              onPress={onOpenDurationModal}
-              disabled={!hasDurationOptions && !durationLoading}
+              onPress={() => {
+                setModalStep(0)
+                setSelectedDuration(null)
+                onOpenDurationModal?.()
+              }}
+              disabled={!hasFeedback && !feedbackLoading}
               style={[styles.actionButton, styles.actionButtonPrimary]}
             />
             <RoadmapTestButton
@@ -273,24 +280,80 @@ export function RoadmapTestResultLayout({
         visible={isDurationModalOpen}
         transparent
         animationType="fade"
-        onRequestClose={onCloseDurationModal}
+        onRequestClose={() => {
+          setModalStep(0)
+          setSelectedDuration(null)
+          onCloseDurationModal?.()
+        }}
       >
         <View style={styles.durationOverlay}>
           <View style={styles.durationModal}>
-            <Text style={styles.durationTitle}>Chọn thời gian học</Text>
+            <Text style={styles.durationTitle}>Thông báo</Text>
             <Text style={styles.durationSubtitle}>
-              Chúng tôi đề xuất thời lượng phù hợp để cải thiện điểm yếu của bạn.
+              {modalStep === 0
+                ? 'Phản hồi của hệ thống về bài kiểm tra đầu vào.'
+                : modalStep === 1
+                ? 'Danh sách dạng câu hỏi cần cải thiện.'
+                : 'Chọn thời gian học phù hợp với bạn.'}
             </Text>
 
-            {durationLoading && (
-              <Text style={styles.durationLoadingText}>Đang tải đề xuất...</Text>
+            {feedbackLoading && (
+              <Text style={styles.durationLoadingText}>Đang tải thông tin...</Text>
             )}
 
-            {!durationLoading && durationError && (
-              <Text style={styles.durationErrorText}>{durationError}</Text>
+            {!feedbackLoading && feedbackError && (
+              <Text style={styles.durationErrorText}>{feedbackError}</Text>
             )}
 
-            {!durationLoading && !durationError && hasDurationOptions && (
+            {!feedbackLoading && !feedbackError && hasFeedback && modalStep === 0 && (
+              <View style={styles.feedbackCard}>
+                <Text style={styles.feedbackText}>
+                  {feedbackData?.aiFeedback || 'Chưa có phản hồi từ hệ thống.'}
+                </Text>
+              </View>
+            )}
+
+            {!feedbackLoading && !feedbackError && hasFeedback && modalStep === 1 && (
+              <ScrollView style={styles.issueList} contentContainerStyle={styles.issueListContent}>
+                <Text style={styles.issueSectionTitle}>Nghe</Text>
+                {feedbackData?.listeningIssues?.length ? (
+                  feedbackData.listeningIssues.map((item) => (
+                    <View key={item.questionTypeId} style={styles.issueItem}>
+                      <Text style={styles.issueCode}>{item.code}</Text>
+                      <Text style={styles.issueName}>{item.name}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text style={styles.issueEmptyText}>Không có lỗi</Text>
+                )}
+
+                <Text style={styles.issueSectionTitle}>Đọc</Text>
+                {feedbackData?.readingIssues?.length ? (
+                  feedbackData.readingIssues.map((item) => (
+                    <View key={item.questionTypeId} style={styles.issueItem}>
+                      <Text style={styles.issueCode}>{item.code}</Text>
+                      <Text style={styles.issueName}>{item.name}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text style={styles.issueEmptyText}>Không có lỗi</Text>
+                )}
+
+                <Text style={styles.issueSectionTitle}>Viết</Text>
+                {feedbackData?.writingIssues?.length ? (
+                  feedbackData.writingIssues.map((item) => (
+                    <View key={item.questionTypeId} style={styles.issueItem}>
+                      <Text style={styles.issueCode}>{item.code}</Text>
+                      <Text style={styles.issueName}>{item.name}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text style={styles.issueEmptyText}>Không có lỗi</Text>
+                )}
+              </ScrollView>
+            )}
+
+            {!feedbackLoading && !feedbackError && hasFeedback && modalStep === 2 && (
               <View style={styles.durationOptions}>
                 {durationOptions.map((option) => (
                   <Pressable
@@ -324,32 +387,63 @@ export function RoadmapTestResultLayout({
             )}
 
             <View style={styles.durationActions}>
-              <Pressable
-                onPress={onCloseDurationModal}
-                style={({ pressed }) => [
-                  styles.durationButton,
-                  styles.durationButtonSecondary,
-                  pressed && styles.durationButtonPressed,
-                ]}
-              >
-                <Text style={styles.durationButtonSecondaryText}>Để sau</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  if (!selectedDuration) return
-                  onCloseDurationModal?.()
-                  router.push('/roadmap/learning')
-                }}
-                style={({ pressed }) => [
-                  styles.durationButton,
-                  styles.durationButtonPrimary,
-                  !selectedDuration && styles.durationButtonDisabled,
-                  pressed && selectedDuration && styles.durationButtonPressed,
-                ]}
-                disabled={!selectedDuration}
-              >
-                <Text style={styles.durationButtonPrimaryText}>Tạo lộ trình</Text>
-              </Pressable>
+              {modalStep > 0 ? (
+                <Pressable
+                  onPress={() => setModalStep((prev) => Math.max(prev - 1, 0))}
+                  style={({ pressed }) => [
+                    styles.durationButton,
+                    styles.durationButtonSecondary,
+                    pressed && styles.durationButtonPressed,
+                  ]}
+                >
+                  <Text style={styles.durationButtonSecondaryText}>Quay lại</Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  onPress={() => {
+                    setModalStep(0)
+                    setSelectedDuration(null)
+                    onCloseDurationModal?.()
+                  }}
+                  style={({ pressed }) => [
+                    styles.durationButton,
+                    styles.durationButtonSecondary,
+                    pressed && styles.durationButtonPressed,
+                  ]}
+                >
+                  <Text style={styles.durationButtonSecondaryText}>Để sau</Text>
+                </Pressable>
+              )}
+
+              {modalStep < 2 ? (
+                <Pressable
+                  onPress={() => setModalStep((prev) => Math.min(prev + 1, 2))}
+                  style={({ pressed }) => [
+                    styles.durationButton,
+                    styles.durationButtonPrimary,
+                    pressed && styles.durationButtonPressed,
+                  ]}
+                >
+                  <Text style={styles.durationButtonPrimaryText}>Tiếp theo</Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  onPress={() => {
+                    if (!selectedDuration) return
+                    onCloseDurationModal?.()
+                    router.push('/roadmap/learning')
+                  }}
+                  style={({ pressed }) => [
+                    styles.durationButton,
+                    styles.durationButtonPrimary,
+                    !selectedDuration && styles.durationButtonDisabled,
+                    pressed && selectedDuration && styles.durationButtonPressed,
+                  ]}
+                  disabled={!selectedDuration}
+                >
+                  <Text style={styles.durationButtonPrimaryText}>Tạo lộ trình</Text>
+                </Pressable>
+              )}
             </View>
           </View>
         </View>
@@ -655,6 +749,58 @@ const styles = StyleSheet.create({
   },
   durationOptions: {
     gap: 12,
+  },
+  feedbackCard: {
+    backgroundColor: '#FFF7E0',
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#FFE0B3',
+  },
+  feedbackText: {
+    fontSize: 14,
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 20,
+  },
+  issueList: {
+    maxHeight: 320,
+  },
+  issueListContent: {
+    gap: 12,
+    paddingBottom: 8,
+  },
+  issueSectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#8E6B2B',
+    fontFamily: 'Epilogue, sans-serif',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  issueItem: {
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#FFF9F2',
+    borderWidth: 1,
+    borderColor: '#FFE6C8',
+    gap: 4,
+  },
+  issueCode: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#E65100',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  issueName: {
+    fontSize: 13,
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  issueEmptyText: {
+    fontSize: 13,
+    color: '#8E8E8E',
+    fontFamily: 'Epilogue, sans-serif',
   },
   durationOption: {
     padding: 14,
