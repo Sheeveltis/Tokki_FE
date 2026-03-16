@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
 
 export function RoadmapTestDashboard({
   totalQuestions = 8, // dùng cho fallback
@@ -8,6 +8,7 @@ export function RoadmapTestDashboard({
   onSubmit,
   onSave,
   isSaving = false,
+  isSubmitting = false,
   currentQuestion = 1,
   onQuestionSelect,
 }) {
@@ -97,8 +98,20 @@ export function RoadmapTestDashboard({
             <Text style={styles.saveButtonText}>{isSaving ? 'Đang lưu...' : 'Lưu bài'}</Text>
           </Pressable>
         )}
-        <Pressable onPress={onSubmit} style={({ pressed }) => [styles.submitButton, pressed && styles.submitButtonPressed]}>
-          <Text style={styles.submitButtonText}>Nộp Bài</Text>
+        <Pressable
+          onPress={onSubmit}
+          disabled={isSubmitting}
+          style={({ pressed }) => [
+            styles.submitButton,
+            pressed && styles.submitButtonPressed,
+            isSubmitting && styles.submitButtonDisabled,
+          ]}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={styles.submitButtonText}>Nộp Bài</Text>
+          )}
         </Pressable>
       </View>
     </View>
@@ -243,6 +256,9 @@ const styles = StyleSheet.create({
   submitButtonPressed: {
     transform: [{ scale: 0.98 }],
     opacity: 0.9,
+  },
+  submitButtonDisabled: {
+    opacity: 0.7,
   },
   submitButtonText: {
     fontSize: 16,

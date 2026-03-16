@@ -1,124 +1,127 @@
-import React, { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { RoadmapLearningDayItem } from './roadmap-learning-day-item'
 import { RoadmapLearningLessonCard } from './roadmap-learning-lesson-card'
 
-import ListeningIcon from '../../../../../assets/icon/icon-roadmap/headphones-round-sound-svgrepo-com.svg'
-import ReadingIcon from '../../../../../assets/icon/icon-roadmap/notebook-1-svgrepo-com.svg'
-import GuideIcon from '../../../../../assets/icon/icon-roadmap/signpost-2-svgrepo-com.svg'
-import PracticeIcon from '../../../../../assets/icon/icon-roadmap/lightbulb-minimalistic-svgrepo-com.svg'
-import ReviewIcon from '../../../../../assets/icon/icon-roadmap/cup.svg'
+import ListeningIcon from '../../../../../assets/icon/icon-mainflow/headphone.svg'
+import ReadingIcon from '../../../../../assets/icon/icon-mainflow/read.svg'
+import WritingIcon from '../../../../../assets/icon/icon-mainflow/write_image.jpg'
 
-// Simple mock structure for roadmap by skill + day.
-// Later this can be replaced by real API data.
-const createMockRoadmap = () => {
-  const days = Array.from({ length: 7 }, (_, i) => i + 1)
-
-  return days.map((day) => ({
-    day,
-    listening: [
-      {
-        id: 'listen-main',
-        icon: ListeningIcon,
-        title: `Câu ${1 + (day - 1) * 4} - ${4 * day} | TOPIK I`,
-        subtitle: 'Hoàn thành hội thoại',
-        actionLabel: 'Nghe hiểu',
-        tone: 'primary',
-      },
-      {
-        id: 'listen-guide',
-        icon: GuideIcon,
-        title: 'Hướng dẫn',
-        subtitle: 'Tips chọn đáp án',
-        actionLabel: 'Tips',
-        tone: 'secondary',
-      },
-      {
-        id: 'listen-practice',
-        icon: PracticeIcon,
-        title: 'Luyện tập',
-        subtitle: 'Luyện nghe, phân tích chọn đáp án',
-        actionLabel: 'Luyện tập',
-        tone: 'secondary',
-      },
-      {
-        id: 'listen-review',
-        icon: ReviewIcon,
-        title: 'Kiểm tra - Đánh giá',
-        subtitle: 'Kiểm tra dạng câu 1 - 4',
-        actionLabel: 'Đánh giá',
-        tone: 'secondary',
-      },
-    ],
-    reading: [
-      {
-        id: 'read-main',
-        icon: ReadingIcon,
-        title: 'Đọc hiểu cơ bản',
-        subtitle: 'Luyện đọc đoạn hội thoại ngắn',
-        actionLabel: 'Đọc hiểu',
-        tone: 'primary',
-      },
-      {
-        id: 'read-guide',
-        icon: GuideIcon,
-        title: 'Hướng dẫn',
-        subtitle: 'Tips chọn đáp án khi đọc hiểu',
-        actionLabel: 'Tips',
-        tone: 'secondary',
-      },
-      {
-        id: 'read-practice',
-        icon: PracticeIcon,
-        title: 'Luyện tập',
-        subtitle: 'Luyện đọc, phân tích chọn đáp án',
-        actionLabel: 'Luyện tập',
-        tone: 'secondary',
-      },
-      {
-        id: 'read-review',
-        icon: ReviewIcon,
-        title: 'Kiểm tra - Đánh giá',
-        subtitle: 'Kiểm tra dạng bài đọc trong ngày',
-        actionLabel: 'Đánh giá',
-        tone: 'secondary',
-      },
-    ],
-    writing: [
-      {
-        id: 'write-main',
-        icon: '✍️',
-        title: 'Viết câu đơn giản',
-        subtitle: 'Luyện viết 2-3 câu theo chủ đề',
-        actionLabel: 'Viết',
-        tone: 'primary',
-      },
-    ],
-  }))
+const TASK_TYPE_CONFIG = {
+  LearnTheory: {
+    actionLabel: 'Học lý thuyết',
+    tone: 'primary',
+  },
+  VirtualQuiz: {
+    actionLabel: 'Quiz',
+    tone: 'secondary',
+  },
+  WeeklyExam: {
+    actionLabel: 'Bài thi cuối tuần',
+    tone: 'secondary',
+  },
+  0: {
+    actionLabel: 'Học lý thuyết',
+    tone: 'primary',
+  },
+  1: {
+    actionLabel: 'Quiz',
+    tone: 'secondary',
+  },
+  2: {
+    actionLabel: 'Bài thi cuối tuần',
+    tone: 'secondary',
+  },
 }
 
-const MOCK_ROADMAP = createMockRoadmap()
+const normalizeTaskType = (taskType) => {
+  if (taskType === 0 || taskType === '0') return 0
+  if (taskType === 1 || taskType === '1') return 1
+  if (taskType === 2 || taskType === '2') return 2
+  return taskType
+}
 
-export function RoadmapLearningDayList({ activeTab, hasWriting, level = 1 }) {
+const getSkillFromTitle = (title = '') => {
+  const normalized = title.toLowerCase()
+  if (normalized.includes('nghe')) return 'listening'
+  if (normalized.includes('đọc')) return 'reading'
+  if (normalized.includes('doc')) return 'reading'
+  if (normalized.includes('viết')) return 'writing'
+  if (normalized.includes('viet')) return 'writing'
+  return 'listening'
+}
+
+const buildLessonsFromTasks = (tasks = [], hasWriting) =>
+  tasks
+    .map((task) => {
+      const normalizedType = normalizeTaskType(task.taskType)
+      const config = TASK_TYPE_CONFIG[normalizedType] || TASK_TYPE_CONFIG.VirtualQuiz
+      const skillKey = getSkillFromTitle(task.title)
+      if (!hasWriting && skillKey === 'writing') {
+        return null
+      }
+      const skillLabel =
+        skillKey === 'listening' ? 'Nghe' : skillKey === 'reading' ? 'Đọc' : 'Viết'
+      const skillIcon =
+        skillKey === 'listening'
+          ? ListeningIcon
+          : skillKey === 'reading'
+          ? ReadingIcon
+          : WritingIcon
+      return {
+        id: task.taskId,
+        icon: skillIcon,
+        title: task.title,
+        subtitle: `${skillLabel} • ${config.actionLabel}`,
+        actionLabel: config.actionLabel,
+        tone: config.tone,
+        taskType: normalizedType,
+        examId: task.examId,
+        questionTypeId: task.questionTypeId,
+      }
+    })
+    .filter(Boolean)
+
+export function RoadmapLearningDayList({ hasWriting, targetAim = 1, weeks = [] }) {
   const [activeDay, setActiveDay] = useState(1)
   const router = useRouter()
 
-  const normalizedTab = activeTab === 'writing' && !hasWriting ? 'listening' : activeTab
+  const allTasks = useMemo(() => {
+    return weeks.reduce((acc, week) => {
+      const tasks = Array.isArray(week?.tasks) ? week.tasks : []
+      return acc.concat(tasks)
+    }, [])
+  }, [weeks])
+
+  const lessonsByDay = useMemo(() => {
+    if (!allTasks.length) return {}
+    return allTasks.reduce((acc, task) => {
+      const dayIndex = task.dayIndex || 1
+      if (!acc[dayIndex]) {
+        acc[dayIndex] = []
+      }
+      acc[dayIndex].push(task)
+      return acc
+    }, {})
+  }, [allTasks])
+
+  const dayKeys = useMemo(() => {
+    const keys = Object.keys(lessonsByDay)
+    if (!keys.length) return []
+    return keys.map(Number).sort((a, b) => a - b)
+  }, [lessonsByDay])
 
   return (
     <View style={styles.wrapper}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {MOCK_ROADMAP.map((dayData) => {
-          const { day } = dayData
+        {dayKeys.length === 0 && (
+          <Text style={styles.emptyText}>Chưa có nội dung cho tuần này.</Text>
+        )}
+        {dayKeys.map((day) => {
           const isActiveDay = activeDay === day
-          const lessonsByTab = {
-            listening: dayData.listening,
-            reading: dayData.reading,
-            writing: hasWriting ? dayData.writing : [],
-          }
-
-          const lessons = lessonsByTab[normalizedTab] || []
+          const dayTasks = lessonsByDay[day] || []
+          const lessons = buildLessonsFromTasks(dayTasks, hasWriting)
           const headerLesson = lessons[0]
           const extraLessons = lessons.slice(1)
 
@@ -132,29 +135,28 @@ export function RoadmapLearningDayList({ activeTab, hasWriting, level = 1 }) {
                   headerLesson ? (
                     <RoadmapLearningLessonCard
                       icon={headerLesson.icon}
-                      title={headerLesson.title}
+                      title={`Ngày ${day}: ${headerLesson.title}`}
                       subtitle={headerLesson.subtitle}
                       actionLabel={headerLesson.actionLabel}
                       tone={headerLesson.tone}
                       variant="header"
                     />
                   ) : (
-                    <Text style={styles.emptyText}>Chưa có nội dung cho kỹ năng này.</Text>
+                    <Text style={styles.emptyText}>Chưa có nội dung cho ngày này.</Text>
                   )
                 }
               >
                 {extraLessons.length > 0 && (
                   <View style={styles.lessonColumn}>
                     {extraLessons.map((lesson) => {
-                      const isPractice = lesson.id.includes('practice')
-                      const isReview = lesson.id.includes('review')
+                      const isPractice = lesson.taskType === 1
+                      const isReview = lesson.taskType === 2
 
                       let targetPath
                       if (isPractice) {
                         targetPath = `/roadmap/learning/practice/${lesson.id}`
                       } else if (isReview) {
-                        // Đánh giá: cho làm một đề kiểm tra theo level hiện tại
-                        targetPath = `/roadmap/test?level=${level}`
+                        targetPath = `/roadmap/test?level=${targetAim}`
                       } else {
                         targetPath = `/roadmap/learning/tips/${lesson.id}`
                       }
@@ -205,4 +207,3 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
   },
 })
-

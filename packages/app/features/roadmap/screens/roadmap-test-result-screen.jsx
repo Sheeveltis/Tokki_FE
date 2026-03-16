@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Platform } from 'react-native'
-import { useSearchParams } from 'solito/navigation'
+import { Alert, Platform } from 'react-native'
+import { useRouter, useSearchParams } from 'solito/navigation'
 import { RoadmapTestResultLayout } from '../components/roadmap-test/roadmap-test-result-layout.web'
 import { apiClient } from '../../../provider/api/client'
 import { ENDPOINTS } from '../../../provider/api/endpoints'
@@ -13,6 +13,7 @@ try {
 
 export function RoadmapTestResultScreen() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const route = useRoute?.()
   const userExamId =
     Platform.OS === 'web'
@@ -22,17 +23,26 @@ export function RoadmapTestResultScreen() {
     Platform.OS === 'web'
       ? Number(searchParams?.get?.('level'))
       : Number(route?.params?.level || searchParams?.get?.('level'))
+  const selfDeclaredLevel =
+    Platform.OS === 'web'
+      ? Number(searchParams?.get?.('selfDeclaredLevel'))
+      : Number(
+          route?.params?.selfDeclaredLevel ||
+            searchParams?.get?.('selfDeclaredLevel')
+        )
   const [resultData, setResultData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isGraded, setIsGraded] = useState(false)
-  const [analysisData, setAnalysisData] = useState(null)
-  const [analysisLoading, setAnalysisLoading] = useState(false)
   const [feedbackData, setFeedbackData] = useState(null)
   const [feedbackLoading, setFeedbackLoading] = useState(false)
   const [feedbackError, setFeedbackError] = useState(null)
   const [isDurationModalOpen, setIsDurationModalOpen] = useState(false)
+  const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false)
+  const [generateError, setGenerateError] = useState(null)
   const isGradedRef = useRef(false)
+  const hasFetchedInitialRef = useRef(false)
+  const feedbackRequestKeyRef = useRef(null)
 
   const fetchResult = useCallback(async () => {
     if (!userExamId) return
@@ -54,28 +64,15 @@ export function RoadmapTestResultScreen() {
     }
   }, [userExamId])
 
-  const fetchAnalysis = useCallback(async () => {
-    if (!userExamId) return
-
-    setAnalysisLoading(true)
-    try {
-      const url = ENDPOINTS.USER_EXAM.ANALYSIS(userExamId)
-      const response = await apiClient.get(url)
-      const data = response?.data?.data || null
-      setAnalysisData(data)
-      return data
-    } catch (err) {
-      console.error('Failed to fetch exam analysis:', err)
-      setAnalysisData(null)
-      return null
-    } finally {
-      setAnalysisLoading(false)
-    }
-  }, [userExamId])
-
   const fetchFeedback = useCallback(async () => {
-    if (!userExamId || !targetAim) return
+    if (!userExamId || !Number.isFinite(targetAim)) return null
 
+    const requestKey = `${userExamId}-${targetAim}-${Number.isFinite(selfDeclaredLevel) ? selfDeclaredLevel : 0}`
+    if (feedbackRequestKeyRef.current === requestKey && feedbackData) {
+      return feedbackData
+    }
+
+    feedbackRequestKeyRef.current = requestKey
     setFeedbackLoading(true)
     setFeedbackError(null)
     try {
@@ -84,6 +81,9 @@ export function RoadmapTestResultScreen() {
         params: {
           userExamId,
           targetAim,
+          selfDeclaredLevel: Number.isFinite(selfDeclaredLevel)
+            ? selfDeclaredLevel
+            : 0,
         },
       })
       const data = response?.data?.data || null
@@ -97,7 +97,56 @@ export function RoadmapTestResultScreen() {
     } finally {
       setFeedbackLoading(false)
     }
-  }, [userExamId, targetAim])
+  }, [userExamId, targetAim, selfDeclaredLevel, feedbackData])
+
+  const handleGenerateRoadmap = useCallback(
+    async ({ durationDays }) => {
+      if (!userExamId || !Number.isFinite(targetAim) || durationDays == null) return null
+
+      setIsGeneratingRoadmap(true)
+      setGenerateError(null)
+      try {
+        const url = ENDPOINTS.ROADMAP.GENERATE
+        const response = await apiClient.post(url, {
+          targetAim,
+          durationDays,
+          userExamId,
+          selfDeclaredLevel: Number.isFinite(selfDeclaredLevel)
+            ? selfDeclaredLevel
+            : 0,
+        })
+        const roadmapId = response?.data?.data
+        return roadmapId
+      } catch (err) {
+        console.error('Failed to generate roadmap:', err)
+        try {
+          const currentResponse = await apiClient.get(ENDPOINTS.ROADMAP.CURRENT)
+          const currentRoadmap = currentResponse?.data?.data
+          if (currentRoadmap?.userRoadmapId) {
+            Alert.alert(
+              'Bạn đã có lộ trình',
+              'Bạn đã có lộ trình hiện tại. Bạn có muốn chuyển sang trang học không?',
+              [
+                { text: 'Ở lại', style: 'cancel' },
+                {
+                  text: 'Đi đến lộ trình',
+                  onPress: () => router.push('/roadmap/learning'),
+                },
+              ]
+            )
+            return { hasExisting: true }
+          }
+        } catch (innerErr) {
+          console.error('Failed to check current roadmap:', innerErr)
+        }
+        setGenerateError('Không thể tạo lộ trình. Vui lòng thử lại.')
+        return null
+      } finally {
+        setIsGeneratingRoadmap(false)
+      }
+    },
+    [userExamId, targetAim, router]
+  )
 
   // Check if writing is graded
   const checkIsGraded = useCallback(async () => {
@@ -113,7 +162,6 @@ export function RoadmapTestResultScreen() {
         setIsGraded(true)
         // Refresh result data when writing is graded
         await fetchResult()
-        await fetchAnalysis()
         await fetchFeedback()
         setIsDurationModalOpen(true)
       }
@@ -121,7 +169,7 @@ export function RoadmapTestResultScreen() {
       console.error('Failed to check if exam is graded:', err)
       // Không set error để không làm gián đoạn UI
     }
-  }, [userExamId, fetchResult, fetchAnalysis, fetchFeedback])
+  }, [userExamId, fetchResult, fetchFeedback])
 
   useEffect(() => {
     if (!userExamId) {
@@ -130,10 +178,12 @@ export function RoadmapTestResultScreen() {
       return
     }
 
-    fetchResult()
-    fetchAnalysis()
-    fetchFeedback()
-  }, [userExamId, fetchResult, fetchAnalysis, fetchFeedback])
+    if (!hasFetchedInitialRef.current) {
+      hasFetchedInitialRef.current = true
+      fetchResult()
+      fetchFeedback()
+    }
+  }, [userExamId, fetchResult, fetchFeedback])
 
   // Poll for grading status every 10 seconds
   useEffect(() => {
@@ -159,14 +209,15 @@ export function RoadmapTestResultScreen() {
       isLoading={isLoading}
       error={error}
       isGraded={isGraded}
-      analysisData={analysisData}
-      analysisLoading={analysisLoading}
       feedbackData={feedbackData}
       feedbackLoading={feedbackLoading}
       feedbackError={feedbackError}
       isDurationModalOpen={isDurationModalOpen}
       onOpenDurationModal={() => setIsDurationModalOpen(true)}
       onCloseDurationModal={() => setIsDurationModalOpen(false)}
+      onGenerateRoadmap={handleGenerateRoadmap}
+      isGeneratingRoadmap={isGeneratingRoadmap}
+      generateError={generateError}
     />
   )
 }

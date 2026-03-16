@@ -1063,6 +1063,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null }) {
               onSubmit={handleSubmit}
               onSave={handleManualSave}
               isSaving={isSaving}
+              isSubmitting={isSubmitting}
               currentQuestion={currentQuestion}
               onQuestionSelect={handleQuestionSelect}
             />

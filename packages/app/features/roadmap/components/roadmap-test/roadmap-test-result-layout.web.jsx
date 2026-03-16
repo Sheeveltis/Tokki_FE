@@ -1,10 +1,16 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { StyleSheet, View, Text, ScrollView, Pressable, Platform, Modal } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { Navbar } from '../../../../../components/navbar'
 import { RoadmapTestButton } from './roadmap-test-button'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
 import { NavigationPill } from '../../../../../components/navigation-pill'
+import {
+  InfoCircleOutlined,
+  OrderedListOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+} from '@ant-design/icons'
 
 const SectionScoreCard = ({
   label,
@@ -73,19 +79,20 @@ export function RoadmapTestResultLayout({
   isLoading,
   error,
   isGraded = false,
-  analysisData = null,
-  analysisLoading = false,
   feedbackData = null,
   feedbackLoading = false,
   feedbackError = null,
   isDurationModalOpen = false,
   onOpenDurationModal,
   onCloseDurationModal,
+  onGenerateRoadmap,
+  isGeneratingRoadmap = false,
+  generateError = null,
 }) {
   const router = useRouter()
-  const [analysisExpanded, setAnalysisExpanded] = useState(false)
   const [selectedDuration, setSelectedDuration] = useState(null)
   const [modalStep, setModalStep] = useState(0)
+  const [expandedSection, setExpandedSection] = useState(null)
 
   if (isLoading) {
     return (
@@ -116,7 +123,6 @@ export function RoadmapTestResultLayout({
 
   const { userName, examTitle, listening, reading, writing, totalScore } = resultData
   const durationOptions = feedbackData?.durationOptions || []
-  const hasDurationOptions = Array.isArray(durationOptions) && durationOptions.length > 0
   const hasFeedback = Boolean(feedbackData)
   const toDetail = (sectionKey) =>
     `/roadmap/test/result/detail?userExamId=${encodeURIComponent(userExamId || '')}&section=${encodeURIComponent(
@@ -188,73 +194,6 @@ export function RoadmapTestResultLayout({
             )}
           </View>
 
-          {(analysisLoading || analysisData) && (
-            <View style={styles.analysisCard}>
-              <Pressable
-                onPress={() => setAnalysisExpanded((prev) => !prev)}
-                style={({ pressed }) => [
-                  styles.analysisHeader,
-                  pressed && styles.analysisHeaderPressed,
-                ]}
-              >
-                <View style={styles.analysisHeaderLeft}>
-                  <Text style={styles.analysisTitle}>Phân tích điểm yếu</Text>
-                  <Text style={styles.analysisSubtitle}>
-                    {analysisExpanded ? 'Thu gọn' : 'Mở xem chi tiết'}
-                  </Text>
-                </View>
-                <Text style={styles.analysisChevron}>{analysisExpanded ? '▲' : '▼'}</Text>
-              </Pressable>
-
-              {analysisExpanded && (
-                <View style={styles.analysisBody}>
-                  {analysisLoading && (
-                    <Text style={styles.analysisLoadingText}>Đang tải phân tích...</Text>
-                  )}
-                  {!analysisLoading && analysisData && (
-                    <View style={styles.analysisGrid}>
-                      <View style={styles.analysisSection}>
-                        <Text style={styles.analysisSectionTitle}>Nghe</Text>
-                        {analysisData.listeningIssues?.length ? (
-                          analysisData.listeningIssues.map((item) => (
-                            <Text key={item.questionTypeId} style={styles.analysisItemText}>
-                              • {item.name || item.code}
-                            </Text>
-                          ))
-                        ) : (
-                          <Text style={styles.analysisEmptyText}>Không có lỗi</Text>
-                        )}
-                      </View>
-                      <View style={styles.analysisSection}>
-                        <Text style={styles.analysisSectionTitle}>Đọc</Text>
-                        {analysisData.readingIssues?.length ? (
-                          analysisData.readingIssues.map((item) => (
-                            <Text key={item.questionTypeId} style={styles.analysisItemText}>
-                              • {item.name || item.code}
-                            </Text>
-                          ))
-                        ) : (
-                          <Text style={styles.analysisEmptyText}>Không có lỗi</Text>
-                        )}
-                      </View>
-                      <View style={styles.analysisSection}>
-                        <Text style={styles.analysisSectionTitle}>Viết</Text>
-                        {analysisData.writingIssues?.length ? (
-                          analysisData.writingIssues.map((item) => (
-                            <Text key={item.questionTypeId} style={styles.analysisItemText}>
-                              • {item.name || item.code}
-                            </Text>
-                          ))
-                        ) : (
-                          <Text style={styles.analysisEmptyText}>Không có lỗi</Text>
-                        )}
-                      </View>
-                    </View>
-                  )}
-                </View>
-              )}
-            </View>
-          )}
 
           <View style={styles.actionsRow}>
             <RoadmapTestButton
@@ -262,6 +201,7 @@ export function RoadmapTestResultLayout({
               onPress={() => {
                 setModalStep(0)
                 setSelectedDuration(null)
+                setExpandedSection(null)
                 onOpenDurationModal?.()
               }}
               disabled={!hasFeedback && !feedbackLoading}
@@ -288,14 +228,30 @@ export function RoadmapTestResultLayout({
       >
         <View style={styles.durationOverlay}>
           <View style={styles.durationModal}>
-            <Text style={styles.durationTitle}>Thông báo</Text>
-            <Text style={styles.durationSubtitle}>
-              {modalStep === 0
-                ? 'Phản hồi của hệ thống về bài kiểm tra đầu vào.'
-                : modalStep === 1
-                ? 'Danh sách dạng câu hỏi cần cải thiện.'
-                : 'Chọn thời gian học phù hợp với bạn.'}
-            </Text>
+            <View style={styles.modalHeader}>
+              <View style={styles.modalIconWrap}>
+                {modalStep === 0 ? (
+                  <InfoCircleOutlined style={styles.modalIcon} />
+                ) : modalStep === 1 ? (
+                  <OrderedListOutlined style={styles.modalIcon} />
+                ) : (
+                  <ClockCircleOutlined style={styles.modalIcon} />
+                )}
+              </View>
+              <View style={styles.modalHeaderText}>
+                <Text style={styles.durationTitle}>Thông báo</Text>
+                <Text style={styles.durationSubtitle}>
+                  {modalStep === 0
+                    ? 'Phản hồi của hệ thống về bài kiểm tra đầu vào.'
+                    : modalStep === 1
+                    ? 'Danh sách dạng câu hỏi cần cải thiện.'
+                    : 'Chọn thời gian học phù hợp với bạn.'}
+                </Text>
+              </View>
+              <View style={styles.stepBadge}>
+                <Text style={styles.stepBadgeText}>{modalStep + 1}/3</Text>
+              </View>
+            </View>
 
             {feedbackLoading && (
               <Text style={styles.durationLoadingText}>Đang tải thông tin...</Text>
@@ -307,6 +263,10 @@ export function RoadmapTestResultLayout({
 
             {!feedbackLoading && !feedbackError && hasFeedback && modalStep === 0 && (
               <View style={styles.feedbackCard}>
+                <View style={styles.feedbackBadge}>
+                  <CheckCircleOutlined style={styles.feedbackBadgeIcon} />
+                  <Text style={styles.feedbackBadgeText}>AI Feedback</Text>
+                </View>
                 <Text style={styles.feedbackText}>
                   {feedbackData?.aiFeedback || 'Chưa có phản hồi từ hệ thống.'}
                 </Text>
@@ -315,40 +275,91 @@ export function RoadmapTestResultLayout({
 
             {!feedbackLoading && !feedbackError && hasFeedback && modalStep === 1 && (
               <ScrollView style={styles.issueList} contentContainerStyle={styles.issueListContent}>
-                <Text style={styles.issueSectionTitle}>Nghe</Text>
-                {feedbackData?.listeningIssues?.length ? (
-                  feedbackData.listeningIssues.map((item) => (
-                    <View key={item.questionTypeId} style={styles.issueItem}>
-                      <Text style={styles.issueCode}>{item.code}</Text>
-                      <Text style={styles.issueName}>{item.name}</Text>
-                    </View>
-                  ))
-                ) : (
-                  <Text style={styles.issueEmptyText}>Không có lỗi</Text>
+                <Pressable
+                  onPress={() =>
+                    setExpandedSection((prev) =>
+                      prev === 'listening' ? null : 'listening'
+                    )
+                  }
+                  style={({ pressed, hovered }) => [
+                    styles.issueHeaderRow,
+                    expandedSection === 'listening' && styles.issueHeaderRowActive,
+                    pressed && styles.issueHeaderRowPressed,
+                    hovered && styles.issueHeaderRowHover,
+                  ]}
+                >
+                  <OrderedListOutlined style={styles.issueHeaderIcon} />
+                  <Text style={styles.issueSectionTitle}>Nghe</Text>
+                </Pressable>
+                {expandedSection === 'listening' && (
+                  feedbackData?.listeningIssues?.length ? (
+                    feedbackData.listeningIssues.map((item) => (
+                      <View key={item.questionTypeId} style={styles.issueItem}>
+                        <Text style={styles.issueCode}>{item.code}</Text>
+                        <Text style={styles.issueName}>{item.name}</Text>
+                      </View>
+                    ))
+                  ) : (
+                    <Text style={styles.issueEmptyText}>Không có lỗi</Text>
+                  )
                 )}
 
-                <Text style={styles.issueSectionTitle}>Đọc</Text>
-                {feedbackData?.readingIssues?.length ? (
-                  feedbackData.readingIssues.map((item) => (
-                    <View key={item.questionTypeId} style={styles.issueItem}>
-                      <Text style={styles.issueCode}>{item.code}</Text>
-                      <Text style={styles.issueName}>{item.name}</Text>
-                    </View>
-                  ))
-                ) : (
-                  <Text style={styles.issueEmptyText}>Không có lỗi</Text>
+                <Pressable
+                  onPress={() =>
+                    setExpandedSection((prev) =>
+                      prev === 'reading' ? null : 'reading'
+                    )
+                  }
+                  style={({ pressed, hovered }) => [
+                    styles.issueHeaderRow,
+                    expandedSection === 'reading' && styles.issueHeaderRowActive,
+                    pressed && styles.issueHeaderRowPressed,
+                    hovered && styles.issueHeaderRowHover,
+                  ]}
+                >
+                  <OrderedListOutlined style={styles.issueHeaderIcon} />
+                  <Text style={styles.issueSectionTitle}>Đọc</Text>
+                </Pressable>
+                {expandedSection === 'reading' && (
+                  feedbackData?.readingIssues?.length ? (
+                    feedbackData.readingIssues.map((item) => (
+                      <View key={item.questionTypeId} style={styles.issueItem}>
+                        <Text style={styles.issueCode}>{item.code}</Text>
+                        <Text style={styles.issueName}>{item.name}</Text>
+                      </View>
+                    ))
+                  ) : (
+                    <Text style={styles.issueEmptyText}>Không có lỗi</Text>
+                  )
                 )}
 
-                <Text style={styles.issueSectionTitle}>Viết</Text>
-                {feedbackData?.writingIssues?.length ? (
-                  feedbackData.writingIssues.map((item) => (
-                    <View key={item.questionTypeId} style={styles.issueItem}>
-                      <Text style={styles.issueCode}>{item.code}</Text>
-                      <Text style={styles.issueName}>{item.name}</Text>
-                    </View>
-                  ))
-                ) : (
-                  <Text style={styles.issueEmptyText}>Không có lỗi</Text>
+                <Pressable
+                  onPress={() =>
+                    setExpandedSection((prev) =>
+                      prev === 'writing' ? null : 'writing'
+                    )
+                  }
+                  style={({ pressed, hovered }) => [
+                    styles.issueHeaderRow,
+                    expandedSection === 'writing' && styles.issueHeaderRowActive,
+                    pressed && styles.issueHeaderRowPressed,
+                    hovered && styles.issueHeaderRowHover,
+                  ]}
+                >
+                  <OrderedListOutlined style={styles.issueHeaderIcon} />
+                  <Text style={styles.issueSectionTitle}>Viết</Text>
+                </Pressable>
+                {expandedSection === 'writing' && (
+                  feedbackData?.writingIssues?.length ? (
+                    feedbackData.writingIssues.map((item) => (
+                      <View key={item.questionTypeId} style={styles.issueItem}>
+                        <Text style={styles.issueCode}>{item.code}</Text>
+                        <Text style={styles.issueName}>{item.name}</Text>
+                      </View>
+                    ))
+                  ) : (
+                    <Text style={styles.issueEmptyText}>Không có lỗi</Text>
+                  )
                 )}
               </ScrollView>
             )}
@@ -359,23 +370,27 @@ export function RoadmapTestResultLayout({
                   <Pressable
                     key={option.days}
                     onPress={() => setSelectedDuration(option.days)}
-                    style={({ pressed }) => [
+                    style={({ pressed, hovered }) => [
                       styles.durationOption,
                       selectedDuration === option.days && styles.durationOptionActive,
                       option.available === false && styles.durationOptionDisabled,
+                      hovered && option.available !== false && styles.durationOptionHover,
                       pressed && option.available !== false && styles.durationOptionPressed,
                     ]}
                     disabled={option.available === false}
                   >
                     <View style={styles.durationOptionHeader}>
-                      <Text
-                        style={[
-                          styles.durationOptionDays,
-                          selectedDuration === option.days && styles.durationOptionDaysActive,
-                        ]}
-                      >
-                        {option.days} ngày
-                      </Text>
+                      <View style={styles.durationOptionTitle}>
+                        <ClockCircleOutlined style={styles.durationOptionIcon} />
+                        <Text
+                          style={[
+                            styles.durationOptionDays,
+                            selectedDuration === option.days && styles.durationOptionDaysActive,
+                          ]}
+                        >
+                          {option.days} ngày
+                        </Text>
+                      </View>
                       {option.recommended && (
                         <Text style={styles.durationBadge}>Khuyến nghị</Text>
                       )}
@@ -386,13 +401,18 @@ export function RoadmapTestResultLayout({
               </View>
             )}
 
+            {modalStep === 2 && generateError && (
+              <Text style={styles.durationErrorText}>{generateError}</Text>
+            )}
+
             <View style={styles.durationActions}>
               {modalStep > 0 ? (
                 <Pressable
                   onPress={() => setModalStep((prev) => Math.max(prev - 1, 0))}
-                  style={({ pressed }) => [
+                  style={({ pressed, hovered }) => [
                     styles.durationButton,
                     styles.durationButtonSecondary,
+                    hovered && styles.durationButtonSecondaryHover,
                     pressed && styles.durationButtonPressed,
                   ]}
                 >
@@ -403,11 +423,13 @@ export function RoadmapTestResultLayout({
                   onPress={() => {
                     setModalStep(0)
                     setSelectedDuration(null)
+                    setExpandedSection(null)
                     onCloseDurationModal?.()
                   }}
-                  style={({ pressed }) => [
+                  style={({ pressed, hovered }) => [
                     styles.durationButton,
                     styles.durationButtonSecondary,
+                    hovered && styles.durationButtonSecondaryHover,
                     pressed && styles.durationButtonPressed,
                   ]}
                 >
@@ -417,10 +439,16 @@ export function RoadmapTestResultLayout({
 
               {modalStep < 2 ? (
                 <Pressable
-                  onPress={() => setModalStep((prev) => Math.min(prev + 1, 2))}
-                  style={({ pressed }) => [
+                  onPress={() => {
+                    setModalStep((prev) => Math.min(prev + 1, 2))
+                    if (modalStep === 0) {
+                      setExpandedSection(null)
+                    }
+                  }}
+                  style={({ pressed, hovered }) => [
                     styles.durationButton,
                     styles.durationButtonPrimary,
+                    hovered && styles.durationButtonPrimaryHover,
                     pressed && styles.durationButtonPressed,
                   ]}
                 >
@@ -428,20 +456,30 @@ export function RoadmapTestResultLayout({
                 </Pressable>
               ) : (
                 <Pressable
-                  onPress={() => {
-                    if (!selectedDuration) return
-                    onCloseDurationModal?.()
-                    router.push('/roadmap/learning')
+                  onPress={async () => {
+                    if (!selectedDuration || isGeneratingRoadmap) return
+                    const roadmapResult = await onGenerateRoadmap?.({
+                      durationDays: selectedDuration,
+                      currentLevel: 0,
+                    })
+                    if (roadmapResult && !roadmapResult.hasExisting) {
+                      onCloseDurationModal?.()
+                      router.push('/roadmap/learning')
+                    }
                   }}
-                  style={({ pressed }) => [
+                  style={({ pressed, hovered }) => [
                     styles.durationButton,
                     styles.durationButtonPrimary,
                     !selectedDuration && styles.durationButtonDisabled,
-                    pressed && selectedDuration && styles.durationButtonPressed,
+                    isGeneratingRoadmap && styles.durationButtonDisabled,
+                    hovered && selectedDuration && !isGeneratingRoadmap && styles.durationButtonPrimaryHover,
+                    pressed && selectedDuration && !isGeneratingRoadmap && styles.durationButtonPressed,
                   ]}
-                  disabled={!selectedDuration}
+                  disabled={!selectedDuration || isGeneratingRoadmap}
                 >
-                  <Text style={styles.durationButtonPrimaryText}>Tạo lộ trình</Text>
+                  <Text style={styles.durationButtonPrimaryText}>
+                    {isGeneratingRoadmap ? 'Đang tạo...' : 'Tạo lộ trình'}
+                  </Text>
                 </Pressable>
               )}
             </View>
@@ -609,85 +647,6 @@ const styles = StyleSheet.create({
     color: '#8E8E8E',
     fontFamily: 'Epilogue, sans-serif',
   },
-  analysisCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#FFE0B3',
-    overflow: 'hidden',
-    ...(Platform.OS === 'web' && {
-      boxShadow: '0px 10px 24px rgba(0, 0, 0, 0.06)',
-    }),
-  },
-  analysisHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    backgroundColor: '#FFF6E8',
-  },
-  analysisHeaderPressed: {
-    opacity: 0.9,
-  },
-  analysisHeaderLeft: {
-    gap: 4,
-  },
-  analysisTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  analysisSubtitle: {
-    fontSize: 13,
-    color: '#8E8E8E',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  analysisChevron: {
-    fontSize: 14,
-    color: '#5F5F5F',
-    fontWeight: '700',
-  },
-  analysisBody: {
-    padding: 20,
-    backgroundColor: '#FFFFFF',
-    gap: 16,
-  },
-  analysisLoadingText: {
-    fontSize: 14,
-    color: '#8E8E8E',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  analysisGrid: {
-    gap: 16,
-  },
-  analysisSection: {
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: '#FFF9F2',
-    borderWidth: 1,
-    borderColor: '#FFE6C8',
-    gap: 6,
-  },
-  analysisSectionTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#8E6B2B',
-    fontFamily: 'Epilogue, sans-serif',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  analysisItemText: {
-    fontSize: 14,
-    color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  analysisEmptyText: {
-    fontSize: 14,
-    color: '#8E8E8E',
-    fontFamily: 'Epilogue, sans-serif',
-  },
   actionsRow: {
     flexDirection: 'row',
     gap: 16,
@@ -714,16 +673,52 @@ const styles = StyleSheet.create({
   },
   durationModal: {
     width: '100%',
-    maxWidth: 560,
+    maxWidth: 600,
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 24,
-    gap: 16,
+    borderRadius: 24,
+    padding: 28,
+    gap: 18,
     borderWidth: 1,
     borderColor: '#FFE0B3',
+    maxHeight: '86vh',
     ...(Platform.OS === 'web' && {
-      boxShadow: '0px 14px 30px rgba(0,0,0,0.15)',
+      boxShadow: '0px 18px 36px rgba(0,0,0,0.16)',
     }),
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  modalIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF1D6',
+  },
+  modalIcon: {
+    fontSize: 22,
+    color: '#E67E22',
+  },
+  modalHeaderText: {
+    flex: 1,
+    gap: 4,
+  },
+  stepBadge: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#FFF4DA',
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#FFE0B3',
+  },
+  stepBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#B86B1E',
+    fontFamily: 'Epilogue, sans-serif',
   },
   durationTitle: {
     fontSize: 20,
@@ -751,32 +746,74 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   feedbackCard: {
-    backgroundColor: '#FFF7E0',
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#FFE0B3',
+    paddingVertical: 8,
+    gap: 12,
+  },
+  feedbackBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: '#FFEFD6',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+  },
+  feedbackBadgeIcon: {
+    fontSize: 14,
+    color: '#E67E22',
+  },
+  feedbackBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#B86B1E',
+    fontFamily: 'Epilogue, sans-serif',
   },
   feedbackText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
-    lineHeight: 20,
+    lineHeight: 30,
+    fontWeight: 500,
   },
   issueList: {
-    maxHeight: 320,
+    minHeight: '40vh',
+    maxHeight: '40vh',
   },
   issueListContent: {
     gap: 12,
     paddingBottom: 8,
   },
   issueSectionTitle: {
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: '700',
     color: '#8E6B2B',
     fontFamily: 'Epilogue, sans-serif',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
+  },
+  issueHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+  },
+  issueHeaderRowActive: {
+    backgroundColor: '#FFF4DA',
+    borderWidth: 1,
+    borderColor: '#FFE0B3',
+  },
+  issueHeaderRowHover: {
+    backgroundColor: '#FFF9F0',
+  },
+  issueHeaderRowPressed: {
+    opacity: 0.8,
+  },
+  issueHeaderIcon: {
+    fontSize: 16,
+    color: '#E67E22',
   },
   issueItem: {
     padding: 12,
@@ -813,6 +850,10 @@ const styles = StyleSheet.create({
   durationOptionPressed: {
     opacity: 0.9,
   },
+  durationOptionHover: {
+    borderColor: '#FFC56E',
+    backgroundColor: '#FFF3E0',
+  },
   durationOptionActive: {
     borderColor: '#FF9800',
     backgroundColor: '#FFF1D6',
@@ -824,6 +865,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 8,
+  },
+  durationOptionTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  durationOptionIcon: {
+    fontSize: 16,
+    color: '#E67E22',
   },
   durationOptionDays: {
     fontSize: 16,
@@ -863,8 +914,14 @@ const styles = StyleSheet.create({
   durationButtonPrimary: {
     backgroundColor: '#FFB74D',
   },
+  durationButtonPrimaryHover: {
+    backgroundColor: '#FFA726',
+  },
   durationButtonSecondary: {
     backgroundColor: '#FFF4DA',
+  },
+  durationButtonSecondaryHover: {
+    backgroundColor: '#FFE7C2',
   },
   durationButtonDisabled: {
     opacity: 0.6,
