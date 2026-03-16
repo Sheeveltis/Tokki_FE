@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'solito/navigation'
 import { RoadmapInfoLayout } from '../components/roadmap-info/roadmap-info-layout.web'
 import { getUserLevel } from '../../authentication/api'
@@ -55,12 +55,13 @@ export function RoadmapInfoScreen() {
     checkUserLevel()
   }, [router])
 
-  const handleStart = (level) => {
+  const handleStart = (level, selfDeclaredLevel) => {
     // Lấy exam key dựa trên level người dùng chọn
     const examKey = ENTRANCE_EXAM_KEYS[level]
     
     // Truyền cả level và examKey qua query params để trang test sử dụng
-    router.push(`/roadmap/test?level=${level}&examKey=${examKey}`)
+    const selfDeclaredLevelQuery = selfDeclaredLevel ? `&selfDeclaredLevel=${encodeURIComponent(selfDeclaredLevel)}` : ''
+    router.push(`/roadmap/test?level=${level}&examKey=${examKey}${selfDeclaredLevelQuery}`)
   }
 
   if (isChecking) {

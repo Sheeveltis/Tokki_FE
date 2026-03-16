@@ -1,22 +1,44 @@
-import React, { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View, Modal, TouchableOpacity } from 'react-native'
-import { TOPIK_LEVELS, getLevelData, formatTime, getTotalTime } from '../../api/roadmap-info'
+import { TOPIK_LEVELS } from '../../api/roadmap-info'
 
 const LEVELS = TOPIK_LEVELS.map((l) => ({ value: l.level, label: l.label }))
 
+const SELF_DECLARED_LEVELS = [
+  { value: 0, label: 'Chưa bao giờ' },
+  { value: 1, label: 'Học cơ bản' },
+  { value: 3, label: 'Đã học 1-2 năm' },
+  { value: 5, label: 'Đã thành thạo' },
+]
+
 export function RoadmapInfo({ onStart, initialLevel = 1 }) {
   const [selectedLevel, setSelectedLevel] = useState(initialLevel)
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [selectedSelfDeclaredLevel, setSelectedSelfDeclaredLevel] = useState(SELF_DECLARED_LEVELS[0].value)
+  const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false)
+  const [openListKey, setOpenListKey] = useState(null)
 
-  const selectedLevelData = LEVELS.find((l) => l.value === selectedLevel) || LEVELS[0]
-  const levelInfo = useMemo(() => getLevelData(selectedLevel), [selectedLevel])
-  const totalTime = useMemo(() => getTotalTime(selectedLevel), [selectedLevel])
-  const formattedTime = useMemo(() => formatTime(totalTime), [totalTime])
+  const openSelectionModal = () => {
+    setIsSelectionModalOpen(true)
+  }
+
+  const closeSelectionModal = () => {
+    setIsSelectionModalOpen(false)
+    setOpenListKey(null)
+  }
+
+  const toggleList = (key) => {
+    setOpenListKey((current) => (current === key ? null : key))
+  }
+
+  const confirmSelection = () => {
+    if (onStart) {
+      onStart(selectedLevel, selectedSelfDeclaredLevel)
+    }
+    closeSelectionModal()
+  }
 
   const handleStart = () => {
-    if (onStart) {
-      onStart(selectedLevel)
-    }
+    openSelectionModal()
   }
 
   return (
@@ -38,42 +60,125 @@ export function RoadmapInfo({ onStart, initialLevel = 1 }) {
         <Text style={styles.callToAction}>Hãy cùng nhau chinh phục TOPIK nhé</Text>
         <Text style={styles.instruction}>Để bắt đầu, vui lòng làm bài kiểm tra trình độ của bạn</Text>
 
-        {/* Level Selection */}
-        <View style={styles.levelSection}>
-          <Pressable onPress={() => setIsDropdownOpen(true)} style={styles.dropdownButton}>
-            <Text style={styles.dropdownText}>{selectedLevelData.label}</Text>
-            <Text style={styles.dropdownArrow}>▼</Text>
-          </Pressable>
-        </View>
-
         {/* Start Button */}
         <Pressable onPress={handleStart} style={({ pressed }) => [styles.startButton, pressed && styles.startButtonPressed]}>
           <Text style={styles.startButtonText}>Bắt đầu Ngay</Text>
         </Pressable>
       </View>
 
-      {/* Dropdown Modal */}
-      <Modal visible={isDropdownOpen} transparent animationType="fade" onRequestClose={() => setIsDropdownOpen(false)}>
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setIsDropdownOpen(false)}
-        >
-          <View style={styles.dropdownContainer}>
-            {LEVELS.map((level) => (
-              <TouchableOpacity
-                key={level.value}
-                style={[styles.dropdownItem, selectedLevel === level.value && styles.dropdownItemSelected]}
-                onPress={() => {
-                  setSelectedLevel(level.value)
-                  setIsDropdownOpen(false)
-                }}
-              >
-                <Text style={[styles.dropdownItemText, selectedLevel === level.value && styles.dropdownItemTextSelected]}>
-                  {level.label}
+      <Modal
+        visible={isSelectionModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={closeSelectionModal}
+      >
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={closeSelectionModal}>
+          <View style={styles.selectionModalContainer}>
+            <Text style={styles.selectionTitle}>Chọn trình độ để bắt đầu</Text>
+
+            <View style={styles.selectionSection}>
+              <Text style={styles.selectionLabel}>Bài kiểm tra</Text>
+              <Pressable style={styles.selectionTrigger} onPress={() => toggleList('level')}>
+                <Text style={styles.selectionTriggerText}>
+                  {LEVELS.find((level) => level.value === selectedLevel)?.label}
                 </Text>
-              </TouchableOpacity>
-            ))}
+                <Text style={styles.selectionTriggerArrow}>▼</Text>
+              </Pressable>
+              <Modal
+                visible={openListKey === 'level'}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setOpenListKey(null)}
+              >
+                <TouchableOpacity
+                  style={styles.modalOverlay}
+                  activeOpacity={1}
+                  onPress={() => setOpenListKey(null)}
+                >
+                  <View style={styles.listModalContainer}>
+                    {LEVELS.map((level) => (
+                      <Pressable
+                        key={level.value}
+                        onPress={() => {
+                          setSelectedLevel(level.value)
+                          setOpenListKey(null)
+                        }}
+                        style={({ hovered, pressed }) => [
+                          styles.dropdownItem,
+                          hovered && styles.dropdownItemHover,
+                          pressed && styles.dropdownItemPressed,
+                          selectedLevel === level.value && styles.dropdownItemSelected,
+                        ]}
+                      >
+                        <Text
+                          style={[styles.dropdownItemText, selectedLevel === level.value && styles.dropdownItemTextSelected]}
+                        >
+                          {level.label}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </TouchableOpacity>
+              </Modal>
+            </View>
+
+            <View style={styles.selectionSection}>
+              <Text style={styles.selectionLabel}>Trình độ hiện tại</Text>
+              <Pressable style={styles.selectionTrigger} onPress={() => toggleList('selfDeclared')}>
+                <Text style={styles.selectionTriggerText}>
+                  {SELF_DECLARED_LEVELS.find((level) => level.value === selectedSelfDeclaredLevel)?.label}
+                </Text>
+                <Text style={styles.selectionTriggerArrow}>▼</Text>
+              </Pressable>
+              <Modal
+                visible={openListKey === 'selfDeclared'}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setOpenListKey(null)}
+              >
+                <TouchableOpacity
+                  style={styles.modalOverlay}
+                  activeOpacity={1}
+                  onPress={() => setOpenListKey(null)}
+                >
+                  <View style={styles.listModalContainer}>
+                    {SELF_DECLARED_LEVELS.map((level) => (
+                      <Pressable
+                        key={level.value}
+                        onPress={() => {
+                          setSelectedSelfDeclaredLevel(level.value)
+                          setOpenListKey(null)
+                        }}
+                        style={({ hovered, pressed }) => [
+                          styles.dropdownItem,
+                          hovered && styles.dropdownItemHover,
+                          pressed && styles.dropdownItemPressed,
+                          selectedSelfDeclaredLevel === level.value && styles.dropdownItemSelected,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.dropdownItemText,
+                            selectedSelfDeclaredLevel === level.value && styles.dropdownItemTextSelected,
+                          ]}
+                        >
+                          {level.label}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </TouchableOpacity>
+              </Modal>
+            </View>
+
+            <View style={styles.modalActions}>
+              <Pressable style={styles.cancelButton} onPress={closeSelectionModal}>
+                <Text style={styles.cancelButtonText}>Hủy</Text>
+              </Pressable>
+              <Pressable style={styles.confirmButton} onPress={confirmSelection}>
+                <Text style={styles.confirmButtonText}>Bắt đầu</Text>
+              </Pressable>
+            </View>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -140,21 +245,91 @@ const styles = StyleSheet.create({
     color: '#FF6B6B',           // Màu đỏ cam thương hiệu
     fontFamily: 'Epilogue, sans-serif',
   },
-  levelSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  dropdownButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  selectionModalContainer: {
+    width: '90%',
+    maxWidth: 420,
     backgroundColor: '#FFFFFF',
-    borderRadius: 100,
+    borderRadius: 18,
+    padding: 20,
+    gap: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
+  },
+  selectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  selectionSection: {
+    gap: 8,
+  },
+  selectionLabel: {
+    fontSize: 14,
+    color: '#4A4A4A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 4,
+  },
+  selectionTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#FFD7D0',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 8,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: '#FFFDFB',
+  },
+  selectionTriggerText: {
+    fontSize: 15,
+    color: '#2C2C2C',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  selectionTriggerArrow: {
+    fontSize: 12,
+    color: '#8C8C8C',
+  },
+  listModalContainer: {
+    width: '80%',
+    maxWidth: 360,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  cancelButton: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 100,
+    backgroundColor: '#F0F0F0',
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4A4A4A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  confirmButton: {
+    paddingHorizontal: 22,
+    paddingVertical: 10,
+    borderRadius: 100,
+    backgroundColor: '#FF6B6B',
+  },
+  confirmButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    fontFamily: 'Epilogue, sans-serif',
   },
   startButton: {
     marginTop: 10,
@@ -203,6 +378,12 @@ const styles = StyleSheet.create({
   },
   dropdownItemSelected: {
     backgroundColor: '#FFF8F0',
+  },
+  dropdownItemHover: {
+    backgroundColor: '#FFF2EC',
+  },
+  dropdownItemPressed: {
+    backgroundColor: '#FFE6DC',
   },
   dropdownItemText: {
     fontSize: 15,
