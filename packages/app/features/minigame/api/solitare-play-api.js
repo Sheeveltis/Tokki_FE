@@ -1,11 +1,22 @@
 /**
- * Mock API cho game Solitaire.
+ * Mock + Real API for Solitaire game
  *
- *  - Mỗi "topic" là một cột.
- *  - Tối đa 7 topic.
- *  - Số lượng card trong từng cột được random, KHÔNG cố định theo hàng.
- *  - Mỗi card hiện tại dùng cùng một text mock "습관" cho đơn giản.
+ * Gameplay rule:
+ * - There is NO fixed home column.
+ * - Topic cards and vocabulary cards are all normal cards on the board.
+ * - A stack is completed when:
+ *   + The column contains exactly ONE topic card
+ *   + All remaining cards in that column are vocab cards of the same topic
+ *   + The number of vocab cards is enough for that topic
+ *
+ * Therefore:
+ * - Topic cards must also be distributed onto the board
+ * - Vocab cards must be distributed across columns
+ * - We do NOT inject one topic card globally later
  */
+
+import { apiClient } from '../../../provider/api/client'
+import { ENDPOINTS } from '../../../provider/api/endpoints'
 
 const MOCK_TOPICS = [
   { id: 'habit', name: '습관' },
@@ -18,85 +29,112 @@ const MOCK_TOPICS = [
 ]
 
 /**
- * Tạo random integer trong khoảng [min, max]
+ * Random integer in [min, max]
  */
 const randomInt = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
 /**
- * Mock layout cho solitaire:
- *  - Các card của mọi topic sẽ được TRỘN với nhau,
- *    không còn kiểu "1 cột = 1 chủ đề" nữa.
- *  - Vẫn random tổng số card, sau đó chia đều lần lượt vào các cột.
- *
- * @param {number} [maxTopics=7] - số topic tối đa (cột tối đa)
- * @returns {Array<{
- *  id: string;
- *  cards: Array<{ id: string; text: string; topicId: string }>;
- * }>}
+ * Fisher-Yates shuffle
  */
-export const getMockSolitareLayout = (maxTopics = 7) => {
-  const topics = MOCK_TOPICS.slice(0, maxTopics)
-
-  // Tạo toàn bộ card cho tất cả topic
-  const allCards = []
-
-  topics.forEach((topic, topicIndex) => {
-    const cardCount = randomInt(3, 8)
-    Array.from({ length: cardCount }).forEach((_, cardIndex) => {
-      allCards.push({
-        id: `${topic.id}-${topicIndex}-${cardIndex}`,
-        text: topic.name, // tạm thời dùng tên topic làm text mock
-        topicId: topic.id,
-      })
-    })
-  })
-
-  // Trộn ngẫu nhiên toàn bộ card
-  for (let i = allCards.length - 1; i > 0; i -= 1) {
+const shuffle = (arr = []) => {
+  const next = [...arr]
+  for (let i = next.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1))
-    const temp = allCards[i]
-    allCards[i] = allCards[j]
-    allCards[j] = temp
+    ;[next[i], next[j]] = [next[j], next[i]]
   }
+  return next
+}
 
-  // Khởi tạo cột rỗng
-  const columnCount = topics.length
-  const columns = Array.from({ length: columnCount }).map((_, index) => ({
+/**
+ * Build columns from a flat card list
+ * - cards are shuffled globally first
+ * - then distributed round-robin so every column has cards
+ * - then each column is shuffled again lightly
+ */
+const buildColumnsFromCards = (cards, columnCount) => {
+  const shuffledCards = shuffle(cards)
+
+  const columns = Array.from({ length: Math.max(columnCount, 1) }).map((_, index) => ({
     id: `column-${index}`,
     cards: [],
   }))
 
-  // Chia lần lượt card vào từng cột (round-robin)
-  allCards.forEach((card, index) => {
-    const colIndex = index % columnCount
+  shuffledCards.forEach((card, index) => {
+    const colIndex = index % columns.length
     columns[colIndex].cards.push(card)
   })
 
-  return columns
+  return columns.map((col) => ({
+    ...col,
+    cards: shuffle(col.cards),
+  }))
+}
+
+/**
+ * Mock layout
+ * - each topic has:
+ *   + 1 topic card
+ *   + random vocab cards
+ * - all cards are mixed and distributed across columns
+ */
+export const getMockSolitareLayout = (maxTopics = 7) => {
+  const topics = MOCK_TOPICS.slice(0, maxTopics)
+
+  const allCards = []
+
+  topics.forEach((topic, topicIndex) => {
+    const vocabCount = randomInt(3, 8)
+
+    // topic card
+    allCards.push({
+      id: `topic-${topic.id}-${topicIndex}`,
+      text: topic.name,
+      topicId: topic.id,
+      topicName: topic.name,
+      imgUrl: null,
+      definition: null,
+      isTopic: true,
+    })
+
+    // vocab cards
+    Array.from({ length: vocabCount }).forEach((_, cardIndex) => {
+      allCards.push({
+        id: `${topic.id}-${topicIndex}-${cardIndex}`,
+        text: topic.name,
+        topicId: topic.id,
+        topicName: topic.name,
+        imgUrl: null,
+        definition: null,
+        isTopic: false,
+      })
+    })
+  })
+
+  return buildColumnsFromCards(allCards, topics.length)
 }
 
 /**
  * Get quantity based on difficulty level
- * @param {string} level - 'Easy', 'Medium', 'Hard'
- * @returns {number} quantity
+ * @param {string} level - 'easy' | 'medium' | 'hard'
+ * @returns {number}
  */
 const getQuantityByLevel = (level) => {
   const normalizedLevel = String(level || '').toLowerCase()
 
   const levelMap = {
-    easy: 30,
-    medium: 40,
-    hard: 50,
+    easy: 20,
+    medium: 30,
+    hard: 40,
   }
 
   return levelMap[normalizedLevel] || 25
 }
 
 /**
- * Main API function - calls real API
- * API response format:
+ * Real API layout
+ * Expected API shape:
  * {
  *   isSuccess: boolean,
  *   data: Array<{
@@ -112,95 +150,88 @@ const getQuantityByLevel = (level) => {
  *   }>
  * }
  *
- * @param {string} level - 'Easy', 'Medium', 'Hard'
- * @returns {Promise<Array>} Promise resolves to columns array
+ * Returned layout shape:
+ * Array<{
+ *   id: string,
+ *   cards: Array<{
+ *     id: string,
+ *     text: string,
+ *     topicId: string,
+ *     topicName: string,
+ *     imgUrl?: string | null,
+ *     definition?: string | null,
+ *     isTopic: boolean
+ *   }>
+ * }>
  */
-import { apiClient } from '../../../provider/api/client'
-import { ENDPOINTS } from '../../../provider/api/endpoints'
-
 export const getSolitareLayout = async (level = 'easy') => {
   try {
     const quantity = getQuantityByLevel(level)
     console.log('[Solitaire API] level =', level)
     console.log('[Solitaire API] quantity =', quantity)
+
     const response = await apiClient.get(ENDPOINTS.MINIGAME.SOLITAIRE, {
       params: { quantity },
     })
 
     const result = response.data
 
-    if (!result.isSuccess || !result.data) {
+    const isSuccess = result?.isSuccess ?? result?.statusCode === 200
+    const topicsData = result?.data
+
+    if (!isSuccess || !Array.isArray(topicsData)) {
       throw new Error('Invalid API response')
     }
 
-    // Lọc topic theo unique topicId (không giới hạn số lượng topic)
+    // unique topics by topicId
     const uniqueTopicsMap = {}
-    result.data.forEach((topic) => {
-      if (!uniqueTopicsMap[topic.topicId]) {
+    topicsData.forEach((topic) => {
+      if (topic?.topicId && !uniqueTopicsMap[topic.topicId]) {
         uniqueTopicsMap[topic.topicId] = topic
       }
     })
-    let uniqueTopics = Object.values(uniqueTopicsMap)
-    // Shuffle topics để random
-    uniqueTopics = uniqueTopics.sort(() => Math.random() - 0.5)
-    // Lấy tất cả topic đã trả về
-    const selectedTopics = uniqueTopics
 
-    // Flatten all vocabularies from selected topics into cards
+    let selectedTopics = Object.values(uniqueTopicsMap)
+    selectedTopics = shuffle(selectedTopics)
+
+    if (selectedTopics.length === 0) {
+      throw new Error('No topics returned from API')
+    }
+
     const allCards = []
+
     selectedTopics.forEach((topic) => {
-      topic.vocabularies.forEach((vocab) => {
+      // topic card
+      allCards.push({
+        id: `topic-${topic.topicId}`,
+        text: topic.topicName,
+        topicId: topic.topicId,
+        topicName: topic.topicName,
+        imgUrl: topic.imgUrl || null,
+        definition: null,
+        isTopic: true,
+      })
+
+      // vocab cards
+      ;(topic.vocabularies || []).forEach((vocab) => {
+        if (!vocab?.vocabId || !vocab?.text) return
+
         allCards.push({
           id: vocab.vocabId,
           text: vocab.text,
           topicId: topic.topicId,
           topicName: topic.topicName,
-          imgUrl: vocab.imgUrl,
-          definition: vocab.definition,
+          imgUrl: vocab.imgUrl || null,
+          definition: vocab.definition || null,
+          isTopic: false,
         })
       })
     })
 
-    // Shuffle cards randomly
-    for (let i = allCards.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(Math.random() * (i + 1))
-      const temp = allCards[i]
-      allCards[i] = allCards[j]
-      allCards[j] = temp
-    }
-
-    // Create columns (theo số topic)
     const columnCount = Math.max(selectedTopics.length, 1)
-    const columns = Array.from({ length: columnCount }).map((_, index) => ({
-      id: `column-${index}`,
-      cards: [],
-    }))
-
-    // Distribute cards randomly into columns (not round-robin, but random distribution)
-    // This creates columns with varying numbers of cards
-    allCards.forEach((card) => {
-      // Randomly assign to a column
-      const randomColIndex = Math.floor(Math.random() * columnCount)
-      columns[randomColIndex].cards.push(card)
-    })
-
-    // Sort cards within each column to ensure proper stacking
-    columns.forEach((col) => {
-      // Shuffle cards within column for more randomness
-      for (let i = col.cards.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(Math.random() * (i + 1))
-        const temp = col.cards[i]
-        col.cards[i] = col.cards[j]
-        col.cards[j] = temp
-      }
-    })
-
-    return columns
+    return buildColumnsFromCards(allCards, columnCount)
   } catch (error) {
     console.error('Failed to load solitaire layout from API:', error)
-    // Fallback to mock data
     return Promise.resolve(getMockSolitareLayout(7))
   }
 }
-
-
