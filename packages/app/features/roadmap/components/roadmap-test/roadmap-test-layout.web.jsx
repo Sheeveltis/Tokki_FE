@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { StyleSheet, View, Image, Text, Alert, Platform, Modal, Pressable } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { RoadmapTestQuestion } from './roadmap-test-question'
 import { RoadmapTestDashboard } from './roadmap-test-dashboard'
 import { RoadmapTestButton } from './roadmap-test-button'
 import { ToastNotification } from './toast-notification'
+import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons'
 import { getTestQuestions, getTestConfig, formatTime } from '../../api/roadmap-test'
 import { apiClient } from '../../../../provider/api/client'
 import { ENDPOINTS } from '../../../../provider/api/endpoints'
@@ -23,10 +24,14 @@ const DEFAULT_EXAM_ID = 'kjyv9q3dac'
 // Đảm bảo trong 1 lần load bundle chỉ gọi API take-exam đúng 1 lần
 // (kể cả khi React StrictMode mount/unmount component 2 lần)
 let startExamOncePromise = null
+let startExamCacheKey = null
 
-const isQ51 = (questionTypeCode) => String(questionTypeCode || '').slice(-3) === 'Q51'
+const isTwoPartWriting = (questionTypeCode) => {
+  const code = String(questionTypeCode || '').slice(-3).toUpperCase()
+  return code === 'Q51' || code === 'Q52'
+}
 
-const parseQ51AnswerContent = (answerContent) => {
+const parseTwoPartAnswerContent = (answerContent) => {
   const text = String(answerContent || '')
   if (!text) return { b: '', a: '' }
 
@@ -59,7 +64,7 @@ const parseQ51AnswerContent = (answerContent) => {
 }
 
 const serializeWritingAnswerForApi = (answerValue, questionTypeCode) => {
-  if (!isQ51(questionTypeCode)) return String(answerValue ?? '')
+  if (!isTwoPartWriting(questionTypeCode)) return String(answerValue ?? '')
   const b = String(answerValue?.b ?? '')
   const a = String(answerValue?.a ?? '')
   // Match backend-friendly format (can be same-line): "㉠:... ㉡:..."
@@ -177,10 +182,13 @@ const buildAllMcqAnswersPayload = (sections, allAnswersState) => {
 
 // Bước 1: Take exam để lấy userExamId
 const startExam = async (examId = DEFAULT_EXAM_ID, isShuffle = true) => {
-  // Nếu đã có promise đang/đã gọi rồi thì luôn dùng lại (tránh gọi 2 lần API)
-  if (startExamOncePromise) {
+  const cacheKey = `${examId || ''}:${isShuffle}`
+  // Nếu đã có promise đang/đã gọi rồi với cùng tham số thì luôn dùng lại (tránh gọi 2 lần API)
+  if (startExamOncePromise && startExamCacheKey === cacheKey) {
     return startExamOncePromise
   }
+
+  startExamCacheKey = cacheKey
 
   const url = ENDPOINTS.USER_EXAM?.TAKE_EXAM
     ? ENDPOINTS.USER_EXAM.TAKE_EXAM(examId, isShuffle)
@@ -194,6 +202,7 @@ const startExam = async (examId = DEFAULT_EXAM_ID, isShuffle = true) => {
     } catch (error) {
       // Nếu lỗi thì reset để lần sau có thể thử lại
       startExamOncePromise = null
+      startExamCacheKey = null
       throw error
     }
   })()
@@ -212,17 +221,28 @@ const getExamDetailInProgress = async (userExamId) => {
   return response?.data?.data || null
 }
 
+const getExamIdByConfigKey = async (examKey) => {
+  if (!examKey) return null
+
+  const url = ENDPOINTS.SYSTEM_CONFIGS?.GET_BY_KEY
+    ? ENDPOINTS.SYSTEM_CONFIGS.GET_BY_KEY(examKey)
+    : `/system-configs/${encodeURIComponent(examKey)}`
+
+  const response = await apiClient.get(url)
+  return response?.data?.data?.value || null
+}
+
 // Map dữ liệu exam thành 3 phần: listening / reading / writing (nếu có)
 const mapExamToSections = (examData) => {
   if (!examData || !examData.part) return []
 
   const { part } = examData
+  let globalQuestionCounter = 1
 
   const buildSection = (key, label, sectionArray, defaultType) => {
     if (!Array.isArray(sectionArray) || sectionArray.length === 0) return null
 
     const questions = []
-    let questionCounter = 1
 
     sectionArray.forEach((p) => {
       // Xử lý cấu trúc mới: questionGroups với sharedMediaUrl/sharedMediaType
@@ -247,7 +267,10 @@ const mapExamToSections = (examData) => {
 
         // Duyệt qua các câu hỏi trong group
         ;(group.questions || []).forEach((q) => {
-          const options = (q.options || []).map((opt) => opt.content)
+          const options = (q.options || []).map((opt) => ({
+            content: opt.content || '',
+            imageUrl: opt.imageUrl || null,
+          }))
           // Writing: dùng sharedPassageContent hoặc partName khi content trống; đáp án lấy từ answerContent
           const questionText =
             q.content ||
@@ -255,7 +278,7 @@ const mapExamToSections = (examData) => {
 
           questions.push({
             id: q.userQuestionId || q.questionId, // dùng userQuestionId nếu có
-            questionNumber: questionCounter++, // số thứ tự trong phần
+            questionNumber: q.questionNo || globalQuestionCounter++, // số thứ tự trong đề (không reset theo phần)
             type,
             questionText,
             audioUrl: type === 'audio' ? sharedMediaUrl : null,
@@ -270,7 +293,10 @@ const mapExamToSections = (examData) => {
       // Fallback: nếu không có questionGroups, thử dùng questions trực tiếp (backward compatibility)
       if (questionGroups.length === 0 && p.questions) {
         ;(p.questions || []).forEach((q) => {
-          const options = (q.options || []).map((opt) => opt.content)
+          const options = (q.options || []).map((opt) => ({
+            content: opt.content || '',
+            imageUrl: opt.imageUrl || null,
+          }))
           const mediaType = (q.mediaType || '').toLowerCase()
           
           // Xác định type dựa trên defaultType (ưu tiên) hoặc mediaType
@@ -291,7 +317,7 @@ const mapExamToSections = (examData) => {
 
           questions.push({
             id: q.userQuestionId || q.questionId,
-            questionNumber: questionCounter++,
+            questionNumber: q.questionNo || globalQuestionCounter++,
             type,
             questionText,
             audioUrl: type === 'audio' ? q.mediaUrl : null,
@@ -351,8 +377,8 @@ const restoreAnswersFromSections = (sections) => {
       if (q.type === 'writing') {
         const questionTypeCode = q.questionTypeCode || raw.questionTypeCode || raw.questionType?.code
         const rawAnswerContent = raw.answerContent ?? ''
-        sectionAnswers[q.questionNumber] = isQ51(questionTypeCode)
-          ? parseQ51AnswerContent(rawAnswerContent)
+        sectionAnswers[q.questionNumber] = isTwoPartWriting(questionTypeCode)
+          ? parseTwoPartAnswerContent(rawAnswerContent)
           : rawAnswerContent
       }
     })
@@ -365,18 +391,20 @@ const restoreAnswersFromSections = (sections) => {
   return restoredAnswers
 }
 
-export function RoadmapTestLayout({ level = 1 }) {
+export function RoadmapTestLayout({ level = 1, examKey = null }) {
   const router = useRouter()
   const [userExamId, setUserExamId] = useState(null)
   const [sections, setSections] = useState([])
   const [activeSectionKey, setActiveSectionKey] = useState(null)
   const [currentQuestion, setCurrentQuestion] = useState(1)
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
+  const [examTitle, setExamTitle] = useState('')
   const [answers, setAnswers] = useState({}) // answers theo section: { [sectionKey]: { [questionNo]: optionIndex } }
   const [timeRemaining, setTimeRemaining] = useState('08 : 00')
   const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(0)
-  const [totalQuestions, setTotalQuestions] = useState(8)
+  const [, setTotalQuestions] = useState(8)
   const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState(null)
+  const [, setLoadError] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [submitConfirmVisible, setSubmitConfirmVisible] = useState(false)
@@ -396,8 +424,10 @@ export function RoadmapTestLayout({ level = 1 }) {
       setLoadError(null)
 
       try {
-        // 1) Take exam để backend tạo/ghi nhận userExamId
-        const takeExamResult = await startExam()
+        // 1) Resolve examId từ examKey (nếu có), sau đó take exam để backend tạo/ghi nhận userExamId
+        const resolvedExamId = examKey ? await getExamIdByConfigKey(examKey) : null
+        const examIdToUse = resolvedExamId || DEFAULT_EXAM_ID
+        const takeExamResult = await startExam(examIdToUse)
         // Handle different possible response structures:
         // - { userExamId: '...' }
         // - { data: { userExamId: '...' } }
@@ -418,6 +448,7 @@ export function RoadmapTestLayout({ level = 1 }) {
         }
 
         setUserExamId(userExamId)
+        setExamTitle(takeExamResult?.title || takeExamResult?.examTitle || '')
 
         // 2) Lấy chi tiết bài đang làm từ userExamId
         const examData = await getExamDetailInProgress(userExamId)
@@ -446,8 +477,17 @@ export function RoadmapTestLayout({ level = 1 }) {
 
         setTimeRemainingSeconds(totalSeconds)
         setTimeRemaining(formatTime(totalSeconds))
-        setCurrentQuestion(1)
+        const firstSectionQuestion = mappedSections[0]?.questions?.[0]
+        setCurrentQuestion(firstSectionQuestion?.questionNumber || 1)
+        setCurrentQuestionIndex(0)
         setAnswers(restoredAnswers)
+        setExamTitle(
+          examData.title ||
+            examData.examTitle ||
+            takeExamResult?.title ||
+            takeExamResult?.examTitle ||
+            ''
+        )
       } catch (error) {
         console.error('Failed to load exam from API, fallback to mock:', error)
 
@@ -465,6 +505,7 @@ export function RoadmapTestLayout({ level = 1 }) {
           },
         ])
         setActiveSectionKey('mock')
+        setExamTitle('')
 
         const totalSeconds = testConfig.totalTime
         setTimeRemainingSeconds(totalSeconds)
@@ -483,7 +524,7 @@ export function RoadmapTestLayout({ level = 1 }) {
     return () => {
       isMounted = false
     }
-  }, [level])
+  }, [level, examKey])
 
   // Countdown timer
   useEffect(() => {
@@ -654,7 +695,8 @@ export function RoadmapTestLayout({ level = 1 }) {
   }
 
   const handleQuestionAnswerSelect = (answerIndex) => {
-    handleAnswerSelect(currentQuestion, answerIndex)
+    const questionNumber = currentQuestionData?.questionNumber || currentQuestion
+    handleAnswerSelect(questionNumber, answerIndex)
   }
 
   // Handle writing answer change (tự luận)
@@ -681,22 +723,38 @@ export function RoadmapTestLayout({ level = 1 }) {
 
   // Handle question selection from dashboard
   const handleQuestionSelect = (questionNum) => {
-    setCurrentQuestion(questionNum)
+    const activeSection = sections.find((s) => s.key === activeSectionKey)
+    const questionList = activeSection?.questions || []
+    const nextIndex = questionList.findIndex((q) => q.questionNumber === questionNum)
+    if (nextIndex >= 0) {
+      setCurrentQuestionIndex(nextIndex)
+      setCurrentQuestion(questionNum)
+    }
   }
 
   // Navigate to next question
   const handleNextQuestion = () => {
     const activeSection = sections.find((s) => s.key === activeSectionKey)
     const sectionTotal = activeSection?.questions.length || 0
-    if (currentQuestion < sectionTotal) {
-      setCurrentQuestion(currentQuestion + 1)
+    if (currentQuestionIndex < sectionTotal - 1) {
+      const nextIndex = currentQuestionIndex + 1
+      const nextQuestion = activeSection?.questions?.[nextIndex]
+      if (nextQuestion) {
+        setCurrentQuestionIndex(nextIndex)
+        setCurrentQuestion(nextQuestion.questionNumber)
+      }
     }
   }
 
   // Navigate to previous question
   const handlePrevQuestion = () => {
-    if (currentQuestion > 1) {
-      setCurrentQuestion(currentQuestion - 1)
+    if (currentQuestionIndex > 0) {
+      const prevIndex = currentQuestionIndex - 1
+      const prevQuestion = activeSection?.questions?.[prevIndex]
+      if (prevQuestion) {
+        setCurrentQuestionIndex(prevIndex)
+        setCurrentQuestion(prevQuestion.questionNumber)
+      }
     }
   }
 
@@ -785,8 +843,11 @@ export function RoadmapTestLayout({ level = 1 }) {
 
   const handleChangeSection = (sectionKey) => {
     if (sectionKey === activeSectionKey) return
+    const nextSection = sections.find((s) => s.key === sectionKey)
+    const firstQuestion = nextSection?.questions?.[0]
     setActiveSectionKey(sectionKey)
-    setCurrentQuestion(1)
+    setCurrentQuestionIndex(0)
+    setCurrentQuestion(firstQuestion?.questionNumber || 1)
   }
 
   // Handle back to learning page
@@ -821,7 +882,9 @@ export function RoadmapTestLayout({ level = 1 }) {
   const activeSection = sections.find((s) => s.key === activeSectionKey)
   const sectionQuestions = activeSection?.questions || []
   const currentQuestionData =
-    sectionQuestions.find((q) => q.questionNumber === currentQuestion) || sectionQuestions[0]
+    sectionQuestions[currentQuestionIndex] ||
+    sectionQuestions.find((q) => q.questionNumber === currentQuestion) ||
+    sectionQuestions[0]
 
   const handleManualSave = async () => {
     if (isSaving) return
@@ -891,7 +954,6 @@ export function RoadmapTestLayout({ level = 1 }) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
         <Text style={styles.loadingText}>Đang tải đề thi...</Text>
-        {loadError ? <Text style={styles.loadErrorText}>{loadError}</Text> : null}
       </View>
     )
   }
@@ -929,9 +991,8 @@ export function RoadmapTestLayout({ level = 1 }) {
               </View>
               <View>
                 <Text style={styles.examTitleText}>
-                  {`Đề luyện tập TOPIK${activeSection?.label ? ` • ${activeSection.label}` : ''}`}
+                  {examTitle || 'Đề luyện tập TOPIK'}
                 </Text>
-                <Text style={styles.examSubtitleText}>Làm bài theo từng phần: nghe, đọc, viết.</Text>
               </View>
             </View>
           </View>
@@ -941,21 +1002,6 @@ export function RoadmapTestLayout({ level = 1 }) {
               <Text style={styles.timerValue}>{timeRemaining}</Text>
             </View>
           </View>
-        </View>
-
-        {/* Section tabs */}
-        <View style={styles.sectionTabsRow}>
-          {sections.map((section) => (
-            <RoadmapTestButton
-              key={section.key}
-              title={section.label}
-              onPress={() => handleChangeSection(section.key)}
-              style={[
-                styles.sectionTab,
-                activeSectionKey === section.key && styles.sectionTabActive,
-              ]}
-            />
-          ))}
         </View>
 
         <View style={styles.contentRow}>
@@ -990,40 +1036,52 @@ export function RoadmapTestLayout({ level = 1 }) {
               />
             )}
 
-            {/* Navigation Buttons */}
-            <View style={styles.navigationButtons}>
-              {currentQuestion > 1 ? (
-                <RoadmapTestButton
-                  title="← Câu trước"
-                  onPress={handlePrevQuestion}
-                  style={styles.navButtonLeft}
-                />
-              ) : (
-                <View style={styles.navButtonLeft} />
-              )}
-              {currentQuestion < sectionQuestions.length && (
-                <RoadmapTestButton
-                  title="Câu tiếp theo →"
-                  onPress={handleNextQuestion}
-                  style={styles.navButtonRight}
-                />
-              )}
-            </View>
           </View>
 
           {/* Right: Dashboard */}
           <View style={styles.dashboardContainer}>
+            <View style={[styles.sectionTabsRow, styles.dashboardHeaderTabs]}>
+              {sections.map((section) => (
+                <RoadmapTestButton
+                  key={section.key}
+                  title={section.label}
+                  onPress={() => handleChangeSection(section.key)}
+                  style={[
+                    styles.sectionTab,
+                    activeSectionKey === section.key && styles.sectionTabActive,
+                  ]}
+                />
+              ))}
+            </View>
+
             <RoadmapTestDashboard
               totalQuestions={sectionQuestions.length}
+              questionNumbers={sectionQuestions.map((q) => q.questionNumber)}
               timeRemaining={timeRemaining}
               answers={answers[activeSectionKey] || {}}
               onAnswerSelect={handleAnswerSelect}
               onSubmit={handleSubmit}
               onSave={handleManualSave}
               isSaving={isSaving}
+              isSubmitting={isSubmitting}
               currentQuestion={currentQuestion}
               onQuestionSelect={handleQuestionSelect}
             />
+
+            <View style={[styles.navigationButtons, styles.dashboardNavigationButtons]}>
+              {currentQuestionIndex > 0 ? (
+                <RoadmapTestButton onPress={handlePrevQuestion} style={styles.navButtonLeft}>
+                  <ArrowLeftOutlined style={styles.navButtonIcon} />
+                </RoadmapTestButton>
+              ) : (
+                <View style={styles.navButtonLeft} />
+              )}
+              {currentQuestionIndex < sectionQuestions.length - 1 && (
+                <RoadmapTestButton onPress={handleNextQuestion} style={styles.navButtonRight}>
+                  <ArrowRightOutlined style={styles.navButtonIcon} />
+                </RoadmapTestButton>
+              )}
+            </View>
           </View>
         </View>
       </View>
@@ -1254,17 +1312,37 @@ const styles = StyleSheet.create({
   },
   sectionTabsRow: {
     flexDirection: 'row',
-    gap: 8,
+    // gap: 8,
     marginBottom: 8,
+    width: '100%',
+    justifyContent: 'space-between',
+  },
+  dashboardHeaderTabs: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16,
+    justifyContent: 'space-between',
+    width: '10%',
+  },
+  dashboardNavigationButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 16,
+    marginTop: 16,
+    paddingHorizontal: 32,
   },
   sectionTab: {
+    flex: 1,
     paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 999,
+    paddingHorizontal: 12,
+    borderRadius: 100,
     backgroundColor: '#FFF4DA',
+    alignItems: 'center',
   },
   sectionTabActive: {
-    backgroundColor: '#FFC56E',
+    backgroundColor: '#F8C2A1',
   },
   contentRow: {
     flexDirection: 'row',
@@ -1290,13 +1368,19 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     minWidth: 140,
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
+    borderRadius: 100,
   },
   navButtonRight: {
     alignSelf: 'flex-end',
-    minWidth: 160,
+    minWidth: 140,
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
+    borderRadius: 100,
+  },
+  navButtonIcon: {
+    fontSize: 16,
+    color: '#1C1C1C',
   },
   dashboardContainer: {
     width: 380,

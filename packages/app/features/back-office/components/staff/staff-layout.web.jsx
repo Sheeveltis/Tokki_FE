@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useMemo, useState, useEffect, useTransition } from 'react'
-import { Layout, Menu, ConfigProvider, Badge, Popover, List, theme as antdTheme } from 'antd'
+import { Layout, Menu, ConfigProvider, Badge, Popover, List, Modal, theme as antdTheme } from 'antd'
 import {
   UserOutlined,
   BookOutlined,
@@ -16,6 +16,8 @@ import {
   BellOutlined,
   FileDoneOutlined,
   QuestionCircleOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
 } from '@ant-design/icons'
 
 const ThemeContext = createContext({
@@ -43,8 +45,8 @@ export function StaffLayout({
 }) {
   const [selectedKey, setSelectedKey] = useState(defaultKey)
   const [collapsed, setCollapsed] = useState(false)
-  const [themeMode, setThemeMode] = useState('light')
-  const [isPending, startTransition] = useTransition()
+  const [themeMode] = useState('light')
+  const [, startTransition] = useTransition()
 
   // Sync selectedKey với defaultKey khi defaultKey thay đổi
   useEffect(() => {
@@ -71,7 +73,14 @@ export function StaffLayout({
 
   const handleMenuClick = ({ key }) => {
     if (key === 'logout') {
-      onLogout()
+      Modal.confirm({
+        title: 'Xác nhận đăng xuất',
+        content: 'Bạn có chắc chắn muốn đăng xuất không?',
+        okText: 'Đăng xuất',
+        cancelText: 'Hủy',
+        okButtonProps: { danger: true },
+        onOk: onLogout,
+      })
       return
     }
     // Sử dụng startTransition để ưu tiên UI update, navigation không block
@@ -151,12 +160,6 @@ export function StaffLayout({
     {
       type: 'divider',
     },
-    {
-      key: 'logout',
-      icon: <PoweroffOutlined />,
-      label: <span style={{ color: '#ff4d4f', fontWeight: 600 }}>Đăng xuất</span>,
-      danger: true,
-    },
   ]
 
   return (
@@ -173,6 +176,7 @@ export function StaffLayout({
             className="sider-scroll-hidden"
             collapsible
             collapsed={collapsed}
+            trigger={null}
             onCollapse={(val) => setCollapsed(val)}
             width={240}
             style={{
@@ -188,22 +192,77 @@ export function StaffLayout({
                 margin: 16,
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 color: '#fff',
                 fontWeight: 700,
                 fontFamily: 'Epilogue, sans-serif',
                 letterSpacing: 0.5,
               }}
             >
-              {collapsed ? 'STF' : 'Staff Panel'}
+              <span>{collapsed ? 'STF' : 'Staff Panel'}</span>
+              <button
+                type="button"
+                onClick={() => setCollapsed((prev) => !prev)}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              </button>
             </div>
             <Menu
               theme="dark"
               mode="inline"
               selectedKeys={[selectedKey]}
-              defaultOpenKeys={['content', 'vocabulary', 'customer-service']}
+              defaultOpenKeys={[]}
               onClick={handleMenuClick}
               items={menuItems}
             />
+            <div
+              style={{
+                padding: collapsed ? '12px' : '16px',
+                borderTop: '1px solid rgba(255,255,255,0.1)',
+                background: '#001529',
+                position: 'sticky',
+                bottom: 0,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() =>
+                  Modal.confirm({
+                    title: 'Xác nhận đăng xuất',
+                    content: 'Bạn có chắc chắn muốn đăng xuất không?',
+                    okText: 'Đăng xuất',
+                    cancelText: 'Hủy',
+                    okButtonProps: { danger: true },
+                    onOk: onLogout,
+                  })
+                }
+                style={{
+                  width: '100%',
+                  border: '1px solid rgba(255,255,255,0.35)',
+                  background: 'transparent',
+                  color: '#ff7875',
+                  fontWeight: 600,
+                  borderRadius: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: collapsed ? 'center' : 'flex-start',
+                  gap: collapsed ? 0 : 10,
+                  padding: collapsed ? '10px 0' : '10px 12px',
+                  cursor: 'pointer',
+                }}
+              >
+                <PoweroffOutlined />
+                {!collapsed && <span>Đăng xuất</span>}
+              </button>
+            </div>
           </Layout.Sider>
           <Layout>
             <Layout.Header

@@ -1,13 +1,12 @@
 'use client'
 
-import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react'
-import { Input, Space, Tag, Select, Badge } from 'antd'
-import { EyeOutlined, PlusOutlined, SearchOutlined, GlobalOutlined, ClockCircleOutlined, ArrowLeftOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
+import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
+import { Space, Select, Badge } from 'antd'
+import { EyeOutlined, PlusOutlined, GlobalOutlined, ArrowLeftOutlined, CheckCircleOutlined, CloseCircleOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { useRouter } from 'solito/navigation'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { searchFlashcardTopics, createFlashcardTopic, approveTopic, rejectTopic } from '../../api/index.js'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
-import ManagementTable from '../../../../../components/ManagementTable.jsx'
+import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
 import FlashcardTopicCreateModal from '../../components/admin/vocab-topic-management/vocab-topic-create-modal.jsx'
 import TopicApprovalModal from '../../components/admin/vocab-topic-detail/topic-approval-modal.jsx'
@@ -253,8 +252,8 @@ export function FlashcardTopicManagement({ initialData = null }) {
 
   const columns = useMemo(() => [
     { title: 'Mã', dataIndex: 'id', key: 'id', width: 200 },
-    { title: 'Tiêu đề', dataIndex: 'title', key: 'title' },
-    { title: 'Mô tả', dataIndex: 'subtitle', key: 'subtitle' },
+    { title: 'Tiêu đề', dataIndex: 'title', key: 'title',width: 200 },
+    { title: 'Mô tả', dataIndex: 'subtitle', key: 'subtitle',width: 200 },
     { title: 'Level', dataIndex: 'level', key: 'level', width: 120 },
     {
       title: 'Trạng thái',
@@ -275,9 +274,13 @@ export function FlashcardTopicManagement({ initialData = null }) {
         
         return (
           <Space size="small" align="center">
-            <Tag color={statusInfo.color} style={{ fontSize: 12, padding: '2px 6px' }}>
+            <span
+              style={{
+                fontSize: 12,
+              }}
+            >
               {statusInfo.label}
-            </Tag>
+            </span>
             {status === 3 && currentPortal === 'admin' && (
               <>
                 <div
@@ -398,101 +401,108 @@ export function FlashcardTopicManagement({ initialData = null }) {
     },
   ], [portalPrefix, router, status, currentPortal])
 
-  return (
-    <>
-      <Space style={{ marginBottom: 12, width: '100%', justifyContent: 'space-between' }} wrap>
-        <Space wrap>
-          <Input
-            allowClear
-            prefix={<SearchOutlined />}
-            placeholder="Tìm kiếm theo tên chủ đề..."
-            style={{ width: 300 }}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <Select
-            placeholder="Chọn level"
-            value={level}
-            onChange={setLevel}
-            style={{ width: 150 }}
-            allowClear
-          >
-            {[1, 2, 3, 4, 5, 6].map((lvl) => (
-              <Option key={lvl} value={lvl}>
-                Level {lvl}
-              </Option>
-            ))}
-          </Select>
-          <Select
-            placeholder="Chọn trạng thái"
-            value={status}
-            onChange={setStatus}
-            style={{ width: 150 }}
-          >
-            {STATUS_OPTIONS.map((option) => (
-              <Option key={option.value} value={option.value}>
-                {option.label}
-              </Option>
-            ))}
-          </Select>
-        </Space>
-        <Space wrap>
-          {status === 3 ? (
-            <ButtonV2
-              title="Trở về danh sách"
-              color="#1890ff"
-              onPress={handleBackToList}
-              style={{ minWidth: 160, paddingVertical: 10 }}
-              textStyle={{ fontSize: 14 }}
-              icon={<ArrowLeftOutlined />}
-            />
-          ) : (
-            <Badge 
-              dot={pendingCount >= 1} 
-              offset={[-8, 8]}
+  const actions = [
+    {
+      label: 'Import',
+      icon: <UploadOutlined />,
+      style: { backgroundColor: '#107c41', borderColor: '#107c41' },
+      onPress: () => showAdminSuccess('Tính năng Import sắp ra mắt'),
+    },
+    {
+      label: 'Export',
+      icon: <DownloadOutlined />,
+      style: { backgroundColor: '#107c41', borderColor: '#107c41' },
+      onPress: () => showAdminSuccess('Đang xuất dữ liệu...'),
+    },
+    status === 3
+      ? {
+          label: 'Trở về danh sách',
+          icon: <ArrowLeftOutlined />,
+          style: { backgroundColor: '#1890ff', borderColor: '#1890ff' },
+          onPress: handleBackToList,
+        }
+      : {
+          label: 'Danh sách cần duyệt',
+          icon: (
+            <Badge
+              dot={pendingCount >= 1}
+              offset={[-5, 5]}
               styles={{
                 indicator: {
                   border: 'none',
                   boxShadow: 'none',
-                }
+                },
               }}
             >
-              <ButtonV2
-                title="Danh sách cần duyệt"
-                color="#1890ff"
-                onPress={handleShowPendingApproval}
-                style={{ minWidth: 160, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-                icon={<ClockCircleOutlined />}
-              />
+              <span style={{ width: 16, height: 16, display: 'inline-block' }} />
             </Badge>
-          )}
-          {currentPortal !== 'moderator' && (
-            <ButtonV2
-              title="Thêm chủ đề"
-              color="#F1BE4B"
-              onPress={() => setCreateModalOpen(true)}
-              style={{ minWidth: 140, paddingVertical: 10 }}
-              textStyle={{ fontSize: 14 }}
-              icon={<PlusOutlined />}
-            />
-          )}
-        </Space>
-      </Space>
-      <ManagementTable
-        columns={columns}
-        dataSource={data}
-        loading={loading}
-        onRowClick={(record) => setDrawerItem(record)}
-        pagination={{
-          current: pagination.current,
-          pageSize: pagination.pageSize,
-          total: pagination.total,
-          showSizeChanger: true,
-          showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} chủ đề`,
-          pageSizeOptions: ['10', '20', '50', '100'],
+          ),
+          style: { backgroundColor: '#1890ff', borderColor: '#1890ff' },
+          onPress: handleShowPendingApproval,
+        },
+    currentPortal !== 'moderator' && {
+      label: 'Thêm chủ đề',
+      icon: <PlusOutlined />,
+      style: { backgroundColor: '#F1BE4B', borderColor: '#F1BE4B', color: '#111' },
+      onPress: () => setCreateModalOpen(true),
+    },
+  ].filter(Boolean)
+
+  return (
+    <>
+      <ManagementLayout
+        searchPlaceholder="Tìm kiếm theo tên chủ đề..."
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        onSearchSubmit={() => {
+          setPagination((prev) => ({ ...prev, current: 1 }))
+          loadData(1, pagination.pageSize, searchTerm, level, status)
         }}
-        onChange={handleTableChange}
+        extraFilters={
+          <Space wrap>
+            <Select
+              placeholder="Chọn level"
+              value={level}
+              onChange={setLevel}
+              style={{ width: 150 }}
+              allowClear
+            >
+              {[1, 2, 3, 4, 5, 6].map((lvl) => (
+                <Option key={lvl} value={lvl}>
+                  Level {lvl}
+                </Option>
+              ))}
+            </Select>
+            <Select
+              placeholder="Chọn trạng thái"
+              value={status}
+              onChange={setStatus}
+              style={{ width: 150 }}
+            >
+              {STATUS_OPTIONS.map((option) => (
+                <Option key={option.value} value={option.value}>
+                  {option.label}
+                </Option>
+              ))}
+            </Select>
+          </Space>
+        }
+        actions={actions}
+        tableProps={{
+          columns,
+          dataSource: data,
+          loading,
+          onRowClick: (record) => setDrawerItem(record),
+          pagination: {
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
+            showSizeChanger: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} chủ đề`,
+            pageSizeOptions: ['10', '20', '50', '100'],
+          },
+          onChange: handleTableChange,
+        }}
       />
       <DetailDrawer
         open={!!drawerItem && !createModalOpen}

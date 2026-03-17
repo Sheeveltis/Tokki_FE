@@ -1,5 +1,5 @@
-import React from 'react'
-import { StyleSheet, View, Text, ScrollView, Platform } from 'react-native'
+import { useEffect, useMemo, useState } from 'react'
+import { StyleSheet, View, Text, ScrollView, Platform, TouchableOpacity } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { Navbar } from '../../../../../components/navbar'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
@@ -49,6 +49,33 @@ export function RoadmapTestResultDetailLayout({ userExamId, section, detailData,
     (g?.questions || []).some((q) => typeof q?.answerContent === 'string' || q?.aiAnalysis)
   )
 
+  const allQuestions = useMemo(() => {
+    const list = []
+    questionGroups.forEach((group, groupIdx) => {
+      ;(group?.questions || []).forEach((q) => {
+        list.push({
+          ...q,
+          groupIdx,
+          group,
+        })
+      })
+    })
+    return list.sort((a, b) => (a?.questionNo ?? 0) - (b?.questionNo ?? 0))
+  }, [questionGroups])
+
+  const [selectedQuestionNo, setSelectedQuestionNo] = useState(null)
+
+  useEffect(() => {
+    if (allQuestions.length > 0) {
+      setSelectedQuestionNo((prev) => (prev != null ? prev : allQuestions[0]?.questionNo))
+    }
+  }, [allQuestions])
+
+  const selectedQuestion = useMemo(() => {
+    if (selectedQuestionNo == null) return null
+    return allQuestions.find((q) => q?.questionNo === selectedQuestionNo) || null
+  }, [allQuestions, selectedQuestionNo])
+
   return (
     <View style={styles.wrapper}>
       <Navbar />
@@ -97,149 +124,196 @@ export function RoadmapTestResultDetailLayout({ userExamId, section, detailData,
               {questionGroups.length === 0 ? (
                 <Text style={styles.emptyText}>Chưa có dữ liệu câu hỏi.</Text>
               ) : (
-                <View style={styles.groupList}>
-                  {questionGroups.map((group, groupIdx) => {
-                    const sharedMediaType = (group?.sharedMediaType || '').toLowerCase()
-                    const sharedMediaUrl = group?.sharedMediaUrl || null
-                    const sharedPassageContent = group?.sharedPassageContent || null
+                <View style={styles.detailLayout}>
+                  <View style={styles.questionPickerCard}>
+                    <Text style={styles.questionPickerTitle}>Chọn câu</Text>
+                    <View style={styles.questionPickerList}>
+                      {allQuestions.map((q) => {
+                        const isCorrect = !!q?.isCorrect
+                        const isActive = q?.questionNo === selectedQuestionNo
+                        return (
+                          <TouchableOpacity
+                            key={`${q?.questionNo}`}
+                            style={[
+                              styles.questionChip,
+                              isActive && styles.questionChipActive,
+                              isCorrect && styles.questionChipCorrect,
+                              !isCorrect && q?.isCorrect === false && styles.questionChipIncorrect,
+                            ]}
+                            onPress={() => setSelectedQuestionNo(q?.questionNo)}
+                          >
+                            <Text style={[styles.questionChipText, isActive && styles.questionChipTextActive]}>
+                              {q?.questionNo}
+                            </Text>
+                          </TouchableOpacity>
+                        )
+                      })}
+                    </View>
+                  </View>
 
-                    return (
-                      <View key={`${groupIdx}`} style={styles.groupCard}>
-                        {sharedPassageContent ? (
-                          <View style={styles.groupPassageBox}>
-                            <Text style={styles.groupPassageText}>{String(sharedPassageContent)}</Text>
-                          </View>
-                        ) : null}
+                  <View style={styles.questionDetailCard}>
+                    {!selectedQuestion ? (
+                      <Text style={styles.emptyText}>Chưa chọn câu.</Text>
+                    ) : (
+                      <>
+                        {(() => {
+                          const group = selectedQuestion?.group || null
+                          const sharedMediaType = (group?.sharedMediaType || '').toLowerCase()
+                          const sharedMediaUrl = group?.sharedMediaUrl || null
+                          const sharedPassageContent = group?.sharedPassageContent || null
 
-                        {Platform.OS === 'web' && sharedMediaUrl && sharedMediaType === 'audio' ? (
-                          <View style={styles.groupMediaBox}>
-                            <audio controls src={sharedMediaUrl} style={{ width: '100%' }} />
-                          </View>
-                        ) : null}
-
-                        {Platform.OS === 'web' && sharedMediaUrl && sharedMediaType === 'image' ? (
-                          <View style={styles.groupMediaBox}>
-                            <img
-                              src={sharedMediaUrl}
-                              alt="Shared media"
-                              style={{ maxWidth: '100%', borderRadius: 12 }}
-                            />
-                          </View>
-                        ) : null}
-
-                        <View style={styles.questionList}>
-                          {(group?.questions || []).map((q) => {
-                            const isWritingQuestion = typeof q?.answerContent === 'string' || !!q?.aiAnalysis
-                            const hasOptions = Array.isArray(q?.options) && q.options.length > 0
-                            const selected = q?.selectedOptionId
-                            const correct = q?.correctOptionId
-                            const isCorrect = !!q?.isCorrect
-
-                            return (
-                              <View key={`${q?.questionNo}`} style={styles.questionCard}>
-                                <View style={styles.questionHeaderRow}>
-                                  <Text style={styles.questionNo}>Câu {q?.questionNo}</Text>
-                                  {isWritingQuestion ? (
-                                    <Text style={styles.writingScoreChip}>Điểm: {q?.score ?? 0}</Text>
-                                  ) : (
-                                    <Text
-                                      style={[
-                                        styles.questionResult,
-                                        isCorrect ? styles.questionResultOk : styles.questionResultBad,
-                                      ]}
-                                    >
-                                      {isCorrect ? 'Đúng' : 'Sai'}
-                                    </Text>
-                                  )}
+                          return (
+                            <>
+                              {sharedPassageContent ? (
+                                <View style={styles.groupPassageBox}>
+                                  <Text style={styles.groupPassageText}>{String(sharedPassageContent)}</Text>
                                 </View>
+                              ) : null}
 
-                                {!!q?.content && <Text style={styles.questionContent}>{String(q.content)}</Text>}
+                              {Platform.OS === 'web' && sharedMediaUrl && sharedMediaType === 'audio' ? (
+                                <View style={styles.groupMediaBox}>
+                                  <audio controls src={sharedMediaUrl} style={{ width: '100%' }} />
+                                </View>
+                              ) : null}
 
-                                {hasOptions && (
-                                  <View style={styles.optionsList}>
-                                    {(q?.options || []).map((opt) => {
-                                      const isSelected = opt?.optionId === selected
-                                      const isCorrectOpt = opt?.optionId === correct
-                                      return (
-                                        <View
-                                          key={opt?.optionId || opt?.keyOption}
-                                          style={[
-                                            styles.optionRow,
-                                            isSelected && styles.optionSelected,
-                                            isCorrectOpt && styles.optionCorrect,
-                                          ]}
-                                        >
-                                          <Text style={styles.optionKey}>{String(opt?.keyOption)}.</Text>
-                                          <Text style={styles.optionText}>{String(opt?.content || '')}</Text>
-                                        </View>
-                                      )
-                                    })}
-                                  </View>
-                                )}
+                              {Platform.OS === 'web' && sharedMediaUrl && sharedMediaType === 'image' ? (
+                                <View style={styles.groupMediaBox}>
+                                  <img
+                                    src={sharedMediaUrl}
+                                    alt="Shared media"
+                                    style={{ maxWidth: '100%', borderRadius: 12 }}
+                                  />
+                                </View>
+                              ) : null}
+                            </>
+                          )
+                        })()}
 
-                                {isWritingQuestion && (
-                                  <View style={styles.writingBox}>
-                                    <View style={styles.writingMetaRow}>
-                                      <Text style={styles.writingMetaText}>
-                                        Số từ:{' '}
-                                        {q?.wordCount ??
-                                          (q?.answerContent
-                                            ? String(q.answerContent)
-                                                .trim()
-                                                .split(/\s+/)
-                                                .filter(Boolean).length
-                                            : 0)}
-                                      </Text>
-                                      {!!q?.gradedAt && (
-                                        <Text style={styles.writingMetaText}>
-                                          Chấm lúc: {formatDateTimeUTC7(q.gradedAt)}
-                                        </Text>
-                                      )}
-                                    </View>
+                        {(() => {
+                          const q = selectedQuestion
+                          const isWritingQuestion = typeof q?.answerContent === 'string' || !!q?.aiAnalysis
+                          const hasOptions = Array.isArray(q?.options) && q.options.length > 0
+                          const selected = q?.selectedOptionId
+                          const correct = q?.correctOptionId
+                          const isCorrect = !!q?.isCorrect
 
-                                    <Text style={styles.writingAnswerLabel}>Bài làm:</Text>
-                                    <View style={styles.writingAnswerBox}>
-                                      <Text style={styles.writingAnswerText}>
-                                        {q?.answerContent ? String(q.answerContent) : '(Không có nội dung)'}
-                                      </Text>
-                                    </View>
-
-                                    {!!q?.aiAnalysis?.results?.length && (
-                                      <View style={styles.aiBox}>
-                                        <Text style={styles.aiTitle}>
-                                          Phân tích AI (Tổng: {q?.aiAnalysis?.totalScore ?? 0})
-                                        </Text>
-                                        <View style={styles.aiList}>
-                                          {q.aiAnalysis.results.map((r, idx) => (
-                                            <View key={`${r?.blank_id || idx}`} style={styles.aiItem}>
-                                              <Text style={styles.aiItemTitle}>
-                                                {String(r?.blank_id || `Mục ${idx + 1}`)} • Điểm: {r?.score ?? 0} •{' '}
-                                                {String(r?.evaluation || '')}
-                                              </Text>
-                                              {!!r?.feedback && <Text style={styles.aiFeedback}>{String(r.feedback)}</Text>}
-                                              {Array.isArray(r?.suggestions) && r.suggestions.length > 0 && (
-                                                <View style={styles.aiSuggestions}>
-                                                  {r.suggestions.map((s, sIdx) => (
-                                                    <Text key={`${sIdx}`} style={styles.aiSuggestionText}>
-                                                      - {String(s)}
-                                                    </Text>
-                                                  ))}
-                                                </View>
-                                              )}
-                                            </View>
-                                          ))}
-                                        </View>
-                                      </View>
-                                    )}
-                                  </View>
+                          return (
+                            <View style={styles.questionCard}>
+                              <View style={styles.questionHeaderRow}>
+                                <Text style={styles.questionNo}>Câu {q?.questionNo}</Text>
+                                {isWritingQuestion ? (
+                                  <Text style={styles.writingScoreChip}>Điểm: {q?.score ?? 0}</Text>
+                                ) : (
+                                  <Text
+                                    style={[
+                                      styles.questionResult,
+                                      isCorrect ? styles.questionResultOk : styles.questionResultBad,
+                                    ]}
+                                  >
+                                    {isCorrect ? 'Đúng' : 'Sai'}
+                                  </Text>
                                 )}
                               </View>
-                            )
-                          })}
-                        </View>
-                      </View>
-                    )
-                  })}
+
+                              {!!q?.content && <Text style={styles.questionContent}>{String(q.content)}</Text>}
+
+                              {hasOptions && (
+                                <View style={styles.optionsList}>
+                                  {(q?.options || []).map((opt) => {
+                                    const isSelected = opt?.optionId === selected
+                                    const isCorrectOpt = opt?.optionId === correct
+                                    const hasText = !!opt?.content
+                                    const hasImage = !!opt?.imageUrl
+                                    const useHalfWidth = hasImage && !hasText
+
+                                    return (
+                                      <View
+                                        key={opt?.optionId || opt?.keyOption}
+                                        style={[
+                                          styles.optionRow,
+                                          useHalfWidth && styles.optionRowHalf,
+                                          isSelected && styles.optionSelected,
+                                          isCorrectOpt && styles.optionCorrect,
+                                        ]}
+                                      >
+                                        <Text style={styles.optionKey}>{String(opt?.keyOption)}.</Text>
+                                        <View style={styles.optionContentBox}>
+                                          {hasText ? <Text style={styles.optionText}>{String(opt?.content)}</Text> : null}
+                                          {!hasText && !hasImage ? (
+                                            <Text style={styles.optionText}>(Không có nội dung)</Text>
+                                          ) : null}
+                                          {Platform.OS === 'web' && hasImage ? (
+                                            <img src={opt?.imageUrl} alt="Option" style={styles.optionImage} />
+                                          ) : null}
+                                        </View>
+                                      </View>
+                                    )
+                                  })}
+                                </View>
+                              )}
+
+                              {isWritingQuestion && (
+                                <View style={styles.writingBox}>
+                                  <View style={styles.writingMetaRow}>
+                                    <Text style={styles.writingMetaText}>
+                                      Số từ:{' '}
+                                      {q?.wordCount ??
+                                        (q?.answerContent
+                                          ? String(q.answerContent)
+                                              .trim()
+                                              .split(/\s+/)
+                                              .filter(Boolean).length
+                                          : 0)}
+                                    </Text>
+                                    {!!q?.gradedAt && (
+                                      <Text style={styles.writingMetaText}>
+                                        Chấm lúc: {formatDateTimeUTC7(q.gradedAt)}
+                                      </Text>
+                                    )}
+                                  </View>
+
+                                  <Text style={styles.writingAnswerLabel}>Bài làm:</Text>
+                                  <View style={styles.writingAnswerBox}>
+                                    <Text style={styles.writingAnswerText}>
+                                      {q?.answerContent ? String(q.answerContent) : '(Không có nội dung)'}
+                                    </Text>
+                                  </View>
+
+                                  {!!q?.aiAnalysis?.results?.length && (
+                                    <View style={styles.aiBox}>
+                                      <Text style={styles.aiTitle}>
+                                        Phân tích AI (Tổng: {q?.aiAnalysis?.totalScore ?? 0})
+                                      </Text>
+                                      <View style={styles.aiList}>
+                                        {q.aiAnalysis.results.map((r, idx) => (
+                                          <View key={`${r?.blank_id || idx}`} style={styles.aiItem}>
+                                            <Text style={styles.aiItemTitle}>
+                                              {String(r?.blank_id || `Mục ${idx + 1}`)} • Điểm: {r?.score ?? 0} •{' '}
+                                              {String(r?.evaluation || '')}
+                                            </Text>
+                                            {!!r?.feedback && <Text style={styles.aiFeedback}>{String(r.feedback)}</Text>}
+                                            {Array.isArray(r?.suggestions) && r.suggestions.length > 0 && (
+                                              <View style={styles.aiSuggestions}>
+                                                {r.suggestions.map((s, sIdx) => (
+                                                  <Text key={`${sIdx}`} style={styles.aiSuggestionText}>
+                                                    - {String(s)}
+                                                  </Text>
+                                                ))}
+                                              </View>
+                                            )}
+                                          </View>
+                                        ))}
+                                      </View>
+                                    </View>
+                                  )}
+                                </View>
+                              )}
+                            </View>
+                          )
+                        })()}
+                      </>
+                    )}
+                  </View>
                 </View>
               )}
             </>
@@ -312,6 +386,80 @@ const styles = StyleSheet.create({
   },
   groupList: {
     gap: 14,
+  },
+  detailLayout: {
+    flexDirection: 'row',
+    gap: 16,
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+    width: '100%',
+  },
+  questionPickerCard: {
+    width: '100%',
+    minWidth: 0,
+    flexShrink: 1,
+    alignSelf: 'stretch',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#FFE0B3',
+    ...(Platform.OS === 'web' && { boxShadow: '0px 8px 22px rgba(0,0,0,0.08)' }),
+  },
+  questionPickerTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+    marginBottom: 10,
+  },
+  questionPickerList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    width: '100%',
+  },
+  questionChip: {
+    minWidth: 36,
+    height: 36,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  questionChipActive: {
+    borderColor: '#C16554',
+    backgroundColor: '#FFF1E8',
+  },
+  questionChipCorrect: {
+    borderColor: '#2E7D32',
+    backgroundColor: '#F1FBF3',
+  },
+  questionChipIncorrect: {
+    borderColor: '#C62828',
+    backgroundColor: '#FFF1F1',
+  },
+  questionChipText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  questionChipTextActive: {
+    color: '#8B3E2F',
+  },
+  questionDetailCard: {
+    flex: 1,
+    minWidth: 240,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#FFE0B3',
+    ...(Platform.OS === 'web' && { boxShadow: '0px 8px 22px rgba(0,0,0,0.08)' }),
   },
   groupCard: {
     backgroundColor: '#FFFFFF',
@@ -389,6 +537,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   optionsList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   optionRow: {
@@ -400,6 +550,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.08)',
     backgroundColor: '#FFFFFF',
+    width: '100%',
+  },
+  optionRowHalf: {
+    width: 'calc(50% - 4px)',
   },
   optionSelected: {
     borderColor: '#E8B4B8',
@@ -416,12 +570,21 @@ const styles = StyleSheet.create({
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
   },
-  optionText: {
+  optionContentBox: {
     flex: 1,
+    gap: 6,
+  },
+  optionText: {
     fontSize: 14,
     color: '#1C1C1C',
     lineHeight: 20,
     fontFamily: 'Epilogue, sans-serif',
+  },
+  optionImage: {
+    maxWidth: '100%',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.08)',
   },
   writingBox: {
     marginTop: 10,

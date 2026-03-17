@@ -276,6 +276,16 @@ export const ENDPOINTS = {
         `/UserExam/user/detail/in-progress?UserExamId=${encodeURIComponent(userExamId)}`,
       RESULT: (userExamId) => `/UserExam/${encodeURIComponent(userExamId)}/result`,
       IS_GRADED: (userExamId) => `/UserExam/${encodeURIComponent(userExamId)}/is-graded`,
+      ANALYSIS: (userExamId) => `/UserExam/${encodeURIComponent(userExamId)}/analysis`,
       HISTORY: '/UserExam/user/history',
+    },
+    ROADMAP: {
+      DURATION_RECOMMENDATION: '/Roadmap/duration-recommendation',
+      FEEDBACK: '/Roadmap/entrance-feedback',
+      GENERATE: '/Roadmap/generate',
+      CURRENT: '/Roadmap/current',
+    },
+    SYSTEM_CONFIGS: {
+      GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,
     },
   }

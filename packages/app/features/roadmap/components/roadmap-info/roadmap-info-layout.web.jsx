@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     backgroundColor: '#F5F0DD',
-    minHeight: '90vh',
+    height: '100vh',
     flexDirection: 'column',
   },
   container: {

@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useMemo } from 'react'
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
 
 export function RoadmapTestDashboard({
   totalQuestions = 8, // dùng cho fallback
@@ -8,6 +8,7 @@ export function RoadmapTestDashboard({
   onSubmit,
   onSave,
   isSaving = false,
+  isSubmitting = false,
   currentQuestion = 1,
   onQuestionSelect,
 }) {
@@ -97,8 +98,20 @@ export function RoadmapTestDashboard({
             <Text style={styles.saveButtonText}>{isSaving ? 'Đang lưu...' : 'Lưu bài'}</Text>
           </Pressable>
         )}
-        <Pressable onPress={onSubmit} style={({ pressed }) => [styles.submitButton, pressed && styles.submitButtonPressed]}>
-          <Text style={styles.submitButtonText}>Nộp Bài</Text>
+        <Pressable
+          onPress={onSubmit}
+          disabled={isSubmitting}
+          style={({ pressed }) => [
+            styles.submitButton,
+            pressed && styles.submitButtonPressed,
+            isSubmitting && styles.submitButtonDisabled,
+          ]}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={styles.submitButtonText}>Nộp Bài</Text>
+          )}
         </Pressable>
       </View>
     </View>
@@ -169,9 +182,12 @@ const styles = StyleSheet.create({
     color: '#1C1C1C',
   },
   bottomSection: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 12,
     paddingTop: 8,
+    width: '100%',
   },
   pageIndicatorContainer: {
     flexDirection: 'row',
@@ -195,34 +211,40 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
   },
   saveButton: {
-    backgroundColor: '#FFF4DA',
-    minWidth: 140,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
+    backgroundColor: '#F8C2A1',
+    flex: 1,
+    maxWidth: 200,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 100,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#E8C96A',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   saveButtonPressed: {
+    transform: [{ scale: 0.98 }],
     opacity: 0.9,
   },
   saveButtonDisabled: {
     opacity: 0.6,
   },
   saveButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1C1C1C',
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
     fontFamily: 'Epilogue, sans-serif',
   },
   submitButton: {
     backgroundColor: '#E8B4B8',
-    minWidth: 200,
+    flex: 1,
+    maxWidth: 200,
     paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 12,
+    paddingHorizontal: 16,
+    borderRadius: 100,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -234,6 +256,9 @@ const styles = StyleSheet.create({
   submitButtonPressed: {
     transform: [{ scale: 0.98 }],
     opacity: 0.9,
+  },
+  submitButtonDisabled: {
+    opacity: 0.7,
   },
   submitButtonText: {
     fontSize: 16,

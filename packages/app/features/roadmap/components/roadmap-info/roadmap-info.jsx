@@ -1,22 +1,44 @@
-import React, { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View, Modal, TouchableOpacity } from 'react-native'
-import { TOPIK_LEVELS, getLevelData, formatTime, getTotalTime } from '../../api/roadmap-info'
+import { TOPIK_LEVELS } from '../../api/roadmap-info'
 
 const LEVELS = TOPIK_LEVELS.map((l) => ({ value: l.level, label: l.label }))
 
+const SELF_DECLARED_LEVELS = [
+  { value: 0, label: 'Chưa bao giờ' },
+  { value: 1, label: 'Học cơ bản' },
+  { value: 3, label: 'Đã học 1-2 năm' },
+  { value: 5, label: 'Đã thành thạo' },
+]
+
 export function RoadmapInfo({ onStart, initialLevel = 1 }) {
   const [selectedLevel, setSelectedLevel] = useState(initialLevel)
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [selectedSelfDeclaredLevel, setSelectedSelfDeclaredLevel] = useState(SELF_DECLARED_LEVELS[0].value)
+  const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false)
+  const [openListKey, setOpenListKey] = useState(null)
 
-  const selectedLevelData = LEVELS.find((l) => l.value === selectedLevel) || LEVELS[0]
-  const levelInfo = useMemo(() => getLevelData(selectedLevel), [selectedLevel])
-  const totalTime = useMemo(() => getTotalTime(selectedLevel), [selectedLevel])
-  const formattedTime = useMemo(() => formatTime(totalTime), [totalTime])
+  const openSelectionModal = () => {
+    setIsSelectionModalOpen(true)
+  }
+
+  const closeSelectionModal = () => {
+    setIsSelectionModalOpen(false)
+    setOpenListKey(null)
+  }
+
+  const toggleList = (key) => {
+    setOpenListKey((current) => (current === key ? null : key))
+  }
+
+  const confirmSelection = () => {
+    if (onStart) {
+      onStart(selectedLevel, selectedSelfDeclaredLevel)
+    }
+    closeSelectionModal()
+  }
 
   const handleStart = () => {
-    if (onStart) {
-      onStart(selectedLevel)
-    }
+    openSelectionModal()
   }
 
   return (
@@ -38,49 +60,125 @@ export function RoadmapInfo({ onStart, initialLevel = 1 }) {
         <Text style={styles.callToAction}>Hãy cùng nhau chinh phục TOPIK nhé</Text>
         <Text style={styles.instruction}>Để bắt đầu, vui lòng làm bài kiểm tra trình độ của bạn</Text>
 
-        {/* Test Info */}
-        <View style={styles.testInfo}>
-          <Text style={styles.testDetail}>Thời gian: {formattedTime}</Text>
-          <Text style={styles.testDetail}>Số câu: {levelInfo.questions}</Text>
-        </View>
-
-        {/* Level Selection */}
-        <View style={styles.levelSection}>
-          <Text style={styles.levelLabel}>Chọn cấp độ để bắt đầu</Text>
-          <Pressable onPress={() => setIsDropdownOpen(true)} style={styles.dropdownButton}>
-            <Text style={styles.dropdownText}>{selectedLevelData.label}</Text>
-            <Text style={styles.dropdownArrow}>▼</Text>
-          </Pressable>
-        </View>
-
         {/* Start Button */}
         <Pressable onPress={handleStart} style={({ pressed }) => [styles.startButton, pressed && styles.startButtonPressed]}>
           <Text style={styles.startButtonText}>Bắt đầu Ngay</Text>
         </Pressable>
       </View>
 
-      {/* Dropdown Modal */}
-      <Modal visible={isDropdownOpen} transparent animationType="fade" onRequestClose={() => setIsDropdownOpen(false)}>
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setIsDropdownOpen(false)}
-        >
-          <View style={styles.dropdownContainer}>
-            {LEVELS.map((level) => (
-              <TouchableOpacity
-                key={level.value}
-                style={[styles.dropdownItem, selectedLevel === level.value && styles.dropdownItemSelected]}
-                onPress={() => {
-                  setSelectedLevel(level.value)
-                  setIsDropdownOpen(false)
-                }}
-              >
-                <Text style={[styles.dropdownItemText, selectedLevel === level.value && styles.dropdownItemTextSelected]}>
-                  {level.label}
+      <Modal
+        visible={isSelectionModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={closeSelectionModal}
+      >
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={closeSelectionModal}>
+          <View style={styles.selectionModalContainer}>
+            <Text style={styles.selectionTitle}>Chọn trình độ để bắt đầu</Text>
+
+            <View style={styles.selectionSection}>
+              <Text style={styles.selectionLabel}>Bài kiểm tra</Text>
+              <Pressable style={styles.selectionTrigger} onPress={() => toggleList('level')}>
+                <Text style={styles.selectionTriggerText}>
+                  {LEVELS.find((level) => level.value === selectedLevel)?.label}
                 </Text>
-              </TouchableOpacity>
-            ))}
+                <Text style={styles.selectionTriggerArrow}>▼</Text>
+              </Pressable>
+              <Modal
+                visible={openListKey === 'level'}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setOpenListKey(null)}
+              >
+                <TouchableOpacity
+                  style={styles.modalOverlay}
+                  activeOpacity={1}
+                  onPress={() => setOpenListKey(null)}
+                >
+                  <View style={styles.listModalContainer}>
+                    {LEVELS.map((level) => (
+                      <Pressable
+                        key={level.value}
+                        onPress={() => {
+                          setSelectedLevel(level.value)
+                          setOpenListKey(null)
+                        }}
+                        style={({ hovered, pressed }) => [
+                          styles.dropdownItem,
+                          hovered && styles.dropdownItemHover,
+                          pressed && styles.dropdownItemPressed,
+                          selectedLevel === level.value && styles.dropdownItemSelected,
+                        ]}
+                      >
+                        <Text
+                          style={[styles.dropdownItemText, selectedLevel === level.value && styles.dropdownItemTextSelected]}
+                        >
+                          {level.label}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </TouchableOpacity>
+              </Modal>
+            </View>
+
+            <View style={styles.selectionSection}>
+              <Text style={styles.selectionLabel}>Trình độ hiện tại</Text>
+              <Pressable style={styles.selectionTrigger} onPress={() => toggleList('selfDeclared')}>
+                <Text style={styles.selectionTriggerText}>
+                  {SELF_DECLARED_LEVELS.find((level) => level.value === selectedSelfDeclaredLevel)?.label}
+                </Text>
+                <Text style={styles.selectionTriggerArrow}>▼</Text>
+              </Pressable>
+              <Modal
+                visible={openListKey === 'selfDeclared'}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setOpenListKey(null)}
+              >
+                <TouchableOpacity
+                  style={styles.modalOverlay}
+                  activeOpacity={1}
+                  onPress={() => setOpenListKey(null)}
+                >
+                  <View style={styles.listModalContainer}>
+                    {SELF_DECLARED_LEVELS.map((level) => (
+                      <Pressable
+                        key={level.value}
+                        onPress={() => {
+                          setSelectedSelfDeclaredLevel(level.value)
+                          setOpenListKey(null)
+                        }}
+                        style={({ hovered, pressed }) => [
+                          styles.dropdownItem,
+                          hovered && styles.dropdownItemHover,
+                          pressed && styles.dropdownItemPressed,
+                          selectedSelfDeclaredLevel === level.value && styles.dropdownItemSelected,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.dropdownItemText,
+                            selectedSelfDeclaredLevel === level.value && styles.dropdownItemTextSelected,
+                          ]}
+                        >
+                          {level.label}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </TouchableOpacity>
+              </Modal>
+            </View>
+
+            <View style={styles.modalActions}>
+              <Pressable style={styles.cancelButton} onPress={closeSelectionModal}>
+                <Text style={styles.cancelButtonText}>Hủy</Text>
+              </Pressable>
+              <Pressable style={styles.confirmButton} onPress={confirmSelection}>
+                <Text style={styles.confirmButtonText}>Bắt đầu</Text>
+              </Pressable>
+            </View>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -88,116 +186,171 @@ export function RoadmapInfo({ onStart, initialLevel = 1 }) {
   )
 }
 
+
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'transparent',
-    gap: 20,
+    gap: 24,
     width: '100%',
   },
   introCard: {
-    backgroundColor: '#FFF8F0',
-    borderRadius: 30,
-    paddingVertical: 20,
+    backgroundColor: '#FDF7EC', 
+    borderRadius: 16,           
+    paddingVertical: 24,
     paddingHorizontal: 24,
     gap: 12,
+    borderWidth: 1,
+    borderColor: '#FFD7D0',     // Thêm viền nhẹ cho đồng bộ
   },
   introTitle: {
-    fontSize: 20,
+    fontSize: 22,               // Tăng size giống title bên Learning
     fontWeight: '700',
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
   },
   introText: {
     fontSize: 15,
-    color: '#2C2C2C',
+    color: '#4A4A4A',           // Màu text phụ giống subtitle bên Learning
     fontFamily: 'Epilogue, sans-serif',
     lineHeight: 22,
   },
   content: {
-    gap: 16,
+    gap: 20,
     alignItems: 'center',
     width: '100%',
   },
   callToAction: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
   },
   instruction: {
     fontSize: 15,
-    color: '#2C2C2C',
+    color: '#4A4A4A',
     fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
   },
   testInfo: {
-    gap: 8,
+    flexDirection: 'row',       // Để thời gian và số câu nằm ngang cho hiện đại
+    gap: 20,
     alignItems: 'center',
+    backgroundColor: '#FFE5E0', // Màu nền nhẹ cho thông số
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 12,
   },
   testDetail: {
     fontSize: 16,
     fontWeight: '700',
+    color: '#FF6B6B',           // Màu đỏ cam thương hiệu
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  selectionModalContainer: {
+    width: '90%',
+    maxWidth: 420,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 20,
+    gap: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
+  },
+  selectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
   },
-  levelSection: {
+  selectionSection: {
+    gap: 8,
+  },
+  selectionLabel: {
+    fontSize: 14,
+    color: '#4A4A4A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 4,
+  },
+  selectionTrigger: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    width: '100%',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#FFD7D0',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: '#FFFDFB',
   },
-  levelLabel: {
+  selectionTriggerText: {
     fontSize: 15,
     color: '#2C2C2C',
     fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
   },
-  dropdownButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF8F0',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#D9D9D9',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 8,
-    minWidth: 140,
-  },
-  dropdownText: {
-    fontSize: 15,
-    color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
-    fontWeight: '600',
-  },
-  dropdownArrow: {
+  selectionTriggerArrow: {
     fontSize: 12,
-    color: '#666',
+    color: '#8C8C8C',
+  },
+  listModalContainer: {
+    width: '80%',
+    maxWidth: 360,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  cancelButton: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 100,
+    backgroundColor: '#F0F0F0',
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4A4A4A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  confirmButton: {
+    paddingHorizontal: 22,
+    paddingVertical: 10,
+    borderRadius: 100,
+    backgroundColor: '#FF6B6B',
+  },
+  confirmButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
     fontFamily: 'Epilogue, sans-serif',
   },
   startButton: {
-    alignSelf: 'center',
-    backgroundColor: '#FFF8F0',
-    borderRadius: 16,
-    paddingHorizontal: 32,
+    marginTop: 10,
+    backgroundColor: '#FF6B6B', // Màu đỏ cam giống nút History
+    borderRadius: 100,
+    paddingHorizontal: 40,
     paddingVertical: 14,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
     elevation: 3,
   },
   startButtonPressed: {
+    backgroundColor: '#FF5252',
     transform: [{ scale: 0.98 }],
   },
   startButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1C1C1C',
+    color: '#FFFFFF',           // Chữ trắng trên nền đỏ cam
     fontFamily: 'Epilogue, sans-serif',
   },
   modalOverlay: {
@@ -225,6 +378,12 @@ const styles = StyleSheet.create({
   },
   dropdownItemSelected: {
     backgroundColor: '#FFF8F0',
+  },
+  dropdownItemHover: {
+    backgroundColor: '#FFF2EC',
+  },
+  dropdownItemPressed: {
+    backgroundColor: '#FFE6DC',
   },
   dropdownItemText: {
     fontSize: 15,

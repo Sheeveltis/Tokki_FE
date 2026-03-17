@@ -24,7 +24,6 @@ const STATUS_MAP = {
 const TYPE_MAP = {
   1: 'TOPIK I',
   2: 'TOPIK II',
-  3: 'Test đầu vào',
 }
 
 export function ExamManagement({ initialData = null }) {
