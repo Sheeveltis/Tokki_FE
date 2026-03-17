@@ -52,7 +52,7 @@ export function VocabularyFormFields() {
       theme={{
         token: {
           fontSize: 18, // Tăng lên 14px cho dễ đọc
-          borderRadius: 8,
+          // borderRadius: 8,
           colorTextHeading: '#262626',
         },
         components: {
@@ -66,7 +66,7 @@ export function VocabularyFormFields() {
         }
       }}
     >
-      <Card variant="borderless" style={{ borderRadius: 12, boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}>
+      <Card variant="borderless" style={{ borderRadius: 8, boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}>
         <Row gutter={[40, 0]}>
           {/* CỘT TRÁI: THÔNG TIN CƠ BẢN */}
           <Col xs={24} md={15}>
@@ -161,8 +161,8 @@ export function VocabularyFormFields() {
           
           <Form.List name="examples">
             {(fields, { add, remove }) => (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <div style={{ maxHeight: 160, overflowY: 'auto', paddingRight: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column'}}>
+                <div style={{ maxHeight: 340, overflowY: 'auto', paddingRight: 8 }}>
                   {fields.map((field, index) => (
                     <div 
                       key={field.key} 
@@ -171,7 +171,7 @@ export function VocabularyFormFields() {
                         borderBottom: index === fields.length - 1 ? 'none' : '1px solid #f0f0f0',
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Text type="secondary" style={{ fontSize: 13 }}>Câu ví dụ #{index + 1}</Text>
                         <Button type="link" danger size="small" onClick={() => remove(field.name)} icon={<CloseOutlined />}>
                           Gỡ bỏ
@@ -185,7 +185,7 @@ export function VocabularyFormFields() {
                             rules={[{ required: true, message: 'Nhập câu ví dụ' }]}
                             style={{ marginBottom: 0 }}
                           >
-                            <Input.TextArea placeholder="Câu tiếng Hàn..." autoSize={{ minRows: 2 }} />
+                            <Input.TextArea placeholder="Câu tiếng Hàn..." autoSize={{ minRows:1 }} />
                           </Form.Item>
                         </Col>
                         <Col span={12}>
@@ -194,7 +194,7 @@ export function VocabularyFormFields() {
                             name={[field.name, 'translation']}
                             style={{ marginBottom: 0 }}
                           >
-                            <Input.TextArea placeholder="Bản dịch tiếng Việt..." autoSize={{ minRows: 2 }} />
+                            <Input.TextArea placeholder="Bản dịch tiếng Việt..." autoSize={{ minRows: 1 }} />
                           </Form.Item>
                         </Col>
                       </Row>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Card, Form, Typography, Modal, Button } from 'antd'
+import { Form, Typography, Modal, Button } from 'antd'
 import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web'
 import { createVocabulary, uploadVocabularyImageToCloudinary } from '../../api'
 import { VocabularyFormFields } from '../../components/admin/create-vocabulary/vocabulary-form-fields'
@@ -75,51 +75,53 @@ export function CreateVocabularyScreen() {
     <AdminLayout defaultKey="vocabulary-words" onNavigate={(key) => router.push(`/admin?tab=${key}`)}>
       <div
         style={{
-          padding: 24,
+          padding: '24px 24px 0 24px', // Giảm padding bottom để sát mép
           width: '100%',
+          height: 'calc(100vh - 64px)', // Trừ đi chiều cao của Header AdminLayout (thường là 64px)
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden', // Ngăn cuộn toàn trang
         }}
       >
-        <Card
-          style={{
-            width: '100%',
-            borderRadius: 16,
-            boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
-            border: '1px solid #f0f0f0',
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24, fontSize: 14 }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px 20px',
-                background: '#f9fafb',
-                borderRadius: 12,
-                border: '1px solid #f0f0f0',
-              }}
-            >
-              <div>
-                <Title level={3} style={{ marginBottom: 4 }}>
-                  Tạo từ vựng mới
-                </Title>
-                <Typography.Text type="secondary">
-                  Nhập đầy đủ thông tin để tạo từ vựng mới trong hệ thống.
-                </Typography.Text>
-              </div>
-              <Button onClick={handleCancel}>Quay lại</Button>
-            </div>
-
-            <Form form={form} layout="vertical" onFinish={handleSubmit}>
-              <VocabularyFormFields />
-              <VocabularyFormActions loading={loading} onCancel={handleCancel} onSubmit={handleConfirmSubmit} />
-            </Form>
+        {/* HEADER: PHẦN CỐ ĐỊNH */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          // marginBottom: 24,
+          flexShrink: 0 // Đảm bảo header không bị co lại
+        }}>
+          <div>
+            <Title level={3} style={{ marginBottom: 4 }}>
+              Tạo từ vựng mới
+            </Title>
+            <Typography.Text type="secondary">
+              Nhập đầy đủ thông tin để tạo từ vựng mới trong hệ thống.
+            </Typography.Text>
           </div>
-        </Card>
+          <Button onClick={handleCancel}>Quay lại</Button>
+        </div>
+
+        {/* PHẦN FORM: CÓ THỂ CUỘN */}
+        <div style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          paddingRight: 8 
+        }}>
+          <Form form={form} layout="vertical" onFinish={handleSubmit}>
+            <VocabularyFormFields />
+            <div style={{ marginTop: 24}}>
+                <VocabularyFormActions 
+                  loading={loading} 
+                  onCancel={handleCancel} 
+                  onSubmit={handleConfirmSubmit} 
+                />
+            </div>
+          </Form>
+        </div>
       </div>
     </AdminLayout>
   )
 }
 
 export default CreateVocabularyScreen
-
