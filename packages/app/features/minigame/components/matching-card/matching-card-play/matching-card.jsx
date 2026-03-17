@@ -14,6 +14,7 @@ export function MatchingCard({
   matched = false,
   onFlip,
   imgUrl = null,
+  size = 'medium',
 }) {
   const [current, setCurrent] = useState(word || null)
   const [fade] = useState(new Animated.Value(1))
@@ -21,6 +22,26 @@ export function MatchingCard({
 
   const flipped = typeof flippedProp === 'boolean' ? flippedProp : false
 
+  const avatarStyle =
+  size === 'large'
+    ? styles.avatarLarge
+    : size === 'small'
+    ? styles.avatarSmall
+    : styles.avatar
+
+const wordStyle =
+  size === 'large'
+    ? styles.wordLarge
+    : size === 'small'
+    ? styles.wordSmall
+    : styles.word
+
+const backImageStyle =
+  size === 'large'
+    ? styles.backImageLarge
+    : size === 'small'
+    ? styles.backImageSmall
+    : styles.backImage
   useEffect(() => {
     if (word) setCurrent(word)
   }, [word])
@@ -74,6 +95,7 @@ export function MatchingCard({
     <Animated.View
       style={[
         styles.cardWrapper,
+        style,
         {
           opacity: fade,
           transform: [{ scale: animatedScale }],
@@ -87,7 +109,6 @@ export function MatchingCard({
         style={({ pressed }) => [
           styles.card,
           pressed && !matched && styles.cardPressed,
-          style,
         ]}
       >
         <View style={styles.inner}>
@@ -103,7 +124,7 @@ export function MatchingCard({
             >
               <Image
                 source={normalizeImageSource(frontImage)}
-                style={styles.avatar}
+                style={avatarStyle}
                 resizeMode="contain"
               />
             </Animated.View>
@@ -121,15 +142,15 @@ export function MatchingCard({
                 <View style={styles.backContent}>
                   <Image
                     source={normalizeImageSource({ uri: imgUrl })}
-                    style={styles.backImage}
+                    style={backImageStyle}
                     resizeMode="cover"
                   />
-                  <Text style={styles.word} numberOfLines={3} adjustsFontSizeToFit>
+                  <Text style={wordStyle} numberOfLines={3} adjustsFontSizeToFit>
                     {backLabel}
                   </Text>
                 </View>
               ) : (
-                <Text style={styles.word} numberOfLines={3} adjustsFontSizeToFit>
+                <Text style={wordStyle} numberOfLines={3} adjustsFontSizeToFit>
                   {backLabel}
                 </Text>
               )}
@@ -244,5 +265,55 @@ const styles = StyleSheet.create({
     top: -35,
     right: -35,
     zIndex: 10,
+  },
+  avatar: {
+    width: 90,
+    height: 90,
+  },
+  avatarLarge: {
+    width: 130,
+    height: 130,
+  },
+  avatarSmall: {
+    width: 72,
+    height: 72,
+  },
+  
+  backImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 8,
+    backgroundColor: '#F5F5F5',
+  },
+  backImageLarge: {
+    width: 95,
+    height: 95,
+    borderRadius: 10,
+    backgroundColor: '#F5F5F5',
+  },
+  backImageSmall: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    backgroundColor: '#F5F5F5',
+  },
+  
+  word: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1C1C1C',
+    textAlign: 'center',
+  },
+  wordLarge: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1C1C1C',
+    textAlign: 'center',
+  },
+  wordSmall: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1C1C1C',
+    textAlign: 'center',
   },
 })

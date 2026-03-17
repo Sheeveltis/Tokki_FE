@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
+import MenuIcon from '../../../../../../assets/menu-solitare.png'
 import { normalizeImageSource } from '../../../../study/api'
 
 import GameCardIcon from '../../../../../../assets/icon/icon-mainflow/game-card.svg'
@@ -30,6 +31,8 @@ const TOPIC_NAMES = {
  *  showControls?: boolean
  *  onToggleSound?: () => void
  *  isMuted?: boolean
+ *  onMenu?: () => void
+ *  onGuide?: () => void
  * }} props
  */
 export function MatchingCardHeader({
@@ -45,6 +48,8 @@ export function MatchingCardHeader({
   showControls = true,
   onToggleSound,
   isMuted = false,
+  onMenu,
+  onGuide,
 }) {
   const [seconds, setSeconds] = useState(initialSeconds)
   const timerRef = useRef(null)
@@ -62,39 +67,59 @@ export function MatchingCardHeader({
   const displayTopic = useMemo(() => topicName || TOPIC_NAMES[topicId] || 'Minigame', [topicId, topicName])
 
   useEffect(() => {
+    onTimeUpRef.current = onTimeUp
+  }, [onTimeUp])
+  
+  useEffect(() => {
+    onTickRef.current = onTick
+  }, [onTick])
+  
+  // Chỉ reset khi initialSeconds đổi thật sự
+  useEffect(() => {
     setSeconds(initialSeconds)
     if (typeof onTickRef.current === 'function') {
       onTickRef.current(initialSeconds)
     }
-
-    if (timerRef.current) clearInterval(timerRef.current)
-
+  }, [initialSeconds])
+  
+  // Chỉ pause / resume timer, không reset seconds
+  useEffect(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+      timerRef.current = null
+    }
+  
     if (staticMode) {
-      // Không chạy interval trong chế độ static (trang result)
       return
     }
-
+  
     timerRef.current = setInterval(() => {
       setSeconds((prev) => {
         const next = prev <= 1 ? 0 : prev - 1
+  
         if (typeof onTickRef.current === 'function') {
           onTickRef.current(next)
         }
-
+  
         if (next === 0) {
           clearInterval(timerRef.current)
           timerRef.current = null
-          if (typeof onTimeUpRef.current === 'function') onTimeUpRef.current()
+          if (typeof onTimeUpRef.current === 'function') {
+            onTimeUpRef.current()
+          }
         }
-
+  
         return next
       })
     }, 1000)
-
+  
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+        timerRef.current = null
+      }
     }
-  }, [initialSeconds, staticMode])
+  }, [staticMode])
 
   const formattedTime = useMemo(() => {
     const m = Math.floor(seconds / 60)
@@ -104,16 +129,16 @@ export function MatchingCardHeader({
 
   return (
     <View style={styles.container}>
-      <View style={styles.timeBox}>
+      <View style={styles.timeBox} nativeID="matching-card-timer">
         <Text style={styles.label}>{formattedTime}</Text>
       </View>
 
-      <View style={styles.topicBox}>
+      <View style={styles.topicBox} nativeID="matching-card-topic">
         <Image source={normalizeImageSource(GameCardIcon)} style={styles.icon} resizeMode="contain" />
         <Text style={styles.topicText}>{displayTopic}</Text>
       </View>
 
-      <View style={styles.scoreBox}>
+      <View style={styles.scoreBox} nativeID="matching-card-score">
         <Text style={styles.label}>{score} Điểm</Text>
         <Image source={normalizeImageSource(CarrotImage)} style={styles.carrot} resizeMode="contain" />
         {showControls && (
@@ -123,8 +148,17 @@ export function MatchingCardHeader({
                 <Text style={styles.backText}>Quay lại</Text>
               </Pressable>
             )}
-            <FinishButton onPress={onFinish} />
           </>
+        )}
+        {typeof onGuide === 'function' && (
+          <Pressable onPress={onGuide} style={styles.guideBtn}>
+            <Text style={styles.guideText}>Cách chơi</Text>
+          </Pressable>
+        )}
+        {typeof onMenu === 'function' && (
+          <Pressable onPress={onMenu} style={styles.menuBtn} nativeID="matching-card-menu">
+            <Image source={MenuIcon} style={styles.menuIcon} />
+          </Pressable>
         )}
         {typeof onToggleSound === 'function' && (
           <Pressable
@@ -144,10 +178,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
     paddingVertical: 10,
     backgroundColor: '#F5F0DD',
     borderRadius: 12,
+    left: 110,
   },
   timeBox: {
     minWidth: 80,
@@ -156,7 +190,7 @@ const styles = StyleSheet.create({
   topicBox: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    bottom: 12,
   },
   scoreBox: {
     flexDirection: 'row',
@@ -181,8 +215,8 @@ const styles = StyleSheet.create({
     height: 28,
   },
   carrot: {
-    width: 28,
-    height: 28,
+    width: 40,
+    height: 50,
   },
   backBtn: {
     paddingVertical: 4,
@@ -194,6 +228,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#1C1C1C',
+  },
+  guideBtn: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 14,
+    backgroundColor: '#8B4513',
+  },
+  guideText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  menuBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    
+  },
+  menuIcon: {
+    width: 34,
+    height: 34,
   },
   soundButton: {
     marginLeft: 6,
