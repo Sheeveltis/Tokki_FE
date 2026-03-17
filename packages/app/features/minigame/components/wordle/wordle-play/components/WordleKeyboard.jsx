@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import { View, Text, StyleSheet, Platform } from 'react-native'
 import { motion } from 'framer-motion'
 
@@ -115,16 +115,10 @@ export function WordleKeyboard({ rows = [], onKeyPress }) {
           )
   }
 
-  // Chia thành 2 hàng ngang
-  const row1 = [
-    ...HANGUL_ROWS[0],
-    ...HANGUL_ROWS[1],
-  ]
-  const row2 = [
-    ...HANGUL_ROWS[2],
-    'Xóa',
-    'Gửi',
-  ]
+  // Chia thành 3 hàng ngang
+  const row1 = HANGUL_ROWS[0]
+  const row2 = HANGUL_ROWS[1]
+  const row3 = [...HANGUL_ROWS[2], 'Xóa', 'Gửi']
 
   return (
     <View style={styles.keyboard}>
@@ -133,6 +127,9 @@ export function WordleKeyboard({ rows = [], onKeyPress }) {
       </View>
       <View style={styles.row}>
         {row2.map(renderKey)}
+      </View>
+      <View style={styles.row}>
+        {row3.map(renderKey)}
       </View>
     </View>
   )
