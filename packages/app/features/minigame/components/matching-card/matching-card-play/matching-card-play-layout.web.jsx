@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { StyleSheet, View, Text } from 'react-native'
+import { StyleSheet, View, Text, Pressable } from 'react-native'
 import { useRouter, useSearchParams } from 'solito/navigation'
 import { MatchingCardHeader } from './matching-card-play-header'
 import { MatchingCardPlayBody } from './matching-card-play-body'
+import { MatchingCardTour, hasSeenMatchingCardTour } from './matching-card-tour'
 import { BackButton } from '../../../../../../components/backBtn'
 import { showAdminSuccess } from 'components/HelperAdmin'
 import ThemeMusic from '../../../../../../assets/sound-effect/solitare/theme.mp3'
 import TapSound from '../../../../../../assets/sound-effect/solitare/tap.wav'
 import WinSound from '../../../../../../assets/sound-effect/solitare/win.mp3'
+import MenuBackground from '../../../../../../assets/menu2.png'
 import confetti from 'canvas-confetti'
 
 const INITIAL_SECONDS = 600
@@ -26,16 +28,27 @@ const calculateScoreByTime = (currentSeconds, initialSeconds = INITIAL_SECONDS) 
   return Math.round(minScore + (scoreRange * timeRatio))
 }
 
+
 export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', quantity, onBack }) {
   const [flipped, setFlipped] = useState([])
   const [matchedIds, setMatchedIds] = useState([])
   const [score, setScore] = useState(0)
   const [finished, setFinished] = useState(false)
+  const userKey = getUserIdFromToken()
+  const [showMenuPopup, setShowMenuPopup] = useState(false)
+  const [runTour, setRunTour] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
   const gameId = searchParams?.get('gameId') || ''
   const hasPlayed = searchParams?.get('hasPlayed') === 'true'
-  
+  const [secondsLeft, setSecondsLeft] = useState(INITIAL_SECONDS)
+  const [cardsCount, setCardsCount] = useState(0)
+  const backgroundMusicRef = useRef(null)
+  const tapSoundRef = useRef(null)
+  const winSoundRef = useRef(null)
+  const [isMuted, setIsMuted] = useState(false)
+  const hasPlayedWinRef = useRef(false)
+  const matchedSet = useMemo(() => new Set(matchedIds), [matchedIds])
   // Debug: Log params khi component mount
   useEffect(() => {
     console.log('[MatchingCardLayout] Play screen params:', {
@@ -46,15 +59,7 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
     })
   }, [gameId, topicId, levelId, hasPlayed])
 
-  const [secondsLeft, setSecondsLeft] = useState(INITIAL_SECONDS)
-  const [cardsCount, setCardsCount] = useState(0)
-  const backgroundMusicRef = useRef(null)
-  const tapSoundRef = useRef(null)
-  const winSoundRef = useRef(null)
-  const [isMuted, setIsMuted] = useState(false)
-  const hasPlayedWinRef = useRef(false)
 
-  const matchedSet = useMemo(() => new Set(matchedIds), [matchedIds])
 
   // Reset game state when topicId or levelId changes
   useEffect(() => {
@@ -130,7 +135,53 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
     }
   }, [isMuted])
 
+  function getUserIdFromToken() {
+    try {
+      const rawToken = localStorage.getItem('token')
+      if (!rawToken) {
+        console.warn('No token found')
+        return 'guest'
+      }
+  
+      let token = rawToken
+  
+      // Nếu token không phải JWT thì decode base64 trước
+      if (!rawToken.includes('.')) {
+        try {
+          token = atob(rawToken)
+        } catch {
+          console.warn('Token is not base64')
+          return 'guest'
+        }
+      }
+  
+      const parts = token.split('.')
+      if (parts.length < 2) {
+        console.warn('Invalid JWT format after decode')
+        return 'guest'
+      }
+  
+      const payload = JSON.parse(atob(parts[1]))
+  
+      console.log('JWT PAYLOAD:', payload)
+  
+      return (
+        payload?.UserId ||
+        payload?.userId ||
+        payload?.id ||
+        payload?.sub ||
+        payload?.nameid ||
+        payload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
+        'guest'
+      )
+    } catch (e) {
+      console.error('Decode token failed:', e)
+      return 'guest'
+    }
+  }
+
   const handleFlipCard = (card) => {
+    if (runTour) return
     if (matchedSet.has(card.id)) return
     if (flipped.find((c) => c.id === card.id)) return
     if (flipped.length === 2) return
@@ -254,6 +305,46 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
     setIsMuted((prev) => !prev)
   }
 
+  const handleMenuClick = () => {
+    setShowMenuPopup(true)
+  }
+
+  const handleContinue = () => {
+    setShowMenuPopup(false)
+  }
+
+  const handleQuit = () => {
+    setShowMenuPopup(false)
+    if (onBack) {
+      onBack()
+    } else {
+      router.back()
+    }
+  }
+
+  const handleHowToPlay = () => {
+    setShowMenuPopup(false)
+    setTimeout(() => {
+      setRunTour(true)
+    }, 300)
+  }
+
+  // Auto-run tour once
+  useEffect(() => {
+    try {
+      if (!topicId || topicId === 'life') return
+      if (hasSeenMatchingCardTour(userKey)) return
+  
+      const timer = setTimeout(() => {
+        setRunTour(true)
+      }, 300)
+  
+      return () => clearTimeout(timer)
+    } catch (e) {
+      // ignore
+    }
+  }, [topicId, userKey])
+
   // Stop/resume music based on game state
   useEffect(() => {
     if (finished && backgroundMusicRef.current) {
@@ -272,39 +363,47 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
   }, [finished])
 
   return (
-    <View style={styles.page}>
-      <View style={styles.headerRow}>
-        <View style={styles.backWrap}>{onBack ? <BackButton onPress={onBack} /> : null}</View>
-        <MatchingCardHeader
-          topicId={topicId}
-          topicName={topicName}
-          score={score}
-          onTimeUp={handleTimeUp}
-          onFinish={goToResult}
-          onTick={setSecondsLeft}
-          onBack={onBack}
-          onToggleSound={handleToggleSound}
-          isMuted={isMuted}
-        />
-        <View style={styles.rankSpacer} />
-      </View>
-
-      {topicId && topicId !== '' && topicId !== 'life' ? (
-        <MatchingCardPlayBody
-          topicId={topicId}
-          levelId={levelId}
-          quantity={quantity}
-          flipped={flipped}
-          matchedIds={matchedIds}
-          onFlipCard={handleFlipCard}
-          onCardsLoaded={handleCardsLoaded}
-        />
-      ) : (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>Vui lòng chọn chủ đề trước khi chơi</Text>
+    <>
+      <View style={styles.page}>
+        <View style={styles.headerRow}>
+          <View style={styles.backWrap}>{onBack ? <BackButton onPress={onBack} /> : null}</View>
+          <MatchingCardHeader
+            topicId={topicId}
+            topicName={topicName}
+            score={score}
+            onTimeUp={handleTimeUp}
+            onFinish={goToResult}
+            onTick={setSecondsLeft}
+            onBack={onBack}
+            onToggleSound={handleToggleSound}
+            isMuted={isMuted}
+            onMenu={handleMenuClick}
+            onGuide={handleHowToPlay}
+            staticMode={runTour}
+          />
+          <View style={styles.rankSpacer} />
         </View>
-      )}
-    </View>
+  
+        {topicId && topicId !== '' && topicId !== 'life' ? (
+          <MatchingCardPlayBody
+            topicId={topicId}
+            levelId={levelId}
+            quantity={quantity}
+            flipped={flipped}
+            matchedIds={matchedIds}
+            onFlipCard={handleFlipCard}
+            onCardsLoaded={handleCardsLoaded}
+          />
+        ) : (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>Vui lòng chọn chủ đề trước khi chơi</Text>
+          </View>
+        )}
+      </View>
+  
+      <MatchingCardTour run={runTour} setRun={setRunTour} userKey={userKey} />
+      {showMenuPopup && <MatchingCardMenuPopup onContinue={handleContinue} onQuit={handleQuit} />}
+    </>
   )
 }
 
@@ -340,5 +439,69 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#666',
     textAlign: 'center',
+  },
+})
+
+function MatchingCardMenuPopup({ onContinue, onQuit }) {
+  return (
+    <View style={popupStyles.overlay}>
+      <View style={popupStyles.popup}>
+        <View style={popupStyles.buttonsContainer}>
+          <Pressable style={popupStyles.button} onPress={onContinue}>
+            <Text style={popupStyles.buttonText}>Tiếp tục</Text>
+          </Pressable>
+          <Pressable style={popupStyles.button} onPress={onQuit}>
+            <Text style={popupStyles.buttonText}>Thoát</Text>
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  )
+}
+
+const popupStyles = StyleSheet.create({
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2000,
+  },
+  popup: {
+    backgroundImage: `url(${MenuBackground})`,
+    backgroundSize: 'contain',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'center',
+    width: '90%',
+    maxWidth: 500,
+    minHeight: 300,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    paddingBottom: 60,
+  },
+  buttonsContainer: {
+    width: '70%',
+    maxWidth: 300,
+    gap: 20,
+  },
+  button: {
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    backgroundColor: '#8B4513',
+    borderWidth: 3,
+    borderColor: '#654321',
+    alignItems: 'center',
+  },
+  buttonText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
 })
