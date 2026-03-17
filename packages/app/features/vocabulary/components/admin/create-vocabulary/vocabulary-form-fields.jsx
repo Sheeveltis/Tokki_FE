@@ -1,123 +1,223 @@
 'use client'
 
-import React, { useState } from 'react'
-import { Form, Input, Upload, message } from 'antd'
+import { useState, useEffect } from 'react'
+import { Form, Input, Upload, message, Button, Typography, Image, Card, Row, Col, ConfigProvider } from 'antd'
+import { CloseOutlined, PlusOutlined, PictureOutlined, DeleteOutlined } from '@ant-design/icons'
+import { romanizeHangul } from './romanize-hangul'
 
-/**
- * Các trường form dùng chung cho tạo/sửa từ vựng
- */
+const { Text, Title } = Typography
+
 export function VocabularyFormFields() {
   const form = Form.useFormInstance()
-  const [previewUrl, setPreviewUrl] = useState(form?.getFieldValue('imgURL') || '')
-  const [selectedFile, setSelectedFile] = useState(null)
+  const textValue = Form.useWatch('text', form)
+  const [previewUrl, setPreviewUrl] = useState('')
+  const [pronunciationTouched, setPronunciationTouched] = useState(false)
 
-  const placeholderStyles = `
-    .vocab-form-fields input::placeholder,
-    .vocab-form-fields textarea::placeholder {
-      color: rgba(0, 0, 0, 0.35);
-      font-size: 16px;
-    }
-    .vocab-form-fields .ant-upload-drag p {
-      color: rgba(0, 0, 0, 0.45);
-      margin: 0;
-      line-height: 1.4;
-    }
-  `
+  useEffect(() => {
+    const initialImg = form?.getFieldValue('imgURL')
+    if (initialImg) setPreviewUrl(initialImg)
+  }, [form])
+
+  useEffect(() => {
+    if (pronunciationTouched) return
+    const romanized = romanizeHangul(textValue || '').trim()
+    form?.setFieldsValue({ pronunciation: romanized })
+  }, [form, textValue, pronunciationTouched])
 
   const handleBeforeUpload = (file) => {
-    // Kiểm tra loại file
     const isImage = file.type.startsWith('image/')
     if (!isImage) {
       message.error('Chỉ chấp nhận file ảnh!')
       return false
     }
-
-    // Kiểm tra kích thước file (tối đa 5MB)
     const isLt5M = file.size / 1024 / 1024 < 5
     if (!isLt5M) {
       message.error('Ảnh phải nhỏ hơn 5MB!')
       return false
     }
-
-    // Lưu file để upload sau
-    setSelectedFile(file)
-    form?.setFieldsValue({ imageFile: file }) // Lưu file vào form
-    
-    // Tạo preview URL
+    form?.setFieldsValue({ imageFile: file })
     const reader = new FileReader()
-    reader.onload = (e) => {
-      setPreviewUrl(e.target.result)
-    }
+    reader.onload = (e) => setPreviewUrl(e.target?.result)
     reader.readAsDataURL(file)
-    
-    message.success('Đã chọn ảnh')
-    return false // Ngăn upload tự động
+    return false
+  }
+
+  const handleRemoveImage = () => {
+    setPreviewUrl('')
+    form?.setFieldsValue({ imgURL: '', imageFile: null })
   }
 
   return (
-    <div className="vocab-form-fields" style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      <style>{placeholderStyles}</style>
-      <Form.Item label="Từ" name="text" rules={[{ required: true, message: 'Vui lòng nhập từ' }]}>
-        <Input placeholder="VD: 은행" size="large" style={{ fontSize: 18, color: '#111' }} />
-      </Form.Item>
+    <ConfigProvider
+      theme={{
+        token: {
+          fontSize: 18, // Tăng lên 14px cho dễ đọc
+          borderRadius: 8,
+          colorTextHeading: '#262626',
+        },
+        components: {
+          Form: {
+            labelFontSize: 14,
+            itemMarginBottom: 20,
+          },
+          Input: {
+            controlHeight: 40, // Độ cao vừa phải, không quá to như ban đầu
+          }
+        }
+      }}
+    >
+      <Card variant="borderless" style={{ borderRadius: 12, boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}>
+        <Row gutter={[40, 0]}>
+          {/* CỘT TRÁI: THÔNG TIN CƠ BẢN */}
+          <Col xs={24} md={15}>
+            <Title level={5} style={{ marginBottom: 20, fontSize: '16px' }}>Thông tin cơ bản</Title>
+            
+            <Form.Item 
+              label={<Text strong>Từ vựng (Tiếng Hàn)</Text>} 
+              name="text" 
+              layout="vertical"
+              rules={[{ required: true, message: 'Nhập từ vựng' }]}
+            >
+              <Input placeholder="VD: 은행" />
+            </Form.Item>
 
-      <Form.Item
-        label="Phiên âm"
-        name="pronunciation"
-        rules={[{ required: true, message: 'Vui lòng nhập phiên âm' }]}
-      >
-        <Input placeholder="VD: eunhaeng" size="large" style={{ fontSize: 18, color: '#111' }} />
-      </Form.Item>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item 
+                  label={<Text strong>Phiên âm</Text>} 
+                  name="pronunciation" 
+                  layout="vertical"
+                  rules={[{ required: true, message: 'Nhập phiên âm' }]}
+                >
+                  <Input
+                    placeholder="eunhaeng"
+                    onChange={() => setPronunciationTouched(true)}
+                    onBlur={(event) => {
+                      const value = event?.target?.value || ''
+                      if (value.trim().length === 0) {
+                        setPronunciationTouched(false)
+                        const romanized = romanizeHangul(textValue || '').trim()
+                        form?.setFieldsValue({ pronunciation: romanized })
+                      }
+                    }}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item 
+                  label={<Text strong>Định nghĩa</Text>} 
+                  name="definition" 
+                  layout="vertical"
+                  rules={[{ required: true, message: 'Nhập ý nghĩa' }]}
+                >
+                  <Input placeholder="Ngân hàng" />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Col>
 
-      <Form.Item
-        label="Định nghĩa"
-        name="definition"
-        rules={[{ required: true, message: 'Vui lòng nhập nghĩa/định nghĩa' }]}
-      >
-        <Input placeholder="VD: Ngân hàng" size="large" style={{ fontSize: 18, color: '#111' }} />
-      </Form.Item>
+          {/* CỘT PHẢI: HÌNH ẢNH */}
+          <Col xs={24} md={9}>
+            <Title level={5} style={{ marginBottom: 20, fontSize: '16px' }}>Hình ảnh minh họa</Title>
+            <Form.Item name="imgURL">
+              {!previewUrl ? (
+                <Upload.Dragger
+                  multiple={false}
+                  showUploadList={false}
+                  beforeUpload={handleBeforeUpload}
+                  accept="image/*"
+                  style={{ borderRadius: 10, height: 168 }}
+                >
+                  <PictureOutlined style={{ color: '#bfbfbf', fontSize: 28 }} />
+                  <div style={{ marginTop: 8 }}>
+                    <Text type="secondary">Tải ảnh lên (Max 5MB)</Text>
+                  </div>
+                </Upload.Dragger>
+              ) : (
+                <div style={{ position: 'relative', height: 168 }}>
+                  <Image
+                    src={previewUrl}
+                    alt="preview"
+                    style={{ borderRadius: 10, height: 168, width: '100%', objectFit: 'cover' }}
+                  />
+                  <Button
+                    type="primary" danger shape="circle" size="small"
+                    icon={<DeleteOutlined />}
+                    onClick={handleRemoveImage}
+                    style={{ position: 'absolute', top: 8, right: 8 }}
+                  />
+                </div>
+              )}
+            </Form.Item>
+          </Col>
+        </Row>
 
-      <Form.Item label="Câu ví dụ" name="exampleSentence">
-        <Input.TextArea
-          placeholder="VD: 저는 매주 월요일에 은행에 갑니다. (Tôi đi ngân hàng mỗi thứ Hai hàng tuần.)"
-          rows={3}
-          size="large"
-          style={{ fontSize: 16, color: '#111' }}
-        />
-      </Form.Item>
-
-      <Form.Item label="Ảnh minh họa (kéo thả hoặc chọn file)" name="imgURL">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <Upload.Dragger
-            className="vocab-upload"
-            multiple={false}
-            showUploadList={false}
-            beforeUpload={handleBeforeUpload}
-            accept="image/*"
-            style={{ padding: 8 }}
-          >
-            <p className="ant-upload-drag-icon" style={{ fontWeight: 'bold'}}>
-              Kéo thả hoặc bấm để chọn ảnh
-            </p>
-            <p className="ant-upload-text" style={{ fontWeight: 'bold'}}>
-              Ảnh sẽ lưu qua Cloudinary nội bộ
-            </p>
-          </Upload.Dragger>
-          {previewUrl ? (
-            <div style={{ border: '1px solid #f0f0f0', borderRadius: 6, padding: 8, textAlign: 'center' }}>
-              <img
-                src={previewUrl}
-                alt="preview"
-                style={{ maxWidth: '100%', maxHeight: 200, objectFit: 'contain' }}
-              />
-            </div>
-          ) : null}
+        {/* KHU VỰC VÍ DỤ */}
+        <div style={{ marginTop: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+            <Text strong style={{ marginRight: 12, fontSize: 14 }}>Ví dụ sử dụng</Text>
+            <div style={{ flex: 1, height: 1, background: '#f0f0f0' }} />
+          </div>
+          
+          <Form.List name="examples">
+            {(fields, { add, remove }) => (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ maxHeight: 160, overflowY: 'auto', paddingRight: 8 }}>
+                  {fields.map((field, index) => (
+                    <div 
+                      key={field.key} 
+                      style={{ 
+                        padding: '16px 0', 
+                        borderBottom: index === fields.length - 1 ? 'none' : '1px solid #f0f0f0',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                        <Text type="secondary" style={{ fontSize: 13 }}>Câu ví dụ #{index + 1}</Text>
+                        <Button type="link" danger size="small" onClick={() => remove(field.name)} icon={<CloseOutlined />}>
+                          Gỡ bỏ
+                        </Button>
+                      </div>
+                      <Row gutter={16}>
+                        <Col span={12}>
+                          <Form.Item
+                            {...field}
+                            name={[field.name, 'sentence']}
+                            rules={[{ required: true, message: 'Nhập câu ví dụ' }]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Input.TextArea placeholder="Câu tiếng Hàn..." autoSize={{ minRows: 2 }} />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                          <Form.Item
+                            {...field}
+                            name={[field.name, 'translation']}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Input.TextArea placeholder="Bản dịch tiếng Việt..." autoSize={{ minRows: 2 }} />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    </div>
+                  ))}
+                </div>
+                
+                <Button 
+                  type="dashed" 
+                  onClick={() => add()} 
+                  block 
+                  icon={<PlusOutlined />}
+                  style={{ marginTop: 16, height: 42, borderRadius: 8 }}
+                >
+                  Thêm câu ví dụ mới
+                </Button>
+              </div>
+            )}
+          </Form.List>
         </div>
-      </Form.Item>
-
-    </div>
+      </Card>
+    </ConfigProvider>
   )
 }
 
 export default VocabularyFormFields
-

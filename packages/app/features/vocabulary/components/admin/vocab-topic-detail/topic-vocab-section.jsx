@@ -4,7 +4,6 @@ import React, { useMemo, useState, useEffect } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Card, Space, Select, Table, Typography, List, Tag, Modal, Input, Button } from 'antd'
 import { UploadOutlined, FileExcelOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
 import { VocabularyGuideButton } from './vocabulary-guide-modal'
 
 export function TopicVocabSection({
@@ -194,23 +193,12 @@ export function TopicVocabSection({
             </div>
             <Space>
               {onQuickAdd && (
-                <ButtonV2
-                  title="Tạo từ vựng nhanh"
-                  onPress={onQuickAdd}
-                  color="#F1BE4B"
-                  style={{ minWidth: 160, paddingVertical: 10 }}
-                  textStyle={{ fontSize: 14 }}
-                />
+                <Button onClick={onQuickAdd}>Tạo từ vựng nhanh</Button>
               )}
 
-              <ButtonV2
-                title={adding ? 'Đang thêm...' : 'Thêm vào chủ đề'}
-                onPress={onAdd}
-                disabled={!selecting?.length || adding}
-                color="mint"
-                style={{ minWidth: 180, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
+              <Button type="primary" onClick={onAdd} disabled={!selecting?.length || adding} loading={adding}>
+                {adding ? 'Đang thêm...' : 'Thêm vào chủ đề'}
+              </Button>
             </Space>
           </Space>
 
@@ -286,22 +274,20 @@ export function TopicVocabSection({
           </Space>
           {!isModerator && (
             <>
-              <ButtonV2
-                title={removeMode ? 'Hủy chọn xóa' : 'Chọn từ để gỡ'}
-                onPress={() => {
+              <Button
+                onClick={() => {
                   if (removeMode) {
                     // Tắt chế độ xóa thì clear selection
                     onRemovingKeysChange([])
                   }
                   setRemoveMode(!removeMode)
                 }}
-                color={removeMode ? 'ivory' : 'charcoal'}
-                style={{ paddingVertical: 8, minWidth: 150 }}
-                textStyle={{ fontSize: 13 }}
-              />
-              <ButtonV2
-                title={removing ? 'Đang gỡ...' : 'Gỡ từ vựng đã chọn'}
-                onPress={() => {
+              >
+                {removeMode ? 'Hủy chọn xóa' : 'Chọn từ để gỡ'}
+              </Button>
+              <Button
+                danger
+                onClick={() => {
                   if (!removeMode || !removingKeys?.length || removing) return
 
                   Modal.confirm({
@@ -314,10 +300,10 @@ export function TopicVocabSection({
                   })
                 }}
                 disabled={!removeMode || !removingKeys?.length || removing}
-                color="poppy"
-                style={{ paddingVertical: 8, minWidth: 180 }}
-                textStyle={{ fontSize: 13 }}
-              />
+                loading={removing}
+              >
+                {removing ? 'Đang gỡ...' : 'Gỡ từ vựng đã chọn'}
+              </Button>
             </>
           )}
           </Space>
