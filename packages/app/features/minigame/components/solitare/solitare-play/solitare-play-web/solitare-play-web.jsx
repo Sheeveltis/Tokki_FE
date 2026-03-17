@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
-import BackgroundSolite from '../../../../../../../assets/BackgroundSolite.png'
+import BackgroundSolite from '../../../../../../../assets/BackgroundSolite.jpg'
 import ThemeMusic from '../../../../../../../assets/sound-effect/solitare/theme.mp3'
 import TickSound from '../../../../../../../assets/sound-effect/solitare/tick.mp3'
 import WinSound from '../../../../../../../assets/sound-effect/solitare/win.mp3'
@@ -11,8 +11,7 @@ import { SolitarePlayWebHeader } from './solitare-play-web-header'
 import { SolitarePlayWebBody } from './solitare-play-web-body'
 import { SolitarePlayWebMovingCard } from './solitare-play-web-moving-card'
 import { SolitareGameOverPopup } from './solitare-game-over-popup'
-import { SolitarePlayWebTour } from './solitare-play-web-tour'
-
+import { SolitarePlayWebTour, hasSeenSolitaireTour } from './solitare-play-web-tour'
 // Styles for main component
 const styles = {
   page: {
@@ -67,11 +66,34 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
   const slotRefs = useRef({})
   const columnRefs = useRef({})
   const isProcessingDrop = useRef(false)
-  const completedColumnsRef = useRef(new Set())
   const backgroundMusicRef = useRef(null)
   const tickSoundRef = useRef(null)
   const winSoundRef = useRef(null)
   const [isMuted, setIsMuted] = useState(false)
+  const userKey = getUserIdFromToken()
+  const [collapsingColumns, setCollapsingColumns] = useState([])
+  const completedTopicIdsRef = useRef(new Set())
+  const processingCompleteRef = useRef(new Set())
+
+  const triggerColumnCollapse = (columnIndex, cards, stackKey) => {
+    const id = `${columnIndex}-${Date.now()}`
+    setCollapsingColumns((prev) => [...prev, { id, columnIndex, cards }])
+  
+    setTimeout(() => {
+      setCollapsingColumns((prev) => prev.filter((item) => item.id !== id))
+  
+      setColumns((prev) =>
+        prev.map((col, idx) =>
+          idx === columnIndex
+            ? { ...col, cards: [] }
+            : col
+        )
+      )
+  
+      processingCompleteRef.current.delete(stackKey)
+    }, 900)
+  }
+
 
   const injectTopicCardsIntoLayout = (layout) => {
     // Mỗi topicId chỉ có đúng 1 topic card trong toàn bộ layout (KHÔNG ĐƯỢC LẶP)
@@ -197,33 +219,45 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
   useEffect(() => {
     console.log('[SolitarePlayWeb] received level =', level)
     getSolitareLayout(level)
-      .then((layout) => {
-        const withTopicCards = injectTopicCardsIntoLayout(layout)
+    .then((layout) => {
+      const withTopicCards = injectTopicCardsIntoLayout(layout)
 
-        setColumns(withTopicCards)
-        setSlots([
-          ...Array(4).fill(null).map(() => ({ topicId: null, name: null, cards: [], isTempSlot: true })),
-        ])
+      const extendedLayout = [
+        ...withTopicCards,
+        {
+          id: `extra-column-${Date.now()}`,
+          cards: [],
+        },
+      ]
 
-        // Count total cards per topic from the layout (ignore topic cards)
-        const counts = {}
-        withTopicCards.forEach(col => {
-          col.cards.forEach(card => {
-            if (card.isTopic) return
-            counts[card.topicId] = (counts[card.topicId] || 0) + 1
-          })
+      setColumns(extendedLayout)
+      setSlots([
+        ...Array(4).fill(null).map(() => ({
+          topicId: null,
+          name: null,
+          cards: [],
+          isTempSlot: true,
+        })),
+      ])
+
+      const counts = {}
+      withTopicCards.forEach((col) => {
+        col.cards.forEach((card) => {
+          if (card.isTopic) return
+          counts[card.topicId] = (counts[card.topicId] || 0) + 1
         })
-        setTopicCardCounts(counts)
-
-        const initialFlipped = new Set()
-        withTopicCards.forEach((col) => {
-          if (col.cards.length > 0) {
-            const topCard = col.cards[col.cards.length - 1]
-            initialFlipped.add(topCard.id)
-          }
-        })
-        setFlippedCards(initialFlipped)
       })
+      setTopicCardCounts(counts)
+
+      const initialFlipped = new Set()
+      extendedLayout.forEach((col) => {
+        if (col.cards.length > 0) {
+          const topCard = col.cards[col.cards.length - 1]
+          initialFlipped.add(topCard.id)
+        }
+      })
+      setFlippedCards(initialFlipped)
+    })
       .catch((error) => console.error('Failed to load solitaire layout:', error))
   }, [level])
 
@@ -328,7 +362,8 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
   }, [isGameWon, timeLeft])
 
   useEffect(() => {
-    if (isGameWon) return
+    if (isGameWon || isGameOver || runTour) return
+  
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -338,8 +373,9 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
         return prev - 1
       })
     }, 1000)
+  
     return () => clearInterval(timer)
-  }, [isGameWon])
+  }, [isGameWon, isGameOver, runTour])
 
   // Khi hết thời gian mà chưa hoàn thành game -> Game Over
   useEffect(() => {
@@ -350,20 +386,19 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
 
   useEffect(() => {
     const totalTopics = Object.keys(topicCardCounts).length
-    const completedCount = completedColumnsRef.current.size
-
+    const completedCount = completedTopicIdsRef.current.size
+  
     if (totalTopics > 0 && completedCount === totalTopics && !isGameWon) {
       setIsGameWon(true)
+  
       const timeBonus = Math.floor(timeLeft * TIME_BONUS_MULTIPLIER)
       const finalScore = score + timeBonus
       setScore(finalScore)
-
-      // Stop background music
+  
       if (backgroundMusicRef.current) {
         backgroundMusicRef.current.pause()
       }
-
-      // Play win sound
+  
       if (winSoundRef.current) {
         winSoundRef.current.currentTime = 0
         const playPromise = winSoundRef.current.play()
@@ -373,35 +408,43 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
           })
         }
       }
-
-      // Fire confetti
+  
       const duration = 3 * 1000
       const animationEnd = Date.now() + duration
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 }
-
+  
       const randomInRange = (min, max) => Math.random() * (max - min) + min
-
+  
       const interval = setInterval(() => {
         const remaining = animationEnd - Date.now()
-
+  
         if (remaining <= 0) {
           clearInterval(interval)
-          // Stop win sound before navigating
+  
           if (winSoundRef.current) {
             winSoundRef.current.pause()
           }
+  
           if (onFinish) {
             onFinish(finalScore, timeLeft)
           }
           return
         }
-
+  
         const particleCount = 50 * (remaining / duration)
-        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } })
-        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } })
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+        })
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+        })
       }, 250)
     }
-  }, [columns, timeLeft, isGameWon, score, onFinish, topicCardCounts])
+  }, [timeLeft, isGameWon, score, onFinish, topicCardCounts])
 
   const getEffectiveDragStartIndex = (columnIndex, startCardIndex) => {
     const col = columns[columnIndex]
@@ -513,32 +556,6 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
     return cards.every(card => card.topicId === firstTopicId)
   }
 
-  const isColumnLocked = (columnIndex) => {
-    const col = columns[columnIndex]
-    if (!col || col.cards.length === 0) return false
-  
-    const topicCard = col.cards.find(c => c.isTopic)
-    if (!topicCard) return false
-  
-    const topicId = topicCard.topicId
-    if (!topicId) return false
-  
-    // topic card phải ở đáy cột
-    if (!col.cards[0]?.isTopic || String(col.cards[0].topicId) !== String(topicId)) {
-      return false
-    }
-  
-    // toàn bộ cards trong cột phải cùng topic
-    const isHomogeneous = col.cards.every(c => String(c.topicId) === String(topicId))
-    if (!isHomogeneous) return false
-  
-    const required = topicCardCounts[topicId]
-    if (!required) return false
-  
-    const vocabCount = col.cards.filter(c => !c.isTopic).length
-  
-    return vocabCount === required
-  }
 
   const markCardsPlaced = (cards) => {
     // Chỉ đánh dấu card đã được đặt đúng, KHÔNG cộng điểm ở đây nữa
@@ -551,47 +568,49 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
 
   const maybeAwardCompleteColumn = (columnIndex, nextCards) => {
     if (!nextCards || nextCards.length === 0) return
-
-    // Check if topic card is at the bottom
-    const topicCard = nextCards.find(c => c.isTopic)
-    if (!topicCard) return
-
-    // Topic card phải nằm ở đáy cột = đầu mảng
-    if (nextCards[0].id !== topicCard.id) return
-
-    const topicId = topicCard.topicId
+  
+    const topicCards = nextCards.filter((c) => c.isTopic)
+    if (topicCards.length !== 1) return
+  
+    const topicCard = topicCards[0]
+    const topicId = String(topicCard.topicId || '')
     if (!topicId) return
-
-    // Count vocabulary cards (excluding topic card)
-    const vocabCards = nextCards.filter(c => !c.isTopic)
-    const vocabCardCount = vocabCards.length
-
+  
+    const vocabCards = nextCards.filter((c) => !c.isTopic)
+    if (vocabCards.length === 0) return
+  
+    const hasWrongVocab = vocabCards.some((c) => String(c.topicId) !== topicId)
+    if (hasWrongVocab) return
+  
     const required = topicCardCounts[topicId]
-    if (!required || vocabCardCount !== required) return
-
-    // Check if all cards have the same topicId
-    const isHomogeneous = nextCards.every(c => c.topicId === topicId)
-    if (!isHomogeneous) return
-
-    if (completedColumnsRef.current.has(columnIndex)) return
-
-    completedColumnsRef.current.add(columnIndex)
-    // Score = number of vocab cards × 10 (chỉ cộng điểm khi hoàn thành column)
-    const pointsToAdd = vocabCardCount * SCORE_PER_CARD
-    setScore(prev => prev + pointsToAdd)
-
-    // Tạo hiệu ứng điểm bay lên từ column này
+    if (!required) return
+  
+    if (vocabCards.length !== required) return
+  
+    const stackKey = `${columnIndex}-${nextCards.map((c) => c.id).join('|')}`
+  
+    if (processingCompleteRef.current.has(stackKey)) return
+    processingCompleteRef.current.add(stackKey)
+  
+    completedTopicIdsRef.current.add(topicId)
+  
+    const pointsToAdd = vocabCards.length * SCORE_PER_CARD
+    setScore((prev) => prev + pointsToAdd)
+  
+    triggerColumnCollapse(columnIndex, nextCards, stackKey)
+  
     const colEl = columnRefs.current[columnIndex]
     if (colEl) {
       const rect = colEl.getBoundingClientRect()
       const x = rect.left + rect.width / 2 + window.scrollX
       const y = rect.top + rect.height / 2 + window.scrollY
       const id = `${columnIndex}-${Date.now()}`
-      setFloatingScores(prev => [...prev, { id, x, y, value: `+${pointsToAdd}` }])
+      setFloatingScores((prev) => [...prev, { id, x, y, value: `+${pointsToAdd}` }])
     }
   }
 
   const handleMouseDown = (e, card, cardIndex, sourceIndex = null) => {
+    if (runTour) return
     // Không cho kéo khi game đã thắng hoặc đã hết giờ (game over)
     if (isGameWon || timeLeft === 0) return
 
@@ -616,10 +635,6 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
       cardsToDrag = [card]
     } else {
       colIdx = sourceIndex
-      if (isColumnLocked(colIdx)) {
-        setIsDragging(false)
-        return
-      }
       const effectiveStartIndex = getEffectiveDragStartIndex(colIdx, cardIndex)
       cardsToDrag = getCardsToDrag(colIdx, cardIndex)
       if (!canDragCardsTogether(cardsToDrag, colIdx, effectiveStartIndex)) {
@@ -989,17 +1004,19 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
   }
 
   useEffect(() => {
-    const seen = localStorage.getItem('solitaire-tour-seen')
+    try {
+      if (hasSeenSolitaireTour(userKey)) return
   
-    if (!seen) {
       const timer = setTimeout(() => {
         setRunTour(true)
-        localStorage.setItem('solitaire-tour-seen', '1')
       }, 500)
   
       return () => clearTimeout(timer)
+    } catch (e) {
+      console.error('[SolitarePlayWeb] Auto tour effect error:', e)
     }
-  }, [])
+  }, [userKey])
+
   return (
     <div style={styles.page}>
       <div style={styles.inner}>
@@ -1023,6 +1040,7 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
           setCardRef={setCardRef}
           setColumnRef={setColumnRef}
           onMouseDown={handleMouseDown}
+          collapsingColumns={collapsingColumns}
         />
       </div>
       <SolitarePlayWebMovingCard 
@@ -1031,10 +1049,88 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
         mousePos={mousePos}
         onAnimationComplete={handleCardAnimationComplete}
       />
+      {collapsingColumns.map((item) => {
+        const colEl = columnRefs.current[item.columnIndex]
+        if (!colEl) return null
 
+        const rect = colEl.getBoundingClientRect()
+        const COLLAPSE_CARD_WIDTH = 90
+        const COLLAPSE_CARD_HEIGHT = 144
+
+        return (
+          <motion.div
+            key={item.id}
+            initial={{
+              opacity: 1,
+              x: rect.left + window.scrollX,
+              y: rect.top + window.scrollY,
+              width: rect.width,
+              height: rect.height,
+            }}
+            animate={{
+              opacity: 0,
+              y: rect.top + window.scrollY - 40,
+              height: COLLAPSE_CARD_HEIGHT,
+              scale: 0.8,
+            }}
+            transition={{ duration: 0.8, ease: 'easeInOut' }}
+            style={{
+              position: 'fixed',
+              left: 0,
+              top: 0,
+              pointerEvents: 'none',
+              zIndex: 1400,
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+            }}
+          >
+            <div
+              style={{
+                position: 'relative',
+                width: rect.width,
+                height: rect.height,
+              }}
+            >
+              {item.cards.map((card, idx) => (
+                <motion.div
+                  key={card.id}
+                  initial={{
+                    position: 'absolute',
+                    left: '50%',
+                    top: idx * 18,
+                    x: '-50%',
+                    opacity: 1,
+                    scale: 1,
+                  }}
+                  animate={{
+                    top: 0,
+                    opacity: idx === item.cards.length - 1 ? 1 : 0.2,
+                    scale: 0.96,
+                  }}
+                  transition={{
+                    duration: 0.45,
+                    delay: idx * 0.04,
+                    ease: 'easeInOut',
+                  }}
+                  style={{
+                    width: COLLAPSE_CARD_WIDTH,
+                    height: COLLAPSE_CARD_HEIGHT,
+                    borderRadius: 12,
+                    background: '#fff8e8',
+                    border: '1px solid rgb(163, 134, 94)',
+                    boxShadow: '0 2px 5px rgba(0,0,0,0.12)',
+                  }}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )
+      })}
       <SolitarePlayWebTour
         run={runTour}
-        onFinish={() => setRunTour(false)}
+        setRun={setRunTour}
+        userKey={userKey}
       />
       {/* Floating score animations */}
       {floatingScores.map((fs) => (
@@ -1081,6 +1177,42 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
       />
     </div>
   )
+}
+
+function getUserIdFromToken() {
+  try {
+    const rawToken = localStorage.getItem('token')
+    if (!rawToken) return 'guest'
+
+    let token = rawToken
+
+    if (!rawToken.includes('.')) {
+      token = atob(rawToken)
+    }
+
+    const parts = token.split('.')
+    if (parts.length < 2) {
+      console.warn('[SolitarePlayWeb] Invalid token format after decode')
+      return 'guest'
+    }
+
+    const payload = JSON.parse(atob(parts[1]))
+
+    console.log('[SolitarePlayWeb] JWT PAYLOAD:', payload)
+
+    return (
+      payload?.UserId ||
+      payload?.userId ||
+      payload?.id ||
+      payload?.sub ||
+      payload?.nameid ||
+      payload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
+      'guest'
+    )
+  } catch (e) {
+    console.error('[SolitarePlayWeb] Decode token failed:', e)
+    return 'guest'
+  }
 }
 
 // Menu Popup Component

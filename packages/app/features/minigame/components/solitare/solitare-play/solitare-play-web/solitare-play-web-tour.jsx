@@ -1,36 +1,37 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import Joyride, { ACTIONS, EVENTS, STATUS } from 'react-joyride'
 
-export const SOLITAIRE_TOUR_STORAGE_KEY = 'tokki_solitaire_how_to_play_seen_v1'
+const getTourStorageKey = (userKey = 'guest') =>
+  `tokki_solitaire_how_to_play_seen_v1_${userKey}`
 
-export function hasSeenSolitaireTour() {
+export function hasSeenSolitaireTour(userKey = 'guest') {
   if (typeof window === 'undefined') return true
   try {
-    return window.localStorage.getItem(SOLITAIRE_TOUR_STORAGE_KEY) === 'true'
+    return window.localStorage.getItem(getTourStorageKey(userKey)) === 'true'
   } catch (e) {
     return true
   }
 }
 
-export function markSolitaireTourSeen() {
+export function markSolitaireTourSeen(userKey = 'guest') {
   if (typeof window === 'undefined') return
   try {
-    window.localStorage.setItem(SOLITAIRE_TOUR_STORAGE_KEY, 'true')
+    window.localStorage.setItem(getTourStorageKey(userKey), 'true')
   } catch (e) {
     // ignore
   }
 }
 
-export function resetSolitaireTourSeen() {
+export function resetSolitaireTourSeen(userKey = 'guest') {
   if (typeof window === 'undefined') return
   try {
-    window.localStorage.removeItem(SOLITAIRE_TOUR_STORAGE_KEY)
+    window.localStorage.removeItem(getTourStorageKey(userKey))
   } catch (e) {
     // ignore
   }
 }
 
-export function SolitarePlayWebTour({ run, setRun, onEnded }) {
+export function SolitarePlayWebTour({ run, setRun, onEnded, userKey = 'guest' }) {
   const [stepIndex, setStepIndex] = useState(0)
 
   useEffect(() => {
@@ -73,9 +74,7 @@ export function SolitarePlayWebTour({ run, setRun, onEnded }) {
         target: '[data-tour="solitaire-columns"]',
         content: (
           <div style={{ lineHeight: 1.5 }}>
-            <div style={{ marginBottom: 10 }}>
-              Đây là khu vực các cột bài.
-            </div>
+            <div style={{ marginBottom: 10 }}>Đây là khu vực các cột bài.</div>
             <ul style={{ paddingLeft: 20, margin: 0 }}>
               <li style={{ marginBottom: 6 }}>
                 Bạn có thể kéo thả bài giữa các cột nếu đúng điều kiện.
@@ -83,13 +82,11 @@ export function SolitarePlayWebTour({ run, setRun, onEnded }) {
               <li style={{ marginBottom: 6 }}>
                 Mục tiêu là gom các lá cùng chủ đề về đúng cột.
               </li>
-              <li>
-                Khi một cột hoàn chỉnh đúng chủ đề, bạn sẽ được cộng điểm.
-              </li>
+              <li>Khi một cột hoàn chỉnh đúng chủ đề, bạn sẽ được cộng điểm.</li>
             </ul>
           </div>
         ),
-        placement: 'top',
+        placement: 'bottom',
         disableBeacon: true,
       },
       {
@@ -101,7 +98,7 @@ export function SolitarePlayWebTour({ run, setRun, onEnded }) {
       {
         target: '[data-tour="solitaire-columns"]',
         content: 'Ok, giờ bạn có thể bắt đầu chơi thử rồi.',
-        placement: 'top',
+        placement: 'center',
         disableBeacon: true,
       },
     ],
@@ -159,19 +156,23 @@ export function SolitarePlayWebTour({ run, setRun, onEnded }) {
         },
         tooltip: {
           borderRadius: 12,
-          maxWidth: '92vw',
-          width: 505,
+          maxWidth: 360,
+          width: '90vw',
         },
       }}
       callback={(data) => {
         const { action, index, status, type } = data
 
         if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
-          markSolitaireTourSeen()
+          markSolitaireTourSeen(userKey)
           setStepIndex(0)
           if (typeof setRun === 'function') setRun(false)
           if (typeof onEnded === 'function') onEnded(status, data)
           return
+        }
+
+        if (type === EVENTS.TARGET_NOT_FOUND) {
+          console.warn('Solitaire Joyride target not found at step:', index)
         }
 
         if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
