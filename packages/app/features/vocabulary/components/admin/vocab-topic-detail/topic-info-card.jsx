@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Card, Descriptions, Tag, Image, Space } from 'antd'
+import { Card, Descriptions, Image, Space, Typography, Tooltip } from 'antd'
 import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import { fetchUserDetail } from 'app/features/user/api/user-detail'
 
@@ -29,7 +29,8 @@ export function TopicInfoCard({ topic, isAdmin, onApprove, onReject, approvalLoa
   // Xác định status từ topic._raw hoặc topic.status
   const topicStatus = topic._raw?.status ?? topic.status
   const isMuted = topicStatus === 0
-  
+  const { Text } = Typography
+
   // Map status để hiển thị
   const getStatusInfo = (status) => {
     const statusMap = {
@@ -82,17 +83,109 @@ export function TopicInfoCard({ topic, isAdmin, onApprove, onReject, approvalLoa
   }, [creatorId, updaterId])
 
   return (
-    <Card>
-      <Descriptions column={1} bordered size="middle">
-        <Descriptions.Item label="Mã">{topic.id || topic._raw?.topicId || '-'}</Descriptions.Item>
-        <Descriptions.Item label="Tiêu đề">{topic.title || topic._raw?.topicName || '-'}</Descriptions.Item>
-        <Descriptions.Item label="Mô tả">{topic.subtitle || topic._raw?.description || '-'}</Descriptions.Item>
-        <Descriptions.Item label="Level">{topic.level ?? topic._raw?.level ?? '-'}</Descriptions.Item>
-        <Descriptions.Item label="Trạng thái">
+    <Card title={<Text strong>Thông tin cơ bản</Text>} variant="outlined">
+      <Descriptions
+        column={2}
+        bordered
+        size="small"
+        style={{
+          width: '100%',
+          tableLayout: 'fixed',
+          wordBreak: 'break-word',
+        }}
+      >
+        <Descriptions.Item label="Tiêu đề">
+          <Text strong>{topic.title || topic._raw?.topicName || '-'}</Text>
+        </Descriptions.Item>
+
+        <Descriptions.Item label="Level">
+          <Text>{topic.level ?? topic._raw?.level ?? '-'}</Text>
+        </Descriptions.Item>
+
+        <Descriptions.Item label="Mô tả" span={2}>
+          <Text>{topic.subtitle || topic._raw?.description || '-'}</Text>
+        </Descriptions.Item>
+
+        <Descriptions.Item label="Ảnh minh họa" span={2}>
+          {(() => {
+            const imgUrl = topic.imgUrl || topic._raw?.imgUrl
+            if (!imgUrl) return '-'
+
+            return (
+              <Image
+                src={imgUrl}
+                alt="topic"
+                style={{ maxWidth: 70, borderRadius: 8 }}
+                preview={{ mask: 'Xem ảnh' }}
+              />
+            )
+          })()}
+        </Descriptions.Item>
+
+        <Descriptions.Item label="Ngày tạo">
+          <Text>{formatDate(topic._raw?.createDate || topic.createDate)}</Text>
+        </Descriptions.Item>
+
+        <Descriptions.Item label="Người tạo">
+          {creatorId ? (
+            <a
+              href={`/admin/users/${creatorId}?tab=users-admin`}
+              onClick={(e) => {
+                e.preventDefault()
+                window.open(`/admin/users/${creatorId}?tab=users-admin`, '_blank', 'noopener,noreferrer')
+              }}
+            >
+              {creatorName || creatorId}
+            </a>
+          ) : (
+            '-'
+          )}
+        </Descriptions.Item>
+
+        <Descriptions.Item label="Ngày cập nhật">
+          <Text>{formatDate(topic._raw?.updateDate || topic.updateDate)}</Text>
+        </Descriptions.Item>
+
+        <Descriptions.Item label="Người cập nhật">
+          {updaterId ? (
+            <a
+              href={`/admin/users/${updaterId}?tab=users-admin`}
+              onClick={(e) => {
+                e.preventDefault()
+                window.open(`/admin/users/${updaterId}?tab=users-admin`, '_blank', 'noopener noreferrer')
+              }}
+            >
+              {updaterName || updaterId}
+            </a>
+          ) : (
+            '-'
+          )}
+        </Descriptions.Item>
+
+        <Descriptions.Item label="Trạng thái" span={2}>
           <Space size="small" align="center">
-            <Tag color={statusInfo.color} style={{ fontSize: 12 }}>
-              {statusInfo.label}
-            </Tag>
+            <Tooltip title={statusInfo.label}>
+              <div
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: '50%',
+                  backgroundColor:
+                    topicStatus === 1
+                      ? '#52c41a'
+                      : topicStatus === 2
+                      ? '#ff4d4f'
+                      : topicStatus === 3
+                      ? '#fa8c16'
+                      : topicStatus === 4
+                      ? '#fadb14'
+                      : '#8c8c8c',
+                  boxShadow: '0 0 4px rgba(0,0,0,0.3)',
+                  cursor: 'pointer',
+                }}
+              />
+            </Tooltip>
+
             {topicStatus === 3 && isAdmin && (
               <>
                 <div
@@ -124,8 +217,11 @@ export function TopicInfoCard({ topic, isAdmin, onApprove, onReject, approvalLoa
                   }}
                   title="Phê duyệt"
                 >
-                  <CheckCircleOutlined style={{ fontSize: 16, color: '#52c41a', transition: 'color 0.2s ease' }} />
+                  <CheckCircleOutlined
+                    style={{ fontSize: 16, color: '#52c41a', transition: 'color 0.2s ease' }}
+                  />
                 </div>
+
                 <div
                   onClick={(e) => {
                     e?.stopPropagation?.()
@@ -155,63 +251,13 @@ export function TopicInfoCard({ topic, isAdmin, onApprove, onReject, approvalLoa
                   }}
                   title="Từ chối"
                 >
-                  <CloseCircleOutlined style={{ fontSize: 16, color: '#ff4d4f', transition: 'color 0.2s ease' }} />
+                  <CloseCircleOutlined
+                    style={{ fontSize: 16, color: '#ff4d4f', transition: 'color 0.2s ease' }}
+                  />
                 </div>
               </>
             )}
           </Space>
-        </Descriptions.Item>
-        <Descriptions.Item label="Ảnh minh họa">
-          {(() => {
-            const imgUrl = topic.imgUrl || topic._raw?.imgUrl
-            if (!imgUrl) return '-'
-            return (
-              <Image
-                src={imgUrl}
-                alt="Topic image"
-                style={{ maxWidth: 200, maxHeight: 200, objectFit: 'contain' }}
-                preview={{
-                  mask: 'Xem ảnh',
-                }}
-              />
-            )
-          })()}
-        </Descriptions.Item>
-        <Descriptions.Item label="Ngày tạo">
-          {formatDate(topic._raw?.createDate || topic.createDate)}
-        </Descriptions.Item>
-        <Descriptions.Item label="Người tạo">
-          {creatorId ? (
-            <a
-              href={`/admin/users/${creatorId}?tab=users-admin`}
-              onClick={(e) => {
-                e.preventDefault()
-                window.open(`/admin/users/${creatorId}?tab=users-admin`, '_blank', 'noopener,noreferrer')
-              }}
-            >
-              {creatorName || creatorId}
-            </a>
-          ) : (
-            '-'
-          )}
-        </Descriptions.Item>
-        <Descriptions.Item label="Ngày cập nhật">
-          {formatDate(topic._raw?.updateDate || topic.updateDate)}
-        </Descriptions.Item>
-        <Descriptions.Item label="Người cập nhật">
-          {updaterId ? (
-            <a
-              href={`/admin/users/${updaterId}?tab=users-admin`}
-              onClick={(e) => {
-                e.preventDefault()
-                window.open(`/admin/users/${updaterId}?tab=users-admin`, '_blank', 'noopener noreferrer')
-              }}
-            >
-              {updaterName || updaterId}
-            </a>
-          ) : (
-            '-'
-          )}
         </Descriptions.Item>
       </Descriptions>
     </Card>
