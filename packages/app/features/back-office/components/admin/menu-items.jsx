@@ -30,15 +30,15 @@ export const adminMenuItems = [
       { key: 'title-management', icon: <TrophyOutlined />, label: 'Danh hiệu' },
     ],
   },
-  {
-    key: 'content',
-    icon: <BookOutlined />,
-    label: 'Quản lý Nội dung',
-    children: [
-      { key: 'lessons', icon: <BookOutlined />, label: 'Bài học' },
-      { key: 'blog', icon: <FileTextOutlined />, label: 'Bài viết' },
-    ],
-  },
+  // {
+  //   key: 'content',
+  //   icon: <BookOutlined />,
+  //   label: 'Quản lý Nội dung',
+  //   children: [
+  //     { key: 'lessons', icon: <BookOutlined />, label: 'Bài học' },
+  //     { key: 'blog', icon: <FileTextOutlined />, label: 'Bài viết' },
+  //   ],
+  // },
   {
     key: 'vocabulary',
     icon: <DatabaseOutlined />,

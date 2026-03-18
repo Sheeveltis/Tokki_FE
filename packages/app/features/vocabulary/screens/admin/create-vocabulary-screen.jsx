@@ -2,12 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Form, Typography, Modal, Button } from 'antd'
+import { Form, Typography, Modal, Button, message } from 'antd'
 import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web'
 import { createVocabulary, uploadVocabularyImageToCloudinary } from '../../api'
 import { VocabularyFormFields } from '../../components/admin/create-vocabulary/vocabulary-form-fields'
 import { VocabularyFormActions } from '../../components/admin/create-vocabulary/vocabulary-form-actions'
-import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 
 const { Title } = Typography
 
@@ -15,22 +14,34 @@ export function CreateVocabularyScreen() {
   const router = useRouter()
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
+  const [messageApi, contextHolder] = message.useMessage()
+
+  const getApiErrorMessage = (err, fallbackMessage) => {
+    const data = err?.response?.data || err?.data || err
+
+    return (
+      data?.message ||
+      data?.errors?.[0]?.description ||
+      err?.message ||
+      fallbackMessage
+    )
+  }
 
   const handleSubmit = async (values) => {
     try {
       setLoading(true)
-      
+
       // Nếu có file ảnh mới, upload lên Cloudinary trước
       let imgURL = values?.imgURL || null
       if (values?.imageFile) {
         try {
           imgURL = await uploadVocabularyImageToCloudinary(values.imageFile)
           if (!imgURL) {
-            showAdminError('Không thể upload ảnh lên Cloudinary')
+            messageApi.error('Không thể upload ảnh lên Cloudinary')
             return
           }
         } catch (err) {
-          showAdminError(err?.message || 'Không thể upload ảnh lên Cloudinary')
+          messageApi.error(err?.message || 'Không thể upload ảnh lên Cloudinary')
           return
         }
       }
@@ -41,12 +52,12 @@ export function CreateVocabularyScreen() {
         imgURL: imgURL,
         imageFile: undefined, // Xóa imageFile khỏi payload
       }
-      
+
       await createVocabulary(payload)
-      showAdminSuccess('Đã tạo từ vựng mới thành công')
+      messageApi.success('Đã tạo từ vựng mới thành công')
       router.push('/admin?tab=vocabulary-words')
     } catch (error) {
-      showAdminError(error?.message || 'Tạo từ vựng thất bại')
+      messageApi.error(getApiErrorMessage(error, 'Tạo từ vựng thất bại'))
     } finally {
       setLoading(false)
     }
@@ -57,22 +68,32 @@ export function CreateVocabularyScreen() {
   }
 
   const handleConfirmSubmit = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        Modal.confirm({
-          title: 'Xác nhận tạo từ vựng',
-          content: `Bạn chắc chắn muốn tạo từ "${values.text}"?`,
-          okText: 'Tạo',
-          cancelText: 'Hủy',
-          onOk: () => form.submit(),
-        })
-      })
-      .catch(() => {})
-  }
+        form
+          .validateFields()
+          .then((values) => {
+            Modal.confirm({
+              title: 'Xác nhận tạo từ vựng',
+              // Bọc nội dung vào div có scroll riêng
+              content: (
+                <div style={{ maxHeight: '40vh', overflowY: 'auto', paddingRight: 8 }}>
+                  Bạn chắc chắn muốn tạo từ <strong>"{values.text}"</strong>?
+                  {/* Nếu bạn muốn hiển thị thêm thông tin chi tiết để kiểm tra trước khi tạo thì để ở đây */}
+                </div>
+              ),
+              okText: 'Tạo',
+              cancelText: 'Hủy',
+              centered: true,
+              // Xóa bodyStyle cũ để tránh việc cuộn cả nút bấm
+              onOk: () => form.submit(),
+              okButtonProps: { type: 'primary' },
+             })
+          })
+          .catch(() => {})
+      }
 
   return (
     <AdminLayout defaultKey="vocabulary-words" onNavigate={(key) => router.push(`/admin?tab=${key}`)}>
+      {contextHolder}
       <div
         style={{
           padding: '24px 24px 0 24px', // Giảm padding bottom để sát mép

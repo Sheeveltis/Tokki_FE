@@ -76,7 +76,10 @@ export function VocabularyFormFields() {
               label={<Text strong>Từ vựng (Tiếng Hàn)</Text>} 
               name="text" 
               layout="vertical"
-              rules={[{ required: true, message: 'Nhập từ vựng' }]}
+              rules={[
+                { required: true, message: 'Nhập từ vựng' },
+                { max: 100, message: 'Text không được vượt quá 100 ký tự.' },
+              ]}
             >
               <Input placeholder="VD: 은행" />
             </Form.Item>
