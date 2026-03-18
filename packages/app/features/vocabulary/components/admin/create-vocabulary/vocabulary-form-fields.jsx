@@ -35,7 +35,7 @@ export function VocabularyFormFields() {
       message.error('Ảnh phải nhỏ hơn 5MB!')
       return false
     }
-    form?.setFieldsValue({ imageFile: file })
+    form?.setFieldsValue({ imageFile: file, imgURL: undefined })
     const reader = new FileReader()
     reader.onload = (e) => setPreviewUrl(e.target?.result)
     reader.readAsDataURL(file)
@@ -119,7 +119,7 @@ export function VocabularyFormFields() {
           {/* CỘT PHẢI: HÌNH ẢNH */}
           <Col xs={24} md={9}>
             <Title level={5} style={{ marginBottom: 20, fontSize: '16px' }}>Hình ảnh minh họa</Title>
-            <Form.Item name="imgURL">
+            <Form.Item>
               {!previewUrl ? (
                 <Upload.Dragger
                   multiple={false}
@@ -148,6 +148,12 @@ export function VocabularyFormFields() {
                   />
                 </div>
               )}
+            </Form.Item>
+            <Form.Item name="imageFile" hidden>
+              <Input type="hidden" />
+            </Form.Item>
+            <Form.Item name="imgURL" hidden>
+              <Input type="hidden" />
             </Form.Item>
           </Col>
         </Row>
