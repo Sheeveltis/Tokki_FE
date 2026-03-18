@@ -251,7 +251,14 @@ export function FlashcardTopicManagement({ initialData = null }) {
   }, [currentPortal])
 
   const columns = useMemo(() => [
-    { title: 'Mã', dataIndex: 'id', key: 'id', width: 200 },
+    {
+      title: 'STT',
+      key: 'stt',
+      align: 'center',
+      width: 80,
+      render: (_, __, index) =>
+        (pagination.current - 1) * pagination.pageSize + index + 1,
+    },
     { title: 'Tiêu đề', dataIndex: 'title', key: 'title',width: 200 },
     { title: 'Mô tả', dataIndex: 'subtitle', key: 'subtitle',width: 200 },
     { title: 'Level', dataIndex: 'level', key: 'level', width: 120 },
@@ -259,28 +266,33 @@ export function FlashcardTopicManagement({ initialData = null }) {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      width: status === 3 && currentPortal === 'admin' ? 200 : 140,
+      width: status === 3 && currentPortal === 'admin' ? 140 : 100,
       align: 'center',
       render: (status, record) => {
         const statusMap = {
-          0: { label: 'Bản nháp', color: 'default' },
-          1: { label: 'Đang hoạt động', color: 'green' },
-          2: { label: 'Đã xóa', color: 'red' },
-          3: { label: 'Chờ phê duyệt', color: 'orange' },
-          4: { label: 'Bị từ chối phê duyệt', color: 'red' },
+          0: { label: 'Bản nháp', color: '#8c8c8c' },          // Gray
+          1: { label: 'Đang hoạt động', color: '#52c41a' },    // Green
+          2: { label: 'Đã xóa', color: '#ff4d4f' },            // Red
+          3: { label: 'Chờ phê duyệt', color: '#fadb14' },     // Orange
+          4: { label: 'Bị từ chối phê duyệt', color: '#fa8c16' }, // Yellow
         }
-        const statusInfo = statusMap[status]
-        if (!statusInfo) return '-'
-        
+    
+        const cfg = statusMap[Number(status)] || statusMap[0]
+    
         return (
           <Space size="small" align="center">
-            <span
+            <div
+              title={cfg.label}
               style={{
-                fontSize: 12,
+                width: 14,
+                height: 14,
+                borderRadius: '50%',
+                backgroundColor: cfg.color,
+                margin: '0 auto',
+                boxShadow: '0 0 4px rgba(0,0,0,0.3)',
+                cursor: 'pointer',
               }}
-            >
-              {statusInfo.label}
-            </span>
+            />
             {status === 3 && currentPortal === 'admin' && (
               <>
                 <div
@@ -306,6 +318,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
                 >
                   <CheckCircleOutlined style={{ fontSize: 16, color: '#52c41a', transition: 'color 0.2s ease' }} />
                 </div>
+    
                 <div
                   onClick={(e) => handleOpenApprovalModal(record.id, 'reject', e)}
                   style={{
@@ -367,7 +380,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
             }}
             title="Xem chi tiết (Admin)"
           >
-            <EyeOutlined style={{ fontSize: 18, color: '#111', transition: 'color 0.2s ease' }} />
+            <EyeOutlined style={{ fontSize: 18, color: '#1890ff', transition: 'color 0.2s ease' }} />
           </div>
           <div
             onClick={(e) => {
@@ -399,19 +412,17 @@ export function FlashcardTopicManagement({ initialData = null }) {
         )
       },
     },
-  ], [portalPrefix, router, status, currentPortal])
+  ], [portalPrefix, router, status, currentPortal, pagination.current, pagination.pageSize])
 
   const actions = [
     {
       label: 'Import',
       icon: <UploadOutlined />,
-      style: { backgroundColor: '#107c41', borderColor: '#107c41' },
       onPress: () => showAdminSuccess('Tính năng Import sắp ra mắt'),
     },
     {
       label: 'Export',
       icon: <DownloadOutlined />,
-      style: { backgroundColor: '#107c41', borderColor: '#107c41' },
       onPress: () => showAdminSuccess('Đang xuất dữ liệu...'),
     },
     status === 3
