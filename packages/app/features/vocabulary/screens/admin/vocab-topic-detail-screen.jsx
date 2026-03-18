@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'solito/navigation'
-import { Card, Space, Typography, Spin, Alert, Modal } from 'antd'
+import { Card, Space, Typography, Spin, Alert, Modal, Button } from 'antd'
 import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
 import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web.jsx'
@@ -790,14 +790,12 @@ export function FlashcardTopicDetailScreen() {
                 const isDraft = topicStatus === 0
                 const isActive = topicStatus === 1
                 const isDeleted = topicStatus === 2
-                const isPendingApproval = topicStatus === 3
                 const isRejected = topicStatus === 4
                 const userRole = getCurrentUserRole()
                 const isAdmin = userRole === 'Admin'
                 const isStaff = userRole === 'Staff'
                 const isModerator = userRole === 'Moderator'
 
-                // Staff và Moderator không được chỉnh sửa khi status = 1 (Active) hoặc 2 (Deleted)
                 const cannotEditForStaffModerator = (isStaff || isModerator) && (isActive || isDeleted)
 
                 const hasVocab =
@@ -809,53 +807,12 @@ export function FlashcardTopicDetailScreen() {
                     ? topicVocabData.length
                     : 0) > 0
 
-                // Staff có thể gửi lại phê duyệt khi status = 0 (Draft) hoặc 4 (Rejected)
                 const canSubmitForApproval = isStaff && (isDraft || isRejected) && hasVocab && !isDeleted
 
                 return (
                   <>
-                    <ButtonV2
-                      title="Chỉnh sửa"
-                      color="poppy"
-                      onPress={() => setEditOpen(true)}
-                      disabled={isDeleted || editLoading || cannotEditForStaffModerator}
-                      style={{ minWidth: 110, paddingVertical: 10 }}
-                      textStyle={{ fontSize: 14 }}
-                    />
-                    {!isDeleted && isAdmin && (
-                      <ButtonV2
-                        title="Chuyển trạng thái"
-                        color="sage"
-                        onPress={() => setStatusChangeModalOpen(true)}
-                        disabled={statusChangeLoading}
-                        style={{ minWidth: 140, paddingVertical: 10 }}
-                        textStyle={{ fontSize: 14 }}
-                      />
-                    )}
-                    {canSubmitForApproval && (
-                      <ButtonV2
-                        title={submittingForApproval ? 'Đang gửi...' : 'Gửi chờ duyệt'}
-                        color="sage"
-                        onPress={handleSubmitForApproval}
-                        disabled={submittingForApproval}
-                        style={{ minWidth: 140, paddingVertical: 10 }}
-                        textStyle={{ fontSize: 14 }}
-                      />
-                    )}
-                    {!isDeleted && !isModerator && (
-                      <ButtonV2
-                        title={deleteLoading ? 'Đang xóa...' : 'Xóa'}
-                        color="charcoal"
-                        onPress={handleDelete}
-                        disabled={deleteLoading}
-                        style={{ minWidth: 90, paddingVertical: 10 }}
-                        textStyle={{ fontSize: 14 }}
-                      />
-                    )}
-                    <ButtonV2
-                      title="Quay lại"
-                      color="mint"
-                      onPress={() => {
+                    <Button
+                      onClick={() => {
                         if (currentPortal === 'staff') {
                           router.push('/staff?tab=vocabulary-topics')
                         } else if (currentPortal === 'moderator') {
@@ -864,9 +821,35 @@ export function FlashcardTopicDetailScreen() {
                           router.push('/admin?tab=vocabulary-topics')
                         }
                       }}
-                      style={{ minWidth: 100, paddingVertical: 10 }}
-                      textStyle={{ fontSize: 14 }}
-                    />
+                    >
+                      Quay lại
+                    </Button>
+
+                    {!isDeleted && !isModerator && (
+                      <Button danger loading={deleteLoading} onClick={handleDelete}>
+                        {deleteLoading ? 'Đang xóa...' : 'Xóa'}
+                      </Button>
+                    )}
+
+                    <Button
+                      type="primary"
+                      onClick={() => setEditOpen(true)}
+                      disabled={isDeleted || editLoading || cannotEditForStaffModerator}
+                    >
+                      Chỉnh sửa
+                    </Button>
+
+                    {!isDeleted && isAdmin && (
+                      <Button onClick={() => setStatusChangeModalOpen(true)} loading={statusChangeLoading}>
+                        Chuyển trạng thái
+                      </Button>
+                    )}
+
+                    {canSubmitForApproval && (
+                      <Button onClick={handleSubmitForApproval} disabled={submittingForApproval}>
+                        {submittingForApproval ? 'Đang gửi...' : 'Gửi chờ duyệt'}
+                      </Button>
+                    )}
                   </>
                 )
               })()}
