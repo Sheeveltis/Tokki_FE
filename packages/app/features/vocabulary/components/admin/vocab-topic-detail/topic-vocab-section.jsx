@@ -1,10 +1,8 @@
 'use client'
 
-import React, { useMemo, useState, useEffect } from 'react'
-import { useRouter } from 'solito/navigation'
+import { useMemo, useState, useEffect } from 'react'
 import { Card, Space, Select, Table, Typography, List, Tag, Modal, Input, Button } from 'antd'
-import { UploadOutlined, FileExcelOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
+import { UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { VocabularyGuideButton } from './vocabulary-guide-modal'
 
 export function TopicVocabSection({
@@ -32,7 +30,6 @@ export function TopicVocabSection({
   isModerator = false, // Prop để ẩn các chức năng không được phép cho moderator
   excelImportResult = null,
 }) {
-  const router = useRouter()
   const { Text } = Typography
   const [removeMode, setRemoveMode] = useState(false)
   const [pageSize, setPageSize] = useState(10)
@@ -115,24 +112,6 @@ export function TopicVocabSection({
             {onOpenGuide && <VocabularyGuideButton onOpen={onOpenGuide} />}
           </Space>
           <Space>
-            {onExportExcel && !isModerator && (
-              <Button
-                icon={<FileExcelOutlined />}
-                onClick={onExportExcel}
-                disabled={exportingExcel}
-                loading={exportingExcel}
-                style={{
-                  backgroundColor: '#dc3545', // đỏ cho Export
-                  borderColor: '#dc3545',
-                  color: '#fff',
-                  minWidth: 140,
-                  height: 40,
-                }}
-              >
-                {exportingExcel ? 'Đang xuất...' : 'Xuất Excel'}
-              </Button>
-            )}
-
             {onExcelUpload && !isModerator && (
               <>
                 <input
@@ -143,21 +122,26 @@ export function TopicVocabSection({
                   onChange={onExcelUpload}
                 />
                 <Button
+                  type="primary"
                   icon={<UploadOutlined />}
                   onClick={() => fileInputRef?.current?.click()}
                   disabled={uploadingExcel}
                   loading={uploadingExcel}
-                  style={{
-                    backgroundColor: '#217346',
-                    borderColor: '#217346',
-                    color: '#fff',
-                    minWidth: 140,
-                    height: 40,
-                  }}
                 >
-                  {uploadingExcel ? 'Đang import...' : 'Import Excel'}
+                  {uploadingExcel ? 'Đang import...' : 'Import'}
                 </Button>
               </>
+            )}
+            {onExportExcel && !isModerator && (
+              <Button
+                type="primary"
+                icon={<DownloadOutlined />}
+                onClick={onExportExcel}
+                disabled={exportingExcel}
+                loading={exportingExcel}
+              >
+                {exportingExcel ? 'Đang xuất...' : 'Export'}
+              </Button>
             )}
           </Space>
         </Space>
@@ -194,23 +178,23 @@ export function TopicVocabSection({
             </div>
             <Space>
               {onQuickAdd && (
-                <ButtonV2
-                  title="Tạo từ vựng nhanh"
-                  onPress={onQuickAdd}
-                  color="#F1BE4B"
-                  style={{ minWidth: 160, paddingVertical: 10 }}
-                  textStyle={{ fontSize: 14 }}
-                />
+                <Button
+                  type="primary"
+                  onClick={onQuickAdd}
+                  style={{ minWidth: 120, height: 30 }}
+                >
+                  Tạo từ vựng nhanh
+                </Button>
               )}
 
-              <ButtonV2
-                title={adding ? 'Đang thêm...' : 'Thêm vào chủ đề'}
-                onPress={onAdd}
+              <Button
+                type="primary"
+                onClick={onAdd}
                 disabled={!selecting?.length || adding}
-                color="mint"
-                style={{ minWidth: 180, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
+                style={{ minWidth: 120, height: 30 }}
+              >
+                {adding ? 'Đang thêm...' : 'Thêm vào chủ đề'}
+              </Button>
             </Space>
           </Space>
 
@@ -286,22 +270,23 @@ export function TopicVocabSection({
           </Space>
           {!isModerator && (
             <>
-              <ButtonV2
-                title={removeMode ? 'Hủy chọn xóa' : 'Chọn từ để gỡ'}
-                onPress={() => {
+              <Button
+                type={removeMode ? 'default' : 'primary'}
+                onClick={() => {
                   if (removeMode) {
                     // Tắt chế độ xóa thì clear selection
                     onRemovingKeysChange([])
                   }
                   setRemoveMode(!removeMode)
                 }}
-                color={removeMode ? 'ivory' : 'charcoal'}
-                style={{ paddingVertical: 8, minWidth: 150 }}
-                textStyle={{ fontSize: 13 }}
-              />
-              <ButtonV2
-                title={removing ? 'Đang gỡ...' : 'Gỡ từ vựng đã chọn'}
-                onPress={() => {
+                style={{ minWidth: 120, height: 30 }}
+              >
+                {removeMode ? 'Hủy chọn xóa' : 'Chọn từ để gỡ'}
+              </Button>
+              <Button
+                type="primary"
+                danger
+                onClick={() => {
                   if (!removeMode || !removingKeys?.length || removing) return
 
                   Modal.confirm({
@@ -314,10 +299,10 @@ export function TopicVocabSection({
                   })
                 }}
                 disabled={!removeMode || !removingKeys?.length || removing}
-                color="poppy"
-                style={{ paddingVertical: 8, minWidth: 180 }}
-                textStyle={{ fontSize: 13 }}
-              />
+                style={{ minWidth: 120, height: 30 }}
+              >
+                {removing ? 'Đang gỡ...' : 'Gỡ từ vựng đã chọn'}
+              </Button>
             </>
           )}
           </Space>
