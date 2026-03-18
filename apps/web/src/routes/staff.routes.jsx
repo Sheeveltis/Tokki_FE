@@ -10,6 +10,7 @@ import { ViewBlogScreen } from '@tokki/app/features/blog/screens/admin/view-blog
 import { EditBlogScreen } from '@tokki/app/features/blog/screens/admin/edit-blog-screen'
 import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocab-topic-detail-screen'
 import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocabulary-detail-screen'
+import { CreateVocabularyScreen } from '@tokki/app/features/vocabulary/screens/admin/create-vocabulary-screen'
 import { QuestionTypeDetailScreen } from '@tokki/app/features/examination-management/components/admin/question-type-management/QuestionTypeDetail'
 import { QuestionTypeManagement } from '@tokki/app/features/examination-management/screens/admin/question-type-management-screen'
 
@@ -36,6 +37,7 @@ export const staffRoutes = [
   { path: '/staff/blog/:id/edit', element: <EditBlogScreen /> },
   { path: '/staff/blog/:id', element: <ViewBlogScreen /> },
   { path: '/staff/vocab/:id', element: <VocabularyDetailScreen /> },
+  { path: '/staff/vocab/create', element: <CreateVocabularyScreen /> },
   // Staff - Question Type / Question Bank detail
   { path: '/staff/question-type/:id', element: <QuestionTypeDetailScreen basePath="/staff" layout="staff" /> },
   { path: '/staff/question-type', element: <QuestionTypeManagement basePath="/staff" /> },

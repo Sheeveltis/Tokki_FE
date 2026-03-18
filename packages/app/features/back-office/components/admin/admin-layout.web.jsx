@@ -138,7 +138,7 @@ export function AdminLayout({
                 letterSpacing: 0.5,
               }}
             >
-              <span>{collapsed ? 'ADM' : 'Admin Panel'}</span>
+              <span>{collapsed ? '' : 'Admin'}</span>
               <button
                 type="button"
                 onClick={() => setCollapsed((prev) => !prev)}
@@ -244,12 +244,13 @@ export function AdminLayout({
                 </Popover>
               </div>
             </Layout.Header>
-            <Layout.Content style={{ margin: 16 }}>
+            <Layout.Content style={{ margin: 16, height: 'calc(100vh - 96px)', overflow: 'hidden' }}>
               <div
                 style={{
                   background: '#fff',
                   padding: 16,
-                  minHeight: 'calc(100vh - 120px)',
+                  height: '100%',
+                  overflow: 'hidden',
                   borderRadius: 8,
                 }}
               >

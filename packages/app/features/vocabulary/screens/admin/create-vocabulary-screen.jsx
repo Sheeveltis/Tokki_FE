@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Form, Typography, Modal, Button, message } from 'antd'
 import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web'
+import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web'
 import { createVocabulary, uploadVocabularyImageToCloudinary } from '../../api'
 import { VocabularyFormFields } from '../../components/admin/create-vocabulary/vocabulary-form-fields'
 import { VocabularyFormActions } from '../../components/admin/create-vocabulary/vocabulary-form-actions'
@@ -55,7 +56,7 @@ export function CreateVocabularyScreen() {
 
       await createVocabulary(payload)
       messageApi.success('Đã tạo từ vựng mới thành công')
-      router.push('/admin?tab=vocabulary-words')
+      router.push(`${portalPrefix}?tab=vocabulary-words`)
     } catch (error) {
       messageApi.error(getApiErrorMessage(error, 'Tạo từ vựng thất bại'))
     } finally {
@@ -63,8 +64,10 @@ export function CreateVocabularyScreen() {
     }
   }
 
+  const portalPrefix = typeof window !== 'undefined' && window.location.pathname.startsWith('/staff') ? '/staff' : '/admin'
+
   const handleCancel = () => {
-    router.push('/admin?tab=vocabulary-words')
+    router.push(`${portalPrefix}?tab=vocabulary-words`)
   }
 
   const handleConfirmSubmit = () => {
@@ -91,14 +94,20 @@ export function CreateVocabularyScreen() {
           .catch(() => {})
       }
 
+  const Layout = portalPrefix === '/staff' ? StaffLayout : AdminLayout
+
   return (
-    <AdminLayout defaultKey="vocabulary-words" onNavigate={(key) => router.push(`/admin?tab=${key}`)}>
+    <Layout
+      defaultKey="vocabulary-words"
+      onNavigate={(key) => router.push(`${portalPrefix}?tab=${key}`)}
+    >
       {contextHolder}
       <div
         style={{
           padding: '24px 24px 0 24px', // Giảm padding bottom để sát mép
           width: '100%',
-          height: 'calc(100vh - 64px)', // Trừ đi chiều cao của Header AdminLayout (thường là 64px)
+          height: '100%',
+          minHeight: 0,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden', // Ngăn cuộn toàn trang
@@ -131,17 +140,19 @@ export function CreateVocabularyScreen() {
         }}>
           <Form form={form} layout="vertical" onFinish={handleSubmit}>
             <VocabularyFormFields />
-            <div style={{ marginTop: 24}}>
-                <VocabularyFormActions 
-                  loading={loading} 
-                  onCancel={handleCancel} 
-                  onSubmit={handleConfirmSubmit} 
-                />
-            </div>
           </Form>
         </div>
+
+        {/* PHẦN ACTIONS: CỐ ĐỊNH, KHÔNG CUỘN */}
+        <div style={{ marginTop: 16, flexShrink: 0, paddingBottom: 16 }}>
+          <VocabularyFormActions 
+            loading={loading} 
+            onCancel={handleCancel} 
+            onSubmit={handleConfirmSubmit} 
+          />
+        </div>
       </div>
-    </AdminLayout>
+    </Layout>
   )
 }
 
