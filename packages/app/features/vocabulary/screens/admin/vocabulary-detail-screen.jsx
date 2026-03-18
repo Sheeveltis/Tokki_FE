@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'solito/navigation'
-import { Space, Typography, Spin, Alert, Modal, Button } from 'antd'
+import { Space, Typography, Spin, Alert, Modal, Button, message } from 'antd'
 import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
 import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web.jsx'
 import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
 import { updateVocabulary, fetchVocabularyDetail, uploadVocabularyImageToCloudinary, deleteVocabulary, addExampleToVocabulary, updateExample, deleteExample } from '../../api/index.js'
-import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import VocabularyEditModal from '../../components/admin/vocabulary-detail/vocabulary-edit-modal.jsx'
 import VocabularyInfoCard from '../../components/admin/vocabulary-detail/vocabulary-info-card.jsx'
 import ExampleAddModal from '../../components/admin/vocabulary-detail/example-add-modal.jsx'
@@ -17,6 +16,17 @@ const { Title, Text } = Typography
 
 export function VocabularyDetailScreen() {
   const router = useRouter()
+  const [messageApi, contextHolder] = message.useMessage()
+
+  const getApiErrorMessage = (err, fallbackMessage) => {
+    return (
+      err?.response?.data?.message ||
+      err?.data?.message ||
+      err?.message ||
+      err?.errors?.[0]?.description ||
+      fallbackMessage
+    )
+  }
   const params = useParams()
   const searchParams = useSearchParams()
   const vocabId = params?.id
@@ -95,7 +105,7 @@ export function VocabularyDetailScreen() {
   const handleDelete = () => {
     const vocabularyId = detailVocab?.vocabularyId || detailVocab?.id
     if (!vocabularyId) {
-      showAdminError('Không tìm thấy ID từ vựng')
+      messageApi.error('Không tìm thấy ID từ vựng')
       return
     }
 
@@ -109,7 +119,7 @@ export function VocabularyDetailScreen() {
         try {
           setDeleteLoading(true)
           await deleteVocabulary(vocabularyId)
-          showAdminSuccess('Đã xóa từ vựng thành công')
+          messageApi.success('Đã xóa từ vựng thành công')
           if (currentPortal === 'staff') {
             router.push('/staff?tab=vocabulary-words')
           } else if (currentPortal === 'moderator') {
@@ -121,11 +131,11 @@ export function VocabularyDetailScreen() {
           // err có thể là response object từ API hoặc error object
           if (err?.isSuccess === false || err?.errors) {
             // Là response từ API với lỗi
-            const errorMessage = err?.message || err?.errors?.[0]?.description || 'Xóa từ vựng thất bại'
-            showAdminError(errorMessage, err?.statusCode)
+            const errorMessage = getApiErrorMessage(err, 'Xóa từ vựng thất bại')
+            messageApi.error(errorMessage)
           } else {
             // Là error khác
-            showAdminError(err?.message || 'Xóa từ vựng thất bại')
+            messageApi.error(getApiErrorMessage(err, 'Xóa từ vựng thất bại'))
           }
         } finally {
           setDeleteLoading(false)
@@ -139,13 +149,13 @@ export function VocabularyDetailScreen() {
       setEditLoading(true)
       const vocabularyId = detailVocab?.vocabularyId || detailVocab?.id
       if (!vocabularyId) {
-        showAdminError('Không tìm thấy ID từ vựng')
+        messageApi.error('Không tìm thấy ID từ vựng')
         return
       }
 
       // Đảm bảo definition không rỗng
       if (!values?.definition) {
-        showAdminError('Vui lòng nhập định nghĩa')
+        messageApi.error('Vui lòng nhập định nghĩa')
         return
       }
 
@@ -155,11 +165,11 @@ export function VocabularyDetailScreen() {
         try {
           imgURL = await uploadVocabularyImageToCloudinary(values.imageFile)
           if (!imgURL) {
-            showAdminError('Không thể upload ảnh lên Cloudinary')
+            messageApi.error('Không thể upload ảnh lên Cloudinary')
             return
           }
         } catch (err) {
-          showAdminError(err?.message || 'Không thể upload ảnh lên Cloudinary')
+          messageApi.error(err?.message || 'Không thể upload ảnh lên Cloudinary')
           return
         }
       }
@@ -185,17 +195,17 @@ export function VocabularyDetailScreen() {
         // Vẫn hiển thị success message dù reload fail
       }
       
-      showAdminSuccess('Đã cập nhật từ vựng thành công')
+      messageApi.success('Đã cập nhật từ vựng thành công')
       setEditOpen(false)
     } catch (err) {
       // err có thể là response object từ API hoặc error object
       if (err?.isSuccess === false || err?.errors) {
         // Là response từ API với lỗi
-        const errorMessage = err?.message || err?.errors?.[0]?.description || 'Cập nhật từ vựng thất bại'
-        showAdminError(errorMessage, err?.statusCode)
+        const errorMessage = getApiErrorMessage(err, 'Cập nhật từ vựng thất bại')
+        messageApi.error(errorMessage)
       } else {
         // Là error khác
-        showAdminError(err?.message || 'Cập nhật từ vựng thất bại')
+        messageApi.error(getApiErrorMessage(err, 'Cập nhật từ vựng thất bại'))
       }
     } finally {
       setEditLoading(false)
@@ -207,12 +217,12 @@ export function VocabularyDetailScreen() {
       setExampleAddLoading(true)
       const vocabularyId = detailVocab?.vocabularyId || detailVocab?.id
       if (!vocabularyId) {
-        showAdminError('Không tìm thấy ID từ vựng')
+        messageApi.error('Không tìm thấy ID từ vựng')
         return
       }
 
       if (!values?.sentence) {
-        showAdminError('Vui lòng nhập câu mẫu')
+        messageApi.error('Vui lòng nhập câu mẫu')
         return
       }
 
@@ -230,17 +240,17 @@ export function VocabularyDetailScreen() {
         // Vẫn hiển thị success message dù reload fail
       }
 
-      showAdminSuccess('Đã thêm câu mẫu thành công')
+      messageApi.success('Đã thêm câu mẫu thành công')
       setExampleAddOpen(false)
     } catch (err) {
       // err có thể là response object từ API hoặc error object
       if (err?.isSuccess === false || err?.errors) {
         // Là response từ API với lỗi
-        const errorMessage = err?.message || err?.errors?.[0]?.description || 'Thêm câu mẫu thất bại'
-        showAdminError(errorMessage, err?.statusCode)
+        const errorMessage = getApiErrorMessage(err, 'Thêm câu mẫu thất bại')
+        messageApi.error(errorMessage)
       } else {
         // Là error khác
-        showAdminError(err?.message || 'Thêm câu mẫu thất bại')
+        messageApi.error(getApiErrorMessage(err, 'Thêm câu mẫu thất bại'))
       }
     } finally {
       setExampleAddLoading(false)
@@ -257,12 +267,12 @@ export function VocabularyDetailScreen() {
       setExampleEditLoading(true)
       const exampleId = editingExample?.exampleId
       if (!exampleId) {
-        showAdminError('Không tìm thấy ID câu mẫu')
+        messageApi.error('Không tìm thấy ID câu mẫu')
         return
       }
 
       if (!values?.sentence) {
-        showAdminError('Vui lòng nhập câu mẫu')
+        messageApi.error('Vui lòng nhập câu mẫu')
         return
       }
 
@@ -283,18 +293,18 @@ export function VocabularyDetailScreen() {
         // Vẫn hiển thị success message dù reload fail
       }
 
-      showAdminSuccess('Đã cập nhật câu mẫu thành công')
+      messageApi.success('Đã cập nhật câu mẫu thành công')
       setExampleEditOpen(false)
       setEditingExample(null)
     } catch (err) {
       // err có thể là response object từ API hoặc error object
       if (err?.isSuccess === false || err?.errors) {
         // Là response từ API với lỗi
-        const errorMessage = err?.message || err?.errors?.[0]?.description || 'Cập nhật câu mẫu thất bại'
-        showAdminError(errorMessage, err?.statusCode)
+        const errorMessage = getApiErrorMessage(err, 'Cập nhật câu mẫu thất bại')
+        messageApi.error(errorMessage)
       } else {
         // Là error khác
-        showAdminError(err?.message || 'Cập nhật câu mẫu thất bại')
+        messageApi.error(getApiErrorMessage(err, 'Cập nhật câu mẫu thất bại'))
       }
     } finally {
       setExampleEditLoading(false)
@@ -304,7 +314,7 @@ export function VocabularyDetailScreen() {
   const handleDeleteExample = (example) => {
     const exampleId = example?.exampleId
     if (!exampleId) {
-      showAdminError('Không tìm thấy ID câu mẫu')
+      messageApi.error('Không tìm thấy ID câu mẫu')
       return
     }
 
@@ -328,16 +338,16 @@ export function VocabularyDetailScreen() {
             console.error('Error reloading vocabulary detail:', reloadError)
           }
 
-          showAdminSuccess('Đã xóa câu mẫu thành công')
+          messageApi.success('Đã xóa câu mẫu thành công')
         } catch (err) {
           // err có thể là response object từ API hoặc error object
           if (err?.isSuccess === false || err?.errors) {
             // Là response từ API với lỗi
-            const errorMessage = err?.message || err?.errors?.[0]?.description || 'Xóa câu mẫu thất bại'
-            showAdminError(errorMessage, err?.statusCode)
+            const errorMessage = getApiErrorMessage(err, 'Xóa câu mẫu thất bại')
+            messageApi.error(errorMessage)
           } else {
             // Là error khác
-            showAdminError(err?.message || 'Xóa câu mẫu thất bại')
+            messageApi.error(getApiErrorMessage(err, 'Xóa câu mẫu thất bại'))
           }
         } finally {
           setDeletingExampleId(null)
@@ -361,6 +371,7 @@ export function VocabularyDetailScreen() {
     if (error) {
       return (
         <div style={{ padding: 24 }}>
+          {contextHolder}
           <Alert
             type="error"
             description={(
@@ -392,6 +403,7 @@ export function VocabularyDetailScreen() {
     if (!detailVocab) {
       return (
         <div style={{ padding: 24 }}>
+          {contextHolder}
           <Alert
             type="warning"
             description={(
@@ -421,7 +433,8 @@ export function VocabularyDetailScreen() {
 
     return (
       <div style={{ padding: 24 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
+        {contextHolder}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
           <Space style={{ justifyContent: 'space-between', width: '100%' }}>
             <div>
               <Title level={3} style={{ marginBottom: 4 }}>

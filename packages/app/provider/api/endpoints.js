@@ -153,6 +153,7 @@ export const ENDPOINTS = {
       FLASH_CARD_TOPIC: '/Vocabulary/flash-card',
       GET_BY_ID: (id) => `/Vocabulary/${id}`,
       USER_GET_DETAIL: (id) => `/Vocabulary/user/get-detail/${id}`,
+      ADMIN_GET_DETAIL: (id) => `/Vocabulary/admin/get-detail/${id}`,
       UPDATE: (id) => `/Vocabulary/${id}`,
       DELETE: (id) => `/Vocabulary/${id}`,
       ADD_EXAMPLES: '/vocabulary-examples/admin/add',
@@ -214,7 +215,9 @@ export const ENDPOINTS = {
       UPLOAD_TOPIC_IMAGE: '/Cloudinary/image/topic',  // POST: Upload ảnh chủ đề lên Cloudinary
       UPLOAD_AVATAR: '/Cloudinary/image/avatar',  // POST: Upload avatar lên Cloudinary
       UPLOAD_TEMPLATE_PART_IMAGE: '/Cloudinary/image/template-part',  // POST: Upload ảnh template part lên Cloudinary
-      UPLOAD_AVATAR: '/cloudinary/avatar',  // POST: Upload avatar lên Cloudinary
+      UPLOAD_VOCABULARY_IMAGE: '/Cloudinary/image/vocabulary',  // POST: Upload ảnh từ vựng lên Cloudinary
+      UPLOAD_TOPIC_IMAGE: '/Cloudinary/topic',  // POST: Upload ảnh chủ đề lên Cloudinary
+      UPLOAD_AVATAR: '/Cloudinary/avatar',  // POST: Upload avatar lên Cloudinary
 
       // Question/Option media
       UPLOAD_QUESTION_IMAGE: '/Cloudinary/image/question',

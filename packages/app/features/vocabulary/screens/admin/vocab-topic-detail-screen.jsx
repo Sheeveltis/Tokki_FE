@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'solito/navigation'
 import { Card, Space, Typography, Spin, Alert, Modal, Button } from 'antd'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
 import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web.jsx'
 import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
@@ -736,10 +735,10 @@ export function FlashcardTopicDetailScreen() {
       return (
         <div style={{ padding: 24 }}>
           <Alert type="error" message="Lỗi" description={error} />
-          <ButtonV2
-            title="Quay lại"
+          <Button
+            type="primary"
             style={{ marginTop: 10, minWidth: 120 }}
-            onPress={() => {
+            onClick={() => {
               if (currentPortal === 'staff') {
                 router.push('/staff')
               } else if (currentPortal === 'moderator') {
@@ -748,7 +747,9 @@ export function FlashcardTopicDetailScreen() {
                 router.push('/admin')
               }
             }}
-          />
+          >
+            Quay lại
+          </Button>
         </div>
       )
     }
@@ -757,10 +758,10 @@ export function FlashcardTopicDetailScreen() {
       return (
         <div style={{ padding: 24 }}>
           <Alert type="warning" message="Không tìm thấy chủ đề" />
-          <ButtonV2
-            title="Quay lại danh sách"
+          <Button
+            type="primary"
             style={{ marginTop: 12, minWidth: 140 }}
-            onPress={() => {
+            onClick={() => {
               if (currentPortal === 'staff') {
                 router.push('/staff?tab=vocabulary-topics')
               } else if (currentPortal === 'moderator') {
@@ -769,7 +770,9 @@ export function FlashcardTopicDetailScreen() {
                 router.push('/admin?tab=vocabulary-topics')
               }
             }}
-          />
+          >
+            Quay lại danh sách
+          </Button>
         </div>
       )
     }
@@ -812,6 +815,28 @@ export function FlashcardTopicDetailScreen() {
                 return (
                   <>
                     <Button
+                      type="primary"
+                      onClick={() => setEditOpen(true)}
+                      disabled={isDeleted || editLoading || cannotEditForStaffModerator}
+                    >
+                      Chỉnh sửa
+                    </Button>
+                    {!isDeleted && isAdmin && (
+                      <Button onClick={() => setStatusChangeModalOpen(true)} disabled={statusChangeLoading}>
+                        Chuyển trạng thái
+                      </Button>
+                    )}
+                    {canSubmitForApproval && (
+                      <Button onClick={handleSubmitForApproval} disabled={submittingForApproval}>
+                        {submittingForApproval ? 'Đang gửi...' : 'Gửi chờ duyệt'}
+                      </Button>
+                    )}
+                    {!isDeleted && !isModerator && (
+                      <Button danger onClick={handleDelete} disabled={deleteLoading}>
+                        {deleteLoading ? 'Đang xóa...' : 'Xóa'}
+                      </Button>
+                    )}
+                    <Button
                       onClick={() => {
                         if (currentPortal === 'staff') {
                           router.push('/staff?tab=vocabulary-topics')
@@ -824,32 +849,6 @@ export function FlashcardTopicDetailScreen() {
                     >
                       Quay lại
                     </Button>
-
-                    {!isDeleted && !isModerator && (
-                      <Button danger loading={deleteLoading} onClick={handleDelete}>
-                        {deleteLoading ? 'Đang xóa...' : 'Xóa'}
-                      </Button>
-                    )}
-
-                    <Button
-                      type="primary"
-                      onClick={() => setEditOpen(true)}
-                      disabled={isDeleted || editLoading || cannotEditForStaffModerator}
-                    >
-                      Chỉnh sửa
-                    </Button>
-
-                    {!isDeleted && isAdmin && (
-                      <Button onClick={() => setStatusChangeModalOpen(true)} loading={statusChangeLoading}>
-                        Chuyển trạng thái
-                      </Button>
-                    )}
-
-                    {canSubmitForApproval && (
-                      <Button onClick={handleSubmitForApproval} disabled={submittingForApproval}>
-                        {submittingForApproval ? 'Đang gửi...' : 'Gửi chờ duyệt'}
-                      </Button>
-                    )}
                   </>
                 )
               })()}
