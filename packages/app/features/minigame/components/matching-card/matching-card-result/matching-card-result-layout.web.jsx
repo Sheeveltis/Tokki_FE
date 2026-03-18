@@ -3,7 +3,6 @@ import { Image, StyleSheet, View } from 'react-native'
 import { normalizeImageSource } from '../../../../study/api'
 
 import CarrotGround from '../../../../../../assets/carrot-ground.png'
-import { MatchingCardHeader } from '../../../components/matching-card/matching-card-play/matching-card-play-header'
 import MatchingCardResultContent from './matching-card-result-content'
 import { MatchingCardLeaderboardPopup } from './matching-card-leaderboard-popup'
 import { saveGameResult, updateGameResult, mapLevelToDifficulty } from '../../../api/matching-card-play-api'
