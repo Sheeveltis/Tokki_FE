@@ -155,17 +155,17 @@ export function VocabularyManagement({ initialData = null }) {
       width: 70,
       render: (_, __, index) => (filters.page - 1) * filters.size + index + 1,
     },
-    {
-      title: () => (
-        <Tooltip title="ID của từ vựng">
-          <span>ID</span>
-        </Tooltip>
-      ),
-      dataIndex: 'vocabularyId',
-      key: 'vocabularyId',
-      width: 240,
-      render: (_, record) => record.vocabularyId || record.id || '-',
-    },
+    // {
+    //   title: () => (
+    //     <Tooltip title="ID của từ vựng">
+    //       <span>ID</span>
+    //     </Tooltip>
+    //   ),
+    //   dataIndex: 'vocabularyId',
+    //   key: 'vocabularyId',
+    //   width: 240,
+    //   render: (_, record) => record.vocabularyId || record.id || '-',
+    // },
     {
       title: () => (
         <Tooltip title="Từ vựng tiếng Hàn">

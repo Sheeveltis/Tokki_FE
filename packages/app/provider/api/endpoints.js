@@ -153,6 +153,7 @@ export const ENDPOINTS = {
       FLASH_CARD_TOPIC: '/Vocabulary/flash-card',
       GET_BY_ID: (id) => `/Vocabulary/${id}`,
       USER_GET_DETAIL: (id) => `/Vocabulary/user/get-detail/${id}`,
+      ADMIN_GET_DETAIL: (id) => `/Vocabulary/admin/get-detail/${id}`,
       UPDATE: (id) => `/Vocabulary/${id}`,
       DELETE: (id) => `/Vocabulary/${id}`,
       ADD_EXAMPLES: '/vocabulary-examples/admin/add',

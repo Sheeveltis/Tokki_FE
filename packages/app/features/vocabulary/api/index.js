@@ -107,7 +107,7 @@ export async function fetchVocabularyDetail(vocabularyId) {
       throw new Error('VocabularyId là bắt buộc')
     }
 
-    const res = await apiClient.get(ENDPOINTS.VOCABULARY.USER_GET_DETAIL(vocabularyId))
+    const res = await apiClient.get(ENDPOINTS.VOCABULARY.ADMIN_GET_DETAIL(vocabularyId))
 
     const payload = res?.data
     if (!payload?.isSuccess) {
