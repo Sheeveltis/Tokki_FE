@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react'
-import { Tag } from 'antd'
+import { useMemo } from 'react'
+import { Space, Tooltip } from 'antd'
 import { EyeOutlined } from '@ant-design/icons'
 import ManagementTable from '../../../../../../components/ManagementTable'
 
@@ -9,12 +9,6 @@ export function QuestionTypeTable({ data, loading, onRowClick, rowKey = 'questio
     console.log('[QuestionTypeTable] rows:', Array.isArray(data) ? data.length : data)
   }
   const columns = useMemo(() => {
-    const difficultyColorMap = {
-      1: 'green',
-      2: 'orange',
-      3: 'red',
-    }
-
     const difficultyLabelMap = {
       1: 'Dễ',
       2: 'Trung bình',
@@ -29,10 +23,21 @@ export function QuestionTypeTable({ data, loading, onRowClick, rowKey = 'questio
 
     return [
       {
+        title: () => (
+          <Tooltip title="Số thứ tự">
+            <span>STT</span>
+          </Tooltip>
+        ),
+        key: 'stt',
+        align: 'center',
+        width: 70,
+        render: (_value, _record, index) => index + 1,
+      },
+      {
         title: 'Code',
         dataIndex: 'code',
         key: 'code',
-        width: 120,
+        width: 150,
       },
       {
         title: 'Tên loại câu hỏi',
@@ -101,8 +106,28 @@ export function QuestionTypeTable({ data, loading, onRowClick, rowKey = 'questio
         key: 'isActive',
         width: 120,
         align: 'center',
-        render: (isActive) =>
-          isActive ? <Tag color="green">Hoạt động</Tag> : <Tag color="default">Không hoạt động</Tag>,
+        render: (isActive) => {
+          const statusConfig = isActive
+            ? { color: '#52c41a' }
+            : { color: '#8c8c8c' }
+
+          return (
+            <Space size="small" align="center" style={{ justifyContent: 'center' }}>
+              <div
+                title={statusConfig.label}
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: '50%',
+                  backgroundColor: statusConfig.color,
+                  margin: '0 auto',
+                  boxShadow: '0 0 4px rgba(0,0,0,0.3)',
+                }}
+              />
+              {statusConfig.label}
+            </Space>
+          )
+        },
       },
       {
         title: 'Xem',
@@ -133,7 +158,7 @@ export function QuestionTypeTable({ data, loading, onRowClick, rowKey = 'questio
               e.currentTarget.style.transform = 'scale(1)'
             }}
           >
-            <EyeOutlined style={{ fontSize: 18, color: '#111', transition: 'color 0.2s ease' }} />
+            <EyeOutlined style={{ fontSize: 18, color: '#1890ff', transition: 'color 0.2s ease' }} />
           </div>
         ),
       },
