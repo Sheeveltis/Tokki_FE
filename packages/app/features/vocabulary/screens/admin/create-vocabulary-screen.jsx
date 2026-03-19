@@ -2,12 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Form, Typography, Modal, Button } from 'antd'
+import { Form, Typography, Modal, Button, message } from 'antd'
 import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web'
+import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web'
 import { createVocabulary, uploadVocabularyImageToCloudinary } from '../../api'
 import { VocabularyFormFields } from '../../components/admin/create-vocabulary/vocabulary-form-fields'
 import { VocabularyFormActions } from '../../components/admin/create-vocabulary/vocabulary-form-actions'
-import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 
 const { Title } = Typography
 
@@ -15,22 +15,34 @@ export function CreateVocabularyScreen() {
   const router = useRouter()
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
+  const [messageApi, contextHolder] = message.useMessage()
+
+  const getApiErrorMessage = (err, fallbackMessage) => {
+    const data = err?.response?.data || err?.data || err
+
+    return (
+      data?.message ||
+      data?.errors?.[0]?.description ||
+      err?.message ||
+      fallbackMessage
+    )
+  }
 
   const handleSubmit = async (values) => {
     try {
       setLoading(true)
-      
+
       // Nếu có file ảnh mới, upload lên Cloudinary trước
       let imgURL = values?.imgURL || null
       if (values?.imageFile) {
         try {
           imgURL = await uploadVocabularyImageToCloudinary(values.imageFile)
           if (!imgURL) {
-            showAdminError('Không thể upload ảnh lên Cloudinary')
+            messageApi.error('Không thể upload ảnh lên Cloudinary')
             return
           }
         } catch (err) {
-          showAdminError(err?.message || 'Không thể upload ảnh lên Cloudinary')
+          messageApi.error(err?.message || 'Không thể upload ảnh lên Cloudinary')
           return
         }
       }
@@ -41,43 +53,61 @@ export function CreateVocabularyScreen() {
         imgURL: imgURL,
         imageFile: undefined, // Xóa imageFile khỏi payload
       }
-      
+
       await createVocabulary(payload)
-      showAdminSuccess('Đã tạo từ vựng mới thành công')
-      router.push('/admin?tab=vocabulary-words')
+      messageApi.success('Đã tạo từ vựng mới thành công')
+      router.push(`${portalPrefix}?tab=vocabulary-words`)
     } catch (error) {
-      showAdminError(error?.message || 'Tạo từ vựng thất bại')
+      messageApi.error(getApiErrorMessage(error, 'Tạo từ vựng thất bại'))
     } finally {
       setLoading(false)
     }
   }
 
+  const portalPrefix = typeof window !== 'undefined' && window.location.pathname.startsWith('/staff') ? '/staff' : '/admin'
+
   const handleCancel = () => {
-    router.push('/admin?tab=vocabulary-words')
+    router.push(`${portalPrefix}?tab=vocabulary-words`)
   }
 
   const handleConfirmSubmit = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        Modal.confirm({
-          title: 'Xác nhận tạo từ vựng',
-          content: `Bạn chắc chắn muốn tạo từ "${values.text}"?`,
-          okText: 'Tạo',
-          cancelText: 'Hủy',
-          onOk: () => form.submit(),
-        })
-      })
-      .catch(() => {})
-  }
+        form
+          .validateFields()
+          .then((values) => {
+            Modal.confirm({
+              title: 'Xác nhận tạo từ vựng',
+              // Bọc nội dung vào div có scroll riêng
+              content: (
+                <div style={{ maxHeight: '40vh', overflowY: 'auto', paddingRight: 8 }}>
+                  Bạn chắc chắn muốn tạo từ <strong>"{values.text}"</strong>?
+                  {/* Nếu bạn muốn hiển thị thêm thông tin chi tiết để kiểm tra trước khi tạo thì để ở đây */}
+                </div>
+              ),
+              okText: 'Tạo',
+              cancelText: 'Hủy',
+              centered: true,
+              // Xóa bodyStyle cũ để tránh việc cuộn cả nút bấm
+              onOk: () => form.submit(),
+              okButtonProps: { type: 'primary' },
+             })
+          })
+          .catch(() => {})
+      }
+
+  const Layout = portalPrefix === '/staff' ? StaffLayout : AdminLayout
 
   return (
-    <AdminLayout defaultKey="vocabulary-words" onNavigate={(key) => router.push(`/admin?tab=${key}`)}>
+    <Layout
+      defaultKey="vocabulary-words"
+      onNavigate={(key) => router.push(`${portalPrefix}?tab=${key}`)}
+    >
+      {contextHolder}
       <div
         style={{
           padding: '24px 24px 0 24px', // Giảm padding bottom để sát mép
           width: '100%',
-          height: 'calc(100vh - 64px)', // Trừ đi chiều cao của Header AdminLayout (thường là 64px)
+          height: '100%',
+          minHeight: 0,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden', // Ngăn cuộn toàn trang
@@ -110,17 +140,19 @@ export function CreateVocabularyScreen() {
         }}>
           <Form form={form} layout="vertical" onFinish={handleSubmit}>
             <VocabularyFormFields />
-            <div style={{ marginTop: 24}}>
-                <VocabularyFormActions 
-                  loading={loading} 
-                  onCancel={handleCancel} 
-                  onSubmit={handleConfirmSubmit} 
-                />
-            </div>
           </Form>
         </div>
+
+        {/* PHẦN ACTIONS: CỐ ĐỊNH, KHÔNG CUỘN */}
+        <div style={{ marginTop: 16, flexShrink: 0, paddingBottom: 16 }}>
+          <VocabularyFormActions 
+            loading={loading} 
+            onCancel={handleCancel} 
+            onSubmit={handleConfirmSubmit} 
+          />
+        </div>
       </div>
-    </AdminLayout>
+    </Layout>
   )
 }
 

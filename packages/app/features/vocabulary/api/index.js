@@ -225,7 +225,7 @@ export async function createVocabulary(payload) {
         responseData?.message ||
         (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
         'Không thể tạo từ vựng mới'
-      throw { status: responseData?.statusCode || 400, message, response: responseData }
+      throw { status: responseData?.statusCode || 400, message, responseData }
     }
 
     const createdData = responseData?.data
@@ -236,10 +236,29 @@ export async function createVocabulary(payload) {
     }
   } catch (error) {
     console.error('Error creating vocabulary:', error)
-    handleApiError(error, 'Không thể tạo từ vựng mới')
+
+    const apiMessage =
+      error?.response?.data?.message ||
+      (Array.isArray(error?.response?.data?.errors) && error.response.data.errors[0]?.description) ||
+      error?.responseData?.message ||
+      (Array.isArray(error?.responseData?.errors) && error.responseData.errors[0]?.description)
+
+    if (apiMessage) {
+      const enrichedError = new Error(apiMessage)
+      enrichedError.status = error?.response?.status || error?.status || 400
+      enrichedError.errors = error?.response?.data?.errors || error?.responseData?.errors || error?.errors
+      throw enrichedError
+    }
+
     // Ném error để component có thể xử lý và hiển thị thông báo
     if (error?.response) {
       throw error.response
+    }
+    if (error?.responseData) {
+      throw error.responseData
+    }
+    if (error?.response?.data) {
+      throw error.response.data
     }
     throw error
   }
