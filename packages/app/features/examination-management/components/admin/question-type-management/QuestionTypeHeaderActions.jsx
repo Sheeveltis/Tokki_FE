@@ -1,9 +1,8 @@
 'use client'
 
-import React, { useRef, useState } from 'react'
-import { Space, Modal } from 'antd'
+import { useRef, useState } from 'react'
+import { Space, Modal, Button } from 'antd'
 import { ArrowLeftOutlined, EditOutlined, DeleteOutlined, PlusOutlined, FileExcelOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
 
 import { importQuestionsExcel } from '../../../api/question-bank-management.js'
 import { showAdminSuccess, showAdminError } from '../../../../../../components/HelperAdmin.jsx'
@@ -81,14 +80,9 @@ export function QuestionTypeHeaderActions({
 
   return (
     <Space style={{ marginBottom: 16, width: '100%', justifyContent: 'space-between' }}>
-      <ButtonV2
-        title="Quay lại"
-        color="charcoal"
-        onPress={onBack}
-        icon={<ArrowLeftOutlined />}
-        style={{ minWidth: 100, paddingVertical: 10 }}
-        textStyle={{ fontSize: 14 }}
-      />
+      <Button icon={<ArrowLeftOutlined />} onClick={onBack} style={{ minWidth: 100 }}>
+        Quay lại
+      </Button>
 
       <Space>
         <input
@@ -98,43 +92,34 @@ export function QuestionTypeHeaderActions({
           style={{ display: 'none' }}
           onChange={handleExcelFileSelect}
         />
-        <ButtonV2
-          title={importingExcel ? 'Đang import...' : 'Import Excel'}
-          color="#217346"
-          onPress={() => fileInputRef.current?.click()}
+        <Button
+          type="primary"
           icon={<FileExcelOutlined />}
-          style={{ minWidth: 150, paddingVertical: 10 }}
-          textStyle={{ fontSize: 14 }}
+          onClick={() => fileInputRef.current?.click()}
+          loading={importingExcel}
           disabled={importingExcel}
-        />
+        >
+          {importingExcel ? 'Đang import...' : 'Import Excel'}
+        </Button>
 
-        <ButtonV2
-          title="Sửa bộ câu hỏi"
-          color="charcoal"
-          onPress={onEdit}
-          icon={<EditOutlined />}
-          style={{ minWidth: 150, paddingVertical: 10 }}
-          textStyle={{ fontSize: 14 }}
-        />
+        <Button type="primary" icon={<EditOutlined />} onClick={onEdit}>
+          Sửa bộ câu hỏi
+        </Button>
 
-        <ButtonV2
-          title={deleting ? 'Đang xóa...' : 'Xóa bộ câu hỏi'}
-          color="#ff4d4f"
-          onPress={handleDelete}
+        <Button
+          danger
+          type="primary"
           icon={<DeleteOutlined />}
-          style={{ minWidth: 150, paddingVertical: 10 }}
-          textStyle={{ fontSize: 14 }}
+          onClick={handleDelete}
+          loading={deleting}
           disabled={deleting}
-        />
+        >
+          {deleting ? 'Đang xóa...' : 'Xóa bộ câu hỏi'}
+        </Button>
 
-        <ButtonV2
-          title="Thêm câu hỏi"
-          color="#F1BE4B"
-          onPress={onAddQuestion}
-          icon={<PlusOutlined />}
-          style={{ minWidth: 120, paddingVertical: 10 }}
-          textStyle={{ fontSize: 14 }}
-        />
+        <Button type="primary" icon={<PlusOutlined />} onClick={onAddQuestion}>
+          Thêm câu hỏi
+        </Button>
       </Space>
 
       <Modal
