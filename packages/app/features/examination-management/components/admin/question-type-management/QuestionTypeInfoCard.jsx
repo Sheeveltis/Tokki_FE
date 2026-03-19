@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { Card, Divider, Space, Tag, Typography, Input, Select, Button, Form, Descriptions } from 'antd'
+import { useState, useEffect } from 'react'
+import { Card, Divider, Space, Tag, Typography, Input, Select, Button, Form, Descriptions, Tooltip } from 'antd'
 import { updateQuestionType } from '../../../api/question-type-management'
 import { showAdminSuccess, showAdminError } from '../../../../../../components/HelperAdmin.jsx'
 
@@ -136,8 +136,16 @@ export function QuestionTypeInfoCard({ questionType, isEditing: isEditingProp, o
 
           <Divider style={{ margin: '16px 0' }} />
 
-          {/* Thông tin cơ bản (format table giống ExamTemplateDetail) */}
-          <Descriptions column={1} bordered size="middle">
+          <Descriptions
+            column={2}
+            bordered
+            size="small"
+            style={{
+              width: '100%',
+              tableLayout: 'fixed',
+              wordBreak: 'break-word',
+            }}
+          >
             <Descriptions.Item label="Code">
               {isEditing ? (
                 <Form.Item
@@ -218,7 +226,7 @@ export function QuestionTypeInfoCard({ questionType, isEditing: isEditingProp, o
               )}
             </Descriptions.Item>
 
-            <Descriptions.Item label="Trạng thái">
+            <Descriptions.Item label="Trạng thái" span={2}>
               {isEditing ? (
                 <Form.Item
                   name="status"
@@ -230,14 +238,22 @@ export function QuestionTypeInfoCard({ questionType, isEditing: isEditingProp, o
                     <Select.Option value={0}>Không hoạt động</Select.Option>
                   </Select>
                 </Form.Item>
-              ) : questionType?.isActive ? (
-                <Tag color="green" style={{ fontSize: 14, padding: '4px 12px' }}>
-                  Hoạt động
-                </Tag>
               ) : (
-                <Tag color="default" style={{ fontSize: 14, padding: '4px 12px' }}>
-                  Không hoạt động
-                </Tag>
+                <Space size="small" align="center">
+                  <Tooltip title={questionType?.isActive ? 'Hoạt động' : 'Không hoạt động'}>
+                    <div
+                      style={{
+                        width: 14,
+                        height: 14,
+                        borderRadius: '50%',
+                        backgroundColor: questionType?.isActive ? '#52c41a' : '#8c8c8c',
+                        boxShadow: '0 0 4px rgba(0,0,0,0.3)',
+                        cursor: 'pointer',
+                      }}
+                    />
+                  </Tooltip>
+                  {questionType?.isActive}
+                </Space>
               )}
             </Descriptions.Item>
           </Descriptions>
