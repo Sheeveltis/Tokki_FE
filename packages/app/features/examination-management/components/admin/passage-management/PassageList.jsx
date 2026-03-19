@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { Alert, Card, Input, Select, Space, Spin, Table, Tag, Typography, Popconfirm, Button, Image } from 'antd'
-import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
+import { useEffect, useMemo, useState } from 'react'
+import { Alert, Card, Input, Select, Space, Spin, Table, Tag, Typography, Popconfirm, Button, Image, Tooltip } from 'antd'
+import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 import { showAdminSuccess, showAdminError } from '../../../../../../components/HelperAdmin.jsx'
 
 import { fetchPassages, createPassage, updatePassage, deletePassage } from '../../../api/passage-management'
@@ -16,10 +16,6 @@ const MEDIA_TYPE_LABEL = {
   2: 'Audio',
 }
 
-const STATUS_LABEL = {
-  1: 'Hoạt động',
-  2: 'Đã ẩn',
-}
 
 export function PassageList() {
   const [data, setData] = useState([])
@@ -66,11 +62,15 @@ export function PassageList() {
   const columns = useMemo(
     () => [
       {
-        title: 'ID',
-        dataIndex: 'passageId',
-        key: 'passageId',
-        width: 160,
-        render: (v) => <Text code>{v}</Text>,
+        title: () => (
+          <Tooltip title="Số thứ tự">
+            <span>STT</span>
+          </Tooltip>
+        ),
+        key: 'stt',
+        align: 'center',
+        width: 80,
+        render: (_value, _record, index) => index + 1,
       },
       {
         title: 'Tiêu đề',
@@ -105,29 +105,40 @@ export function PassageList() {
         },
       },
       {
-        title: 'MediaType',
+        title: 'Loại',
         dataIndex: 'mediaType',
         key: 'mediaType',
         width: 120,
         render: (v) => <Tag>{MEDIA_TYPE_LABEL[v] ?? v}</Tag>,
       },
       {
-        title: 'Status',
+        title: 'Trạng thái',
         dataIndex: 'status',
         key: 'status',
         width: 140,
-        render: (v) => (
-          <Tag color={v === 1 ? 'green' : 'default'}>
-            {STATUS_LABEL[v] ?? v}
-          </Tag>
-        ),
-      },
-      {
-        title: 'CreatedAt',
-        dataIndex: 'createdAt',
-        key: 'createdAt',
-        width: 180,
-        render: (v) => <Text type="secondary">{v || '-'}</Text>,
+        align: 'center',
+        render: (v) => {
+          const statusConfig = v === 1
+            ? { color: '#52c41a' }
+            : { color: '#8c8c8c' }
+
+          return (
+            <Space size="small" align="center" style={{ justifyContent: 'center' }}>
+              <div
+                title={statusConfig.label}
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: '50%',
+                  backgroundColor: statusConfig.color,
+                  margin: '0 auto',
+                  boxShadow: '0 0 4px rgba(0,0,0,0.3)',
+                }}
+              />
+              {statusConfig.label}
+            </Space>
+          )
+        },
       },
       {
         title: 'Thao tác',
@@ -137,13 +148,13 @@ export function PassageList() {
         render: (_, record) => (
           <Space>
             <Button
-              size="small"
+              type="primary"
+              icon={<EditOutlined />}
               onClick={() => {
                 setSelectedPassage(record)
                 setUpdateOpen(true)
               }}
             >
-              Sửa
             </Button>
             <Popconfirm
               title="Xóa Passage"
@@ -163,8 +174,13 @@ export function PassageList() {
                 }
               }}
             >
-              <Button danger size="small" loading={deletingId === record.passageId}>
-                Xóa
+              <Button
+                type="primary"
+                danger
+                icon={<DeleteOutlined />}
+                loading={deletingId === record.passageId}
+              >
+                
               </Button>
             </Popconfirm>
           </Space>
@@ -181,13 +197,14 @@ export function PassageList() {
           <Title level={3} style={{ marginBottom: 4 }}>Quản lí Passage</Title>
           <Text type="secondary">Danh sách đoạn văn (Passages)</Text>
         </div>
-        <ButtonV2
-          title="Thêm Passage"
-          color="#F1BE4B"
-          onPress={() => setCreateOpen(true)}
-          style={{ minWidth: 140, paddingVertical: 10 }}
-          textStyle={{ fontSize: 14 }}
-        />
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          style={{ minWidth: 140 }}
+          onClick={() => setCreateOpen(true)}
+        >
+          Thêm Passage
+        </Button>
       </div>
 
       <Card>
