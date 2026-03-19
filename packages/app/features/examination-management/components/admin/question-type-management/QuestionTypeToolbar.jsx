@@ -1,7 +1,5 @@
-import React from 'react'
-import { Input, Space, Select } from 'antd'
-import { SearchOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
+import { Input, Space, Select, Button } from 'antd'
+import { SearchOutlined, PlusOutlined } from '@ant-design/icons'
 import { getCurrentUserRole } from '../../../../../provider/api/client.js'
 
 const { Option } = Select
@@ -73,15 +71,16 @@ export function QuestionTypeToolbar({ filters, onFilterChange, onCreate }) {
         </Select>
       </Space>
 
-      {onCreate && !isStaff ? (
-        <ButtonV2
-          title="Thêm bộ câu hỏi"
-          color="#F1BE4B"
-          onPress={handleCreate}
-          style={{ minWidth: 150, paddingVertical: 10 }}
-          textStyle={{ fontSize: 14 }}
-        />
-      ) : null}
+      {/* {onCreate && !isStaff ? (
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          style={{ minWidth: 150 }}
+          onClick={handleCreate}
+        >
+          Thêm bộ câu hỏi
+        </Button>
+      ) : null} */}
     </Space>
   )
 }
