@@ -93,7 +93,6 @@ export function QuestionTypeHeaderActions({
           onChange={handleExcelFileSelect}
         />
         <Button
-          type="primary"
           icon={<FileExcelOutlined />}
           onClick={() => fileInputRef.current?.click()}
           loading={importingExcel}
@@ -102,13 +101,12 @@ export function QuestionTypeHeaderActions({
           {importingExcel ? 'Đang import...' : 'Import Excel'}
         </Button>
 
-        <Button type="primary" icon={<EditOutlined />} onClick={onEdit}>
+        <Button  icon={<EditOutlined />} onClick={onEdit}>
           Sửa bộ câu hỏi
         </Button>
 
         <Button
           danger
-          type="primary"
           icon={<DeleteOutlined />}
           onClick={handleDelete}
           loading={deleting}
