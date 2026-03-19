@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import { Card, Space, Select, Table, Typography, List, Tag, Modal, Input, Button } from 'antd'
-import { UploadOutlined, FileExcelOutlined } from '@ant-design/icons'
+import { UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { VocabularyGuideButton } from './vocabulary-guide-modal'
 
 export function TopicVocabSection({
