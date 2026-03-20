@@ -254,28 +254,29 @@ export function VocabularyManagement({ initialData = null }) {
     {
       label: 'Import',
       icon: <UploadOutlined />,
-      color: '#107c41',
+      // color: '#107c41',
+      type: 'dashed',
       onPress: () => console.info('Import vocabularies'),
     },
     {
       label: 'Export',
       icon: <DownloadOutlined />,
-      color: '#107c41',
+      // color: '#107c41',
+      type: 'dashed',
       onPress: () => console.info('Export vocabularies'),
     },
     {
       label: 'Từ điển',
       icon: <GlobalOutlined />,
-      color: '#6366F1',
+      // color: '#6366F1',
+      type: 'default',
       onPress: () => router.push('/dictionary'),
-      style: { backgroundColor: '#6366F1', borderColor: '#6366F1' },
     },
     {
       label: 'Thêm mới',
       icon: <PlusOutlined />,
-      color: '#F1BE4B',
+      // color: '#F1BE4B',
       onPress: () => router.push(`${portalPrefix}/vocab/create`),
-      style: { backgroundColor: '#F1BE4B', borderColor: '#F1BE4B', color: '#111' },
     },
   ]
 

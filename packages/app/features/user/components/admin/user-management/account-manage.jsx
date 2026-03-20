@@ -142,7 +142,7 @@ export default function AccountManage({ basePath = '/admin' }) {
       }
     },
     {
-      title: 'Xem', align: 'center', width: 90,
+      title: 'Hành động', align: 'center', width: 90,
       render: (_, record) => (
         <EyeOutlined
           style={{ fontSize: 18, cursor: 'pointer', padding: 8, color: '#1890ff' }}
@@ -153,9 +153,9 @@ export default function AccountManage({ basePath = '/admin' }) {
   ]
 
   const actions = [
-    { label: 'Import', icon: <UploadOutlined />, color: '#107c41', onPress: () => message.info('Tính năng Import sắp ra mắt') },
-    { label: 'Export', icon: <DownloadOutlined />, color: '#107c41', onPress: () => message.success('Đang tải file Excel...') },
-    { label: 'Thêm mới', icon: <PlusOutlined />, color: '#F1BE4B', style: { backgroundColor: '#F1BE4B', borderColor: '#F1BE4B', color: '#111' }, onPress: () => router.push(`${basePath}/users/create-admin-staff`) }
+    { label: 'Import', icon: <UploadOutlined />,type: 'dashed', onPress: () => message.info('Tính năng Import sắp ra mắt') },
+    { label: 'Export', icon: <DownloadOutlined />,type: 'dashed', onPress: () => message.success('Đang tải file Excel...') },
+    { label: 'Thêm mới', icon: <PlusOutlined />,type: 'primary', onPress: () => router.push(`${basePath}/users/create-admin-staff`) }
   ]
 
   const extraFilters = (

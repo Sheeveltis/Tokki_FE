@@ -16,7 +16,7 @@ const ActionGroup = ({ actions = [] }) => {
             onClick={action.onPress}
             icon={action.icon}
             style={{ minWidth: 80, ...action.style }}
-            type="primary"
+            type={action.type || 'primary'}
           >
             {action.label}
           </Button>

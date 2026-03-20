@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
-import { Space, Select, Badge } from 'antd'
+import { Space, Select } from 'antd'
 import { EyeOutlined, PlusOutlined, GlobalOutlined, ArrowLeftOutlined, CheckCircleOutlined, CloseCircleOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { useRouter } from 'solito/navigation'
 import { searchFlashcardTopics, createFlashcardTopic, approveTopic, rejectTopic } from '../../api/index.js'
@@ -53,7 +53,6 @@ export function FlashcardTopicManagement({ initialData = null }) {
     pageSize: 20,
     total: 0,
   })
-  const [pendingCount, setPendingCount] = useState(0)
   const [approvalModalOpen, setApprovalModalOpen] = useState(false)
   const [approvalLoading, setApprovalLoading] = useState(false)
   const [topicIdForApproval, setTopicIdForApproval] = useState(null)
@@ -87,21 +86,6 @@ export function FlashcardTopicManagement({ initialData = null }) {
     []
   )
 
-  // Load số lượng items cần duyệt
-  const loadPendingCount = useCallback(async () => {
-    try {
-      const result = await searchFlashcardTopics({
-        pageNumber: 1,
-        pageSize: 1,
-        status: 3,
-      })
-      setPendingCount(result.totalCount || 0)
-    } catch (error) {
-      console.error('Error loading pending count:', error)
-      setPendingCount(0)
-    }
-  }, [])
-
   useEffect(() => {
     // Chỉ dùng initialData khi mount lần đầu và không có search/filter
     if (initialData && Array.isArray(initialData) && initialData.length > 0 && !searchTerm && level === null && status === 'all') {
@@ -114,8 +98,6 @@ export function FlashcardTopicManagement({ initialData = null }) {
       // Có search hoặc filter, load từ API
       loadData(1, pagination.pageSize, searchTerm, level, status)
     }
-    // Load số lượng pending khi component mount
-    loadPendingCount()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData])
 
@@ -146,16 +128,6 @@ export function FlashcardTopicManagement({ initialData = null }) {
   }, [level, status])
 
   // Cập nhật pending count khi load data với status = 3
-  useEffect(() => {
-    if (status === 3 && pagination.total > 0) {
-      setPendingCount(pagination.total)
-    } else if (status !== 3) {
-      // Refresh pending count khi không ở chế độ pending
-      loadPendingCount()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, pagination.total])
-
   const handleTableChange = (newPagination) => {
     loadData(newPagination.current, newPagination.pageSize, searchTerm, level, status)
   }
@@ -169,10 +141,6 @@ export function FlashcardTopicManagement({ initialData = null }) {
       setData((prev) => [newTopic, ...prev])
       
       // Refresh pending count nếu topic mới có status = 3
-      if (newTopic?.status === 3) {
-        loadPendingCount()
-      }
-      
       showAdminSuccess('Đã tạo chủ đề flashcard thành công')
       setCreateModalOpen(false)
     } catch (err) {
@@ -260,7 +228,18 @@ export function FlashcardTopicManagement({ initialData = null }) {
         (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     { title: 'Tiêu đề', dataIndex: 'title', key: 'title',width: 200 },
-    { title: 'Mô tả', dataIndex: 'subtitle', key: 'subtitle',width: 200 },
+    {
+      title: 'Mô tả',
+      dataIndex: 'subtitle',
+      key: 'subtitle',
+      width: 250,
+      render: (text) => {
+        if (text && text.length > 100) {
+          return `${text.substring(0, 100)}...`;
+        }
+        return text;
+      },
+    },
     { title: 'Level', dataIndex: 'level', key: 'level', width: 120 },
     {
       title: 'Trạng thái',
@@ -418,43 +397,38 @@ export function FlashcardTopicManagement({ initialData = null }) {
     {
       label: 'Import',
       icon: <UploadOutlined />,
+      type: 'dashed',
       onPress: () => showAdminSuccess('Tính năng Import sắp ra mắt'),
     },
     {
       label: 'Export',
       icon: <DownloadOutlined />,
+      type: 'dashed',
       onPress: () => showAdminSuccess('Đang xuất dữ liệu...'),
     },
     status === 3
       ? {
           label: 'Trở về danh sách',
           icon: <ArrowLeftOutlined />,
-          style: { backgroundColor: '#1890ff', borderColor: '#1890ff' },
+          // style: { backgroundColor: '#1890ff', borderColor: '#1890ff' },
+          type: 'default',
           onPress: handleBackToList,
         }
       : {
-          label: 'Danh sách cần duyệt',
-          icon: (
-            <Badge
-              dot={pendingCount >= 1}
-              offset={[-5, 5]}
-              styles={{
-                indicator: {
-                  border: 'none',
-                  boxShadow: 'none',
-                },
-              }}
-            >
-              <span style={{ width: 16, height: 16, display: 'inline-block' }} />
-            </Badge>
-          ),
-          style: { backgroundColor: '#1890ff', borderColor: '#1890ff' },
-          onPress: handleShowPendingApproval,
-        },
+        label: (
+          <Space>
+            Danh sách cần duyệt
+            {/* <Badge count={pendingCount} size="small" offset={[5, -2]} /> */}
+          </Space>
+        ),
+        icon: <CheckCircleOutlined />,
+        type: 'primary',
+        onPress: handleShowPendingApproval,
+      },
     currentPortal !== 'moderator' && {
       label: 'Thêm chủ đề',
       icon: <PlusOutlined />,
-      style: { backgroundColor: '#F1BE4B', borderColor: '#F1BE4B', color: '#111' },
+      // style: { backgroundColor: '#F1BE4B', borderColor: '#F1BE4B', color: '#111' },
       onPress: () => setCreateModalOpen(true),
     },
   ].filter(Boolean)
@@ -503,7 +477,6 @@ export function FlashcardTopicManagement({ initialData = null }) {
           columns,
           dataSource: data,
           loading,
-          onRowClick: (record) => setDrawerItem(record),
           pagination: {
             current: pagination.current,
             pageSize: pagination.pageSize,
