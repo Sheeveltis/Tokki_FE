@@ -19,6 +19,8 @@ const MEDIA_TYPE_LABEL = {
 
 export function PassageList() {
   const [data, setData] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
@@ -70,7 +72,7 @@ export function PassageList() {
         key: 'stt',
         align: 'center',
         width: 80,
-        render: (_value, _record, index) => index + 1,
+        render: (_value, _record, index) => (currentPage - 1) * pageSize + index + 1,
       },
       {
         title: 'Tiêu đề',
@@ -192,55 +194,51 @@ export function PassageList() {
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 12 }}>
-        <div>
-          <Title level={3} style={{ marginBottom: 4 }}>Quản lí Passage</Title>
-          <Text type="secondary">Danh sách đoạn văn (Passages)</Text>
-        </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          style={{ minWidth: 140 }}
-          onClick={() => setCreateOpen(true)}
-        >
-          Thêm Passage
-        </Button>
-      </div>
-
       <Card>
-        <Space wrap style={{ width: '100%' }}>
-          <Input
-            placeholder="Tìm theo SearchTerm"
-            value={filters.searchTerm}
-            onChange={(e) => setFilters((p) => ({ ...p, searchTerm: e.target.value }))}
-            style={{ width: 260 }}
-            allowClear
-          />
+        <Space wrap style={{ width: '100%', justifyContent: 'space-between' }}>
+          <Space wrap>
+            <Input
+              placeholder="Tìm theo SearchTerm"
+              value={filters.searchTerm}
+              onChange={(e) => setFilters((p) => ({ ...p, searchTerm: e.target.value }))}
+              style={{ width: 260 }}
+              allowClear
+            />
 
-          <Select
-            placeholder="MediaType"
-            value={filters.mediaType}
-            onChange={(v) => setFilters((p) => ({ ...p, mediaType: v }))}
-            style={{ width: 180 }}
-            allowClear
-            options={[
-              { value: 0, label: 'Văn bản' },
-              { value: 1, label: 'Hình ảnh' },
-              { value: 2, label: 'Audio' },
-            ]}
-          />
+            <Select
+              placeholder="MediaType"
+              value={filters.mediaType}
+              onChange={(v) => setFilters((p) => ({ ...p, mediaType: v }))}
+              style={{ width: 180 }}
+              allowClear
+              options={[
+                { value: 0, label: 'Văn bản' },
+                { value: 1, label: 'Hình ảnh' },
+                { value: 2, label: 'Audio' },
+              ]}
+            />
 
-          <Select
-            placeholder="Status"
-            value={filters.status}
-            onChange={(v) => setFilters((p) => ({ ...p, status: v }))}
-            style={{ width: 180 }}
-            allowClear
-            options={[
-              { value: 1, label: 'Đang hoạt động' },
-              { value: 2, label: 'Đã ẩn' },
-            ]}
-          />
+            <Select
+              placeholder="Status"
+              value={filters.status}
+              onChange={(v) => setFilters((p) => ({ ...p, status: v }))}
+              style={{ width: 180 }}
+              allowClear
+              options={[
+                { value: 1, label: 'Đang hoạt động' },
+                { value: 2, label: 'Đã ẩn' },
+              ]}
+            />
+          </Space>
+
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            style={{ minWidth: 140 }}
+            onClick={() => setCreateOpen(true)}
+          >
+            Thêm Passage
+          </Button>
         </Space>
       </Card>
 
@@ -256,8 +254,17 @@ export function PassageList() {
             rowKey="passageId"
             columns={columns}
             dataSource={data}
-            pagination={{ pageSize: 10 }}
-            scroll={{ x: 1100 }}
+            pagination={{
+              current: currentPage,
+              pageSize,
+              showSizeChanger: true,
+              pageSizeOptions: ['10', '20', '50', '100'],
+              onChange: (page, size) => {
+                setCurrentPage(page)
+                setPageSize(size)
+              },
+            }}
+            scroll={{ x: 1100, y: 'calc(100vh - 290px)' }}
           />
         )}
       </Card>
