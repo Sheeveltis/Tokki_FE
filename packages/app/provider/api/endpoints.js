@@ -280,6 +280,7 @@ export const ENDPOINTS = {
       IS_GRADED: (userExamId) => `/UserExam/${encodeURIComponent(userExamId)}/is-graded`,
       ANALYSIS: (userExamId) => `/UserExam/${encodeURIComponent(userExamId)}/analysis`,
       HISTORY: '/UserExam/user/history',
+      PRACTICE_QUESTIONS: (questionTypeId, quantity = 10) => `/UserExam/${encodeURIComponent(questionTypeId)}?quantity=${quantity}`,
     },
     ROADMAP: {
       DURATION_RECOMMENDATION: '/Roadmap/duration-recommendation',
@@ -287,6 +288,7 @@ export const ENDPOINTS = {
       GENERATE: '/Roadmap/generate',
       CURRENT: '/Roadmap/current',
       TASK_DETAIL: (taskId) => `/Roadmap/task/${encodeURIComponent(taskId)}/detail`,
+      COMPLETE: '/Roadmap/complete',
     },
     SYSTEM_CONFIGS: {
       GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,
