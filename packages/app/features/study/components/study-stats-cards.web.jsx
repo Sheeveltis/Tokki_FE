@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, Image } from 'react-native'
+import { View, Text, StyleSheet, Image, Platform } from 'react-native'
 import { colors } from '../../../color'
 import { normalizeImageSource } from '../api'
 
@@ -59,10 +59,9 @@ const styles = StyleSheet.create({
     borderColor: '#6DAB1D', // 100% opacity
     minWidth: 200,
     position: 'relative',
-    shadowColor: '#00000010',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+    }),
   },
   streakCard: {
     backgroundColor: '#F48FB180', // #F48FB1 với opacity 50%
@@ -73,10 +72,9 @@ const styles = StyleSheet.create({
     borderColor: '#F48FB1', // 100% opacity
     minWidth: 200,
     position: 'relative',
-    shadowColor: '#00000010',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+    }),
   },
   starsContainer: {
     position: 'absolute',

@@ -32,29 +32,28 @@ export function RoadmapTestButton({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#FFE7A5',
-    borderRadius: 12,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 14,
     paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 120,
   },
   buttonPressed: {
     transform: [{ scale: 0.98 }],
-    opacity: 0.9,
+    backgroundColor: '#EAEAEA',
   },
   buttonDisabled: {
     opacity: 0.5,
   },
   buttonText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#1C1C1C',
+    color: '#666',
     fontFamily: 'Epilogue, sans-serif',
   },
   buttonTextDisabled: {
-    opacity: 0.6,
+    color: '#999',
   },
   contentRow: {
     flexDirection: 'row',

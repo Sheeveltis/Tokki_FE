@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 export function RoadmapTestDashboard({
   totalQuestions = 8, // dùng cho fallback
@@ -48,8 +48,12 @@ export function RoadmapTestDashboard({
         </Text>
       </View>
 
-      {/* Questions Grid */}
-      <View style={styles.questionsContainer}>
+      {/* Questions Grid with ScrollView */}
+      <ScrollView
+        contentContainerStyle={styles.questionsContainer}
+        showsVerticalScrollIndicator={false}
+        style={styles.scrollArea}
+      >
         {questionsOnPage.map((questionNum) => (
           <Pressable
             key={questionNum}
@@ -58,17 +62,17 @@ export function RoadmapTestDashboard({
               styles.questionBox,
               currentQuestion === questionNum && styles.questionBoxActive,
               currentQuestion !== questionNum &&
-                answers?.[questionNum] !== undefined &&
-                answers?.[questionNum] !== null &&
-                (typeof answers?.[questionNum] === 'number'
-                  ? answers?.[questionNum] > 0
-                  : typeof answers?.[questionNum] === 'string'
+              answers?.[questionNum] !== undefined &&
+              answers?.[questionNum] !== null &&
+              (typeof answers?.[questionNum] === 'number'
+                ? answers?.[questionNum] > 0
+                : typeof answers?.[questionNum] === 'string'
                   ? String(answers?.[questionNum]).trim().length > 0
                   : typeof answers?.[questionNum] === 'object'
-                  ? String(answers?.[questionNum]?.a || '').trim().length > 0 ||
+                    ? String(answers?.[questionNum]?.a || '').trim().length > 0 ||
                     String(answers?.[questionNum]?.b || '').trim().length > 0
-                  : false) &&
-                styles.questionBoxAnswered,
+                    : false) &&
+              styles.questionBoxAnswered,
             ]}
           >
             <Text
@@ -81,7 +85,7 @@ export function RoadmapTestDashboard({
             </Text>
           </Pressable>
         ))}
-      </View>
+      </ScrollView>
 
       {/* Navigation, Save and Submit */}
       <View style={styles.bottomSection}>
@@ -121,150 +125,127 @@ export function RoadmapTestDashboard({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F0DD',
-    paddingVertical: 20,
-    paddingHorizontal: 24,
-    gap: 24,
-    maxWidth: 600,
-    alignSelf: 'center',
-    borderRadius: 30,
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    gap: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
+    }),
   },
   header: {
-    gap: 6,
-    alignItems: 'center',
-    paddingVertical: 6,
+    gap: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+    paddingBottom: 12,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#1C1C1C',
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#4A4A4A',
+    color: '#999',
     fontFamily: 'Epilogue, sans-serif',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  scrollArea: {
+    flex: 1,
   },
   questionsContainer: {
-    width: 288, // Cố định width cho 5 ô: (5 * 48px) + (4 * 12px gap) = 240 + 48 = 288px
     flexDirection: 'row',
     flexWrap: 'wrap',
-    columnGap: 12,
-    rowGap: 12,
+    gap: 8,
     justifyContent: 'flex-start',
+    paddingVertical: 4,
   },
   questionBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 60,
+    height: 60,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF', // chưa làm
+    backgroundColor: '#F9FAFB',
     borderWidth: 1,
-    borderColor: '#E8E0C8',
+    borderColor: '#F3F4F6',
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.2s ease',
+    }),
   },
   questionBoxAnswered: {
-    backgroundColor: '#F6B4C3', // hồng - đã làm
-    borderColor: '#E99AAF',
+    backgroundColor: '#E6FFFA',
+    borderColor: '#B2F5EA',
   },
   questionBoxActive: {
-    backgroundColor: '#FFE7A5', // vàng - đang chọn
-    borderColor: '#E8C96A',
+    backgroundColor: '#F1BE4B',
+    borderColor: '#F1BE4B',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 4px rgba(0,0,0,0.1)',
+    }),
   },
   questionNumber: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#1C1C1C',
+    color: '#999',
     fontFamily: 'Epilogue, sans-serif',
   },
   questionNumberActive: {
-    color: '#1C1C1C',
+    color: '#FFFFFF',
   },
   bottomSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    paddingTop: 8,
-    width: '100%',
-  },
-  pageIndicatorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  pageIndicator: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  arrowButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  arrowText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
+    gap: 10,
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#F5F5F5',
+    paddingTop: 12,
   },
   saveButton: {
-    backgroundColor: '#F8C2A1',
-    flex: 1,
-    maxWidth: 200,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 100,
+    backgroundColor: '#F5F5F5',
+    paddingVertical: 12,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
   },
   saveButtonPressed: {
     transform: [{ scale: 0.98 }],
     opacity: 0.9,
   },
   saveButtonDisabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   saveButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#666',
     fontFamily: 'Epilogue, sans-serif',
   },
   submitButton: {
-    backgroundColor: '#E8B4B8',
-    flex: 1,
-    maxWidth: 200,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 100,
+    backgroundColor: '#F1BE4B',
+    paddingVertical: 12,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
+    }),
   },
   submitButtonPressed: {
     transform: [{ scale: 0.98 }],
     opacity: 0.9,
   },
   submitButtonDisabled: {
-    opacity: 0.7,
+    opacity: 0.5,
   },
   submitButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '800',
     color: '#FFFFFF',
     fontFamily: 'Epilogue, sans-serif',
   },
 })
-

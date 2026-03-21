@@ -106,7 +106,7 @@ const gradeTopikWriting = async (sectionsSnapshot) => {
         const raw = q.rawQuestion
         const questionTypeCode =
           q.questionTypeCode || raw.questionTypeCode || raw.questionType?.code
-        
+
         // Chỉ xử lý các câu Q51, Q52, Q53, Q54
         const code = questionTypeCode ? String(questionTypeCode).slice(-3).toUpperCase() : ''
         if (!['Q51', 'Q52', 'Q53', 'Q54'].includes(code)) return
@@ -247,11 +247,11 @@ const mapExamToSections = (examData) => {
     sectionArray.forEach((p) => {
       // Xử lý cấu trúc mới: questionGroups với sharedMediaUrl/sharedMediaType
       const questionGroups = p.questionGroups || []
-      
+
       questionGroups.forEach((group) => {
         const sharedMediaUrl = group.sharedMediaUrl
         const sharedMediaType = (group.sharedMediaType || '').toLowerCase()
-        
+
         // Xác định type dựa trên defaultType (ưu tiên) hoặc sharedMediaType
         // Nếu defaultType là 'writing', luôn giữ là 'writing' (có thể có image kèm theo)
         let type = defaultType
@@ -266,7 +266,7 @@ const mapExamToSections = (examData) => {
         }
 
         // Duyệt qua các câu hỏi trong group
-        ;(group.questions || []).forEach((q) => {
+        ; (group.questions || []).forEach((q) => {
           const options = (q.options || []).map((opt) => ({
             content: opt.content || '',
             imageUrl: opt.imageUrl || null,
@@ -292,13 +292,13 @@ const mapExamToSections = (examData) => {
 
       // Fallback: nếu không có questionGroups, thử dùng questions trực tiếp (backward compatibility)
       if (questionGroups.length === 0 && p.questions) {
-        ;(p.questions || []).forEach((q) => {
+        ; (p.questions || []).forEach((q) => {
           const options = (q.options || []).map((opt) => ({
             content: opt.content || '',
             imageUrl: opt.imageUrl || null,
           }))
           const mediaType = (q.mediaType || '').toLowerCase()
-          
+
           // Xác định type dựa trên defaultType (ưu tiên) hoặc mediaType
           // Nếu defaultType là 'writing', luôn giữ là 'writing' (có thể có image kèm theo)
           let type = defaultType
@@ -465,15 +465,15 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         setActiveSectionKey(mappedSections[0]?.key || null)
         setTotalQuestions(
           examData.totalQuestions ||
-            mappedSections.reduce((sum, s) => sum + s.questions.length, 0)
+          mappedSections.reduce((sum, s) => sum + s.questions.length, 0)
         )
 
         const totalSeconds =
           typeof examData.timeRemaining === 'number' && examData.timeRemaining > 0
             ? examData.timeRemaining
             : examData.duration
-            ? examData.duration * 60
-            : getTestConfig(level).totalTime
+              ? examData.duration * 60
+              : getTestConfig(level).totalTime
 
         setTimeRemainingSeconds(totalSeconds)
         setTimeRemaining(formatTime(totalSeconds))
@@ -483,10 +483,10 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         setAnswers(restoredAnswers)
         setExamTitle(
           examData.title ||
-            examData.examTitle ||
-            takeExamResult?.title ||
-            takeExamResult?.examTitle ||
-            ''
+          examData.examTitle ||
+          takeExamResult?.title ||
+          takeExamResult?.examTitle ||
+          ''
         )
       } catch (error) {
         console.error('Failed to load exam from API, fallback to mock:', error)
@@ -1183,78 +1183,76 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFEFE1',
-    paddingVertical: 32,
-    paddingHorizontal: 24,
+    backgroundColor: '#FAF9F6',
     alignItems: 'center',
-    minHeight: '100vh',
+    height: '100vh',
+    overflow: 'hidden',
   },
   innerWrapper: {
-    width: '80%',
-    maxWidth: 1200,
-    backgroundColor: '#FDF7EC',
+    width: '98%',
+    maxWidth: 1400,
+    flex: 1,
+    backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    paddingHorizontal: 32,
-    paddingVertical: 24,
-    gap: 16,
+    marginVertical: 12,
+    padding: 20,
+    gap: 12,
     position: 'relative',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 10px 40px rgba(0,0,0,0.05)',
+      display: 'flex',
+      flexDirection: 'column',
+    }),
   },
   headerCloseButton: {
     position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FFF2CC',
+    top: 16,
+    right: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F5F5F5',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 100,
   },
-  headerCloseButtonPressed: {
-    opacity: 0.7,
-    backgroundColor: 'rgba(0,0,0,0.1)',
-  },
   headerCloseButtonText: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '300',
-    color: '#1C1C1C',
-    lineHeight: 28,
-    fontFamily: 'Epilogue, sans-serif',
+    color: '#666',
+    lineHeight: 22,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
-    columnGap: 16,
+    gap: 16,
   },
   headerTextBlock: {
     flex: 1,
     gap: 4,
   },
   instructionBox: {
-    backgroundColor: '#FFF3E6',
+    backgroundColor: '#F8F9FF',
     borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    padding: 12,
     borderWidth: 1,
-    borderColor: '#F5D6BE',
+    borderColor: '#E8EFFF',
   },
   instructionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1C1C1C',
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#2A2A2A',
     fontFamily: 'Epilogue, sans-serif',
-    lineHeight: 22,
   },
   instructionSubtitle: {
-    marginTop: 6,
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#4B4B4B',
+    marginTop: 4,
+    fontSize: 13,
+    color: '#666',
     fontFamily: 'Epilogue, sans-serif',
-    lineHeight: 20,
+    fontWeight: '500',
   },
   examTitleRow: {
     flexDirection: 'row',
@@ -1262,246 +1260,213 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   examChip: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FFE0B3',
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#FFF2CC',
     alignItems: 'center',
     justifyContent: 'center',
   },
   examChipIcon: {
-    width: 26,
-    height: 26,
+    width: 20,
+    height: 20,
   },
   examTitleText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1C1C1C',
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
   },
   examSubtitleText: {
-    fontSize: 14,
-    color: '#5F5F5F',
-    fontFamily: 'Epilogue, sans-serif',
+    fontSize: 12,
+    color: '#888',
+    fontWeight: '500',
   },
   headerRightSection: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingRight: 40, // Tạo không gian cho nút X
+    paddingRight: 40,
   },
   timerBox: {
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 16,
-    borderRadius: 16,
-    backgroundColor: '#FFF2CC',
+    borderRadius: 14,
+    backgroundColor: '#F1BE4B',
     alignItems: 'center',
-    minWidth: 150,
+    minWidth: 130,
   },
   timerLabel: {
-    fontSize: 12,
-    color: '#5F5F5F',
-    marginBottom: 2,
-    textAlign: 'center',
+    fontSize: 9,
+    color: '#1A1A1A',
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   timerValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1C1C1C',
-    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
-  sectionTabsRow: {
+  contentRow: {
+    flex: 1,
     flexDirection: 'row',
-    // gap: 8,
-    marginBottom: 8,
-    width: '100%',
-    justifyContent: 'space-between',
+    gap: 20,
+    overflow: 'hidden',
+  },
+  questionContainer: {
+    flex: 1.4,
+    gap: 16,
+    ...(Platform.OS === 'web' && {
+      overflowY: 'auto',
+      paddingRight: 8,
+    }),
+  },
+  dashboardContainer: {
+    flex: 0.6,
+    minWidth: 340,
+    gap: 12,
+    height: '100%',
+    ...(Platform.OS === 'web' && {
+      display: 'flex',
+      flexDirection: 'column',
+    }),
   },
   dashboardHeaderTabs: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 16,
-    justifyContent: 'space-between',
-    width: '10%',
-  },
-  dashboardNavigationButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 16,
-    marginTop: 16,
-    paddingHorizontal: 32,
+    gap: 8,
+    width: '100%',
   },
   sectionTab: {
     flex: 1,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 100,
-    backgroundColor: '#FFF4DA',
+    borderRadius: 10,
+    backgroundColor: '#F5F5F5',
     alignItems: 'center',
   },
   sectionTabActive: {
-    backgroundColor: '#F8C2A1',
-  },
-  contentRow: {
-    flexDirection: 'row',
-    gap: 24,
-    alignItems: 'flex-start',
-  },
-  questionContainer: {
-    flex: 1,
-    gap: 16,
-    marginTop: 4,
-  },
-  backHome: {
-    alignSelf: 'flex-start',
-    marginRight: 12,
+    backgroundColor: '#FFE5B3',
+    borderColor: '#FFC107',
+    borderWidth: 1,
   },
   navigationButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 24,
-    marginTop: 8,
+    gap: 12,
+    marginTop: 'auto',
+  },
+  dashboardNavigationButtons: {
+    marginTop: 12,
   },
   navButtonLeft: {
-    alignSelf: 'flex-start',
-    minWidth: 140,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 100,
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#F1BE4B',
   },
   navButtonRight: {
-    alignSelf: 'flex-end',
-    minWidth: 140,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 100,
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#F1BE4B',
   },
   navButtonIcon: {
     fontSize: 16,
-    color: '#1C1C1C',
-  },
-  dashboardContainer: {
-    width: 380,
+    color: '#FFFFFF',
   },
   confirmOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 24,
+    ...(Platform.OS === 'web' && {
+      backdropFilter: 'blur(8px)',
+    }),
   },
   confirmModal: {
-    backgroundColor: '#FDF7EC',
+    backgroundColor: '#FFFFFF',
     borderRadius: 24,
     padding: 24,
     width: '100%',
-    maxWidth: 520,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.08)',
-    position: 'relative',
-    ...(Platform.OS === 'web' && { boxShadow: '0px 10px 28px rgba(0,0,0,0.25)' }),
+    maxWidth: 440,
+    gap: 16,
   },
   closeButton: {
     position: 'absolute',
     top: 16,
     right: 16,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#F5F5F5',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 10,
-  },
-  closeButtonPressed: {
-    opacity: 0.7,
-    backgroundColor: 'rgba(0,0,0,0.1)',
-  },
-  closeButtonText: {
-    fontSize: 24,
-    fontWeight: '300',
-    color: '#1C1C1C',
-    lineHeight: 24,
-    fontFamily: 'Epilogue, sans-serif',
   },
   confirmTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1C1C1C',
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#F1BE4B',
     textAlign: 'center',
-    marginBottom: 10,
-    fontFamily: 'Epilogue, sans-serif',
   },
   confirmMessage: {
-    fontSize: 15,
-    color: '#1C1C1C',
-    lineHeight: 22,
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
     textAlign: 'center',
-    marginBottom: 18,
-    fontFamily: 'Epilogue, sans-serif',
+    fontWeight: '500',
   },
   confirmActions: {
     flexDirection: 'row',
-    justifyContent: 'center',
     gap: 12,
   },
   confirmButton: {
-    minWidth: 140,
+    flex: 1,
     paddingVertical: 12,
-    paddingHorizontal: 18,
     borderRadius: 12,
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  confirmButtonPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.99 }],
   },
   confirmButtonCancel: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.15)',
+    backgroundColor: '#F5F5F5',
   },
   confirmButtonOk: {
-    backgroundColor: '#E8B4B8',
+    backgroundColor: '#F1BE4B',
   },
   confirmButtonCancelText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
-    color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
+    color: '#666',
   },
   confirmButtonOkText: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '800',
     color: '#FFFFFF',
-    fontFamily: 'Epilogue, sans-serif',
   },
   carrot: {
     position: 'absolute',
-    top: 24,
-    right: 80,
-    width: 120,
-    height: 70,
-    zIndex: 10,
+    bottom: 12,
+    right: 20,
+    width: 60,
+    height: 40,
+    opacity: 0.5,
   },
   loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 12,
   },
   loadingText: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
+    color: '#666',
   },
   loadErrorText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#E65100',
-    fontFamily: 'Epilogue, sans-serif',
   },
 })
+
 
