@@ -270,10 +270,14 @@ const styles = StyleSheet.create({
     overflow: 'visible',
     borderBottomWidth: 1,
     borderBottomColor: '#EFE8D2',
-    shadowColor: '#8D7A4B',
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+    ...(Platform.OS === 'web' 
+      ? { boxShadow: '0 4px 10px rgba(141, 122, 75, 0.08)' } 
+      : {
+          shadowColor: '#8D7A4B',
+          shadowOpacity: 0.08,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 4 },
+        }),
     elevation: 3,
   },
   bgImage: {
@@ -467,10 +471,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFDF6',
     borderRadius: 14,
     padding: 10,
-    shadowColor: '#4F3B1D',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 14,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 6px 14px rgba(79, 59, 29, 0.15)' }
+      : {
+          shadowColor: '#4F3B1D',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.15,
+          shadowRadius: 14,
+        }),
     elevation: 8,
     zIndex: 1500,
     borderWidth: 1,
