@@ -1,16 +1,16 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, Image, Pressable, ActivityIndicator, ScrollView } from 'react-native'
-import { useRouter, useSearchParams } from 'solito/navigation'
+import React from 'react'
+import { View, Text, StyleSheet, Image, ActivityIndicator, ScrollView } from 'react-native'
+import { useRouter } from 'solito/navigation'
 import { Navbar } from '../../../../../components/navbar'
 
 import GameCardIcon from '../../../../../assets/icon/icon-mainflow/game-card.svg'
 import { NavigationPill } from 'components/navigation-pill'
 import { MinigameBanner } from './minigame-banner'
 import { MinigameGameCard } from './minigame-game-card'
-import { getUserGames } from '../../api/api'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
+import { useMinigameGames } from '../../hooks/use-minigame-games'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -22,100 +22,13 @@ const normalizeImageSource = (src) => {
 
 export function MinigameLayout() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const levelId = searchParams?.get('level') || ''
-  
-  const [games, setGames] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  // Fetch games from API
-  useEffect(() => {
-    const fetchGames = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        const response = await getUserGames(1, 10)
-        
-        if (response.isSuccess && response.data?.items) {
-          setGames(response.data.items)
-        } else {
-          setError('Không thể tải danh sách game')
-        }
-      } catch (err) {
-        console.error('[MinigameLayout] Error fetching games:', err)
-        setError('Đã xảy ra lỗi khi tải danh sách game')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchGames()
-  }, [])
-
-  const goToMatchingCardRule = (gameId) => {
-    const query = new URLSearchParams()
-    if (levelId) {
-      query.set('level', levelId)
-    }
-    if (gameId) {
-      query.set('gameId', gameId)
-    }
-    const url =
-      query.toString().length > 0
-        ? `/minigame/matching-card/matching-card-rule?${query.toString()}`
-        : '/minigame/matching-card/matching-card-rule'
-    router.push(url)
-  }
-
-  const goToSolitareRule = (gameId) => {
-    const query = new URLSearchParams()
-    if (levelId) {
-      query.set('level', levelId)
-    }
-    if (gameId) {
-      query.set('gameId', gameId)
-    }
-    const url =
-      query.toString().length > 0
-        ? `/minigame/solitare/solitare-rule?${query.toString()}`
-        : '/minigame/solitare/solitare-rule'
-    router.push(url)
-  }
-
-  const goToWordleRule = (gameId) => {
-    const query = new URLSearchParams()
-    if (levelId) {
-      query.set('level', levelId)
-    }
-    if (gameId) {
-      query.set('gameId', gameId)
-    }
-    const url =
-      query.toString().length > 0
-        ? `/minigame/wordle/wordle-rule?${query.toString()}`
-        : '/minigame/wordle/wordle-rule'
-    router.push(url)
-  }
-
-  const handleGamePress = (game) => {
-    // Route based on gameType
-    // 1 = Matching Card, 2 = Solitaire, 3 = Typing Practice (Wordle)
-    if (game.gameType === 1) {
-      goToMatchingCardRule(game.gameId)
-    } else if (game.gameType === 2) {
-      goToSolitareRule(game.gameId)
-    } else if (game.gameType === 3) {
-      goToWordleRule(game.gameId)
-    }
-  }
+  const { games, loading, error, handleGamePress } = useMinigameGames()
 
   return (
     <View style={styles.page}>
       <Navbar />
 
       <View style={styles.inner}>
-
         <View style={styles.centerCardWrapper}>
           <View style={styles.centerCard}>
             <View style={styles.headerRow}>
@@ -158,17 +71,11 @@ export function MinigameLayout() {
                 <Text style={styles.emptyText}>Không có game nào khả dụng</Text>
               </View>
             ) : (
-              <ScrollView 
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.cardsContainer}
-              >
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.cardsContainer}>
                 <View style={styles.cardsRow}>
                   {games.map((game, index) => (
                     <View key={game.gameId || index} style={styles.cardCol}>
-                      <MinigameGameCard
-                        game={game}
-                        onPress={() => handleGamePress(game)}
-                      />
+                      <MinigameGameCard game={game} onPress={() => handleGamePress(game)} />
                     </View>
                   ))}
                 </View>
@@ -302,24 +209,6 @@ const styles = StyleSheet.create({
     color: '#666',
     fontFamily: 'Epilogue, sans-serif',
   },
-  soonTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  soonBody: {
-    height: 220,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  soonImage: {
-    width: '100%',
-    height: '100%',
-  },
-  cardPressable: {
-    width: '100%',
-  },
 })
 
-
+export default MinigameLayout
