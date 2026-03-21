@@ -58,6 +58,7 @@ const buildLessonsFromTasks = (tasks = [], hasWriting) =>
         tone: task.isCompleted ? 'primary' : config.tone,
         taskType: normalizedType,
         examId: task.examId,
+        isCompleted: task.isCompleted,
       }
     })
     .filter(Boolean)
@@ -117,7 +118,8 @@ export function RoadmapLearningDayList({ hasWriting, targetAim = 1, weeks = [], 
             <Text style={styles.lessonPanelTitle}>Nội dung học - Ngày {activeDay}</Text>
             <View style={styles.lessonColumn}>
               {activeDayLessons.map((lesson) => {
-                const targetPath = `/roadmap/learning/tips/${lesson.id}?level=${targetAim}`
+                const allTaskIds = activeDayLessons.map((l) => l.id).join(',')
+                const targetPath = `/roadmap/learning/tips/${lesson.id}?level=${targetAim}&roadmap=${allTaskIds}`
 
                 return (
                   <RoadmapLearningLessonCard
@@ -127,6 +129,7 @@ export function RoadmapLearningDayList({ hasWriting, targetAim = 1, weeks = [], 
                     subtitle={lesson.subtitle}
                     actionLabel={lesson.actionLabel}
                     tone={lesson.tone}
+                    isCompleted={lesson.isCompleted}
                     onPress={() => router.push(targetPath)}
                   />
                 )
