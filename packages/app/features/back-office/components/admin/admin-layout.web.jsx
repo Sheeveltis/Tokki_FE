@@ -244,13 +244,13 @@ export function AdminLayout({
                 </Popover>
               </div>
             </Layout.Header>
-            <Layout.Content style={{ margin: 16, height: 'calc(100vh - 96px)', overflow: 'hidden' }}>
+            <Layout.Content style={{ margin: 16, height: 'calc(100vh - 96px)', overflow: 'auto' }}>
               <div
                 style={{
                   background: '#fff',
                   padding: 16,
-                  height: '100%',
-                  overflow: 'hidden',
+                  minHeight: '100%',
+                  overflow: 'visible',
                   borderRadius: 8,
                 }}
               >
