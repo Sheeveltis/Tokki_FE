@@ -1,15 +1,16 @@
 'use client'
 
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
-import { Space, Select } from 'antd'
-import { EyeOutlined, PlusOutlined, GlobalOutlined, ArrowLeftOutlined, CheckCircleOutlined, CloseCircleOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
+import { Space, Select, Modal, InputNumber } from 'antd'
+import { EyeOutlined, EditOutlined, SwapOutlined, PlusOutlined, GlobalOutlined, ArrowLeftOutlined, CheckCircleOutlined, CloseCircleOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { useRouter } from 'solito/navigation'
-import { searchFlashcardTopics, createFlashcardTopic, approveTopic, rejectTopic } from '../../api/index.js'
+import { searchFlashcardTopics, createFlashcardTopic, approveTopic, rejectTopic, updateFlashcardTopic, uploadTopicImageToCloudinary, updateTopicOrderIndex } from '../../api/index.js'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
 import FlashcardTopicCreateModal from '../../components/admin/vocab-topic-management/vocab-topic-create-modal.jsx'
 import TopicApprovalModal from '../../components/admin/vocab-topic-detail/topic-approval-modal.jsx'
+import FlashcardTopicEditModal from '../../components/admin/vocab-topic-detail/vocab-topic-edit-modal.jsx'
 
 const { Option } = Select
 
@@ -46,7 +47,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [createLoading, setCreateLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [level, setLevel] = useState(null)
+  const [level, setLevel] = useState(1)
   const [status, setStatus] = useState(defaultStatus)
   const [pagination, setPagination] = useState({
     current: 1,
@@ -57,6 +58,13 @@ export function FlashcardTopicManagement({ initialData = null }) {
   const [approvalLoading, setApprovalLoading] = useState(false)
   const [topicIdForApproval, setTopicIdForApproval] = useState(null)
   const [approvalType, setApprovalType] = useState('approve') // 'approve' hoặc 'reject'
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editLoading, setEditLoading] = useState(false)
+  const [editingTopic, setEditingTopic] = useState(null)
+  const [orderModalOpen, setOrderModalOpen] = useState(false)
+  const [orderLoading, setOrderLoading] = useState(false)
+  const [orderTopic, setOrderTopic] = useState(null)
+  const [orderValue, setOrderValue] = useState(null)
   const searchTimeoutRef = useRef(null)
 
   const loadData = useCallback(
@@ -87,17 +95,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
   )
 
   useEffect(() => {
-    // Chỉ dùng initialData khi mount lần đầu và không có search/filter
-    if (initialData && Array.isArray(initialData) && initialData.length > 0 && !searchTerm && level === null && status === 'all') {
-      setData(initialData)
-      setPagination((prev) => ({
-        ...prev,
-        total: initialData.length,
-      }))
-    } else {
-      // Có search hoặc filter, load từ API
-      loadData(1, pagination.pageSize, searchTerm, level, status)
-    }
+    loadData(1, pagination.pageSize, searchTerm, level, status)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData])
 
@@ -199,7 +197,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
 
       // Reload lại danh sách sau khi phê duyệt
       await loadData(pagination.current, pagination.pageSize, searchTerm, level, status)
-      
+
       // Refresh pending count
       await loadPendingCount()
 
@@ -211,6 +209,104 @@ export function FlashcardTopicManagement({ initialData = null }) {
     } finally {
       setApprovalLoading(false)
     }
+  }
+
+  const handleOpenEditModal = (record, e) => {
+    e?.stopPropagation?.()
+    setEditingTopic(record)
+    setEditModalOpen(true)
+  }
+
+  const handleEditSubmit = async (values) => {
+    if (!editingTopic) return
+
+    try {
+      setEditLoading(true)
+      const topicId = editingTopic?.id || editingTopic?._raw?.topicId
+      if (!topicId) {
+        showAdminError('Không tìm thấy ID chủ đề')
+        return
+      }
+
+      if (!values?.topicName || !values?.description) {
+        showAdminError('Vui lòng nhập đầy đủ thông tin')
+        return
+      }
+
+      let imgUrl = values?.imgUrl || null
+      if (values?.imageFile) {
+        try {
+          imgUrl = await uploadTopicImageToCloudinary(values.imageFile)
+          if (!imgUrl) {
+            showAdminError('Không thể upload ảnh lên Cloudinary')
+            return
+          }
+        } catch (err) {
+          showAdminError(err?.message || 'Không thể upload ảnh lên Cloudinary')
+          return
+        }
+      }
+
+      const currentStatus = editingTopic?._raw?.status ?? editingTopic?.status ?? 1
+      const finalStatus = currentPortal === 'moderator' ? currentStatus : (values.status !== undefined ? values.status : currentStatus)
+
+      await updateFlashcardTopic(topicId, {
+        topicName: values.topicName || '',
+        description: values.description || '',
+        level: values.level || 1,
+        status: finalStatus,
+        imgUrl: imgUrl,
+      })
+
+      showAdminSuccess('Đã cập nhật chủ đề thành công')
+      setEditModalOpen(false)
+      setEditingTopic(null)
+      await loadData(pagination.current, pagination.pageSize, searchTerm, level, status)
+    } catch (err) {
+      if (err?.isSuccess === false || err?.errors) {
+        const errorMessage = err?.message || err?.errors?.[0]?.description || 'Cập nhật chủ đề thất bại'
+        showAdminError(errorMessage, err?.statusCode)
+      } else {
+        showAdminError(err?.message || 'Cập nhật chủ đề thất bại')
+      }
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
+  const handleUpdateOrderIndex = async (record, value) => {
+    const topicId = record?.id || record?.topicId || record?._raw?.topicId
+    const currentOrderIndex = record?.orderIndex ?? record?._raw?.orderIndex
+    const nextOrderIndex = Number(value)
+
+    if (!topicId || Number.isNaN(nextOrderIndex) || nextOrderIndex < 1) return
+    if (Number(currentOrderIndex) === nextOrderIndex) {
+      setOrderModalOpen(false)
+      setOrderTopic(null)
+      return
+    }
+
+    try {
+      setOrderLoading(true)
+      await updateTopicOrderIndex(topicId, nextOrderIndex)
+      showAdminSuccess('Cập nhật thứ tự chủ đề thành công')
+      setOrderModalOpen(false)
+      setOrderTopic(null)
+      setOrderValue(null)
+      await loadData(pagination.current, pagination.pageSize, searchTerm, level, status)
+    } catch (err) {
+      const errorMessage = err?.message || err?.errors?.[0]?.description || 'Không thể cập nhật thứ tự chủ đề'
+      showAdminError(errorMessage, err?.statusCode)
+    } finally {
+      setOrderLoading(false)
+    }
+  }
+
+  const handleOpenOrderIndexModal = (record, e) => {
+    e?.stopPropagation?.()
+    setOrderTopic(record)
+    setOrderValue(record?.orderIndex ?? record?._raw?.orderIndex ?? 1)
+    setOrderModalOpen(true)
   }
 
   // Tính toán portalPrefix một lần dựa trên currentPortal
@@ -240,7 +336,15 @@ export function FlashcardTopicManagement({ initialData = null }) {
         return text;
       },
     },
-    { title: 'Level', dataIndex: 'level', key: 'level', width: 120 },
+    { title: 'Level', dataIndex: 'level', key: 'level', width: 100 },
+    {
+      title: 'Thứ tự',
+      dataIndex: 'orderIndex',
+      key: 'orderIndex',
+      width: 100,
+      align: 'center',
+      render: (value, record) => value ?? record?._raw?.orderIndex ?? '-',
+    },
     {
       title: 'Trạng thái',
       dataIndex: 'status',
@@ -331,10 +435,56 @@ export function FlashcardTopicManagement({ initialData = null }) {
       title: 'Thao tác',
       key: 'actions',
       align: 'center',
-      width: 140,
+      width: 190,
       render: (_, record) => {
         return (
         <Space size="middle">
+          <div
+            onClick={(e) => handleOpenEditModal(record, e)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              padding: '4px 8px',
+              borderRadius: 4,
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#fffbe6'
+              e.currentTarget.style.transform = 'scale(1.1)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.transform = 'scale(1)'
+            }}
+            title="Chỉnh sửa"
+          >
+            <EditOutlined style={{ fontSize: 18, color: '#faad14', transition: 'color 0.2s ease' }} />
+          </div>
+          <div
+            onClick={(e) => handleOpenOrderIndexModal(record, e)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              padding: '4px 8px',
+              borderRadius: 4,
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#f9f0ff'
+              e.currentTarget.style.transform = 'scale(1.1)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.transform = 'scale(1)'
+            }}
+            title="Đổi vị trí"
+          >
+            <SwapOutlined style={{ fontSize: 18, color: '#722ed1', transition: 'color 0.2s ease' }} />
+          </div>
           <div
             onClick={(e) => {
               e?.stopPropagation?.()
@@ -448,9 +598,8 @@ export function FlashcardTopicManagement({ initialData = null }) {
             <Select
               placeholder="Chọn level"
               value={level}
-              onChange={setLevel}
+              onChange={(value) => setLevel(value || 1)}
               style={{ width: 150 }}
-              allowClear
             >
               {[1, 2, 3, 4, 5, 6].map((lvl) => (
                 <Option key={lvl} value={lvl}>
@@ -511,6 +660,73 @@ export function FlashcardTopicManagement({ initialData = null }) {
         }}
         onSubmit={handleApprovalSubmit}
       />
+      <FlashcardTopicEditModal
+        open={editModalOpen}
+        loading={editLoading}
+        initialValues={{
+          topicName: editingTopic?.title || editingTopic?._raw?.topicName || '',
+          description: editingTopic?.subtitle || editingTopic?._raw?.description || '',
+          level: editingTopic?.level ?? editingTopic?._raw?.level ?? 1,
+          status: editingTopic?._raw?.status ?? editingTopic?.status ?? 1,
+          imgUrl: editingTopic?.imgUrl || editingTopic?._raw?.imgUrl || '',
+        }}
+        onCancel={() => {
+          setEditModalOpen(false)
+          setEditingTopic(null)
+        }}
+        onSubmit={handleEditSubmit}
+        isModerator={currentPortal === 'moderator'}
+        isStaff={currentPortal === 'staff'}
+      />
+      <Modal
+        title="Đổi vị trí chủ đề"
+        open={orderModalOpen}
+        onOk={() => handleUpdateOrderIndex(orderTopic, orderValue)}
+        onCancel={() => {
+          setOrderModalOpen(false)
+          setOrderTopic(null)
+          setOrderValue(null)
+        }}
+        okText="Lưu"
+        cancelText="Hủy"
+        confirmLoading={orderLoading}
+        centered
+        width={420}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+            padding: '4px 0',
+          }}
+        >
+          <div
+            style={{
+              background: '#fafafa',
+              border: '1px solid #f0f0f0',
+              borderRadius: 8,
+              padding: '10px 12px',
+              fontSize: 13,
+              lineHeight: 1.5,
+            }}
+          >
+            <div style={{ color: '#8c8c8c', marginBottom: 4 }}>Chủ đề</div>
+            <div style={{ fontWeight: 600 }}>{orderTopic?.title || orderTopic?._raw?.topicName || '-'}</div>
+          </div>
+
+          <div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>Thứ tự mới</div>
+            <InputNumber
+              min={1}
+              value={orderValue}
+              onChange={(value) => setOrderValue(value)}
+              style={{ width: '100%' }}
+              placeholder="Nhập thứ tự mới"
+            />
+          </div>
+        </div>
+      </Modal>
     </>
   )
 }

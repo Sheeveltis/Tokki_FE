@@ -778,109 +778,109 @@ export function FlashcardTopicDetailScreen() {
     }
 
     return (
-      <div style={{ padding: 24 }}>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <Space style={{ justifyContent: 'space-between', width: '100%' }}>
-            <div>
-              <Title level={3} style={{ marginBottom: 4 }}>
-                Chi tiết chủ đề flashcard
-              </Title>
-              <Text type="secondary">ID: {detailTopic.id}</Text>
+      <div
+        style={{
+          height: '100%',
+          padding: 12,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+            minHeight: 0,
+            overflow: 'auto',
+            paddingRight: 4,
+          }}
+        >
+          <Card style={{ borderRadius: 10 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                gap: 12,
+                flexWrap: 'wrap',
+                padding: 4,
+              }}
+            >
+              <div>
+                <Title level={3} style={{ marginBottom: 2, marginTop: 0 }}>
+                  Chi tiết chủ đề flashcard
+                </Title>
+                <Text type="secondary">ID: {detailTopic.id}</Text>
+              </div>
+              <Space wrap size={[8, 8]}>
+                {(() => {
+                  const topicStatus = detailTopic?._raw?.status ?? detailTopic?.status
+                  const isDraft = topicStatus === 0
+                  const isActive = topicStatus === 1
+                  const isDeleted = topicStatus === 2
+                  const isRejected = topicStatus === 4
+                  const userRole = getCurrentUserRole()
+                  const isAdmin = userRole === 'Admin'
+                  const isStaff = userRole === 'Staff'
+                  const isModerator = userRole === 'Moderator'
+
+                  const cannotEditForStaffModerator = (isStaff || isModerator) && (isActive || isDeleted)
+
+                  const hasVocab =
+                    (typeof detailTopic?.vocabularyCount === 'number'
+                      ? detailTopic.vocabularyCount
+                      : Array.isArray(topicVocabIds)
+                      ? topicVocabIds.length
+                      : Array.isArray(topicVocabData)
+                      ? topicVocabData.length
+                      : 0) > 0
+
+                  const canSubmitForApproval = isStaff && (isDraft || isRejected) && hasVocab && !isDeleted
+
+                  return (
+                    <>
+                      <Button
+                        type="primary"
+                        onClick={() => setEditOpen(true)}
+                        disabled={isDeleted || editLoading || cannotEditForStaffModerator}
+                      >
+                        Chỉnh sửa
+                      </Button>
+                      {canSubmitForApproval && (
+                        <Button onClick={handleSubmitForApproval} disabled={submittingForApproval}>
+                          {submittingForApproval ? 'Đang gửi...' : 'Gửi chờ duyệt'}
+                        </Button>
+                      )}
+                      {!isDeleted && !isModerator && (
+                        <Button danger onClick={handleDelete} disabled={deleteLoading}>
+                          {deleteLoading ? 'Đang xóa...' : 'Xóa'}
+                        </Button>
+                      )}
+                      <Button
+                        onClick={() => {
+                          if (currentPortal === 'staff') {
+                            router.push('/staff?tab=vocabulary-topics')
+                          } else if (currentPortal === 'moderator') {
+                            router.push('/moderator?tab=approve-flashcard-topic')
+                          } else {
+                            router.push('/admin?tab=vocabulary-topics')
+                          }
+                        }}
+                      >
+                        Quay lại
+                      </Button>
+                    </>
+                  )
+                })()}
+              </Space>
             </div>
-            <Space>
-              {(() => {
-                const topicStatus = detailTopic?._raw?.status ?? detailTopic?.status
-                const isDraft = topicStatus === 0
-                const isActive = topicStatus === 1
-                const isDeleted = topicStatus === 2
-                const isRejected = topicStatus === 4
-                const userRole = getCurrentUserRole()
-                const isAdmin = userRole === 'Admin'
-                const isStaff = userRole === 'Staff'
-                const isModerator = userRole === 'Moderator'
-
-                const cannotEditForStaffModerator = (isStaff || isModerator) && (isActive || isDeleted)
-
-                const hasVocab =
-                  (typeof detailTopic?.vocabularyCount === 'number'
-                    ? detailTopic.vocabularyCount
-                    : Array.isArray(topicVocabIds)
-                    ? topicVocabIds.length
-                    : Array.isArray(topicVocabData)
-                    ? topicVocabData.length
-                    : 0) > 0
-
-                const canSubmitForApproval = isStaff && (isDraft || isRejected) && hasVocab && !isDeleted
-
-                return (
-                  <>
-                    <Button
-                      type="primary"
-                      onClick={() => setEditOpen(true)}
-                      disabled={isDeleted || editLoading || cannotEditForStaffModerator}
-                    >
-                      Chỉnh sửa
-                    </Button>
-                    {!isDeleted && isAdmin && (
-                      <Button onClick={() => setStatusChangeModalOpen(true)} disabled={statusChangeLoading}>
-                        Chuyển trạng thái
-                      </Button>
-                    )}
-                    {canSubmitForApproval && (
-                      <Button onClick={handleSubmitForApproval} disabled={submittingForApproval}>
-                        {submittingForApproval ? 'Đang gửi...' : 'Gửi chờ duyệt'}
-                      </Button>
-                    )}
-                    {!isDeleted && !isModerator && (
-                      <Button danger onClick={handleDelete} disabled={deleteLoading}>
-                        {deleteLoading ? 'Đang xóa...' : 'Xóa'}
-                      </Button>
-                    )}
-                    <Button
-                      onClick={() => {
-                        if (currentPortal === 'staff') {
-                          router.push('/staff?tab=vocabulary-topics')
-                        } else if (currentPortal === 'moderator') {
-                          router.push('/moderator?tab=approve-flashcard-topic')
-                        } else {
-                          router.push('/admin?tab=vocabulary-topics')
-                        }
-                      }}
-                    >
-                      Quay lại
-                    </Button>
-                  </>
-                )
-              })()}
-            </Space>
-          </Space>
+          </Card>
 
           <HelperAdmin response={apiResponse} />
-          <TopicInfoCard 
-            topic={detailTopic} 
-            isAdmin={(() => {
-              const userRole = getCurrentUserRole()
-              return userRole === 'Admin'
-            })()}
-            onApprove={() => handleOpenApprovalModal('approve')}
-            onReject={() => handleOpenApprovalModal('reject')}
-            approvalLoading={approvalLoading}
-          />
-          <FlashcardTopicEditModal
-            open={editOpen}
-            loading={editLoading}
-            initialValues={{
-              topicName: detailTopic?.title || detailTopic?._raw?.topicName || '',
-              description: detailTopic?.subtitle || detailTopic?._raw?.description || '',
-              level: detailTopic?.level ?? detailTopic?._raw?.level ?? 1,
-              status: detailTopic?._raw?.status ?? detailTopic?.status ?? 1,
-              imgUrl: detailTopic?.imgUrl || detailTopic?._raw?.imgUrl || '',
-            }}
-            onCancel={() => setEditOpen(false)}
-            onSubmit={handleUpdate}
-            isModerator={currentPortal === 'moderator'}
-            isStaff={currentPortal === 'staff'}
-          />
           <TopicVocabSection
             selecting={selecting}
             onSelectingChange={setSelecting}
@@ -904,6 +904,31 @@ export function FlashcardTopicDetailScreen() {
             onOpenGuide={() => setGuideModalOpen(true)}
             isModerator={currentPortal === 'moderator'}
             excelImportResult={excelImportResult}
+          />
+          <TopicInfoCard
+            topic={detailTopic}
+            isAdmin={(() => {
+              const userRole = getCurrentUserRole()
+              return userRole === 'Admin'
+            })()}
+            onApprove={() => handleOpenApprovalModal('approve')}
+            onReject={() => handleOpenApprovalModal('reject')}
+            approvalLoading={approvalLoading}
+          />
+          <FlashcardTopicEditModal
+            open={editOpen}
+            loading={editLoading}
+            initialValues={{
+              topicName: detailTopic?.title || detailTopic?._raw?.topicName || '',
+              description: detailTopic?.subtitle || detailTopic?._raw?.description || '',
+              level: detailTopic?.level ?? detailTopic?._raw?.level ?? 1,
+              status: detailTopic?._raw?.status ?? detailTopic?.status ?? 1,
+              imgUrl: detailTopic?.imgUrl || detailTopic?._raw?.imgUrl || '',
+            }}
+            onCancel={() => setEditOpen(false)}
+            onSubmit={handleUpdate}
+            isModerator={currentPortal === 'moderator'}
+            isStaff={currentPortal === 'staff'}
           />
           <QuickAddVocabularyModal
             open={quickAddModalOpen}
@@ -955,7 +980,7 @@ export function FlashcardTopicDetailScreen() {
             onCancel={() => setStatusChangeModalOpen(false)}
             onSubmit={handleStatusChange}
           />
-        </Space>
+        </div>
       </div>
     )
   })()
