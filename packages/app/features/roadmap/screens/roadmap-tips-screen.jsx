@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { RoadmapTipsLayout } from '../components/roadmap-practice-test/roadmap-tips-layout.web'
+import { RoadmapTipsLayout } from '../components/roadmap-tips/roadmap-tips-layout.web'
 import { apiClient } from '../../../provider/api/client'
 import { ENDPOINTS } from '../../../provider/api/endpoints'
 

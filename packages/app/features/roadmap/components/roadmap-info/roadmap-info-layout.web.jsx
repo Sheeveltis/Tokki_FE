@@ -1,9 +1,8 @@
 import React from 'react'
-import { Image, StyleSheet, View } from 'react-native'
+import { Image, StyleSheet, View, ScrollView } from 'react-native'
 
 import { Navbar } from '../../../../../components/navbar'
 import BunnyImage from '../../../../../assets/bunny/1.png'
-import CarrotGround from '../../../../../assets/carrot-ground.png'
 import { RoadmapInfo } from './roadmap-info'
 
 const normalizeImageSource = (src) => {
@@ -19,21 +18,18 @@ export function RoadmapInfoLayout({ onStart, initialLevel }) {
     <View style={styles.wrapper}>
       <Navbar />
 
-      <View style={styles.container}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.contentRow}>
-          <View style={styles.bunnyContainer}>
+          <View style={styles.bunnySection}>
+            <View style={styles.bunnyBackgroundCircle} />
             <Image source={normalizeImageSource(BunnyImage)} style={styles.bunnyImage} resizeMode="contain" />
           </View>
 
-          <View style={styles.infoContainer}>
+          <View style={styles.infoSection}>
             <RoadmapInfo onStart={onStart} initialLevel={initialLevel} />
           </View>
         </View>
-      </View>
-
-      <View style={styles.groundContainer}>
-        <Image source={normalizeImageSource(CarrotGround)} style={styles.groundImage} resizeMode="cover" />
-      </View>
+      </ScrollView>
     </View>
   )
 }
@@ -41,56 +37,63 @@ export function RoadmapInfoLayout({ onStart, initialLevel }) {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: '#F5F0DD',
+    backgroundColor: '#FAF9F6', // More sophisticated off-white
     minHeight: '100vh',
-    maxHeight: '100vh',
-    overflow: 'hidden',
   },
-  container: {
+  scrollView: {
     flex: 1,
-    minHeight: 0,
-    paddingTop: 64,
-    paddingHorizontal: 24,
+  },
+  scrollContent: {
+    // paddingTop: 40,
+    // paddingBottom: 140, // Space for ground
+    alignItems: 'center',
   },
   contentRow: {
-    flex: 1,
-    minHeight: 0,
     flexDirection: 'row',
-    alignItems: 'stretch',
-    justifyContent: 'space-between',
-    gap: 28,
-    maxWidth: 1320,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  bunnyContainer: {
-    flex: 0.95,
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    minWidth: 280,
-    maxWidth: 460,
+    justifyContent: 'center',
+    gap: 60,
+    maxWidth: 1200,
+    width: '90%',
+    paddingVertical: 40,
+  },
+  bunnySection: {
+    flex: 0.8,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 320,
+  },
+  bunnyBackgroundCircle: {
+    position: 'absolute',
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(255, 230, 200, 0.4)',
+    bottom: -20,
   },
   bunnyImage: {
     width: '100%',
-    height: '85%',
-    maxHeight: 420,
+    height: 480,
+    zIndex: 1,
   },
-  infoContainer: {
-    flex: 1.25,
-    minWidth: 520,
-    maxWidth: 760,
-    justifyContent: 'center',
-    paddingBottom: 10,
+  infoSection: {
+    flex: 1.2,
+    minWidth: 500,
+    maxWidth: 720,
   },
   groundContainer: {
-    width: '100%',
-    backgroundColor: '#F5F0DD',
-    height: 120,
-    flexShrink: 0,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+    backgroundColor: 'transparent',
+    pointerEvents: 'none',
   },
   groundImage: {
     width: '100%',
     height: '100%',
-    opacity: 1,
+    opacity: 0.9,
   },
 })
