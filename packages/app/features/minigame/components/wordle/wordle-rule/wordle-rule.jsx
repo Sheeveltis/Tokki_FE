@@ -1,5 +1,5 @@
 import React from 'react'
-import { Image, StyleSheet, Text, View } from 'react-native'
+import { Image, Platform, ScrollView, StyleSheet, Text, View, Pressable } from 'react-native'
 
 import CarrotGround from '../../../../../../assets/carrot-ground.png'
 import BunnyImage from '../../../../../../assets/bunny/14.png'
@@ -13,22 +13,22 @@ const normalizeImageSource = (src) => {
 }
 
 export function WordleRule({ onStart }) {
+  const isWeb = Platform.OS === 'web'
+
   return (
-    <View style={styles.page}>
-      <View style={styles.inner}>
+    <View style={[styles.page, isWeb ? styles.pageWeb : styles.pageNative]}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.inner, isWeb ? styles.innerWeb : styles.innerNative]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.container}>
-          <View style={styles.card}
-            onStartShouldSetResponder={() => true}
-          >
-            <View style={styles.header}
-              onStartShouldSetResponder={() => true}
-            >
+          <View style={styles.card}>
+            <View style={styles.header}>
               <Image source={normalizeImageSource(BunnyImage)} style={styles.illustration} resizeMode="contain" />
             </View>
 
-            <View style={styles.body}
-              onStartShouldSetResponder={() => true}
-            >
+            <View style={styles.body}>
               <Text style={styles.title}>Quy luật trò chơi :</Text>
               <Text style={styles.paragraph}>
                 Sẽ có những ô vuông để bạn có thể nhập bằng chữ cái tiếng hàn vào và nhập từ có nghĩa vào ở đó bạn có thể xem được chữ cái nào đang được sử dụng cho đúng ở đó
@@ -43,13 +43,13 @@ export function WordleRule({ onStart }) {
             </View>
 
             {onStart ? (
-              <View style={styles.ctaButton} onStartShouldSetResponder={() => true} onResponderRelease={onStart}>
+              <Pressable style={styles.ctaButton} onPress={onStart}>
                 <Text style={styles.ctaText}>Chọn độ khó</Text>
-              </View>
+              </Pressable>
             ) : null}
           </View>
         </View>
-      </View>
+      </ScrollView>
 
       <Image source={normalizeImageSource(CarrotGround)} style={styles.ground} resizeMode="cover" />
     </View>
@@ -60,23 +60,37 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     width: '100%',
-    height: '100vh',
     backgroundColor: '#F7F0DD',
+  },
+  pageWeb: {
+    height: '100vh',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 12,
   },
+  pageNative: {
+    alignItems: 'stretch',
+    justifyContent: 'flex-start',
+  },
+  scroll: {
+    flex: 1,
+  },
   inner: {
     width: '100%',
+  },
+  innerWeb: {
     maxWidth: 1024,
-    alignItems: 'stretch',
-    flexShrink: 0,
+    alignSelf: 'center',
+  },
+  innerNative: {
+    paddingTop: 16,
+    paddingBottom: 12,
   },
   container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
+    paddingHorizontal: 16,
   },
   card: {
     width: '100%',
@@ -94,7 +108,6 @@ const styles = StyleSheet.create({
   illustration: {
     width: 150,
     height: 150,
-    right: 10,
   },
   body: {
     gap: 4,
@@ -108,7 +121,7 @@ const styles = StyleSheet.create({
   },
   paragraph: {
     fontSize: 16,
-    lineHeight: 30,
+    lineHeight: 28,
     color: '#1C1C1C',
   },
   ctaButton: {
@@ -119,7 +132,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     minWidth: 180,
     alignItems: 'center',
-    right: 10,
   },
   ctaText: {
     fontSize: 15,
@@ -128,12 +140,8 @@ const styles = StyleSheet.create({
   },
   ground: {
     width: '100%',
-    height: 190,
-    top: 12,
+    height: Platform.OS === 'web' ? 190 : 140,
   },
 })
 
 export default WordleRule
-
-
-
