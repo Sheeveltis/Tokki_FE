@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSearchParams } from 'solito/navigation'
-import WordlePlayWeb from '../../components/wordle/wordle-play/wordle-play.web'
+import WordlePlayWeb from '../../components/wordle/wordle-play/wordle-play'
 
 export function WordlePlayScreen() {
   const searchParams = useSearchParams()
