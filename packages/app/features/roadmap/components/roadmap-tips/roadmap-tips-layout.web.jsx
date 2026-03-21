@@ -57,6 +57,27 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
 
             <View style={styles.article}>
               <HtmlViewer html={contentHtml} />
+              
+              {(taskType === 'VirtualQuiz' || taskType === 'WeeklyExam') && (
+                <View style={styles.actionContainer}>
+                  <RoadmapTestButton 
+                    title={taskType === 'WeeklyExam' ? 'Làm bài kiểm tra' : 'Bắt đầu luyện tập'} 
+                    onPress={() => {
+                      const urlParams = new URLSearchParams(window.location.search);
+                      const level = urlParams.get('level') || 1;
+                      
+                      if (taskType === 'WeeklyExam') {
+                        router.push(taskDetail?.examId 
+                          ? `/roadmap/test?examId=${taskDetail.examId}&level=${level}` 
+                          : `/roadmap/test?level=${level}`);
+                      } else {
+                        // VirtualQuiz route
+                        router.push(`/roadmap/learning/practice/${tipId}`);
+                      }
+                    }} 
+                  />
+                </View>
+              )}
             </View>
           </ScrollView>
         )}
@@ -140,5 +161,9 @@ const styles = StyleSheet.create({
   },
   retryButton: {
     minWidth: 140,
+  },
+  actionContainer: {
+    marginTop: 32,
+    alignItems: 'center',
   },
 })

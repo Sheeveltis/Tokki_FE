@@ -117,13 +117,7 @@ export function RoadmapLearningDayList({ hasWriting, targetAim = 1, weeks = [], 
             <Text style={styles.lessonPanelTitle}>Nội dung học - Ngày {activeDay}</Text>
             <View style={styles.lessonColumn}>
               {activeDayLessons.map((lesson) => {
-                const isPractice = lesson.taskType === 1 || lesson.taskType === 'VirtualQuiz'
-                const isReview = lesson.taskType === 2 || lesson.taskType === 'WeeklyExam'
-
-                let targetPath
-                if (isPractice) targetPath = `/roadmap/learning/practice/${lesson.id}`
-                else if (isReview) targetPath = lesson.examId ? `/roadmap/test?examId=${lesson.examId}&level=${targetAim}` : `/roadmap/test?level=${targetAim}`
-                else targetPath = `/roadmap/learning/tips/${lesson.id}`
+                const targetPath = `/roadmap/learning/tips/${lesson.id}?level=${targetAim}`
 
                 return (
                   <RoadmapLearningLessonCard
