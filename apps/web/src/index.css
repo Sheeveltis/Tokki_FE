@@ -35,6 +35,12 @@ body {
 html,
 body {
   height: 100%;
+  /* Tránh layout bị xê dịch ngang khi chuyển trang có/không có scrollbar */
+  scrollbar-gutter: stable;
+}
+
+html {
+  overflow-y: scroll;
 }
 
 #root {
