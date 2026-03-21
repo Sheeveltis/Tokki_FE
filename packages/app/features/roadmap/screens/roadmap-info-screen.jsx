@@ -61,7 +61,7 @@ export function RoadmapInfoScreen() {
     
     // Truyền cả level và examKey qua query params để trang test sử dụng
     const selfDeclaredLevelQuery = selfDeclaredLevel ? `&selfDeclaredLevel=${encodeURIComponent(selfDeclaredLevel)}` : ''
-    router.push(`/roadmap/test?level=${level}&examKey=${examKey}${selfDeclaredLevelQuery}`)
+    router.push(`/roadmap/test?level=${level}&examKey=${examKey}&isEntrance=1${selfDeclaredLevelQuery}`)
   }
 
   if (isChecking) {

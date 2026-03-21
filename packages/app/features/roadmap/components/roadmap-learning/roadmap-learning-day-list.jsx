@@ -1,38 +1,19 @@
-import { useMemo, useState } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { useMemo, useState, useEffect } from 'react'
+import { Pressable, StyleSheet, Text, View, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
-import { RoadmapLearningDayItem } from './roadmap-learning-day-item'
 import { RoadmapLearningLessonCard } from './roadmap-learning-lesson-card'
 
-import ListeningIcon from '../../../../../assets/icon/icon-mainflow/headphone.svg'
-import ReadingIcon from '../../../../../assets/icon/icon-mainflow/read.svg'
-import WritingIcon from '../../../../../assets/icon/icon-mainflow/write_image.jpg'
+import ListeningIcon from '../../../../../assets/icon/icon-roadmap/headphones-round-sound-svgrepo-com.svg'
+import ReadingIcon from '../../../../../assets/icon/navigate-app/book.svg'
+import WritingIcon from '../../../../../assets/icon/icon-mainflow/write.svg'
 
 const TASK_TYPE_CONFIG = {
-  LearnTheory: {
-    actionLabel: 'Học lý thuyết',
-    tone: 'primary',
-  },
-  VirtualQuiz: {
-    actionLabel: 'Quiz',
-    tone: 'secondary',
-  },
-  WeeklyExam: {
-    actionLabel: 'Bài thi cuối tuần',
-    tone: 'secondary',
-  },
-  0: {
-    actionLabel: 'Học lý thuyết',
-    tone: 'primary',
-  },
-  1: {
-    actionLabel: 'Quiz',
-    tone: 'secondary',
-  },
-  2: {
-    actionLabel: 'Bài thi cuối tuần',
-    tone: 'secondary',
-  },
+  LearnTheory: { actionLabel: 'Học lý thuyết', tone: 'primary' },
+  VirtualQuiz: { actionLabel: 'Luyện tập', tone: 'secondary' },
+  WeeklyExam: { actionLabel: 'Thi thử tuần', tone: 'secondary' },
+  0: { actionLabel: 'Học lý thuyết', tone: 'primary' },
+  1: { actionLabel: 'Luyện tập', tone: 'secondary' },
+  2: { actionLabel: 'Thi thử tuần', tone: 'secondary' },
 }
 
 const normalizeTaskType = (taskType) => {
@@ -42,14 +23,18 @@ const normalizeTaskType = (taskType) => {
   return taskType
 }
 
-const getSkillFromTitle = (title = '') => {
-  const normalized = title.toLowerCase()
-  if (normalized.includes('nghe')) return 'listening'
-  if (normalized.includes('đọc')) return 'reading'
-  if (normalized.includes('doc')) return 'reading'
-  if (normalized.includes('viết')) return 'writing'
-  if (normalized.includes('viet')) return 'writing'
-  return 'listening'
+const getSkillKey = (task = {}) => {
+  const skill = String(task.skill || '').toLowerCase()
+  if (skill.includes('listen')) return 'listening'
+  if (skill.includes('read')) return 'reading'
+  if (skill.includes('writ')) return 'writing'
+
+  const title = String(task.title || '').toLowerCase()
+  if (title.includes('nghe')) return 'listening'
+  if (title.includes('đọc') || title.includes('doc')) return 'reading'
+  if (title.includes('viết') || title.includes('viet')) return 'writing'
+
+  return 'reading'
 }
 
 const buildLessonsFromTasks = (tasks = [], hasWriting) =>
@@ -57,153 +42,127 @@ const buildLessonsFromTasks = (tasks = [], hasWriting) =>
     .map((task) => {
       const normalizedType = normalizeTaskType(task.taskType)
       const config = TASK_TYPE_CONFIG[normalizedType] || TASK_TYPE_CONFIG.VirtualQuiz
-      const skillKey = getSkillFromTitle(task.title)
-      if (!hasWriting && skillKey === 'writing') {
-        return null
-      }
-      const skillLabel =
-        skillKey === 'listening' ? 'Nghe' : skillKey === 'reading' ? 'Đọc' : 'Viết'
-      const skillIcon =
-        skillKey === 'listening'
-          ? ListeningIcon
-          : skillKey === 'reading'
-          ? ReadingIcon
-          : WritingIcon
+      const skillKey = getSkillKey(task)
+
+      if (!hasWriting && skillKey === 'writing') return null
+
+      const skillLabel = skillKey === 'listening' ? 'Nghe' : skillKey === 'reading' ? 'Đọc' : 'Viết'
+      const skillIcon = skillKey === 'listening' ? ListeningIcon : skillKey === 'reading' ? ReadingIcon : WritingIcon
+
       return {
         id: task.taskId,
         icon: skillIcon,
         title: task.title,
         subtitle: `${skillLabel} • ${config.actionLabel}`,
-        actionLabel: config.actionLabel,
-        tone: config.tone,
+        actionLabel: task.isCompleted ? 'Đã hoàn thành' : config.actionLabel,
+        tone: task.isCompleted ? 'primary' : config.tone,
         taskType: normalizedType,
         examId: task.examId,
-        questionTypeId: task.questionTypeId,
       }
     })
     .filter(Boolean)
 
-export function RoadmapLearningDayList({ hasWriting, targetAim = 1, weeks = [] }) {
-  const [activeDay, setActiveDay] = useState(1)
+export function RoadmapLearningDayList({ hasWriting, targetAim = 1, weeks = [], activeWeek }) {
   const router = useRouter()
 
-  const allTasks = useMemo(() => {
-    return weeks.reduce((acc, week) => {
-      const tasks = Array.isArray(week?.tasks) ? week.tasks : []
-      return acc.concat(tasks)
-    }, [])
-  }, [weeks])
-
   const lessonsByDay = useMemo(() => {
-    if (!allTasks.length) return {}
-    return allTasks.reduce((acc, task) => {
+    const tasks = Array.isArray(activeWeek?.tasks) ? activeWeek.tasks : []
+    if (!tasks.length) return {}
+
+    return tasks.reduce((acc, task) => {
       const dayIndex = task.dayIndex || 1
-      if (!acc[dayIndex]) {
-        acc[dayIndex] = []
-      }
+      if (!acc[dayIndex]) acc[dayIndex] = []
       acc[dayIndex].push(task)
       return acc
     }, {})
-  }, [allTasks])
+  }, [activeWeek])
 
-  const dayKeys = useMemo(() => {
-    const keys = Object.keys(lessonsByDay)
-    if (!keys.length) return []
-    return keys.map(Number).sort((a, b) => a - b)
-  }, [lessonsByDay])
+  const dayKeys = useMemo(() => Object.keys(lessonsByDay).map(Number).sort((a, b) => a - b), [lessonsByDay])
+  const [activeDay, setActiveDay] = useState(dayKeys[0] || 1)
+
+  useEffect(() => {
+    if (!dayKeys.length) return
+    if (!dayKeys.includes(activeDay)) setActiveDay(dayKeys[0])
+  }, [dayKeys, activeDay])
+
+  const activeDayLessons = useMemo(() => {
+    const tasks = lessonsByDay[activeDay] || []
+    return buildLessonsFromTasks(tasks, hasWriting)
+  }, [lessonsByDay, activeDay, hasWriting])
 
   return (
     <View style={styles.wrapper}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {dayKeys.length === 0 && (
-          <Text style={styles.emptyText}>Chưa có nội dung cho tuần này.</Text>
-        )}
-        {dayKeys.map((day) => {
-          const isActiveDay = activeDay === day
-          const dayTasks = lessonsByDay[day] || []
-          const lessons = buildLessonsFromTasks(dayTasks, hasWriting)
-          const headerLesson = lessons[0]
-          const extraLessons = lessons.slice(1)
+      {dayKeys.length === 0 ? (
+        <View style={styles.emptyBox}>
+          <Text style={styles.emptyText}>Chưa có nội dung học cho tuần hiện tại.</Text>
+        </View>
+      ) : (
+        <>
+          <View style={styles.daySelector}>
+            {dayKeys.map((day) => {
+              const active = activeDay === day
+              return (
+                <Pressable
+                  key={day}
+                  onPress={() => setActiveDay(day)}
+                  style={({ pressed }) => [styles.dayPill, active && styles.dayPillActive, pressed && styles.dayPillPressed]}
+                >
+                  <Text style={[styles.dayPillText, active && styles.dayPillTextActive]}>Ngày {day}</Text>
+                </Pressable>
+              )
+            })}
+          </View>
 
-          return (
-            <View key={day} style={styles.dayWrapper}>
-              <RoadmapLearningDayItem
-                dayIndex={day}
-                isActive={isActiveDay}
-                onPress={() => setActiveDay(day)}
-                header={
-                  headerLesson ? (
-                    <RoadmapLearningLessonCard
-                      icon={headerLesson.icon}
-                      title={`Ngày ${day}: ${headerLesson.title}`}
-                      subtitle={headerLesson.subtitle}
-                      actionLabel={headerLesson.actionLabel}
-                      tone={headerLesson.tone}
-                      variant="header"
-                    />
-                  ) : (
-                    <Text style={styles.emptyText}>Chưa có nội dung cho ngày này.</Text>
-                  )
-                }
-              >
-                {extraLessons.length > 0 && (
-                  <View style={styles.lessonColumn}>
-                    {extraLessons.map((lesson) => {
-                      const isPractice = lesson.taskType === 1
-                      const isReview = lesson.taskType === 2
+          <View style={styles.lessonPanel}>
+            <Text style={styles.lessonPanelTitle}>Nội dung học - Ngày {activeDay}</Text>
+            <View style={styles.lessonColumn}>
+              {activeDayLessons.map((lesson) => {
+                const isPractice = lesson.taskType === 1 || lesson.taskType === 'VirtualQuiz'
+                const isReview = lesson.taskType === 2 || lesson.taskType === 'WeeklyExam'
 
-                      let targetPath
-                      if (isPractice) {
-                        targetPath = `/roadmap/learning/practice/${lesson.id}`
-                      } else if (isReview) {
-                        targetPath = `/roadmap/test?level=${targetAim}`
-                      } else {
-                        targetPath = `/roadmap/learning/tips/${lesson.id}`
-                      }
+                let targetPath
+                if (isPractice) targetPath = `/roadmap/learning/practice/${lesson.id}`
+                else if (isReview) targetPath = lesson.examId ? `/roadmap/test?examId=${lesson.examId}&level=${targetAim}` : `/roadmap/test?level=${targetAim}`
+                else targetPath = `/roadmap/learning/tips/${lesson.id}`
 
-                      return (
-                        <RoadmapLearningLessonCard
-                          key={lesson.id}
-                          icon={lesson.icon}
-                          title={lesson.title}
-                          subtitle={lesson.subtitle}
-                          actionLabel={lesson.actionLabel}
-                          tone={lesson.tone}
-                          onPress={() => router.push(targetPath)}
-                        />
-                      )
-                    })}
-                  </View>
-                )}
-              </RoadmapLearningDayItem>
+                return (
+                  <RoadmapLearningLessonCard
+                    key={`${lesson.id}-detail`}
+                    icon={lesson.icon}
+                    title={lesson.title}
+                    subtitle={lesson.subtitle}
+                    actionLabel={lesson.actionLabel}
+                    tone={lesson.tone}
+                    onPress={() => router.push(targetPath)}
+                  />
+                )
+              })}
             </View>
-          )
-        })}
-      </ScrollView>
+          </View>
+        </>
+      )}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
+  wrapper: { flex: 1, minHeight: 0, gap: 10 },
+  daySelector: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  dayPill: {
+    paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: '#EBCB9C', backgroundColor: '#FFF8ED',
+    ...(Platform.OS === 'web' && { transitionDuration: '140ms', transitionProperty: 'transform, background-color, border-color', transitionTimingFunction: 'ease-out', cursor: 'pointer' }),
   },
-  scroll: {
-    flex: 1,
+  dayPillActive: { backgroundColor: '#FFE9CC', borderColor: '#F4A950' },
+  dayPillPressed: { transform: [{ scale: 0.98 }] },
+  dayPillText: { fontSize: 13, fontWeight: '600', color: '#6C5531', fontFamily: 'Epilogue, sans-serif' },
+  dayPillTextActive: { color: '#5C3B13', fontWeight: '700' },
+  lessonPanel: {
+    flex: 1, minHeight: 0, backgroundColor: '#FFFDF8', borderRadius: 14, borderWidth: 1, borderColor: '#F9E4BF', padding: 12, gap: 10,
   },
-  scrollContent: {
-    paddingVertical: 16,
-    gap: 16,
+  lessonPanelTitle: { fontSize: 14, fontWeight: '700', color: '#2C2C2C', fontFamily: 'Epilogue, sans-serif' },
+  lessonColumn: { gap: 8, flexShrink: 1, minHeight: 0 },
+  emptyBox: {
+    flex: 1, minHeight: 0, borderRadius: 14, borderWidth: 1, borderColor: '#F1E5CC', backgroundColor: '#FFFDF8', alignItems: 'center', justifyContent: 'center',
   },
-  dayWrapper: {
-    paddingHorizontal: 4,
-  },
-  lessonColumn: {
-    gap: 10,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#666666',
-    fontFamily: 'Epilogue, sans-serif',
-  },
+  emptyText: { fontSize: 14, color: '#666666', fontFamily: 'Epilogue, sans-serif' },
 })

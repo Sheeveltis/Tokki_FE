@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { Pressable, StyleSheet, Text, View, Modal, TouchableOpacity } from 'react-native'
-import { TOPIK_LEVELS } from '../../api/roadmap-info'
+import { useMemo, useState } from 'react'
+import { Modal, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { TOPIK_LEVELS, formatTime, getTotalTime } from '../../api/roadmap-info'
 
 const LEVELS = TOPIK_LEVELS.map((l) => ({ value: l.level, label: l.label }))
 
@@ -11,11 +11,24 @@ const SELF_DECLARED_LEVELS = [
   { value: 5, label: 'Đã thành thạo' },
 ]
 
+const LEARNING_FLOW_DAYS = [
+  { day: 'Ngày 1', focus: 'Nghe - Từ vựng trọng tâm' },
+  { day: 'Ngày 2', focus: 'Đọc - Dạng câu thường gặp' },
+  { day: 'Ngày 3', focus: 'Viết - Mẫu câu ghi điểm' },
+  { day: 'Ngày 4', focus: 'Luyện đề mini + chữa lỗi' },
+  { day: 'Ngày 5', focus: 'Ôn tập tổng hợp theo chủ đề' },
+]
+
 export function RoadmapInfo({ onStart, initialLevel = 1 }) {
   const [selectedLevel, setSelectedLevel] = useState(initialLevel)
   const [selectedSelfDeclaredLevel, setSelectedSelfDeclaredLevel] = useState(SELF_DECLARED_LEVELS[0].value)
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false)
   const [openListKey, setOpenListKey] = useState(null)
+
+  const selectedLevelInfo = useMemo(
+    () => TOPIK_LEVELS.find((level) => level.level === selectedLevel) || TOPIK_LEVELS[0],
+    [selectedLevel],
+  )
 
   const openSelectionModal = () => {
     setIsSelectionModalOpen(true)
@@ -37,41 +50,53 @@ export function RoadmapInfo({ onStart, initialLevel = 1 }) {
     closeSelectionModal()
   }
 
-  const handleStart = () => {
-    openSelectionModal()
-  }
-
   return (
     <View style={styles.container}>
-      {/* Introduction Card */}
       <View style={styles.introCard}>
-        <Text style={styles.introTitle}>Giới thiệu chung Lộ Trình</Text>
+        <Text style={styles.introTitle}>Lộ trình luyện TOPIK cá nhân hóa</Text>
         <Text style={styles.introText}>
-          Lộ trình được giảng viên Tooki khuyên dùng, hỗ trợ người dùng Luyện tập và Luyện đề để đạt điểm đỗ TOPIK
-          trong thời gian ngắn nhất.
+          Chọn đúng đầu vào để hệ thống sắp xếp nội dung học theo ngày, giúp bạn biết hôm nay cần học gì và bám sát
+          tiến độ thi TOPIK.
         </Text>
-        <Text style={styles.introText}>
-          Lộ trình cá nhân hóa cho từng người dùng và phù hợp nhất trong giai đoạn Luyện để trước kỳ thi TOPIK.
-        </Text>
+
+        <View style={styles.metaRow}>
+          <View style={styles.metaPill}>
+            <Text style={styles.metaPillLabel}>Bài kiểm tra</Text>
+            <Text style={styles.metaPillValue}>{selectedLevelInfo.label}</Text>
+          </View>
+          <View style={styles.metaPill}>
+            <Text style={styles.metaPillLabel}>Số câu</Text>
+            <Text style={styles.metaPillValue}>{selectedLevelInfo.questions} câu</Text>
+          </View>
+          <View style={styles.metaPill}>
+            <Text style={styles.metaPillLabel}>Thời lượng</Text>
+            <Text style={styles.metaPillValue}>{formatTime(getTotalTime(selectedLevel))}</Text>
+          </View>
+        </View>
       </View>
 
-      {/* Main Content */}
-      <View style={styles.content}>
-        <Text style={styles.callToAction}>Hãy cùng nhau chinh phục TOPIK nhé</Text>
-        <Text style={styles.instruction}>Để bắt đầu, vui lòng làm bài kiểm tra trình độ của bạn</Text>
+      <View style={styles.learningPlanCard}>
+        <Text style={styles.planTitle}>Lịch học theo ngày</Text>
+        <View style={styles.dayGrid}>
+          {LEARNING_FLOW_DAYS.map((item) => (
+            <View key={item.day} style={styles.dayCell}>
+              <Text style={styles.dayLabel}>{item.day}</Text>
+              <Text style={styles.dayFocus} numberOfLines={2}>
+                {item.focus}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
 
-        {/* Start Button */}
-        <Pressable onPress={handleStart} style={({ pressed }) => [styles.startButton, pressed && styles.startButtonPressed]}>
-          <Text style={styles.startButtonText}>Bắt đầu Ngay</Text>
+      <View style={styles.content}>
+        <Text style={styles.instruction}>Bắt đầu kiểm tra để tạo kế hoạch học chuẩn theo từng ngày</Text>
+        <Pressable onPress={openSelectionModal} style={({ pressed }) => [styles.startButton, pressed && styles.startButtonPressed]}>
+          <Text style={styles.startButtonText}>Bắt đầu ngay</Text>
         </Pressable>
       </View>
 
-      <Modal
-        visible={isSelectionModalOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={closeSelectionModal}
-      >
+      <Modal visible={isSelectionModalOpen} transparent animationType="fade" onRequestClose={closeSelectionModal}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={closeSelectionModal}>
           <View style={styles.selectionModalContainer}>
             <Text style={styles.selectionTitle}>Chọn trình độ để bắt đầu</Text>
@@ -79,22 +104,11 @@ export function RoadmapInfo({ onStart, initialLevel = 1 }) {
             <View style={styles.selectionSection}>
               <Text style={styles.selectionLabel}>Bài kiểm tra</Text>
               <Pressable style={styles.selectionTrigger} onPress={() => toggleList('level')}>
-                <Text style={styles.selectionTriggerText}>
-                  {LEVELS.find((level) => level.value === selectedLevel)?.label}
-                </Text>
+                <Text style={styles.selectionTriggerText}>{LEVELS.find((level) => level.value === selectedLevel)?.label}</Text>
                 <Text style={styles.selectionTriggerArrow}>▼</Text>
               </Pressable>
-              <Modal
-                visible={openListKey === 'level'}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setOpenListKey(null)}
-              >
-                <TouchableOpacity
-                  style={styles.modalOverlay}
-                  activeOpacity={1}
-                  onPress={() => setOpenListKey(null)}
-                >
+              <Modal visible={openListKey === 'level'} transparent animationType="fade" onRequestClose={() => setOpenListKey(null)}>
+                <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setOpenListKey(null)}>
                   <View style={styles.listModalContainer}>
                     {LEVELS.map((level) => (
                       <Pressable
@@ -110,9 +124,7 @@ export function RoadmapInfo({ onStart, initialLevel = 1 }) {
                           selectedLevel === level.value && styles.dropdownItemSelected,
                         ]}
                       >
-                        <Text
-                          style={[styles.dropdownItemText, selectedLevel === level.value && styles.dropdownItemTextSelected]}
-                        >
+                        <Text style={[styles.dropdownItemText, selectedLevel === level.value && styles.dropdownItemTextSelected]}>
                           {level.label}
                         </Text>
                       </Pressable>
@@ -136,11 +148,7 @@ export function RoadmapInfo({ onStart, initialLevel = 1 }) {
                 animationType="fade"
                 onRequestClose={() => setOpenListKey(null)}
               >
-                <TouchableOpacity
-                  style={styles.modalOverlay}
-                  activeOpacity={1}
-                  onPress={() => setOpenListKey(null)}
-                >
+                <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setOpenListKey(null)}>
                   <View style={styles.listModalContainer}>
                     {SELF_DECLARED_LEVELS.map((level) => (
                       <Pressable
@@ -186,64 +194,111 @@ export function RoadmapInfo({ onStart, initialLevel = 1 }) {
   )
 }
 
-
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'transparent',
-    gap: 24,
+    gap: 14,
     width: '100%',
   },
   introCard: {
-    backgroundColor: '#FDF7EC', 
-    borderRadius: 16,           
-    paddingVertical: 24,
-    paddingHorizontal: 24,
-    gap: 12,
+    backgroundColor: '#FDF7EC',
+    borderRadius: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+    gap: 10,
     borderWidth: 1,
-    borderColor: '#FFD7D0',     // Thêm viền nhẹ cho đồng bộ
+    borderColor: '#FFD7D0',
   },
   introTitle: {
-    fontSize: 22,               // Tăng size giống title bên Learning
+    fontSize: 20,
     fontWeight: '700',
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
   },
   introText: {
-    fontSize: 15,
-    color: '#4A4A4A',           // Màu text phụ giống subtitle bên Learning
+    fontSize: 14,
+    color: '#4A4A4A',
     fontFamily: 'Epilogue, sans-serif',
-    lineHeight: 22,
+    lineHeight: 21,
   },
-  content: {
-    gap: 20,
-    alignItems: 'center',
-    width: '100%',
+  metaRow: {
+    flexDirection: 'row',
+    gap: 10,
+    flexWrap: 'wrap',
   },
-  callToAction: {
-    fontSize: 18,
+  metaPill: {
+    backgroundColor: '#FFF3E8',
+    borderColor: '#FFD6B8',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    minWidth: 120,
+  },
+  metaPillLabel: {
+    fontSize: 12,
+    color: '#6C5A45',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  metaPillValue: {
+    fontSize: 14,
     fontWeight: '700',
-    color: '#1C1C1C',
+    color: '#1E1E1E',
+    fontFamily: 'Epilogue, sans-serif',
+    marginTop: 2,
+  },
+  learningPlanCard: {
+    backgroundColor: '#FFFDF8',
+    borderColor: '#FFE8C8',
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 14,
+    gap: 10,
+  },
+  planTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#2A2A2A',
     fontFamily: 'Epilogue, sans-serif',
   },
-  instruction: {
-    fontSize: 15,
+  dayGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  dayCell: {
+    width: '32%',
+    minWidth: 150,
+    backgroundColor: '#FFF5E8',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFDDB5',
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    gap: 4,
+  },
+  dayLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#7A4B0A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  dayFocus: {
+    fontSize: 13,
+    lineHeight: 18,
     color: '#4A4A4A',
     fontFamily: 'Epilogue, sans-serif',
   },
-  testInfo: {
-    flexDirection: 'row',       // Để thời gian và số câu nằm ngang cho hiện đại
-    gap: 20,
+  content: {
+    gap: 12,
     alignItems: 'center',
-    backgroundColor: '#FFE5E0', // Màu nền nhẹ cho thông số
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 12,
+    width: '100%',
   },
-  testDetail: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FF6B6B',           // Màu đỏ cam thương hiệu
+  instruction: {
+    fontSize: 14,
+    color: '#4A4A4A',
     fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
   },
   selectionModalContainer: {
     width: '90%',
@@ -332,25 +387,29 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
   },
   startButton: {
-    marginTop: 10,
-    backgroundColor: '#FF6B6B', // Màu đỏ cam giống nút History
+    backgroundColor: '#FF6B6B',
     borderRadius: 100,
-    paddingHorizontal: 40,
-    paddingVertical: 14,
+    paddingHorizontal: 34,
+    paddingVertical: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.16,
     shadowRadius: 4,
     elevation: 3,
+    ...(Platform.OS === 'web' && {
+      transitionDuration: '150ms',
+      transitionProperty: 'transform, background-color',
+      transitionTimingFunction: 'ease-out',
+    }),
   },
   startButtonPressed: {
     backgroundColor: '#FF5252',
     transform: [{ scale: 0.98 }],
   },
   startButtonText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',           // Chữ trắng trên nền đỏ cam
+    color: '#FFFFFF',
     fontFamily: 'Epilogue, sans-serif',
   },
   modalOverlay: {
@@ -358,17 +417,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  dropdownContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    minWidth: 200,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 5,
-    overflow: 'hidden',
   },
   dropdownItem: {
     paddingVertical: 14,

@@ -79,6 +79,7 @@ export function RoadmapTestResultLayout({
   isLoading,
   error,
   isGraded = false,
+  isEntrance = false,
   feedbackData = null,
   feedbackLoading = false,
   feedbackError = null,
@@ -124,6 +125,42 @@ export function RoadmapTestResultLayout({
   const { userName, examTitle, listening, reading, writing, totalScore } = resultData
   const durationOptions = feedbackData?.durationOptions || []
   const hasFeedback = Boolean(feedbackData)
+
+  const sectionCards = [
+    listening
+      ? {
+          key: 'listening',
+          label: 'Nghe',
+          score: listening.score,
+          maxScore: listening.maxScore,
+          correctAnswers: listening.correctAnswers,
+          totalQuestions: listening.totalQuestions,
+          isGraded: true,
+        }
+      : null,
+    reading
+      ? {
+          key: 'reading',
+          label: 'Đọc',
+          score: reading.score,
+          maxScore: reading.maxScore,
+          correctAnswers: reading.correctAnswers,
+          totalQuestions: reading.totalQuestions,
+          isGraded: true,
+        }
+      : null,
+    writing
+      ? {
+          key: 'writing',
+          label: 'Viết',
+          score: writing.score,
+          maxScore: writing.maxScore,
+          correctAnswers: writing.correctAnswers,
+          totalQuestions: writing.totalQuestions,
+          isGraded,
+        }
+      : null,
+  ].filter(Boolean)
   const toDetail = (sectionKey) =>
     `/roadmap/test/result/detail?userExamId=${encodeURIComponent(userExamId || '')}&section=${encodeURIComponent(
       sectionKey
@@ -161,52 +198,34 @@ export function RoadmapTestResultLayout({
           </View>
 
           <View style={styles.sectionsRow}>
-            {listening && (
+            {sectionCards.map((card) => (
               <SectionScoreCard
-                label="Nghe"
-                score={listening.score}
-                maxScore={listening.maxScore}
-                correctAnswers={listening.correctAnswers}
-                totalQuestions={listening.totalQuestions}
-                onViewDetail={() => router.push(toDetail('listening'))}
+                key={card.key}
+                label={card.label}
+                score={card.score}
+                maxScore={card.maxScore}
+                correctAnswers={card.correctAnswers}
+                totalQuestions={card.totalQuestions}
+                onViewDetail={() => router.push(toDetail(card.key))}
+                isGraded={card.isGraded}
               />
-            )}
-            {reading && (
-              <SectionScoreCard
-                label="Đọc"
-                score={reading.score}
-                maxScore={reading.maxScore}
-                correctAnswers={reading.correctAnswers}
-                totalQuestions={reading.totalQuestions}
-                onViewDetail={() => router.push(toDetail('reading'))}
-              />
-            )}
-            {writing && (
-              <SectionScoreCard
-                label="Viết"
-                score={writing.score}
-                maxScore={writing.maxScore}
-                correctAnswers={writing.correctAnswers}
-                totalQuestions={writing.totalQuestions}
-                onViewDetail={() => router.push(toDetail('writing'))}
-                isGraded={isGraded}
-              />
-            )}
+            ))}
           </View>
 
-
           <View style={styles.actionsRow}>
-            <RoadmapTestButton
-              title="Tạo lộ trình"
-              onPress={() => {
-                setModalStep(0)
-                setSelectedDuration(null)
-                setExpandedSection(null)
-                onOpenDurationModal?.()
-              }}
-              disabled={!hasFeedback && !feedbackLoading}
-              style={[styles.actionButton, styles.actionButtonPrimary]}
-            />
+            {isEntrance && (
+              <RoadmapTestButton
+                title="Tạo lộ trình"
+                onPress={() => {
+                  setModalStep(0)
+                  setSelectedDuration(null)
+                  setExpandedSection(null)
+                  onOpenDurationModal?.()
+                }}
+                disabled={!hasFeedback && !feedbackLoading}
+                style={[styles.actionButton, styles.actionButtonPrimary]}
+              />
+            )}
             <RoadmapTestButton
               title="Về trang lộ trình"
               onPress={() => router.push('/roadmap/info')}
@@ -216,6 +235,7 @@ export function RoadmapTestResultLayout({
         </View>
       </ScrollView>
 
+      {isEntrance && (
       <Modal
         visible={isDurationModalOpen}
         transparent
@@ -486,6 +506,7 @@ export function RoadmapTestResultLayout({
           </View>
         </View>
       </Modal>
+      )}
     </View>
   )
 }
@@ -652,6 +673,7 @@ const styles = StyleSheet.create({
     gap: 16,
     justifyContent: 'center',
     marginTop: 8,
+    flexWrap: 'wrap',
   },
   actionButton: {
     minWidth: 160,

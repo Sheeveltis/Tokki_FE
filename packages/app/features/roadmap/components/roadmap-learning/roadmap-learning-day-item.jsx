@@ -38,25 +38,29 @@ export function RoadmapLearningDayItem({ dayIndex, isActive, onPress, header, ch
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    gap: 16,
-    padding: 16,
-    borderRadius: 20,
+    gap: 12,
+    padding: 12,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#F3D8AA',
     backgroundColor: '#FFF8F0',
     alignItems: 'flex-start',
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
-      transitionProperty: 'transform, box-shadow, background-color',
+      transitionProperty: 'transform, box-shadow, background-color, border-color',
       transitionDuration: '160ms',
       transitionTimingFunction: 'ease-out',
     }),
   },
   containerHovered: {
     backgroundColor: '#FFF3E3',
+    borderColor: '#F4A950',
     transform: [{ translateY: -1 }],
   },
   containerActive: {
     borderWidth: 2,
     borderColor: '#F4A950',
+    backgroundColor: '#FFF5E5',
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 8,
@@ -67,12 +71,13 @@ const styles = StyleSheet.create({
   },
   dayBadge: {
     minWidth: 72,
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 16,
+    borderRadius: 999,
     backgroundColor: '#F4E5C7',
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 2,
   },
   dayBadgeText: {
     fontSize: 14,
@@ -82,23 +87,24 @@ const styles = StyleSheet.create({
   },
   contentWrapper: {
     flex: 1,
-    gap: 12,
+    gap: 8,
+    minWidth: 0,
   },
   headerSection: {
-    marginBottom: 4,
+    marginBottom: 0,
   },
   content: {
     flex: 1,
-    gap: 10,
+    gap: 8,
     overflow: 'hidden',
     ...(Platform.OS === 'web' && {
       transitionProperty: 'max-height, opacity',
-      transitionDuration: '750ms',
+      transitionDuration: '300ms',
       transitionTimingFunction: 'ease-in-out',
     }),
   },
   contentExpanded: {
-    maxHeight: 1000,
+    maxHeight: 1200,
     opacity: 1,
   },
   contentCollapsed: {

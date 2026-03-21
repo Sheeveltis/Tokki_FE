@@ -391,7 +391,7 @@ const restoreAnswersFromSections = (sections) => {
   return restoredAnswers
 }
 
-export function RoadmapTestLayout({ level = 1, examKey = null }) {
+export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, isEntrance = false }) {
   const router = useRouter()
   const [userExamId, setUserExamId] = useState(null)
   const [sections, setSections] = useState([])
@@ -425,7 +425,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null }) {
 
       try {
         // 1) Resolve examId từ examKey (nếu có), sau đó take exam để backend tạo/ghi nhận userExamId
-        const resolvedExamId = examKey ? await getExamIdByConfigKey(examKey) : null
+        const resolvedExamId = examId || (examKey ? await getExamIdByConfigKey(examKey) : null)
         const examIdToUse = resolvedExamId || DEFAULT_EXAM_ID
         const takeExamResult = await startExam(examIdToUse)
         // Handle different possible response structures:
@@ -524,7 +524,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null }) {
     return () => {
       isMounted = false
     }
-  }, [level, examKey])
+  }, [level, examKey, examId])
 
   // Countdown timer
   useEffect(() => {
@@ -827,7 +827,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null }) {
       router.push(
         `/roadmap/test/result?userExamId=${encodeURIComponent(
           submittedUserExamId
-        )}&level=${encodeURIComponent(String(level))}`
+        )}&level=${encodeURIComponent(String(level))}&isEntrance=${isEntrance ? '1' : '0'}`
       )
 
       // Sau khi đã nộp xong và chuyển sang màn hình kết quả,

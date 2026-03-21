@@ -30,6 +30,10 @@ export function RoadmapTestResultScreen() {
           route?.params?.selfDeclaredLevel ||
             searchParams?.get?.('selfDeclaredLevel')
         )
+  const isEntrance =
+    Platform.OS === 'web'
+      ? String(searchParams?.get?.('isEntrance') || '') === '1'
+      : String(route?.params?.isEntrance || searchParams?.get?.('isEntrance') || '') === '1'
   const [resultData, setResultData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -65,7 +69,7 @@ export function RoadmapTestResultScreen() {
   }, [userExamId])
 
   const fetchFeedback = useCallback(async () => {
-    if (!userExamId || !Number.isFinite(targetAim)) return null
+    if (!isEntrance || !userExamId || !Number.isFinite(targetAim)) return null
 
     const requestKey = `${userExamId}-${targetAim}-${Number.isFinite(selfDeclaredLevel) ? selfDeclaredLevel : 0}`
     if (feedbackRequestKeyRef.current === requestKey && feedbackData) {
@@ -97,11 +101,12 @@ export function RoadmapTestResultScreen() {
     } finally {
       setFeedbackLoading(false)
     }
-  }, [userExamId, targetAim, selfDeclaredLevel, feedbackData])
+  }, [isEntrance, userExamId, targetAim, selfDeclaredLevel, feedbackData])
 
   const handleGenerateRoadmap = useCallback(
     async ({ durationDays }) => {
-      if (!userExamId || !Number.isFinite(targetAim) || durationDays == null) return null
+      if (!isEntrance || !userExamId || !Number.isFinite(targetAim) || durationDays == null)
+        return null
 
       setIsGeneratingRoadmap(true)
       setGenerateError(null)
@@ -145,7 +150,7 @@ export function RoadmapTestResultScreen() {
         setIsGeneratingRoadmap(false)
       }
     },
-    [userExamId, targetAim, router]
+    [isEntrance, userExamId, targetAim, router]
   )
 
   // Check if writing is graded
@@ -162,14 +167,16 @@ export function RoadmapTestResultScreen() {
         setIsGraded(true)
         // Refresh result data when writing is graded
         await fetchResult()
-        await fetchFeedback()
-        setIsDurationModalOpen(true)
+        if (isEntrance) {
+          await fetchFeedback()
+          setIsDurationModalOpen(true)
+        }
       }
     } catch (err) {
       console.error('Failed to check if exam is graded:', err)
       // Không set error để không làm gián đoạn UI
     }
-  }, [userExamId, fetchResult, fetchFeedback])
+  }, [userExamId, isEntrance, fetchResult, fetchFeedback])
 
   useEffect(() => {
     if (!userExamId) {
@@ -181,9 +188,11 @@ export function RoadmapTestResultScreen() {
     if (!hasFetchedInitialRef.current) {
       hasFetchedInitialRef.current = true
       fetchResult()
-      fetchFeedback()
+      if (isEntrance) {
+        fetchFeedback()
+      }
     }
-  }, [userExamId, fetchResult, fetchFeedback])
+  }, [userExamId, isEntrance, fetchResult, fetchFeedback])
 
   // Poll for grading status every 10 seconds
   useEffect(() => {
@@ -209,6 +218,7 @@ export function RoadmapTestResultScreen() {
       isLoading={isLoading}
       error={error}
       isGraded={isGraded}
+      isEntrance={isEntrance}
       feedbackData={feedbackData}
       feedbackLoading={feedbackLoading}
       feedbackError={feedbackError}

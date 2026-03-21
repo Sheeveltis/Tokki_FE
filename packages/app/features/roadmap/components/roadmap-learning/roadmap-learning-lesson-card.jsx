@@ -3,10 +3,29 @@ import { Image, Pressable, StyleSheet, Text, View, Platform } from 'react-native
 
 const normalizeImageSource = (src) => {
   if (!src) return null
-  if (typeof src === 'number' || src.uri) return src
+  if (typeof src === 'number' || src?.uri) return src
   if (typeof src === 'object' && src.src) return { uri: src.src }
   if (typeof src === 'string') return { uri: src }
-  return src
+  return null
+}
+
+const renderIcon = (icon) => {
+  if (!icon) return null
+
+  if (typeof icon === 'function') {
+    const SvgIcon = icon
+    return <SvgIcon width={24} height={24} />
+  }
+
+  if (typeof icon === 'object' && typeof icon.default === 'function') {
+    const SvgIcon = icon.default
+    return <SvgIcon width={24} height={24} />
+  }
+
+  const source = normalizeImageSource(icon)
+  if (!source) return null
+
+  return <Image source={source} style={styles.iconImage} resizeMode="contain" />
 }
 
 export function RoadmapLearningLessonCard({
@@ -24,21 +43,15 @@ export function RoadmapLearningLessonCard({
   // Header variant: không hover xám, không onPress riêng (để click pass cho DayItem)
   if (variant === 'header') {
     return (
-      <View style={[styles.container, toneStyles]}>
+      <View style={[styles.container, toneStyles, styles.headerContainer]}>
         <View style={styles.left}>
-          <View style={styles.iconCircle}>
-            <Image
-              source={normalizeImageSource(icon)}
-              style={styles.iconImage}
-              resizeMode="contain"
-            />
-          </View>
+          <View style={styles.iconCircle}>{renderIcon(icon)}</View>
           <View style={styles.texts}>
-            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.title} numberOfLines={2}>{title}</Text>
             {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
           </View>
         </View>
-        <View style={styles.actionButton}>
+        <View style={[styles.actionButton, styles.headerActionButton]}>
           <Text style={styles.actionLabel}>{actionLabel}</Text>
         </View>
       </View>
@@ -54,20 +67,15 @@ export function RoadmapLearningLessonCard({
       style={({ pressed }) => [
         styles.container,
         toneStyles,
+        styles.defaultContainer,
         isHovered && styles.containerHovered,
         pressed && styles.containerPressed,
       ]}
     >
       <View style={styles.left}>
-        <View style={styles.iconCircle}>
-          <Image
-            source={normalizeImageSource(icon)}
-            style={styles.iconImage}
-            resizeMode="contain"
-          />
-        </View>
+        <View style={styles.iconCircle}>{renderIcon(icon)}</View>
         <View style={styles.texts}>
-          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.title} numberOfLines={2}>{title}</Text>
           {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
         </View>
       </View>
@@ -81,11 +89,11 @@ export function RoadmapLearningLessonCard({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    padding: 14,
-    borderRadius: 18,
+    padding: 12,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 10,
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
       transitionProperty: 'transform, box-shadow, background-color',
@@ -93,12 +101,19 @@ const styles = StyleSheet.create({
       transitionTimingFunction: 'ease-out',
     }),
   },
+  headerContainer: {
+    minHeight: 64,
+  },
+  defaultContainer: {
+    borderWidth: 1,
+    borderColor: '#F3D8AA',
+  },
   containerHovered: {
     transform: [{ translateY: -1 }],
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#FFF3E3',
   },
   containerPressed: {
-    transform: [{ scale: 0.99 }],
+    transform: [{ scale: 0.995 }],
   },
   primaryCard: {
     backgroundColor: '#FFE7A5',
@@ -109,28 +124,30 @@ const styles = StyleSheet.create({
   left: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     flex: 1,
+    minWidth: 0,
   },
   iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#F4A950',
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
   iconImage: {
-    width: 24,
-    height: 24,
-    tintColor: '#666666',
+    width: 22,
+    height: 22,
   },
   iconText: {
     fontSize: 18,
   },
   texts: {
     flex: 1,
-    gap: 2,
+    gap: 1,
+    minWidth: 0,
   },
   title: {
     fontSize: 15,
@@ -144,10 +161,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
   },
   actionButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: 999,
     backgroundColor: '#FFCF6C',
+    flexShrink: 0,
+  },
+  headerActionButton: {
+    marginLeft: 8,
   },
   actionLabel: {
     fontSize: 13,
