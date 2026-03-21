@@ -51,16 +51,24 @@ export const getAuthToken = () => {
     const stored = window.localStorage.getItem(TOKEN_KEY)
     if (stored) {
       const decryptedToken = decryptToken(stored)
-      // Chặn luôn nếu decrypt ra chuỗi rác
-      if (decryptedToken && decryptedToken !== stored && isValidJWTFormat(decryptedToken)) {
+
+      // 1) Token đã mã hóa đúng chuẩn
+      if (decryptedToken && isValidJWTFormat(decryptedToken)) {
         inMemoryToken = decryptedToken
         storageCache = decryptedToken
         return decryptedToken
-      } else if (!decryptedToken || !isValidJWTFormat(decryptedToken)) {
-        // Dọn rác
-        inMemoryToken = null
-        storageCache = null
       }
+
+      // 2) Fallback: token lưu dạng plain JWT (để tương thích dữ liệu cũ)
+      if (isValidJWTFormat(stored)) {
+        inMemoryToken = stored
+        storageCache = stored
+        return stored
+      }
+
+      // 3) Giá trị rác
+      inMemoryToken = null
+      storageCache = null
     }
   }
   return null

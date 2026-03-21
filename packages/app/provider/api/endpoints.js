@@ -286,6 +286,7 @@ export const ENDPOINTS = {
       FEEDBACK: '/Roadmap/entrance-feedback',
       GENERATE: '/Roadmap/generate',
       CURRENT: '/Roadmap/current',
+      TASK_DETAIL: (taskId) => `/Roadmap/task/${encodeURIComponent(taskId)}/detail`,
     },
     SYSTEM_CONFIGS: {
       GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,
