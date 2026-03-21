@@ -1,9 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Space, Tooltip } from 'antd'
 import { EyeOutlined } from '@ant-design/icons'
 import ManagementTable from '../../../../../../components/ManagementTable'
 
 export function QuestionTypeTable({ data, loading, onRowClick, rowKey = 'questionTypeId', onView }) {
+  const [currentPage, setCurrentPage] = useState(1)
+
   // debug
   if (typeof window !== 'undefined') {
     console.log('[QuestionTypeTable] rows:', Array.isArray(data) ? data.length : data)
@@ -13,6 +15,7 @@ export function QuestionTypeTable({ data, loading, onRowClick, rowKey = 'questio
       1: 'Dễ',
       2: 'Trung bình',
       3: 'Khó',
+      4: 'Rất khó',
     }
 
     const examTypeLabelMap = {
@@ -31,19 +34,14 @@ export function QuestionTypeTable({ data, loading, onRowClick, rowKey = 'questio
         key: 'stt',
         align: 'center',
         width: 70,
-        render: (_value, _record, index) => index + 1,
+        render: (_value, _record, index) => (currentPage - 1) * 20 + index + 1,
       },
-      {
-        title: 'Code',
-        dataIndex: 'code',
-        key: 'code',
-        width: 150,
-      },
+
       {
         title: 'Tên loại câu hỏi',
         dataIndex: 'name',
         key: 'name',
-        width: 250,
+        width: 180,
       },
       {
         title: 'TOPIK',
@@ -83,7 +81,16 @@ export function QuestionTypeTable({ data, loading, onRowClick, rowKey = 'questio
         title: 'Mô tả',
         dataIndex: 'description',
         key: 'description',
-        ellipsis: true,
+        render: (value) => {
+          const text = value || '-'
+          const limit = 40
+          const display = text.length > limit ? `${text.slice(0, limit)}…` : text
+          return (
+            <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              {display}
+            </span>
+          )
+        },
       },
       {
         title: 'Kỹ năng',
@@ -130,7 +137,7 @@ export function QuestionTypeTable({ data, loading, onRowClick, rowKey = 'questio
         },
       },
       {
-        title: 'Xem',
+        title: 'Thao tác',
         key: 'actions',
         align: 'center',
         width: 90,
@@ -163,7 +170,7 @@ export function QuestionTypeTable({ data, loading, onRowClick, rowKey = 'questio
         ),
       },
     ]
-  }, [onView])
+  }, [onView, currentPage])
 
   return (
     <ManagementTable
@@ -172,6 +179,13 @@ export function QuestionTypeTable({ data, loading, onRowClick, rowKey = 'questio
       loading={loading}
       onRowClick={onRowClick}
       rowKey={rowKey}
+      size="large"
+      pagination={{
+        current: currentPage,
+        pageSize: 20,
+        onChange: (page) => setCurrentPage(page),
+      }}
+      scroll={{ x: 'max-content', y: 'calc(100vh - 290px)' }}
     />
   )
 }

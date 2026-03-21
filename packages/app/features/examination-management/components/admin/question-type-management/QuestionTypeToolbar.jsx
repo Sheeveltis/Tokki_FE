@@ -57,6 +57,7 @@ export function QuestionTypeToolbar({ filters, onFilterChange, onCreate }) {
           <Option value={1}>Dễ</Option>
           <Option value={2}>Trung bình</Option>
           <Option value={3}>Khó</Option>
+          <Option value={4}>Rất khó</Option>
         </Select>
         <Select
           placeholder="Lọc theo loại đề"
