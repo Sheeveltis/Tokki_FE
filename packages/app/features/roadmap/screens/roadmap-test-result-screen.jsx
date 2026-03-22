@@ -119,6 +119,8 @@ export function RoadmapTestResultScreen() {
           selfDeclaredLevel: Number.isFinite(selfDeclaredLevel)
             ? selfDeclaredLevel
             : 0,
+        }, {
+          timeout: 0,
         })
         const roadmapId = response?.data?.data
         return roadmapId
