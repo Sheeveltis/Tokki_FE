@@ -35,14 +35,7 @@ export function UserDetailScreen() {
     [detailContent],
   )
 
-  return (
-    <AdminLayout
-      screens={screens}
-      defaultKey={defaultTab}
-      onNavigate={handleNavigate}
-      onLogout={() => router.push('/login')}
-    />
-  )
+  return detailContent
 }
 
 export default UserDetailScreen

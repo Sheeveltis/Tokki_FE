@@ -53,7 +53,7 @@ export function TopicVocabSection({
       const text = (item.text || '').toLowerCase()
       const definition = (item.definition || '').toLowerCase()
       const id = (item.vocabularyId || item.id || '').toLowerCase()
-      
+
       return text.includes(keyword) || definition.includes(keyword) || id.includes(keyword)
     })
   }, [dataSource, searchKeyword])
@@ -75,13 +75,14 @@ export function TopicVocabSection({
 
   const columns = [
     {
-      title: 'ID',
-      dataIndex: 'vocabularyId',
-      key: 'vocabularyId',
-      width: 220,
-      render: (_, record) => {
+      title: 'Từ',
+      dataIndex: 'text',
+      key: 'text',
+      width: 180,
+      ellipsis: true,
+      render: (text, record) => {
         const id = record.vocabularyId || record.id
-        if (!id) return '-'
+        if (!id) return text
         return (
           <a
             href={`/admin/vocab/${id}`}
@@ -91,18 +92,19 @@ export function TopicVocabSection({
               e.preventDefault()
               window.open(`/admin/vocab/${id}`, '_blank', 'noopener,noreferrer')
             }}
+            style={{ fontWeight: 600 }}
           >
-            {id}
+            {text}
           </a>
         )
       },
     },
-    { title: 'Từ', dataIndex: 'text', key: 'text', width: 400 },
-    { title: 'Phiên âm', dataIndex: 'pronunciation', key: 'pronunciation', width: 500 },
+    { title: 'Phiên âm', dataIndex: 'pronunciation', key: 'pronunciation', width: 200, ellipsis: true },
     {
       title: 'Định nghĩa',
       dataIndex: 'definition',
       key: 'definition',
+      width: 300,
       ellipsis: true,
       render: (value) => value || '-',
     },
@@ -266,25 +268,20 @@ export function TopicVocabSection({
                 </Text>
               )}
             </Space>
+          </Space>
+          <Space
+            style={{ width: '100%', justifyContent: 'space-between', alignItems: 'flex-start' }}
+            wrap
+          >
+            <Input.Search
+              placeholder="Tìm kiếm theo từ, định nghĩa"
+              allowClear
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              style={{ width: '20vw', flex: 1 }}
+              size="middle"
+            />
             <Space wrap>
-              <Space align="center">
-                <Text type="secondary" style={{ fontSize: 13 }}>Hiển thị:</Text>
-                <Select
-                  value={pageSize}
-                  onChange={(value) => {
-                    setPageSize(value)
-                    setCurrentPage(1)
-                  }}
-                  style={{ width: 100 }}
-                  options={[
-                    { label: '5', value: 5 },
-                    { label: '10', value: 10 },
-                    { label: '20', value: 20 },
-                    { label: '50', value: 50 },
-                    { label: '100', value: 100 },
-                  ]}
-                />
-              </Space>
               {!isModerator && (
                 <>
                   <Button
@@ -318,30 +315,23 @@ export function TopicVocabSection({
               )}
             </Space>
           </Space>
-          <Input.Search
-            placeholder="Tìm kiếm theo từ, định nghĩa hoặc ID..."
-            allowClear
-            value={searchKeyword}
-            onChange={(e) => setSearchKeyword(e.target.value)}
-            style={{ width: '100%', maxWidth: 600 }}
-            size="middle"
-          />
         </Space>
       </div>
       <Table
         rowSelection={
           removeMode && !isModerator
             ? {
-                selectedRowKeys: removingKeys,
-                onChange: onRemovingKeysChange,
-              }
+              selectedRowKeys: removingKeys,
+              onChange: onRemovingKeysChange,
+            }
             : undefined
         }
         columns={columns}
         dataSource={paginatedDataSource}
         size="small"
         bordered
-        scroll={{ x: 900, y: 300 }}
+        tableLayout="fixed"
+        scroll={{ x: '100%', y: 400 }}
         pagination={{
           current: currentPage,
           pageSize: pageSize,

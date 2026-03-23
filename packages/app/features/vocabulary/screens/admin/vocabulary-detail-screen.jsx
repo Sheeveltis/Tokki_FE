@@ -432,7 +432,7 @@ export function VocabularyDetailScreen() {
     }
 
     return (
-      <div style={{ padding: 24 }}>
+      <div>
         {contextHolder}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
           <Space style={{ justifyContent: 'space-between', width: '100%' }}>
@@ -501,41 +501,7 @@ export function VocabularyDetailScreen() {
     )
   })()
 
-  const screens = {
-    'vocabulary-words': detailContent,
-  }
-
-  // Chọn layout dựa vào cổng hiện tại
-  if (currentPortal === 'staff') {
-    return (
-      <StaffLayout
-        screens={screens}
-        defaultKey={defaultTab}
-        onNavigate={handleNavigate}
-        onLogout={() => router.push('/login')}
-      />
-    )
-  }
-
-  if (currentPortal === 'moderator') {
-    return (
-      <ModeratorLayout
-        screens={screens}
-        defaultKey={defaultTab}
-        onNavigate={handleNavigate}
-        onLogout={() => router.push('/login')}
-      />
-    )
-  }
-
-  return (
-    <AdminLayout
-      screens={screens}
-      defaultKey={defaultTab}
-      onNavigate={handleNavigate}
-      onLogout={() => router.push('/login')}
-    />
-  )
+  return detailContent
 }
 
 export default VocabularyDetailScreen

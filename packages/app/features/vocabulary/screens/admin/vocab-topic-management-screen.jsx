@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
-import { Space, Select, Modal, InputNumber } from 'antd'
+import { Space, Select, Modal, InputNumber, Tooltip } from 'antd'
 import { EyeOutlined, EditOutlined, SwapOutlined, PlusOutlined, GlobalOutlined, ArrowLeftOutlined, CheckCircleOutlined, CloseCircleOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { useRouter } from 'solito/navigation'
 import { searchFlashcardTopics, createFlashcardTopic, approveTopic, rejectTopic, updateFlashcardTopic, uploadTopicImageToCloudinary, updateTopicOrderIndex } from '../../api/index.js'
@@ -364,67 +364,70 @@ export function FlashcardTopicManagement({ initialData = null }) {
     
         return (
           <Space size="small" align="center">
-            <div
-              title={cfg.label}
-              style={{
-                width: 14,
-                height: 14,
-                borderRadius: '50%',
-                backgroundColor: cfg.color,
-                margin: '0 auto',
-                boxShadow: '0 0 4px rgba(0,0,0,0.3)',
-                cursor: 'pointer',
-              }}
-            />
+            <Tooltip title={cfg.label} color={cfg.color} placement="top">
+              <div
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: '50%',
+                  backgroundColor: cfg.color,
+                  margin: '0 auto',
+                  boxShadow: '0 0 4px rgba(0,0,0,0.3)',
+                  cursor: 'pointer',
+                }}
+              />
+            </Tooltip>
             {status === 3 && currentPortal === 'admin' && (
               <>
-                <div
-                  onClick={(e) => handleOpenApprovalModal(record.id, 'approve', e)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    padding: '2px 4px',
-                    borderRadius: 4,
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#f6ffed'
-                    e.currentTarget.style.transform = 'scale(1.2)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent'
-                    e.currentTarget.style.transform = 'scale(1)'
-                  }}
-                  title="Phê duyệt"
-                >
-                  <CheckCircleOutlined style={{ fontSize: 16, color: '#52c41a', transition: 'color 0.2s ease' }} />
-                </div>
+                <Tooltip title="Phê duyệt">
+                  <div
+                    onClick={(e) => handleOpenApprovalModal(record.id, 'approve', e)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      padding: '2px 4px',
+                      borderRadius: 4,
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f6ffed'
+                      e.currentTarget.style.transform = 'scale(1.2)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                      e.currentTarget.style.transform = 'scale(1)'
+                    }}
+                  >
+                    <CheckCircleOutlined style={{ fontSize: 16, color: '#52c41a', transition: 'color 0.2s ease' }} />
+                  </div>
+                </Tooltip>
     
-                <div
-                  onClick={(e) => handleOpenApprovalModal(record.id, 'reject', e)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    padding: '2px 4px',
-                    borderRadius: 4,
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#fff1f0'
-                    e.currentTarget.style.transform = 'scale(1.2)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent'
-                    e.currentTarget.style.transform = 'scale(1)'
-                  }}
-                  title="Từ chối"
-                >
-                  <CloseCircleOutlined style={{ fontSize: 16, color: '#ff4d4f', transition: 'color 0.2s ease' }} />
-                </div>
+                <Tooltip title="Từ chối">
+                  <div
+                    onClick={(e) => handleOpenApprovalModal(record.id, 'reject', e)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      padding: '2px 4px',
+                      borderRadius: 4,
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#fff1f0'
+                      e.currentTarget.style.transform = 'scale(1.2)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                      e.currentTarget.style.transform = 'scale(1)'
+                    }}
+                  >
+                    <CloseCircleOutlined style={{ fontSize: 16, color: '#ff4d4f', transition: 'color 0.2s ease' }} />
+                  </div>
+                </Tooltip>
               </>
             )}
           </Space>
@@ -437,107 +440,40 @@ export function FlashcardTopicManagement({ initialData = null }) {
       align: 'center',
       width: 190,
       render: (_, record) => {
+        const iconStyle = { fontSize: 18, cursor: 'pointer', color: '#1890ff' }
         return (
-        <Space size="middle">
-          <div
-            onClick={(e) => handleOpenEditModal(record, e)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              borderRadius: 4,
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#fffbe6'
-              e.currentTarget.style.transform = 'scale(1.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.transform = 'scale(1)'
-            }}
-            title="Chỉnh sửa"
-          >
-            <EditOutlined style={{ fontSize: 18, color: '#faad14', transition: 'color 0.2s ease' }} />
-          </div>
-          <div
-            onClick={(e) => handleOpenOrderIndexModal(record, e)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              borderRadius: 4,
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#f9f0ff'
-              e.currentTarget.style.transform = 'scale(1.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.transform = 'scale(1)'
-            }}
-            title="Đổi vị trí"
-          >
-            <SwapOutlined style={{ fontSize: 18, color: '#722ed1', transition: 'color 0.2s ease' }} />
-          </div>
-          <div
-            onClick={(e) => {
-              e?.stopPropagation?.()
-              router.push(`${portalPrefix}/vocab-topic/${record.id}`)
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              borderRadius: 4,
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#f0f0f0'
-              e.currentTarget.style.transform = 'scale(1.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.transform = 'scale(1)'
-            }}
-            title="Xem chi tiết (Admin)"
-          >
-            <EyeOutlined style={{ fontSize: 18, color: '#1890ff', transition: 'color 0.2s ease' }} />
-          </div>
-          <div
-            onClick={(e) => {
-              e?.stopPropagation?.()
-              window.open(`/flashcard/study?topic=${record.id}`, '_blank')
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              borderRadius: 4,
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#e6f7ff'
-              e.currentTarget.style.transform = 'scale(1.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.transform = 'scale(1)'
-            }}
-            title="Xem trên web user"
-          >
-            <GlobalOutlined style={{ fontSize: 18, color: '#1890ff', transition: 'color 0.2s ease' }} />
-          </div>
-        </Space>
+          <Space size="large">
+            <Tooltip title="Chỉnh sửa">
+              <EditOutlined
+                style={iconStyle}
+                onClick={(e) => handleOpenEditModal(record, e)}
+              />
+            </Tooltip>
+            <Tooltip title="Đổi vị trí">
+              <SwapOutlined
+                style={iconStyle}
+                onClick={(e) => handleOpenOrderIndexModal(record, e)}
+              />
+            </Tooltip>
+            <Tooltip title="Xem chi tiết">
+              <EyeOutlined
+                style={iconStyle}
+                onClick={(e) => {
+                  e?.stopPropagation?.()
+                  router.push(`${portalPrefix}/vocab-topic/${record.id}`)
+                }}
+              />
+            </Tooltip>
+            <Tooltip title="Xem trên web user">
+              <GlobalOutlined
+                style={iconStyle}
+                onClick={(e) => {
+                  e?.stopPropagation?.()
+                  window.open(`/flashcard/study?topic=${record.id}`, '_blank')
+                }}
+              />
+            </Tooltip>
+          </Space>
         )
       },
     },

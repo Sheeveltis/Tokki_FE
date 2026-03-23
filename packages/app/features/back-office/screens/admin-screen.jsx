@@ -225,7 +225,7 @@ export function AdminScreen() {
   // Hiển thị loading khi đang kiểm tra
   if (checking) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <Spin size="large" />
       </div>
     )
@@ -236,25 +236,8 @@ export function AdminScreen() {
     return <AdminLoginForm />
   }
 
-  // Hiển thị admin panel nếu đã đăng nhập và có quyền
-  return (
-    <AdminLayout
-      screens={screens}
-      defaultKey={normalizedTab || 'users-all'}
-      onNavigate={handleNavigate}
-      onLogout={async () => {
-        // Xóa token khi đăng xuất
-        await clearAuthToken()
-        // Dùng window.location.href để đảm bảo redirect hoạt động
-        // Redirect về /admin để hiển thị login form
-        if (typeof window !== 'undefined') {
-          window.location.href = '/admin'
-        } else {
-          router.push('/admin')
-        }
-      }}
-    />
-  )
+  // Trả về screen tương ứng
+  return screens[normalizedTab] || screens['users-all']
 }
 
 export default AdminScreen

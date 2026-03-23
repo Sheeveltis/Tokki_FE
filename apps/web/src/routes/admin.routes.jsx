@@ -21,58 +21,71 @@ import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/scree
 import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocabulary-detail-screen'
 import { CreateVocabularyScreen } from '@tokki/app/features/vocabulary/screens/admin/create-vocabulary-screen'
 
+import { Outlet } from 'react-router-dom'
+import { AdminLayout } from '@tokki/app/features/back-office/components/admin/admin-layout.web'
+import { useRouter } from 'solito/navigation'
+
 /**
- * Admin Routes - Container Components
+ * Admin Routes - Persistence Wrapper
  */
-function AdminRoute() {
-  return <AdminScreen />
+function AdminLayoutWrapper() {
+  const router = useRouter()
+  return (
+    <AdminLayout 
+      onLogout={() => router.push('/login')}
+      onNavigate={(key) => router.push(`/admin?tab=${key}`)}
+    >
+      <Outlet />
+    </AdminLayout>
+  )
 }
 
 /**
  * Admin Routes Configuration
- * Organized by feature modules
  */
 export const adminRoutes = [
-  // Admin Dashboard
-  { path: '/admin', element: <AdminRoute /> },
+  {
+    path: '/admin',
+    element: <AdminLayoutWrapper />,
+    children: [
+      { index: true, element: <AdminScreen /> },
+      
+      // Admin - Lessons Module
+      { path: 'lessons/create', element: <CreateLessonScreen /> },
+      { path: 'lessons/:id', element: <LessonDetailScreen /> },
 
-  // Admin - Lessons Module
-  { path: '/admin/lessons/create', element: <CreateLessonScreen /> },
-  { path: '/admin/lessons/:id', element: <LessonDetailScreen /> },
+      // Admin - Blog Module
+      { path: 'blog/create', element: <CreateBlogScreen /> },
+      { path: 'blog/:id/edit', element: <EditBlogScreen /> },
+      { path: 'blog/:id', element: <ViewBlogScreen /> },
 
-  // Admin - Blog Module
-  { path: '/admin/blog/create', element: <CreateBlogScreen /> },
-  { path: '/admin/blog/:id/edit', element: <EditBlogScreen /> },
-  { path: '/admin/blog/:id', element: <ViewBlogScreen /> },
+      // Admin - Users Module
+      { path: 'users/create', element: <CreateUserScreen /> },
+      { path: 'users/create-admin-staff', element: <CreateAdminStaffScreen /> },
+      { path: 'users/:id', element: <UserDetailScreen /> },
 
-  // Admin - Users Module
-  { path: '/admin/users/create', element: <CreateUserScreen /> },
-  { path: '/admin/users/create-admin-staff', element: <CreateAdminStaffScreen /> },
-  { path: '/admin/users/:id', element: <UserDetailScreen /> },
+      // Admin - Question Bank Module (QuestionType)
+      { path: 'question-bank', element: <QuestionTypeManagement /> },
+      { path: 'question-bank/create', element: <CreateQuestionScreen /> },
+      { path: 'question-type', element: <QuestionTypeManagement /> },
+      { path: 'question-type/:id', element: <QuestionTypeDetailScreen /> },
 
-  // Admin - Question Bank Module
-  // Entry: go to QuestionType list first
-  { path: '/admin/question-bank', element: <QuestionTypeManagement /> },
-  { path: '/admin/question-bank/create', element: <CreateQuestionScreen /> },
+      // Admin - Passage Module
+      { path: 'passage', element: <PassageManagementScreen /> },
 
-  // Admin - Question Type Module
-  { path: '/admin/question-type', element: <QuestionTypeManagement /> },
-  { path: '/admin/question-type/:id', element: <QuestionTypeDetailScreen /> },
+      // Admin - Vocabulary Module
+      { path: 'vocab-topic/:id', element: <FlashcardTopicDetailScreen /> },
+      { path: 'vocab/create', element: <CreateVocabularyScreen /> },
+      { path: 'vocab/:id', element: <VocabularyDetailScreen /> },
 
-  // Admin - Passage Module
-  { path: '/admin/passage', element: <PassageManagementScreen /> },
+      // Admin - Exam Templates Module
+      { path: 'exam-templates/:id', element: <ExamTemplateDetailScreen /> },
 
-  // Admin - Vocabulary Module
-  { path: '/admin/vocab-topic/:id', element: <FlashcardTopicDetailScreen /> },
-  { path: '/admin/vocab/create', element: <CreateVocabularyScreen /> },
-  { path: '/admin/vocab/:id', element: <VocabularyDetailScreen /> },
-
-  // Admin - Exam Templates Module
-  { path: '/admin/exam-templates/:id', element: <ExamTemplateDetailScreen /> },
-
-  // Admin - Exams Module
-  { path: '/admin/exams/create', element: <CreateExamScreen /> },
-  { path: '/admin/exams/:id', element: <ExamDetailScreen /> },
+      // Admin - Exams Module
+      { path: 'exams/create', element: <CreateExamScreen /> },
+      { path: 'exams/:id', element: <ExamDetailScreen /> },
+    ]
+  }
 ]
 
 /**
@@ -80,6 +93,15 @@ export const adminRoutes = [
  */
 export function renderAdminRoutes() {
   return adminRoutes.map((route) => (
-    <Route key={route.path} path={route.path} element={route.element} />
+    <Route key={route.path} path={route.path} element={route.element}>
+      {route.children?.map(child => (
+        <Route 
+          key={child.path || 'index'} 
+          index={child.index} 
+          path={child.path} 
+          element={child.element} 
+        />
+      ))}
+    </Route>
   ))
 }

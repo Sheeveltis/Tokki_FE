@@ -291,31 +291,25 @@ export function ExamTemplateDetailScreen() {
 
   if (loading) {
     return (
-      <AdminLayout defaultKey="exam-template" onNavigate={handleNavigate}>
-        <div style={{ padding: 24, textAlign: 'center' }}>
-          <Spin size="large" />
-        </div>
-      </AdminLayout>
+      <div style={{ padding: 24, textAlign: 'center' }}>
+        <Spin size="large" />
+      </div>
     )
   }
 
   if (error) {
     return (
-      <AdminLayout defaultKey="exam-template" onNavigate={handleNavigate}>
-        <div style={{ padding: 24 }}>
-          <Alert message="Lỗi" description={error} type="error" showIcon />
-        </div>
-      </AdminLayout>
+      <div style={{ padding: 24 }}>
+        <Alert message="Lỗi" description={error} type="error" showIcon />
+      </div>
     )
   }
 
   if (!examTemplate) {
     return (
-      <AdminLayout defaultKey="exam-template" onNavigate={handleNavigate}>
-        <div style={{ padding: 24 }}>
-          <Alert message="Không tìm thấy mẫu đề" type="warning" showIcon />
-        </div>
-      </AdminLayout>
+      <div style={{ padding: 24 }}>
+        <Alert message="Không tìm thấy mẫu đề" type="warning" showIcon />
+      </div>
     )
   }
 
@@ -336,9 +330,8 @@ export function ExamTemplateDetailScreen() {
   }
 
   return (
-    <AdminLayout defaultKey="exam-template" onNavigate={handleNavigate}>
-      <div style={{ padding: 20 }}>
-        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+    <div>
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
           {/* Header */}
           <div
             style={{
@@ -586,7 +579,6 @@ export function ExamTemplateDetailScreen() {
           </div>
         </Modal>
       </div>
-    </AdminLayout>
   )
 }
 

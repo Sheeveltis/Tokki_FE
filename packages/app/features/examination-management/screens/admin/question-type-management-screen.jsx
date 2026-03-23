@@ -1,16 +1,22 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Alert, Modal, Form } from 'antd'
+import { Alert, Modal, Form, Space, Select, Button, Input } from 'antd'
+import { PlusOutlined, FilterOutlined, SearchOutlined } from '@ant-design/icons'
 import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
-import QuestionTypeToolbar from '../../components/admin/question-type-management/QuestionTypeToolbar'
-import QuestionTypeTable from '../../components/admin/question-type-management/QuestionTypeTable'
+import { useQuestionTypeColumns } from '../../components/admin/question-type-management/QuestionTypeTable.jsx'
 import { fetchQuestionTypes } from '../../api/question-type-management.js'
 import { QuestionTypeForm } from '../../components/admin/create-question-type/QuestionTypeForm.jsx'
 import { createQuestionType } from '../../api/create-question-type.js'
+import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
+import { getCurrentUserRole } from '../../../../provider/api/client.js'
+
+const { Option } = Select
 
 export function QuestionTypeManagement({ basePath = '/admin' }) {
   const router = useRouter()
+  const role = getCurrentUserRole()
+  const isStaff = role === 'Staff'
 
   const [drawerItem, setDrawerItem] = useState(null)
   const [filters, setFilters] = useState({
@@ -27,60 +33,115 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
   const [creating, setCreating] = useState(false)
   const [form] = Form.useForm()
 
-  useEffect(() => {
-    let mounted = true
+  const onView = (record) => router.push(`${basePath}/question-type/${record.questionTypeId}`)
+  const columns = useQuestionTypeColumns(onView)
 
-    const load = async () => {
-      try {
-        setLoading(true)
-        setError('')
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      setError('')
 
-        const params = {
-          ...(filters.keyword?.trim() ? { keyword: filters.keyword.trim() } : {}),
-          ...(filters.skill ? { skill: filters.skill } : {}),
-          ...(filters.difficulty ? { difficulty: filters.difficulty } : {}),
-          ...(filters.examType ? { examType: filters.examType } : {}),
-        }
-
-        const list = await fetchQuestionTypes(params)
-        if (mounted) setData(list)
-      } catch (err) {
-        if (mounted) setError(err?.message || 'Không thể tải danh sách loại câu hỏi')
-      } finally {
-        if (mounted) setLoading(false)
+      const params = {
+        ...(filters.keyword?.trim() ? { keyword: filters.keyword.trim() } : {}),
+        ...(filters.skill ? { skill: filters.skill } : {}),
+        ...(filters.difficulty ? { difficulty: filters.difficulty } : {}),
+        ...(filters.examType ? { examType: filters.examType } : {}),
       }
-    }
 
-    load()
-
-    return () => {
-      mounted = false
+      const list = await fetchQuestionTypes(params)
+      setData(list)
+    } catch (err) {
+      setError(err?.message || 'Không thể tải danh sách loại câu hỏi')
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
+    loadData()
   }, [filters])
 
-  return (
-    <>
-      <QuestionTypeToolbar
-        filters={filters}
-        onFilterChange={setFilters}
-        onCreate={() => {
+  const handleFilterChange = (name, value) => {
+    setFilters(prev => ({ ...prev, [name]: value }))
+  }
+
+  const extraFilters = (
+    <Space wrap>
+      <Select
+        placeholder="Kỹ năng"
+        allowClear
+        style={{ width: 140 }}
+        value={filters.skill}
+        onChange={(val) => handleFilterChange('skill', val)}
+        suffixIcon={<FilterOutlined />}
+      >
+        <Option value={1}>Nghe</Option>
+        <Option value={2}>Đọc</Option>
+        <Option value={3}>Viết</Option>
+      </Select>
+      <Select
+        placeholder="Mức độ"
+        allowClear
+        style={{ width: 140 }}
+        value={filters.difficulty}
+        onChange={(val) => handleFilterChange('difficulty', val)}
+        suffixIcon={<FilterOutlined />}
+      >
+        <Option value={1}>Dễ</Option>
+        <Option value={2}>Trung bình</Option>
+        <Option value={3}>Khó</Option>
+      </Select>
+      <Select
+        placeholder="Loại đề"
+        allowClear
+        style={{ width: 140 }}
+        value={filters.examType}
+        onChange={(val) => handleFilterChange('examType', val)}
+        suffixIcon={<FilterOutlined />}
+      >
+        <Option value={1}>TOPIK I</Option>
+        <Option value={2}>TOPIK II</Option>
+        <Option value={3}>Test đầu vào</Option>
+      </Select>
+    </Space>
+  )
+
+  const actions = useMemo(() => {
+    const list = []
+    if (!isStaff) {
+      list.push({
+        label: 'Tạo bộ câu hỏi',
+        icon: <PlusOutlined />,
+        onPress: () => {
           form.resetFields()
           form.setFieldsValue({ isActive: true })
           setCreateModalOpen(true)
+        }
+      })
+    }
+    return list
+  }, [isStaff, form])
+
+  return (
+    <>
+      <ManagementLayout
+        searchPlaceholder="Tìm kiếm..."
+        searchValue={filters.keyword}
+        onSearchChange={(val) => handleFilterChange('keyword', val)}
+        extraFilters={extraFilters}
+        actions={actions}
+        tableProps={{
+          columns: columns,
+          dataSource: data || [],
+          loading: loading,
+          onRowClick: (record) => setDrawerItem(record),
+          rowKey: "questionTypeId",
         }}
       />
 
       {error ? (
-        <Alert type="error" showIcon message="Lỗi" description={error} style={{ marginBottom: 16 }} />
+        <Alert type="error" showIcon message="Lỗi" description={error} style={{ marginTop: 16 }} />
       ) : null}
-
-      <QuestionTypeTable
-        data={data}
-        loading={loading}
-        onRowClick={(record) => setDrawerItem(record)}
-        rowKey="questionTypeId"
-        onView={(record) => router.push(`${basePath}/question-type/${record.questionTypeId}`)}
-      />
 
       <DetailDrawer
         open={!!drawerItem}
@@ -99,7 +160,6 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
         cancelText="Hủy"
         confirmLoading={creating}
         onOk={() => form.submit()}
-        styles={{ body: { paddingTop: 8 } }}
       >
         <Form
           layout="vertical"
@@ -118,8 +178,7 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
               await createQuestionType(payload)
               showAdminSuccess('Đã tạo bộ câu hỏi mới')
               setCreateModalOpen(false)
-              // reload list
-              setFilters((prev) => ({ ...prev })) // trigger useEffect
+              loadData()
             } catch (err) {
               showAdminError(err?.message || 'Tạo bộ câu hỏi thất bại')
             } finally {

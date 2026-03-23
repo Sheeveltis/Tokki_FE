@@ -19,11 +19,11 @@ const getRoleLabel = (val) => {
   }
 }
 
-export default function AccountDetails({ userId, onAfterChange, onBack }) {
+export default function AccountDetails({ userId, onAfterChange, onBack, initialEdit = false }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [user, setUser] = useState(null)
-  const [editing, setEditing] = useState(false)
+  const [editing, setEditing] = useState(initialEdit)
   const [form, setForm] = useState({
     fullName: '',
     phoneNumber: '',
