@@ -210,54 +210,7 @@ export function LessonDetailScreen() {
     )
   })()
 
-  const screens = {
-    'users-all': <UserManagement mode="all" initialData={initialData.users} />,
-    'users-admin': <UserManagement mode="admin" initialData={initialData.users} />,
-    lessons: detailContent,
-    'vocabulary-words': <VocabularyManagement initialData={initialData.vocab} />,
-    'vocabulary-topics': <FlashcardTopicManagement initialData={initialData.vocabTopics} />,
-    blog: <BlogManagement initialData={initialData.articles} />,
-    'chat-support': <ChatSupportScreen />,
-    'auto-email': <AutoEmail />,
-    'feedback-inbox': <FeedbackInbox />,
-    'membership-package': <MembershipPackage />,
-    'payment-management': <PaymentManagement />,
-    'revenue-report': <RevenueReport />,
-    'system-log': <SystemLog initialData={initialData.logs} />,
-    settings: <Settings />,
-  }
-
-  // Chọn layout dựa vào cổng hiện tại
-  if (currentPortal === 'staff') {
-    return (
-      <StaffLayout
-        screens={screens}
-        defaultKey={defaultTab}
-        onNavigate={handleNavigate}
-        onLogout={() => router.push('/login')}
-      />
-    )
-  }
-
-  if (currentPortal === 'moderator') {
-    return (
-      <ModeratorLayout
-        screens={screens}
-        defaultKey={defaultTab}
-        onNavigate={handleNavigate}
-        onLogout={() => router.push('/login')}
-      />
-    )
-  }
-
-  return (
-    <AdminLayout
-      screens={screens}
-      defaultKey={defaultTab}
-      onNavigate={handleNavigate}
-      onLogout={() => router.push('/login')}
-    />
-  )
+  return detailContent
 }
 
 export default LessonDetailScreen

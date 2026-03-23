@@ -303,18 +303,7 @@ export function ViewBlogScreen() {
     )
   }
 
-  const screens = {
-    blog: renderContent(),
-  }
-
-  return (
-    <Layout
-      screens={screens}
-      defaultKey="blog"
-      onNavigate={handleNavigate}
-      onLogout={() => router.push('/login')}
-    />
-  )
+  return renderContent()
 }
 
 const styles = StyleSheet.create({

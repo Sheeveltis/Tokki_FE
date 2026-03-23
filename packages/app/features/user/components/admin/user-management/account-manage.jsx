@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Select, Space, message, Tooltip } from 'antd'
-import { EyeOutlined, DownloadOutlined, UploadOutlined, FilterOutlined, PlusOutlined } from '@ant-design/icons'
+import { EyeOutlined, DownloadOutlined, UploadOutlined, FilterOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 
 import { fetchUsers } from '../../../api/user-management.js'
 import AccountDetails from './account-details'
+import DeleteUserConfirm from '../user-detail/DeleteUserConfirm'
+import UserEditModal from './user-edit-modal'
 
 import ManagementLayout from '../../../../../../components/layout/management-layout'
 
@@ -21,8 +23,8 @@ const ROLE_OPTIONS = [
 
 const STATUS_CONFIG = {
   0: { label: 'Vô hiệu hóa', color: '#8c8c8c' },
-  1: { label: 'Hoạt động', color: '#52c41a' },   
-  2: { label: 'Đã bị khóa', color: '#f5222d' },  
+  1: { label: 'Hoạt động', color: '#52c41a' },
+  2: { label: 'Đã bị khóa', color: '#f5222d' },
 }
 
 const getRoleLabel = (val) => ROLE_OPTIONS.find(opt => opt.value === Number(val))?.label || val
@@ -36,7 +38,10 @@ export default function AccountManage({ basePath = '/admin' }) {
   const [data, setData] = useState({ items: [], total: 0 })
   const [loading, setLoading] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState(null)
-  
+  const [editUserId, setEditUserId] = useState(null)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [userToDelete, setUserToDelete] = useState(null)
+
   const [filters, setFilters] = useState({ search: '', status: null, role: null, page: 1, size: 20 })
 
   const loadData = async (currentFilters) => {
@@ -45,9 +50,9 @@ export default function AccountManage({ basePath = '/admin' }) {
       const res = await fetchUsers({
         pageNumber: currentFilters.page,
         pageSize: currentFilters.size,
-        searchName: currentFilters.search, 
-        status: currentFilters.status,     
-        role: currentFilters.role          
+        searchName: currentFilters.search,
+        status: currentFilters.status,
+        role: currentFilters.role
       })
       setData({ items: res.items || [], total: res.total || 0 })
     } catch (error) {
@@ -57,8 +62,8 @@ export default function AccountManage({ basePath = '/admin' }) {
     }
   }
 
-  useEffect(() => { 
-    loadData(filters) 
+  useEffect(() => {
+    loadData(filters)
   }, [filters.page, filters.size, filters.status, filters.role])
 
   // Hàm xử lý khi LỌC (Search, Status, Role) -> Luôn về trang 1
@@ -84,57 +89,61 @@ export default function AccountManage({ basePath = '/admin' }) {
   // 3. UI CONFIGS
   // ==========================================
   const columns = [
-    { 
+    {
       // Thay vì title: 'STT'
       title: () => (
         <Tooltip title="Số thứ tự">
           <span>STT</span>
         </Tooltip>
-      ), 
-      key: 'stt', 
-      align: 'center', 
+      ),
+      key: 'stt',
+      align: 'center',
       width: 60,
-      render: (_, __, index) => (filters.page - 1) * filters.size + index + 1 
+      render: (_, __, index) => (filters.page - 1) * filters.size + index + 1
     },
-    { 
+    {
       title: () => (
         <Tooltip title="Họ và tên đầy đủ của người dùng">
           <span>Họ tên</span>
         </Tooltip>
-      ), 
-      dataIndex: 'fullName', 
-      render: (_, r) => r.fullName || r.name || '' 
+      ),
+      dataIndex: 'fullName',
+      render: (_, r) => r.fullName || r.name || '',
+      width: 300,
     },
-    { 
+    {
       title: () => (
         <Tooltip title="Địa chỉ email đăng ký">
           <span>Email</span>
         </Tooltip>
-      ), 
-      dataIndex: 'email' 
+      ),
+      dataIndex: 'email',
+      width: 500,
     },
-    { 
+    {
       title: () => (
         <Tooltip title="Phân quyền hệ thống">
           <span>Vai trò</span>
         </Tooltip>
-      ), 
-      dataIndex: 'role', 
-      render: val => getRoleLabel(val) 
+      ),
+      dataIndex: 'role',
+      align: 'center',
+      width: 200,
+      render: val => getRoleLabel(val)
     },
     {
-      title: 'Trạng thái', dataIndex: 'status', align: 'center', width: 100,
+      title: 'Trạng thái', dataIndex: 'status', align: 'center',
       render: val => {
         const cfg = STATUS_CONFIG[Number(val)] || STATUS_CONFIG[0]
         return (
           <Tooltip title={cfg.label} color={cfg.color} placement="top">
             <div style={{
-              width: 14,  
-              height: 14, 
-              borderRadius: '50%', 
+              width: 14,
+              height: 14,
+              borderRadius: '50%',
               backgroundColor: cfg.color,
-              margin: '0 auto', 
-              boxShadow: '0 0 4px rgba(0,0,0,0.3)', 
+              margin: '0 auto',
+              boxShadow: '0 0 4px rgba(0,0,0,0.3)',
               cursor: 'pointer'
             }} />
           </Tooltip>
@@ -142,20 +151,49 @@ export default function AccountManage({ basePath = '/admin' }) {
       }
     },
     {
-      title: 'Hành động', align: 'center', width: 90,
-      render: (_, record) => (
-        <EyeOutlined
-          style={{ fontSize: 18, cursor: 'pointer', padding: 8, color: '#1890ff' }}
-          onClick={() => setSelectedUserId(record.id || record.userId)}
-        />
-      )
+      title: 'Hành động', align: 'center',
+      render: (_, record) => {
+        const iconStyle = { fontSize: 18, cursor: 'pointer', color: '#1890ff' }
+        return (
+          <Space size="large">
+            <Tooltip title="Xem chi tiết">
+              <EyeOutlined
+                style={iconStyle}
+                onClick={() => {
+                  setSelectedUserId(record.id || record.userId)
+                  setInitialEdit(false)
+                }}
+              />
+            </Tooltip>
+            <Tooltip title="Chỉnh sửa">
+              <EditOutlined
+                style={iconStyle}
+                onClick={() => {
+                  setEditUserId(record.id || record.userId)
+                }}
+              />
+            </Tooltip>
+            {Number(record.status) !== 0 && (
+              <Tooltip title="Vô hiệu hóa">
+                <DeleteOutlined
+                  style={iconStyle}
+                  onClick={() => {
+                    setUserToDelete(record)
+                    setDeleteOpen(true)
+                  }}
+                />
+              </Tooltip>
+            )}
+          </Space>
+        )
+      }
     }
   ]
 
   const actions = [
-    { label: 'Import', icon: <UploadOutlined />,type: 'dashed', onPress: () => message.info('Tính năng Import sắp ra mắt') },
-    { label: 'Export', icon: <DownloadOutlined />,type: 'dashed', onPress: () => message.success('Đang tải file Excel...') },
-    { label: 'Thêm mới', icon: <PlusOutlined />,type: 'primary', onPress: () => router.push(`${basePath}/users/create-admin-staff`) }
+    { label: 'Import', icon: <UploadOutlined />, type: 'dashed', onPress: () => message.info('Tính năng Import sắp ra mắt') },
+    { label: 'Export', icon: <DownloadOutlined />, type: 'dashed', onPress: () => message.success('Đang tải file Excel...') },
+    { label: 'Thêm mới', icon: <PlusOutlined />, type: 'primary', onPress: () => router.push(`${basePath}/users/create-admin-staff`) }
   ]
 
   const extraFilters = (
@@ -175,41 +213,66 @@ export default function AccountManage({ basePath = '/admin' }) {
     </Space>
   )
 
-  
+
   if (selectedUserId) {
     return (
-      <AccountDetails 
-        userId={selectedUserId} 
-        onBack={() => setSelectedUserId(null)} 
+      <AccountDetails
+        userId={selectedUserId}
+        onBack={() => {
+          setSelectedUserId(null)
+        }} 
+        initialEdit={false}
         onAfterChange={() => {
           loadData(filters); // Chỉ load lại data ngầm để cập nhật dữ liệu mới nhất
           // KHÔNG set selectedUserId về null ở đây nữa
-        }} 
+        }}
       />
     )
   }
 
   return (
-    <ManagementLayout
-      searchPlaceholder="Tìm theo tên..."
-      searchValue={filters.search}
-      onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
-      onSearchSubmit={() => handleFilterChange('search', filters.search)}
-      extraFilters={extraFilters}
-      actions={actions}
-      tableProps={{
-        columns,
-        dataSource: data.items,
-        loading,
-        scroll: { x: 'max-content', y: 'calc(100vh - 290px)' },
-        pagination: {
-          current: filters.page,
-          pageSize: filters.size,
-          total: data.total,
-          showSizeChanger: true,
-          onChange: handlePaginationChange // <-- Fix nằm ở đây nè
-        }
-      }}
-    />
+    <>
+      <ManagementLayout
+        searchPlaceholder="Tìm theo tên..."
+        searchValue={filters.search}
+        onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
+        onSearchSubmit={() => handleFilterChange('search', filters.search)}
+        extraFilters={extraFilters}
+        actions={actions}
+        tableProps={{
+          columns,
+          dataSource: data.items,
+          loading,
+          scroll: { x: 'max-content', y: 'calc(100vh - 290px)' },
+          pagination: {
+            current: filters.page,
+            pageSize: filters.size,
+            total: data.total,
+            showSizeChanger: true,
+            onChange: handlePaginationChange // <-- Fix nằm ở đây nè
+          }
+        }}
+      />
+
+      <DeleteUserConfirm
+        open={deleteOpen}
+        user={userToDelete}
+        onConfirm={() => {
+          setDeleteOpen(false)
+          loadData(filters)
+        }}
+        onCancel={() => setDeleteOpen(false)}
+      />
+
+      <UserEditModal
+        open={!!editUserId}
+        userId={editUserId}
+        onOk={() => {
+          setEditUserId(null)
+          loadData(filters)
+        }}
+        onCancel={() => setEditUserId(null)}
+      />
+    </>
   )
 }

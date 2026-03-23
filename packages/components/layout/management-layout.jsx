@@ -1,13 +1,15 @@
 import { useRef, useState, useEffect } from 'react'
-import { Input, Space, Button } from 'antd'
+import { Input, Space, Button, Card, Typography } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
-import ManagementTable from '../ManagementTable' 
+import ManagementTable from '../ManagementTable.jsx' 
+
+const { Text } = Typography
 
 // --- SUB-COMPONENT: Nút thao tác động ---
 const ActionGroup = ({ actions = [] }) => {
   if (!actions || actions.length === 0) return null
   return (
-    <Space>
+    <Space size="middle">
       {actions.map((action, index) => {
         if (action.hidden) return null
         return (
@@ -15,8 +17,14 @@ const ActionGroup = ({ actions = [] }) => {
             key={action.key || index}
             onClick={action.onPress}
             icon={action.icon}
-            style={{ minWidth: 80, ...action.style }}
             type={action.type || 'primary'}
+            style={{ 
+              borderRadius: 8,
+              height: 40,
+              padding: '0 20px',
+              fontWeight: 600,
+              ...action.style 
+            }}
           >
             {action.label}
           </Button>
@@ -31,9 +39,15 @@ const SearchBar = ({ placeholder, value, onChange, onSearch }) => {
   return (
     <Input
       allowClear
-      prefix={<SearchOutlined />}
+      size="large"
+      prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
       placeholder={placeholder || 'Tìm kiếm...'}
-      style={{ maxWidth: 360, minWidth: 280 }}
+      style={{ 
+        maxWidth: 400, 
+        minWidth: 300,
+        borderRadius: 8,
+        height: 40
+      }}
       value={value}
       onChange={(e) => onChange?.(e.target.value)}
       onPressEnter={(e) => onSearch?.(e.target.value)}
@@ -42,7 +56,7 @@ const SearchBar = ({ placeholder, value, onChange, onSearch }) => {
 }
 
 // ==========================================
-// MAIN COMPONENT: Management Layout (Viewport Radar Height)
+// MAIN COMPONENT: Management Layout
 // ==========================================
 export default function ManagementLayout({
   searchPlaceholder,
@@ -52,50 +66,81 @@ export default function ManagementLayout({
   extraFilters,
   actions = [],
   tableProps,
-  children
+  children,
+  title
 }) {
   const tableWrapperRef = useRef(null)
-  
-  const [tableScrollY, setTableScrollY] = useState('60%') 
+  const [tableScrollY, setTableScrollY] = useState(400) 
 
   useEffect(() => {
     const calculateTableHeight = () => {
       if (tableWrapperRef.current) {
-        const topPosition = tableWrapperRef.current.getBoundingClientRect().top
-        
-        const availableHeight = window.innerHeight - topPosition - 120 
-        
-        setTableScrollY(availableHeight > 250 ? availableHeight : 250)
+        const rect = tableWrapperRef.current.getBoundingClientRect()
+        // Tính toán chiều cao khả dụng trừ đi pagination (khoảng 64px) và padding bottom
+        const availableHeight = window.innerHeight - rect.top - 100
+        setTableScrollY(availableHeight > 300 ? availableHeight : 300)
       }
     }
 
-    calculateTableHeight()
+    // Delay một chút để layout render xong
+    const timer = setTimeout(calculateTableHeight, 100)
     window.addEventListener('resize', calculateTableHeight)
-    return () => window.removeEventListener('resize', calculateTableHeight)
+    return () => {
+      window.removeEventListener('resize', calculateTableHeight)
+      clearTimeout(timer)
+    }
   }, [])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', height: '100%', overflow: 'hidden' }}>
-      {/* PHẦN TOP: Cố định kích thước */}
-      <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-        <Space style={{ flex: 1, flexWrap: 'wrap' }}>
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      gap: 20, 
+      width: '100%', 
+      height: '100%',
+      // Sử dụng flex 1 để chiếm hết không gian của card cha
+    }}>
+      {/* HEADER SECTION */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        flexWrap: 'wrap', 
+        gap: 16,
+        paddingBottom: 4
+      }}>
+        <Space size="middle" style={{ flex: 1, flexWrap: 'wrap' }}>
           {(onSearchChange || onSearchSubmit) && (
-            <SearchBar placeholder={searchPlaceholder} value={searchValue} onChange={onSearchChange} onSearch={onSearchSubmit} />
+            <SearchBar 
+              placeholder={searchPlaceholder} 
+              value={searchValue} 
+              onChange={onSearchChange} 
+              onSearch={onSearchSubmit} 
+            />
           )}
           {extraFilters}
         </Space>
         <ActionGroup actions={actions} />
       </div>
 
-      {/* PHẦN BODY: Bảng Table */}
-      <div ref={tableWrapperRef} style={{ flex: 1, overflow: 'hidden', width: '100%' }}>
+      {/* TABLE SECTION */}
+      <div 
+        ref={tableWrapperRef} 
+        style={{ 
+          flex: 1, 
+          overflow: 'hidden', 
+          width: '100%',
+          borderRadius: 8,
+          // border: '1px solid #f0f0f0'
+        }}
+      >
         <ManagementTable 
           {...tableProps} 
           scroll={{ ...tableProps?.scroll, x: 'max-content', y: tableScrollY }} 
+          size="middle"
         />
         {children}
       </div>
-      
     </div>
   )
-}
+}
