@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { View, StyleSheet } from 'react-native'
-import { useRouter } from 'solito/navigation'
+import { useNavigation } from '@react-navigation/native'
 
 import WordleRule from './wordle-rule'
 import WordleLevelPopup from './wordle-level-popup'
@@ -8,8 +8,8 @@ import { getWordleLevelByDifficulty, getWordleLevels } from '../../../api/wordle
 import { LoginRequest } from '../../../../../../components/loginRequest'
 import { getAuthToken, isCurrentTokenExpired } from '../../../../../provider/api/client'
 
-export function WordleRuleLayoutNative({ basePath = '/minigame/wordle' }) {
-  const router = useRouter()
+export function WordleRuleLayoutNative() {
+  const navigation = useNavigation()
   const [showLevelPopup, setShowLevelPopup] = useState(false)
   const [loadingLevel, setLoadingLevel] = useState(false)
   const [levelsData, setLevelsData] = useState([])
@@ -54,16 +54,17 @@ export function WordleRuleLayoutNative({ basePath = '/minigame/wordle' }) {
         return
       }
 
-      const query = new URLSearchParams()
-      query.set('level', String(difficultyLevel))
-      if (levelData.dailyWordleId) query.set('dailyWordleId', String(levelData.dailyWordleId))
-      if (levelData.wordLength) query.set('wordLength', String(levelData.wordLength))
-      if (Number.isFinite(attemptCount)) query.set('attemptCount', String(attemptCount))
+      const params = {
+        level: String(difficultyLevel),
+      }
+      if (levelData.dailyWordleId) params.dailyWordleId = String(levelData.dailyWordleId)
+      if (levelData.wordLength) params.wordLength = String(levelData.wordLength)
+      if (Number.isFinite(attemptCount)) params.attemptCount = String(attemptCount)
       if (Number.isFinite(maxAttempts) && maxAttempts > 0) {
-        query.set('maxAttempts', String(maxAttempts))
+        params.maxAttempts = String(maxAttempts)
       }
 
-      router.push(`${basePath}/wordle-play?${query.toString()}`)
+      navigation.navigate('wordle-play', params)
     } catch (error) {
       console.error('[WordleRuleLayoutNative] Failed to load wordle level:', error)
     } finally {
