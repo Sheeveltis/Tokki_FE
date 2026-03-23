@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Modal, Form, Input, InputNumber, Upload, message, Select } from 'antd'
+import { Modal, Form, Input, InputNumber, Upload, message, Select, Row, Col } from 'antd'
 
 /**
  * Modal chỉnh sửa chủ đề flashcard
@@ -91,76 +91,101 @@ export function FlashcardTopicEditModal({ open, loading, initialValues = {}, onC
         header: { fontSize: 18 },
         body: { fontSize: 16 },
       }}
-    >
-      <Form form={form} layout="vertical">
+      width={620}
+    >      <Form form={form} layout="vertical" size="middle">
         <Form.Item
           label="Tên chủ đề"
           name="topicName"
           rules={[{ required: true, message: 'Vui lòng nhập tên chủ đề' }]}
+          style={{ marginBottom: 12 }}
         >
-          <Input placeholder="VD: Từ vựng cơ bản" size="large" style={{ fontSize: 16 }} />
+          <Input placeholder="VD: Từ vựng cơ bản" />
         </Form.Item>
+
         <Form.Item
           label="Mô tả"
           name="description"
           rules={[{ required: true, message: 'Vui lòng nhập mô tả' }]}
+          style={{ marginBottom: 12 }}
         >
-          <Input.TextArea
-            rows={3}
-            placeholder="VD: Các từ vựng cơ bản cho người mới bắt đầu"
-            style={{ fontSize: 16 }}
-          />
+          <Input.TextArea rows={2} placeholder="Mô tả ngắn về chủ đề" />
         </Form.Item>
-        <Form.Item
-          label="Level"
-          name="level"
-          rules={[{ required: true, message: 'Vui lòng nhập level' }]}
-        >
-          <InputNumber
-            min={1}
-            max={10}
-            placeholder="VD: 1"
-            size="large"
-            style={{ width: '100%', fontSize: 16 }}
-          />
-        </Form.Item>
-        {!isModerator && (
-          <Form.Item label="Trạng thái" name="status" rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}>
-            <Select size="large" style={{ fontSize: 16 }}>
-              {isStaff ? (
-                <>
-                  <Select.Option value={0}>Bản nháp</Select.Option>
-                  <Select.Option value={4}>Bị từ chối phê duyệt</Select.Option>
-                </>
-              ) : (
-                <>
-                  <Select.Option value={0}>Bản nháp</Select.Option>
-                  <Select.Option value={1}>Đang hoạt động</Select.Option>
-                </>
-              )}
-            </Select>
-          </Form.Item>
-        )}
-        <Form.Item label="Ảnh minh họa" name="imgUrl">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+
+        <Row gutter={12}>
+          <Col span={12}>
+            <Form.Item
+              label="Level"
+              name="level"
+              rules={[{ required: true, message: 'Vui lòng nhập level' }]}
+              style={{ marginBottom: 12 }}
+            >
+              <InputNumber min={1} max={10} placeholder="1" style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+
+          {!isModerator && (
+            <Col span={12}>
+              <Form.Item
+                label="Trạng thái"
+                name="status"
+                rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
+                style={{ marginBottom: 12 }}
+              >
+                <Select>
+                  {isStaff ? (
+                    <>
+                      <Select.Option value={0}>Bản nháp</Select.Option>
+                      <Select.Option value={4}>Bị từ chối phê duyệt</Select.Option>
+                    </>
+                  ) : (
+                    <>
+                      <Select.Option value={0}>Bản nháp</Select.Option>
+                      <Select.Option value={1}>Đang hoạt động</Select.Option>
+                    </>
+                  )}
+                </Select>
+              </Form.Item>
+            </Col>
+          )}
+        </Row>
+
+        <Form.Item label="Ảnh minh họa" name="imgUrl" style={{ marginBottom: 4 }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: previewUrl ? '1fr 140px' : '1fr',
+              gap: 10,
+              alignItems: 'stretch',
+            }}
+          >
             <Upload.Dragger
               multiple={false}
               showUploadList={false}
               beforeUpload={handleBeforeUpload}
               accept="image/*"
-              style={{ padding: 8 }}
+              style={{ height: 118, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 8 }}
             >
-              <p className="ant-upload-drag-icon" style={{ fontWeight: 600 }}>
+              <p className="ant-upload-text" style={{ marginBottom: 0 }}>
                 Kéo thả hoặc bấm để chọn ảnh
               </p>
-              <p className="ant-upload-text">Ảnh sẽ được cập nhật cho chủ đề</p>
             </Upload.Dragger>
             {previewUrl ? (
-              <div style={{ border: '1px solid #f0f0f0', borderRadius: 6, padding: 8, textAlign: 'center' }}>
+              <div
+                style={{
+                  border: '1px solid #f0f0f0',
+                  borderRadius: 6,
+                  padding: 6,
+                  textAlign: 'center',
+                  height: 118,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
                 <img
                   src={previewUrl}
                   alt="preview"
-                  style={{ maxWidth: '100%', maxHeight: 200, objectFit: 'contain' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 4 }}
                 />
               </div>
             ) : null}

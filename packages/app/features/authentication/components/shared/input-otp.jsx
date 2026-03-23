@@ -135,10 +135,7 @@ const styles = StyleSheet.create({
     maxWidth: 520,
     borderWidth: 1,
     borderColor: '#000',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 10,
+    boxShadow: '0px 6px 10px rgba(0, 0, 0, 0.2)',
     elevation: 8,
   },
   modalHeader: {

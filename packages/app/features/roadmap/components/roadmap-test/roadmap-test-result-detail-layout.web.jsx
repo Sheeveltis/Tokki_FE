@@ -279,31 +279,97 @@ export function RoadmapTestResultDetailLayout({ userExamId, section, detailData,
                                     </Text>
                                   </View>
 
-                                  {!!q?.aiAnalysis?.results?.length && (
+                                  {(!!q?.aiAnalysis?.results?.length ||
+                                    !!q?.aiAnalysis?.overallFeedback ||
+                                    !!q?.aiAnalysis?.contentFeedback ||
+                                    !!q?.aiAnalysis?.organizationFeedback ||
+                                    !!q?.aiAnalysis?.languageFeedback ||
+                                    !!q?.aiAnalysis?.polishedVersion ||
+                                    (Array.isArray(q?.aiAnalysis?.missingInfo) && q.aiAnalysis.missingInfo.length > 0)) && (
                                     <View style={styles.aiBox}>
                                       <Text style={styles.aiTitle}>
                                         Phân tích AI (Tổng: {q?.aiAnalysis?.totalScore ?? 0})
                                       </Text>
-                                      <View style={styles.aiList}>
-                                        {q.aiAnalysis.results.map((r, idx) => (
-                                          <View key={`${r?.blank_id || idx}`} style={styles.aiItem}>
-                                            <Text style={styles.aiItemTitle}>
-                                              {String(r?.blank_id || `Mục ${idx + 1}`)} • Điểm: {r?.score ?? 0} •{' '}
-                                              {String(r?.evaluation || '')}
-                                            </Text>
-                                            {!!r?.feedback && <Text style={styles.aiFeedback}>{String(r.feedback)}</Text>}
-                                            {Array.isArray(r?.suggestions) && r.suggestions.length > 0 && (
-                                              <View style={styles.aiSuggestions}>
-                                                {r.suggestions.map((s, sIdx) => (
-                                                  <Text key={`${sIdx}`} style={styles.aiSuggestionText}>
-                                                    - {String(s)}
-                                                  </Text>
-                                                ))}
-                                              </View>
-                                            )}
+
+                                      {!!q?.aiAnalysis?.overallFeedback && (
+                                        <View style={styles.aiSection}>
+                                          <Text style={styles.aiSectionTitle}>Nhận xét tổng quan</Text>
+                                          <Text style={styles.aiFeedback}>{String(q.aiAnalysis.overallFeedback)}</Text>
+                                        </View>
+                                      )}
+
+                                      {!!q?.aiAnalysis?.contentFeedback && (
+                                        <View style={styles.aiSection}>
+                                          <Text style={styles.aiSectionTitle}>
+                                            Nội dung ({q?.aiAnalysis?.contentScore ?? 0} điểm)
+                                          </Text>
+                                          <Text style={styles.aiFeedback}>{String(q.aiAnalysis.contentFeedback)}</Text>
+                                        </View>
+                                      )}
+
+                                      {!!q?.aiAnalysis?.organizationFeedback && (
+                                        <View style={styles.aiSection}>
+                                          <Text style={styles.aiSectionTitle}>
+                                            Bố cục ({q?.aiAnalysis?.organizationScore ?? 0} điểm)
+                                          </Text>
+                                          <Text style={styles.aiFeedback}>{String(q.aiAnalysis.organizationFeedback)}</Text>
+                                        </View>
+                                      )}
+
+                                      {!!q?.aiAnalysis?.languageFeedback && (
+                                        <View style={styles.aiSection}>
+                                          <Text style={styles.aiSectionTitle}>
+                                            Ngôn ngữ ({q?.aiAnalysis?.languageScore ?? 0} điểm)
+                                          </Text>
+                                          <Text style={styles.aiFeedback}>{String(q.aiAnalysis.languageFeedback)}</Text>
+                                        </View>
+                                      )}
+
+                                      {Array.isArray(q?.aiAnalysis?.missingInfo) && q.aiAnalysis.missingInfo.length > 0 && (
+                                        <View style={styles.aiSection}>
+                                          <Text style={styles.aiSectionTitle}>Thông tin còn thiếu</Text>
+                                          <View style={styles.aiSuggestions}>
+                                            {q.aiAnalysis.missingInfo.map((item, idx) => (
+                                              <Text key={`${idx}`} style={styles.aiSuggestionText}>
+                                                - {String(item)}
+                                              </Text>
+                                            ))}
                                           </View>
-                                        ))}
-                                      </View>
+                                        </View>
+                                      )}
+
+                                      {!!q?.aiAnalysis?.polishedVersion && (
+                                        <View style={styles.aiSection}>
+                                          <Text style={styles.aiSectionTitle}>Bài mẫu gợi ý</Text>
+                                          <Text style={styles.aiFeedback}>{String(q.aiAnalysis.polishedVersion)}</Text>
+                                        </View>
+                                      )}
+
+                                      {!!q?.aiAnalysis?.results?.length && (
+                                        <View style={styles.aiSection}>
+                                          <Text style={styles.aiSectionTitle}>Chi tiết từng ô trống</Text>
+                                          <View style={styles.aiList}>
+                                            {q.aiAnalysis.results.map((r, idx) => (
+                                              <View key={`${r?.blank_id || idx}`} style={styles.aiItem}>
+                                                <Text style={styles.aiItemTitle}>
+                                                  {String(r?.blank_id || `Mục ${idx + 1}`)} • Điểm: {r?.score ?? 0} •{' '}
+                                                  {String(r?.evaluation || '')}
+                                                </Text>
+                                                {!!r?.feedback && <Text style={styles.aiFeedback}>{String(r.feedback)}</Text>}
+                                                {Array.isArray(r?.suggestions) && r.suggestions.length > 0 && (
+                                                  <View style={styles.aiSuggestions}>
+                                                    {r.suggestions.map((s, sIdx) => (
+                                                      <Text key={`${sIdx}`} style={styles.aiSuggestionText}>
+                                                        - {String(s)}
+                                                      </Text>
+                                                    ))}
+                                                  </View>
+                                                )}
+                                              </View>
+                                            ))}
+                                          </View>
+                                        </View>
+                                      )}
                                     </View>
                                   )}
                                 </View>
@@ -633,6 +699,16 @@ const styles = StyleSheet.create({
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
     marginBottom: 10,
+  },
+  aiSection: {
+    marginTop: 10,
+    gap: 6,
+  },
+  aiSectionTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#1C1C1C',
+    fontFamily: 'Epilogue, sans-serif',
   },
   aiList: {
     gap: 10,

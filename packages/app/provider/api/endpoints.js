@@ -130,6 +130,7 @@ export const ENDPOINTS = {
       ADMIN_REMOVE_VOCABULARIES: '/Topics/admin/vocabularies',
       PUBLISH: (topicId) => `/Topics/${topicId}/publish`,
       UPDATE: '/Topics/update',
+      UPDATE_ORDER_INDEX: '/Topics/update-order-index',
       STAFF_SUBMIT_FOR_APPROVAL: (topicId) => `/Topics/staff/submit-for-approval/${topicId}`,
       MODERATOR_APPROVE: (topicId) => `/Topics/moderator/approve-topic/${topicId}`,
       MODERATOR_REJECT: (topicId) => `/Topics/moderator/reject-topic/${topicId}`,
@@ -216,7 +217,7 @@ export const ENDPOINTS = {
       UPLOAD_AVATAR: '/Cloudinary/image/avatar',  // POST: Upload avatar lên Cloudinary
       UPLOAD_TEMPLATE_PART_IMAGE: '/Cloudinary/image/template-part',  // POST: Upload ảnh template part lên Cloudinary
       UPLOAD_VOCABULARY_IMAGE: '/Cloudinary/image/vocabulary',  // POST: Upload ảnh từ vựng lên Cloudinary
-      UPLOAD_TOPIC_IMAGE: '/Cloudinary/topic',  // POST: Upload ảnh chủ đề lên Cloudinary
+      UPLOAD_TOPIC_IMAGE: '/Cloudinary/image/topic',  // POST: Upload ảnh chủ đề lên Cloudinary
       UPLOAD_AVATAR: '/Cloudinary/avatar',  // POST: Upload avatar lên Cloudinary
 
       // Question/Option media
@@ -279,12 +280,15 @@ export const ENDPOINTS = {
       IS_GRADED: (userExamId) => `/UserExam/${encodeURIComponent(userExamId)}/is-graded`,
       ANALYSIS: (userExamId) => `/UserExam/${encodeURIComponent(userExamId)}/analysis`,
       HISTORY: '/UserExam/user/history',
+      PRACTICE_QUESTIONS: (questionTypeId, quantity = 10) => `/UserExam/${encodeURIComponent(questionTypeId)}?quantity=${quantity}`,
     },
     ROADMAP: {
       DURATION_RECOMMENDATION: '/Roadmap/duration-recommendation',
       FEEDBACK: '/Roadmap/entrance-feedback',
       GENERATE: '/Roadmap/generate',
       CURRENT: '/Roadmap/current',
+      TASK_DETAIL: (taskId) => `/Roadmap/task/${encodeURIComponent(taskId)}/detail`,
+      COMPLETE: '/Roadmap/complete',
     },
     SYSTEM_CONFIGS: {
       GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,

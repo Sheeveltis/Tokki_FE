@@ -1,14 +1,19 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   View,
-  Text,
   Image,
-  TouchableOpacity,
-  Pressable,
   Platform,
+  Pressable,
+  Text,
+  TouchableOpacity,
   StyleSheet,
+  useWindowDimensions,
 } from 'react-native'
+import { useRouter } from 'solito/navigation'
 import { colors } from '../app/color'
+import { getAuthToken, clearAuthToken, getCurrentUserId } from '../app/provider/api/client'
+import { MessageModal } from './MessageModal'
+
 import BackgroundImage from '../assets/background1.png'
 import LogoImage from '../assets/logo-text.png'
 import HomeIcon from '../assets/icon/navigate-app/home.svg'
@@ -16,168 +21,104 @@ import StudyIcon from '../assets/icon/navigate-app/book.svg'
 import FlashcardIcon from '../assets/icon/navigate-app/folder.svg'
 import BlogIcon from '../assets/icon/navigate-app/chat.svg'
 import LeaderboardIcon from '../assets/icon/navigate-app/rank.svg'
-import SmallFoot from '../assets/smallfoot.png'
 import RoadmapIcon from '../assets/icon/navigate-app/roadmap.svg'
 import DictionaryIcon from '../assets/icon/navigate-app/dictionary.svg'
-import { useRouter } from 'solito/navigation'
 import UserIcon from '../assets/user.png'
 import LogoutIcon from '../assets/icon/icon-mainflow/logout.svg'
-import { MessageModal } from './MessageModal'
-import { getAuthToken, clearAuthToken, getCurrentUserId } from '../app/provider/api/client'
 
-const normalizeImageSource = (src) => {
-  if (!src) return null
-  if (typeof src === 'number' || src.uri) return src
-  if (typeof src === 'object' && src.src) {
-    return { uri: src.src }
+const HEADER_HEIGHT = 72
+
+const IconRenderer = ({ icon, size = 24, tint }) => {
+  if (!icon) return null
+
+  const Comp = typeof icon === 'function' ? icon : icon?.default
+  if (Comp) {
+    return (
+      <Comp
+        width={size}
+        height={size}
+        fill={tint}
+        color={tint}
+        style={{ color: tint }}
+      />
+    )
   }
-  if (typeof src === 'string') {
-    return { uri: src }
-  }
-  return src
+
+  return <Image source={icon} style={{ width: size, height: size, tintColor: tint }} resizeMode="contain" />
 }
 
-const RenderIcon = ({ icon, size, tint }) => {
-  if (typeof icon === 'function' || (typeof icon === 'object' && icon !== null && !icon.uri && !icon.src)) {
-    const SvgIcon = icon;
-    
-    if (Platform.OS === 'web') {
-      const colorId = tint ? tint.replace('#', '') : 'default';
-      return (
-        <div className={`nav-icon-tint-${colorId}`} style={{ width: size, height: size, display: 'flex' }}>
-          <style>
-            {`.nav-icon-tint-${colorId} svg path, 
-              .nav-icon-tint-${colorId} svg rect, 
-              .nav-icon-tint-${colorId} svg circle { 
-                fill: ${tint} !important; 
-            }`}
-          </style>
-          <SvgIcon width="100%" height="100%" />
-        </div>
-      )
-    }
-    
-    return <SvgIcon width={size} height={size} fill={tint} color={tint} />
-  }
-  
+const NavItem = ({ icon, label, tint, path, compact = false }) => {
+  const router = useRouter()
+  const [isHovered, setIsHovered] = useState(false)
+
   return (
-    <Image
-      source={normalizeImageSource(icon)}
-      style={{
-        width: size,
-        height: size,
-        resizeMode: 'contain',
-        tintColor: tint,
-      }}
-    />
+    <View style={styles.navItemContainer}>
+      <Pressable
+        onPress={() => router.push(path)}
+        onHoverIn={() => setIsHovered(true)}
+        onHoverOut={() => setIsHovered(false)}
+        style={({ pressed }) => {
+          const active = pressed || (isHovered && Platform.OS === 'web')
+          return [
+            styles.navIconWrap,
+            active && styles.navIconWrapActive,
+            compact && styles.navIconWrapCompact,
+          ]
+        }}
+      >
+        <IconRenderer icon={icon} size={compact ? 24 : 34} tint={tint} />
+      </Pressable>
+
+      {!compact ? <Text style={styles.navLabel}>{label}</Text> : null}
+
+      {compact && isHovered && Platform.OS === 'web' && (
+        <View style={styles.tooltip}>
+          <Text style={styles.tooltipText}>{label}</Text>
+        </View>
+      )}
+    </View>
   )
 }
 
-export const Navbar = ({
-  homeIcon,
-  roadmapIcon,
-  flashcardIcon,
-  blogIcon,
-  dictionaryIcon,
-  onHomePress,
-  onRoadmapPress,
-  onFlashcardPress,
-  onBlogPress,
-  onLoginPress,
-  onRegisterPress,
-  style,
-  position = 'fixed',
-}) => {
+export const Navbar = ({ position = 'fixed' }) => {
   const router = useRouter()
-  const [hasToken, setHasToken] = useState(false)
-  const [homeHover, setHomeHover] = useState(false)
-  const [roadmapHover, setRoadmapHover] = useState(false)
-  const [flashcardHover, setFlashcardHover] = useState(false)
-  const [blogHover, setBlogHover] = useState(false)
-  const [dictionaryHover, setDictionaryHover] = useState(false)
-  const [leaderboardHover, setLeaderboardHover] = useState(false)
-  const [userHover, setUserHover] = useState(false)
-  const [logoutHover, setLogoutHover] = useState(false)
-  const [roadmapInfoHover, setRoadmapInfoHover] = useState(false)
-  const [premiumHover, setPremiumHover] = useState(false)
+  const { width } = useWindowDimensions()
+  const isMobile = width < 920
+
+  const [hasToken, setHasToken] = useState(null)
+  const [authChecked, setAuthChecked] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
-    if (Platform.OS !== 'web' || typeof window === 'undefined') return
-    if (typeof window.addEventListener !== 'function') return
-    
-    const checkToken = () => {
-      const token = getAuthToken()
-      setHasToken(!!token)
+    const check = () => {
+      setHasToken(!!getAuthToken())
+      setAuthChecked(true)
     }
-    checkToken()
-    const onStorage = (e) => {
-      if (e.key === 'token') {
-        checkToken()
-      }
-    }
-    const onTokenChanged = () => checkToken()
-    window.addEventListener('storage', onStorage)
-    window.addEventListener('token-changed', onTokenChanged)
+    check()
+
+    if (Platform.OS !== 'web') return
+
+    window.addEventListener('token-changed', check)
+    window.addEventListener('storage', check)
     return () => {
-      if (typeof window.removeEventListener === 'function') {
-        window.removeEventListener('storage', onStorage)
-        window.removeEventListener('token-changed', onTokenChanged)
-      }
+      window.removeEventListener('token-changed', check)
+      window.removeEventListener('storage', check)
     }
   }, [])
 
-  useEffect(() => {
-    if (!router?.prefetch) return
-    const routesToPrefetch = ['/homepage', '/study', '/flashcard', '/blog', '/roadmap/info', '/leaderboard', '/login', '/register', '/payment-package']
-    routesToPrefetch.forEach((r) => {
-      router.prefetch(r).catch(() => {})
-    })
-  }, [router])
-
-  const go = useCallback((path, fallback) => {
-    if (path) return () => router.push(path)
-    return fallback
-  }, [router])
-
-  const handleHomePress = onHomePress || go('/homepage')
-  const handleRoadmapPress = onRoadmapPress || go('/study')
-  const handleRoadmapInfoPress = go('/roadmap/info')
-  const handleFlashcardPress = onFlashcardPress || go('/flashcard')
-  const handleBlogPress = onBlogPress || go('/blog')
-  const handleDictionaryPress = go('/dictionary')
-  const handleLeaderboardPress = go('/leaderboard')
-  const handleLoginPress = onLoginPress || go('/login')
-  const handleRegisterPress = onRegisterPress || go('/register')
-
-  const handleProfilePress = () => {
-    if (typeof window === 'undefined') return
-    const userId = getCurrentUserId()
-    const targetId = userId && userId.length > 0 ? userId : 'me'
-    router.push(`/users/${targetId}`)
-  }
-
-  const handlePremiumPress = () => {
-    router.push('/payment-package')
-  }
-
-  const handleLogoutPress = () => {
-    setShowLogoutConfirm(true)
-  }
-
-  const handleConfirmLogout = () => {
-    if (typeof window !== 'undefined') {
-      clearAuthToken()
-      window.localStorage?.removeItem('userId')
-      window.dispatchEvent(new Event('token-changed'))
-    }
-    setShowLogoutConfirm(false)
-    router.push('/login')
-  }
-
-  const handleCancelLogout = () => {
-    setShowLogoutConfirm(false)
-  }
+  const navMenu = useMemo(
+    () => [
+      { label: 'Trang chủ', icon: HomeIcon, path: '/homepage', tint: colors.DarkGreen },
+      { label: 'Học tập', icon: StudyIcon, path: '/study', tint: colors.accentPink },
+      { label: 'Lộ trình', icon: RoadmapIcon, path: '/roadmap/info', tint: colors.Mustard },
+      { label: 'Từ vựng', icon: FlashcardIcon, path: '/flashcard', tint: colors.background },
+      { label: 'Từ điển', icon: DictionaryIcon, path: '/dictionary', tint: colors.neutralBlack },
+      { label: 'Blog', icon: BlogIcon, path: '/blog', tint: colors.DarkPink },
+      { label: 'Xếp hạng', icon: LeaderboardIcon, path: '/leaderboard', tint: colors.LightGreen },
+    ],
+    []
+  )
 
   const stickyPositionStyle =
     position === 'relative'
@@ -186,344 +127,418 @@ export const Navbar = ({
       ? { position: position || 'fixed', top: 0, left: 0, right: 0, zIndex: 999 }
       : { position: position || 'absolute', top: 0, left: 0, right: 0, zIndex: 999 }
 
-  const interactiveAnimationStyle =
-    Platform.OS === 'web'
-      ? {
-          transitionProperty: 'transform, opacity',
-          transitionDuration: '180ms',
-          transitionTimingFunction: 'ease-out',
-        }
-      : {}
-
-  const needsSpacer = position === 'fixed' || (position === undefined && Platform.OS === 'web')
-  const navbarHeight = 60 
-
-  // Danh sách các Menu có kèm theo Label để hiện Tooltip
-  const navItems = [
-    {
-      key: 'home',
-      label: 'Trang chủ',
-      icon: homeIcon || HomeIcon,
-      onPress: handleHomePress,
-      hover: homeHover,
-      setHover: setHomeHover,
-      size: 40,
-      tint: colors.DarkGreen,
-    },
-    {
-      key: 'roadmap',
-      label: 'Menu',
-      icon: roadmapIcon || StudyIcon,
-      onPress: handleRoadmapPress,
-      hover: roadmapHover,
-      setHover: setRoadmapHover,
-      size: 40,
-      tint: colors.accentPink,
-    },
-    {
-      key: 'roadmap-info',
-      label: 'Thông tin lộ trình',
-      icon: RoadmapIcon,
-      onPress: handleRoadmapInfoPress,
-      hover: roadmapInfoHover,
-      setHover: setRoadmapInfoHover,
-      size: 40,
-      tint: colors.Mustard,
-    },
-    {
-      key: 'flashcard',
-      label: 'Từ vựng',
-      icon: flashcardIcon || FlashcardIcon,
-      onPress: handleFlashcardPress,
-      hover: flashcardHover,
-      setHover: setFlashcardHover,
-      size: 40,
-      tint: colors.background,
-    },
-    {
-      key: 'dictionary',
-      label: 'Từ điển',
-      icon: dictionaryIcon || DictionaryIcon,
-      onPress: handleDictionaryPress,
-      hover: dictionaryHover,
-      setHover: setDictionaryHover,
-      size: 40,
-      tint: colors.neutralBlack,
-    },
-    {
-      key: 'blog',
-      label: 'Blog',
-      icon: blogIcon || BlogIcon,
-      onPress: handleBlogPress,
-      hover: blogHover,
-      setHover: setBlogHover,
-      size: 40,
-      tint: colors.DarkPink,
-    },
-    {
-      key: 'leaderboard',
-      label: 'Bảng xếp hạng',
-      icon: LeaderboardIcon,
-      onPress: handleLeaderboardPress,
-      hover: leaderboardHover,
-      setHover: setLeaderboardHover,
-      size: 40,
-      tint: colors.LightGreen,
-    },
-  ];
+  const handleLogout = () => {
+    clearAuthToken()
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('token-changed'))
+    }
+    router.push('/login')
+  }
 
   return (
     <>
-      <View
-        style={[
-          {
-            width: '100%',
-            paddingHorizontal: 20,
-            paddingVertical: 5,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#FFF8E7',
-            overflow: 'visible', // Sửa overflow thành visible để Tooltip rớt ra ngoài viền được
-            height: '8%',
-            minHeight: 60,
-          },
-          stickyPositionStyle,
-          style,
-        ]}
-      >
-        {/* Background image */}
-        <Image
-          source={normalizeImageSource(BackgroundImage)}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            resizeMode: 'cover',
-            opacity: 0.2,
-          }}
-        />
-        
-        {/* Left section: Logo */}
-        <View style={{ position: 'absolute', left: 20, flexDirection: 'row', alignItems: 'center', gap: 8, zIndex: 1 }}>
-          <Image
-            source={normalizeImageSource(LogoImage)}
-            style={{ width: 120, height: 40, resizeMode: 'contain', transform: [{ scale: 2 }, { translateX: 30 }] }}
-          />
-        </View>
+      <View style={[styles.headerBase, stickyPositionStyle]}>
+        <Image source={BackgroundImage} style={styles.bgImage} resizeMode="cover" />
 
-        {/* Small foot decoration */}
-        <Image
-          source={normalizeImageSource(SmallFoot)}
-          style={{ position: 'absolute', top: -5, right: 100, width: 200, height: 150, resizeMode: 'contain', opacity: 0.5, transform: [{ rotate: '-10deg' }] }}
-        />
+        <View style={[styles.headerInner, isMobile && styles.headerInnerMobile]}>
+          <TouchableOpacity style={styles.logoButton} onPress={() => router.push('/homepage')}>
+            <Image source={LogoImage} style={[styles.logo, isMobile && styles.logoMobile]} resizeMode="contain" />
+          </TouchableOpacity>
 
-        {/* Center section: Navigation items */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 72, zIndex: 10 }}>
-          {navItems.map((item) => (
-            <View key={item.key} style={{ alignItems: 'center', position: 'relative' }}>
-              <Pressable
-                onPress={item.onPress}
-                onHoverIn={() => Platform.OS === 'web' && item.setHover(true)}
-                onHoverOut={() => Platform.OS === 'web' && item.setHover(false)}
-                style={({ pressed }) => {
-                  const active = pressed || item.hover
-                  return {
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    opacity: active ? 0.85 : 1,
-                    transform: [{ translateY: active ? -3 : 0 }],
-                    ...interactiveAnimationStyle,
-                  }
-                }}
-              >
-                {/* Dùng hàm RenderIcon mới thay cho Image */}
-                <RenderIcon icon={item.icon} size={item.size} tint={item.tint} />
-              </Pressable>
-
-              {/* Tooltip (Chú thích) sẽ hiện ra khi di chuột vào (hover === true) */}
-              {item.hover && Platform.OS === 'web' && (
-                <View style={styles.tooltip}>
-                  <Text style={styles.tooltipText}>{item.label}</Text>
-                </View>
-              )}
+          {!isMobile ? (
+            <View style={styles.navWrapper}>
+              {navMenu.map((item) => (
+                <NavItem key={item.path} {...item} />
+              ))}
             </View>
-          ))}
-        </View>
+          ) : null}
 
-        {/* Right section: Login and Register buttons */}
-        <View style={{ position: 'absolute', right: 20, flexDirection: 'row', alignItems: 'center', gap: 12, zIndex: 1 }}>
-          {hasToken ? (
-            <>
-              {/* Premium Upgrade Button */}
-              <Pressable
-                onPress={handlePremiumPress}
-                onHoverIn={() => Platform.OS === 'web' && setPremiumHover(true)}
-                onHoverOut={() => Platform.OS === 'web' && setPremiumHover(false)}
-                style={({ pressed }) => {
-                  const active = pressed || premiumHover
-                  return {
-                    paddingHorizontal: 16,
-                    paddingVertical: 8,
-                    borderRadius: 20,
-                    backgroundColor: active ? '#FFD700' : '#FFC107',
-                    borderWidth: 2,
-                    borderColor: '#FFA000',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexDirection: 'row',
-                    gap: 6,
-                    shadowColor: '#FFD700',
-                    shadowOpacity: active ? 0.5 : 0.3,
-                    shadowRadius: 8,
-                    shadowOffset: { width: 0, height: 4 },
-                    elevation: 4,
-                    transform: [{ scale: active ? 0.95 : 1 }],
-                    ...interactiveAnimationStyle,
-                  }
-                }}
-              >
-                <Text style={{ fontSize: 18 }}>⭐</Text>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 'bold',
-                    color: '#8B4513',
-                    fontFamily: 'Epilogue, sans-serif',
-                    textShadowColor: 'rgba(255, 255, 255, 0.5)',
-                    textShadowOffset: { width: 0, height: 1 },
-                    textShadowRadius: 2,
-                  }}
-                >
-                  Premium
-                </Text>
-              </Pressable>
-              
-              <View style={{ position: 'relative', alignItems: 'center' }}>
-                <Pressable
-                  onPress={handleLogoutPress}
-                  onHoverIn={() => Platform.OS === 'web' && setLogoutHover(true)}
-                  onHoverOut={() => Platform.OS === 'web' && setLogoutHover(false)}
-                  style={({ pressed }) => {
-                    const active = pressed || logoutHover
-                    return {
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      opacity: active ? 0.85 : 1,
-                      transform: [{ scale: active ? 0.95 : 1 }],
-                      ...interactiveAnimationStyle,
-                    }
-                  }}
-                >
-                  <RenderIcon icon={LogoutIcon} size={30} tint="#d9534f" />
-                </Pressable>
-                {logoutHover && Platform.OS === 'web' && (
-                  <View style={styles.tooltip}>
-                    <Text style={styles.tooltipText}>Đăng xuất</Text>
-                  </View>
-                )}
-              </View>
+          <View style={styles.rightSection}>
+            {authChecked ? (
+              hasToken ? (
+                <>
+                  {!isMobile ? (
+                    <Pressable
+                      onPress={() => router.push('/payment-package')}
+                      style={({ pressed }) => [styles.premiumBtn, pressed && styles.premiumBtnPressed]}
+                    >
+                      <Text style={styles.premiumEmoji}>★</Text>
+                      <Text style={styles.premiumText}>Premium</Text>
+                    </Pressable>
+                  ) : null}
 
-              <View style={{ position: 'relative', alignItems: 'center' }}>
-                <Pressable
-                  onPress={handleProfilePress}
-                  onHoverIn={() => Platform.OS === 'web' && setUserHover(true)}
-                  onHoverOut={() => Platform.OS === 'web' && setUserHover(false)}
-                  style={({ pressed }) => {
-                    const active = pressed || userHover
-                    return {
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      opacity: active ? 0.85 : 1,
-                      transform: [{ scale: active ? 0.95 : 1 }],
-                      ...interactiveAnimationStyle,
-                    }
-                  }}
-                >
-                  <Image source={normalizeImageSource(UserIcon)} style={{ width: 50, height: 50, resizeMode: 'contain' }} />
-                </Pressable>
-                {userHover && Platform.OS === 'web' && (
-                  <View style={styles.tooltip}>
-                    <Text style={styles.tooltipText}>Hồ sơ</Text>
-                  </View>
-                )}
-              </View>
-            </>
-          ) : (
-            <>
-              <TouchableOpacity
-                onPress={handleLoginPress}
-                style={{
-                  paddingHorizontal: 24,
-                  paddingVertical: 10,
-                  borderRadius: 20,
-                  backgroundColor: '#8B9A6B',
-                  borderWidth: 2,
-                  borderColor: '#4A90E2',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minWidth: 120,
-                }}
-              >
-                <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#FFFFFF', fontFamily: 'Epilogue, sans-serif' }}>
-                  Đăng Nhập
-                </Text>
+                  {!isMobile ? (
+                    <Pressable
+                      onPress={() => setShowLogoutConfirm(true)}
+                      style={({ pressed }) => [styles.iconActionBtn, pressed && styles.iconActionPressed]}
+                    >
+                      <IconRenderer icon={LogoutIcon} size={26} tint="#D45A54" />
+                    </Pressable>
+                  ) : null}
+
+                  <Pressable
+                    onPress={() => router.push(`/users/${getCurrentUserId() || 'me'}`)}
+                    style={({ pressed }) => [styles.iconActionBtn, pressed && styles.iconActionPressed]}
+                  >
+                    <Image source={UserIcon} style={[styles.avatar, isMobile && styles.avatarMobile]} resizeMode="contain" />
+                  </Pressable>
+                </>
+              ) : (
+                <TouchableOpacity onPress={() => router.push('/login')} style={[styles.loginBtn, isMobile && styles.loginBtnMobile]}>
+                  <Text style={[styles.loginText, isMobile && styles.loginTextMobile]}>Đăng nhập</Text>
+                </TouchableOpacity>
+              )
+            ) : null}
+
+            {isMobile ? (
+              <TouchableOpacity onPress={() => setMobileMenuOpen((prev) => !prev)} style={styles.hamburgerBtn}>
+                <Text style={styles.hamburgerText}>☰</Text>
               </TouchableOpacity>
-            </>
-          )}
+            ) : null}
+          </View>
         </View>
+
+        {isMobile && mobileMenuOpen ? (
+          <View style={styles.mobileDropdown}>
+            {navMenu.map((item) => (
+              <TouchableOpacity
+                key={item.path}
+                style={styles.mobileMenuItem}
+                onPress={() => {
+                  router.push(item.path)
+                  setMobileMenuOpen(false)
+                }}
+              >
+                <NavItem {...item} compact />
+              </TouchableOpacity>
+            ))}
+
+            {authChecked && hasToken ? (
+              <>
+                <View style={styles.mobileSeparator} />
+                <TouchableOpacity
+                  style={styles.mobileMenuItemInline}
+                  onPress={() => {
+                    router.push('/payment-package')
+                    setMobileMenuOpen(false)
+                  }}
+                >
+                  <Text style={styles.premiumEmoji}>★</Text>
+                  <Text style={[styles.mobileMenuText, styles.mobilePremiumText]}>Premium</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.mobileMenuItemInline}
+                  onPress={() => {
+                    setMobileMenuOpen(false)
+                    setShowLogoutConfirm(true)
+                  }}
+                >
+                  <IconRenderer icon={LogoutIcon} size={20} tint="#D45A54" />
+                  <Text style={[styles.mobileMenuText, styles.mobileLogoutText]}>Đăng xuất</Text>
+                </TouchableOpacity>
+              </>
+            ) : null}
+          </View>
+        ) : null}
       </View>
-      
-      {needsSpacer && <View style={{ height: navbarHeight, width: '100%' }} />}
-      
-      {showLogoutConfirm && (
-        <View
-          style={{
-            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-            top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.35)',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16,
-            zIndex: 2000,
-          }}
-          pointerEvents="box-none"
-        >
+
+      {(position === 'fixed' || (position === undefined && Platform.OS === 'web')) && <View style={{ height: HEADER_HEIGHT, width: '100%' }} />}
+
+      {showLogoutConfirm ? (
+        <View style={styles.modalOverlay} pointerEvents="box-none">
           <MessageModal
             title="Xác nhận đăng xuất"
             message="Bạn có chắc chắn muốn đăng xuất khỏi Tokki?"
             buttonText="Đăng xuất"
-            onButtonPress={handleConfirmLogout}
-            onClose={handleCancelLogout}
+            onButtonPress={handleLogout}
+            onClose={() => setShowLogoutConfirm(false)}
           />
         </View>
-      )}
+      ) : null}
     </>
   )
 }
 
+export const Header = Navbar
+
 const styles = StyleSheet.create({
+  headerBase: {
+    width: '100%',
+    height: HEADER_HEIGHT,
+    backgroundColor: '#FFF8E7',
+    overflow: 'visible',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EFE8D2',
+    ...(Platform.OS === 'web' 
+      ? { boxShadow: '0 4px 10px rgba(141, 122, 75, 0.08)' } 
+      : {
+          shadowColor: '#8D7A4B',
+          shadowOpacity: 0.08,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 4 },
+        }),
+    elevation: 3,
+  },
+  bgImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0.18,
+  },
+  headerInner: {
+    height: '100%',
+    width: '100%',
+    maxWidth: 1400,
+    alignSelf: 'center',
+    paddingHorizontal: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  headerInnerMobile: {
+    width: '94%',
+    maxWidth: '100%',
+    gap: 10,
+  },
+  logoButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 110,
+  },
+  logo: {
+    width: 124,
+    height: 200,
+  },
+  logoMobile: {
+    width: 100,
+    height: 36,
+  },
+  navWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  navItemContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    minWidth: 54,
+    gap: 8,
+  },
+  navIconWrap: {
+    width: 100,
+    height: 34,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(Platform.OS === 'web' && {
+      transitionProperty: 'transform, opacity, background-color',
+      transitionDuration: '180ms',
+      transitionTimingFunction: 'ease-out',
+    }),
+  },
+  navIconWrapActive: {
+    opacity: 0.9,
+    transform: [{ translateY: -2 }],
+    backgroundColor: 'rgba(255,255,255,0.45)',
+  },
+  navIconWrapCompact: {
+    width: 34,
+    height: 30,
+  },
+  navLabel: {
+    fontSize: 11,
+    color: '#5A4A32',
+    fontWeight: '600',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+  },
+  rightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  iconActionBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    borderWidth: 1,
+    borderColor: '#E9DFC3',
+    ...(Platform.OS === 'web' && {
+      transitionProperty: 'transform, opacity, background-color',
+      transitionDuration: '180ms',
+      transitionTimingFunction: 'ease-out',
+    }),
+  },
+  iconActionPressed: {
+    opacity: 0.88,
+    transform: [{ scale: 0.97 }],
+    backgroundColor: 'rgba(255,255,255,0.75)',
+  },
+  premiumBtn: {
+    height: 38,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F3CD6A',
+    backgroundColor: '#FFE9A8',
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    ...(Platform.OS === 'web' && {
+      transitionProperty: 'transform, opacity, background-color',
+      transitionDuration: '180ms',
+      transitionTimingFunction: 'ease-out',
+    }),
+  },
+  premiumBtnPressed: {
+    transform: [{ scale: 0.97 }],
+    backgroundColor: '#FFE195',
+  },
+  premiumEmoji: {
+    fontSize: 14,
+    color: '#9A6D00',
+  },
+  premiumText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#7A5200',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  avatar: {
+    width: 30,
+    height: 30,
+  },
+  avatarMobile: {
+    width: 26,
+    height: 26,
+  },
+  loginBtn: {
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: '#78905E',
+    paddingHorizontal: 18,
+    borderWidth: 1,
+    borderColor: '#68824E',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loginBtnMobile: {
+    height: 34,
+    paddingHorizontal: 12,
+  },
+  loginText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  loginTextMobile: {
+    fontSize: 12,
+  },
+  hamburgerBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.64)',
+    borderWidth: 1,
+    borderColor: '#E8DDC0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hamburgerText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#6A5634',
+    lineHeight: 22,
+  },
+  mobileDropdown: {
+    position: 'absolute',
+    top: HEADER_HEIGHT - 2,
+    right: '3%',
+    width: 250,
+    backgroundColor: '#FFFDF6',
+    borderRadius: 14,
+    padding: 10,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 6px 14px rgba(79, 59, 29, 0.15)' }
+      : {
+          shadowColor: '#4F3B1D',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.15,
+          shadowRadius: 14,
+        }),
+    elevation: 8,
+    zIndex: 1500,
+    borderWidth: 1,
+    borderColor: '#EFE4C8',
+  },
+  mobileMenuItem: {
+    borderRadius: 10,
+  },
+  mobileMenuItemInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    gap: 10,
+    borderRadius: 10,
+  },
+  mobileMenuText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#493B27',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  mobilePremiumText: {
+    color: '#8B5A00',
+  },
+  mobileLogoutText: {
+    color: '#C14E48',
+  },
+  mobileSeparator: {
+    height: 1,
+    backgroundColor: '#EFE4C8',
+    marginVertical: 8,
+  },
   tooltip: {
     position: 'absolute',
-    top: 55, // Nằm ngay dưới icon
-    backgroundColor: 'rgba(30, 30, 30, 0.85)',
-    paddingHorizontal: 12,
+    top: 38,
+    backgroundColor: 'rgba(30, 30, 30, 0.9)',
+    paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
     zIndex: 9999,
-    // Web only properties
-    ...(Platform.OS === 'web' && {
-      whiteSpace: 'nowrap',
-      pointerEvents: 'none',
-    })
+    ...(Platform.OS === 'web' && { whiteSpace: 'nowrap', pointerEvents: 'none' }),
   },
   tooltipText: {
     color: '#FFF',
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: '600',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
-  }
+  },
+  modalOverlay: {
+    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    zIndex: 2000,
+  },
 })

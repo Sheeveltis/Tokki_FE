@@ -30,6 +30,7 @@ import { RoadmapTestResultDetailScreen } from '@tokki/app/features/roadmap/scree
 import { RoadmapLearningScreen } from '@tokki/app/features/roadmap/screens/roadmap-learning-screen'
 import { RoadmapTipsScreen } from '@tokki/app/features/roadmap/screens/roadmap-tips-screen'
 import { RoadmapPracticeScreen } from '@tokki/app/features/roadmap/screens/roadmap-practice-screen'
+import { RoadmapPracticeTestScreen } from '@tokki/app/features/roadmap/screens/roadmap-practice-test-screen'
 const AlphabetDrawingScreen = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
 
 /**
@@ -397,6 +398,12 @@ function RoadmapPracticeRoute() {
   return <RoadmapPracticeScreen practiceId={id} />
 }
 
+function RoadmapPracticeTestRoute() {
+  const { id } = useParams()
+  // "id" here corresponds to questionTypeId
+  return <RoadmapPracticeTestScreen questionTypeId={id} />
+}
+
 function AlphabetLettersDrawingRoute() {
   const { navigate } = useRouteNavigation()
   const LazyComponent = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
@@ -465,6 +472,7 @@ export const studyRoutes = [
   { path: '/roadmap/test/result/detail', element: <RoadmapTestResultDetailScreen /> },
   { path: '/roadmap/learning', element: <RoadmapLearningRoute /> },
   { path: '/roadmap/learning/practice/:id', element: <RoadmapPracticeRoute /> },
+  { path: '/roadmap/practice-test/:id', element: <RoadmapPracticeTestRoute /> },
   { path: '/roadmap/learning/tips/:id', element: <RoadmapTipsRoute /> },
   { path: '/roadmap/tips', element: <RoadmapTipsIndexRoute /> },
 ]
