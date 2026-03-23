@@ -385,7 +385,10 @@ export function useWordlePlayControl({
   }, [resetRow, isWeb, focusHiddenImeInput, clearHiddenImeInput])
 
   const handleNavigateToBoard = useCallback(() => {
-    router.push(`/minigame/wordle/wordle-board?dailyWordleId=${dailyWordleId}`)
+    router.push({
+      pathname: '/minigame/wordle/wordle-board',
+      params: { dailyWordleId: String(dailyWordleId) },
+    })
   }, [dailyWordleId, router])
 
   useEffect(() => {
