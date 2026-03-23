@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, Pressable, ActivityIndicator, Platform } from 'react-native'
+import { useEffect, useState } from 'react'
+import { View, Text, StyleSheet, Pressable, ActivityIndicator, Platform, ScrollView, Modal } from 'react-native'
 import { WordleInputBar } from './WordleInputBar'
 import { WordleFeedbackModal } from './WordleFeedbackModal'
 import { WordlePublishPopup } from './WordlePublishPopup'
@@ -32,10 +32,16 @@ export function WordleSentenceFlow({
       setShowFeedbackModal(false)
       setFeedbackLoading(false)
       setShowPublishPopup(false)
+      setShowNamePopup(false)
       setPublishLoading(false)
       setSubmissionId('')
     }
   }, [gameState])
+
+  useEffect(() => {
+    console.log('[WordleSentenceFlow] showFeedbackModal:', showFeedbackModal)
+    console.log('[WordleSentenceFlow] feedbackData:', feedbackData)
+  }, [showFeedbackModal, feedbackData])
 
   const handleSentenceSubmit = () => {
     if (!sentence.trim()) {
@@ -59,33 +65,33 @@ export function WordleSentenceFlow({
       setShowSubmitConfirm(false)
       return
     }
-
+  
     setShowSubmitConfirm(false)
-
+    setFeedbackLoading(true)
+  
     try {
-      setFeedbackLoading(true)
-      // Giới hạn 150 ký tự
       const sentenceContent = sentence.trim().substring(0, 150)
-
       const response = await submitWordleSentence(dailyWordleId, sentenceContent)
-
+  
       const id = response?.submissionId || response?.data?.submissionId || response?.id
-      if (id) {
-        setSubmissionId(id)
-      }
-
+      if (id) setSubmissionId(id)
+  
       const feedbackPayload = {
         targetWord: response?.targetWord || '',
         meaningText: response?.meaning || '',
         aiFeedback: response?.aiFeedback || {},
       }
-
+  
       setFeedbackData(feedbackPayload)
       setIsSentenceSubmitted(true)
-      setShowFeedbackModal(true)
+  
+      setFeedbackLoading(false)
+  
+      requestAnimationFrame(() => {
+        setShowFeedbackModal(true)
+      })
     } catch (error) {
       console.error('[WordleSentenceFlow] Error submitting sentence:', error)
-    } finally {
       setFeedbackLoading(false)
     }
   }
@@ -94,17 +100,25 @@ export function WordleSentenceFlow({
     setShowSubmitConfirm(false)
   }
 
+  const MIN_PUBLIC_SCORE = 60
+
   const handleFeedbackConfirm = () => {
     if (!feedbackData?.aiFeedback) {
       setShowFeedbackModal(false)
       return
     }
 
-    const totalScore = Number(feedbackData.aiFeedback.totalScore ?? 0)
+    const totalScore = Number(feedbackData?.aiFeedback?.totalScore ?? 0)
     setShowFeedbackModal(false)
 
-    // Sau khi xem feedback: luôn hỏi có muốn công khai câu văn không
-    setShowPublishPopup(true)
+    if (totalScore >= MIN_PUBLIC_SCORE) {
+      setShowPublishPopup(true)
+      return
+    }
+
+    if (onNavigateToBoard) {
+      onNavigateToBoard()
+    }
   }
 
   const handlePublishConfirm = async () => {
@@ -119,25 +133,11 @@ export function WordleSentenceFlow({
     setShowNamePopup(true)
   }
 
-  const handlePublishCancel = async () => {
-    if (!submissionId) {
-      console.error('[WordleSentenceFlow] Missing submissionId')
-      setShowPublishPopup(false)
-      return
-    }
+  const handlePublishCancel = () => {
+    setShowPublishPopup(false)
 
-    // Người dùng chọn "Không" cho việc công khai câu văn -> không công khai, vào bảng luôn
-    try {
-      setPublishLoading(true)
-      await publishWordleSentence(submissionId, false, true)
-    } catch (error) {
-      console.error('[WordleSentenceFlow] Error setting sentence to private:', error)
-    } finally {
-      setShowPublishPopup(false)
-      setPublishLoading(false)
-      if (onNavigateToBoard) {
-        onNavigateToBoard()
-      }
+    if (onNavigateToBoard) {
+      onNavigateToBoard()
     }
   }
 
@@ -163,12 +163,6 @@ export function WordleSentenceFlow({
     }
   }
 
-  const handleRestart = () => {
-    if (onRestart) {
-      onRestart()
-    }
-  }
-
   return (
     <View>
       {/* InputBar - chỉ hiện khi đoán xong từ */}
@@ -187,14 +181,20 @@ export function WordleSentenceFlow({
         </View>
       )}
 
-      {/* Popup confirm trước khi gửi câu văn cho AI chấm điểm */}
-      {showSubmitConfirm && (
+      <Modal
+        visible={showSubmitConfirm}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={handleCancelSubmitSentence}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.confirmCard}>
             <Text style={styles.confirmTitle}>Bạn có chắc chắn muốn gửi câu văn này?</Text>
             <Text style={styles.confirmMessage}>
               Câu của bạn sẽ được gửi để AI chấm điểm và đưa ra nhận xét.
             </Text>
+
             <View style={styles.confirmButtons}>
               <Pressable
                 style={({ pressed }) => [
@@ -205,6 +205,7 @@ export function WordleSentenceFlow({
               >
                 <Text style={styles.confirmSecondaryText}>Hủy</Text>
               </Pressable>
+
               <Pressable
                 style={({ pressed }) => [
                   styles.confirmButtonPrimary,
@@ -217,9 +218,8 @@ export function WordleSentenceFlow({
             </View>
           </View>
         </View>
-      )}
+      </Modal>
 
-      {/* Loading overlay khi đang chờ AI chấm điểm câu văn */}
       {feedbackLoading && (
         <View style={styles.loadingOverlay}>
           <View style={styles.loadingCard}>
@@ -245,29 +245,48 @@ export function WordleSentenceFlow({
         onCancel={handlePublishCancel}
       />
 
-      {/* Popup hỏi có muốn công khai tên hay ẩn danh */}
-      {showNamePopup && (
+      <Modal
+        visible={showNamePopup}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setShowNamePopup(false)}
+      >
         <View style={styles.modalOverlay}>
-          <View style={styles.confirmCard}>
-            <Text style={styles.confirmTitle}>Bạn có muốn công khai tên của bạn không?</Text>
-            <Text style={styles.confirmMessage}>
-              Nếu bạn chọn ẩn danh, câu văn vẫn được công khai nhưng sẽ không hiển thị tên của bạn.
+          <View style={styles.confirmCardLarge}>
+            <Text style={styles.confirmTitle}>
+              Bạn có muốn hiển thị tên trên bảng xếp hạng không?
             </Text>
+
+            <ScrollView
+              style={styles.modalScroll}
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator
+              nestedScrollEnabled
+            >
+              <Text style={styles.confirmMessage}>
+                Nếu bạn chọn ẩn danh, câu văn vẫn được công khai nhưng sẽ không hiển thị tên của bạn.
+              </Text>
+            </ScrollView>
+
             <View style={styles.confirmButtons}>
               <Pressable
                 style={({ pressed }) => [
                   styles.confirmButtonSecondary,
                   pressed && styles.confirmButtonPressed,
+                  publishLoading && styles.disabledButton,
                 ]}
                 onPress={() => handleNameChoice(true)}
                 disabled={publishLoading}
               >
                 <Text style={styles.confirmSecondaryText}>Không (ẩn danh)</Text>
               </Pressable>
+
               <Pressable
                 style={({ pressed }) => [
                   styles.confirmButtonPrimary,
                   pressed && styles.confirmButtonPressed,
+                  publishLoading && styles.disabledButton,
                 ]}
                 onPress={() => handleNameChoice(false)}
                 disabled={publishLoading}
@@ -277,9 +296,9 @@ export function WordleSentenceFlow({
             </View>
           </View>
         </View>
-      )}
+      </Modal>
 
-      {/* Result box + nút chơi lại */}
+      {/* Result box */}
       {(gameState === 'lost' || (gameState === 'won' && isSentenceSubmitted)) && (
         <View style={styles.resultBox}>
           <Text style={styles.resultText}>
@@ -290,9 +309,19 @@ export function WordleSentenceFlow({
           {gameState === 'won' && (
             <Text style={styles.finalSentence}>Câu văn của bạn: "{sentence}"</Text>
           )}
-          <Pressable style={styles.restartBtn} onPress={handleRestart}>
-            <Text style={styles.restartText}>Chơi lại</Text>
-          </Pressable>
+
+          <View style={styles.resultButtons}>
+            <Pressable style={styles.restartBtn} onPress={onRestart}>
+              <Text style={styles.restartText}>Chơi lại</Text>
+            </Pressable>
+
+            <Pressable
+              style={[styles.restartBtn, { backgroundColor: '#2196F3', marginTop: 12 }]}
+              onPress={onNavigateToBoard}
+            >
+              <Text style={styles.restartText}>Bảng xếp hạng</Text>
+            </Pressable>
+          </View>
         </View>
       )}
     </View>
@@ -356,23 +385,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   modalOverlay: {
-    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 3200,
+    paddingHorizontal: 16,
+    paddingVertical: 24,
   },
   confirmCard: {
-    width: '90%',
+    width: '100%',
     maxWidth: 420,
     backgroundColor: '#FFF5E6',
     borderRadius: 24,
     paddingVertical: 24,
     paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  confirmCardLarge: {
+    width: '100%',
+    maxWidth: 420,
+    maxHeight: '80%',
+    backgroundColor: '#FFF5E6',
+    borderRadius: 24,
+    paddingTop: 24,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
     shadowColor: '#000',
     shadowOpacity: 0.25,
     shadowOffset: { width: 0, height: 8 },
@@ -457,6 +498,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1B5E20',
     textAlign: 'center',
+  },
+  resultButtons: {
+    marginTop: 20,
+    width: '100%',
+    alignItems: 'center',
   },
 })
 
