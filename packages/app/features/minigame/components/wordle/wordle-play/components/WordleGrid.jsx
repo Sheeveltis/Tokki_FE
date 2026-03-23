@@ -43,7 +43,9 @@ export function WordleGrid({
 
   return (
     <View style={styles.grid}>
-      <WordleTargetRow wordLength={wordLength} targetWord={targetWord} />
+      {gameState !== 'won' && (
+        <WordleTargetRow wordLength={wordLength} targetWord={targetWord} />
+      )}
       {renderedRows}
     </View>
   )
