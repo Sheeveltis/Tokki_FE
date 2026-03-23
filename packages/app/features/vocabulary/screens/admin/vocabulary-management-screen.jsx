@@ -6,6 +6,7 @@ import { EyeOutlined, PlusOutlined, GlobalOutlined, FilterOutlined, UploadOutlin
 import { Modal, Select, Space, Tooltip, message } from 'antd'
 import { fetchVocabularies, updateVocabulary, deleteVocabulary, uploadVocabularyImageToCloudinary, fetchVocabularyDetail } from '../../api/index.js'
 import VocabularyEditModal from '../../components/admin/vocabulary-detail/vocabulary-edit-modal.jsx'
+import VocabularyCreateModal from '../../components/admin/vocabulary-detail/vocabulary-create-modal.jsx'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 
 const STATUS_OPTIONS = [
@@ -26,6 +27,7 @@ export function VocabularyManagement({ initialData = null }) {
   const [filters, setFilters] = useState({ search: '', status: 1, page: 1, size: 20 })
 
   const [editOpen, setEditOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
   const [editLoading, setEditLoading] = useState(false)
   const [editingVocab, setEditingVocab] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -384,7 +386,7 @@ export function VocabularyManagement({ initialData = null }) {
       label: 'Thêm mới',
       icon: <PlusOutlined />,
       // color: '#F1BE4B',
-      onPress: () => router.push(`${portalPrefix}/vocab/create`),
+      onPress: () => setCreateOpen(true),
     },
   ]
 
@@ -436,6 +438,15 @@ export function VocabularyManagement({ initialData = null }) {
           setEditingVocab(null)
         }}
         onSubmit={handleUpdate}
+      />
+
+      <VocabularyCreateModal
+        open={createOpen}
+        onCancel={() => setCreateOpen(false)}
+        onSuccess={() => {
+          setCreateOpen(false)
+          loadData(1, filters.size, filters.status, filters.search)
+        }}
       />
     </>
   )

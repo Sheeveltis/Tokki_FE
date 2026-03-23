@@ -51,8 +51,8 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
   const pageSize = 20
 
   // Debounce search để tránh gọi API quá nhiều
-  const [debouncedSearch,  setDebouncedSearch] = useState('')
-  
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search)
@@ -92,24 +92,28 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
   const filteredData = data // Không cần filter client-side nữa vì API đã filter
 
   const columns = [
-    { 
-      title: 'Tên mẫu đề', 
-      dataIndex: 'name', 
+    {
+      title: 'Tên mẫu đề',
+      dataIndex: 'name',
       key: 'name',
-      render: (text, record) => text || record.Name || '-'
+      render: (text, record) => text || record.Name || '-',
+      width: 150,
+
     },
-    { 
-      title: 'Loại đề', 
-      dataIndex: 'examType', 
+    {
+      title: 'Loại đề',
+      dataIndex: 'examType',
       key: 'examType',
-      render: (text, record) => text || record.ExamType || '-'
+      render: (text, record) => text || record.ExamType || '-',
+      width: 60,
     },
-    { 
-      title: 'Mô tả', 
-      dataIndex: 'description', 
+    {
+      title: 'Mô tả',
+      dataIndex: 'description',
       key: 'description',
-      ellipsis: true,
-      render: (text, record) => text || record.Description || '-'
+      ellipsis: false,
+      render: (text, record) => text || record.Description || '-',
+      width: 200,
     },
     {
       title: 'Trạng thái',
@@ -143,10 +147,10 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
       render: (_, record) => {
         const id = record.id || record.ExamTemplateId || record.examTemplateId
         const name = record.name || record.Name || 'mẫu đề này'
-        
+
         const handleDuplicate = async (e) => {
           e?.stopPropagation?.()
-          
+
           Modal.confirm({
             title: 'Xác nhận sao chép',
             content: `Bạn có chắc chắn muốn sao chép mẫu đề "${name}"?`,
