@@ -28,7 +28,7 @@ export function RoadmapGenerateLayout({
   const router = useRouter()
   const [selectedDuration, setSelectedDuration] = useState(null)
   const [expandedSection, setExpandedSection] = useState(null)
-  
+
   const [detailModalVisible, setDetailModalVisible] = useState(false)
   const [detailSection, setDetailSection] = useState(null)
   const [detailData, setDetailData] = useState(null)
@@ -125,15 +125,9 @@ export function RoadmapGenerateLayout({
                   <InfoCircleOutlined style={styles.cardIcon} />
                   <Text style={styles.cardTitle}>Phản hồi từ AI</Text>
                 </View>
-                <View style={styles.feedbackCard}>
-                  <View style={styles.feedbackBadge}>
-                    <CheckCircleOutlined style={styles.feedbackBadgeIcon} />
-                    <Text style={styles.feedbackBadgeText}>AI Feedback</Text>
-                  </View>
-                  <Text style={styles.feedbackText}>
-                    {feedbackData?.aiFeedback || 'Hệ thống đang phân tích bài làm của bạn để đưa ra lời khuyên phù hợp nhất.'}
-                  </Text>
-                </View>
+                <Text style={styles.feedbackText}>
+                  {feedbackData?.aiFeedback || 'Hệ thống đang phân tích bài làm của bạn để đưa ra lời khuyên phù hợp nhất.'}
+                </Text>
               </View>
 
               <View style={styles.card}>
@@ -183,7 +177,7 @@ export function RoadmapGenerateLayout({
                 <Text style={styles.cardSubtitle}>
                   Hãy chọn thời gian bạn muốn dành ra để đạt được mục tiêu TOPIK {level || 1}.
                 </Text>
-                
+
                 <View style={styles.durationOptions}>
                   {durationOptions.map((option) => (
                     <Pressable

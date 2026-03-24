@@ -1074,7 +1074,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
                   <ArrowLeftOutlined style={styles.navButtonIcon} />
                 </RoadmapTestButton>
               ) : (
-                <View style={styles.navButtonLeft} />
+                <View style={{ flex: 1 }} />
               )}
               {currentQuestionIndex < sectionQuestions.length - 1 && (
                 <RoadmapTestButton onPress={handleNextQuestion} style={styles.navButtonRight}>

@@ -222,18 +222,22 @@ export function RoadmapTestResultLayout({
             ))}
           </View>
 
-          <View style={styles.actionsRow}>
+          <View style={styles.actionsColumn}>
             {isEntrance && (
               <RoadmapTestButton
-                title="Tạo lộ trình"
+                title="Tạo lộ trình học tập"
                 onPress={onNavigateToGenerate}
                 style={[styles.actionButton, styles.actionButtonPrimary]}
+                hoverStyle={styles.actionButtonPrimaryHover}
+                textStyle={styles.actionButtonPrimaryText}
               />
             )}
             <RoadmapTestButton
-              title="Về trang lộ trình"
+              title="Quay lại trang lộ trình"
               onPress={() => router.push('/roadmap/info')}
               style={[styles.actionButton, styles.actionButtonSecondary]}
+              hoverStyle={styles.actionButtonSecondaryHover}
+              textStyle={styles.actionButtonSecondaryText}
             />
           </View>
         </View>
@@ -435,23 +439,59 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#CCC',
   },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: 16,
-    justifyContent: 'center',
-    marginTop: 16,
+  actionsColumn: {
+    flexDirection: 'column',
+    gap: 12,
+    alignItems: 'center',
+    marginTop: 24,
   },
   actionButton: {
-    flex: 1,
-    maxWidth: 240,
-    paddingVertical: 16,
-    borderRadius: 16,
+    width: '100%',
+    maxWidth: 320,
+    paddingVertical: 18,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionButtonPrimary: {
     backgroundColor: '#F1BE4B',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 10px 25px rgba(241, 190, 75, 0.4)',
+      transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+    }),
+  },
+  actionButtonPrimaryHover: {
+    ...(Platform.OS === 'web' && {
+      transform: 'translateY(-4px)',
+      boxShadow: '0 15px 35px rgba(241, 190, 75, 0.6)',
+      backgroundColor: '#F7C965',
+    }),
   },
   actionButtonSecondary: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: '#EFEFEF',
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.2s ease',
+    }),
+  },
+  actionButtonSecondaryHover: {
+    ...(Platform.OS === 'web' && {
+      backgroundColor: '#F9FAFB',
+      borderColor: '#F1BE4B',
+    }),
+  },
+  actionButtonPrimaryText: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  actionButtonSecondaryText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#999',
+    fontFamily: 'Epilogue, sans-serif',
   },
   modalOverlay: {
     flex: 1,
