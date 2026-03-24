@@ -2,8 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'solito/navigation'
-import { Card, Space, Typography, Descriptions, Spin, Alert, message } from 'antd'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
+import { Card, Space, Typography, Descriptions, Spin, Alert, message, Button } from 'antd'
 import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
 import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web.jsx'
 import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
@@ -131,10 +130,8 @@ export function LessonDetailScreen() {
       return (
         <div style={{ padding: 24 }}>
           <Alert type="error" message="Lỗi" description={error} />
-          <ButtonV2
-            title="Quay lại"
-            style={{ marginTop: 10, minWidth: 120 }}
-            onPress={() => {
+          <Button
+            onClick={() => {
               if (currentPortal === 'staff') {
                 router.push('/staff?tab=lessons')
               } else if (currentPortal === 'moderator') {
@@ -143,7 +140,10 @@ export function LessonDetailScreen() {
                 router.push('/admin?tab=lessons')
               }
             }}
-          />
+            style={{ marginTop: 10, height: 'auto', padding: '8px 24px' }}
+          >
+            Quay lại
+          </Button>
         </div>
       )
     }
@@ -152,10 +152,8 @@ export function LessonDetailScreen() {
       return (
         <div style={{ padding: 24 }}>
           <Alert type="warning" message="Không tìm thấy bài học" />
-          <ButtonV2
-            title="Quay lại danh sách"
-            style={{ marginTop: 12, minWidth: 140 }}
-            onPress={() => {
+          <Button
+            onClick={() => {
               if (currentPortal === 'staff') {
                 router.push('/staff?tab=lessons')
               } else if (currentPortal === 'moderator') {
@@ -164,7 +162,10 @@ export function LessonDetailScreen() {
                 router.push('/admin?tab=lessons')
               }
             }}
-          />
+            style={{ marginTop: 12, height: 'auto', padding: '8px 24px' }}
+          >
+            Quay lại danh sách
+          </Button>
         </div>
       )
     }
@@ -180,10 +181,8 @@ export function LessonDetailScreen() {
               <Text type="secondary">ID: {detailLesson.id}</Text>
             </div>
             <Space>
-              <ButtonV2
-                title="Quay lại"
-                color="mint"
-                onPress={() => {
+              <Button
+                onClick={() => {
                   if (currentPortal === 'staff') {
                     router.push('/staff?tab=lessons')
                   } else if (currentPortal === 'moderator') {
@@ -192,9 +191,10 @@ export function LessonDetailScreen() {
                     router.push('/admin?tab=lessons')
                   }
                 }}
-                style={{ minWidth: 100, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
+                style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#BCD0CA', borderColor: '#BCD0CA', color: '#373039' }}
+              >
+                Quay lại
+              </Button>
             </Space>
           </Space>
 

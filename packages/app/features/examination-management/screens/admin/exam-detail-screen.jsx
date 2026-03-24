@@ -4,8 +4,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'solito/navigation'
 import { Card, Space, Typography, Spin, Alert, Descriptions, Tag, Divider, message, Modal, Button, Tooltip, Popconfirm } from 'antd'
 import { EditOutlined, EyeOutlined, UndoOutlined, SaveOutlined, SyncOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
 import { useExamDetailAdmin } from '../../api/exam-hooks.js'
 import { fetchExamDetailAdmin, regenerateExamPart, updateExamQuestion, updateExamStatus } from '../../api/exam-management.js'
 import { useQueryClient } from '@tanstack/react-query'
@@ -96,45 +94,37 @@ export function ExamDetailScreen() {
     setTemplatePartsState(merged)
   }
 
-  const handleNavigate = (key) => {
-    router.push(`/admin?tab=${key}`)
-  }
-
   if (isLoading) {
     return (
-      <AdminLayout defaultKey="exam-management" onNavigate={handleNavigate}>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-          <Spin size="large" />
-        </div>
-      </AdminLayout>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <Spin size="large" />
+      </div>
     )
   }
 
   if (error) {
     return (
-      <AdminLayout defaultKey="exam-management" onNavigate={handleNavigate}>
+      <div style={{ padding: '24px' }}>
         <Alert
           message="Lỗi"
           description={error?.message || 'Không thể tải thông tin đề thi.'}
           type="error"
           showIcon
-          style={{ margin: '20px' }}
         />
-      </AdminLayout>
+      </div>
     )
   }
 
   if (!exam) {
     return (
-      <AdminLayout defaultKey="exam-management" onNavigate={handleNavigate}>
+      <div style={{ padding: '24px' }}>
         <Alert
           message="Không tìm thấy"
           description="Không tìm thấy đề thi với ID này."
           type="warning"
           showIcon
-          style={{ margin: '20px' }}
         />
-      </AdminLayout>
+      </div>
     )
   }
 
@@ -489,7 +479,7 @@ export function ExamDetailScreen() {
   }
 
   return (
-    <AdminLayout defaultKey="exam-management" onNavigate={handleNavigate}>
+    <>
       <div style={{ padding: '24px' }}>
         {/* Header */}
         <div style={{ marginBottom: '24px' }}>
@@ -498,21 +488,20 @@ export function ExamDetailScreen() {
               Chi tiết đề thi
             </Title>
             <Space>
-              <ButtonV2
-                title="Chuyển trạng thái"
-                color="#1890ff"
-                onPress={handleOpenStatusModal}
+              <Button
+                type="primary"
+                onClick={handleOpenStatusModal}
                 disabled={statusChangeLoading || isLockedExam}
-                style={{ minWidth: 140, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
-              <ButtonV2
-                title="Quay lại"
-                color="charcoal"
-                onPress={() => router.push('/admin?tab=exam-management')}
-                style={{ minWidth: 100, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
+                style={{ height: 'auto', padding: '8px 24px' }}
+              >
+                Chuyển trạng thái
+              </Button>
+              <Button
+                onClick={() => router.push('/admin?tab=exam-management')}
+                style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#373039', color: '#fff', border: 'none' }}
+              >
+                Quay lại
+              </Button>
             </Space>
           </Space>
         </div>
@@ -1073,7 +1062,7 @@ export function ExamDetailScreen() {
           </Space>
         </div>
       </div>
-    </AdminLayout>
+    </>
   )
 }
 

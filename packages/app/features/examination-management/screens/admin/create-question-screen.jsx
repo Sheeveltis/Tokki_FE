@@ -1,10 +1,7 @@
 import React, { useState } from 'react'
 import { useRouter, useSearchParams } from 'solito/navigation'
-import { Card, Form, Space, Typography, Divider, Input } from 'antd'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
+import { Card, Form, Space, Typography, Divider, Input, Button } from 'antd'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
-import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
-import StaffLayout from '../../../back-office/components/staff/staff-layout.web.jsx'
 import { createQuestion, activateQuestionBanks, submitQuestionBanksForApproval } from '../../api/create-question.js'
 import { QuestionForm } from '../../components/admin/create-question/question-form.jsx'
 import { AnswerForm } from '../../components/admin/create-question/answer-form.jsx'
@@ -146,7 +143,7 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
   }
 
   return (
-    <LayoutComponent defaultKey="question-bank" onNavigate={handleNavigate}>
+    <>
       <div style={{ padding: 24 }}>
         <Card>
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -190,27 +187,27 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
 
               <Form.Item>
                 <Space>
-                  <ButtonV2
-                    title="Hủy"
-                    color="charcoal"
-                    onPress={handleCancel}
-                    style={{ minWidth: 100, paddingVertical: 10 }}
-                    textStyle={{ fontSize: 14 }}
-                  />
-                  <ButtonV2
-                    title={loading ? 'Đang tạo...' : 'Tạo mới'}
-                    color="poppy"
-                    onPress={() => form.submit()}
-                    style={{ minWidth: 120, paddingVertical: 10 }}
-                    textStyle={{ fontSize: 14 }}
-                  />
+                  <Button
+                    onClick={handleCancel}
+                    style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#373039', color: '#fff', border: 'none' }}
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    type="primary"
+                    onClick={() => form.submit()}
+                    loading={loading}
+                    style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#F87218', borderColor: '#F87218' }}
+                  >
+                    Tạo mới
+                  </Button>
                 </Space>
               </Form.Item>
             </Form>
           </Space>
         </Card>
       </div>
-    </LayoutComponent>
+    </>
   )
 }
 

@@ -2,9 +2,8 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Tag, Input, Space } from 'antd'
+import { Tag, Input, Space, message } from 'antd'
 import { EyeOutlined, SearchOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { statusUser } from '../../../../string.js'
 import { fetchRegularUsers } from '../../../back-office/api/staff-index.js'
 import ManagementTable from '../../../../../components/ManagementTable.jsx'
