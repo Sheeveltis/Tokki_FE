@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native'
 import { LoadingWithContainer } from '../../../../components/Loading'
 import { getPronunciationRules } from '../api'
 import { PronunciationRuleList } from '../components'
-import { PronunciationLayout } from '../components/layout/pronunciation-layout'
+import { PronunciationLayout } from '../components/layout/PronunciationLayout'
 
 
 export function PronunciationRulesScreen({ onBackPress, onRulePress }) {

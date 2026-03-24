@@ -18,9 +18,9 @@ import FlashcardFirstLearnScreen from '@tokki/app/features/study/flashcard-first
 import FlashcardStudyScreen from '@tokki/app/features/study/flashcard-study'
 import LearnScreen from '@tokki/app/features/study/flashcard-learn'
 import LearnedVocabularyListScreen from '@tokki/app/features/study/learned-vocabulary-list'
-import { PronunciationRulesScreen } from '@tokki/app/features/pronunciation/screens/pronunciation-rules-screen'
-import { PronunciationExamplesScreen } from '@tokki/app/features/pronunciation/screens/pronunciation-examples-screen'
-import { PronunciationExampleDetailScreen } from '@tokki/app/features/pronunciation/screens/pronunciation-example-detail-screen'
+import { PronunciationRulesScreen } from '@tokki/app/features/pronunciation/screens/PronunciationRulesScreen'
+import { PronunciationExamplesScreen } from '@tokki/app/features/pronunciation/screens/PronunciationExamplesScreen'
+import { PronunciationExampleDetailScreen } from '@tokki/app/features/pronunciation/screens/PronunciationExampleDetailScreen'
 
 import { STUDY_PAGE_TITLES, TOPIC_TITLES } from '@tokki/app/features/study/constants'
 import { RoadmapInfoScreen } from '@tokki/app/features/roadmap/screens/roadmap-info-screen'
@@ -188,7 +188,7 @@ function FlashcardRoute() {
         if (!topicId) return
         const progress = topic?.progress ?? 0
         const isProgressComplete = progress >= 100
-        
+
         // Nếu progress === 100%, điều hướng đến trang study (FlashcardStudyScreen)
         if (isProgressComplete || topic?.isProgressComplete) {
           navigate(`/flashcard/study?topic=${topicId}`)
@@ -349,7 +349,7 @@ function PronunciationExamplesRoute() {
       ruleId={ruleId}
       ruleTitle={ruleTitle}
       onBackPress={() => navigate('/pronunciation')}
-      onExamplePress={(example) => 
+      onExamplePress={(example) =>
         navigate(`/pronunciation/example-detail?exampleId=${example?.id}&ruleId=${ruleId}`)
       }
     />
@@ -365,7 +365,7 @@ function PronunciationExampleDetailRoute() {
   return (
     <PronunciationExampleDetailScreen
       exampleId={exampleId}
-      onBackPress={() => 
+      onBackPress={() =>
         navigate(`/pronunciation/examples?ruleId=${ruleId}&ruleTitle=${encodeURIComponent(ruleTitle || '')}`)
       }
     />
@@ -407,7 +407,7 @@ function RoadmapPracticeTestRoute() {
 function AlphabetLettersDrawingRoute() {
   const { navigate } = useRouteNavigation()
   const LazyComponent = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
-  
+
   return (
     <Suspense fallback={<div>Đang tải màn vẽ chữ...</div>}>
       <LazyComponent onBackPress={() => navigate('/alphabet/letters')} />
@@ -418,7 +418,7 @@ function AlphabetLettersDrawingRoute() {
 function AlphabetSyllablesDrawingRoute() {
   const { navigate } = useRouteNavigation()
   const LazyComponent = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
-  
+
   return (
     <Suspense fallback={<div>Đang tải màn vẽ chữ...</div>}>
       <LazyComponent onBackPress={() => navigate('/alphabet/syllables')} />

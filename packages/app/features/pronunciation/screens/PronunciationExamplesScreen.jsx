@@ -5,7 +5,7 @@ import { useRoute } from '@react-navigation/native'
 import { LoadingWithContainer } from '../../../../components/Loading'
 import { getPronunciationExamplesByRuleId } from '../api'
 import { PronunciationExampleList } from '../components'
-import { PronunciationLayout } from '../components/layout/pronunciation-layout'
+import { PronunciationLayout } from '../components/layout/PronunciationLayout'
 
 export function PronunciationExamplesScreen({ ruleId: ruleIdProp, ruleTitle: ruleTitleProp, onBackPress, onExamplePress }) {
   const navigation = Platform.OS !== 'web' ? useNavigation() : null
