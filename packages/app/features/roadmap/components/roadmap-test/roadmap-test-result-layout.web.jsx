@@ -85,6 +85,7 @@ export function RoadmapTestResultLayout({
   isGraded = false,
   isEntrance = false,
   onNavigateToGenerate,
+  onRetake,
 }) {
   const router = useRouter()
 
@@ -183,17 +184,6 @@ export function RoadmapTestResultLayout({
       <Navbar />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
-          <View style={styles.backButtonContainer}>
-            <NavigationPill
-              label="Quay lại"
-              to={undefined}
-              icon={ArrowIcon}
-              onPress={() => router.push('/roadmap/info')}
-              textStyle={{ fontWeight: '700' }}
-              iconStyle={{ transform: [{ scaleX: -1 }] }}
-            />
-          </View>
-
           <View style={styles.headerSection}>
             <Text style={styles.title}>Kết quả bài thi</Text>
             {examTitle && (
@@ -222,23 +212,46 @@ export function RoadmapTestResultLayout({
             ))}
           </View>
 
+          {!isGraded && (
+            <View style={styles.waitingNotice}>
+              <InfoCircleOutlined style={{ color: '#F1BE4B', fontSize: 16 }} />
+              <Text style={styles.waitingNoticeText}>
+                Đang chấm bài Viết bằng AI. Kết quả sẽ tự động cập nhật sau ít giây...
+              </Text>
+            </View>
+          )}
+
           <View style={styles.actionsColumn}>
             {isEntrance && (
               <RoadmapTestButton
-                title="Tạo lộ trình học tập"
+                title={isGraded ? "Tạo lộ trình học tập" : "Đang chờ chấm điểm..."}
                 onPress={onNavigateToGenerate}
-                style={[styles.actionButton, styles.actionButtonPrimary]}
-                hoverStyle={styles.actionButtonPrimaryHover}
+                disabled={!isGraded}
+                style={[
+                  styles.actionButton,
+                  styles.actionButtonPrimary,
+                  !isGraded && styles.actionButtonDisabled
+                ]}
+                hoverStyle={!isGraded ? null : styles.actionButtonPrimaryHover}
                 textStyle={styles.actionButtonPrimaryText}
               />
             )}
-            <RoadmapTestButton
-              title="Quay lại trang lộ trình"
-              onPress={() => router.push('/roadmap/info')}
-              style={[styles.actionButton, styles.actionButtonSecondary]}
-              hoverStyle={styles.actionButtonSecondaryHover}
-              textStyle={styles.actionButtonSecondaryText}
-            />
+            <View style={styles.secondaryActionsRow}>
+              <RoadmapTestButton
+                title="Làm kiểm tra lại"
+                onPress={onRetake}
+                style={[styles.actionButtonMinor, styles.actionButtonSecondary]}
+                hoverStyle={styles.actionButtonSecondaryHover}
+                textStyle={styles.actionButtonSecondaryText}
+              />
+              <RoadmapTestButton
+                title="Quay lại trang lộ trình"
+                onPress={() => router.push('/roadmap/info')}
+                style={[styles.actionButtonMinor, styles.actionButtonSecondary]}
+                hoverStyle={styles.actionButtonSecondaryHover}
+                textStyle={styles.actionButtonSecondaryText}
+              />
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -283,7 +296,7 @@ const styles = StyleSheet.create({
   },
   content: {
     width: '100%',
-    maxWidth: 800,
+    maxWidth: 1200,
     gap: 32,
   },
   centerContent: {
@@ -319,6 +332,27 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
     letterSpacing: -1,
+  },
+  waitingNotice: {
+    backgroundColor: '#FFFBE6',
+    borderWidth: 1,
+    borderColor: '#FFE58F',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 8,
+    alignSelf: 'center',
+    maxWidth: 600,
+    width: '100%',
+  },
+  waitingNoticeText: {
+    fontSize: 14,
+    color: '#856404',
+    fontFamily: 'Epilogue, sans-serif',
+    fontWeight: '600',
+    flex: 1,
   },
   subtitle: {
     fontSize: 15,
@@ -441,15 +475,30 @@ const styles = StyleSheet.create({
   },
   actionsColumn: {
     flexDirection: 'column',
-    gap: 12,
+    gap: 16,
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 40,
+  },
+  secondaryActionsRow: {
+    flexDirection: 'row',
+    gap: 16,
+    justifyContent: 'center',
+    width: '100%',
+    maxWidth: 600,
   },
   actionButton: {
     width: '100%',
-    maxWidth: 320,
+    maxWidth: 600,
     paddingVertical: 18,
     borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionButtonMinor: {
+    flex: 1,
+    maxWidth: 300,
+    paddingVertical: 16,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -468,7 +517,7 @@ const styles = StyleSheet.create({
     }),
   },
   actionButtonSecondary: {
-    backgroundColor: 'transparent',
+    backgroundColor: '#e0dfddff',
     borderWidth: 1.5,
     borderColor: '#EFEFEF',
     ...(Platform.OS === 'web' && {
@@ -490,8 +539,16 @@ const styles = StyleSheet.create({
   actionButtonSecondaryText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#999',
+    color: '#555',
     fontFamily: 'Epilogue, sans-serif',
+  },
+  actionButtonDisabled: {
+    opacity: 0.6,
+    backgroundColor: '#E5E7EB',
+    ...(Platform.OS === 'web' && {
+      boxShadow: 'none',
+      cursor: 'not-allowed',
+    }),
   },
   modalOverlay: {
     flex: 1,

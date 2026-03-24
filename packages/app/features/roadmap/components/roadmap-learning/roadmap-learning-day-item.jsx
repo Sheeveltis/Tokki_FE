@@ -61,10 +61,14 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#F4A950',
     backgroundColor: '#FFF5E5',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.08)',
+    } : {
+      shadowColor: '#000',
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 4 },
+    }),
   },
   containerPressed: {
     opacity: 1,

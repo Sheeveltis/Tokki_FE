@@ -9,30 +9,30 @@ let useRoute = null
 try {
   const nav = require('@react-navigation/native')
   useRoute = nav.useRoute
-} catch (_) {}
+} catch (_) { }
 
 export function RoadmapGenerateScreen() {
   const searchParams = useSearchParams()
   const route = useRoute?.()
-  
+
   const userExamId =
     Platform.OS === 'web'
       ? searchParams?.get?.('userExamId')
       : route?.params?.userExamId || searchParams?.get?.('userExamId')
-      
+
   const targetAim =
     Platform.OS === 'web'
       ? Number(searchParams?.get?.('level'))
       : Number(route?.params?.level || searchParams?.get?.('level'))
-      
+
   const selfDeclaredLevel =
     Platform.OS === 'web'
       ? Number(searchParams?.get?.('selfDeclaredLevel'))
       : Number(
-          route?.params?.selfDeclaredLevel ||
-            searchParams?.get?.('selfDeclaredLevel')
-        )
-        
+        route?.params?.selfDeclaredLevel ||
+        searchParams?.get?.('selfDeclaredLevel')
+      )
+
   const isEntrance =
     Platform.OS === 'web'
       ? String(searchParams?.get?.('isEntrance') || '') === '1'

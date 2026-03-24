@@ -33,7 +33,7 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
   const allQuestions = useMemo(() => {
     const list = []
     questionGroups.forEach((group, groupIdx) => {
-      ;(group?.questions || []).forEach((q) => {
+      ; (group?.questions || []).forEach((q) => {
         list.push({ ...q, groupIdx, group })
       })
     })
@@ -180,28 +180,34 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
 
                           {hasOptions && (
                             <View style={styles.optionsList}>
-                              {(q?.options || []).map((opt) => {
-                                const isSelected = opt?.optionId === selected
-                                const isCorrectOpt = opt?.optionId === correct
-                                return (
-                                  <View
-                                    key={opt?.optionId || opt?.keyOption}
-                                    style={[
-                                      styles.optionRow,
-                                      isSelected && styles.optionSelected,
-                                      isCorrectOpt && styles.optionCorrect,
-                                    ]}
-                                  >
-                                    <Text style={styles.optionKey}>{String(opt?.keyOption)}.</Text>
-                                    <View style={styles.optionContentBox}>
-                                      {opt?.content ? <Text style={styles.optionText}>{String(opt?.content)}</Text> : null}
-                                      {Platform.OS === 'web' && opt?.imageUrl ? (
-                                        <img src={opt?.imageUrl} alt="Option" style={styles.optionImage} />
-                                      ) : null}
+                              {[...(q?.options || [])]
+                                .sort((a, b) => (parseInt(a?.keyOption) || 0) - (parseInt(b?.keyOption) || 0))
+                                .map((opt) => {
+                                  const isSelected = opt?.optionId === selected
+                                  const isCorrectOpt = opt?.optionId === correct
+                                  const hasImage = !!opt?.imageUrl
+                                  const useHalfWidth = hasImage
+
+                                  return (
+                                    <View
+                                      key={opt?.optionId || opt?.keyOption}
+                                      style={[
+                                        styles.optionRow,
+                                        useHalfWidth && styles.optionRowHalf,
+                                        isSelected && styles.optionSelected,
+                                        isCorrectOpt && styles.optionCorrect,
+                                      ]}
+                                    >
+                                      <Text style={styles.optionKey}>{String(opt?.keyOption)}.</Text>
+                                      <View style={styles.optionContentBox}>
+                                        {opt?.content ? <Text style={styles.optionText}>{String(opt?.content)}</Text> : null}
+                                        {Platform.OS === 'web' && opt?.imageUrl ? (
+                                          <img src={opt?.imageUrl} alt="Option" style={styles.optionImage} />
+                                        ) : null}
+                                      </View>
                                     </View>
-                                  </View>
-                                )
-                              })}
+                                  )
+                                })}
                             </View>
                           )}
 
@@ -326,11 +332,14 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.2s ease',
+    }),
   },
   questionChipActive: {
     backgroundColor: '#1A1A1A',
@@ -346,8 +355,8 @@ const styles = StyleSheet.create({
   },
   questionChipText: {
     fontSize: 13,
-    fontWeight: '800',
-    color: '#999',
+    fontWeight: '700',
+    color: '#6B7280',
   },
   questionChipTextActive: {
     color: '#FFFFFF',
@@ -435,9 +444,12 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   optionsList: {
-    gap: 10,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
   },
   optionRow: {
+    width: '100%',
     flexDirection: 'row',
     padding: 12,
     borderRadius: 12,
@@ -445,6 +457,10 @@ const styles = StyleSheet.create({
     borderColor: '#F0F0F0',
     backgroundColor: '#FCFDFF',
     gap: 12,
+  },
+  optionRowHalf: {
+    width: 'calc(50% - 6px)',
+    minWidth: 260,
   },
   optionSelected: { borderColor: '#EF4444', backgroundColor: '#FEF2F2' },
   optionCorrect: { borderColor: '#10B981', backgroundColor: '#F0FDF4' },
