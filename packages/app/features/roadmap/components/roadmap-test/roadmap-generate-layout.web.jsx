@@ -11,6 +11,9 @@ import {
   ClockCircleOutlined,
   CheckCircleOutlined,
 } from '@ant-design/icons'
+import { Modal } from 'react-native'
+import { RoadmapTestResultDetailView } from './roadmap-test-result-detail-view'
+import { apiClient } from '../../../../provider/api/client'
 
 export function RoadmapGenerateLayout({
   userExamId,
@@ -25,6 +28,31 @@ export function RoadmapGenerateLayout({
   const router = useRouter()
   const [selectedDuration, setSelectedDuration] = useState(null)
   const [expandedSection, setExpandedSection] = useState(null)
+  
+  const [detailModalVisible, setDetailModalVisible] = useState(false)
+  const [detailSection, setDetailSection] = useState(null)
+  const [detailData, setDetailData] = useState(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [detailError, setDetailError] = useState(null)
+
+  const fetchDetail = async (section) => {
+    if (!userExamId || !section) return
+    setDetailModalVisible(true)
+    setDetailSection(section)
+    setDetailLoading(true)
+    setDetailError(null)
+    setDetailData(null)
+    try {
+      const url = `/UserExam/${encodeURIComponent(userExamId)}/result/${encodeURIComponent(section)}`
+      const response = await apiClient.get(url)
+      setDetailData(response?.data?.data)
+    } catch (err) {
+      console.error('Failed to fetch detail:', err)
+      setDetailError('Không thể tải chi tiết phần này.')
+    } finally {
+      setDetailLoading(false)
+    }
+  }
 
   const hasFeedback = Boolean(feedbackData)
   const durationOptions = feedbackData?.durationOptions || []
@@ -73,10 +101,10 @@ export function RoadmapGenerateLayout({
         <View style={styles.content}>
           <View style={styles.backButtonContainer}>
             <NavigationPill
-              label="Quay lại kết quả"
+              label="Quay lại"
               to={undefined}
               icon={ArrowIcon}
-              onPress={() => router.back()}
+              onPress={() => router.push(`/roadmap/test/result?userExamId=${encodeURIComponent(userExamId)}`)}
               textStyle={{ fontWeight: '700' }}
               iconStyle={{ transform: [{ scaleX: -1 }] }}
             />
@@ -116,21 +144,30 @@ export function RoadmapGenerateLayout({
                 <View style={styles.issueList}>
                   <IssueSection
                     title="Nghe"
+                    sectionKey="listening"
+                    userExamId={userExamId}
                     issues={feedbackData?.listeningIssues}
                     isExpanded={expandedSection === 'listening'}
                     onToggle={() => setExpandedSection(expandedSection === 'listening' ? null : 'listening')}
+                    onOpenDetail={() => fetchDetail('listening')}
                   />
                   <IssueSection
                     title="Đọc"
+                    sectionKey="reading"
+                    userExamId={userExamId}
                     issues={feedbackData?.readingIssues}
                     isExpanded={expandedSection === 'reading'}
                     onToggle={() => setExpandedSection(expandedSection === 'reading' ? null : 'reading')}
+                    onOpenDetail={() => fetchDetail('reading')}
                   />
                   <IssueSection
                     title="Viết"
+                    sectionKey="writing"
+                    userExamId={userExamId}
                     issues={feedbackData?.writingIssues}
                     isExpanded={expandedSection === 'writing'}
                     onToggle={() => setExpandedSection(expandedSection === 'writing' ? null : 'writing')}
+                    onOpenDetail={() => fetchDetail('writing')}
                   />
                 </View>
               </View>
@@ -197,11 +234,30 @@ export function RoadmapGenerateLayout({
           </View>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={detailModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDetailModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBody}>
+            <RoadmapTestResultDetailView
+              section={detailSection}
+              detailData={detailData}
+              isLoading={detailLoading}
+              error={detailError}
+              onClose={() => setDetailModalVisible(false)}
+            />
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }
 
-function IssueSection({ title, issues, isExpanded, onToggle }) {
+function IssueSection({ title, sectionKey, userExamId, issues, isExpanded, onToggle, onOpenDetail }) {
   return (
     <View style={styles.issueSection}>
       <Pressable
@@ -210,6 +266,15 @@ function IssueSection({ title, issues, isExpanded, onToggle }) {
       >
         <OrderedListOutlined style={styles.issueHeaderIcon} />
         <Text style={styles.issueSectionTitle}>{title}</Text>
+        <Pressable
+          onPress={(e) => {
+            e.stopPropagation()
+            onOpenDetail?.()
+          }}
+          style={styles.issueDetailLink}
+        >
+          <Text style={styles.issueDetailLinkText}>Chi tiết</Text>
+        </Pressable>
       </Pressable>
       {isExpanded && (
         <View style={styles.issueItems}>
@@ -380,6 +445,19 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
     flex: 1,
   },
+  issueDetailLink: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  issueDetailLinkText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#F1BE4B',
+  },
   issueItems: {
     paddingLeft: 12,
     gap: 8,
@@ -494,5 +572,23 @@ const styles = StyleSheet.create({
   },
   backButton: {
     minWidth: 160,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalBody: {
+    width: '100%',
+    maxWidth: 1000,
+    height: '85vh',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 32,
+    overflow: 'hidden',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+    }),
   },
 })

@@ -83,15 +83,10 @@ export function RoadmapTestResultDetailLayout({ userExamId, section, detailData,
         <View style={styles.content}>
           <View style={styles.backButtonContainer}>
             <NavigationPill
-              label="Quay lại kết quả"
+              label="Quay lại"
               to={undefined}
               icon={ArrowIcon}
-              onPress={() => {
-                const to = userExamId
-                  ? `/roadmap/test/result?userExamId=${encodeURIComponent(userExamId)}`
-                  : '/roadmap/test/result'
-                router.push(to)
-              }}
+              onPress={() => router.back()}
               textStyle={{ fontWeight: '700' }}
               iconStyle={{ transform: [{ scaleX: -1 }] }}
             />

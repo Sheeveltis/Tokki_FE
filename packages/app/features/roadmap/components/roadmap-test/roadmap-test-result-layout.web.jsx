@@ -11,9 +11,13 @@ import {
   ClockCircleOutlined,
   CheckCircleOutlined,
 } from '@ant-design/icons'
+import { Modal as RNModal } from 'react-native'
+import { RoadmapTestResultDetailView } from './roadmap-test-result-detail-view'
+import { apiClient } from '../../../../provider/api/client'
 
 const SectionScoreCard = ({
   label,
+  sectionKey,
   score,
   maxScore,
   correctAnswers,
@@ -64,7 +68,7 @@ const SectionScoreCard = ({
                 showPendingMessage && styles.detailLinkTextDisabled,
               ]}
             >
-              {showPendingMessage ? 'Đang chấm...' : 'Xem chi tiết'}
+              {showPendingMessage ? 'Đang chấm...' : 'Chi tiết'}
             </Text>
           </Pressable>
         )}
@@ -83,6 +87,31 @@ export function RoadmapTestResultLayout({
   onNavigateToGenerate,
 }) {
   const router = useRouter()
+
+  const [detailModalVisible, setDetailModalVisible] = useState(false)
+  const [detailSection, setDetailSection] = useState(null)
+  const [detailData, setDetailData] = useState(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [detailError, setDetailError] = useState(null)
+
+  const fetchDetail = async (section) => {
+    if (!userExamId || !section) return
+    setDetailModalVisible(true)
+    setDetailSection(section)
+    setDetailLoading(true)
+    setDetailError(null)
+    setDetailData(null)
+    try {
+      const url = `/UserExam/${encodeURIComponent(userExamId)}/result/${encodeURIComponent(section)}`
+      const response = await apiClient.get(url)
+      setDetailData(response?.data?.data)
+    } catch (err) {
+      console.error('Failed to fetch detail:', err)
+      setDetailError('Không thể tải chi tiết phần này.')
+    } finally {
+      setDetailLoading(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -111,7 +140,7 @@ export function RoadmapTestResultLayout({
     )
   }
 
-  const { userName, examTitle, listening, reading, writing, totalScore } = resultData
+  const { userName, examTitle, listening, reading, writing, totalScore } = resultData || {}
 
   const sectionCards = [
     listening
@@ -148,10 +177,6 @@ export function RoadmapTestResultLayout({
       }
       : null,
   ].filter(Boolean)
-  const toDetail = (sectionKey) =>
-    `/roadmap/test/result/detail?userExamId=${encodeURIComponent(userExamId || '')}&section=${encodeURIComponent(
-      sectionKey
-    )}`
 
   return (
     <View style={styles.wrapper}>
@@ -185,12 +210,13 @@ export function RoadmapTestResultLayout({
             {sectionCards.map((card) => (
               <SectionScoreCard
                 key={card.key}
+                sectionKey={card.key}
                 label={card.label}
                 score={card.score}
                 maxScore={card.maxScore}
                 correctAnswers={card.correctAnswers}
                 totalQuestions={card.totalQuestions}
-                onViewDetail={() => router.push(toDetail(card.key))}
+                onViewDetail={() => fetchDetail(card.key)}
                 isGraded={card.isGraded}
               />
             ))}
@@ -212,6 +238,25 @@ export function RoadmapTestResultLayout({
           </View>
         </View>
       </ScrollView>
+
+      <RNModal
+        visible={detailModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDetailModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBody}>
+            <RoadmapTestResultDetailView
+              section={detailSection}
+              detailData={detailData}
+              isLoading={detailLoading}
+              error={detailError}
+              onClose={() => setDetailModalVisible(false)}
+            />
+          </View>
+        </View>
+      </RNModal>
     </View>
   )
 }
@@ -407,5 +452,23 @@ const styles = StyleSheet.create({
   },
   actionButtonSecondary: {
     backgroundColor: '#F5F5F5',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalBody: {
+    width: '100%',
+    maxWidth: 1000,
+    height: '85vh',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 32,
+    overflow: 'hidden',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+    }),
   },
 })
