@@ -16,7 +16,6 @@ import {
   Spin,
 } from 'antd'
 import { PlusOutlined, DeleteOutlined, UpOutlined, DownOutlined, EyeOutlined, EyeInvisibleOutlined, EditOutlined, CloseOutlined, UploadOutlined, InboxOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
 import { fetchQuestionTypes, updateExamTemplateParts, uploadTemplatePartImageToCloudinary, updateTemplatePart } from '../../../../back-office/api/admin-index.js'
 
 const { Title, Text } = Typography
@@ -1397,13 +1396,14 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                   <>
                     <Divider />
                     <Form.Item>
-                      <ButtonV2
-                        title={loading ? 'Đang lưu...' : 'Lưu thay đổi'}
-                        color="poppy"
-                        onPress={() => form.submit()}
-                        style={{ minWidth: 120, paddingVertical: 10 }}
-                        textStyle={{ fontSize: 14 }}
-                      />
+                      <Button
+                        type="primary"
+                        onClick={() => form.submit()}
+                        loading={loading}
+                        style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#F87218', borderColor: '#F87218' }}
+                      >
+                        Lưu thay đổi
+                      </Button>
                     </Form.Item>
                   </>
                 )}

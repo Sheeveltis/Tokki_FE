@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Input, Space, Tag, Select } from 'antd'
+import { Input, Space, Tag, Select, Button } from 'antd'
 import { EyeOutlined, SearchOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import ManagementTable from '../../../../../components/ManagementTable.jsx'
 import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
 import { useExamsAdmin } from '../../api/exam-hooks.js'
@@ -184,13 +183,13 @@ export function ExamManagement({ initialData = null }) {
             <Option value={3}>Test đầu vào</Option>
           </Select>
         </Space>
-        <ButtonV2
-          title="Thêm đề"
-          color="#F1BE4B"
-          onPress={() => setCreateModalOpen(true)}
-          style={{ minWidth: 80, paddingVertical: 10 }}
-          textStyle={{ fontSize: 14 }}
-        />
+        <Button
+          type="primary"
+          onClick={() => setCreateModalOpen(true)}
+          style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#F1BE4B', borderColor: '#F1BE4B' }}
+        >
+          Thêm đề
+        </Button>
       </Space>
       <ManagementTable
         columns={columns}

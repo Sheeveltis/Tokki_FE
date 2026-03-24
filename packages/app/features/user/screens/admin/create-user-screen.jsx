@@ -2,10 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Card, Form, Input, Select, Space, Typography, message, Row, Col, Avatar, Descriptions } from 'antd'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
+import { Card, Form, Input, Select, Space, Typography, message, Row, Col, Avatar, Descriptions, Button } from 'antd'
 import { statusUser } from '../../../../string.js'
-import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
 import { createUser } from 'app/features/back-office/api/admin-index.js'
 
 const { Title, Text } = Typography
@@ -53,14 +51,8 @@ export function CreateUserScreen() {
     })
   }
 
-  const handleNavigate = (key) => {
-    startTransition(() => {
-      router.push(`/admin?tab=${key}`)
-    })
-  }
-
   return (
-    <AdminLayout defaultKey="users-all" onNavigate={handleNavigate}>
+    <>
       <div
         style={{
           padding: '24px',
@@ -81,13 +73,12 @@ export function CreateUserScreen() {
         >
           {/* Back Button */}
           <div style={{ marginBottom: 8 }}>
-            <ButtonV2
-              title="Quay lại"
-              color="charcoal"
-              onPress={handleCancel}
-              style={{ minWidth: 120, paddingVertical: 10 }}
-              textStyle={{ fontSize: 14 }}
-            />
+            <Button
+              onClick={handleCancel}
+              style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#373039', color: '#fff', border: 'none' }}
+            >
+              Quay lại
+            </Button>
           </div>
 
           <Form
@@ -173,20 +164,20 @@ export function CreateUserScreen() {
 
                       {/* Action Buttons */}
                       <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-                        <ButtonV2
-                          title="Hủy"
-                          color="charcoal"
-                          onPress={handleCancel}
-                          style={{ minWidth: 140, paddingVertical: 10 }}
-                          textStyle={{ fontSize: 14 }}
-                        />
-                        <ButtonV2
-                          title={loading ? 'Đang tạo...' : 'Tạo mới'}
-                          color="poppy"
-                          onPress={() => form.submit()}
-                          style={{ minWidth: 140, paddingVertical: 10 }}
-                          textStyle={{ fontSize: 14 }}
-                        />
+                        <Button
+                          onClick={handleCancel}
+                          style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#373039', color: '#fff', border: 'none' }}
+                        >
+                          Hủy
+                        </Button>
+                        <Button
+                          type="primary"
+                          onClick={() => form.submit()}
+                          loading={loading}
+                          style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#F87218', borderColor: '#F87218' }}
+                        >
+                          Tạo mới
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -262,7 +253,7 @@ export function CreateUserScreen() {
           </Form>
         </Space>
       </div>
-    </AdminLayout>
+    </>
   )
 }
 
