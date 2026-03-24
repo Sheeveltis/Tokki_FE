@@ -227,76 +227,76 @@ export function StaffLayout({
             style={{
               borderRight: '1px solid #f0f0f0',
               zIndex: 10,
-              display: 'flex',
-              flexDirection: 'column',
               height: '100vh'
             }}
           >
-            <div
-              style={{
-                height: 64,
-                padding: '0 24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: collapsed ? 'center' : 'space-between',
-                borderBottom: '1px solid #f0f0f0',
-                transition: 'all 0.2s'
-              }}
-            >
-              {!collapsed && (
-                <span style={{ 
-                  fontSize: 20, 
-                  fontWeight: 800, 
-                  color: '#1677ff',
-                  letterSpacing: '-0.5px'
-                }}>
-                  TOKKI <span style={{ color: '#faad14' }}>STAFF</span>
-                </span>
-              )}
-              <Button
-                type="text"
-                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                onClick={() => setCollapsed(!collapsed)}
-                style={{ fontSize: '16px', width: 40, height: 40 }}
-              />
-            </div>
-
-            <div style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
-              <Menu
-                mode="inline"
-                selectedKeys={[selectedKey]}
-                openKeys={openKeys}
-                onOpenChange={handleOpenChange}
-                onClick={handleMenuClick}
-                items={menuItems}
-                style={{ borderRight: 'none' }}
-              />
-            </div>
-
-            <div
-              style={{
-                padding: '16px',
-                borderTop: '1px solid #f0f0f0',
-                background: '#ffffff',
-              }}
-            >
-              <Button
-                danger
-                type="ghost"
-                icon={<PoweroffOutlined />}
-                onClick={() => handleMenuClick({ key: 'logout' })}
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <div
                 style={{
-                  width: '100%',
-                  borderRadius: 10,
+                  height: 64,
+                  padding: '0 24px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: collapsed ? 'center' : 'flex-start',
-                  fontWeight: 600,
-                  height: 44
+                  justifyContent: collapsed ? 'center' : 'space-between',
+                  borderBottom: '1px solid #f0f0f0',
+                  transition: 'all 0.2s'
                 }}
               >
-                {!collapsed && <span>Đăng xuất</span>}
-              </Button>
+                {!collapsed && (
+                  <span style={{ 
+                    fontSize: 20, 
+                    fontWeight: 800, 
+                    color: '#1677ff',
+                    letterSpacing: '-0.5px'
+                  }}>
+                    TOKKI <span style={{ color: '#faad14' }}>STAFF</span>
+                  </span>
+                )}
+                <Button
+                  type="text"
+                  icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                  onClick={() => setCollapsed(!collapsed)}
+                  style={{ fontSize: '16px', width: 40, height: 40 }}
+                />
+              </div>
+
+              <div style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
+                <Menu
+                  mode="inline"
+                  selectedKeys={[selectedKey]}
+                  openKeys={openKeys}
+                  onOpenChange={handleOpenChange}
+                  onClick={handleMenuClick}
+                  items={menuItems}
+                  style={{ borderRight: 'none' }}
+                />
+              </div>
+
+              <div
+                style={{
+                  padding: '16px',
+                  borderTop: '1px solid #f0f0f0',
+                  background: '#ffffff',
+                }}
+              >
+                <Button
+                  danger
+                  type="ghost"
+                  icon={<PoweroffOutlined />}
+                  onClick={() => handleMenuClick({ key: 'logout' })}
+                  style={{
+                    width: '100%',
+                    borderRadius: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: collapsed ? 'center' : 'flex-start',
+                    fontWeight: 600,
+                    height: 44
+                  }}
+                >
+                  {!collapsed && <span>Đăng xuất</span>}
+                </Button>
+              </div>
             </div>
           </Layout.Sider>
 

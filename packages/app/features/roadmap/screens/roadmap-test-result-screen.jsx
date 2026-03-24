@@ -221,15 +221,10 @@ export function RoadmapTestResultScreen() {
       error={error}
       isGraded={isGraded}
       isEntrance={isEntrance}
-      feedbackData={feedbackData}
-      feedbackLoading={feedbackLoading}
-      feedbackError={feedbackError}
-      isDurationModalOpen={isDurationModalOpen}
-      onOpenDurationModal={() => setIsDurationModalOpen(true)}
-      onCloseDurationModal={() => setIsDurationModalOpen(false)}
-      onGenerateRoadmap={handleGenerateRoadmap}
-      isGeneratingRoadmap={isGeneratingRoadmap}
-      generateError={generateError}
+      onNavigateToGenerate={() => {
+        const query = `userExamId=${encodeURIComponent(userExamId)}&level=${targetAim}&selfDeclaredLevel=${selfDeclaredLevel}&isEntrance=1`
+        router.push(`/roadmap/test/result/generate?${query}`)
+      }}
     />
   )
 }

@@ -1,111 +1,91 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Space, Select, message, Modal } from 'antd'
+import { Space, Select, message, Modal, Tooltip } from 'antd'
 import { EyeOutlined, CopyOutlined, FilterOutlined, PlusOutlined } from '@ant-design/icons'
-import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
 import CreateExamTemplateModal from '../../components/admin/create-exam-template/CreateExamTemplateModal.jsx'
 import { useExamTemplatesQuery } from '../../../back-office/api/useAdminQueries.js'
 import { duplicateExamTemplate } from '../../../back-office/api/admin-index.js'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 
-// Options cho Status filter
-const statusOptions = [
-  { value: null, label: 'Tất cả trạng thái' },
-  { value: 0, label: 'Nháp' },
-  { value: 1, label: 'Đã xuất bản' },
-  { value: 2, label: 'Đã xóa' },
-  { value: 3, label: 'Chờ phê duyệt' },
-  { value: 4, label: 'Từ chối' },
-]
-
-// Options cho Type filter
-const typeOptions = [
-  { value: null, label: 'Tất cả loại đề' },
-  { value: 1, label: 'TOPIK I' },
-  { value: 2, label: 'TOPIK II' },
-  { value: 3, label: 'Test đầu vào' },
-]
+const { Option } = Select
 
 // Mapping trạng thái theo enum ExamTemplateStatus
-const statusMap = {
-  0: { label: 'Nháp', color: 'default' },
-  1: { label: 'Đã xuất bản', color: 'green' },
-  2: { label: 'Đã xóa', color: 'red' },
-  3: { label: 'Chờ phê duyệt', color: 'orange' },
-  4: { label: 'Từ chối', color: 'volcano' },
-}
-
-// Helper function để lấy thông tin trạng thái
-const getStatusInfo = (status) => {
-  return statusMap[status] || { label: `Trạng thái ${status}`, color: 'default' }
+const STATUS_CONFIG = {
+  0: { label: 'Nháp', color: '#8c8c8c' },
+  1: { label: 'Đã xuất bản', color: '#52c41a' },
+  2: { label: 'Đã xóa', color: '#f5222d' },
+  3: { label: 'Chờ phê duyệt', color: '#fa8c16' },
+  4: { label: 'Từ chối', color: '#f5222d' },
 }
 
 export function ExamTemplateManagement({ initialData = null, basePath = '/admin' }) {
   const router = useRouter()
-  const [drawerItem, setDrawerItem] = useState(null)
-  const [search, setSearch] = useState('')
+
+  const [filters, setFilters] = useState({
+    search: '',
+    status: 1, // Default status is Published (1)
+    type: null,
+    page: 1,
+    size: 20,
+  })
+
   const [createModalOpen, setCreateModalOpen] = useState(false)
-  const [pageNumber, setPageNumber] = useState(1)
-  const [status, setStatus] = useState(1)
-  const [type, setType] = useState(null) // null = lấy tất cả loại đề
-  const pageSize = 20
-
-  // Debounce search để tránh gọi API quá nhiều
-  const [debouncedSearch, setDebouncedSearch] = useState('')
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search)
-      setPageNumber(1) // Reset về trang 1 khi search
-    }, 500) // Debounce 500ms
-
-    return () => clearTimeout(timer)
-  }, [search])
-
-  const handleSearchSubmit = () => {
-    setDebouncedSearch(search)
-    setPageNumber(1)
-  }
-
-  // Reset về trang 1 khi filter thay đổi
-  React.useEffect(() => {
-    setPageNumber(1)
-  }, [status, type])
 
   // Gọi API với các filter
   const { data: examTemplatesData, isLoading, refetch } = useExamTemplatesQuery(
     {
-      pageNumber,
-      pageSize,
-      searchTerm: debouncedSearch,
-      status: status, // Có thể là null để lấy tất cả
-      type: type, // null = lấy tất cả loại đề
+      pageNumber: filters.page,
+      pageSize: filters.size,
+      searchTerm: filters.search,
+      status: filters.status,
+      type: filters.type,
     },
     initialData
   )
 
-  const data = useMemo(() => {
-    if (initialData) return initialData
-    return examTemplatesData?.items || []
-  }, [initialData, examTemplatesData])
+  const items = examTemplatesData?.items || []
+  const total = examTemplatesData?.totalCount || 0
 
-  const filteredData = data // Không cần filter client-side nữa vì API đã filter
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value, page: 1 }))
+  }
 
-  const columns = [
+  const handlePaginationChange = (newPage, newSize) => {
+    setFilters(prev => {
+      const isSizeChanged = prev.size !== newSize;
+      return {
+        ...prev,
+        size: newSize,
+        page: isSizeChanged ? 1 : newPage
+      }
+    })
+  }
+
+  const columns = useMemo(() => [
+    {
+      title: () => (
+        <Tooltip title="Số thứ tự">
+          <span>STT</span>
+        </Tooltip>
+      ),
+      key: 'stt',
+      align: 'center',
+      width: 60,
+      render: (_, __, index) => (filters.page - 1) * filters.size + index + 1
+    },
     {
       title: 'Tên mẫu đề',
       dataIndex: 'name',
       key: 'name',
       render: (text, record) => text || record.Name || '-',
-      width: 150,
-
+      width: 250,
     },
     {
       title: 'Loại đề',
       dataIndex: 'examType',
       key: 'examType',
       render: (text, record) => text || record.ExamType || '-',
-      width: 60,
+      width: 120,
     },
     {
       title: 'Mô tả',
@@ -113,34 +93,36 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
       key: 'description',
       ellipsis: false,
       render: (text, record) => text || record.Description || '-',
-      width: 200,
+      width: 300,
     },
     {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
       align: 'center',
-      width: 100,
+      width: 120,
       render: (status, record) => {
-        const statusValue = status ?? record.Status ?? record.status ?? 0
-        const statusInfo = getStatusInfo(statusValue)
+        const val = status ?? record.Status ?? record.status ?? 0
+        const cfg = STATUS_CONFIG[val] || STATUS_CONFIG[0]
         return (
-          <div
-            title={statusInfo.label}
-            style={{
-              width: 12,
-              height: 12,
-              borderRadius: '50%',
-              backgroundColor: statusInfo.color === 'default' ? '#8c8c8c' : statusInfo.color,
-              margin: '0 auto',
-              boxShadow: '0 0 4px rgba(0,0,0,0.25)'
-            }}
-          />
+          <Tooltip title={cfg.label}>
+            <div
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: '50%',
+                backgroundColor: cfg.color,
+                margin: '0 auto',
+                boxShadow: '0 0 4px rgba(0,0,0,0.3)',
+                cursor: 'pointer'
+              }}
+            />
+          </Tooltip>
         )
       }
     },
     {
-      title: 'Thao tác',
+      title: 'Hành động',
       key: 'actions',
       align: 'center',
       width: 120,
@@ -150,7 +132,6 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
 
         const handleDuplicate = async (e) => {
           e?.stopPropagation?.()
-
           Modal.confirm({
             title: 'Xác nhận sao chép',
             content: `Bạn có chắc chắn muốn sao chép mẫu đề "${name}"?`,
@@ -160,9 +141,7 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
               try {
                 const result = await duplicateExamTemplate(id)
                 message.success('Sao chép mẫu đề thành công')
-                // Refetch danh sách
                 refetch()
-                // Navigate đến mẫu đề mới
                 if (result?.examTemplateId || result?.ExamTemplateId) {
                   router.push(`${basePath}/exam-templates/${result.examTemplateId || result.ExamTemplateId}`)
                 }
@@ -174,88 +153,92 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
         }
 
         return (
-          <Space size="middle" style={{ justifyContent: 'center' }}>
-            <EyeOutlined
-              style={{ fontSize: 18, cursor: 'pointer', padding: 8, color: '#1890ff' }}
-              title="Xem chi tiết"
-              onClick={(e) => {
-                e?.stopPropagation?.()
-                router.push(`${basePath}/exam-templates/${id}`)
-              }}
-            />
-            <CopyOutlined
-              style={{ fontSize: 18, cursor: 'pointer', padding: 8, color: '#1890ff' }}
-              title="Sao chép mẫu đề"
-              onClick={handleDuplicate}
-            />
+          <Space size="large">
+            <Tooltip title="Xem chi tiết">
+              <EyeOutlined
+                style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
+                onClick={(e) => {
+                  e?.stopPropagation?.()
+                  router.push(`${basePath}/exam-templates/${id}`)
+                }}
+              />
+            </Tooltip>
+            <Tooltip title="Sao chép">
+              <CopyOutlined
+                style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
+                onClick={handleDuplicate}
+              />
+            </Tooltip>
           </Space>
         )
       },
     },
-  ]
-
-  const actions = [
-    {
-      label: 'Thêm mẫu đề',
-      icon: <PlusOutlined />,
-      color: '#F1BE4B',
-      style: { backgroundColor: '#F1BE4B', borderColor: '#F1BE4B', color: '#111' },
-      onPress: () => setCreateModalOpen(true)
-    }
-  ]
+  ], [filters, router, basePath, refetch])
 
   const extraFilters = (
     <Space wrap>
       <Select
         allowClear
-        placeholder="Chọn trạng thái"
+        placeholder="Trạng thái"
         suffixIcon={<FilterOutlined />}
         style={{ width: 160 }}
-        value={status}
-        onChange={(value) => setStatus(value)}
-        options={statusOptions}
-      />
+        value={filters.status}
+        onChange={(val) => handleFilterChange('status', val)}
+      >
+        <Option value={null}>Tất cả trạng thái</Option>
+        <Option value={0}>Nháp</Option>
+        <Option value={1}>Đã xuất bản</Option>
+        <Option value={3}>Chờ phê duyệt</Option>
+        <Option value={4}>Từ chối</Option>
+        <Option value={2}>Đã xóa</Option>
+      </Select>
       <Select
         allowClear
-        placeholder="Chọn loại đề"
+        placeholder="Loại đề"
         suffixIcon={<FilterOutlined />}
         style={{ width: 160 }}
-        value={type}
-        onChange={(value) => setType(value)}
-        options={typeOptions}
-      />
+        value={filters.type}
+        onChange={(val) => handleFilterChange('type', val)}
+      >
+        <Option value={null}>Tất cả loại đề</Option>
+        <Option value={1}>TOPIK I</Option>
+        <Option value={2}>TOPIK II</Option>
+        <Option value={3}>Test đầu vào</Option>
+      </Select>
     </Space>
   )
+
+  const actions = [
+    {
+      label: 'Thêm mới',
+      icon: <PlusOutlined />,
+      type: 'primary',
+      onPress: () => setCreateOpen(true)
+    }
+  ]
 
   return (
     <>
       <ManagementLayout
-        searchPlaceholder="Tìm theo tên, mô tả, loại đề"
-        searchValue={search}
-        onSearchChange={setSearch}
-        onSearchSubmit={handleSearchSubmit}
+        searchPlaceholder="Tìm theo tên, mô tả..."
+        searchValue={filters.search}
+        onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
+        onSearchSubmit={() => handleFilterChange('search', filters.search)}
         extraFilters={extraFilters}
         actions={actions}
         tableProps={{
           columns,
-          dataSource: filteredData,
+          dataSource: items,
           loading: isLoading && !initialData,
-          onRowClick: (record) => setDrawerItem(record),
           rowKey: (record) => record.id || record.ExamTemplateId || record.examTemplateId || record.name,
           pagination: {
-            current: pageNumber,
-            pageSize: pageSize,
-            total: examTemplatesData?.totalCount || 0,
-            showSizeChanger: false,
-            onChange: (page) => setPageNumber(page),
+            current: filters.page,
+            pageSize: filters.size,
+            total: total,
+            showSizeChanger: true,
+            onChange: handlePaginationChange,
           }
         }}
-      />
-      <DetailDrawer
-        open={!!drawerItem}
-        onClose={() => setDrawerItem(null)}
-        title="Chi tiết mẫu đề"
-        data={drawerItem || {}}
       />
       {createModalOpen && (
         <CreateExamTemplateModal
@@ -263,7 +246,6 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
           onCancel={() => setCreateModalOpen(false)}
           onSuccess={(examTemplateId) => {
             setCreateModalOpen(false)
-            // Refetch danh sách sau khi tạo mới
             refetch()
             router.push(`${basePath}/exam-templates/${examTemplateId}`)
           }}
@@ -274,4 +256,3 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
 }
 
 export default ExamTemplateManagement
-

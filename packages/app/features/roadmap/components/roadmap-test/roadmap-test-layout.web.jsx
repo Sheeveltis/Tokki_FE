@@ -811,8 +811,8 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
       }
 
       // 2) Chạy API grading cho các câu writing Q51, Q52, Q53, Q54 (nếu có)
-      const sectionsSnapshot = sectionsRef.current.length ? sectionsRef.current : sections
-      await gradeTopikWriting(sectionsSnapshot)
+      // const sectionsSnapshot = sectionsRef.current.length ? sectionsRef.current : sections
+      // await gradeTopikWriting(sectionsSnapshot)
 
       // 3) GET result để đảm bảo kết quả đã được tính toán
       try {

@@ -4,6 +4,7 @@ import { useRouteNavigation } from './utils/navigation-helpers'
 import { LoginScreen } from '@tokki/app/features/authentication/screens/login-screen.web'
 import { RegisterScreen } from '@tokki/app/features/authentication/screens/register-screen.web'
 import { ForgotPasswordScreen } from '@tokki/app/features/authentication/screens/forgot-password-screen'
+import { AdminLoginScreen } from '@tokki/app/features/authentication/screens/admin-login-screen'
 
 /**
  * Authentication Routes Container
@@ -60,6 +61,10 @@ export const authRoutes = [
   {
     path: '/authentication/forgot-password',
     element: <ForgotPasswordRoute />,
+  },
+  {
+    path: '/admin-login',
+    element: <AdminLoginScreen />,
   },
 ]
 

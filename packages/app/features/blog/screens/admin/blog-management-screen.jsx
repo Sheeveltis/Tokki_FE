@@ -5,7 +5,6 @@ import { useRouter } from 'solito/navigation'
 import { Tag, Space, Row, Col } from 'antd'
 import { EyeOutlined } from '@ant-design/icons'
 import { statusArticle } from '../../../../string.js'
-import DetailDrawer from '../../../../../components/DetailDrawer'
 import { getBlogsAdmin, getBlogSummary, getTopBlogsByViews, getTopAuthors } from '../../api'
 import { BlogSearchActions } from '../../components/blog-management/BlogSearchActions'
 import { BlogStatsTable } from '../../components/blog-management/BlogStatsTable'
@@ -16,7 +15,6 @@ export function BlogManagement({ initialData = null }) {
   const router = useRouter()
   const [data, setData] = useState(initialData || [])
   const [loading, setLoading] = useState(!initialData)
-  const [drawerItem, setDrawerItem] = useState(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState()
   const [pageNumber, setPageNumber] = useState(1)
@@ -196,7 +194,6 @@ export function BlogManagement({ initialData = null }) {
               pageNumber={pageNumber}
               totalPages={totalPages}
               onPageChange={handlePageChange}
-              onRowClick={(record) => setDrawerItem(record)}
             />
           </Col>
 
@@ -208,12 +205,6 @@ export function BlogManagement({ initialData = null }) {
           </Col>
         </Row>
 
-        <DetailDrawer
-          open={!!drawerItem}
-          onClose={() => setDrawerItem(null)}
-          title="Chi tiết bài viết"
-          data={drawerItem || {}}
-        />
       </Space>
     </>
   )

@@ -7,7 +7,6 @@ import { useRouter } from 'solito/navigation'
 import { searchFlashcardTopics, createFlashcardTopic, approveTopic, rejectTopic, updateFlashcardTopic, uploadTopicImageToCloudinary, updateTopicOrderIndex } from '../../api/index.js'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
-import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
 import FlashcardTopicCreateModal from '../../components/admin/vocab-topic-management/vocab-topic-create-modal.jsx'
 import TopicApprovalModal from '../../components/admin/vocab-topic-detail/topic-approval-modal.jsx'
 import FlashcardTopicEditModal from '../../components/admin/vocab-topic-detail/vocab-topic-edit-modal.jsx'
@@ -43,7 +42,6 @@ export function FlashcardTopicManagement({ initialData = null }) {
   
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(!initialData)
-  const [drawerItem, setDrawerItem] = useState(null)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [createLoading, setCreateLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -572,12 +570,6 @@ export function FlashcardTopicManagement({ initialData = null }) {
           },
           onChange: handleTableChange,
         }}
-      />
-      <DetailDrawer
-        open={!!drawerItem && !createModalOpen}
-        onClose={() => setDrawerItem(null)}
-        title="Chi tiết chủ đề flashcard"
-        data={drawerItem || {}}
       />
       <FlashcardTopicCreateModal
         open={createModalOpen}

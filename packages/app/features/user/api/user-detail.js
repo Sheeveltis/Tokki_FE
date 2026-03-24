@@ -38,16 +38,16 @@ export const deleteUserById = async (userId) => {
  */
 export const uploadAvatarToCloudinary = async (file) => {
   if (!file) throw new Error('File is required')
-  
+
   const formData = new FormData()
   formData.append('file', file)
-  
+
   const res = await apiClient.post(ENDPOINTS.CLOUDINARY.UPLOAD_AVATAR, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   })
-  
+
   const response = res?.data
   if (response?.isSuccess && response?.data) {
     return response.data
