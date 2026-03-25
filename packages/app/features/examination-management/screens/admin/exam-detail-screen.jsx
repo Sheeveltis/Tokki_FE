@@ -2,10 +2,8 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'solito/navigation'
-import { Card, Space, Typography, Spin, Alert, Descriptions, Tag, Divider, message, Modal, Button, Tooltip, Popconfirm } from 'antd'
+import { Card, Space, Typography, Spin, Alert, Descriptions, Tag, Divider, message, Modal, Button, Tooltip, Popconfirm, Row, Col, Badge, List, Empty } from 'antd'
 import { EditOutlined, EyeOutlined, UndoOutlined, SaveOutlined, SyncOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
 import { useExamDetailAdmin } from '../../api/exam-hooks.js'
 import { fetchExamDetailAdmin, regenerateExamPart, updateExamQuestion, updateExamStatus } from '../../api/exam-management.js'
 import { useQueryClient } from '@tanstack/react-query'
@@ -96,45 +94,37 @@ export function ExamDetailScreen() {
     setTemplatePartsState(merged)
   }
 
-  const handleNavigate = (key) => {
-    router.push(`/admin?tab=${key}`)
-  }
-
   if (isLoading) {
     return (
-      <AdminLayout defaultKey="exam-management" onNavigate={handleNavigate}>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-          <Spin size="large" />
-        </div>
-      </AdminLayout>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <Spin size="large" />
+      </div>
     )
   }
 
   if (error) {
     return (
-      <AdminLayout defaultKey="exam-management" onNavigate={handleNavigate}>
+      <div style={{ padding: '24px' }}>
         <Alert
           message="Lỗi"
           description={error?.message || 'Không thể tải thông tin đề thi.'}
           type="error"
           showIcon
-          style={{ margin: '20px' }}
         />
-      </AdminLayout>
+      </div>
     )
   }
 
   if (!exam) {
     return (
-      <AdminLayout defaultKey="exam-management" onNavigate={handleNavigate}>
+      <div style={{ padding: '24px' }}>
         <Alert
           message="Không tìm thấy"
           description="Không tìm thấy đề thi với ID này."
           type="warning"
           showIcon
-          style={{ margin: '20px' }}
         />
-      </AdminLayout>
+      </div>
     )
   }
 
@@ -488,35 +478,445 @@ export function ExamDetailScreen() {
     }
   }
 
+  // Group consecutive questions that share the same passage/media
+  const groupQuestionsByPassage = (questions) => {
+    if (!questions || questions.length === 0) return []
+    const groups = []
+    let currentGroup = null
+
+    questions.forEach((q, qIndex) => {
+      // Create a unique key for the passage/media context
+      const passageKey = `${q.passageContent || ''}|${q.passageImageUrl || ''}|${q.passageAudioUrl || ''}`
+      const hasPassage = !!q.passageContent || !!q.passageImageUrl || !!q.passageAudioUrl
+
+      if (hasPassage && currentGroup && currentGroup.passageKey === passageKey) {
+        currentGroup.questions.push({ ...q, originalIndex: qIndex })
+      } else {
+        currentGroup = {
+          passageKey,
+          passageContent: q.passageContent,
+          passageImageUrl: q.passageImageUrl,
+          passageAudioUrl: q.passageAudioUrl,
+          questions: [{ ...q, originalIndex: qIndex }],
+          isGroup: hasPassage,
+        }
+        groups.push(currentGroup)
+      }
+    })
+    return groups
+  }
+
+  // Calculate status statistics for the navigator
+  const getQuestionStatus = (partId, qIndex) => {
+    const key = `${partId}:${qIndex}`
+    if (savingUpdateKey === key) return 'processing'
+    if (pendingExamQuestionUpdates?.[key]) return 'warning'
+    if (highlightedQuestions.includes(key)) return 'success'
+    return 'default'
+  }
+
   return (
-    <AdminLayout defaultKey="exam-management" onNavigate={handleNavigate}>
-      <div style={{ padding: '24px' }}>
-        {/* Header */}
-        <div style={{ marginBottom: '24px' }}>
-          <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <Title level={2} style={{ margin: 0 }}>
-              Chi tiết đề thi
+    <div style={{ padding: '0px' }}>
+      <div style={{ maxWidth: '100%', margin: '0 auto', width: '100%' }}>
+        {/* Page Header */}
+        <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <Title level={2} style={{ margin: 0, color: '#1a1a1a' }}>
+              Quản lý Bộ đề thi
             </Title>
-            <Space>
-              <ButtonV2
-                title="Chuyển trạng thái"
-                color="#1890ff"
-                onPress={handleOpenStatusModal}
-                disabled={statusChangeLoading || isLockedExam}
-                style={{ minWidth: 140, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
-              <ButtonV2
-                title="Quay lại"
-                color="charcoal"
-                onPress={() => router.push('/admin?tab=exam-management')}
-                style={{ minWidth: 100, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
-            </Space>
+            <Text type="secondary">Cấu hình câu hỏi và nội dung chi tiết cho đề thi ID: {exam.examId}</Text>
+          </div>
+          <Space size="middle">
+            <Button
+              onClick={() => router.push('/admin?tab=exam-management')}
+              icon={<UndoOutlined />}
+              style={{ borderRadius: '8px' }}
+            >
+              Quay lại danh sách
+            </Button>
+            <Button
+              type="primary"
+              onClick={handleOpenStatusModal}
+              disabled={statusChangeLoading || isLockedExam}
+              style={{ borderRadius: '8px', boxShadow: '0 2px 4px rgba(24, 144, 255, 0.2)' }}
+            >
+              Cập nhật trạng thái
+            </Button>
           </Space>
         </div>
 
+        <Row gutter={[24, 24]}>
+          {/* Main Content: Question List */}
+          <Col xs={24} lg={18}>
+            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+              {/* Basic Info Card */}
+              <Card
+                bordered={false}
+                style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}
+                title={<Space><Text strong>Thông tin tổng quan</Text></Space>}
+                extra={
+                  <Button
+                    type="link"
+                    icon={<EditOutlined />}
+                    onClick={handleOpenEditInfoModal}
+                    disabled={isLockedExam}
+                  >
+                    Sửa thông tin
+                  </Button>
+                }
+              >
+                <Descriptions column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1 }} size="small">
+                  <Descriptions.Item label="Tiêu đề">{exam.title || '-'}</Descriptions.Item>
+                  <Descriptions.Item label="Loại đề"><Tag color="blue">{typeText}</Tag></Descriptions.Item>
+                  <Descriptions.Item label="Trạng thái">
+                    <Badge status={statusInfo.color === 'green' ? 'success' : statusInfo.color === 'red' ? 'error' : 'default'} text={statusInfo.text} />
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Thời lượng">{exam.duration} phút</Descriptions.Item>
+                  <Descriptions.Item label="Ngày tạo">{exam.createdAt ? new Date(exam.createdAt).toLocaleDateString('vi-VN') : '-'}</Descriptions.Item>
+                </Descriptions>
+              </Card>
+
+              {/* Template Parts & Questions */}
+              {templatePartsState && templatePartsState.length > 0 ? (
+                templatePartsState.map((templatePart, partIndex) => {
+                  const partId = templatePart?.templatePartId
+                  const partPendingCount = Object.keys(pendingExamQuestionUpdates || {}).filter((k) => k.startsWith(`${partId}:`)).length
+                  const isRegenerating = regeneratingPartId === partId
+                  const canRegenerate = !!partId && !isRegenerating && !isLockedExam
+                  const passageGroups = groupQuestionsByPassage(templatePart.questions)
+
+                  return (
+                    <div key={partId || partIndex} id={`part-${partId}`} style={{ marginBottom: '32px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <Title level={4} style={{ margin: 0 }}>
+                            Phần {partIndex + 1}: {templatePart.templatePartsTitle || 'Nội dung thi'}
+                          </Title>
+                          {partPendingCount > 0 && <Badge count={partPendingCount} style={{ backgroundColor: '#faad14' }} />}
+                        </div>
+                        <Popconfirm
+                          title="Bạn muốn đổi ngẫu nhiên toàn bộ câu hỏi của phần này?"
+                          onConfirm={() => handleRegenerateTemplatePart(partId)}
+                          disabled={!canRegenerate}
+                          okText="Đổi lại"
+                          cancelText="Hủy"
+                        >
+                          <Button
+                            icon={<SyncOutlined spin={isRegenerating} />}
+                            disabled={!canRegenerate}
+                            type="dashed"
+                            danger={partPendingCount > 0}
+                          >
+                            Tạo lại phần này
+                          </Button>
+                        </Popconfirm>
+                      </div>
+
+                      {passageGroups.length > 0 ? (
+                        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                          {passageGroups.map((group, groupIdx) => (
+                            <div key={groupIdx} style={{ 
+                              background: '#fff', 
+                              borderRadius: '12px', 
+                              overflow: 'hidden', 
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                              border: '1px solid #e8e8e8'
+                            }}>
+                              {/* Shared Passage Header */}
+                              {group.isGroup && (
+                                <div style={{ padding: '20px', background: '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
+                                  <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                                    {(group.passageImageUrl || group.passageAudioUrl) && (
+                                      <div style={{ flex: '0 0 300px', maxWidth: '100%' }}>
+                                        {group.passageImageUrl && (
+                                          <img src={group.passageImageUrl} alt="Passage" style={{ width: '100%', borderRadius: '8px', border: '1px solid #eee' }} />
+                                        )}
+                                        {group.passageAudioUrl && (
+                                          <audio controls src={group.passageAudioUrl} style={{ width: '100%', marginTop: '8px' }} />
+                                        )}
+                                      </div>
+                                    )}
+                                    <div style={{ flex: 1, minWidth: '300px' }}>
+                                      <Text strong style={{ fontSize: '13px', color: '#8c8c8c', display: 'block', marginBottom: '8px', textTransform: 'uppercase' }}>
+                                        Nội dung chung (Câu {group.questions[0].questionNo} - {group.questions[group.questions.length - 1].questionNo})
+                                      </Text>
+                                      <Paragraph style={{ fontSize: '15px', whiteSpace: 'pre-wrap', margin: 0 }}>
+                                        {group.passageContent}
+                                      </Paragraph>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Questions in this group */}
+                              <div style={{ padding: '8px 0' }}>
+                                {group.questions.map((question, innerIdx) => {
+                                  const qIdx = question.originalIndex
+                                  const highlightKey = `${partId}:${qIdx}`
+                                  const isHighlighted = highlightedQuestions.includes(highlightKey)
+                                  const isPending = !!pendingExamQuestionUpdates?.[highlightKey]
+
+                                  return (
+                                    <div 
+                                      key={qIdx} 
+                                      id={`q-${partId}-${qIdx}`}
+                                      style={{ 
+                                        padding: '24px',
+                                        background: isHighlighted ? '#fffbe6' : 'transparent',
+                                        borderBottom: innerIdx < group.questions.length - 1 ? '1px solid #f0f0f0' : 'none',
+                                        transition: 'all 0.3s'
+                                      }}
+                                    >
+                                      {/* Question Header & Content */}
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                                        <div style={{ display: 'flex', gap: '16px', flex: 1 }}>
+                                          <Badge 
+                                            count={question.questionNo} 
+                                            style={{ backgroundColor: isPending ? '#faad14' : isHighlighted ? '#52c41a' : '#595959', fontSize: '14px', height: '24px', lineHeight: '24px', minWidth: '24px' }}
+                                          />
+                                          <div style={{ flex: 1 }}>
+                                            {question.mediaUrl && (
+                                              <div style={{ marginBottom: '16px' }}>
+                                                {question.mediaType === 'Image' ? (
+                                                  <img src={question.mediaUrl} alt="Question" style={{ maxWidth: '400px', borderRadius: '8px', border: '1px solid #eee' }} />
+                                                ) : <audio controls src={question.mediaUrl} style={{ minWidth: '300px' }} />}
+                                              </div>
+                                            )}
+                                            <Paragraph style={{ fontSize: '17px', fontWeight: 500, margin: 0 }}>
+                                              {question.content}
+                                            </Paragraph>
+                                          </div>
+                                        </div>
+                                        
+                                        {/* Actions Toolbar */}
+                                        <div style={{ marginLeft: '16px' }}>
+                                          <Space>
+                                            <Tooltip title="Thay đổi câu hỏi này">
+                                              <Button 
+                                                shape="circle" 
+                                                icon={<EditOutlined />} 
+                                                onClick={() => !isLockedExam && handleOpenQuestionSelectModal(partId, qIdx)}
+                                                disabled={isLockedExam}
+                                              />
+                                            </Tooltip>
+                                            <Tooltip title="Hoàn tác">
+                                              <Button 
+                                                shape="circle" 
+                                                icon={<UndoOutlined />} 
+                                                onClick={() => handleUndoQuestion(partId, qIdx)}
+                                                disabled={isLockedExam || !previousQuestionsMap[`${partId}:${qIdx}`]}
+                                              />
+                                            </Tooltip>
+                                            <Tooltip title="Xem câu gốc">
+                                              <Button 
+                                                shape="circle" 
+                                                icon={<EyeOutlined />} 
+                                                onClick={() => handleViewOldQuestion(partId, qIdx)}
+                                              />
+                                            </Tooltip>
+                                            {isPending && (
+                                              <Tooltip title="Lưu thay đổi câu này">
+                                                <Button 
+                                                  type="primary"
+                                                  shape="circle" 
+                                                  icon={<SaveOutlined />} 
+                                                  loading={savingUpdateKey === highlightKey}
+                                                  onClick={() => handleSaveSingleChange(partId, qIdx)}
+                                                />
+                                              </Tooltip>
+                                            )}
+                                          </Space>
+                                        </div>
+                                      </div>
+
+                                      {/* Options */}
+                                      {question.options && question.options.length > 0 && (
+                                        <div style={{ paddingLeft: '40px' }}>
+                                          <Row gutter={[16, 16]}>
+                                            {question.options.map((option, optIndex) => {
+                                              const hasImage = !!option.imageUrl
+                                              return (
+                                                <Col span={12} key={optIndex}>
+                                                  <div style={{
+                                                    padding: '12px 16px',
+                                                    borderRadius: '8px',
+                                                    border: option.isCorrect ? '2px solid #52c41a' : '1px solid #f0f0f0',
+                                                    backgroundColor: option.isCorrect ? '#f6ffed' : '#fff',
+                                                    height: '100%',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: '12px',
+                                                    transition: 'all 0.2s ease',
+                                                    boxShadow: option.isCorrect ? '0 2px 4px rgba(82, 196, 26, 0.1)' : 'none'
+                                                  }}>
+                                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                                                      <div style={{ 
+                                                        width: '28px', 
+                                                        height: '28px', 
+                                                        minWidth: '28px',
+                                                        borderRadius: '50%', 
+                                                        backgroundColor: option.isCorrect ? '#52c41a' : '#f0f0f0',
+                                                        color: option.isCorrect ? '#fff' : '#8c8c8c',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        fontSize: '13px',
+                                                        fontWeight: 'bold'
+                                                      }}>
+                                                        {option.keyOption || String.fromCharCode(65 + optIndex)}
+                                                      </div>
+                                                      <Text style={{ fontSize: '15px' }}>{option.content || '-'}</Text>
+                                                    </div>
+                                                    {hasImage && (
+                                                      <div style={{ textAlign: 'center', marginTop: '4px' }}>
+                                                        <img 
+                                                          src={option.imageUrl} 
+                                                          alt={`Option ${optIndex}`} 
+                                                          style={{ maxHeight: '120px', maxWidth: '100%', borderRadius: '4px', objectFit: 'contain' }} 
+                                                        />
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                </Col>
+                                              )
+                                            })}
+                                          </Row>
+                                        </div>
+                                      )}
+
+                                      {/* Explanation */}
+                                      {question.explanation && (
+                                        <div style={{ marginTop: '16px', marginLeft: '40px', padding: '12px 16px', background: '#e6f7ff', borderRadius: '8px', borderLeft: '4px solid #1890ff' }}>
+                                          <Text strong style={{ color: '#1890ff', fontSize: '13px', display: 'block', marginBottom: '4px' }}>GIẢI THÍCH:</Text>
+                                          <Paragraph style={{ margin: 0, color: '#434343' }}>{question.explanation}</Paragraph>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                        </Space>
+                      ) : (
+                        <Alert message="Không có câu hỏi trong phần này." type="info" />
+                      )}
+                    </div>
+                  )
+                })
+              ) : (
+                <Empty description="Không có cấu trúc đề thi" />
+              )}
+            </Space>
+          </Col>
+
+          {/* Right Sider: Navigator & Summary */}
+          <Col xs={0} lg={6}>
+            <div style={{ position: 'sticky', top: '0px', zIndex: 10 }}>
+              <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                {/* Navigator */}
+                <Card 
+                  title="Danh sách câu hỏi" 
+                  bordered={false} 
+                  style={{ borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
+                  bodyStyle={{ maxHeight: 'calc(100vh - 400px)', overflowY: 'auto', padding: '12px' }}
+                >
+                  {templatePartsState?.map((part, pIdx) => (
+                    <div key={pIdx} style={{ marginBottom: '24px' }}>
+                      <div style={{ paddingLeft: '4px', marginBottom: '12px' }}>
+                        <Text type="secondary" style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 800, color: '#bfbfbf', letterSpacing: '0.1em', display: 'block' }}>
+                          PHẦN {pIdx + 1}
+                        </Text>
+                        <Tooltip title={part.templatePartsTitle || 'Nội dung thi'}>
+                          <div style={{ 
+                            fontSize: '12px', 
+                            fontWeight: 700, 
+                            color: '#262626', 
+                            marginTop: '2px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            maxWidth: '100%'
+                          }}>
+                            {part.templatePartsTitle || 'Nội dung thi'}
+                          </div>
+                        </Tooltip>
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {part.questions?.map((q, qIdx) => {
+                          const status = getQuestionStatus(part.templatePartId, qIdx)
+                          return (
+                            <Tooltip title={`Câu ${q.questionNo}`} key={qIdx}>
+                              <div
+                                onClick={() => {
+                                  const element = document.getElementById(`q-${part.templatePartId}-${qIdx}`)
+                                  if (element) {
+                                    element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                                  }
+                                }}
+                                style={{
+                                  width: '32px',
+                                  height: '32px',
+                                  borderRadius: '6px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  cursor: 'pointer',
+                                  fontSize: '12px',
+                                  fontWeight: 600,
+                                  border: '1px solid #e8e8e8',
+                                  backgroundColor: status === 'warning' ? '#fffbe6' : status === 'success' ? '#f6ffed' : '#fff',
+                                  color: status === 'warning' ? '#faad14' : status === 'success' ? '#52c41a' : '#595959',
+                                  borderColor: status === 'warning' ? '#ffe58f' : status === 'success' ? '#b7eb8f' : '#e8e8e8',
+                                  transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.borderColor = '#1890ff'
+                                  e.currentTarget.style.color = '#1890ff'
+                                }}
+                                onMouseLeave={(e) => {
+                                  const s = getQuestionStatus(part.templatePartId, qIdx)
+                                  e.currentTarget.style.borderColor = s === 'warning' ? '#ffe58f' : s === 'success' ? '#b7eb8f' : '#e8e8e8'
+                                  e.currentTarget.style.color = s === 'warning' ? '#faad14' : s === 'success' ? '#52c41a' : '#595959'
+                                }}
+                              >
+                                {q.questionNo}
+                              </div>
+                            </Tooltip>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </Card>
+
+                {/* Save Summary */}
+                <Card bordered={false} style={{ borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ marginBottom: '16px' }}>
+                      <Text type="secondary" style={{ display: 'block' }}>Thay đổi chưa lưu</Text>
+                      <Title level={2} style={{ margin: '4px 0' }}>{Object.keys(pendingExamQuestionUpdates || {}).length}</Title>
+                    </div>
+                    <Button
+                      type="primary"
+                      size="large"
+                      block
+                      icon={<SaveOutlined />}
+                      onClick={handleSaveBulkChanges}
+                      loading={bulkSaving}
+                      disabled={isLockedExam || Object.keys(pendingExamQuestionUpdates || {}).length === 0}
+                      style={{ height: '48px', borderRadius: '8px' }}
+                    >
+                      Lưu tất cả thay đổi
+                    </Button>
+                  </div>
+                </Card>
+              </Space>
+            </div>
+          </Col>
+        </Row>
+
+        {/* Modals */}
         <ExamStatusChangeModal
           open={statusChangeModalOpen}
           loading={statusChangeLoading}
@@ -524,14 +924,12 @@ export function ExamDetailScreen() {
           onCancel={() => setStatusChangeModalOpen(false)}
           onSubmit={handleSubmitStatusChange}
         />
-
         <ExamQuestionSelectModal
           open={questionSelectModalOpen}
           templatePartId={currentTemplatePartId}
           onCancel={() => setQuestionSelectModalOpen(false)}
           onSelect={handleSelectQuestion}
         />
-
         <EditExamInfoModal
           open={editInfoModalOpen}
           exam={exam}
@@ -539,7 +937,7 @@ export function ExamDetailScreen() {
           onSuccess={handleSubmitEditInfo}
         />
 
-        {/* Modal xem trước câu hỏi mới chọn để xác nhận */}
+        {/* Modal confirm question selection */}
         <Modal
           title="Xác nhận chọn câu hỏi"
           open={confirmQuestionModalOpen}
@@ -548,532 +946,55 @@ export function ExamDetailScreen() {
           width={800}
           destroyOnClose
           footer={[
-            <Button key="back" onClick={handleBackToQuestionList}>
-              Quay lại danh sách
-            </Button>,
-            <Button key="cancel" onClick={handleCancelConfirmQuestion}>
-              Đóng
-            </Button>,
-            <Button key="ok" type="primary" onClick={handleConfirmSelectedQuestion}>
-              Xác nhận
-            </Button>,
+            <Button key="back" onClick={handleBackToQuestionList}>Quay lại</Button>,
+            <Button key="ok" type="primary" onClick={handleConfirmSelectedQuestion}>Xác nhận chọn</Button>,
           ]}
         >
-          {pendingSelectedQuestion ? (
-            <div style={{ marginTop: 8 }}>
-              {/* Media */}
-              {pendingSelectedQuestion.mediaUrl && (
-                <div style={{ marginBottom: '16px', textAlign: 'center' }}>
-                  {pendingSelectedQuestion.mediaType === 'Image' ? (
-                    <img
-                      src={pendingSelectedQuestion.mediaUrl}
-                      alt="Question media"
-                      style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '4px' }}
-                    />
-                  ) : pendingSelectedQuestion.mediaType === 'Audio' ? (
-                    <audio controls src={pendingSelectedQuestion.mediaUrl} style={{ width: '100%' }} />
-                  ) : (
-                    <a href={pendingSelectedQuestion.mediaUrl} target="_blank" rel="noopener noreferrer">
-                      Xem media
-                    </a>
-                  )}
-                </div>
-              )}
-
-              {/* Passage */}
-              {pendingSelectedQuestion.passageContent && (
-                <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
-                  <Text strong style={{ display: 'block', marginBottom: '8px' }}>Đoạn văn:</Text>
-                  <Paragraph style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                    {pendingSelectedQuestion.passageContent}
-                  </Paragraph>
-                </div>
-              )}
-
-              {/* Nội dung câu hỏi */}
-              {pendingSelectedQuestion.content && (
-                <div style={{ marginBottom: '16px' }}>
-                  <Text strong style={{ display: 'block', marginBottom: '8px' }}>Nội dung câu hỏi:</Text>
-                  <Paragraph style={{ margin: 0, fontSize: '16px' }}>
-                    {pendingSelectedQuestion.content}
-                  </Paragraph>
-                </div>
-              )}
-
-              {/* Options */}
-              {pendingSelectedQuestion.options && pendingSelectedQuestion.options.length > 0 && (
-                <div>
-                  <Text strong style={{ display: 'block', marginBottom: '12px' }}>Các lựa chọn:</Text>
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                    {pendingSelectedQuestion.options.map((option, optIndex) => (
-                      <div
-                        key={option.keyOption || optIndex}
-                        style={{
-                          padding: '12px',
-                          borderRadius: '4px',
-                          border: option.isCorrect ? '2px solid #52c41a' : '1px solid #d9d9d9',
-                          backgroundColor: option.isCorrect ? '#f6ffed' : '#fff',
-                        }}
-                      >
-                        <Space>
-                          <Tag color={option.isCorrect ? 'green' : 'default'} style={{ fontSize: 12 }}>
-                            {option.keyOption || String.fromCharCode(65 + optIndex)}
-                          </Tag>
-                          <Text style={{ flex: 1 }}>{option.content || '-'}</Text>
-                          {option.isCorrect && (
-                            <Tag color="green" style={{ fontSize: 12 }}>
-                              Đáp án đúng
-                            </Tag>
-                          )}
-                        </Space>
-                      </div>
-                    ))}
-                  </Space>
-                </div>
-              )}
-
-              {/* Giải thích */}
-              {pendingSelectedQuestion.explanation && (
-                <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#e6f7ff', borderRadius: '4px' }}>
-                  <Text strong style={{ display: 'block', marginBottom: '8px' }}>Giải thích:</Text>
-                  <Paragraph style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                    {pendingSelectedQuestion.explanation}
-                  </Paragraph>
-                </div>
-              )}
+          {pendingSelectedQuestion && (
+            <div style={{ padding: '12px 0' }}>
+               {/* Simplified preview in modal */}
+               <div style={{ marginBottom: '24px', background: '#f9f9f9', padding: '16px', borderRadius: '8px' }}>
+                 {pendingSelectedQuestion.passageContent && (
+                   <div style={{ marginBottom: '16px' }}>
+                     <Text strong>Đoạn văn:</Text>
+                     <Paragraph>{pendingSelectedQuestion.passageContent}</Paragraph>
+                   </div>
+                 )}
+                 <Text strong>Câu hỏi:</Text>
+                 <Paragraph style={{ fontSize: '16px' }}>{pendingSelectedQuestion.content}</Paragraph>
+               </div>
+               <List
+                 grid={{ gutter: 16, column: 2 }}
+                 dataSource={pendingSelectedQuestion.options}
+                 renderItem={(opt, idx) => (
+                   <List.Item>
+                     <Card size="small" style={{ border: opt.isCorrect ? '1px solid #52c41a' : '1px solid #f0f0f0' }}>
+                       <Badge status={opt.isCorrect ? 'success' : 'default'} text={`${String.fromCharCode(65 + idx)}. ${opt.content}`} />
+                     </Card>
+                   </List.Item>
+                 )}
+               />
             </div>
-          ) : (
-            <Text>Không có dữ liệu câu hỏi.</Text>
           )}
         </Modal>
 
-        {/* Modal xem lại câu hỏi cũ */}
+        {/* Old Question Modal */}
         <Modal
-          title="Câu hỏi cũ"
+          title="Chi tiết câu hỏi gốc"
           open={oldQuestionModalOpen}
           onCancel={() => setOldQuestionModalOpen(false)}
-          width={800}
-          destroyOnClose
-          footer={[
-            <Button key="close" onClick={() => setOldQuestionModalOpen(false)}>
-              Đóng
-            </Button>,
-          ]}
+          width={700}
+          footer={[<Button key="close" onClick={() => setOldQuestionModalOpen(false)}>Đóng</Button>]}
         >
-          {oldQuestionModalData ? (
-            <div style={{ marginTop: 8 }}>
-              {/* Media */}
-              {oldQuestionModalData.mediaUrl && (
-                <div style={{ marginBottom: '16px', textAlign: 'center' }}>
-                  {oldQuestionModalData.mediaType === 'Image' ? (
-                    <img
-                      src={oldQuestionModalData.mediaUrl}
-                      alt="Question media"
-                      style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '4px' }}
-                    />
-                  ) : oldQuestionModalData.mediaType === 'Audio' ? (
-                    <audio controls src={oldQuestionModalData.mediaUrl} style={{ width: '100%' }} />
-                  ) : (
-                    <a href={oldQuestionModalData.mediaUrl} target="_blank" rel="noopener noreferrer">
-                      Xem media
-                    </a>
-                  )}
-                </div>
-              )}
-
-              {/* Passage */}
-              {oldQuestionModalData.passageContent && (
-                <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
-                  <Text strong style={{ display: 'block', marginBottom: '8px' }}>Đoạn văn:</Text>
-                  <Paragraph style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{oldQuestionModalData.passageContent}</Paragraph>
-                </div>
-              )}
-
-              {/* Nội dung câu hỏi */}
-              {oldQuestionModalData.content && (
-                <div style={{ marginBottom: '16px' }}>
-                  <Text strong style={{ display: 'block', marginBottom: '8px' }}>Nội dung câu hỏi:</Text>
-                  <Paragraph style={{ margin: 0, fontSize: '16px' }}>{oldQuestionModalData.content}</Paragraph>
-                </div>
-              )}
-
-              {/* Options */}
-              {oldQuestionModalData.options && oldQuestionModalData.options.length > 0 && (
-                <div>
-                  <Text strong style={{ display: 'block', marginBottom: '12px' }}>Các lựa chọn:</Text>
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                    {oldQuestionModalData.options.map((option, optIndex) => (
-                      <div
-                        key={option.keyOption || optIndex}
-                        style={{
-                          padding: '12px',
-                          borderRadius: '4px',
-                          border: option.isCorrect ? '2px solid #52c41a' : '1px solid #d9d9d9',
-                          backgroundColor: option.isCorrect ? '#f6ffed' : '#fff',
-                        }}
-                      >
-                        <Space>
-                          <Tag color={option.isCorrect ? 'green' : 'default'} style={{ fontSize: 12 }}>
-                            {option.keyOption || String.fromCharCode(65 + optIndex)}
-                          </Tag>
-                          <Text style={{ flex: 1 }}>{option.content || '-'}</Text>
-                          {option.isCorrect && (
-                            <Tag color="green" style={{ fontSize: 12 }}>
-                              Đáp án đúng
-                            </Tag>
-                          )}
-                        </Space>
-                      </div>
-                    ))}
-                  </Space>
-                </div>
-              )}
-
-              {/* Giải thích */}
-              {oldQuestionModalData.explanation && (
-                <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#e6f7ff', borderRadius: '4px' }}>
-                  <Text strong style={{ display: 'block', marginBottom: '8px' }}>Giải thích:</Text>
-                  <Paragraph style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{oldQuestionModalData.explanation}</Paragraph>
-                </div>
-              )}
+          {oldQuestionModalData && (
+            <div style={{ padding: '12px 0' }}>
+              <Paragraph strong>{oldQuestionModalData.content}</Paragraph>
+              {/* Add options and other info if needed, keeping it simple for now */}
             </div>
-          ) : (
-            <Text>Không có dữ liệu câu hỏi.</Text>
           )}
         </Modal>
-
-        {/* Thông tin cơ bản */}
-        <Card
-          title="Thông tin cơ bản"
-          extra={
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              onClick={handleOpenEditInfoModal}
-              disabled={isLockedExam}
-            >
-              Chỉnh sửa
-            </Button>
-          }
-          style={{ marginBottom: '24px' }}
-        >
-          <Descriptions column={1} bordered size="middle">
-            <Descriptions.Item label="ID Đề thi">
-              {exam.examId || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="Tiêu đề">
-              {exam.title || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="Loại đề">
-              <Tag color="blue" style={{ fontSize: 12 }}>{typeText}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Trạng thái">
-              <Tag color={statusInfo.color} style={{ fontSize: 12 }}>{statusInfo.text}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Thời gian (phút)">
-              {exam.duration || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="Ngày tạo">
-              {exam.createdAt ? new Date(exam.createdAt).toLocaleString('vi-VN') : '-'}
-            </Descriptions.Item>
-          </Descriptions>
-        </Card>
-
-        {/* Template Parts và Questions */}
-        {templatePartsState && templatePartsState.length > 0 ? (
-          templatePartsState.map((templatePart, partIndex) => (
-            (() => {
-              const partId = templatePart?.templatePartId
-              const partPendingCount = Object.keys(pendingExamQuestionUpdates || {}).filter((k) => k.startsWith(`${partId}:`)).length
-              const isRegenerating = regeneratingPartId === partId
-              const canRegenerate = !!partId && !isRegenerating && !isLockedExam
-              return (
-            <Card
-              key={templatePart.templatePartId || partIndex}
-              title={
-                <Space>
-                  <Text strong>Phần {partIndex + 1} -</Text>
-                  {templatePart.templatePartsTitle && (
-                    <Text type="danger" style={{ fontSize: 14 }}>
-                      {templatePart.templatePartsTitle}
-                    </Text>
-                  )}
-                </Space>
-              }
-              extra={
-                <Popconfirm
-                  title={
-                    <div>
-                      <div style={{ fontWeight: 600, marginBottom: 6 }}>Đổi lại bộ câu hỏi phần này?</div>
-                      <div style={{ fontSize: 12, color: '#6b7280' }}>
-                        Hệ thống sẽ random lại bộ câu hỏi trong phần.
-                        {partPendingCount > 0 ? (
-                          <div style={{ marginTop: 6, color: '#b45309' }}>
-                            Lưu ý: Bạn đang có <b>{partPendingCount}</b> thay đổi chưa lưu ở phần này — đổi lại sẽ bỏ các thay đổi đó.
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  }
-                  okText="Đổi lại"
-                  cancelText="Hủy"
-                  disabled={!canRegenerate}
-                  onConfirm={() => handleRegenerateTemplatePart(partId)}
-                >
-                  <Tooltip title="Đổi lại bộ câu hỏi phần này">
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        cursor: canRegenerate ? 'pointer' : 'not-allowed',
-                        opacity: canRegenerate ? 1 : 0.5,
-                      }}
-                    >
-                      <SyncOutlined spin={isRegenerating} style={{ color: '#1890ff' }} />
-                    </span>
-                  </Tooltip>
-                </Popconfirm>
-              }
-              style={{ marginBottom: '24px' }}
-            >
-              {templatePart.questions && templatePart.questions.length > 0 ? (
-                <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                  {templatePart.questions.map((question, qIndex) => (
-                    (() => {
-                      const highlightKey = `${templatePart.templatePartId}:${qIndex}`
-                      const isHighlighted = highlightedQuestions.includes(highlightKey)
-                      return (
-                    <Card
-                      key={question.questionNo || qIndex}
-                      size="small"
-                      title={
-                        <div
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            gap: 8,
-                          }}
-                        >
-                          <Space>
-                            <Text strong>Câu {question.questionNo || qIndex + 1}</Text>
-                            {question.isCorrect !== undefined && (
-                              <Tag color={question.isCorrect ? 'green' : 'red'} style={{ fontSize: 12 }}>
-                                {question.isCorrect ? 'Đúng' : 'Sai'}
-                              </Tag>
-                            )}
-                          </Space>
-                          <Space>
-                            <EditOutlined
-                              style={{
-                                marginLeft: 8,
-                                color: isLockedExam ? '#bfbfbf' : '#1890ff',
-                                cursor: isLockedExam ? 'not-allowed' : 'pointer',
-                              }}
-                              onClick={() => {
-                                if (!isLockedExam) {
-                                  handleOpenQuestionSelectModal(templatePart.templatePartId, qIndex)
-                                }
-                              }}
-                            />
-                            <Tooltip title="Lưu đổi câu này">
-                              <SaveOutlined
-                                style={{
-                                  marginLeft: 10,
-                                  color: isLockedExam
-                                    ? '#bfbfbf'
-                                    : savingUpdateKey === `${templatePart.templatePartId}:${qIndex}`
-                                      ? '#1890ff'
-                                      : pendingExamQuestionUpdates?.[`${templatePart.templatePartId}:${qIndex}`]
-                                        ? '#52c41a'
-                                        : '#bfbfbf',
-                                  cursor:
-                                    !isLockedExam && pendingExamQuestionUpdates?.[`${templatePart.templatePartId}:${qIndex}`]
-                                      ? 'pointer'
-                                      : 'not-allowed',
-                                }}
-                                onClick={() => handleSaveSingleChange(templatePart.templatePartId, qIndex)}
-                              />
-                            </Tooltip>
-                            <Tooltip title="Xem lại câu cũ">
-                              <EyeOutlined
-                                style={{ marginLeft: 10, color: '#595959', cursor: 'pointer' }}
-                                onClick={() => handleViewOldQuestion(templatePart.templatePartId, qIndex)}
-                              />
-                            </Tooltip>
-                            <Popconfirm
-                              title="Hoàn tác về câu cũ?"
-                              okText="Hoàn tác"
-                              cancelText="Hủy"
-                              disabled={isLockedExam}
-                              onConfirm={() => handleUndoQuestion(templatePart.templatePartId, qIndex)}
-                            >
-                              <Tooltip title="Hoàn tác câu cũ">
-                                <UndoOutlined
-                                  style={{
-                                    marginLeft: 10,
-                                    color: isLockedExam ? '#ffd8bf' : '#fa8c16',
-                                    cursor: isLockedExam ? 'not-allowed' : 'pointer',
-                                  }}
-                                />
-                              </Tooltip>
-                            </Popconfirm>
-                          </Space>
-                        </div>
-                      }
-                      style={{
-                        border: isHighlighted ? '1px solid #ffe58f' : undefined,
-                      }}
-                      // Ensure the visible area (card body) also gets the background color
-                      bodyStyle={{ backgroundColor: isHighlighted ? '#fffbe6' : '#fafafa' }}
-                      styles={{ body: { backgroundColor: isHighlighted ? '#fffbe6' : '#fafafa' } }}
-                    >
-                      {/* Question Media */}
-                      {question.mediaUrl && (
-                        <div style={{ marginBottom: '16px', textAlign: 'center' }}>
-                          {question.mediaType === 'Image' ? (
-                            <img
-                              src={question.mediaUrl}
-                              alt="Question media"
-                              style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '4px' }}
-                            />
-                          ) : question.mediaType === 'Audio' ? (
-                            <audio controls src={question.mediaUrl} style={{ width: '100%' }} />
-                          ) : (
-                            <a href={question.mediaUrl} target="_blank" rel="noopener noreferrer">
-                              Xem media
-                            </a>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Passage Content */}
-                      {question.passageContent && (
-                        <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
-                          <Text strong style={{ display: 'block', marginBottom: '8px' }}>Đoạn văn:</Text>
-                          <Paragraph style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                            {question.passageContent}
-                          </Paragraph>
-                        </div>
-                      )}
-
-                      {/* Passage Media */}
-                      {question.passageImageUrl && (
-                        <div style={{ marginBottom: '16px', textAlign: 'center' }}>
-                          <img
-                            src={question.passageImageUrl}
-                            alt="Passage image"
-                            style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '4px' }}
-                          />
-                        </div>
-                      )}
-
-                      {question.passageAudioUrl && (
-                        <div style={{ marginBottom: '16px' }}>
-                          <audio controls src={question.passageAudioUrl} style={{ width: '100%' }} />
-                        </div>
-                      )}
-
-                      {/* Question Content */}
-                      {question.content && (
-                        <div style={{ marginBottom: '16px' }}>
-                          <Text strong style={{ display: 'block', marginBottom: '8px' }}>Nội dung câu hỏi:</Text>
-                          <Paragraph style={{ margin: 0, fontSize: '16px' }}>
-                            {question.content}
-                          </Paragraph>
-                        </div>
-                      )}
-
-                      {/* Options */}
-                      {question.options && question.options.length > 0 && (
-                        <div>
-                          <Text strong style={{ display: 'block', marginBottom: '12px' }}>Các lựa chọn:</Text>
-                          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                            {question.options.map((option, optIndex) => (
-                              <div
-                                key={option.keyOption || optIndex}
-                                style={{
-                                  padding: '12px',
-                                  borderRadius: '4px',
-                                  border: option.isCorrect ? '2px solid #52c41a' : '1px solid #d9d9d9',
-                                  backgroundColor: option.isCorrect ? '#f6ffed' : '#fff',
-                                }}
-                              >
-                                <Space>
-                                  <Tag color={option.isCorrect ? 'green' : 'default'} style={{ fontSize: 12 }}>
-                                    {option.keyOption || String.fromCharCode(65 + optIndex)}
-                                  </Tag>
-                                  <Text style={{ flex: 1 }}>{option.content || '-'}</Text>
-                                  {option.isCorrect && (
-                                    <Tag color="green" style={{ fontSize: 12 }}>
-                                      Đáp án đúng
-                                    </Tag>
-                                  )}
-                                </Space>
-                                {option.imageUrl && (
-                                  <div style={{ marginTop: '8px', textAlign: 'center' }}>
-                                    <img
-                                      src={option.imageUrl}
-                                      alt={`Option ${option.keyOption}`}
-                                      style={{ maxWidth: '200px', maxHeight: '200px', borderRadius: '4px' }}
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </Space>
-                        </div>
-                      )}
-
-                      {/* Explanation */}
-                      {question.explanation && (
-                        <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#e6f7ff', borderRadius: '4px' }}>
-                          <Text strong style={{ display: 'block', marginBottom: '8px' }}>Giải thích:</Text>
-                          <Paragraph style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                            {question.explanation}
-                          </Paragraph>
-                        </div>
-                      )}
-
-                      {partIndex < exam.templateParts.length - 1 || qIndex < templatePart.questions.length - 1 ? (
-                        <Divider style={{ margin: '16px 0' }} />
-                      ) : null}
-                    </Card>
-                      )
-                    })()
-                  ))}
-                </Space>
-              ) : (
-                <Alert message="Không có câu hỏi" type="info" />
-              )}
-            </Card>
-              )
-            })()
-          ))
-        ) : (
-          <Card>
-            <Alert message="Không có phần nào" type="info" />
-          </Card>
-        )}
-
-        {/* Bulk save footer */}
-        <div style={{ marginTop: 24, display: 'flex', justifyContent: 'flex-end' }}>
-          <Space>
-            <Text type="secondary">
-              Thay đổi chưa lưu: <b>{Object.keys(pendingExamQuestionUpdates || {}).length}</b>
-            </Text>
-            <Button
-              type="primary"
-              onClick={handleSaveBulkChanges}
-              loading={bulkSaving}
-              disabled={isLockedExam || Object.keys(pendingExamQuestionUpdates || {}).length === 0}
-            >
-              Lưu đổi hàng loạt
-            </Button>
-          </Space>
-        </div>
       </div>
-    </AdminLayout>
+    </div>
   )
 }
 

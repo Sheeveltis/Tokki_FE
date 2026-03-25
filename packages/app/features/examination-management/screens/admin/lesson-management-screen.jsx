@@ -2,17 +2,14 @@
 
 import React, { useState, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Input, Space } from 'antd'
+import { Input, Space, Button } from 'antd'
 import { EyeOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
 import { useLessonsQuery } from '../../../back-office/api/useAdminQueries.js'
 import ManagementTable from '../../../../../components/ManagementTable'
-import DetailDrawer from '../../../../../components/DetailDrawer'
 
 export function LessonManagement({ initialData = null }) {
   const router = useRouter()
   const { data = initialData || [], isLoading } = useLessonsQuery(initialData)
-  const [drawerItem, setDrawerItem] = useState(null)
   const [search, setSearch] = useState('')
 
   // Xác định cổng hiện tại dựa vào URL
@@ -92,29 +89,21 @@ export function LessonManagement({ initialData = null }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <ButtonV2
-          title="Thêm"
-          color="#F1BE4B"
-          onPress={() => router.push(`${portalPrefix}/lessons/create`)}
-          style={{ minWidth: 80, paddingVertical: 10 }}
-          textStyle={{ fontSize: 14 }}
-        />
+        <Button
+          type="primary"
+          onClick={() => router.push(`${portalPrefix}/lessons/create`)}
+          style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#F1BE4B', borderColor: '#F1BE4B' }}
+        >
+          Thêm
+        </Button>
       </Space>
       <ManagementTable
         columns={columns}
         dataSource={filteredData}
         loading={isLoading && !initialData}
-        onRowClick={(record) => setDrawerItem(record)}
-      />
-      <DetailDrawer
-        open={!!drawerItem}
-        onClose={() => setDrawerItem(null)}
-        title="Chi tiết bài học"
-        data={drawerItem || {}}
       />
     </>
   )
 }
 
-export default LessonManagement
 

@@ -1,12 +1,10 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Input, Space, Tag, Select } from 'antd'
-import { EyeOutlined, SearchOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import ManagementTable from '../../../../../components/ManagementTable.jsx'
-import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
+import { Space, Tag, Select, Tooltip, Card, Button } from 'antd'
+import { EyeOutlined, FilterOutlined, PlusOutlined } from '@ant-design/icons'
+import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 import { useExamsAdmin } from '../../api/exam-hooks.js'
 import CreateExamModal from '../../components/admin/create-exam-modal.jsx'
 import { useQueryClient } from '@tanstack/react-query'
@@ -15,9 +13,9 @@ const { Option } = Select
 
 // Map status enum values to display text
 const STATUS_MAP = {
-  0: { color: 'default', text: 'Nháp' },
-  1: { color: 'green', text: 'Đã xuất bản' },
-  2: { color: 'red', text: 'Đã xóa' },
+  0: { color: '#8c8c8c', text: 'Nháp' },
+  1: { color: '#52c41a', text: 'Đã xuất bản' },
+  2: { color: '#f5222d', text: 'Đã xóa' },
 }
 
 // Map type enum values to display text
@@ -29,42 +27,55 @@ const TYPE_MAP = {
 export function ExamManagement({ initialData = null }) {
   const router = useRouter()
   const queryClient = useQueryClient()
-  const [pageNumber, setPageNumber] = useState(1)
-  const [pageSize] = useState(20)
-  const [statusFilter, setStatusFilter] = useState('ALL') // 'ALL' = tất cả trạng thái
-  const [typeFilter, setTypeFilter] = useState(undefined) // undefined = tất cả
-  const [drawerItem, setDrawerItem] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+  
+  const [filters, setFilters] = useState({
+    search: '',
+    status: 'ALL',
+    type: undefined,
+    page: 1,
+    size: 20,
+  })
+
   const [createModalOpen, setCreateModalOpen] = useState(false)
-
-  // Debounce search term
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
-      setPageNumber(1) // Reset về trang 1 khi search
-    }, 500)
-
-    return () => clearTimeout(timer)
-  }, [searchTerm])
-
-  // Reset page khi filter thay đổi
-  useEffect(() => {
-    setPageNumber(1)
-  }, [statusFilter, typeFilter])
 
   // Fetch exams from API
   const { data: examsData, isLoading } = useExamsAdmin({
-    PageNumber: pageNumber,
-    PageSize: pageSize,
-    SearchTerm: debouncedSearchTerm || undefined,
-    Status: statusFilter === 'ALL' ? undefined : statusFilter,
-    Type: typeFilter,
+    PageNumber: filters.page,
+    PageSize: filters.size,
+    SearchTerm: filters.search || undefined,
+    Status: filters.status === 'ALL' ? undefined : filters.status,
+    Type: filters.type,
   })
 
   const data = examsData?.items || initialData || []
 
-  const columns = [
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value, page: 1 }))
+  }
+
+  const handlePaginationChange = (newPage, newSize) => {
+    setFilters(prev => {
+      const isSizeChanged = prev.size !== newSize;
+      return {
+        ...prev,
+        size: newSize,
+        page: isSizeChanged ? 1 : newPage
+      }
+    })
+  }
+
+  const columns = useMemo(() => [
+    {
+      title: () => (
+        <Tooltip title="Số thứ tự">
+          <span>STT</span>
+        </Tooltip>
+      ),
+      key: 'stt',
+      align: 'center',
+      width: 60,
+      render: (_, __, index) => (filters.page - 1) * filters.size + index + 1
+    },
     { 
       title: 'ID Đề thi', 
       dataIndex: 'examId', 
@@ -97,127 +108,175 @@ export function ExamManagement({ initialData = null }) {
       dataIndex: 'status', 
       key: 'status',
       width: 120,
+      align: 'center',
       render: (status) => {
-        const statusInfo = STATUS_MAP[status] || { color: 'default', text: `Status ${status}` }
-        return <Tag color={statusInfo.color} style={{ fontSize: 12 }}>{statusInfo.text}</Tag>
+        const statusInfo = STATUS_MAP[status] || { color: '#8c8c8c', text: `Status ${status}` }
+        return (
+          <Tooltip title={statusInfo.text}>
+            <div
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: '50%',
+                backgroundColor: statusInfo.color,
+                margin: '0 auto',
+                boxShadow: '0 0 4px rgba(0,0,0,0.3)',
+                cursor: 'pointer'
+              }}
+            />
+          </Tooltip>
+        )
       }
     },
     {
-      title: 'Xem',
+      title: 'Hành động',
       key: 'actions',
       align: 'center',
       width: 90,
       render: (_, record) => (
-        <div
-          onClick={(e) => {
-            e?.stopPropagation?.()
-            router.push(`/admin/exams/${record.examId}`)
-          }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            padding: '4px 8px',
-            borderRadius: 4,
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#f0f0f0'
-            e.currentTarget.style.transform = 'scale(1.1)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent'
-            e.currentTarget.style.transform = 'scale(1)'
-          }}
-        >
-          <EyeOutlined style={{ fontSize: 18, color: '#111', transition: 'color 0.2s ease' }} />
-        </div>
+        <Tooltip title="Xem chi tiết">
+          <Button
+            type="text"
+            shape="circle"
+            icon={<EyeOutlined style={{ fontSize: 18, color: '#1890ff' }} />}
+            onClick={(e) => {
+              e?.stopPropagation?.()
+              router.push(`/admin/exams/${record.examId}`)
+            }}
+          />
+        </Tooltip>
       ),
     },
+  ], [filters, router])
+
+  const renderCard = (record) => {
+    const statusInfo = STATUS_MAP[record.status] || { color: '#8c8c8c', text: `Status ${record.status}` }
+    return (
+      <Card
+        hoverable
+        style={{
+          borderRadius: 16,
+          overflow: 'hidden',
+          border: '1px solid #f0f0f0',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+        bodyStyle={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}
+        onClick={() => router.push(`/admin/exams/${record.examId}`)}
+      >
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Tag color="blue" style={{ borderRadius: 4 }}>{TYPE_MAP[record.type] || record.type}</Tag>
+          <Tooltip title={statusInfo.text}>
+            <div
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                backgroundColor: statusInfo.color,
+                boxShadow: `0 0 6px ${statusInfo.color}80`
+              }}
+            />
+          </Tooltip>
+        </div>
+
+        <Tooltip title={record.title}>
+          <div style={{
+            fontSize: 16,
+            fontWeight: 600,
+            marginBottom: 8,
+            color: '#262626',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            lineHeight: '1.4',
+            minHeight: '2.8em'
+          }}>
+            {record.title}
+          </div>
+        </Tooltip>
+
+        <div style={{ marginTop: 'auto' }}>
+          <div style={{ fontSize: 13, color: '#8c8c8c', marginBottom: 4 }}>
+            {record.examTemplateName}
+          </div>
+          <div style={{ fontSize: 12, color: '#bfbfbf' }}>
+            ID: {record.examId}
+          </div>
+        </div>
+      </Card>
+    )
+  }
+
+  const extraFilters = (
+    <Space wrap>
+      <Select
+        placeholder="Trạng thái"
+        allowClear
+        style={{ width: 160 }}
+        value={filters.status}
+        onChange={(val) => handleFilterChange('status', val || 'ALL')}
+        suffixIcon={<FilterOutlined />}
+      >
+        <Option value="ALL">Tất cả trạng thái</Option>
+        <Option value={0}>Nháp</Option>
+        <Option value={1}>Đã xuất bản</Option>
+        <Option value={2}>Đã xóa</Option>
+      </Select>
+      <Select
+        placeholder="Loại đề"
+        allowClear
+        style={{ width: 160 }}
+        value={filters.type}
+        onChange={(val) => handleFilterChange('type', val)}
+        suffixIcon={<FilterOutlined />}
+      >
+        <Option value={1}>TOPIK I</Option>
+        <Option value={2}>TOPIK II</Option>
+        <Option value={3}>Test đầu vào</Option>
+      </Select>
+    </Space>
+  )
+
+  const actions = [
+    {
+      label: 'Thêm mới',
+      icon: <PlusOutlined />,
+      type: 'primary',
+      onPress: () => setCreateModalOpen(true)
+    }
   ]
 
   return (
     <>
-      <Space style={{ marginBottom: 12, width: '100%', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-        <Space size="middle" style={{ flex: 1, minWidth: 600 }}>
-          <Input
-            allowClear
-            prefix={<SearchOutlined />}
-            placeholder="Tìm kiếm..."
-            style={{ maxWidth: 300 }}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onPressEnter={() => {
-              setDebouncedSearchTerm(searchTerm)
-              setPageNumber(1)
-            }}
-          />
-          <Select
-            placeholder="Trạng thái"
-            allowClear
-            style={{ width: 150 }}
-            value={statusFilter}
-            onChange={(value) => {
-              // Khi clear thì quay về "Tất cả trạng thái"
-              if (value == null) {
-                setStatusFilter('ALL')
-              } else {
-                setStatusFilter(value)
-              }
-            }}
-          >
-            <Option value="ALL">Tất cả trạng thái</Option>
-            <Option value={0}>Nháp</Option>
-            <Option value={1}>Đã xuất bản</Option>
-            <Option value={2}>Đã xóa</Option>
-          </Select>
-          <Select
-            placeholder="Loại đề"
-            allowClear
-            style={{ width: 150 }}
-            value={typeFilter}
-            onChange={(value) => setTypeFilter(value)}
-          >
-            <Option value={1}>TOPIK I</Option>
-            <Option value={2}>TOPIK II</Option>
-            <Option value={3}>Test đầu vào</Option>
-          </Select>
-        </Space>
-        <ButtonV2
-          title="Thêm đề"
-          color="#F1BE4B"
-          onPress={() => setCreateModalOpen(true)}
-          style={{ minWidth: 80, paddingVertical: 10 }}
-          textStyle={{ fontSize: 14 }}
-        />
-      </Space>
-      <ManagementTable
-        columns={columns}
-        dataSource={data}
-        loading={isLoading && !initialData}
-        onRowClick={(record) => setDrawerItem(record)}
-        pagination={{
-          current: pageNumber,
-          pageSize: pageSize,
-          total: examsData?.total || 0,
-          onChange: (page) => setPageNumber(page),
-          showSizeChanger: false,
+      <ManagementLayout
+        searchPlaceholder="Tìm kiếm tiêu đề, cấu trúc đề..."
+        searchValue={filters.search}
+        onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
+        onSearchSubmit={() => handleFilterChange('search', filters.search)}
+        extraFilters={extraFilters}
+        actions={actions}
+        renderCard={renderCard}
+        tableProps={{
+          columns,
+          dataSource: data,
+          loading: isLoading && !initialData,
+          rowKey: "examId",
+          pagination: {
+            current: filters.page,
+            pageSize: filters.size,
+            total: examsData?.total || 0,
+            showSizeChanger: true,
+            onChange: handlePaginationChange
+          }
         }}
-      />
-      <DetailDrawer
-        open={!!drawerItem}
-        onClose={() => setDrawerItem(null)}
-        title="Chi tiết đề thi"
-        data={drawerItem || {}}
       />
       <CreateExamModal
         open={createModalOpen}
         onCancel={() => setCreateModalOpen(false)}
         onSuccess={async (examId) => {
-          // Invalidate query để refresh danh sách
           await queryClient.invalidateQueries({ queryKey: ['exams', 'admin'] })
-          // Navigate đến trang detail
           router.push(`/admin/exams/${examId}`)
         }}
       />
@@ -226,4 +285,3 @@ export function ExamManagement({ initialData = null }) {
 }
 
 export default ExamManagement
-

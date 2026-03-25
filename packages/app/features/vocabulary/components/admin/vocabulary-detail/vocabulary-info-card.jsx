@@ -212,24 +212,24 @@ export function VocabularyInfoCard({ vocab, onAddExample, onEditExample, onDelet
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%', paddingBottom: 24 }}>
       {/* Chi tiết từ vựng */}
-      <Card 
-        title={<Text strong style={{ fontSize: 20 }}>Thông tin cơ bản</Text>} 
+      <Card
+        title={<Text strong style={{ fontSize: 20 }}>Thông tin cơ bản</Text>}
         variant="outlined"
       >
         <div style={{ display: 'flex', gap: '32px', alignItems: 'stretch' }}>
           {/* Cột bên trái: Thông tin text */}
           <div style={{ flex: 1 }}>
-            <Descriptions 
-              column={{ xxl: 2, xl: 2, lg: 1, md: 1, sm: 1, xs: 1 }} 
-              bordered 
+            <Descriptions
+              column={{ xxl: 2, xl: 2, lg: 1, md: 1, sm: 1, xs: 1 }}
+              bordered
               size="middle" // Chuyển từ small sang middle để tăng padding mặc định
-              labelStyle={{ 
-                width: '140px', 
-                fontWeight: '600', 
+              labelStyle={{
+                width: '140px',
+                fontWeight: '600',
                 backgroundColor: '#fafafa',
                 fontSize: '15px' // Tăng cỡ chữ nhãn
               }}
-              contentStyle={{ 
+              contentStyle={{
                 fontSize: '15px', // Tăng cỡ chữ nội dung
                 // padding: '12px 16px' 
               }}
@@ -239,7 +239,7 @@ export function VocabularyInfoCard({ vocab, onAddExample, onEditExample, onDelet
                   {vocab.text}
                 </Text>
               </Descriptions.Item>
-              
+
               <Descriptions.Item label="Phiên âm" span={2}>
                 <Text type="secondary" style={{ fontSize: '16px' }}>
                   {vocab.pronunciation || '-'}
@@ -279,36 +279,36 @@ export function VocabularyInfoCard({ vocab, onAddExample, onEditExample, onDelet
           </div>
 
           {/* Cột bên phải: Ảnh minh họa */}
-          {vocab.imgURL && (
-            <div style={{ 
-              width: '170px', 
-              display: 'flex', 
-              flexDirection: 'column',
-              backgroundColor: '#fdfdfd',
-              padding: '10px',
-              borderRadius: '12px',
-              border: '1px solid #f0f0f0'
-            }}>
-              <div style={{ textAlign: 'center', marginBottom: '12px' }}>
-                <Text type="secondary" strong style={{ fontSize: '13px', letterSpacing: '1px' }}>
-                  ẢNH MINH HỌA
-                </Text>
-              </div>
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+          <div style={{
+            width: '170px',
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: '#fdfdfd',
+            padding: '10px',
+            borderRadius: '12px',
+            border: '1px solid #f0f0f0'
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+              <Text type="secondary" strong style={{ fontSize: '13px', letterSpacing: '1px' }}>
+                ẢNH MINH HỌA
+              </Text>
+            </div>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {vocab.imgURL ? (
                 <Image
                   src={vocab.imgURL}
                   alt="vocab"
-                  style={{ 
-                    width: '100%', 
-                    borderRadius: 8, 
+                  style={{
+                    width: '100%',
+                    borderRadius: 8,
                     objectFit: 'contain',
                     maxHeight: '300px'
                   }}
                   preview={{ mask: <><EyeOutlined /> Xem lớn</> }}
                 />
-              </div>
+              ) : null}
             </div>
-          )}
+          </div>
         </div>
       </Card>
 

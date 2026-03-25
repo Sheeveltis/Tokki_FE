@@ -30,7 +30,7 @@ export function ExamTemplateDetailScreen() {
   const router = useRouter()
   const params = useParams()
   const examTemplateId = params?.id || params?.ExamTemplateId
-  
+
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [examTemplate, setExamTemplate] = useState(null)
@@ -57,7 +57,7 @@ export function ExamTemplateDetailScreen() {
         setError('')
         // Gọi API để lấy thông tin exam template
         const data = await fetchExamTemplate(examTemplateId)
-        
+
         if (mounted) {
           setExamTemplate(data)
         }
@@ -94,11 +94,11 @@ export function ExamTemplateDetailScreen() {
     try {
       // Gọi API để cập nhật exam template
       await updateExamTemplate(examTemplateId, updatedData)
-      
+
       // Reload lại dữ liệu từ API để đảm bảo đồng bộ
       const data = await fetchExamTemplate(examTemplateId)
       setExamTemplate(data)
-      
+
       message.success('Đã cập nhật thông tin mẫu đề thành công')
       setEditModalOpen(false)
     } catch (err) {
@@ -163,7 +163,7 @@ export function ExamTemplateDetailScreen() {
           setDeleting(true)
           // Gọi API để xóa exam template
           await deleteExamTemplate(examTemplateId)
-          
+
           message.success('Đã xóa mẫu đề thành công')
           // Quay lại trang danh sách
           router.push('/admin?tab=exam-template')
@@ -274,7 +274,7 @@ export function ExamTemplateDetailScreen() {
 
       if (success) {
         message.success(`Đã chuyển trạng thái sang "${getStatusInfo(newStatus).label}" thành công`)
-        
+
         // Reload lại dữ liệu
         const data = await fetchExamTemplate(examTemplateId)
         setExamTemplate(data)
@@ -291,31 +291,25 @@ export function ExamTemplateDetailScreen() {
 
   if (loading) {
     return (
-      <AdminLayout defaultKey="exam-template" onNavigate={handleNavigate}>
-        <div style={{ padding: 24, textAlign: 'center' }}>
-          <Spin size="large" />
-        </div>
-      </AdminLayout>
+      <div style={{ padding: 24, textAlign: 'center' }}>
+        <Spin size="large" />
+      </div>
     )
   }
 
   if (error) {
     return (
-      <AdminLayout defaultKey="exam-template" onNavigate={handleNavigate}>
-        <div style={{ padding: 24 }}>
-          <Alert message="Lỗi" description={error} type="error" showIcon />
-        </div>
-      </AdminLayout>
+      <div style={{ padding: 24 }}>
+        <Alert message="Lỗi" description={error} type="error" showIcon />
+      </div>
     )
   }
 
   if (!examTemplate) {
     return (
-      <AdminLayout defaultKey="exam-template" onNavigate={handleNavigate}>
-        <div style={{ padding: 24 }}>
-          <Alert message="Không tìm thấy mẫu đề" type="warning" showIcon />
-        </div>
-      </AdminLayout>
+      <div style={{ padding: 24 }}>
+        <Alert message="Không tìm thấy mẫu đề" type="warning" showIcon />
+      </div>
     )
   }
 
@@ -336,257 +330,255 @@ export function ExamTemplateDetailScreen() {
   }
 
   return (
-    <AdminLayout defaultKey="exam-template" onNavigate={handleNavigate}>
-      <div style={{ padding: 20 }}>
-        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-          {/* Header */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
-              flexWrap: 'wrap',
-              gap: 12,
-            }}
-          >
-            <div>
-              <Title level={3} style={{ marginBottom: 4 }}>
-                Chi tiết mẫu đề
-              </Title>
-              <Text type="secondary">ID: {examTemplate.examTemplateId}</Text>
-            </div>
-            <Space size="small" wrap>
-              {/* Staff: nút Gửi duyệt khi Nháp hoặc Từ chối */}
-              {isStaff && [0, 4].includes(examTemplate.status ?? 0) && (
-                <Button
-                  type="primary"
-                  onClick={handleSubmitForApproval}
-                  loading={submittingForApproval}
-                >
-                  Gửi duyệt
-                </Button>
-              )}
-              {/* Admin: nút chuyển trạng thái */}
-              {isAdmin && (
-                <Button
-                  type="primary"
-                  onClick={() => setStatusChangeModalOpen(true)}
-                  loading={statusChangeLoading}
-                >
-                  Chuyển trạng thái
-                </Button>
-              )}
-              {/* Chỉnh sửa thông tin cơ bản
+    <div>
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        {/* Header */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            flexWrap: 'wrap',
+            gap: 12,
+          }}
+        >
+          <div>
+            <Title level={3} style={{ marginBottom: 4 }}>
+              Chi tiết mẫu đề
+            </Title>
+            <Text type="secondary">ID: {examTemplate.examTemplateId}</Text>
+          </div>
+          <Space size="small" wrap>
+            {/* Staff: nút Gửi duyệt khi Nháp hoặc Từ chối */}
+            {isStaff && [0, 4].includes(examTemplate.status ?? 0) && (
+              <Button
+                type="primary"
+                onClick={handleSubmitForApproval}
+                loading={submittingForApproval}
+              >
+                Gửi duyệt
+              </Button>
+            )}
+            {/* Admin: nút chuyển trạng thái */}
+            {isAdmin && (
+              <Button
+                type="primary"
+                onClick={() => setStatusChangeModalOpen(true)}
+                loading={statusChangeLoading}
+              >
+                Chuyển trạng thái
+              </Button>
+            )}
+            {/* Chỉnh sửa thông tin cơ bản
                   - Admin: luôn được chỉnh sửa
                   - Staff: chỉ được chỉnh sửa khi trạng thái là Draft (0) hoặc Từ chối (4)
               */}
-              <Button
-                onClick={handleEdit}
-                disabled={isStaff && ![0, 4].includes(examTemplate.status ?? 0)}
-              >
-                Chỉnh sửa
-              </Button>
-              {/* Chỉ cho phép xóa khi không phải trạng thái Đã xuất bản */}
-              {examTemplate.status !== 1 && (
-                <Button danger onClick={handleDelete} loading={deleting}>
-                  Xóa
-                </Button>
-              )}
-              <Button onClick={() => router.push('/admin?tab=exam-template')}>
-                Quay lại
-              </Button>
-            </Space>
-          </div>
-
-          {/* Thông tin cơ bản */}
-          <Card
-            size="small"
-            title="Thông tin cơ bản"
-            extra={
-              <Tooltip title="Hướng dẫn Thông tin cơ bản">
-                <QuestionCircleOutlined
-                  onClick={() => openGuide('info')}
-                  style={{ fontSize: 18, cursor: 'pointer' }}
-                />
-              </Tooltip>
-            }
-          >
-            <Descriptions
-              column={{ xs: 1, sm: 2 }}
-              bordered
-              size="small"
+            <Button
+              onClick={handleEdit}
+              disabled={isStaff && ![0, 4].includes(examTemplate.status ?? 0)}
             >
-              <Descriptions.Item label="Tên mẫu đề">
-                {examTemplate.name || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="Loại đề">
-                {examTemplate.examType || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="Mô tả">
-                {examTemplate.description || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="Trạng thái">
-                <Space size="small" align="center">
-                  <Text>{getStatusInfo(examTemplate.status ?? 0).label}</Text>
-                  {examTemplate.status === 3 && isAdmin && (
-                    <>
-                      <div
-                        onClick={(e) => {
-                          e?.stopPropagation?.()
-                          handleOpenApprovalModal('approve')
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: approvalLoading ? 'not-allowed' : 'pointer',
-                          padding: '2px 4px',
-                          borderRadius: 4,
-                          transition: 'all 0.2s ease',
-                          opacity: approvalLoading ? 0.5 : 1,
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!approvalLoading) {
-                            e.currentTarget.style.backgroundColor = '#f6ffed'
-                            e.currentTarget.style.transform = 'scale(1.2)'
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!approvalLoading) {
-                            e.currentTarget.style.backgroundColor = 'transparent'
-                            e.currentTarget.style.transform = 'scale(1)'
-                          }
-                        }}
-                        title="Phê duyệt"
-                      >
-                        <CheckCircleOutlined style={{ fontSize: 16, color: '#52c41a', transition: 'color 0.2s ease' }} />
-                      </div>
-                      <div
-                        onClick={(e) => {
-                          e?.stopPropagation?.()
-                          handleOpenApprovalModal('reject')
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: approvalLoading ? 'not-allowed' : 'pointer',
-                          padding: '2px 4px',
-                          borderRadius: 4,
-                          transition: 'all 0.2s ease',
-                          opacity: approvalLoading ? 0.5 : 1,
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!approvalLoading) {
-                            e.currentTarget.style.backgroundColor = '#fff1f0'
-                            e.currentTarget.style.transform = 'scale(1.2)'
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!approvalLoading) {
-                            e.currentTarget.style.backgroundColor = 'transparent'
-                            e.currentTarget.style.transform = 'scale(1)'
-                          }
-                        }}
-                        title="Từ chối"
-                      >
-                        <CloseCircleOutlined style={{ fontSize: 16, color: '#ff4d4f', transition: 'color 0.2s ease' }} />
-                      </div>
-                    </>
-                  )}
-                </Space>
-              </Descriptions.Item>
-              <Descriptions.Item label="Ngày tạo">
-                {formatDate(examTemplate.createdAt)}
-              </Descriptions.Item>
-              <Descriptions.Item label="Ngày cập nhật">
-                {formatDate(examTemplate.updatedAt || examTemplate.createdAt)}
-              </Descriptions.Item>
-            </Descriptions>
-          </Card>
+              Chỉnh sửa
+            </Button>
+            {/* Chỉ cho phép xóa khi không phải trạng thái Đã xuất bản */}
+            {examTemplate.status !== 1 && (
+              <Button danger onClick={handleDelete} loading={deleting}>
+                Xóa
+              </Button>
+            )}
+            <Button onClick={() => router.push('/admin?tab=exam-template')}>
+              Quay lại
+            </Button>
+          </Space>
+        </div>
 
-          {/* Quản lý các phần */}
-          <Card
-            size="small"
-            title="Quản lý các phần của đề thi"
-            extra={
-              <Tooltip title="Hướng dẫn Quản lý các phần">
-                <QuestionCircleOutlined
-                  onClick={() => openGuide('parts')}
-                  style={{ fontSize: 18, cursor: 'pointer' }}
-                />
-              </Tooltip>
-            }
-          >
-            <ExamTemplatePartsForm 
-              examTemplateId={examTemplateId} 
-              initialParts={examTemplate.Parts || []}
-              examTemplate={examTemplate}
-              onPartsAdded={async () => {
-                // Reload lại dữ liệu exam template sau khi add parts thành công
-                try {
-                  setLoading(true)
-                  const data = await fetchExamTemplate(examTemplateId)
-                  setExamTemplate(data)
-                } catch (err) {
-                  message.error(err?.message || 'Không thể tải lại thông tin mẫu đề')
-                } finally {
-                  setLoading(false)
-                }
-              }}
-            />
-          </Card>
-        </Space>
-
-        {/* Modal chỉnh sửa */}
-        {editModalOpen && (
-          <EditExamTemplateModal
-            open={editModalOpen}
-            examTemplate={examTemplate}
-            onCancel={() => setEditModalOpen(false)}
-            onSuccess={handleEditSuccess}
-          />
-        )}
-
-        {/* Modal phê duyệt / từ chối */}
-        <ExamTemplateApprovalModal
-          open={approvalModalOpen}
-          loading={approvalLoading}
-          initialApprovalType={approvalMode}
-          onCancel={() => {
-            setApprovalModalOpen(false)
-            setApprovalMode('approve')
-          }}
-          onSubmit={handleApprovalSubmit}
-        />
-
-        {/* Modal chuyển trạng thái */}
-        <ExamTemplateStatusChangeModal
-          open={statusChangeModalOpen}
-          loading={statusChangeLoading}
-          currentStatus={examTemplate?.status ?? 0}
-          onCancel={() => setStatusChangeModalOpen(false)}
-          onSubmit={handleStatusChange}
-        />
-
-        {/* Modal hướng dẫn */}
-        <Modal
-          title={guideSection === 'parts' ? 'Hướng dẫn: Quản lý các phần' : 'Hướng dẫn: Thông tin cơ bản'}
-          open={guideModalOpen}
-          onCancel={() => setGuideModalOpen(false)}
-          footer={[
-            <Button key="close" onClick={() => setGuideModalOpen(false)}>
-              Đóng
-            </Button>,
-          ]}
-          width={700}
+        {/* Thông tin cơ bản */}
+        <Card
+          size="small"
+          title="Thông tin cơ bản"
+          extra={
+            <Tooltip title="Hướng dẫn Thông tin cơ bản">
+              <QuestionCircleOutlined
+                onClick={() => openGuide('info')}
+                style={{ fontSize: 18, cursor: 'pointer' }}
+              />
+            </Tooltip>
+          }
         >
-          <div style={{ padding: '8px 0' }}>
-            {renderGuideContent()}
-          </div>
-        </Modal>
-      </div>
-    </AdminLayout>
+          <Descriptions
+            column={{ xs: 1, sm: 2 }}
+            bordered
+            size="small"
+          >
+            <Descriptions.Item label="Tên mẫu đề">
+              {examTemplate.name || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="Loại đề">
+              {examTemplate.examType || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="Mô tả">
+              {examTemplate.description || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="Trạng thái">
+              <Space size="small" align="center">
+                <Text>{getStatusInfo(examTemplate.status ?? 0).label}</Text>
+                {examTemplate.status === 3 && isAdmin && (
+                  <>
+                    <div
+                      onClick={(e) => {
+                        e?.stopPropagation?.()
+                        handleOpenApprovalModal('approve')
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: approvalLoading ? 'not-allowed' : 'pointer',
+                        padding: '2px 4px',
+                        borderRadius: 4,
+                        transition: 'all 0.2s ease',
+                        opacity: approvalLoading ? 0.5 : 1,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!approvalLoading) {
+                          e.currentTarget.style.backgroundColor = '#f6ffed'
+                          e.currentTarget.style.transform = 'scale(1.2)'
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!approvalLoading) {
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                          e.currentTarget.style.transform = 'scale(1)'
+                        }
+                      }}
+                      title="Phê duyệt"
+                    >
+                      <CheckCircleOutlined style={{ fontSize: 16, color: '#52c41a', transition: 'color 0.2s ease' }} />
+                    </div>
+                    <div
+                      onClick={(e) => {
+                        e?.stopPropagation?.()
+                        handleOpenApprovalModal('reject')
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: approvalLoading ? 'not-allowed' : 'pointer',
+                        padding: '2px 4px',
+                        borderRadius: 4,
+                        transition: 'all 0.2s ease',
+                        opacity: approvalLoading ? 0.5 : 1,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!approvalLoading) {
+                          e.currentTarget.style.backgroundColor = '#fff1f0'
+                          e.currentTarget.style.transform = 'scale(1.2)'
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!approvalLoading) {
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                          e.currentTarget.style.transform = 'scale(1)'
+                        }
+                      }}
+                      title="Từ chối"
+                    >
+                      <CloseCircleOutlined style={{ fontSize: 16, color: '#ff4d4f', transition: 'color 0.2s ease' }} />
+                    </div>
+                  </>
+                )}
+              </Space>
+            </Descriptions.Item>
+            <Descriptions.Item label="Ngày tạo">
+              {formatDate(examTemplate.createdAt)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Ngày cập nhật">
+              {formatDate(examTemplate.updatedAt || examTemplate.createdAt)}
+            </Descriptions.Item>
+          </Descriptions>
+        </Card>
+
+        {/* Quản lý các phần */}
+        <Card
+          size="small"
+          title="Quản lý các phần của đề thi"
+          extra={
+            <Tooltip title="Hướng dẫn Quản lý các phần">
+              <QuestionCircleOutlined
+                onClick={() => openGuide('parts')}
+                style={{ fontSize: 18, cursor: 'pointer' }}
+              />
+            </Tooltip>
+          }
+        >
+          <ExamTemplatePartsForm
+            examTemplateId={examTemplateId}
+            initialParts={examTemplate.Parts || []}
+            examTemplate={examTemplate}
+            onPartsAdded={async () => {
+              // Reload lại dữ liệu exam template sau khi add parts thành công
+              try {
+                setLoading(true)
+                const data = await fetchExamTemplate(examTemplateId)
+                setExamTemplate(data)
+              } catch (err) {
+                message.error(err?.message || 'Không thể tải lại thông tin mẫu đề')
+              } finally {
+                setLoading(false)
+              }
+            }}
+          />
+        </Card>
+      </Space>
+
+      {/* Modal chỉnh sửa */}
+      {editModalOpen && (
+        <EditExamTemplateModal
+          open={editModalOpen}
+          examTemplate={examTemplate}
+          onCancel={() => setEditModalOpen(false)}
+          onSuccess={handleEditSuccess}
+        />
+      )}
+
+      {/* Modal phê duyệt / từ chối */}
+      <ExamTemplateApprovalModal
+        open={approvalModalOpen}
+        loading={approvalLoading}
+        initialApprovalType={approvalMode}
+        onCancel={() => {
+          setApprovalModalOpen(false)
+          setApprovalMode('approve')
+        }}
+        onSubmit={handleApprovalSubmit}
+      />
+
+      {/* Modal chuyển trạng thái */}
+      <ExamTemplateStatusChangeModal
+        open={statusChangeModalOpen}
+        loading={statusChangeLoading}
+        currentStatus={examTemplate?.status ?? 0}
+        onCancel={() => setStatusChangeModalOpen(false)}
+        onSubmit={handleStatusChange}
+      />
+
+      {/* Modal hướng dẫn */}
+      <Modal
+        title={guideSection === 'parts' ? 'Hướng dẫn: Quản lý các phần' : 'Hướng dẫn: Thông tin cơ bản'}
+        open={guideModalOpen}
+        onCancel={() => setGuideModalOpen(false)}
+        footer={[
+          <Button key="close" onClick={() => setGuideModalOpen(false)}>
+            Đóng
+          </Button>,
+        ]}
+        width={700}
+      >
+        <div style={{ padding: '8px 0' }}>
+          {renderGuideContent()}
+        </div>
+      </Modal>
+    </div>
   )
 }
 

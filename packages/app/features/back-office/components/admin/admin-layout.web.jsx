@@ -1,8 +1,10 @@
 'use client'
 
 import React, { createContext, useContext, useMemo, useState, useEffect, useTransition } from 'react'
-import { Layout, Menu, ConfigProvider, Badge, Popover, List, Modal, theme as antdTheme } from 'antd'
-import { BellOutlined, MenuFoldOutlined, MenuUnfoldOutlined, PoweroffOutlined } from '@ant-design/icons'
+import { useLocation } from 'react-router-dom'
+import { useRouter } from 'solito/navigation'
+import { Layout, Menu, ConfigProvider, Badge, Popover, List, Modal, theme as antdTheme, Button, Avatar } from 'antd'
+import { BellOutlined, MenuFoldOutlined, MenuUnfoldOutlined, PoweroffOutlined, UserOutlined } from '@ant-design/icons'
 import { adminMenuItems } from './menu-items.jsx'
 
 const ThemeContext = createContext({
@@ -27,20 +29,53 @@ export function AdminLayout({
   onNavigate,
   children,
 }) {
+  const location = useLocation()
+  const router = useRouter()
   const [selectedKey, setSelectedKey] = useState(defaultKey)
+  const [openKeys, setOpenKeys] = useState([])
   const [collapsed, setCollapsed] = useState(false)
   const [themeMode] = useState('light')
   const [, startTransition] = useTransition()
 
-  // Sync selectedKey với defaultKey khi defaultKey thay đổi
-  useEffect(() => {
-    if (defaultKey && defaultKey !== selectedKey) {
-      setSelectedKey(defaultKey)
+  // Helper: Tìm key và parents dựa trên search params hoặc path
+  const getActiveKeys = () => {
+    const searchParams = new URLSearchParams(location.search)
+    const tab = searchParams.get('tab')
+    const pathname = location.pathname
+    
+    let key = tab || defaultKey
+    
+    // Nếu pathname là detail (VD: /admin/users/123), ánh xạ về tab tương ứng
+    if (pathname.includes('/admin/users/')) key = 'users-all'
+    if (pathname.includes('/admin/question-type/')) key = 'question-bank'
+    if (pathname.includes('/admin/vocab/')) key = 'vocabulary-words'
+    if (pathname.includes('/admin/exam-templates/')) key = 'exam-template'
+    if (pathname.includes('/admin/exams/')) key = 'exam-management'
+    if (pathname.includes('/admin/passage')) key = 'passage-management'
+    if (pathname.includes('/admin/blog/')) key = 'blog'
+    if (pathname.includes('/admin/lessons/')) key = 'lessons'
+    if (pathname.includes('/admin/vocab-topic/')) key = 'vocabulary-topics'
+
+    // Tìm parent
+    for (const item of adminMenuItems) {
+       if (item.children && item.children.some(child => child.key === key)) {
+         return { key, parents: [item.key] }
+       }
     }
-  }, [defaultKey])
+    return { key, parents: [] }
+  }
+
+  // Sync state với URL khi location thay đổi
+  useEffect(() => {
+    const { key, parents } = getActiveKeys()
+    setSelectedKey(key)
+    if (!collapsed && parents.length > 0) {
+      setOpenKeys(prev => [...new Set([...prev, ...parents])])
+    }
+  }, [location, defaultKey, collapsed])
 
   const algorithm = useMemo(
-    () => [antdTheme.defaultAlgorithm, antdTheme.compactAlgorithm],
+    () => [antdTheme.defaultAlgorithm],
     [],
   )
 
@@ -49,13 +84,15 @@ export function AdminLayout({
     [],
   )
 
-  // Size chữ toàn admin mặc định
+  // Token theme cho premium look
   const themeTokens = useMemo(
     () => ({
-      fontSize: 18,
-      fontSizeSM: 16,
-      fontSizeLG: 18,
-      fontFamily: 'Epilogue, sans-serif',
+      colorPrimary: '#1677ff',
+      borderRadius: 12,
+      fontSize: 15,
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      colorBgContainer: '#ffffff',
+      colorBgLayout: '#f7f9fc',
     }),
     [],
   )
@@ -67,21 +104,27 @@ export function AdminLayout({
         content: 'Bạn có chắc chắn muốn đăng xuất không?',
         okText: 'Đăng xuất',
         cancelText: 'Hủy',
-        okButtonProps: { danger: true },
+        okButtonProps: { danger: true, shape: 'round' },
+        cancelButtonProps: { shape: 'round' },
         onOk: onLogout,
       })
       return
     }
-    // Sử dụng startTransition để ưu tiên UI update, navigation không block
     startTransition(() => {
       setSelectedKey(key)
       if (onNavigate) {
         onNavigate(key)
+      } else {
+        // Mặc định navigate về /admin?tab=key dùng router để tránh load lại trang
+        router.push(`/admin?tab=${key}`)
       }
     })
   }
 
-  // Memoize currentScreen để tránh re-render không cần thiết
+  const handleOpenChange = (keys) => {
+    setOpenKeys(keys)
+  }
+
   const currentScreen = useMemo(() => {
     return children || screens[selectedKey] || screens[defaultKey] || null
   }, [children, screens, selectedKey, defaultKey])
@@ -95,12 +138,6 @@ export function AdminLayout({
     [],
   )
 
-  const scrollHideStyles = `
-    .sider-scroll-hidden::-webkit-scrollbar {
-      display: none;
-    }
-  `
-
   return (
     <ThemeContext.Provider
       value={{
@@ -108,150 +145,186 @@ export function AdminLayout({
         toggleTheme: () => {},
       }}
     >
-      <style>{scrollHideStyles}</style>
-      <ConfigProvider theme={{ algorithm, token: themeTokens }}>
-        <Layout style={{ minHeight: '100vh' }}>
+      <ConfigProvider 
+        theme={{ 
+          algorithm, 
+          token: themeTokens,
+          components: {
+            Layout: {
+              siderBg: '#ffffff',
+              headerBg: '#ffffff',
+              headerPadding: '0 24px',
+            },
+            Menu: {
+              itemBorderRadius: 8,
+              itemMarginInline: 8,
+              itemSelectedBg: '#e6f4ff',
+              itemSelectedColor: '#1677ff',
+            }
+          }
+        }}
+      >
+        <Layout style={{ height: '100vh', overflow: 'hidden' }}>
           <Layout.Sider
-            className="sider-scroll-hidden"
             collapsible
             collapsed={collapsed}
             trigger={null}
             onCollapse={(val) => setCollapsed(val)}
-            width={240}
+            width={260}
+            theme="light"
             style={{
-              overflow: 'auto',
-              height: '100vh',
-              position: 'sticky',
-              top: 0,
+              borderRight: '1px solid #f0f0f0',
+              zIndex: 10,
+              height: '100vh'
             }}
           >
-            <div
-              style={{
-                height: 64,
-                margin: 16,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                color: '#fff',
-                fontWeight: 700,
-                fontFamily: 'Epilogue, sans-serif',
-                letterSpacing: 0.5,
-              }}
-            >
-              <span>{collapsed ? '' : 'Admin'}</span>
-              <button
-                type="button"
-                onClick={() => setCollapsed((prev) => !prev)}
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <div
                 style={{
-                  border: 'none',
-                  background: 'transparent',
-                  color: '#fff',
-                  cursor: 'pointer',
+                  height: 64,
+                  padding: '0 24px',
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: collapsed ? 'center' : 'space-between',
+                  borderBottom: '1px solid #f0f0f0',
+                  transition: 'all 0.2s'
                 }}
               >
-                {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              </button>
-            </div>
-            <Menu
-              theme="dark"
-              mode="inline"
-              selectedKeys={[selectedKey]}
-              defaultOpenKeys={[]}
-              onClick={handleMenuClick}
-              items={menuItems}
-            />
-            <div
-              style={{
-                padding: collapsed ? '12px' : '16px',
-                borderTop: '1px solid rgba(255,255,255,0.1)',
-                background: '#001529',
-                position: 'sticky',
-                bottom: 0,
-              }}
-            >
-              <button
-                type="button"
-                onClick={() =>
-                  Modal.confirm({
-                    title: 'Xác nhận đăng xuất',
-                    content: 'Bạn có chắc chắn muốn đăng xuất không?',
-                    okText: 'Đăng xuất',
-                    cancelText: 'Hủy',
-                    okButtonProps: { danger: true },
-                    onOk: onLogout,
-                  })
-                }
+                {!collapsed && (
+                  <span style={{ 
+                    fontSize: 20, 
+                    fontWeight: 800, 
+                    color: '#1677ff',
+                    letterSpacing: '-0.5px'
+                  }}>
+                    TOKKI <span style={{ color: '#52c41a' }}>ADMIN</span>
+                  </span>
+                )}
+                <Button
+                  type="text"
+                  icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                  onClick={() => setCollapsed(!collapsed)}
+                  style={{ fontSize: '16px', width: 40, height: 40 }}
+                />
+              </div>
+              
+              <div style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
+                <Menu
+                  mode="inline"
+                  selectedKeys={[selectedKey]}
+                  openKeys={openKeys}
+                  onOpenChange={handleOpenChange}
+                  onClick={handleMenuClick}
+                  items={menuItems}
+                  style={{ borderRight: 'none' }}
+                />
+              </div>
+
+              <div
                 style={{
-                  width: '100%',
-                  border: '1px solid rgba(255,255,255,0.35)',
-                  background: 'transparent',
-                  color: '#ff7875',
-                  fontWeight: 600,
-                  borderRadius: 10,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: collapsed ? 'center' : 'flex-start',
-                  gap: collapsed ? 0 : 10,
-                  padding: collapsed ? '10px 0' : '10px 12px',
-                  cursor: 'pointer',
+                  padding: '16px',
+                  borderTop: '1px solid #f0f0f0',
+                  background: '#ffffff',
                 }}
               >
-                <PoweroffOutlined />
-                {!collapsed && <span>Đăng xuất</span>}
-              </button>
+                <Button
+                  danger
+                  type="ghost"
+                  icon={<PoweroffOutlined />}
+                  onClick={() => handleMenuClick({ key: 'logout' })}
+                  style={{
+                    width: '100%',
+                    borderRadius: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: collapsed ? 'center' : 'flex-start',
+                    fontWeight: 600,
+                    height: 44
+                  }}
+                >
+                  {!collapsed && <span>Đăng xuất</span>}
+                </Button>
+              </div>
             </div>
           </Layout.Sider>
-          <Layout>
+          
+          <Layout style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <Layout.Header
               style={{
-                background: 'transparent',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                paddingInline: 24,
-                fontFamily: 'Epilogue, sans-serif',
+                boxShadow: '0 1px 4px rgba(0,21,41,0.08)',
+                zIndex: 9,
+                height: 64
               }}
             >
-              <div style={{ fontSize: 21, fontWeight: 700 }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#262626' }}>
                 {adminMenuItems
                   .flatMap((item) => [item, ...(item.children || [])])
                   .find((item) => item.key === selectedKey)?.label || 'Dashboard'}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
                 <Popover
                   placement="bottomRight"
+                  title="Thông báo"
                   trigger="click"
                   content={
                     <List
                       size="small"
                       dataSource={notifications}
+                      style={{ width: 300 }}
                       renderItem={(item) => (
-                        <List.Item style={{ padding: '6px 0' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontWeight: 600 }}>{item.title}</span>
-                            <span style={{ fontSize: 12, color: '#888' }}>{item.time}</span>
-                          </div>
+                        <List.Item style={{ cursor: 'pointer' }}>
+                          <List.Item.Meta
+                            title={<span style={{ fontWeight: 600 }}>{item.title}</span>}
+                            description={<span style={{ fontSize: 12 }}>{item.time}</span>}
+                          />
                         </List.Item>
                       )}
                     />
                   }
                 >
-                  <Badge dot>
-                    <BellOutlined style={{ fontSize: 20, cursor: 'pointer' }} />
+                  <Badge count={3} size="small" offset={[-2, 2]}>
+                    <Button type="text" shape="circle" icon={<BellOutlined style={{ fontSize: 18 }} />} />
                   </Badge>
                 </Popover>
+
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 12, 
+                  padding: '4px 8px', 
+                  borderRadius: 32,
+                  cursor: 'pointer',
+                  border: '1px solid #f0f0f0'
+                }}>
+                  <Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: '#1677ff' }} />
+                  <span style={{ fontWeight: 600, fontSize: 13 }}>Admin</span>
+                </div>
               </div>
             </Layout.Header>
-            <Layout.Content style={{ margin: 16, height: 'calc(100vh - 96px)', overflow: 'auto' }}>
+            
+            <Layout.Content 
+              style={{ 
+                padding: '24px', 
+                height: 'calc(100vh - 64px)', 
+                backgroundColor: '#f7f9fc',
+                overflow: 'hidden' // Vô hiệu hóa scroll tổng của trang
+              }}
+            >
               <div
                 style={{
-                  background: '#fff',
-                  padding: 16,
-                  minHeight: '100%',
-                  overflow: 'visible',
-                  borderRadius: 8,
+                  background: '#ffffff',
+                  padding: '24px',
+                  borderRadius: 16,
+                  height: '100%', // Chiếm hết chiều cao Content
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                  border: '1px solid #f0f0f0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflowY: 'auto' // Cho phép scroll riêng phần content này
                 }}
               >
                 {currentScreen}

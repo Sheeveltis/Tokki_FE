@@ -13,7 +13,6 @@ export function BlogStatsTable({
   pageNumber,
   totalPages,
   onPageChange,
-  onRowClick,
 }) {
   return (
     <Card>
@@ -38,7 +37,6 @@ export function BlogStatsTable({
         columns={columns}
         dataSource={data}
         loading={loading}
-        onRowClick={onRowClick}
       />
     </Card>
   )

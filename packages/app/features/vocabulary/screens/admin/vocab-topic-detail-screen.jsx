@@ -881,40 +881,48 @@ export function FlashcardTopicDetailScreen() {
           </Card>
 
           <HelperAdmin response={apiResponse} />
-          <TopicVocabSection
-            selecting={selecting}
-            onSelectingChange={setSelecting}
-            removingKeys={removingKeys}
-            onRemovingKeysChange={setRemovingKeys}
-            availableOptions={availableOptions}
-            onSearch={handleSearchVocab}
-            onFocus={handleSelectFocus}
-            searching={searching}
-            onAdd={handleAddVocab}
-            adding={adding}
-            onRemove={handleRemoveVocab}
-            removing={removing}
-            dataSource={topicVocabData}
-            onQuickAdd={currentPortal !== 'moderator' ? () => setQuickAddModalOpen(true) : undefined}
-            onExcelUpload={currentPortal !== 'moderator' ? handleExcelFileSelect : undefined}
-            uploadingExcel={uploadingExcel}
-            fileInputRef={fileInputRef}
-            onExportExcel={currentPortal !== 'moderator' ? handleExportExcel : undefined}
-            exportingExcel={exportingExcel}
-            onOpenGuide={() => setGuideModalOpen(true)}
-            isModerator={currentPortal === 'moderator'}
-            excelImportResult={excelImportResult}
-          />
-          <TopicInfoCard
-            topic={detailTopic}
-            isAdmin={(() => {
-              const userRole = getCurrentUserRole()
-              return userRole === 'Admin'
-            })()}
-            onApprove={() => handleOpenApprovalModal('approve')}
-            onReject={() => handleOpenApprovalModal('reject')}
-            approvalLoading={approvalLoading}
-          />
+          
+          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 600 }}>
+              <TopicVocabSection
+                selecting={selecting}
+                onSelectingChange={setSelecting}
+                removingKeys={removingKeys}
+                onRemovingKeysChange={setRemovingKeys}
+                availableOptions={availableOptions}
+                onSearch={handleSearchVocab}
+                onFocus={handleSelectFocus}
+                searching={searching}
+                onAdd={handleAddVocab}
+                adding={adding}
+                onRemove={handleRemoveVocab}
+                removing={removing}
+                dataSource={topicVocabData}
+                onQuickAdd={currentPortal !== 'moderator' ? () => setQuickAddModalOpen(true) : undefined}
+                onExcelUpload={currentPortal !== 'moderator' ? handleExcelFileSelect : undefined}
+                uploadingExcel={uploadingExcel}
+                fileInputRef={fileInputRef}
+                onExportExcel={currentPortal !== 'moderator' ? handleExportExcel : undefined}
+                exportingExcel={exportingExcel}
+                onOpenGuide={() => setGuideModalOpen(true)}
+                isModerator={currentPortal === 'moderator'}
+                excelImportResult={excelImportResult}
+              />
+            </div>
+            
+            <div style={{ width: 450, flexShrink: 0, position: 'sticky', top: 0 }}>
+              <TopicInfoCard
+                topic={detailTopic}
+                isAdmin={(() => {
+                  const userRole = getCurrentUserRole()
+                  return userRole === 'Admin'
+                })()}
+                onApprove={() => handleOpenApprovalModal('approve')}
+                onReject={() => handleOpenApprovalModal('reject')}
+                approvalLoading={approvalLoading}
+              />
+            </div>
+          </div>
           <FlashcardTopicEditModal
             open={editOpen}
             loading={editLoading}
@@ -989,37 +997,7 @@ export function FlashcardTopicDetailScreen() {
     'vocabulary-topics': detailContent,
   }
 
-  // Chọn layout dựa vào cổng hiện tại
-  if (currentPortal === 'staff') {
-    return (
-      <StaffLayout
-        screens={screens}
-        defaultKey={defaultTab}
-        onNavigate={handleNavigate}
-        onLogout={() => router.push('/login')}
-      />
-    )
-  }
-
-  if (currentPortal === 'moderator') {
-    return (
-      <ModeratorLayout
-        screens={screens}
-        defaultKey={defaultTab}
-        onNavigate={handleNavigate}
-        onLogout={() => router.push('/login')}
-      />
-    )
-  }
-
-  return (
-    <AdminLayout
-      screens={screens}
-      defaultKey={defaultTab}
-      onNavigate={handleNavigate}
-      onLogout={() => router.push('/login')}
-    />
-  )
+  return detailContent
 }
 
 export default FlashcardTopicDetailScreen

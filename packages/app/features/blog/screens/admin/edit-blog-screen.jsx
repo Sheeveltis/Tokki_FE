@@ -107,20 +107,16 @@ export function EditBlogScreen() {
 
   if (loading) {
     return (
-      <Layout defaultKey="blog" onNavigate={(key) => router.push(`${portalPrefix}?tab=${key}`)}>
-        {/* Gắn form instance để tránh cảnh báo useForm chưa连接 Form */}
+      <div style={{ padding: 24, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
         <Form form={form} component={false} />
-        <div style={{ padding: 24, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-          <Spin size="large" />
-        </div>
-      </Layout>
+        <Spin size="large" />
+      </div>
     )
   }
 
   return (
-    <Layout defaultKey="blog" onNavigate={(key) => router.push(`${portalPrefix}?tab=${key}`)}>
-      <div style={{ padding: 24 }}>
-        <Card>
+    <div style={{ padding: 24 }}>
+      <Card>
           <Space orientation="vertical" size="large" style={{ width: '100%' }}>
             <Title level={3} style={{ marginBottom: 4 }}>
               Chỉnh sửa bài viết
@@ -158,7 +154,6 @@ export function EditBlogScreen() {
           data={previewData}
         />
       </div>
-    </Layout>
   )
 }
 

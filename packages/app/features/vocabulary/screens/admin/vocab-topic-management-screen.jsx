@@ -1,13 +1,12 @@
 'use client'
 
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
-import { Space, Select, Modal, InputNumber } from 'antd'
+import { Space, Select, Modal, InputNumber, Tooltip } from 'antd'
 import { EyeOutlined, EditOutlined, SwapOutlined, PlusOutlined, GlobalOutlined, ArrowLeftOutlined, CheckCircleOutlined, CloseCircleOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { useRouter } from 'solito/navigation'
 import { searchFlashcardTopics, createFlashcardTopic, approveTopic, rejectTopic, updateFlashcardTopic, uploadTopicImageToCloudinary, updateTopicOrderIndex } from '../../api/index.js'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
-import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
 import FlashcardTopicCreateModal from '../../components/admin/vocab-topic-management/vocab-topic-create-modal.jsx'
 import TopicApprovalModal from '../../components/admin/vocab-topic-detail/topic-approval-modal.jsx'
 import FlashcardTopicEditModal from '../../components/admin/vocab-topic-detail/vocab-topic-edit-modal.jsx'
@@ -25,7 +24,7 @@ const STATUS_OPTIONS = [
 
 export function FlashcardTopicManagement({ initialData = null }) {
   const router = useRouter()
-  
+
   // Xác định cổng hiện tại dựa vào URL - đọc trực tiếp mỗi lần render để đảm bảo luôn lấy giá trị mới nhất
   const getCurrentPortal = () => {
     if (typeof window === 'undefined') return 'admin'
@@ -35,15 +34,14 @@ export function FlashcardTopicManagement({ initialData = null }) {
     if (pathname === '/moderator' || pathname.startsWith('/moderator/')) return 'moderator'
     return 'admin'
   }
-  
+
   const currentPortal = getCurrentPortal()
-  
+
   // Mặc định status = 3 (Chờ phê duyệt) khi ở moderator portal
   const defaultStatus = currentPortal === 'moderator' ? 3 : 1
-  
+
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(!initialData)
-  const [drawerItem, setDrawerItem] = useState(null)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [createLoading, setCreateLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -134,10 +132,10 @@ export function FlashcardTopicManagement({ initialData = null }) {
     try {
       setCreateLoading(true)
       const newTopic = await createFlashcardTopic(values)
-      
+
       // Thêm topic mới vào danh sách
       setData((prev) => [newTopic, ...prev])
-      
+
       // Refresh pending count nếu topic mới có status = 3
       showAdminSuccess('Đã tạo chủ đề flashcard thành công')
       setCreateModalOpen(false)
@@ -323,7 +321,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
       render: (_, __, index) =>
         (pagination.current - 1) * pagination.pageSize + index + 1,
     },
-    { title: 'Tiêu đề', dataIndex: 'title', key: 'title',width: 200 },
+    { title: 'Tiêu đề', dataIndex: 'title', key: 'title', width: 200 },
     {
       title: 'Mô tả',
       dataIndex: 'subtitle',
@@ -359,72 +357,75 @@ export function FlashcardTopicManagement({ initialData = null }) {
           3: { label: 'Chờ phê duyệt', color: '#fadb14' },     // Orange
           4: { label: 'Bị từ chối phê duyệt', color: '#fa8c16' }, // Yellow
         }
-    
+
         const cfg = statusMap[Number(status)] || statusMap[0]
-    
+
         return (
           <Space size="small" align="center">
-            <div
-              title={cfg.label}
-              style={{
-                width: 14,
-                height: 14,
-                borderRadius: '50%',
-                backgroundColor: cfg.color,
-                margin: '0 auto',
-                boxShadow: '0 0 4px rgba(0,0,0,0.3)',
-                cursor: 'pointer',
-              }}
-            />
+            <Tooltip title={cfg.label} color={cfg.color} placement="top">
+              <div
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: '50%',
+                  backgroundColor: cfg.color,
+                  margin: '0 auto',
+                  boxShadow: '0 0 4px rgba(0,0,0,0.3)',
+                  cursor: 'pointer',
+                }}
+              />
+            </Tooltip>
             {status === 3 && currentPortal === 'admin' && (
               <>
-                <div
-                  onClick={(e) => handleOpenApprovalModal(record.id, 'approve', e)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    padding: '2px 4px',
-                    borderRadius: 4,
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#f6ffed'
-                    e.currentTarget.style.transform = 'scale(1.2)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent'
-                    e.currentTarget.style.transform = 'scale(1)'
-                  }}
-                  title="Phê duyệt"
-                >
-                  <CheckCircleOutlined style={{ fontSize: 16, color: '#52c41a', transition: 'color 0.2s ease' }} />
-                </div>
-    
-                <div
-                  onClick={(e) => handleOpenApprovalModal(record.id, 'reject', e)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    padding: '2px 4px',
-                    borderRadius: 4,
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#fff1f0'
-                    e.currentTarget.style.transform = 'scale(1.2)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent'
-                    e.currentTarget.style.transform = 'scale(1)'
-                  }}
-                  title="Từ chối"
-                >
-                  <CloseCircleOutlined style={{ fontSize: 16, color: '#ff4d4f', transition: 'color 0.2s ease' }} />
-                </div>
+                <Tooltip title="Phê duyệt">
+                  <div
+                    onClick={(e) => handleOpenApprovalModal(record.id, 'approve', e)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      padding: '2px 4px',
+                      borderRadius: 4,
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f6ffed'
+                      e.currentTarget.style.transform = 'scale(1.2)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                      e.currentTarget.style.transform = 'scale(1)'
+                    }}
+                  >
+                    <CheckCircleOutlined style={{ fontSize: 16, color: '#52c41a', transition: 'color 0.2s ease' }} />
+                  </div>
+                </Tooltip>
+
+                <Tooltip title="Từ chối">
+                  <div
+                    onClick={(e) => handleOpenApprovalModal(record.id, 'reject', e)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      padding: '2px 4px',
+                      borderRadius: 4,
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#fff1f0'
+                      e.currentTarget.style.transform = 'scale(1.2)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                      e.currentTarget.style.transform = 'scale(1)'
+                    }}
+                  >
+                    <CloseCircleOutlined style={{ fontSize: 16, color: '#ff4d4f', transition: 'color 0.2s ease' }} />
+                  </div>
+                </Tooltip>
               </>
             )}
           </Space>
@@ -432,112 +433,45 @@ export function FlashcardTopicManagement({ initialData = null }) {
       },
     },
     {
-      title: 'Thao tác',
+      title: 'Hành động',
       key: 'actions',
       align: 'center',
       width: 190,
       render: (_, record) => {
+        const iconStyle = { fontSize: 18, cursor: 'pointer', color: '#1890ff' }
         return (
-        <Space size="middle">
-          <div
-            onClick={(e) => handleOpenEditModal(record, e)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              borderRadius: 4,
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#fffbe6'
-              e.currentTarget.style.transform = 'scale(1.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.transform = 'scale(1)'
-            }}
-            title="Chỉnh sửa"
-          >
-            <EditOutlined style={{ fontSize: 18, color: '#faad14', transition: 'color 0.2s ease' }} />
-          </div>
-          <div
-            onClick={(e) => handleOpenOrderIndexModal(record, e)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              borderRadius: 4,
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#f9f0ff'
-              e.currentTarget.style.transform = 'scale(1.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.transform = 'scale(1)'
-            }}
-            title="Đổi vị trí"
-          >
-            <SwapOutlined style={{ fontSize: 18, color: '#722ed1', transition: 'color 0.2s ease' }} />
-          </div>
-          <div
-            onClick={(e) => {
-              e?.stopPropagation?.()
-              router.push(`${portalPrefix}/vocab-topic/${record.id}`)
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              borderRadius: 4,
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#f0f0f0'
-              e.currentTarget.style.transform = 'scale(1.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.transform = 'scale(1)'
-            }}
-            title="Xem chi tiết (Admin)"
-          >
-            <EyeOutlined style={{ fontSize: 18, color: '#1890ff', transition: 'color 0.2s ease' }} />
-          </div>
-          <div
-            onClick={(e) => {
-              e?.stopPropagation?.()
-              window.open(`/flashcard/study?topic=${record.id}`, '_blank')
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              borderRadius: 4,
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#e6f7ff'
-              e.currentTarget.style.transform = 'scale(1.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.transform = 'scale(1)'
-            }}
-            title="Xem trên web user"
-          >
-            <GlobalOutlined style={{ fontSize: 18, color: '#1890ff', transition: 'color 0.2s ease' }} />
-          </div>
-        </Space>
+          <Space size="large">
+            <Tooltip title="Chỉnh sửa">
+              <EditOutlined
+                style={iconStyle}
+                onClick={(e) => handleOpenEditModal(record, e)}
+              />
+            </Tooltip>
+            <Tooltip title="Đổi vị trí">
+              <SwapOutlined
+                style={iconStyle}
+                onClick={(e) => handleOpenOrderIndexModal(record, e)}
+              />
+            </Tooltip>
+            <Tooltip title="Xem chi tiết">
+              <EyeOutlined
+                style={iconStyle}
+                onClick={(e) => {
+                  e?.stopPropagation?.()
+                  router.push(`${portalPrefix}/vocab-topic/${record.id}`)
+                }}
+              />
+            </Tooltip>
+            <Tooltip title="Xem trên web user">
+              <GlobalOutlined
+                style={iconStyle}
+                onClick={(e) => {
+                  e?.stopPropagation?.()
+                  window.open(`/flashcard/study?topic=${record.id}`, '_blank')
+                }}
+              />
+            </Tooltip>
+          </Space>
         )
       },
     },
@@ -558,12 +492,12 @@ export function FlashcardTopicManagement({ initialData = null }) {
     },
     status === 3
       ? {
-          label: 'Trở về danh sách',
-          icon: <ArrowLeftOutlined />,
-          // style: { backgroundColor: '#1890ff', borderColor: '#1890ff' },
-          type: 'default',
-          onPress: handleBackToList,
-        }
+        label: 'Trở về danh sách',
+        icon: <ArrowLeftOutlined />,
+        // style: { backgroundColor: '#1890ff', borderColor: '#1890ff' },
+        type: 'default',
+        onPress: handleBackToList,
+      }
       : {
         label: (
           <Space>
@@ -636,12 +570,6 @@ export function FlashcardTopicManagement({ initialData = null }) {
           },
           onChange: handleTableChange,
         }}
-      />
-      <DetailDrawer
-        open={!!drawerItem && !createModalOpen}
-        onClose={() => setDrawerItem(null)}
-        title="Chi tiết chủ đề flashcard"
-        data={drawerItem || {}}
       />
       <FlashcardTopicCreateModal
         open={createModalOpen}

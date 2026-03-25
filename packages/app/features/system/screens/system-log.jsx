@@ -7,13 +7,11 @@ import { EyeOutlined, SearchOutlined } from '@ant-design/icons'
 import { ButtonV2 } from '../../../../components/buttonV2.jsx'
 import { useSystemLogsQuery } from '../../back-office/api/useAdminQueries.js'
 import ManagementTable from '../../../../components/ManagementTable.jsx'
-import DetailDrawer from '../../../../components/DetailDrawer.jsx'
 
 export function SystemLog({ initialData = null }) {
   const router = useRouter()
   const { data = initialData || [], isLoading } = useSystemLogsQuery(initialData)
   const [search, setSearch] = useState('')
-  const [drawerItem, setDrawerItem] = useState(null)
 
   const filteredData = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -82,17 +80,9 @@ export function SystemLog({ initialData = null }) {
         columns={columns}
         dataSource={filteredData}
         loading={isLoading && !initialData}
-        onRowClick={(record) => setDrawerItem(record)}
-      />
-      <DetailDrawer
-        open={!!drawerItem}
-        onClose={() => setDrawerItem(null)}
-        title="Log detail"
-        data={drawerItem || {}}
       />
     </>
   )
 }
 
-export default SystemLog
 

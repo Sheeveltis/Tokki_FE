@@ -39,14 +39,14 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
         <View style={styles.mainWrapper}>
           {/* Top Bar Navigation */}
           <View style={styles.topNavigation}>
-            <Pressable 
-              onPress={() => router.back()} 
+            <Pressable
+              onPress={() => router.back()}
               style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
             >
               <Text style={styles.backButtonArrow}>←</Text>
               <Text style={styles.backButtonText}>Quay lại</Text>
             </Pressable>
-            
+
             <View style={styles.breadcrumb}>
               <Text style={styles.breadcrumbText}>Học tập</Text>
               <Text style={styles.breadcrumbDivider}>/</Text>
@@ -100,7 +100,7 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                 {/* Bottom Action Area */}
                 <View style={styles.bottomActions}>
                   <View style={styles.actionDivider} />
-                  
+
                   {taskType === 'LearnTheory' && (
                     <View style={styles.theoryActionBox}>
                       <Text style={styles.actionPrompt}>Bạn đã nắm vững lý thuyết này chưa?</Text>
@@ -120,8 +120,8 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                           <Text style={styles.selectionLabel}>Chọn số lượng câu hỏi luyện tập:</Text>
                           <View style={styles.chipRow}>
                             {[3, 5, 10].map((num) => (
-                              <Pressable 
-                                key={num} 
+                              <Pressable
+                                key={num}
                                 onPress={() => setQuantity(num)}
                                 style={({ pressed }) => [
                                   styles.qChip,
@@ -135,7 +135,7 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                           </View>
                         </View>
                       )}
-                      
+
                       <View style={styles.mainActionRow}>
                         <RoadmapTestButton
                           title={taskType === 'WeeklyExam' ? 'Bắt đầu kiểm tra ngay' : 'Bắt đầu luyện tập ngay'}
@@ -164,7 +164,7 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
 
               {/* Next Shortcut */}
               {!!nextId && (
-                <Pressable 
+                <Pressable
                   onPress={() => router.push(`/roadmap/learning/tips/${nextId}?level=${level}&roadmap=${roadmapRaw}`)}
                   style={({ pressed }) => [styles.nextShortcut, pressed && styles.nextShortcutPressed]}
                 >
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   },
   mainWrapper: {
     width: '90%',
-    maxWidth: 900,
+    maxWidth: 1200,
     marginTop: 32,
     gap: 24,
   },

@@ -31,6 +31,7 @@ import { RoadmapLearningScreen } from '@tokki/app/features/roadmap/screens/roadm
 import { RoadmapTipsScreen } from '@tokki/app/features/roadmap/screens/roadmap-tips-screen'
 import { RoadmapPracticeScreen } from '@tokki/app/features/roadmap/screens/roadmap-practice-screen'
 import { RoadmapPracticeTestScreen } from '@tokki/app/features/roadmap/screens/roadmap-practice-test-screen'
+import { RoadmapGenerateScreen } from '@tokki/app/features/roadmap/screens/roadmap-generate-screen'
 const AlphabetDrawingScreen = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
 
 /**
@@ -470,6 +471,7 @@ export const studyRoutes = [
   { path: '/roadmap/test', element: <RoadmapTestRoute /> },
   { path: '/roadmap/test/result', element: <RoadmapTestResultScreen /> },
   { path: '/roadmap/test/result/detail', element: <RoadmapTestResultDetailScreen /> },
+  { path: '/roadmap/test/result/generate', element: <RoadmapGenerateScreen /> },
   { path: '/roadmap/learning', element: <RoadmapLearningRoute /> },
   { path: '/roadmap/learning/practice/:id', element: <RoadmapPracticeRoute /> },
   { path: '/roadmap/practice-test/:id', element: <RoadmapPracticeTestRoute /> },
