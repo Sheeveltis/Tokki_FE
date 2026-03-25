@@ -3,7 +3,6 @@ import { Spin } from 'antd'
 import { useRouter, useSearchParams } from 'solito/navigation'
 import { AdminLayout } from '../components/admin/admin-layout.web'
 import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../../provider/api/client.js'
-import { AdminLoginForm } from '../../authentication/components/admin-login/admin-login-form'
 
 // Lazy load components với React.lazy (thay thế next/dynamic)
 const LazyUserManagement = lazy(() => import('../../user/screens/admin/user-management-screen'))
@@ -231,9 +230,14 @@ export function AdminScreen() {
     )
   }
 
-  // Hiển thị login form nếu chưa đăng nhập hoặc không có quyền
+  // Chuyển hướng đến trang login nếu chưa đăng nhập hoặc không có quyền
   if (!isAuthorized) {
-    return <AdminLoginForm />
+    if (typeof window !== 'undefined') {
+      window.location.href = '/admin-login'
+    } else {
+      router.push('/admin-login')
+    }
+    return null
   }
 
   // Trả về screen tương ứng

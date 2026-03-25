@@ -8,6 +8,8 @@ export const fetchUsers = async ({
   pageNumber = 1, 
   pageSize = 10, 
   searchName = '', 
+  searchEmail = '',
+  searchPhone = '',
   status = null, 
   role = null 
 } = {}) => {
@@ -17,6 +19,8 @@ export const fetchUsers = async ({
   
   // Chỉ gắn param vào URL nếu có giá trị (tránh gửi null lên BE)
   if (searchName) query.set('SearchName', searchName)
+  if (searchEmail) query.set('SearchEmail', searchEmail)
+  if (searchPhone) query.set('SearchPhone', searchPhone)
   if (status !== null && status !== undefined && status !== '') query.set('Status', status)
   if (role !== null && role !== undefined && role !== '') query.set('Role', role)
 
@@ -29,3 +33,29 @@ export const fetchUsers = async ({
 
   return { items, total, pageNumber, pageSize }
 }
+
+/**
+ * Import danh sách người dùng từ Excel
+ */
+export const importAccount = async (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  
+  const res = await apiClient.post(ENDPOINTS.EXCEL.IMPORT_ACCOUNT, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+  return res?.data
+}
+
+/**
+ * Export toàn bộ danh sách người dùng ra file Excel
+ */
+export const exportAccount = async () => {
+  const res = await apiClient.get(ENDPOINTS.EXCEL.EXPORT_ACCOUNT, {
+    responseType: 'blob',
+    timeout: 30000, // Export file có thể lâu hơn chút
+  })
+  return res.data // Trả về Blob object
+}

@@ -3,8 +3,7 @@ import { Spin } from 'antd'
 import { useRouter, useSearchParams } from 'solito/navigation'
 import { StaffLayout } from '../components/staff/staff-layout.web'
 import { fetchRegularUsers } from '../api/staff-index'
-import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../../provider/api/client.js'
-import { AdminLoginForm } from '../../authentication/components/admin-login/admin-login-form'
+import { getAuthToken, getCurrentUserRole } from '../../../provider/api/client.js'
 // Lazy load để giảm bundle + chỉ fetch khi cần tab
 const LazyUserManagement = lazy(() => import('../../user/screens/admin/user-management-screen'))
 const LazyLessonManagement = lazy(() => import('../../examination-management/screens/admin/lesson-management-screen'))
@@ -55,11 +54,11 @@ export function StaffScreen() {
   // Kiểm tra authentication và role khi component mount
   useEffect(() => {
     let mounted = true
-    
+
     const checkAuth = () => {
       try {
         const token = getAuthToken()
-        
+
         // Kiểm tra token trước - bao gồm cả string 'null' và 'undefined'
         if (!token || token === 'null' || token === 'undefined') {
           // Chưa đăng nhập hoặc token không hợp lệ
@@ -72,7 +71,7 @@ export function StaffScreen() {
 
         // Kiểm tra role - chỉ Staff mới được truy cập
         const role = getCurrentUserRole()
-        
+
         // Nếu không có role hoặc role không phải Staff
         if (!role || role !== allowedRole) {
           // Không có quyền - redirect về dashboard tương ứng với role
@@ -80,7 +79,7 @@ export function StaffScreen() {
             setIsAuthorized(false)
             setChecking(false)
           }
-          
+
           // Nếu là Admin hoặc Moderator, redirect về dashboard của họ
           if (role === 'Admin') {
             if (typeof window !== 'undefined') {
@@ -116,7 +115,7 @@ export function StaffScreen() {
       // SSR hoặc mobile - chạy ngay
       checkAuth()
     }
-    
+
     return () => {
       mounted = false
     }
@@ -174,9 +173,9 @@ export function StaffScreen() {
             initialData={
               initialData.users
                 ? {
-                    items: initialData.users,
-                    total: initialData.users.length,
-                  }
+                  items: initialData.users,
+                  total: initialData.users.length,
+                }
                 : null
             }
           />
@@ -251,9 +250,14 @@ export function StaffScreen() {
     )
   }
 
-  // Hiển thị login form nếu chưa đăng nhập hoặc không có quyền
+  // Chuyển hướng đến trang login nếu chưa đăng nhập hoặc không có quyền
   if (!isAuthorized) {
-    return <AdminLoginForm />
+    if (typeof window !== 'undefined') {
+      window.location.href = '/admin-login'
+    } else {
+      router.push('/admin-login')
+    }
+    return null
   }
 
   // Hiển thị loading khi đang tải dữ liệu
@@ -272,31 +276,15 @@ export function StaffScreen() {
     )
   }
 
-  // Hiển thị staff panel nếu đã đăng nhập và có quyền
-  return (
-    <StaffLayout
-      screens={screens}
-      defaultKey={
-        (tab === 'vocab'
-          ? 'vocabulary-words'
-          : tab === 'vocab-topics'
-            ? 'vocabulary-topics'
-            : tab) || 'users'
-      }
-      onNavigate={handleNavigate}
-      onLogout={async () => {
-        // Xóa token khi đăng xuất
-        await clearAuthToken()
-        // Dùng window.location.href để đảm bảo redirect hoạt động
-        // Redirect về /staff để hiển thị login form
-        if (typeof window !== 'undefined') {
-          window.location.href = '/staff'
-        } else {
-          router.push('/staff')
-        }
-      }}
-    />
-  )
+  const normalizedTab = 
+    (tab === 'vocab'
+      ? 'vocabulary-words'
+      : tab === 'vocab-topics'
+        ? 'vocabulary-topics'
+        : tab) || 'users'
+
+  // Trả về screen tương ứng (Layout đã được bọc ở persistent layer trong routes)
+  return screens[normalizedTab] || screens['users']
 }
 
 export default StaffScreen

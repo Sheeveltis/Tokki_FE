@@ -1,3 +1,4 @@
-export { PronunciationRuleList } from './pronunciation-rule-list'
-export { PronunciationExampleList } from './pronunciation-example-list'
-export { PronunciationEvaluationResult } from './pronunciation-evaluation-result'
+export { default as PronunciationRuleList } from './PronunciationRuleList'
+export { default as PronunciationExampleList } from './PronunciationExampleList'
+export { default as PronunciationEvaluationResult } from './PronunciationEvaluationResult'
+export { default as PronunciationLayout } from './layout/PronunciationLayout'

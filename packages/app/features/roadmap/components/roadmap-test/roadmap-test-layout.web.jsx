@@ -197,10 +197,11 @@ const startExam = async (examId = DEFAULT_EXAM_ID, isShuffle = true) => {
   startExamOncePromise = (async () => {
     try {
       const response = await apiClient.post(url, {})
-      // API backend bọc trong { isSuccess, data: { userExamId }, ... }
-      return response?.data?.data || null // { userExamId }
+      // console.log('[API Debug] startExam response:', response?.data)
+      // backend standard: { isSuccess, data: { userExamId }, ... } or just { userExamId }
+      return response?.data?.data || response?.data || null
     } catch (error) {
-      // Nếu lỗi thì reset để lần sau có thể thử lại
+      // console.error('[API Debug] startExam error:', error)
       startExamOncePromise = null
       startExamCacheKey = null
       throw error
@@ -428,20 +429,25 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         const resolvedExamId = examId || (examKey ? await getExamIdByConfigKey(examKey) : null)
         const examIdToUse = resolvedExamId || DEFAULT_EXAM_ID
         const takeExamResult = await startExam(examIdToUse)
+        console.log('takeExamResult:', takeExamResult)
         // Handle different possible response structures:
         // - { userExamId: '...' }
         // - { data: { userExamId: '...' } }
         // - userExamId directly (string/number)
         let userExamId = null
         if (takeExamResult) {
+          // Robust checking for userExamId in various possible response structures
           if (typeof takeExamResult === 'string' || typeof takeExamResult === 'number') {
             userExamId = takeExamResult
           } else if (takeExamResult.userExamId) {
             userExamId = takeExamResult.userExamId
           } else if (takeExamResult.data?.userExamId) {
             userExamId = takeExamResult.data.userExamId
+          } else if (takeExamResult.id) {
+            userExamId = takeExamResult.id
+          } else if (takeExamResult.data?.id) {
+            userExamId = takeExamResult.data.id
           }
-
         }
         if (!isMounted || !userExamId) {
           throw new Error('No userExamId returned from take-exam')
@@ -811,8 +817,8 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
       }
 
       // 2) Chạy API grading cho các câu writing Q51, Q52, Q53, Q54 (nếu có)
-      const sectionsSnapshot = sectionsRef.current.length ? sectionsRef.current : sections
-      await gradeTopikWriting(sectionsSnapshot)
+      // const sectionsSnapshot = sectionsRef.current.length ? sectionsRef.current : sections
+      // await gradeTopikWriting(sectionsSnapshot)
 
       // 3) GET result để đảm bảo kết quả đã được tính toán
       try {
@@ -1074,7 +1080,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
                   <ArrowLeftOutlined style={styles.navButtonIcon} />
                 </RoadmapTestButton>
               ) : (
-                <View style={styles.navButtonLeft} />
+                <View style={{ flex: 1 }} />
               )}
               {currentQuestionIndex < sectionQuestions.length - 1 && (
                 <RoadmapTestButton onPress={handleNextQuestion} style={styles.navButtonRight}>

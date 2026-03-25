@@ -12,19 +12,19 @@ const getSectionLabel = (section) =>
 // Cộng thêm 7 giờ vào thời gian UTC từ backend
 const formatDateTimeUTC7 = (dateString) => {
   if (!dateString) return ''
-  
+
   try {
     // Parse date string - Date constructor tự động parse UTC nếu có 'Z' hoặc timezone offset
     const date = new Date(dateString)
     if (isNaN(date.getTime())) return String(dateString)
-    
+
     // Lấy UTC timestamp (milliseconds từ epoch UTC)
     const utcTimestamp = date.getTime()
-    
+
     // Cộng thêm 7 giờ (7 * 60 * 60 * 1000 milliseconds) để chuyển sang UTC+7
     const utc7Timestamp = utcTimestamp + (7 * 60 * 60 * 1000)
     const utc7Date = new Date(utc7Timestamp)
-    
+
     // Format: DD/MM/YYYY HH:mm:ss (sử dụng UTC methods để đảm bảo đúng UTC+7)
     const day = String(utc7Date.getUTCDate()).padStart(2, '0')
     const month = String(utc7Date.getUTCMonth() + 1).padStart(2, '0')
@@ -32,7 +32,7 @@ const formatDateTimeUTC7 = (dateString) => {
     const hours = String(utc7Date.getUTCHours()).padStart(2, '0')
     const minutes = String(utc7Date.getUTCMinutes()).padStart(2, '0')
     const seconds = String(utc7Date.getUTCSeconds()).padStart(2, '0')
-    
+
     return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`
   } catch (err) {
     console.error('Error formatting date:', err)
@@ -52,7 +52,7 @@ export function RoadmapTestResultDetailLayout({ userExamId, section, detailData,
   const allQuestions = useMemo(() => {
     const list = []
     questionGroups.forEach((group, groupIdx) => {
-      ;(group?.questions || []).forEach((q) => {
+      ; (group?.questions || []).forEach((q) => {
         list.push({
           ...q,
           groupIdx,
@@ -81,22 +81,6 @@ export function RoadmapTestResultDetailLayout({ userExamId, section, detailData,
       <Navbar />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
-          <View style={styles.backButtonContainer}>
-            <NavigationPill
-              label="Quay lại kết quả"
-              to={undefined}
-              icon={ArrowIcon}
-              onPress={() => {
-                const to = userExamId
-                  ? `/roadmap/test/result?userExamId=${encodeURIComponent(userExamId)}`
-                  : '/roadmap/test/result'
-                router.push(to)
-              }}
-              textStyle={{ fontWeight: '700' }}
-              iconStyle={{ transform: [{ scaleX: -1 }] }}
-            />
-          </View>
-
           <View style={styles.headerSection}>
             <Text style={styles.title}>Chi tiết phần {sectionLabel}</Text>
           </View>
@@ -183,9 +167,9 @@ export function RoadmapTestResultDetailLayout({ userExamId, section, detailData,
                                   <img
                                     src={sharedMediaUrl}
                                     alt="Shared media"
-                                    style={{ 
-                                      maxWidth: '100%', 
-                                      maxHeight: 250, 
+                                    style={{
+                                      maxWidth: '100%',
+                                      maxHeight: 250,
                                       borderRadius: 16,
                                       objectFit: 'contain'
                                     }}
@@ -226,36 +210,38 @@ export function RoadmapTestResultDetailLayout({ userExamId, section, detailData,
 
                               {hasOptions && (
                                 <View style={styles.optionsList}>
-                                  {(q?.options || []).map((opt) => {
-                                    const isSelected = opt?.optionId === selected
-                                    const isCorrectOpt = opt?.optionId === correct
-                                    const hasText = !!opt?.content
-                                    const hasImage = !!opt?.imageUrl
-                                    const useHalfWidth = hasImage && !hasText
+                                  {[...(q?.options || [])]
+                                    .sort((a, b) => (parseInt(a?.keyOption) || 0) - (parseInt(b?.keyOption) || 0))
+                                    .map((opt) => {
+                                      const isSelected = opt?.optionId === selected
+                                      const isCorrectOpt = opt?.optionId === correct
+                                      const hasText = !!opt?.content
+                                      const hasImage = !!opt?.imageUrl
+                                      const useHalfWidth = hasImage
 
-                                    return (
-                                      <View
-                                        key={opt?.optionId || opt?.keyOption}
-                                        style={[
-                                          styles.optionRow,
-                                          useHalfWidth && styles.optionRowHalf,
-                                          isSelected && styles.optionSelected,
-                                          isCorrectOpt && styles.optionCorrect,
-                                        ]}
-                                      >
-                                        <Text style={styles.optionKey}>{String(opt?.keyOption)}.</Text>
-                                        <View style={styles.optionContentBox}>
-                                          {hasText ? <Text style={styles.optionText}>{String(opt?.content)}</Text> : null}
-                                          {!hasText && !hasImage ? (
-                                            <Text style={styles.optionText}>(Không có nội dung)</Text>
-                                          ) : null}
-                                          {Platform.OS === 'web' && hasImage ? (
-                                            <img src={opt?.imageUrl} alt="Option" style={styles.optionImage} />
-                                          ) : null}
+                                      return (
+                                        <View
+                                          key={opt?.optionId || opt?.keyOption}
+                                          style={[
+                                            styles.optionRow,
+                                            useHalfWidth && styles.optionRowHalf,
+                                            isSelected && styles.optionSelected,
+                                            isCorrectOpt && styles.optionCorrect,
+                                          ]}
+                                        >
+                                          <Text style={styles.optionKey}>{String(opt?.keyOption)}.</Text>
+                                          <View style={styles.optionContentBox}>
+                                            {hasText ? <Text style={styles.optionText}>{String(opt?.content)}</Text> : null}
+                                            {!hasText && !hasImage ? (
+                                              <Text style={styles.optionText}>(Không có nội dung)</Text>
+                                            ) : null}
+                                            {Platform.OS === 'web' && hasImage ? (
+                                              <img src={opt?.imageUrl} alt="Option" style={styles.optionImage} />
+                                            ) : null}
+                                          </View>
                                         </View>
-                                      </View>
-                                    )
-                                  })}
+                                      )
+                                    })}
                                 </View>
                               )}
 
@@ -267,9 +253,9 @@ export function RoadmapTestResultDetailLayout({ userExamId, section, detailData,
                                       {q?.wordCount ??
                                         (q?.answerContent
                                           ? String(q.answerContent)
-                                              .trim()
-                                              .split(/\s+/)
-                                              .filter(Boolean).length
+                                            .trim()
+                                            .split(/\s+/)
+                                            .filter(Boolean).length
                                           : 0)}
                                     </Text>
                                     {!!q?.gradedAt && (
@@ -293,92 +279,92 @@ export function RoadmapTestResultDetailLayout({ userExamId, section, detailData,
                                     !!q?.aiAnalysis?.languageFeedback ||
                                     !!q?.aiAnalysis?.polishedVersion ||
                                     (Array.isArray(q?.aiAnalysis?.missingInfo) && q.aiAnalysis.missingInfo.length > 0)) && (
-                                    <View style={styles.aiBox}>
-                                      <Text style={styles.aiTitle}>
-                                        Phân tích AI (Tổng: {q?.aiAnalysis?.totalScore ?? 0})
-                                      </Text>
+                                      <View style={styles.aiBox}>
+                                        <Text style={styles.aiTitle}>
+                                          Phân tích AI (Tổng: {q?.aiAnalysis?.totalScore ?? 0})
+                                        </Text>
 
-                                      {!!q?.aiAnalysis?.overallFeedback && (
-                                        <View style={styles.aiSection}>
-                                          <Text style={styles.aiSectionTitle}>Nhận xét tổng quan</Text>
-                                          <Text style={styles.aiFeedback}>{String(q.aiAnalysis.overallFeedback)}</Text>
-                                        </View>
-                                      )}
-
-                                      {!!q?.aiAnalysis?.contentFeedback && (
-                                        <View style={styles.aiSection}>
-                                          <Text style={styles.aiSectionTitle}>
-                                            Nội dung ({q?.aiAnalysis?.contentScore ?? 0} điểm)
-                                          </Text>
-                                          <Text style={styles.aiFeedback}>{String(q.aiAnalysis.contentFeedback)}</Text>
-                                        </View>
-                                      )}
-
-                                      {!!q?.aiAnalysis?.organizationFeedback && (
-                                        <View style={styles.aiSection}>
-                                          <Text style={styles.aiSectionTitle}>
-                                            Bố cục ({q?.aiAnalysis?.organizationScore ?? 0} điểm)
-                                          </Text>
-                                          <Text style={styles.aiFeedback}>{String(q.aiAnalysis.organizationFeedback)}</Text>
-                                        </View>
-                                      )}
-
-                                      {!!q?.aiAnalysis?.languageFeedback && (
-                                        <View style={styles.aiSection}>
-                                          <Text style={styles.aiSectionTitle}>
-                                            Ngôn ngữ ({q?.aiAnalysis?.languageScore ?? 0} điểm)
-                                          </Text>
-                                          <Text style={styles.aiFeedback}>{String(q.aiAnalysis.languageFeedback)}</Text>
-                                        </View>
-                                      )}
-
-                                      {Array.isArray(q?.aiAnalysis?.missingInfo) && q.aiAnalysis.missingInfo.length > 0 && (
-                                        <View style={styles.aiSection}>
-                                          <Text style={styles.aiSectionTitle}>Thông tin còn thiếu</Text>
-                                          <View style={styles.aiSuggestions}>
-                                            {q.aiAnalysis.missingInfo.map((item, idx) => (
-                                              <Text key={`${idx}`} style={styles.aiSuggestionText}>
-                                                - {String(item)}
-                                              </Text>
-                                            ))}
+                                        {!!q?.aiAnalysis?.overallFeedback && (
+                                          <View style={styles.aiSection}>
+                                            <Text style={styles.aiSectionTitle}>Nhận xét tổng quan</Text>
+                                            <Text style={styles.aiFeedback}>{String(q.aiAnalysis.overallFeedback)}</Text>
                                           </View>
-                                        </View>
-                                      )}
+                                        )}
 
-                                      {!!q?.aiAnalysis?.polishedVersion && (
-                                        <View style={styles.aiSection}>
-                                          <Text style={styles.aiSectionTitle}>Bài mẫu gợi ý</Text>
-                                          <Text style={styles.aiFeedback}>{String(q.aiAnalysis.polishedVersion)}</Text>
-                                        </View>
-                                      )}
+                                        {!!q?.aiAnalysis?.contentFeedback && (
+                                          <View style={styles.aiSection}>
+                                            <Text style={styles.aiSectionTitle}>
+                                              Nội dung ({q?.aiAnalysis?.contentScore ?? 0} điểm)
+                                            </Text>
+                                            <Text style={styles.aiFeedback}>{String(q.aiAnalysis.contentFeedback)}</Text>
+                                          </View>
+                                        )}
 
-                                      {!!q?.aiAnalysis?.results?.length && (
-                                        <View style={styles.aiSection}>
-                                          <Text style={styles.aiSectionTitle}>Chi tiết từng ô trống</Text>
-                                          <View style={styles.aiList}>
-                                            {q.aiAnalysis.results.map((r, idx) => (
-                                              <View key={`${r?.blank_id || idx}`} style={styles.aiItem}>
-                                                <Text style={styles.aiItemTitle}>
-                                                  {String(r?.blank_id || `Mục ${idx + 1}`)} • Điểm: {r?.score ?? 0} •{' '}
-                                                  {String(r?.evaluation || '')}
+                                        {!!q?.aiAnalysis?.organizationFeedback && (
+                                          <View style={styles.aiSection}>
+                                            <Text style={styles.aiSectionTitle}>
+                                              Bố cục ({q?.aiAnalysis?.organizationScore ?? 0} điểm)
+                                            </Text>
+                                            <Text style={styles.aiFeedback}>{String(q.aiAnalysis.organizationFeedback)}</Text>
+                                          </View>
+                                        )}
+
+                                        {!!q?.aiAnalysis?.languageFeedback && (
+                                          <View style={styles.aiSection}>
+                                            <Text style={styles.aiSectionTitle}>
+                                              Ngôn ngữ ({q?.aiAnalysis?.languageScore ?? 0} điểm)
+                                            </Text>
+                                            <Text style={styles.aiFeedback}>{String(q.aiAnalysis.languageFeedback)}</Text>
+                                          </View>
+                                        )}
+
+                                        {Array.isArray(q?.aiAnalysis?.missingInfo) && q.aiAnalysis.missingInfo.length > 0 && (
+                                          <View style={styles.aiSection}>
+                                            <Text style={styles.aiSectionTitle}>Thông tin còn thiếu</Text>
+                                            <View style={styles.aiSuggestions}>
+                                              {q.aiAnalysis.missingInfo.map((item, idx) => (
+                                                <Text key={`${idx}`} style={styles.aiSuggestionText}>
+                                                  - {String(item)}
                                                 </Text>
-                                                {!!r?.feedback && <Text style={styles.aiFeedback}>{String(r.feedback)}</Text>}
-                                                {Array.isArray(r?.suggestions) && r.suggestions.length > 0 && (
-                                                  <View style={styles.aiSuggestions}>
-                                                    {r.suggestions.map((s, sIdx) => (
-                                                      <Text key={`${sIdx}`} style={styles.aiSuggestionText}>
-                                                        - {String(s)}
-                                                      </Text>
-                                                    ))}
-                                                  </View>
-                                                )}
-                                              </View>
-                                            ))}
+                                              ))}
+                                            </View>
                                           </View>
-                                        </View>
-                                      )}
-                                    </View>
-                                  )}
+                                        )}
+
+                                        {!!q?.aiAnalysis?.polishedVersion && (
+                                          <View style={styles.aiSection}>
+                                            <Text style={styles.aiSectionTitle}>Bài mẫu gợi ý</Text>
+                                            <Text style={styles.aiFeedback}>{String(q.aiAnalysis.polishedVersion)}</Text>
+                                          </View>
+                                        )}
+
+                                        {!!q?.aiAnalysis?.results?.length && (
+                                          <View style={styles.aiSection}>
+                                            <Text style={styles.aiSectionTitle}>Chi tiết từng ô trống</Text>
+                                            <View style={styles.aiList}>
+                                              {q.aiAnalysis.results.map((r, idx) => (
+                                                <View key={`${r?.blank_id || idx}`} style={styles.aiItem}>
+                                                  <Text style={styles.aiItemTitle}>
+                                                    {String(r?.blank_id || `Mục ${idx + 1}`)} • Điểm: {r?.score ?? 0} •{' '}
+                                                    {String(r?.evaluation || '')}
+                                                  </Text>
+                                                  {!!r?.feedback && <Text style={styles.aiFeedback}>{String(r.feedback)}</Text>}
+                                                  {Array.isArray(r?.suggestions) && r.suggestions.length > 0 && (
+                                                    <View style={styles.aiSuggestions}>
+                                                      {r.suggestions.map((s, sIdx) => (
+                                                        <Text key={`${sIdx}`} style={styles.aiSuggestionText}>
+                                                          - {String(s)}
+                                                        </Text>
+                                                      ))}
+                                                    </View>
+                                                  )}
+                                                </View>
+                                              ))}
+                                            </View>
+                                          </View>
+                                        )}
+                                      </View>
+                                    )}
                                 </View>
                               )}
                             </View>
@@ -505,11 +491,11 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#FFFFFF',
     ...(Platform.OS === 'web' && {
       transition: 'all 0.2s ease',
     }),
@@ -517,9 +503,6 @@ const styles = StyleSheet.create({
   questionChipActive: {
     backgroundColor: '#1A1A1A',
     borderColor: '#1A1A1A',
-    ...(Platform.OS === 'web' && {
-      boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-    }),
   },
   questionChipCorrect: {
     borderColor: '#10B981',
@@ -531,8 +514,8 @@ const styles = StyleSheet.create({
   },
   questionChipText: {
     fontSize: 14,
-    fontWeight: '800',
-    color: '#999',
+    fontWeight: '700',
+    color: '#6B7280',
   },
   questionChipTextActive: {
     color: '#FFFFFF',
@@ -636,6 +619,7 @@ const styles = StyleSheet.create({
   },
   optionRowHalf: {
     width: 'calc(50% - 6px)',
+    minWidth: 280,
   },
   optionSelected: {
     borderColor: '#EF4444',

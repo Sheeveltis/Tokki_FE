@@ -7,7 +7,6 @@ import { useRouter } from 'solito/navigation'
 import { searchFlashcardTopics, createFlashcardTopic, approveTopic, rejectTopic, updateFlashcardTopic, uploadTopicImageToCloudinary, updateTopicOrderIndex } from '../../api/index.js'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
-import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
 import FlashcardTopicCreateModal from '../../components/admin/vocab-topic-management/vocab-topic-create-modal.jsx'
 import TopicApprovalModal from '../../components/admin/vocab-topic-detail/topic-approval-modal.jsx'
 import FlashcardTopicEditModal from '../../components/admin/vocab-topic-detail/vocab-topic-edit-modal.jsx'
@@ -25,7 +24,7 @@ const STATUS_OPTIONS = [
 
 export function FlashcardTopicManagement({ initialData = null }) {
   const router = useRouter()
-  
+
   // Xác định cổng hiện tại dựa vào URL - đọc trực tiếp mỗi lần render để đảm bảo luôn lấy giá trị mới nhất
   const getCurrentPortal = () => {
     if (typeof window === 'undefined') return 'admin'
@@ -35,15 +34,14 @@ export function FlashcardTopicManagement({ initialData = null }) {
     if (pathname === '/moderator' || pathname.startsWith('/moderator/')) return 'moderator'
     return 'admin'
   }
-  
+
   const currentPortal = getCurrentPortal()
-  
+
   // Mặc định status = 3 (Chờ phê duyệt) khi ở moderator portal
   const defaultStatus = currentPortal === 'moderator' ? 3 : 1
-  
+
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(!initialData)
-  const [drawerItem, setDrawerItem] = useState(null)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [createLoading, setCreateLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -134,10 +132,10 @@ export function FlashcardTopicManagement({ initialData = null }) {
     try {
       setCreateLoading(true)
       const newTopic = await createFlashcardTopic(values)
-      
+
       // Thêm topic mới vào danh sách
       setData((prev) => [newTopic, ...prev])
-      
+
       // Refresh pending count nếu topic mới có status = 3
       showAdminSuccess('Đã tạo chủ đề flashcard thành công')
       setCreateModalOpen(false)
@@ -323,7 +321,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
       render: (_, __, index) =>
         (pagination.current - 1) * pagination.pageSize + index + 1,
     },
-    { title: 'Tiêu đề', dataIndex: 'title', key: 'title',width: 200 },
+    { title: 'Tiêu đề', dataIndex: 'title', key: 'title', width: 200 },
     {
       title: 'Mô tả',
       dataIndex: 'subtitle',
@@ -359,9 +357,9 @@ export function FlashcardTopicManagement({ initialData = null }) {
           3: { label: 'Chờ phê duyệt', color: '#fadb14' },     // Orange
           4: { label: 'Bị từ chối phê duyệt', color: '#fa8c16' }, // Yellow
         }
-    
+
         const cfg = statusMap[Number(status)] || statusMap[0]
-    
+
         return (
           <Space size="small" align="center">
             <Tooltip title={cfg.label} color={cfg.color} placement="top">
@@ -403,7 +401,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
                     <CheckCircleOutlined style={{ fontSize: 16, color: '#52c41a', transition: 'color 0.2s ease' }} />
                   </div>
                 </Tooltip>
-    
+
                 <Tooltip title="Từ chối">
                   <div
                     onClick={(e) => handleOpenApprovalModal(record.id, 'reject', e)}
@@ -435,7 +433,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
       },
     },
     {
-      title: 'Thao tác',
+      title: 'Hành động',
       key: 'actions',
       align: 'center',
       width: 190,
@@ -494,12 +492,12 @@ export function FlashcardTopicManagement({ initialData = null }) {
     },
     status === 3
       ? {
-          label: 'Trở về danh sách',
-          icon: <ArrowLeftOutlined />,
-          // style: { backgroundColor: '#1890ff', borderColor: '#1890ff' },
-          type: 'default',
-          onPress: handleBackToList,
-        }
+        label: 'Trở về danh sách',
+        icon: <ArrowLeftOutlined />,
+        // style: { backgroundColor: '#1890ff', borderColor: '#1890ff' },
+        type: 'default',
+        onPress: handleBackToList,
+      }
       : {
         label: (
           <Space>
@@ -572,12 +570,6 @@ export function FlashcardTopicManagement({ initialData = null }) {
           },
           onChange: handleTableChange,
         }}
-      />
-      <DetailDrawer
-        open={!!drawerItem && !createModalOpen}
-        onClose={() => setDrawerItem(null)}
-        title="Chi tiết chủ đề flashcard"
-        data={drawerItem || {}}
       />
       <FlashcardTopicCreateModal
         open={createModalOpen}

@@ -3,7 +3,7 @@ import { Spin } from 'antd'
 import { useRouter, useSearchParams } from 'solito/navigation'
 import { ModeratorLayout } from './components/moderator-layout.web'
 import { clearAuthToken, getAuthToken, getCurrentUserRole } from '../../provider/api/client.js'
-import { AdminLoginForm } from '../authentication/components/admin-login/admin-login-form'
+
 
 // Lazy load các màn duyệt, tái sử dụng từ admin / vocabulary / blog
 const LazyBlogManagement = lazy(() => import('../blog/screens/admin/blog-management-screen'))
@@ -30,7 +30,7 @@ export function ModeratorScreen() {
     const checkAuth = () => {
       try {
         const token = getAuthToken()
-        
+
         if (!token) {
           // Chưa đăng nhập
           setIsAuthorized(false)
@@ -40,12 +40,12 @@ export function ModeratorScreen() {
 
         // Kiểm tra role - chỉ Moderator mới được truy cập
         const role = getCurrentUserRole()
-        
+
         if (!role || role !== allowedRole) {
           // Không có quyền - redirect về dashboard tương ứng với role
           setIsAuthorized(false)
           setChecking(false)
-          
+
           // Nếu là Admin hoặc Staff, redirect về dashboard của họ
           if (role === 'Admin') {
             if (typeof window !== 'undefined') {
@@ -126,9 +126,14 @@ export function ModeratorScreen() {
     )
   }
 
-  // Hiển thị login form nếu chưa đăng nhập hoặc không có quyền
+  // Chuyển hướng đến trang login nếu chưa đăng nhập hoặc không có quyền
   if (!isAuthorized) {
-    return <AdminLoginForm />
+    if (typeof window !== 'undefined') {
+      window.location.href = '/admin-login'
+    } else {
+      router.push('/admin-login')
+    }
+    return null
   }
 
   // Hiển thị moderator panel nếu đã đăng nhập và có quyền
@@ -143,9 +148,9 @@ export function ModeratorScreen() {
         // Dùng window.location.href để đảm bảo redirect hoạt động
         // Redirect về /moderator để hiển thị login form
         if (typeof window !== 'undefined') {
-          window.location.href = '/moderator'
+          window.location.href = '/admin-login'
         } else {
-          router.push('/moderator')
+          router.push('/admin-login')
         }
       }}
     />

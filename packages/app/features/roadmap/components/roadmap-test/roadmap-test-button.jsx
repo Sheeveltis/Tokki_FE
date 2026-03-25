@@ -5,6 +5,7 @@ export function RoadmapTestButton({
   onPress,
   disabled = false,
   style,
+  hoverStyle,
   children,
   textStyle,
 }) {
@@ -12,11 +13,13 @@ export function RoadmapTestButton({
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      style={({ pressed }) => [
+      style={({ pressed, hovered }) => [
         styles.button,
+        hovered && styles.buttonHovered,
         pressed && styles.buttonPressed,
         disabled && styles.buttonDisabled,
         style,
+        hovered && hoverStyle,
       ]}
     >
       {children ? (

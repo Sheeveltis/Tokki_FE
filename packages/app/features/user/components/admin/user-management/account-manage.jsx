@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Select, Space, message, Tooltip } from 'antd'
-import { EyeOutlined, DownloadOutlined, UploadOutlined, FilterOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { Select, Space, message, Tooltip, Input } from 'antd'
+import { EyeOutlined, DownloadOutlined, UploadOutlined, FilterOutlined, PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
 
-import { fetchUsers } from '../../../api/user-management.js'
+import { fetchUsers, importAccount, exportAccount } from '../../../api/user-management.js'
 import AccountDetails from './account-details'
 import DeleteUserConfirm from '../user-detail/DeleteUserConfirm'
 import UserEditModal from './user-edit-modal'
+import { Modal, Table, Badge, Avatar, Button as AntButton } from 'antd'
+import { useRef } from 'react'
 
 import ManagementLayout from '../../../../../../components/layout/management-layout'
 
@@ -42,7 +44,18 @@ export default function AccountManage({ basePath = '/admin' }) {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [userToDelete, setUserToDelete] = useState(null)
 
-  const [filters, setFilters] = useState({ search: '', status: null, role: null, page: 1, size: 20 })
+  const [filters, setFilters] = useState({
+    search: '',
+    searchEmail: '',
+    searchPhone: '',
+    status: null,
+    role: null,
+    page: 1,
+    size: 20
+  })
+  const [importResult, setImportResult] = useState(null)
+  const [importing, setImporting] = useState(false)
+  const fileInputRef = useRef(null)
 
   const loadData = async (currentFilters) => {
     setLoading(true)
@@ -51,6 +64,8 @@ export default function AccountManage({ basePath = '/admin' }) {
         pageNumber: currentFilters.page,
         pageSize: currentFilters.size,
         searchName: currentFilters.search,
+        searchEmail: currentFilters.searchEmail,
+        searchPhone: currentFilters.searchPhone,
         status: currentFilters.status,
         role: currentFilters.role
       })
@@ -64,7 +79,7 @@ export default function AccountManage({ basePath = '/admin' }) {
 
   useEffect(() => {
     loadData(filters)
-  }, [filters.page, filters.size, filters.status, filters.role])
+  }, [filters.page, filters.size, filters.status, filters.role, filters.search, filters.searchEmail, filters.searchPhone])
 
   // Hàm xử lý khi LỌC (Search, Status, Role) -> Luôn về trang 1
   const handleFilterChange = (key, value) => {
@@ -86,6 +101,60 @@ export default function AccountManage({ basePath = '/admin' }) {
   }
 
   // ==========================================
+  // EXCEL HANDLERS
+  // ==========================================
+  const handleExport = async () => {
+    const hide = message.loading('Đang chuẩn bị file Excel...', 0)
+    try {
+      const blob = await exportAccount()
+      const url = window.URL.createObjectURL(new Blob([blob]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `Danh_sach_nguoi_dung_${new Date().toLocaleDateString()}.xlsx`)
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode.removeChild(link)
+      message.success('Xuất file thành công!')
+    } catch (error) {
+      console.error('Export error:', error)
+      message.error('Lỗi khi xuất file Excel')
+    } finally {
+      hide()
+    }
+  }
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Reset input
+    e.target.value = ''
+
+    setImporting(true)
+    const hide = message.loading('Đang xử lý file...', 0)
+    try {
+      const res = await importAccount(file)
+      if (res?.isSuccess) {
+        setImportResult(res.data)
+        message.success(res.message || 'Import hoàn tất')
+        loadData(filters)
+      } else {
+        message.error(res?.message || 'Import thất bại')
+      }
+    } catch (error) {
+      console.error('Import error:', error)
+      message.error('Lỗi hệ thống khi import file')
+    } finally {
+      setImporting(false)
+      hide()
+    }
+  }
+
+  // ==========================================
   // 3. UI CONFIGS
   // ==========================================
   const columns = [
@@ -100,6 +169,20 @@ export default function AccountManage({ basePath = '/admin' }) {
       align: 'center',
       width: 60,
       render: (_, __, index) => (filters.page - 1) * filters.size + index + 1
+    },
+    {
+      title: 'Avatar',
+      key: 'avatar',
+      align: 'center',
+      width: 80,
+      render: (_, record) => (
+        <Avatar
+          src={record.avatarUrl || undefined}
+          style={{ backgroundColor: record.avatarUrl ? 'transparent' : '#1890ff', border: '1px solid #f0f0f0' }}
+        >
+          {!record.avatarUrl && (record.fullName?.[0]?.toUpperCase() || record.name?.[0]?.toUpperCase() || 'U')}
+        </Avatar>
+      )
     },
     {
       title: () => (
@@ -191,22 +274,51 @@ export default function AccountManage({ basePath = '/admin' }) {
   ]
 
   const actions = [
-    { label: 'Import', icon: <UploadOutlined />, type: 'dashed', onPress: () => message.info('Tính năng Import sắp ra mắt') },
-    { label: 'Export', icon: <DownloadOutlined />, type: 'dashed', onPress: () => message.success('Đang tải file Excel...') },
+    {
+      label: 'Import',
+      icon: <UploadOutlined />,
+      type: 'dashed',
+      onPress: handleImportClick,
+      loading: importing
+    },
+    {
+      label: 'Export',
+      icon: <DownloadOutlined />,
+      type: 'dashed',
+      onPress: handleExport
+    },
     { label: 'Thêm mới', icon: <PlusOutlined />, type: 'primary', onPress: () => router.push(`${basePath}/users/create-admin-staff`) }
   ]
 
   const extraFilters = (
     <Space wrap>
+      <Input
+        allowClear
+        prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+        placeholder="Tìm theo email..."
+        style={{ width: 220, height: 32, borderRadius: 16, fontSize: 13 }}
+        value={filters.searchEmail}
+        onChange={e => setFilters(prev => ({ ...prev, searchEmail: e.target.value }))}
+        onPressEnter={() => handleFilterChange('searchEmail', filters.searchEmail)}
+      />
+      <Input
+        allowClear
+        prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+        placeholder="Tìm theo SĐT..."
+        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
+        value={filters.searchPhone}
+        onChange={e => setFilters(prev => ({ ...prev, searchPhone: e.target.value }))}
+        onPressEnter={() => handleFilterChange('searchPhone', filters.searchPhone)}
+      />
       <Select
         allowClear placeholder="Lọc trạng thái" suffixIcon={<FilterOutlined />}
-        style={{ width: 150 }} value={filters.status}
+        style={{ width: 140, height: 32, borderRadius: 16, fontSize: 13 }} value={filters.status}
         onChange={val => handleFilterChange('status', val)}
         options={Object.entries(STATUS_CONFIG).map(([val, cfg]) => ({ value: Number(val), label: cfg.label }))}
       />
       <Select
         allowClear placeholder="Lọc vai trò" suffixIcon={<FilterOutlined />}
-        style={{ width: 150 }} value={filters.role}
+        style={{ width: 140, height: 32, borderRadius: 16, fontSize: 13 }} value={filters.role}
         onChange={val => handleFilterChange('role', val)}
         options={ROLE_OPTIONS}
       />
@@ -220,7 +332,7 @@ export default function AccountManage({ basePath = '/admin' }) {
         userId={selectedUserId}
         onBack={() => {
           setSelectedUserId(null)
-        }} 
+        }}
         initialEdit={false}
         onAfterChange={() => {
           loadData(filters); // Chỉ load lại data ngầm để cập nhật dữ liệu mới nhất
@@ -273,6 +385,66 @@ export default function AccountManage({ basePath = '/admin' }) {
         }}
         onCancel={() => setEditUserId(null)}
       />
+
+      {/* Hidden File Input for Import */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        accept=".xlsx, .xls"
+        onChange={handleFileChange}
+      />
+
+      {/* Import Result Modal */}
+      <Modal
+        title={<span style={{ fontWeight: 700, fontSize: 18 }}>Kết quả Import Excel</span>}
+        open={!!importResult}
+        onOk={() => setImportResult(null)}
+        onCancel={() => setImportResult(null)}
+        width={800}
+        footer={[
+          <AntButton key="close" type="primary" onClick={() => setImportResult(null)}>
+            Đóng
+          </AntButton>
+        ]}
+      >
+        {importResult && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', gap: 24 }}>
+              <Badge count={importResult.successList?.length || 0} showZero color="#52c41a">
+                <span style={{ marginRight: 8, fontWeight: 500 }}>Thành công</span>
+              </Badge>
+              <Badge count={importResult.failureList?.length || 0} showZero color="#f5222d">
+                <span style={{ marginRight: 8, fontWeight: 500 }}>Thất bại</span>
+              </Badge>
+            </div>
+
+            {importResult.failureList?.length > 0 && (
+              <>
+                <div style={{ fontWeight: 600, color: '#f5222d', marginTop: 8 }}>
+                  Danh sách lỗi chi tiết:
+                </div>
+                <Table
+                  dataSource={importResult.failureList}
+                  rowKey={(record, index) => index}
+                  pagination={{ pageSize: 5 }}
+                  size="small"
+                  columns={[
+                    { title: 'Email', dataIndex: 'email', key: 'email', width: 200 },
+                    { title: 'Họ tên', dataIndex: 'fullName', key: 'fullName', width: 200 },
+                    {
+                      title: 'Lý do lỗi',
+                      dataIndex: 'reason',
+                      key: 'reason',
+                      render: (text) => <span style={{ color: '#ff4d4f' }}>{text}</span>
+                    },
+                  ]}
+                />
+              </>
+            )}
+          </div>
+        )}
+      </Modal>
     </>
   )
 }

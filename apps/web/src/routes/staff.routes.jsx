@@ -17,6 +17,7 @@ import { QuestionTypeManagement } from '@tokki/app/features/examination-manageme
 import { Outlet } from 'react-router-dom'
 import { StaffLayout } from '@tokki/app/features/back-office/components/staff/staff-layout.web'
 import { useRouter } from 'solito/navigation'
+import { clearAuthToken } from '@tokki/app/provider/api/client'
 
 /**
  * Staff Routes - Persistence Wrapper
@@ -25,7 +26,10 @@ function StaffLayoutWrapper() {
   const router = useRouter()
   return (
     <StaffLayout 
-      onLogout={() => router.push('/login')}
+      onLogout={async () => {
+        await clearAuthToken()
+        router.push('/admin-login')
+      }}
       onNavigate={(key) => router.push(`/staff?tab=${key}`)}
     >
       <Outlet />

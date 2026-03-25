@@ -7,7 +7,6 @@ import { EyeOutlined, SearchOutlined } from '@ant-design/icons'
 import { statusUser } from '../../../../string.js'
 import { fetchRegularUsers } from '../../../back-office/api/staff-index.js'
 import ManagementTable from '../../../../../components/ManagementTable.jsx'
-import DetailDrawer from '../../../../../components/DetailDrawer.jsx'
 import { message } from 'antd'
 import { handleApiError } from '../../../back-office/api/staff-index.js'
 
@@ -18,7 +17,6 @@ export function UserManagement({ initialData = null }) {
   const router = useRouter()
   const [data, setData] = useState(initialData || [])
   const [loading, setLoading] = useState(!initialData)
-  const [drawerItem, setDrawerItem] = useState(null)
   const [search, setSearch] = useState('')
 
   useEffect(() => {
@@ -125,17 +123,9 @@ export function UserManagement({ initialData = null }) {
         columns={columns}
         dataSource={filteredData}
         loading={loading}
-        onRowClick={(record) => setDrawerItem(record)}
-      />
-      <DetailDrawer
-        open={!!drawerItem}
-        onClose={() => setDrawerItem(null)}
-        title="Chi tiết người dùng"
-        data={drawerItem || {}}
       />
     </>
   )
 }
 
-export default UserManagement
 

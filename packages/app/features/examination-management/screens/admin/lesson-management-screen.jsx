@@ -6,12 +6,10 @@ import { Input, Space, Button } from 'antd'
 import { EyeOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons'
 import { useLessonsQuery } from '../../../back-office/api/useAdminQueries.js'
 import ManagementTable from '../../../../../components/ManagementTable'
-import DetailDrawer from '../../../../../components/DetailDrawer'
 
 export function LessonManagement({ initialData = null }) {
   const router = useRouter()
   const { data = initialData || [], isLoading } = useLessonsQuery(initialData)
-  const [drawerItem, setDrawerItem] = useState(null)
   const [search, setSearch] = useState('')
 
   // Xác định cổng hiện tại dựa vào URL
@@ -103,17 +101,9 @@ export function LessonManagement({ initialData = null }) {
         columns={columns}
         dataSource={filteredData}
         loading={isLoading && !initialData}
-        onRowClick={(record) => setDrawerItem(record)}
-      />
-      <DetailDrawer
-        open={!!drawerItem}
-        onClose={() => setDrawerItem(null)}
-        title="Chi tiết bài học"
-        data={drawerItem || {}}
       />
     </>
   )
 }
 
-export default LessonManagement
 

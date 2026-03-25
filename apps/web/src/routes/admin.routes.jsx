@@ -24,6 +24,7 @@ import { CreateVocabularyScreen } from '@tokki/app/features/vocabulary/screens/a
 import { Outlet } from 'react-router-dom'
 import { AdminLayout } from '@tokki/app/features/back-office/components/admin/admin-layout.web'
 import { useRouter } from 'solito/navigation'
+import { clearAuthToken } from '@tokki/app/provider/api/client'
 
 /**
  * Admin Routes - Persistence Wrapper
@@ -32,7 +33,10 @@ function AdminLayoutWrapper() {
   const router = useRouter()
   return (
     <AdminLayout 
-      onLogout={() => router.push('/login')}
+      onLogout={async () => {
+        await clearAuthToken()
+        router.push('/admin-login')
+      }}
       onNavigate={(key) => router.push(`/admin?tab=${key}`)}
     >
       <Outlet />

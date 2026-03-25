@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
-import { Input, Space, Button, Card, Typography } from 'antd'
-import { SearchOutlined } from '@ant-design/icons'
-import ManagementTable from '../ManagementTable.jsx' 
+import { Input, Space, Button, Card, Typography, Pagination, Segmented, List, Empty, Tooltip } from 'antd'
+import { SearchOutlined, TableOutlined, AppstoreOutlined } from '@ant-design/icons'
+import ManagementTable from '../ManagementTable.jsx'
 
 const { Text } = Typography
 
@@ -17,13 +17,14 @@ const ActionGroup = ({ actions = [] }) => {
             key={action.key || index}
             onClick={action.onPress}
             icon={action.icon}
+            loading={action.loading}
             type={action.type || 'primary'}
-            style={{ 
-              borderRadius: 8,
+            style={{
+              borderRadius: 20,
               height: 40,
               padding: '0 20px',
               fontWeight: 600,
-              ...action.style 
+              ...action.style
             }}
           >
             {action.label}
@@ -42,11 +43,12 @@ const SearchBar = ({ placeholder, value, onChange, onSearch }) => {
       size="large"
       prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
       placeholder={placeholder || 'Tìm kiếm...'}
-      style={{ 
-        maxWidth: 400, 
-        minWidth: 300,
-        borderRadius: 8,
-        height: 40
+      style={{
+        maxWidth: 300,
+        minWidth: 200,
+        borderRadius: 16,
+        height: 32,
+        fontSize: 13
       }}
       value={value}
       onChange={(e) => onChange?.(e.target.value)}
@@ -67,17 +69,22 @@ export default function ManagementLayout({
   actions = [],
   tableProps,
   children,
-  title
+  title,
+  renderCard // Thêm prop renderCard để hiển thị dạng card
 }) {
   const tableWrapperRef = useRef(null)
-  const [tableScrollY, setTableScrollY] = useState(400) 
+  const [tableScrollY, setTableScrollY] = useState(400)
+  const [viewMode, setViewMode] = useState('table') // 'table' hoặc 'card'
+
+  // Tách pagination ra để hiển thị riêng bên dưới bảng
+  const paginationProps = tableProps?.pagination
 
   useEffect(() => {
     const calculateTableHeight = () => {
       if (tableWrapperRef.current) {
         const rect = tableWrapperRef.current.getBoundingClientRect()
-        // Tính toán chiều cao khả dụng trừ đi pagination (khoảng 64px) và padding bottom
-        const availableHeight = window.innerHeight - rect.top - 100
+        // Giảm bớt khoảng trừ vì pagination đã nằm ngoài
+        const availableHeight = window.innerHeight - rect.top - 60
         setTableScrollY(availableHeight > 300 ? availableHeight : 300)
       }
     }
@@ -92,55 +99,120 @@ export default function ManagementLayout({
   }, [])
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      gap: 20, 
-      width: '100%', 
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 20,
+      width: '100%',
       height: '100%',
-      // Sử dụng flex 1 để chiếm hết không gian của card cha
+      position: 'relative',
     }}>
       {/* HEADER SECTION */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        flexWrap: 'wrap', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
         gap: 16,
         paddingBottom: 4
       }}>
         <Space size="middle" style={{ flex: 1, flexWrap: 'wrap' }}>
           {(onSearchChange || onSearchSubmit) && (
-            <SearchBar 
-              placeholder={searchPlaceholder} 
-              value={searchValue} 
-              onChange={onSearchChange} 
-              onSearch={onSearchSubmit} 
+            <SearchBar
+              placeholder={searchPlaceholder}
+              value={searchValue}
+              onChange={onSearchChange}
+              onSearch={onSearchSubmit}
             />
           )}
           {extraFilters}
+          {renderCard && (
+            <Segmented
+              options={[
+                { 
+                  value: 'table', 
+                  icon: <Tooltip title="Xem dạng bảng"><TableOutlined /></Tooltip> 
+                },
+                { 
+                  value: 'card', 
+                  icon: <Tooltip title="Xem dạng lưới"><AppstoreOutlined /></Tooltip> 
+                },
+              ]}
+              value={viewMode}
+              onChange={setViewMode}
+            />
+          )}
         </Space>
         <ActionGroup actions={actions} />
       </div>
 
       {/* TABLE SECTION */}
-      <div 
-        ref={tableWrapperRef} 
-        style={{ 
-          flex: 1, 
-          overflow: 'hidden', 
+      <div
+        ref={tableWrapperRef}
+        style={{
+          flex: 1,
+          overflowY: viewMode === 'table' ? 'hidden' : 'auto',
+          overflowX: 'hidden',
           width: '100%',
           borderRadius: 8,
-          // border: '1px solid #f0f0f0'
         }}
       >
-        <ManagementTable 
-          {...tableProps} 
-          scroll={{ ...tableProps?.scroll, x: 'max-content', y: tableScrollY }} 
-          size="middle"
-        />
+        {viewMode === 'table' ? (
+          <ManagementTable
+            {...tableProps}
+            pagination={false}
+            scroll={{ ...tableProps?.scroll, x: 'max-content', y: tableScrollY }}
+            size="middle"
+          />
+        ) : (
+          <div style={{ padding: '4px 0' }}>
+            <List
+              grid={{
+                gutter: 16,
+                xs: 1,
+                sm: 2,
+                md: 2,
+                lg: 3,
+                xl: 4,
+                xxl: 4,
+              }}
+              loading={tableProps?.loading}
+              dataSource={tableProps?.dataSource || []}
+              renderItem={(item) => (
+                <List.Item>
+                  {renderCard(item)}
+                </List.Item>
+              )}
+              locale={{
+                emptyText: <Empty description="Không có dữ liệu" />
+              }}
+            />
+          </div>
+        )}
         {children}
       </div>
+
+      {/* PAGINATION SECTION - STICKY TO BOTTOM */}
+      {paginationProps && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          padding: '12px 16px',
+          backgroundColor: '#fff',
+          borderRadius: '0 0 8px 8px',
+          borderTop: '1px solid #f0f0f0',
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 10,
+          boxShadow: '0 -2px 8px rgba(0,0,0,0.05)'
+        }}>
+          <Pagination
+            {...paginationProps}
+            onChange={paginationProps.onChange}
+          />
+        </div>
+      )}
     </div>
   )
-}
+}
