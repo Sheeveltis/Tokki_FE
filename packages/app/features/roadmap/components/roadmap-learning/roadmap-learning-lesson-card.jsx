@@ -50,19 +50,19 @@ export function RoadmapLearningLessonCard({
         <View style={styles.left}>
           <View style={[styles.iconCircle, iconCircleStyle]}>{renderIcon(icon)}</View>
           <View style={styles.texts}>
-          <View style={styles.titleRow}>
-            <Text style={styles.title} numberOfLines={2}>{title}</Text>
-            {isCompleted && (
-              <View style={styles.checkWrapper}>
-                <Text style={styles.checkIcon}>✓</Text>
-              </View>
-            )}
-          </View>
-          {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+            <View style={styles.titleRow}>
+              <Text style={styles.title} numberOfLines={2}>{title}</Text>
+              {isCompleted && (
+                <View style={styles.checkWrapper}>
+                  <Text style={styles.checkIcon}>✓</Text>
+                </View>
+              )}
+            </View>
+            {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
           </View>
         </View>
         <View style={[styles.actionButton, actionButtonStyle, styles.headerActionButton]}>
-          <Text style={styles.actionLabel}>{actionLabel}</Text>
+          <Text style={[styles.actionLabel, isCompleted && styles.completedActionLabel]}>{actionLabel}</Text>
         </View>
       </View>
     )
@@ -97,7 +97,7 @@ export function RoadmapLearningLessonCard({
         </View>
       </View>
       <View style={[styles.actionButton, actionButtonStyle]}>
-        <Text style={styles.actionLabel}>{actionLabel}</Text>
+        <Text style={[styles.actionLabel, isCompleted && styles.completedActionLabel]}>{actionLabel}</Text>
       </View>
     </Pressable>
   )
@@ -106,126 +106,136 @@ export function RoadmapLearningLessonCard({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    padding: 12,
-    borderRadius: 16,
+    padding: 16,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 10,
+    gap: 12,
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
-      transitionProperty: 'transform, box-shadow, background-color',
-      transitionDuration: '160ms',
-      transitionTimingFunction: 'ease-out',
+      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
     }),
   },
   headerContainer: {
-    minHeight: 64,
+    minHeight: 72,
   },
   containerPressed: {
-    transform: [{ scale: 0.995 }],
+    transform: [{ scale: 0.98 }],
   },
   defaultContainer: {
     borderWidth: 1,
   },
   containerHovered: {
-    backgroundColor: '#F9F9F9',
-    transform: [{ translateY: -1 }],
-    ...(Platform.OS === 'web' && { boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }),
+    backgroundColor: '#FFFFFF',
+    transform: [{ translateY: -2 }],
+    ...(Platform.OS === 'web' && { boxShadow: '0 12px 24px rgba(0,0,0,0.06)' }),
   },
   completedCard: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#C8E6C9',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#48BB78',
+    borderWidth: 1.5,
   },
   incompleteCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#EAEAEA',
+    borderColor: '#F0F0F0',
+    ...(Platform.OS === 'web' && { boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }),
   },
   completedActionButton: {
-    backgroundColor: '#C8E6C9',
+    backgroundColor: '#48BB78',
+    borderColor: '#48BB78',
   },
   incompleteActionButton: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#EEEEEE',
   },
   left: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 14,
     flex: 1,
     minWidth: 0,
   },
   iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   completedIconCircle: {
-    backgroundColor: '#66BB6A', // Lighter green for check/icon area
+    backgroundColor: '#F0FFF4',
+    borderWidth: 1.5,
+    borderColor: '#48BB78',
   },
   incompleteIconCircle: {
-    backgroundColor: '#F4A950', // Original amber for pending
+    backgroundColor: '#F8F9FA',
+    borderWidth: 1,
+    borderColor: '#EEEEEE',
   },
   iconImage: {
-    width: 22,
-    height: 22,
-  },
-  iconText: {
-    fontSize: 18,
+    width: 24,
+    height: 24,
   },
   texts: {
     flex: 1,
-    gap: 1,
+    gap: 2,
     minWidth: 0,
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     flexWrap: 'wrap',
   },
   checkWrapper: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     backgroundColor: '#4CAF50',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#FFF',
   },
   checkIcon: {
     color: '#FFF',
-    fontSize: 9,
-    fontWeight: 'bold',
-    lineHeight: 12,
+    fontSize: 10,
+    fontWeight: '900',
   },
   title: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1C1C1C',
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 22,
   },
   subtitle: {
     fontSize: 13,
-    color: '#4A4A4A',
+    color: '#777',
+    fontWeight: '500',
     fontFamily: 'Epilogue, sans-serif',
   },
   actionButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     flexShrink: 0,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   headerActionButton: {
     marginLeft: 8,
   },
   actionLabel: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#1C1C1C',
+    fontWeight: '800',
+    color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
   },
+  completedActionLabel: {
+    color: '#2F855A',
+  },
 })
+
 

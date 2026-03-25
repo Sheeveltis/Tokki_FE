@@ -63,7 +63,7 @@ const buildLessonsFromTasks = (tasks = [], hasWriting) =>
     })
     .filter(Boolean)
 
-export function RoadmapLearningDayList({ hasWriting, targetAim = 1, weeks = [], activeWeek }) {
+export function RoadmapLearningDayList({ hasWriting, targetAim = 1, weeks = [], activeWeek, initialDayIndex = null }) {
   const router = useRouter()
 
   const lessonsByDay = useMemo(() => {
@@ -79,12 +79,25 @@ export function RoadmapLearningDayList({ hasWriting, targetAim = 1, weeks = [], 
   }, [activeWeek])
 
   const dayKeys = useMemo(() => Object.keys(lessonsByDay).map(Number).sort((a, b) => a - b), [lessonsByDay])
-  const [activeDay, setActiveDay] = useState(dayKeys[0] || 1)
+  const [activeDay, setActiveDay] = useState(null)
 
+  // Khởi tạo ngày đang học hoặc ngày từ URL
   useEffect(() => {
-    if (!dayKeys.length) return
-    if (!dayKeys.includes(activeDay)) setActiveDay(dayKeys[0])
-  }, [dayKeys, activeDay])
+    if (dayKeys.length > 0 && activeDay === null) {
+      if (initialDayIndex !== null && dayKeys.includes(initialDayIndex)) {
+        setActiveDay(initialDayIndex)
+      } else {
+        setActiveDay(dayKeys[0])
+      }
+    }
+  }, [dayKeys, initialDayIndex, activeDay])
+
+  const handleDayChange = (day) => {
+    setActiveDay(day)
+    // Sync URL: giữ lại weekIndex hiện tại nếu có
+    const currentWeek = activeWeek?.weekIndex || 1
+    router.replace(`/roadmap/learning?week=${currentWeek}&day=${day}`, undefined, { shallow: true })
+  }
 
   const activeDayLessons = useMemo(() => {
     const tasks = lessonsByDay[activeDay] || []
@@ -105,7 +118,7 @@ export function RoadmapLearningDayList({ hasWriting, targetAim = 1, weeks = [], 
               return (
                 <Pressable
                   key={day}
-                  onPress={() => setActiveDay(day)}
+                  onPress={() => handleDayChange(day)}
                   style={({ pressed }) => [styles.dayPill, active && styles.dayPillActive, pressed && styles.dayPillPressed]}
                 >
                   <Text style={[styles.dayPillText, active && styles.dayPillTextActive]}>Ngày {day}</Text>
@@ -113,6 +126,7 @@ export function RoadmapLearningDayList({ hasWriting, targetAim = 1, weeks = [], 
               )
             })}
           </View>
+
 
           <View style={styles.lessonPanel}>
             <Text style={styles.lessonPanelTitle}>Nội dung học - Ngày {activeDay}</Text>
@@ -146,20 +160,20 @@ const styles = StyleSheet.create({
   wrapper: { flex: 1, minHeight: 0, gap: 10 },
   daySelector: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   dayPill: {
-    paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: '#EBCB9C', backgroundColor: '#FFF8ED',
-    ...(Platform.OS === 'web' && { transitionDuration: '140ms', transitionProperty: 'transform, background-color, border-color', transitionTimingFunction: 'ease-out', cursor: 'pointer' }),
+    paddingVertical: 8, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: '#EEE', backgroundColor: '#F8F8F8',
+    ...(Platform.OS === 'web' && { transition: 'all 0.2s', cursor: 'pointer' }),
   },
-  dayPillActive: { backgroundColor: '#FFE9CC', borderColor: '#F4A950' },
+  dayPillActive: { backgroundColor: '#F4A950', borderColor: '#F4A950' },
   dayPillPressed: { transform: [{ scale: 0.98 }] },
-  dayPillText: { fontSize: 13, fontWeight: '600', color: '#6C5531', fontFamily: 'Epilogue, sans-serif' },
-  dayPillTextActive: { color: '#5C3B13', fontWeight: '700' },
+  dayPillText: { fontSize: 13, fontWeight: '600', color: '#666', fontFamily: 'Epilogue, sans-serif' },
+  dayPillTextActive: { color: '#FFFFFF', fontWeight: '800' },
   lessonPanel: {
-    flex: 1, minHeight: 0, backgroundColor: '#FFFDF8', borderRadius: 14, borderWidth: 1, borderColor: '#F9E4BF', padding: 12, gap: 10,
+    flex: 1, minHeight: 0, backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: '#F0F0F0', padding: 20, gap: 16,
   },
-  lessonPanelTitle: { fontSize: 14, fontWeight: '700', color: '#2C2C2C', fontFamily: 'Epilogue, sans-serif' },
-  lessonColumn: { gap: 8, flexShrink: 1, minHeight: 0 },
+  lessonPanelTitle: { fontSize: 13, fontWeight: '800', color: '#D38E3F', fontFamily: 'Epilogue, sans-serif', textTransform: 'uppercase', letterSpacing: 1 },
+  lessonColumn: { gap: 10, flexShrink: 1, minHeight: 0 },
   emptyBox: {
-    flex: 1, minHeight: 0, borderRadius: 14, borderWidth: 1, borderColor: '#F1E5CC', backgroundColor: '#FFFDF8', alignItems: 'center', justifyContent: 'center',
+    flex: 1, minHeight: 0, borderRadius: 18, borderWidth: 1, borderColor: '#F0F0F0', backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center',
   },
-  emptyText: { fontSize: 14, color: '#666666', fontFamily: 'Epilogue, sans-serif' },
+  emptyText: { fontSize: 14, color: '#999', fontFamily: 'Epilogue, sans-serif' },
 })

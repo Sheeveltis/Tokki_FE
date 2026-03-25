@@ -169,16 +169,30 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
   return (
     <View style={styles.container}>
       <View style={styles.innerWrapper}>
-        {/* Header Navigation */}
+        {/* Header Navigation - Synchronized with Roadmap Dashboard */}
         <View style={styles.header}>
-          <Pressable onPress={handleExitPress} style={({ pressed }) => [styles.exitButton, pressed && styles.actionButtonPressed]}>
-            <Text style={styles.exitIcon}>×</Text>
-            <Text style={styles.exitText}>Thoát luyện tập</Text>
-          </Pressable>
+          <View style={styles.headerLeft}>
+            <Pressable onPress={handleExitPress} style={({ pressed }) => [styles.exitButton, pressed && styles.actionButtonPressed]}>
+              <Text style={styles.exitIcon}>×</Text>
+              <Text style={styles.exitText}>Thoát</Text>
+            </Pressable>
+            <View style={styles.headerDivider} />
+            <View style={styles.breadcrumb}>
+              <Text style={styles.breadcrumbText}>Học tập</Text>
+              <Text style={styles.breadcrumbDivider}>/</Text>
+              <Pressable onPress={() => router.push('/roadmap/learning')}>
+                <Text style={styles.breadcrumbText}>Lộ trình cá nhân</Text>
+              </Pressable>
+              <Text style={styles.breadcrumbDivider}>/</Text>
+              <Text style={[styles.breadcrumbText, styles.breadcrumbActive]}>
+                {currentQuestion?.options?.length > 0 ? 'Luyện tập (Trắc nghiệm)' : 'Luyện tập (Viết)'}
+              </Text>
+            </View>
+          </View>
 
           <View style={styles.progressTracker}>
             <View style={styles.progressInfo}>
-              <Text style={styles.progressLabel}>Tiến độ bài làm</Text>
+              <Text style={styles.progressLabel}>Tiến độ</Text>
               <Text style={styles.progressCounter}>
                 {questions.length > 0 ? `${currentIndex + 1}/${questions.length}` : '--/--'}
               </Text>
@@ -193,9 +207,11 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
             </View>
           </View>
 
-          <View style={styles.scoreBadge}>
-            <Text style={styles.scoreLabel}>Câu đúng</Text>
-            <Text style={styles.scoreValue}>{correctCount}</Text>
+          <View style={styles.headerRight}>
+            <View style={styles.scoreBadge}>
+              <Text style={styles.scoreLabel}>Câu đúng</Text>
+              <Text style={styles.scoreValue}>{correctCount}</Text>
+            </View>
           </View>
         </View>
 
@@ -312,8 +328,8 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
                               </View>
 
                               {isAnswered && isThisCorrect && (
-                                <View style={styles.statusBadge}>
-                                  <Text style={styles.statusBadgeText}>✓</Text>
+                                <View style={styles.ansStatusBadge}>
+                                  <Text style={styles.ansStatusBadgeText}>✓</Text>
                                 </View>
                               )}
                             </Pressable>
@@ -336,6 +352,7 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
                                 outline: 'none',
                                 fontSize: '16px',
                                 lineHeight: '1.6',
+                                color: '#1A1A1A'
                               }}
                             />
                             <Text style={styles.writingHint}>* Lưu ý: Phần viết sẽ được hệ thống chấm điểm dựa trên cấu trúc bài làm.</Text>
@@ -396,7 +413,7 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
               </Text>
             </View>
 
-            <View style={styles.modalContent}>
+            <View style={styles.resModalContent}>
               <Text style={styles.modalMessage}>
                 {isFinished
                   ? (isPass
@@ -452,7 +469,7 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FAFAFA',
     alignItems: 'center',
     justifyContent: 'center',
     height: '100vh',
@@ -471,36 +488,71 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 28,
+    paddingHorizontal: 32,
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
     backgroundColor: '#FFF',
     zIndex: 10,
+    ...(Platform.OS === 'web' && { boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }),
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#EEE',
   },
   exitButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#F9F9F9',
   },
   exitIcon: {
     fontSize: 22,
-    color: '#666',
+    color: '#333',
     marginTop: -2,
+    fontWeight: '300',
   },
   exitText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#666',
+    color: '#333',
     fontFamily: 'Epilogue, sans-serif',
+  },
+  breadcrumb: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  breadcrumbText: {
+    fontSize: 13,
+    color: '#999',
+    fontWeight: '500',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  breadcrumbDivider: {
+    fontSize: 13,
+    color: '#EEE',
+  },
+  breadcrumbActive: {
+    color: '#1A1A1A',
+    fontWeight: '700',
   },
   progressTracker: {
     flex: 1,
-    maxWidth: 400,
-    marginHorizontal: 32,
+    maxWidth: 450,
+    marginHorizontal: 40,
     gap: 8,
   },
   progressInfo: {
@@ -509,19 +561,20 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   progressLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#888',
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#999',
     textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   progressCounter: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
     color: '#1A1A1A',
   },
   miniProgressBarBg: {
     height: 6,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#F5F5F5',
     borderRadius: 100,
     overflow: 'hidden',
   },
@@ -533,18 +586,20 @@ const styles = StyleSheet.create({
   },
   scoreBadge: {
     alignItems: 'center',
-    backgroundColor: '#F8FAF3',
-    paddingVertical: 6,
-    paddingHorizontal: 16,
+    backgroundColor: '#F1F9F1',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E8F5E9',
+    borderColor: '#E1EEDD',
   },
   scoreLabel: {
     fontSize: 10,
     fontWeight: '800',
     color: '#4CAF50',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
   },
   scoreValue: {
     fontSize: 18,
@@ -563,11 +618,11 @@ const styles = StyleSheet.create({
   passageColumn: {
     flex: 1,
     borderRightWidth: 1,
-    borderRightColor: '#EAEAEA',
+    borderRightColor: '#F0F0F0',
     backgroundColor: '#FDFDFD',
   },
   columnHeader: {
-    padding: 20,
+    padding: 24,
     paddingBottom: 0,
   },
   columnTitleBadge: {
@@ -596,6 +651,12 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     fontFamily: 'Epilogue, sans-serif',
   },
+  sharedImage: {
+    width: '100%',
+    aspectRatio: 1.5,
+    borderRadius: 16,
+    marginBottom: 16,
+  },
   questionColumn: {
     flex: 1,
     backgroundColor: '#FFFFFF',
@@ -604,35 +665,35 @@ const styles = StyleSheet.create({
     flex: 2,
   },
   questionScrollContent: {
-    padding: 20,
-    paddingHorizontal: 120,
-    paddingBottom: 60,
+    padding: 40,
+    paddingHorizontal: '15%',
+    paddingBottom: 100,
   },
   questionHeader: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   questionBadge: {
     alignSelf: 'flex-start',
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 6,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 8,
   },
   questionBadgeText: {
     fontSize: 11,
     fontWeight: '900',
-    // letterSpacing: 1,
+    letterSpacing: 0.5,
   },
   questionBody: {
-    gap: 24,
+    gap: 32,
   },
   questionTextContainer: {
     marginBottom: 8,
   },
   questionText: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '800',
     color: '#1A1A1A',
-    lineHeight: 32,
+    lineHeight: 34,
     fontFamily: 'Epilogue, sans-serif',
   },
   optionsWrapper: {
@@ -641,26 +702,25 @@ const styles = StyleSheet.create({
   optionBase: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
+    padding: 18,
+    borderRadius: 20,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#EEEEEE',
-    gap: 16,
-    marginVertical: 4,
+    gap: 18,
     ...(Platform.OS === 'web' && {
-      transition: 'all 0.2s ease',
+      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
       cursor: 'pointer',
     }),
   },
   optionPressed: {
-    transform: [{ scale: 0.985 }],
-    backgroundColor: '#FAFAFA',
+    transform: [{ scale: 0.98 }],
+    backgroundColor: '#F9F9F9',
   },
   optionStatusSelected: {
-    backgroundColor: '#FFFBF0',
+    backgroundColor: '#FFF8F0',
     borderColor: '#FFCF6C',
-    ...(Platform.OS === 'web' && { boxShadow: '0 8px 24px rgba(255, 207, 108, 0.12)' }),
+    ...(Platform.OS === 'web' && { boxShadow: '0 8px 20px rgba(255, 207, 108, 0.12)' }),
   },
   optionStatusCorrect: {
     backgroundColor: '#F1F9F1',
@@ -676,30 +736,27 @@ const styles = StyleSheet.create({
     borderColor: '#F0F0F0',
   },
   optionCircleBase: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F0F0F0',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F5F5F5',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   optionCircleSelected: {
     backgroundColor: '#FFCF6C',
-    borderColor: '#FFCF6C',
   },
   optionCircleCorrect: {
     backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
   },
   optionCircleIncorrect: {
     backgroundColor: '#FF5252',
-    borderColor: '#FF5252',
   },
   optionLabelBase: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
-    color: '#888',
+    color: '#999',
   },
   optionLabelSelected: {
     color: '#FFF',
@@ -714,15 +771,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   optionText: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '600',
-    color: '#222',
+    color: '#333',
+    lineHeight: 24,
   },
   optionImg: {
     maxWidth: '100%',
     borderRadius: 12,
   },
-  statusBadge: {
+  ansStatusBadge: {
     width: 24,
     height: 24,
     borderRadius: 12,
@@ -730,17 +788,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statusBadgeText: {
+  ansStatusBadgeText: {
     color: '#4CAF50',
     fontSize: 14,
     fontWeight: 'bold',
   },
+  writingContainer: {
+    marginTop: 8,
+  },
+  writingInputCard: {
+    gap: 16,
+  },
+  writingLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  writingHint: {
+    fontSize: 13,
+    color: '#999',
+    fontStyle: 'italic',
+  },
   footer: {
-    height: 90,
+    height: 100,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 28,
+    paddingHorizontal: 32,
     borderTopWidth: 1,
     borderTopColor: '#F0F0F0',
     backgroundColor: '#FFF',
@@ -769,11 +844,11 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   navBtnNext: {
-    backgroundColor: '#1A1A1A',
-    paddingVertical: 14,
-    paddingHorizontal: 28,
+     backgroundColor: '#1A1A1A',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
     borderRadius: 16,
-    minWidth: 160,
+    minWidth: 180,
     alignItems: 'center',
     ...(Platform.OS === 'web' && { boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }),
   },
@@ -792,58 +867,59 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
-    ...(Platform.OS === 'web' && { backdropFilter: 'blur(5px)' }),
+    ...(Platform.OS === 'web' && { backdropFilter: 'blur(6px)' }),
   },
   resultModal: {
     backgroundColor: '#FFF',
-    borderRadius: 28,
-    padding: 32,
-    width: '100%',
-    maxWidth: 480,
-    alignItems: 'center',
-    ...(Platform.OS === 'web' && { boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }),
+    borderRadius: 32,
+    padding: 40,
+    width: '90%',
+    maxWidth: 500,
+    ...(Platform.OS === 'web' && { boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }),
   },
   modalHeader: {
-    marginBottom: 16,
+    marginBottom: 24,
+    alignItems: 'center',
   },
   modalTitle: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: '900',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
-    letterSpacing: 1,
   },
-  titlePass: { color: '#4CAF50' },
-  titleFail: { color: '#FF5252' },
-  modalContent: {
-    alignItems: 'center',
+  titlePass: {
+    color: '#4CAF50',
+  },
+  titleFail: {
+    color: '#FF6B6B',
+  },
+  resModalContent: {
     gap: 24,
-    width: '100%',
+    marginBottom: 32,
   },
   modalMessage: {
     fontSize: 16,
     color: '#666',
-    textAlign: 'center',
     lineHeight: 24,
-    fontWeight: '500',
+    textAlign: 'center',
   },
   scoreContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FAFAFA',
-    borderRadius: 20,
+    backgroundColor: '#F9F9F9',
     padding: 20,
-    width: '100%',
+    borderRadius: 20,
     justifyContent: 'space-around',
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
+    alignItems: 'center',
   },
   scoreBox: {
     alignItems: 'center',
+    gap: 4,
   },
   scoreBoxLabel: {
     fontSize: 12,
+    color: '#999',
     fontWeight: '700',
-    color: '#AAA',
-    marginBottom: 4,
     textTransform: 'uppercase',
   },
   scoreBoxValue: {
@@ -853,13 +929,12 @@ const styles = StyleSheet.create({
   },
   divider: {
     width: 1,
-    backgroundColor: '#EAEAEA',
+    height: 36,
+    backgroundColor: '#EEE',
   },
   modalFooter: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 32,
-    width: '100%',
   },
   modalBtnSecondary: {
     flex: 1,
@@ -869,71 +944,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalBtnSecondaryText: {
-    fontWeight: '800',
+    fontSize: 15,
+    fontWeight: '700',
     color: '#666',
   },
   modalBtnPrimary: {
-    flex: 1.2,
+    flex: 1.5,
     paddingVertical: 16,
     borderRadius: 16,
     backgroundColor: '#1A1A1A',
     alignItems: 'center',
   },
   modalBtnPrimaryText: {
-    fontWeight: '800',
+    fontSize: 15,
+    fontWeight: '700',
     color: '#FFF',
   },
   centerContent: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
+    gap: 20,
   },
   loadingText: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#888',
     fontWeight: '500',
   },
   errorText: {
     fontSize: 16,
-    color: '#FF5252',
-    fontWeight: '600',
+    color: '#FF6B6B',
+    textAlign: 'center',
+    maxWidth: '80%',
   },
   backLink: {
-    marginTop: 8,
+    marginTop: 10,
+    padding: 10,
   },
   backLinkText: {
-    color: '#4CAF50',
+    color: '#F4A950',
     fontWeight: '700',
     textDecorationLine: 'underline',
   },
-  sharedImage: {
-    width: '100%',
-    aspectRatio: 1.5,
-    borderRadius: 12,
-  },
-  writingContainer: {
-    width: '100%',
-    padding: 0,
-  },
-  writingInputCard: {
-    backgroundColor: '#FAFAFA',
-    borderRadius: 16,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
-    gap: 12,
-  },
-  writingLabel: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 4,
-  },
-  writingHint: {
-    fontSize: 13,
-    color: '#888',
-    fontStyle: 'italic',
-    marginTop: 8,
-  },
 })
+
