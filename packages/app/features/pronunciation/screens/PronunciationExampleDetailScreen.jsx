@@ -16,10 +16,15 @@ import { LoadingWithContainer } from '../../../../components/Loading'
 import { getPronunciationExampleById } from '../api'
 import { usePronunciationEvaluation } from '../api/usePronunciationEvaluation'
 import { PronunciationLayout } from '../components/layout/PronunciationLayout'
-import { PronunciationEvaluationResult } from '../components'
 
 import SoundIcon from '../../../../assets/icon/icon-mainflow/sound.svg'
 import MicroIcon from '../../../../assets/icon/icon-mainflow/micro.svg'
+
+const getScoreColor = (score) => {
+  if (score >= 80) return '#4CAF50'
+  if (score >= 50) return '#FF9800'
+  return '#F44336'
+}
 
 const renderHtmlText = (htmlString, defaultStyle, boldStyle) => {
   if (!htmlString) return null
@@ -285,6 +290,13 @@ export function PronunciationExampleDetailScreen({ exampleId: exampleIdProp, onB
         ) : (
           <View style={styles.contentWrapper}>
             <View style={styles.greenCard}>
+              {result && (
+                <View style={styles.scoreCircle}>
+                  <Text style={[styles.scoreText, { color: getScoreColor(result.score) }]}>
+                    {result.score}
+                  </Text>
+                </View>
+              )}
               <View style={styles.actionRow}>
                 <Pressable onPress={playAudio} style={styles.audioButtonWrapper}>
                   {isPlaying ? (
@@ -304,9 +316,10 @@ export function PronunciationExampleDetailScreen({ exampleId: exampleIdProp, onB
               {example.phoneticScript && <Text style={styles.targetPhonetic}>[{example.phoneticScript}]</Text>}
             </View>
 
-            {result && (
-              <View style={styles.resultWrapper}>
-                <PronunciationEvaluationResult result={result} />
+            {result?.aiFeedback && (
+              <View style={styles.feedbackBox}>
+                <Text style={styles.feedbackTitle}>Nhận xét từ Tokki:</Text>
+                <Text style={styles.feedbackText}>{result.aiFeedback}</Text>
               </View>
             )}
 
@@ -440,6 +453,56 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  scoreCircle: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+    zIndex: 10,
+  },
+  scoreText: {
+    fontSize: 16,
+    fontWeight: '900',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+
+  feedbackBox: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#E6E6E6',
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  feedbackTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
+    marginBottom: 6,
+  },
+  feedbackText: {
+    fontSize: 14,
+    color: '#34495E',
+    lineHeight: 22,
+    fontFamily: 'Epilogue, sans-serif',
+    fontWeight: '500',
+  },
 
   micSection: { alignItems: 'center', marginVertical: 12 },
   micOuterCircle: {
@@ -470,7 +533,6 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 13, fontWeight: '700', color: '#8E9AAF', fontFamily: 'Epilogue, sans-serif', marginTop: 10 },
   statusTextRecording: { color: '#FF4757' },
 
-  resultWrapper: { marginBottom: 20 },
   evalErrorWrapper: {
     marginBottom: 16,
     padding: 16,
