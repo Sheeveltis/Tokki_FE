@@ -1,26 +1,21 @@
-import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, ImageBackground, Platform, Pressable } from 'react-native'
-import { useSearchParams, useRouter } from 'solito/navigation'
+import React, { useEffect, useState } from 'react'
+import { View, Text, StyleSheet, ImageBackground, Pressable, Platform } from 'react-native'
+import { useRouter, useSearchParams } from 'solito/navigation'
 
 import { WordleBoardContent } from './component/WordleBoardContent'
 import BackgroundImage from '../../../../../../assets/BackgroundSolite.png'
 import { getWordleTopSentences, toggleWordleSentenceLike } from '../../../api/wordle-level-api'
 
-export function WordleBoardWeb({ dailyWordleId: propDailyWordleId }) {
-  const searchParams = useSearchParams()
+export function WordleBoardNative({ dailyWordleId: propDailyWordleId }) {
   const router = useRouter()
-  const dailyWordleId = propDailyWordleId || searchParams?.get('dailyWordleId') || ''
+  const searchParams = useSearchParams()
+  const dailyWordleId = propDailyWordleId || searchParams?.get?.('dailyWordleId') || ''
+
   const [sentences, setSentences] = useState([])
   const [loading, setLoading] = useState(true)
 
-  console.log('[WordleBoardWeb] Received dailyWordleId:', dailyWordleId, {
-    fromProp: propDailyWordleId,
-    fromSearchParams: searchParams?.get('dailyWordleId'),
-  })
-
   useEffect(() => {
     if (!dailyWordleId) {
-      console.error('[WordleBoardWeb] Missing dailyWordleId')
       setLoading(false)
       return
     }
@@ -31,7 +26,7 @@ export function WordleBoardWeb({ dailyWordleId: propDailyWordleId }) {
         const data = await getWordleTopSentences(dailyWordleId, 20)
         setSentences(data || [])
       } catch (error) {
-        console.error('[WordleBoardWeb] Error fetching top sentences:', error)
+        console.error('[WordleBoardNative] Error fetching top sentences:', error)
         setSentences([])
       } finally {
         setLoading(false)
@@ -43,12 +38,10 @@ export function WordleBoardWeb({ dailyWordleId: propDailyWordleId }) {
 
   const handleLike = async (submissionId, isLiked) => {
     try {
-      // Nếu đã like rồi thì không cho bỏ like (chỉ 1 chiều)
       if (!isLiked) return
 
       await toggleWordleSentenceLike(submissionId)
 
-      // API thành công → tăng likeCount lên 1, set isLiked = true
       setSentences(prev =>
         prev.map(item =>
           item.submissionId === submissionId
@@ -61,7 +54,7 @@ export function WordleBoardWeb({ dailyWordleId: propDailyWordleId }) {
         )
       )
     } catch (error) {
-      console.error('[WordleBoardWeb] Error toggling like:', error)
+      console.error('[WordleBoardNative] Error toggling like:', error)
     }
   }
 
@@ -69,18 +62,13 @@ export function WordleBoardWeb({ dailyWordleId: propDailyWordleId }) {
     <ImageBackground source={BackgroundImage} style={styles.container} resizeMode="cover">
       <View style={styles.content}>
         <View style={styles.header}>
-          <View style={styles.headerTopRow}>
-            <View style={{ flex: 1 }} />
-            <Pressable
-              style={({ pressed }) => [
-                styles.homeButton,
-                pressed && styles.homeButtonPressed,
-              ]}
-              onPress={() => router.push('/')}
-            >
-              <Text style={styles.homeButtonText}>Trang chủ</Text>
-            </Pressable>
-          </View>
+          <Pressable
+            style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.backButtonText}>← Quay lại</Text>
+          </Pressable>
+
           <Text style={styles.title}>Bảng xếp hạng câu văn</Text>
           <Text style={styles.subtitle}>Top những câu văn hay nhất</Text>
         </View>
@@ -88,8 +76,8 @@ export function WordleBoardWeb({ dailyWordleId: propDailyWordleId }) {
         <View style={styles.boardContainer}>
           <WordleBoardContent
             sentences={sentences}
-            onLike={handleLike}
             loading={loading}
+            onLike={handleLike}
           />
         </View>
       </View>
@@ -97,80 +85,57 @@ export function WordleBoardWeb({ dailyWordleId: propDailyWordleId }) {
   )
 }
 
+export default WordleBoardNative
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: '100%',
-    minHeight: '100vh',
-    ...Platform.select({
-      web: {
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      },
-    }),
   },
   content: {
     flex: 1,
-    width: '100%',
-    paddingTop: 40,
-    paddingBottom: 40,
-    paddingHorizontal: 20,
-    alignItems: 'center',
+    paddingTop: 56,
+    paddingBottom: 20,
+    paddingHorizontal: 12,
   },
   header: {
-    width: '100%',
-    maxWidth: 900,
-    alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
-  headerTopRow: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: 8,
-  },
-  homeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  backButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#FFFFFF',
     borderRadius: 999,
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    marginBottom: 12,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
-    elevation: 3,
-    ...Platform.select({
-      web: {
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-      },
-    }),
+    elevation: 2,
   },
-  homeButtonPressed: {
+  backButtonPressed: {
     opacity: 0.85,
     transform: [{ scale: 0.98 }],
   },
-  homeButtonText: {
+  backButtonText: {
     fontSize: 14,
     fontWeight: '700',
     color: '#1C1C1C',
   },
   title: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: '800',
     color: '#1C1C1C',
-    marginBottom: 8,
     textAlign: 'center',
+    marginBottom: 6,
     fontFamily: Platform.select({
       web: 'Epilogue, sans-serif',
       default: undefined,
     }),
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '600',
     color: '#666',
     textAlign: 'center',
@@ -180,19 +145,14 @@ const styles = StyleSheet.create({
     }),
   },
   boardContainer: {
-    width: '100%',
-    maxWidth: 900,
+    flex: 1,
     backgroundColor: '#FFF5E6',
-    borderRadius: 24,
-    padding: 20,
+    borderRadius: 20,
+    padding: 8,
     shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 16,
-    elevation: 8,
-    minHeight: 400,
+    shadowOpacity: 0.12,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 12,
+    elevation: 5,
   },
 })
-
-export default WordleBoardWeb
-

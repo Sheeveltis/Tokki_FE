@@ -1,111 +1,15 @@
-import React, { useState, useEffect } from 'react'
-import { View, StyleSheet } from 'react-native'
-import { useRouter } from 'solito/navigation'
+import React from 'react'
+import { Platform } from 'react-native'
 
-import WordleRule from '../../components/wordle/wordle-rule/wordle-rule'
-import { getWordleLevelByDifficulty, getWordleLevels } from '../../api/wordle-level-api'
-import WordleLevelPopup from '../../components/wordle/wordle-rule/wordle-level-popup'
-import { LoginRequest } from '../../../../../components/loginRequest'
-import { getAuthToken, isCurrentTokenExpired } from '../../../../provider/api/client'
+import { WordleRuleLayoutWeb } from '../../components/wordle/wordle-rule/wordle-rule-layout.web'
+import { WordleRuleLayoutNative } from '../../components/wordle/wordle-rule/wordle-rule-layout.native'
 
 export function WordleRuleScreen({ basePath = '/minigame/wordle' }) {
-  const router = useRouter()
-  const [showLevelPopup, setShowLevelPopup] = useState(false)
-  const [loadingLevel, setLoadingLevel] = useState(false)
-  const [levelsData, setLevelsData] = useState([])
-  const [showLoginRequest, setShowLoginRequest] = useState(false)
-
-  const handleOpenLevelPopup = async () => {
-    const token = getAuthToken()
-    const isAuthed = Boolean(token) && !isCurrentTokenExpired()
-
-    if (!isAuthed) {
-      setShowLoginRequest(true)
-      return
-    }
-
-    setShowLevelPopup(true)
-    // Fetch levels data khi mở popup
-    try {
-      const levels = await getWordleLevels()
-      setLevelsData(levels || [])
-    } catch (error) {
-      console.error('[WordleRuleScreen] Failed to fetch levels:', error)
-      setLevelsData([])
-    }
+  if (Platform.OS === 'web') {
+    return <WordleRuleLayoutWeb basePath={basePath} />
   }
 
-  const handleSelectLevel = async (difficultyLevel) => {
-    try {
-      setLoadingLevel(true)
-      const levelData = await getWordleLevelByDifficulty(difficultyLevel)
-      if (!levelData) {
-        console.error('[WordleRuleScreen] No level data for difficulty:', difficultyLevel)
-        return
-      }
-
-      const attemptCount = levelData.attemptCount ?? 0
-      const maxAttempts = levelData.maxAttempts ?? 0
-      const isOutOfAttempts = maxAttempts > 0 && attemptCount >= maxAttempts
-
-      // Nếu level đã thắng hoặc đã dùng hết lượt chơi thì không cho chọn
-      if (levelData.isWon || isOutOfAttempts) {
-        console.log('[WordleRuleScreen] Level already completed or out of attempts, cannot select')
-        return
-      }
-
-      const query = new URLSearchParams()
-      query.set('level', String(difficultyLevel))
-      if (levelData.dailyWordleId) query.set('dailyWordleId', String(levelData.dailyWordleId))
-      if (levelData.wordLength) query.set('wordLength', String(levelData.wordLength))
-      if (Number.isFinite(attemptCount)) query.set('attemptCount', String(attemptCount))
-      if (Number.isFinite(maxAttempts) && maxAttempts > 0)
-        query.set('maxAttempts', String(maxAttempts))
-
-      router.push(`${basePath}/wordle-play?${query.toString()}`)
-    } catch (error) {
-      console.error('[WordleRuleScreen] Failed to load wordle level:', error)
-    } finally {
-      setLoadingLevel(false)
-      setShowLevelPopup(false)
-    }
-  }
-
-  return (
-    <>
-      <WordleRule onStart={handleOpenLevelPopup} />
-      {showLevelPopup && (
-        <WordleLevelPopup
-          loading={loadingLevel}
-          levelsData={levelsData}
-          onClose={() => setShowLevelPopup(false)}
-          onSelectLevel={handleSelectLevel}
-        />
-      )}
-      {showLoginRequest && (
-        <View style={styles.loginOverlay}>
-          <LoginRequest onClose={() => setShowLoginRequest(false)} />
-        </View>
-      )}
-    </>
-  )
+  return <WordleRuleLayoutNative basePath={basePath} />
 }
 
-const styles = StyleSheet.create({
-  loginOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
-    zIndex: 2000,
-  },
-})
-
 export default WordleRuleScreen
-
-
-

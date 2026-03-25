@@ -1,173 +1,105 @@
-import React from 'react'
-import { View, Text, StyleSheet, Pressable, Platform } from 'react-native'
+import { Modal, View, Text, StyleSheet, Pressable, Platform } from 'react-native'
 
-/**
- * Popup hỏi người dùng có muốn công khai câu văn đã submit không
- * Props:
- * - visible: boolean
- * - loading: boolean
- * - onConfirm: () => void - khi bấm "Có"
- * - onCancel: () => void - khi bấm "Không"
- */
 export function WordlePublishPopup({ visible, loading, onConfirm, onCancel }) {
-  if (!visible) return null
-
   return (
-    <View style={styles.overlay}>
-      <View style={styles.card}>
-        <Text style={styles.title}>Công khai câu văn</Text>
-        <Text style={styles.message}>
-          Bạn có muốn công khai câu văn này lên không?
-        </Text>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onCancel}
+    >
+      <View style={styles.overlay}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Công khai câu văn</Text>
+ 
+          <Text style={styles.message}>
+            Bạn có muốn công khai câu văn này lên không?
+          </Text>
 
-        <View style={styles.buttonContainer}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.button,
-              styles.cancelButton,
-              pressed && styles.buttonPressed,
-              loading && styles.buttonDisabled,
-            ]}
-            onPress={onCancel}
-            disabled={loading}
-          >
-            <Text style={styles.cancelButtonText}>Không</Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [
-              styles.button,
-              styles.confirmButton,
-              pressed && styles.buttonPressed,
-              loading && styles.buttonDisabled,
-            ]}
-            onPress={onConfirm}
-            disabled={loading}
-          >
-            <Text style={styles.confirmButtonText}>Có</Text>
-          </Pressable>
+          <View style={styles.buttonContainer}>
+            <Pressable
+              style={[styles.button, styles.cancelButton]}
+              onPress={onCancel}
+              disabled={loading}
+            >
+              <Text style={styles.cancelButtonText}>Hủy</Text>
+            </Pressable>
+
+            <Pressable
+              style={[styles.button, styles.confirmButton]}
+              onPress={onConfirm}
+              disabled={loading}
+            >
+              <Text style={styles.confirmButtonText}>Gửi</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
-    </View>
+    </Modal>
   )
 }
 
 const styles = StyleSheet.create({
   overlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    alignItems: 'center',
+    flex: 1,
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
-    zIndex: 3000,
-    ...Platform.select({
-      web: {
-        backdropFilter: 'blur(4px)',
-      },
-    }),
-  },
-  card: {
-    width: '90%',
-    maxWidth: 420,
-    backgroundColor: '#FFF5E6',
-    borderRadius: 24,
-    paddingVertical: 32,
-    paddingHorizontal: 28,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 16,
-    elevation: 8,
     alignItems: 'center',
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  container: {
+    width: '90%',
+    maxWidth: 400,
+    backgroundColor: '#FFF5E6',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    elevation: 12,
   },
   title: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: '800',
-    color: '#1C1C1C',
+    marginBottom: 12,
     textAlign: 'center',
-    marginBottom: 16,
-    fontFamily: Platform.select({
-      web: 'Epilogue, sans-serif',
-      default: undefined,
-    }),
+    color: '#1C1C1C',
   },
   message: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#4E342E',
+    fontSize: 16,
     textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 26,
-    fontFamily: Platform.select({
-      web: 'Epilogue, sans-serif',
-      default: undefined,
-    }),
+    marginBottom: 24,
+    color: '#4E342E',
+    lineHeight: 22,
   },
   buttonContainer: {
     flexDirection: 'row',
     width: '100%',
-    gap: 16,
-    justifyContent: 'center',
+    gap: 12,
   },
   button: {
     flex: 1,
     paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 20,
+    borderRadius: 16,
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 50,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
-    elevation: 4,
-    ...Platform.select({
-      web: {
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-      },
-    }),
   },
   confirmButton: {
-    backgroundColor: '#7CB342',
+    backgroundColor: '#6AAA64',
   },
   cancelButton: {
     backgroundColor: '#CFD8DC',
   },
-  buttonPressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.98 }],
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-    ...Platform.select({
-      web: {
-        cursor: 'not-allowed',
-      },
-    }),
-  },
   confirmButtonText: {
-    fontSize: 18,
+    color: '#fff',
     fontWeight: '700',
-    color: '#FFFFFF',
-    fontFamily: Platform.select({
-      web: 'Epilogue, sans-serif',
-      default: undefined,
-    }),
+    fontSize: 16,
   },
   cancelButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
     color: '#37474F',
-    fontFamily: Platform.select({
-      web: 'Epilogue, sans-serif',
-      default: undefined,
-    }),
+    fontWeight: '700',
+    fontSize: 16,
   },
 })
 
 export default WordlePublishPopup
-

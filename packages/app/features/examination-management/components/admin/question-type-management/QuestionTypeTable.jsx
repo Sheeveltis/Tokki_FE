@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Space, Tooltip } from 'antd'
 import { EyeOutlined } from '@ant-design/icons'
 import ManagementTable from '../../../../../../components/ManagementTable.jsx'
@@ -158,6 +158,13 @@ export function QuestionTypeTable({ data, loading, onRowClick, rowKey = 'questio
       loading={loading}
       onRowClick={onRowClick}
       rowKey={rowKey}
+      size="large"
+      pagination={{
+        current: currentPage,
+        pageSize: 20,
+        onChange: (page) => setCurrentPage(page),
+      }}
+      scroll={{ x: 'max-content', y: 'calc(100vh - 290px)' }}
     />
   )
 }
