@@ -385,10 +385,11 @@ export function useWordlePlayControl({
   }, [resetRow, isWeb, focusHiddenImeInput, clearHiddenImeInput])
 
   const handleNavigateToBoard = useCallback(() => {
-    router.push({
-      pathname: '/minigame/wordle/wordle-board',
-      params: { dailyWordleId: String(dailyWordleId) },
-    })
+    console.log('[useWordlePlayControl] handleNavigateToBoard called. dailyWordleId:', dailyWordleId)
+    // Dùng chuỗi URL trực tiếp kèm query param để đảm bảo Solito trên Web nhận đúng searchParams
+    const path = `/minigame/wordle/wordle-board?dailyWordleId=${dailyWordleId}`
+    console.log('[useWordlePlayControl] Navigating to:', path)
+    router.push(path)
   }, [dailyWordleId, router])
 
   useEffect(() => {

@@ -13,6 +13,11 @@ export function WordleBoardWeb({ dailyWordleId: propDailyWordleId }) {
   const [sentences, setSentences] = useState([])
   const [loading, setLoading] = useState(true)
 
+  console.log('[WordleBoardWeb] Received dailyWordleId:', dailyWordleId, {
+    fromProp: propDailyWordleId,
+    fromSearchParams: searchParams?.get('dailyWordleId'),
+  })
+
   useEffect(() => {
     if (!dailyWordleId) {
       console.error('[WordleBoardWeb] Missing dailyWordleId')

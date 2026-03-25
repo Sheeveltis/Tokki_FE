@@ -74,6 +74,7 @@ export function WordleSentenceFlow({
       const response = await submitWordleSentence(dailyWordleId, sentenceContent)
   
       const id = response?.submissionId || response?.data?.submissionId || response?.id
+      console.log('[WordleSentenceFlow] Received submissionId:', id, 'from response:', response)
       if (id) setSubmissionId(id)
   
       const feedbackPayload = {
@@ -151,7 +152,9 @@ export function WordleSentenceFlow({
     try {
       setPublishLoading(true)
       // Công khai câu văn, tuỳ chọn ẩn tên
-      await publishWordleSentence(submissionId, true, isAnonymous)
+      console.log('[WordleSentenceFlow] Calling publishWordleSentence with:', { submissionId, isAnonymous })
+      const res = await publishWordleSentence(submissionId, true, isAnonymous)
+      console.log('[WordleSentenceFlow] publishWordleSentence response:', res)
       setShowNamePopup(false)
       if (onNavigateToBoard) {
         onNavigateToBoard()
