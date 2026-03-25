@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { StyleSheet, View, Text, Modal, Pressable, ScrollView, ActivityIndicator } from 'react-native'
+import { StyleSheet, View, Text, Modal, Pressable, ScrollView, ActivityIndicator, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { getExamHistory } from '../../api/roadmap-test'
 

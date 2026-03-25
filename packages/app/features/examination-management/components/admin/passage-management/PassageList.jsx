@@ -157,7 +157,7 @@ export function PassageList() {
         },
       },
       {
-        title: 'Thao tác',
+        title: 'Hành động',
         key: 'actions',
         width: 140,
         align: 'center',
@@ -202,11 +202,11 @@ export function PassageList() {
   )
 
   const actions = [
-    { 
-      label: 'Thêm mới', 
-      icon: <PlusOutlined />, 
-      type: 'primary', 
-      onPress: () => setCreateOpen(true) 
+    {
+      label: 'Thêm mới',
+      icon: <PlusOutlined />,
+      type: 'primary',
+      onPress: () => setCreateOpen(true)
     }
   ]
 
@@ -320,7 +320,7 @@ export function PassageList() {
             }
 
             if (values.mediaType === 0) payload.content = values.content?.trim()
-            
+
             if (values.mediaType === 1 && values.imageFile) {
               payload.imageUrl = await uploadPassageImageToCloudinary(values.imageFile)
             } else if (values.mediaType === 2 && values.audioFile) {

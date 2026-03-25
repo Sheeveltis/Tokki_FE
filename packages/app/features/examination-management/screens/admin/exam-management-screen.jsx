@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Space, Tag, Select, Tooltip } from 'antd'
+import { Space, Tag, Select, Tooltip, Card, Button } from 'antd'
 import { EyeOutlined, FilterOutlined, PlusOutlined } from '@ant-design/icons'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 import { useExamsAdmin } from '../../api/exam-hooks.js'
@@ -135,8 +135,10 @@ export function ExamManagement({ initialData = null }) {
       width: 90,
       render: (_, record) => (
         <Tooltip title="Xem chi tiết">
-          <EyeOutlined
-            style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
+          <Button
+            type="text"
+            shape="circle"
+            icon={<EyeOutlined style={{ fontSize: 18, color: '#1890ff' }} />}
             onClick={(e) => {
               e?.stopPropagation?.()
               router.push(`/admin/exams/${record.examId}`)
@@ -146,6 +148,66 @@ export function ExamManagement({ initialData = null }) {
       ),
     },
   ], [filters, router])
+
+  const renderCard = (record) => {
+    const statusInfo = STATUS_MAP[record.status] || { color: '#8c8c8c', text: `Status ${record.status}` }
+    return (
+      <Card
+        hoverable
+        style={{
+          borderRadius: 16,
+          overflow: 'hidden',
+          border: '1px solid #f0f0f0',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+        bodyStyle={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}
+        onClick={() => router.push(`/admin/exams/${record.examId}`)}
+      >
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Tag color="blue" style={{ borderRadius: 4 }}>{TYPE_MAP[record.type] || record.type}</Tag>
+          <Tooltip title={statusInfo.text}>
+            <div
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                backgroundColor: statusInfo.color,
+                boxShadow: `0 0 6px ${statusInfo.color}80`
+              }}
+            />
+          </Tooltip>
+        </div>
+
+        <Tooltip title={record.title}>
+          <div style={{
+            fontSize: 16,
+            fontWeight: 600,
+            marginBottom: 8,
+            color: '#262626',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            lineHeight: '1.4',
+            minHeight: '2.8em'
+          }}>
+            {record.title}
+          </div>
+        </Tooltip>
+
+        <div style={{ marginTop: 'auto' }}>
+          <div style={{ fontSize: 13, color: '#8c8c8c', marginBottom: 4 }}>
+            {record.examTemplateName}
+          </div>
+          <div style={{ fontSize: 12, color: '#bfbfbf' }}>
+            ID: {record.examId}
+          </div>
+        </div>
+      </Card>
+    )
+  }
 
   const extraFilters = (
     <Space wrap>
@@ -195,6 +257,7 @@ export function ExamManagement({ initialData = null }) {
         onSearchSubmit={() => handleFilterChange('search', filters.search)}
         extraFilters={extraFilters}
         actions={actions}
+        renderCard={renderCard}
         tableProps={{
           columns,
           dataSource: data,

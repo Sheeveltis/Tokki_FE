@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
-import { Input, Space, Button, Card, Typography, Pagination } from 'antd'
-import { SearchOutlined } from '@ant-design/icons'
+import { Input, Space, Button, Card, Typography, Pagination, Segmented, List, Empty, Tooltip } from 'antd'
+import { SearchOutlined, TableOutlined, AppstoreOutlined } from '@ant-design/icons'
 import ManagementTable from '../ManagementTable.jsx'
 
 const { Text } = Typography
@@ -69,10 +69,12 @@ export default function ManagementLayout({
   actions = [],
   tableProps,
   children,
-  title
+  title,
+  renderCard // Thêm prop renderCard để hiển thị dạng card
 }) {
   const tableWrapperRef = useRef(null)
   const [tableScrollY, setTableScrollY] = useState(400)
+  const [viewMode, setViewMode] = useState('table') // 'table' hoặc 'card'
 
   // Tách pagination ra để hiển thị riêng bên dưới bảng
   const paginationProps = tableProps?.pagination
@@ -124,6 +126,22 @@ export default function ManagementLayout({
             />
           )}
           {extraFilters}
+          {renderCard && (
+            <Segmented
+              options={[
+                { 
+                  value: 'table', 
+                  icon: <Tooltip title="Xem dạng bảng"><TableOutlined /></Tooltip> 
+                },
+                { 
+                  value: 'card', 
+                  icon: <Tooltip title="Xem dạng lưới"><AppstoreOutlined /></Tooltip> 
+                },
+              ]}
+              value={viewMode}
+              onChange={setViewMode}
+            />
+          )}
         </Space>
         <ActionGroup actions={actions} />
       </div>
@@ -133,17 +151,44 @@ export default function ManagementLayout({
         ref={tableWrapperRef}
         style={{
           flex: 1,
-          overflow: 'hidden',
+          overflowY: viewMode === 'table' ? 'hidden' : 'auto',
+          overflowX: 'hidden',
           width: '100%',
           borderRadius: 8,
         }}
       >
-        <ManagementTable
-          {...tableProps}
-          pagination={false} // Disable nội bộ bảng
-          scroll={{ ...tableProps?.scroll, x: 'max-content', y: tableScrollY }}
-          size="middle"
-        />
+        {viewMode === 'table' ? (
+          <ManagementTable
+            {...tableProps}
+            pagination={false}
+            scroll={{ ...tableProps?.scroll, x: 'max-content', y: tableScrollY }}
+            size="middle"
+          />
+        ) : (
+          <div style={{ padding: '4px 0' }}>
+            <List
+              grid={{
+                gutter: 16,
+                xs: 1,
+                sm: 2,
+                md: 2,
+                lg: 3,
+                xl: 4,
+                xxl: 4,
+              }}
+              loading={tableProps?.loading}
+              dataSource={tableProps?.dataSource || []}
+              renderItem={(item) => (
+                <List.Item>
+                  {renderCard(item)}
+                </List.Item>
+              )}
+              locale={{
+                emptyText: <Empty description="Không có dữ liệu" />
+              }}
+            />
+          </div>
+        )}
         {children}
       </div>
 

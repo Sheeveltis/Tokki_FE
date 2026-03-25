@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Space, Select, message, Modal, Tooltip } from 'antd'
-import { EyeOutlined, CopyOutlined, FilterOutlined, PlusOutlined } from '@ant-design/icons'
+import { Space, Select, message, Modal, Tooltip, Card, Tag, Button } from 'antd'
+import { EyeOutlined, CopyOutlined, FilterOutlined, PlusOutlined, MoreOutlined } from '@ant-design/icons'
 import CreateExamTemplateModal from '../../components/admin/create-exam-template/CreateExamTemplateModal.jsx'
 import { useExamTemplatesQuery } from '../../../back-office/api/useAdminQueries.js'
 import { duplicateExamTemplate } from '../../../back-office/api/admin-index.js'
@@ -153,10 +153,12 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
         }
 
         return (
-          <Space size="large">
+          <Space size="middle">
             <Tooltip title="Xem chi tiết">
-              <EyeOutlined
-                style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
+              <Button
+                type="text"
+                shape="circle"
+                icon={<EyeOutlined style={{ fontSize: 18, color: '#1890ff' }} />}
                 onClick={(e) => {
                   e?.stopPropagation?.()
                   router.push(`${basePath}/exam-templates/${id}`)
@@ -164,8 +166,10 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
               />
             </Tooltip>
             <Tooltip title="Sao chép">
-              <CopyOutlined
-                style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
+              <Button
+                type="text"
+                shape="circle"
+                icon={<CopyOutlined style={{ fontSize: 18, color: '#1890ff' }} />}
                 onClick={handleDuplicate}
               />
             </Tooltip>
@@ -174,6 +178,110 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
       },
     },
   ], [filters, router, basePath, refetch])
+
+  const renderCard = (record) => {
+    const val = record.status ?? record.Status ?? record.status ?? 0
+    const cfg = STATUS_CONFIG[val] || STATUS_CONFIG[0]
+    const id = record.id || record.ExamTemplateId || record.examTemplateId
+    const name = record.name || record.Name || 'mẫu đề này'
+
+    const handleDuplicate = async (e) => {
+      e?.stopPropagation?.()
+      Modal.confirm({
+        title: 'Xác nhận sao chép',
+        content: `Bạn có chắc chắn muốn sao chép mẫu đề "${name}"?`,
+        okText: 'Sao chép',
+        cancelText: 'Hủy',
+        onOk: async () => {
+          try {
+            const result = await duplicateExamTemplate(id)
+            message.success('Sao chép mẫu đề thành công')
+            refetch()
+            if (result?.examTemplateId || result?.ExamTemplateId) {
+              router.push(`${basePath}/exam-templates/${result.examTemplateId || result.ExamTemplateId}`)
+            }
+          } catch (error) {
+            message.error(error?.message || 'Sao chép thất bại')
+          }
+        },
+      })
+    }
+
+    return (
+      <Card
+        hoverable
+        style={{
+          borderRadius: 16,
+          overflow: 'hidden',
+          border: '1px solid #f0f0f0',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+        bodyStyle={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}
+        onClick={() => router.push(`${basePath}/exam-templates/${id}`)}
+      >
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Tag color="purple" style={{ borderRadius: 4 }}>{record.examType || record.ExamType || record.ExamType || '-'}</Tag>
+          <Tooltip title={cfg.label}>
+             <div
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                backgroundColor: cfg.color,
+                boxShadow: `0 0 6px ${cfg.color}80`
+              }}
+            />
+          </Tooltip>
+        </div>
+
+        <Tooltip title={record.name || record.Name}>
+          <div style={{
+            fontSize: 16,
+            fontWeight: 600,
+            marginBottom: 8,
+            color: '#262626',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            lineHeight: '1.4',
+            minHeight: '2.8em'
+          }}>
+            {record.name || record.Name}
+          </div>
+        </Tooltip>
+
+        <div style={{ marginTop: 'auto' }}>
+          <div style={{ 
+            fontSize: 13, 
+            color: '#8c8c8c', 
+            marginBottom: 12,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            minHeight: '2.8em'
+          }}>
+            {record.description || record.Description || 'Không có mô tả'}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 12, color: '#bfbfbf' }}>ID: {id}</span>
+            <Tooltip title="Sao chép">
+              <Button 
+                type="text"
+                shape="circle"
+                size="small"
+                icon={<CopyOutlined style={{ fontSize: 16, color: '#1890ff' }} />}
+                onClick={handleDuplicate} 
+              />
+            </Tooltip>
+          </div>
+        </div>
+      </Card>
+    )
+  }
 
   const extraFilters = (
     <Space wrap>
@@ -226,6 +334,7 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
         onSearchSubmit={() => handleFilterChange('search', filters.search)}
         extraFilters={extraFilters}
         actions={actions}
+        renderCard={renderCard}
         tableProps={{
           columns,
           dataSource: items,
