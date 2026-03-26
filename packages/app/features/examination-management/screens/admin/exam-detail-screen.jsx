@@ -560,16 +560,16 @@ export function ExamDetailScreen() {
         <Row gutter={[24, 24]}>
           {/* Main Content: Question List */}
           <Col xs={24} lg={18}>
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            <Space orientation="vertical" size="large" style={{ width: '100%' }}>
               {/* Basic Info Card */}
               <Card
-                bordered={false}
+                variant="borderless"
                 style={{
                   borderRadius: '12px',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                   border: '1px solid #f0f0f0',
                 }}
-                bodyStyle={{ padding: '16px 20px' }}
+                styles={{ body: { padding: '16px 20px' } }}
                 title={
                   <Space size="small">
                     <div style={{ width: '3px', height: '14px', background: '#1890ff', borderRadius: '4px' }} />
@@ -594,12 +594,14 @@ export function ExamDetailScreen() {
                   size="small"
                   layout="horizontal"
                   bordered={false}
-                  labelStyle={{ color: '#8c8c8c', fontWeight: 400, fontSize: '13px' }}
-                  contentStyle={{ color: '#262626', fontSize: '13px', fontWeight: 500 }}
+                  styles={{
+                    label: { color: '#8c8c8c', fontWeight: 400, fontSize: '13px' },
+                    content: { color: '#262626', fontSize: '13px', fontWeight: 500 }
+                  }}
                 >
                   <Descriptions.Item label="Tiêu đề" span={3}>{exam.title || '-'}</Descriptions.Item>
                   <Descriptions.Item label="Loại đề">
-                    <Tag color="blue" bordered={false} style={{ borderRadius: '4px', fontSize: '11px', margin: 0 }}>{typeText}</Tag>
+                    <Tag color="blue" variant="filled" style={{ borderRadius: '4px', fontSize: '11px', margin: 0 }}>{typeText}</Tag>
                   </Descriptions.Item>
                   <Descriptions.Item label="Trạng thái">
                     <Badge

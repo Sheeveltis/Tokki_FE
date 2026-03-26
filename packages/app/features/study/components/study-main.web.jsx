@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   levelCardHovered: {
     transform: [{ scale: 1.08 }],
     borderWidth: 2,
-    shadowOpacity: 0,
+    boxShadow: 'none',
     ...(Platform.OS === 'web' && {
       transitionProperty: 'transform, borderColor, backgroundColor',
       transitionDuration: '200ms',

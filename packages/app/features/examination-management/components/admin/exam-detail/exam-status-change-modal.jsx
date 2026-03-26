@@ -87,7 +87,7 @@ export function ExamStatusChangeModal({ open, loading, onCancel, onSubmit, curre
           borderRadius: 8,
         },
       }}
-      destroyOnClose
+      destroyOnHidden
       centered
       styles={{
         header: {
