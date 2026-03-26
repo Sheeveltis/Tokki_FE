@@ -205,14 +205,15 @@ export const getSkillLabel = (skill) => {
   return option?.label || `Skill ${skill}`
 }
 
-export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [], examTemplate = null, onPartsAdded }) {
+export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [], examTemplate = null, onPartsAdded, onDirtyChange }) {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [activePartIndex, setActivePartIndex] = useState(0)
   const [addPartModalOpen, setAddPartModalOpen] = useState(false)
   const [selectedSkillForNewPart, setSelectedSkillForNewPart] = useState(null)
-  const [editingGroup, setEditingGroup] = useState(null) // { partName, groupName, groupIndex, skill }
+  const [editingGroup, setEditingGroup] = useState(null) // { partName, groupName, groupIndex, groupKey, skill }
   const [initialGroupValues, setInitialGroupValues] = useState(null) // Lưu giá trị ban đầu để Hủy
+  const [modifiedGroups, setModifiedGroups] = useState(new Set()) // Track các bộ câu đã được chỉnh sửa ('partIdx-groupIdx')
 
   const addPartRef = React.useRef(null) // Ref để lưu hàm add từ Form.List
   const partsCountRef = React.useRef(0) // Ref để lưu số lượng phần hiện tại
@@ -277,15 +278,29 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
     return () => cancelAnimationFrame(rafId)
   }, [watchParts, examType, loadQuestionTypes, questionTypesBySkill, loadingQuestionTypes])
 
-  // Set initial values
+  // Khi initialParts thay đổi (từ server), cập nhật form
   useEffect(() => {
-    if (initialParts.length > 0) {
-      form.setFieldsValue({ parts: initialParts })
+    if (initialParts && Array.isArray(initialParts)) {
+      // Sắp xếp theo Skill: 1 (Nghe), 2 (Đọc), 3 (Viết)
+      const sortedParts = [...initialParts].sort((a, b) => (a.Skill || 0) - (b.Skill || 0))
+      form.setFieldsValue({ parts: sortedParts })
     } else {
-      // Nếu chưa có phần nào, để trống (không tự động tạo phần)
       form.setFieldsValue({ parts: [] })
     }
   }, [initialParts, form])
+
+  // Cập nhật dirty state cho component cha
+  useEffect(() => {
+    if (onDirtyChange) {
+      const parts = form.getFieldValue('parts') || []
+      const hasNewGroup = parts.some(part =>
+        (part.QuestionGroups || []).some(group => !group.TemplatePartId)
+      )
+      const isDirty = hasNewGroup || modifiedGroups.size > 0
+      onDirtyChange(isDirty)
+    }
+  }, [modifiedGroups, onDirtyChange, watchParts])
+
 
   const handleSubmit = async (values) => {
     try {
@@ -449,6 +464,44 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
       })
   }, [questionTypesBySkill])
 
+  // Hàm check trùng lặp số câu hỏi
+  const validateQuestionRange = (_, value) => {
+    if (value === undefined || value === null) return Promise.resolve()
+
+    const { partName, groupName, groupIndex } = editingGroup || {}
+    const formValues = form.getFieldsValue(true)
+    const currentGroup = formValues?.parts?.[partName]?.QuestionGroups?.[groupName]
+
+    if (!currentGroup) return Promise.resolve()
+
+    const from = currentGroup.QuestionFrom
+    const to = currentGroup.QuestionTo
+
+    if (from === undefined || to === undefined) return Promise.resolve()
+    if (from > to) return Promise.reject(new Error('Số câu bắt đầu không được lớn hơn câu kết thúc'))
+
+    // Duyệt qua tất cả các phần và tất cả các bộ câu hỏi
+    const allParts = formValues.parts || []
+    for (let pIdx = 0; pIdx < allParts.length; pIdx++) {
+      const groups = allParts[pIdx].QuestionGroups || []
+      for (let gIdx = 0; gIdx < groups.length; gIdx++) {
+        // Bỏ qua chính nó
+        // Use partName and groupName from editingGroup to identify the current group
+        if (pIdx === partName && gIdx === groupName) continue
+
+        const other = groups[gIdx]
+        if (!other || other.QuestionFrom === undefined || other.QuestionTo === undefined) continue
+
+        // Kiểm tra overlap
+        if (Math.max(from, other.QuestionFrom) <= Math.min(to, other.QuestionTo)) {
+          return Promise.reject(new Error(`Số câu ${from}-${to} trùng với Nhóm ${gIdx + 1} của Phần ${pIdx + 1} (${other.QuestionFrom}-${other.QuestionTo})`))
+        }
+      }
+    }
+
+    return Promise.resolve()
+  }
+
   // Hàm mở modal chỉnh sửa và sao lưu giá trị ban đầu
   const handleOpenEditGroup = (groupInfo) => {
     const { partName, groupName } = groupInfo
@@ -469,15 +522,47 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
     if (editingGroup && initialGroupValues) {
       const { partName, groupName } = editingGroup
       form.setFieldValue(['parts', partName, 'QuestionGroups', groupName], initialGroupValues)
+
+      // Re-validate các bộ câu khác vì dải câu vừa được phục hồi có thể hết lỗi
+      form.validateFields()
     }
     setEditingGroup(null)
     setInitialGroupValues(null)
   }
 
   // Hàm lưu chỉnh sửa - chỉ đơn giản là đóng modal vì form đã được cập nhật
-  const handleSaveEdit = () => {
-    setEditingGroup(null)
-    setInitialGroupValues(null)
+  const handleSaveEdit = async () => {
+    try {
+      const { partName, groupName, groupKey } = editingGroup
+
+      // Kiểm tra validation trước khi lưu tạm
+      await form.validateFields([
+        ['parts', partName, 'QuestionGroups', groupName, 'QuestionFrom'],
+        ['parts', partName, 'QuestionGroups', groupName, 'QuestionTo'],
+        ['parts', partName, 'QuestionGroups', groupName, 'QuestionTypeId'],
+        ['parts', partName, 'QuestionGroups', groupName, 'Mark'],
+        ['parts', partName, 'QuestionGroups', groupName, 'PartTitle'],
+        ['parts', partName, 'QuestionGroups', groupName, 'Instruction']
+      ])
+
+      const currentValues = form.getFieldValue(['parts', partName, 'QuestionGroups', groupName])
+
+      // So sánh để đánh dấu modified (sử dụng stringify đơn giản cho các trường text/number)
+      const simplifiedBackup = { ...initialGroupValues, ExampleUrl: undefined }
+      const simplifiedCurrent = { ...currentValues, ExampleUrl: undefined }
+      const isModified = JSON.stringify(simplifiedBackup) !== JSON.stringify(simplifiedCurrent) ||
+        initialGroupValues?.ExampleUrl?.length !== currentValues?.ExampleUrl?.length
+
+      if (isModified) {
+        setModifiedGroups(prev => new Set(prev).add(groupKey))
+      }
+
+      setEditingGroup(null)
+      setInitialGroupValues(null)
+    } catch (error) {
+      // Nếu có lỗi validation (như trùng dải câu), Modal sẽ không đóng
+      console.error('Validation failed:', error)
+    }
   }
 
 
@@ -708,7 +793,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                           type="text"
                                           size="middle"
                                           icon={<EditOutlined style={{ color: '#1890ff' }} />}
-                                          onClick={() => handleOpenEditGroup({ partName, groupName: record.name, groupIndex: record.index, skill })}
+                                          onClick={() => handleOpenEditGroup({ partName, groupName: record.name, groupIndex: record.index, groupKey: record.key, skill })}
                                         />
                                       </Tooltip>
                                       {!isActiveTemplate && (
@@ -742,7 +827,20 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                         style={{ marginTop: 16 }}
                                         onClick={() => {
                                           addGroup({ Skill: skill, QuestionFrom: 1, QuestionTo: 1, Mark: 1 })
-                                          handleOpenEditGroup({ partName, groupName: groupFields.length, groupIndex: groupFields.length, skill })
+                                          // Để groupFields cập nhật, ta dùng setTimeout
+                                          setTimeout(() => {
+                                            const updatedValues = form.getFieldsValue(true)
+                                            const currentGroups = updatedValues.parts[partName].QuestionGroups
+                                            const newIndex = currentGroups.length - 1
+                                            // Lấy key từ groupFields thực tế bằng cách render lại hoặc đoán index
+                                            handleOpenEditGroup({
+                                              partName,
+                                              groupName: newIndex,
+                                              groupIndex: newIndex,
+                                              groupKey: `new-${Date.now()}`, // Temporary fallback if key not yet available
+                                              skill
+                                            })
+                                          }, 0)
                                         }}
                                       >
                                         Thêm bộ câu đầu tiên
@@ -760,6 +858,12 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                         .ant-table-row:hover .row-action-buttons {
                                           opacity: 1;
                                         }
+                                        .modified-row {
+                                          background-color: #fffbe6 !important;
+                                        }
+                                        .modified-row:hover > td {
+                                          background-color: #fff1b8 !important;
+                                        }
                                       `}
                                     </style>
                                     <Table
@@ -769,6 +873,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                       size="large"
                                       bordered={false}
                                       rowKey="key"
+                                      rowClassName={(record) => (!record.TemplatePartId || modifiedGroups.has(record.key)) ? 'modified-row' : ''}
                                       scroll={{ y: 400 }} // Tăng nhẹ chiều cao
                                       style={{ marginBottom: 16 }}
                                     />
@@ -788,7 +893,16 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                           const nextFrom = lastGroup ? (lastGroup.QuestionTo + 1) : 1
                                           addGroup({ Skill: skill, QuestionFrom: nextFrom, QuestionTo: nextFrom, Mark: 1 })
                                           setTimeout(() => {
-                                            handleOpenEditGroup({ partName, groupName: groupFields.length, groupIndex: groupFields.length, skill })
+                                            const updatedValues = form.getFieldsValue(true)
+                                            const currentGroups = updatedValues.parts[partName].QuestionGroups
+                                            const newIndex = currentGroups.length - 1
+                                            handleOpenEditGroup({
+                                              partName,
+                                              groupName: newIndex,
+                                              groupIndex: newIndex,
+                                              groupKey: `new-${Date.now()}`,
+                                              skill
+                                            })
                                           }, 0)
                                         }}
                                       >
@@ -810,12 +924,13 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                   <div style={{ marginTop: 24, textAlign: 'right' }}>
                     <Button
                       type="primary"
+                      block
                       onClick={() => form.submit()}
                       loading={loading}
                       size="large"
                       style={{
                         borderRadius: 8,
-                        minWidth: 140
+                        // minWidth: '100px'
                       }}
                     >
                       Lưu
@@ -842,13 +957,19 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
               return
             }
 
-            if (addPartRef.current) {
-              addPartRef.current({
-                Skill: selectedSkillForNewPart,
-                QuestionGroups: []
-              })
-              setActivePartIndex(partsCountRef.current)
+            // Cách tiếp cận mới: Lấy các phần hiện tại, thêm phần mới, sort lại và set lại form
+            const currentParts = form.getFieldValue('parts') || []
+            const newParts = [...currentParts, { Skill: selectedSkillForNewPart, QuestionGroups: [] }]
+            const sortedParts = newParts.sort((a, b) => (a.Skill || 0) - (b.Skill || 0))
+
+            form.setFieldsValue({ parts: sortedParts })
+
+            // Tìm index mới của skill vừa thêm
+            const newIndex = sortedParts.findIndex(p => p.Skill === selectedSkillForNewPart)
+            if (newIndex !== -1) {
+              setActivePartIndex(newIndex)
             }
+
             setAddPartModalOpen(false)
             setSelectedSkillForNewPart(null)
           }}
@@ -946,8 +1067,12 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                         <Form.Item
                           name={['parts', partName, 'QuestionGroups', groupName, 'QuestionFrom']}
                           label={<Text strong style={{ fontSize: 14 }}>Từ câu</Text>}
-                          rules={[{ required: true }]}
+                          rules={[
+                            { required: true, message: 'Vui lòng nhập' },
+                            { validator: validateQuestionRange }
+                          ]}
                           style={{ marginBottom: 16 }}
+                          validateTrigger={['onChange', 'onBlur']}
                         >
                           <InputNumber min={1} size="middle" style={{ width: '100%', borderRadius: 8 }} disabled={isActiveTemplate} />
                         </Form.Item>
@@ -956,8 +1081,12 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                         <Form.Item
                           name={['parts', partName, 'QuestionGroups', groupName, 'QuestionTo']}
                           label={<Text strong style={{ fontSize: 14 }}>Đến câu</Text>}
-                          rules={[{ required: true }]}
+                          rules={[
+                            { required: true, message: 'Vui lòng nhập' },
+                            { validator: validateQuestionRange }
+                          ]}
                           style={{ marginBottom: 16 }}
+                          validateTrigger={['onChange', 'onBlur']}
                         >
                           <InputNumber min={1} size="middle" style={{ width: '100%', borderRadius: 8 }} disabled={isActiveTemplate} />
                         </Form.Item>
@@ -966,7 +1095,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                         <Form.Item
                           name={['parts', partName, 'QuestionGroups', groupName, 'Mark']}
                           label={<Text strong style={{ fontSize: 14 }}>Điểm</Text>}
-                          rules={[{ required: true }]}
+                          rules={[{ required: true, message: 'Vui lòng nhập điểm' }]}
                           style={{ marginBottom: 16 }}
                         >
                           <InputNumber min={0} step={1} size="middle" style={{ width: '100%', borderRadius: 8 }} disabled={isActiveTemplate} />
@@ -977,7 +1106,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                     <Form.Item
                       name={['parts', partName, 'QuestionGroups', groupName, 'PartTitle']}
                       label={<Text strong style={{ fontSize: 14 }}>Tiêu đề hiển thị</Text>}
-                      rules={[{ required: true }]}
+                      rules={[{ required: true, message: 'Vui lòng nhập tiêu đề' }]}
                       style={{ marginBottom: 16 }}
                     >
                       <Input size="middle" style={{ borderRadius: 8 }} disabled={isActiveTemplate} placeholder="Tiêu đề chính của nhóm câu..." />
@@ -986,7 +1115,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                     <Form.Item
                       name={['parts', partName, 'QuestionGroups', groupName, 'Instruction']}
                       label={<Text strong style={{ fontSize: 14 }}>Hướng dẫn thí sinh</Text>}
-                      rules={[{ required: true }]}
+                      rules={[{ required: true, message: 'Vui lòng nhập hướng dẫn' }]}
                       style={{ marginBottom: 0 }}
                     >
                       <TextArea rows={4} style={{ borderRadius: 8 }} disabled={isActiveTemplate} placeholder="Ví dụ: Đọc đoạn văn sau và chọn đáp án..." />

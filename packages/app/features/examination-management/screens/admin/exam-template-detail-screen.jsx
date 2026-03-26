@@ -44,6 +44,7 @@ export function ExamTemplateDetailScreen() {
   const [submittingForApproval, setSubmittingForApproval] = useState(false)
   const [statusChangeModalOpen, setStatusChangeModalOpen] = useState(false)
   const [statusChangeLoading, setStatusChangeLoading] = useState(false)
+  const [isPartsDirty, setIsPartsDirty] = useState(false)
 
   const currentRole = getCurrentUserRole()
   const isAdmin = currentRole === 'Admin'
@@ -289,6 +290,22 @@ export function ExamTemplateDetailScreen() {
     }
   }
 
+  const handleBack = () => {
+    if (isPartsDirty) {
+      Modal.confirm({
+        title: 'Cảnh báo',
+        content: 'Bạn đã có thay đổi trong cấu trúc bộ câu hỏi mà chưa lưu. Bạn có chắc chắn muốn quay lại?',
+        okText: 'Rời đi',
+        cancelText: 'Hủy',
+        onOk: () => {
+          router.push('/admin?tab=exam-template')
+        }
+      })
+    } else {
+      router.push('/admin?tab=exam-template')
+    }
+  }
+
   if (loading) {
     return (
       <div style={{ padding: 24, textAlign: 'center' }}>
@@ -385,7 +402,7 @@ export function ExamTemplateDetailScreen() {
                 Xóa
               </Button>
             )}
-            <Button onClick={() => router.push('/admin?tab=exam-template')}>
+            <Button onClick={handleBack}>
               Quay lại
             </Button>
           </Space>
@@ -524,9 +541,11 @@ export function ExamTemplateDetailScreen() {
             examTemplateId={examTemplateId}
             initialParts={examTemplate.Parts || []}
             examTemplate={examTemplate}
+            onDirtyChange={setIsPartsDirty}
             onPartsAdded={async () => {
               // Reload lại dữ liệu exam template sau khi add parts thành công
               try {
+                setIsPartsDirty(false)
                 setLoading(true)
                 const data = await fetchExamTemplate(examTemplateId)
                 setExamTemplate(data)
