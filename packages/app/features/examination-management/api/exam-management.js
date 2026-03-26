@@ -52,40 +52,33 @@ export async function fetchExamById(examId) {
  * Tạo exam mới
  * @param {Object} payload - Dữ liệu exam
  * @param {string} payload.title - Tiêu đề đề thi
- * @param {number} payload.duration - Thời gian làm bài (phút)
+ * @param {Object} payload.skillDurations - Thời gian làm bài theo kỹ năng { "Listening": 60, "Reading": 60 }
  * @param {string} payload.examTemplateId - ID của exam template
  * @returns {Promise<string>} - ID của exam vừa tạo
  */
 export async function createExam(payload) {
   const res = await apiClient.post(ENDPOINTS.EXAMS.CREATE, payload)
-  // API trả về { data: "examId" } hoặc { data: { data: "examId" } }
   return res.data?.data || res.data || null
 }
 
 /**
  * Cập nhật thông tin exam (tiêu đề, thời lượng, template)
- * Backend định nghĩa body:
- *  {
- *    "title": "string",
- *    "duration": 0,
- *    "examTemplateId": "string"
- *  }
  *
  * @param {Object} payload
  * @param {string} payload.examId - ID đề thi cần cập nhật
  * @param {string} payload.title - Tiêu đề đề thi
- * @param {number} payload.duration - Thời gian làm bài (phút)
+ * @param {Object} payload.skillDurations - Thời gian làm bài theo kỹ năng
  * @param {string} payload.examTemplateId - ID exam template
  * @returns {Promise<any>} - Response từ API
  */
-export async function updateExamInfo({ examId, title, duration, examTemplateId }) {
+export async function updateExamInfo({ examId, title, skillDurations, examTemplateId }) {
   if (!examId) {
     throw new Error('examId is required to update exam info')
   }
 
   const res = await apiClient.put(ENDPOINTS.EXAMS.UPDATE(examId), {
     title,
-    duration,
+    skillDurations,
     examTemplateId,
   })
 

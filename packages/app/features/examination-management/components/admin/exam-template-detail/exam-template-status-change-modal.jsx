@@ -19,9 +19,11 @@ export function ExamTemplateStatusChangeModal({ open, loading, onCancel, onSubmi
   const deleteConfirm = Form.useWatch('deleteConfirm', form)
 
   const statusOptions = [
-    { value: 0, label: 'Nháp', icon: FileOutlined, color: '#6b7280', bgColor: '#f9fafb', borderColor: '#e5e7eb' },
-    { value: 1, label: 'Xuất bản', icon: CheckCircleOutlined, color: '#10b981', bgColor: '#f0fdf4', borderColor: '#bbf7d0' },
-    { value: 2, label: 'Xóa', icon: DeleteOutlined, color: '#ef4444', bgColor: '#fef2f2', borderColor: '#fecaca' },
+    { value: 0, label: 'Nháp', icon: FileOutlined, color: '#8c8c8c', bgColor: '#f5f5f5', borderColor: '#d9d9d9' },
+    { value: 3, label: 'Chờ phê duyệt', icon: ClockCircleOutlined, color: '#fa8c16', bgColor: '#fff7e6', borderColor: '#ffd591' },
+    { value: 1, label: 'Đã xuất bản', icon: CheckCircleOutlined, color: '#52c41a', bgColor: '#f6ffed', borderColor: '#b7eb8f' },
+    { value: 4, label: 'Từ chối', icon: CloseCircleOutlined, color: '#f5222d', bgColor: '#fff1f0', borderColor: '#ffa39e' },
+    { value: 2, label: 'Xóa', icon: DeleteOutlined, color: '#595959', bgColor: '#fafafa', borderColor: '#d9d9d9' },
   ]
 
   useEffect(() => {
@@ -104,7 +106,7 @@ export function ExamTemplateStatusChangeModal({ open, loading, onCancel, onSubmi
           rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
           style={{ marginBottom: 0 }}
         >
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12 }}>
             {statusOptions.map((option) => {
               const Icon = option.icon
               const isSelected = selectedStatus === option.value

@@ -14,11 +14,11 @@ const { Title, Text } = Typography
 
 // Mapping trạng thái theo enum ExamTemplateStatus
 const statusMap = {
-  0: { label: 'Nháp', color: 'default' },
-  1: { label: 'Đã xuất bản', color: 'green' },
-  2: { label: 'Đã xóa', color: 'red' },
-  3: { label: 'Chờ phê duyệt', color: 'orange' },
-  4: { label: 'Từ chối', color: 'volcano' },
+  0: { label: 'Nháp', colorHex: '#8c8c8c' },
+  1: { label: 'Đã xuất bản', colorHex: '#52c41a' },
+  2: { label: 'Đã xóa', colorHex: '#f5222d' },
+  3: { label: 'Chờ phê duyệt', colorHex: '#fa8c16' },
+  4: { label: 'Từ chối', colorHex: '#f5222d' },
 }
 
 // Helper function để lấy thông tin trạng thái
@@ -419,8 +419,19 @@ export function ExamTemplateDetailScreen() {
               {examTemplate.description || '-'}
             </Descriptions.Item>
             <Descriptions.Item label="Trạng thái">
-              <Space size="small" align="center">
-                <Text>{getStatusInfo(examTemplate.status ?? 0).label}</Text>
+              <Space size="middle" align="center">
+                <div
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    backgroundColor: statusMap[examTemplate.status ?? 0]?.colorHex || '#d9d9d9',
+                    boxShadow: `0 0 6px ${statusMap[examTemplate.status ?? 0]?.colorHex || '#d9d9d9'}80`
+                  }}
+                />
+                <Text style={{ fontWeight: 500 }}>
+                  {getStatusInfo(examTemplate.status ?? 0).label}
+                </Text>
                 {examTemplate.status === 3 && isAdmin && (
                   <>
                     <div

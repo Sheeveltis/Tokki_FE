@@ -26,6 +26,18 @@ const TYPE_MAP = {
   2: 'TOPIK II',
 }
 
+const SKILL_MAP = {
+  listening: 'Nghe',
+  reading: 'Đọc',
+  writing: 'Viết',
+  writting: 'Viết',
+}
+
+const getSkillLabel = (skill) => {
+  if (!skill) return '-'
+  return SKILL_MAP[skill.toLowerCase()] || skill
+}
+
 export function ExamDetailScreen() {
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -552,27 +564,70 @@ export function ExamDetailScreen() {
               {/* Basic Info Card */}
               <Card
                 bordered={false}
-                style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}
-                title={<Space><Text strong>Thông tin tổng quan</Text></Space>}
+                style={{
+                  borderRadius: '12px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                  border: '1px solid #f0f0f0',
+                }}
+                bodyStyle={{ padding: '16px 20px' }}
+                title={
+                  <Space size="small">
+                    <div style={{ width: '3px', height: '14px', background: '#1890ff', borderRadius: '4px' }} />
+                    <Text strong style={{ fontSize: '14px', color: '#262626' }}>Thông tin tổng quan</Text>
+                  </Space>
+                }
                 extra={
                   <Button
-                    type="link"
+                    type="text"
                     icon={<EditOutlined />}
                     onClick={handleOpenEditInfoModal}
                     disabled={isLockedExam}
+                    style={{ fontSize: '12px', color: '#1890ff' }}
+                    size="small"
                   >
-                    Sửa thông tin
+                    Sửa
                   </Button>
                 }
               >
-                <Descriptions column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1 }} size="small">
-                  <Descriptions.Item label="Tiêu đề">{exam.title || '-'}</Descriptions.Item>
-                  <Descriptions.Item label="Loại đề"><Tag color="blue">{typeText}</Tag></Descriptions.Item>
-                  <Descriptions.Item label="Trạng thái">
-                    <Badge status={statusInfo.color === 'green' ? 'success' : statusInfo.color === 'red' ? 'error' : 'default'} text={statusInfo.text} />
+                <Descriptions
+                  column={{ xxl: 4, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}
+                  size="small"
+                  layout="horizontal"
+                  bordered={false}
+                  labelStyle={{ color: '#8c8c8c', fontWeight: 400, fontSize: '13px' }}
+                  contentStyle={{ color: '#262626', fontSize: '13px', fontWeight: 500 }}
+                >
+                  <Descriptions.Item label="Tiêu đề" span={3}>{exam.title || '-'}</Descriptions.Item>
+                  <Descriptions.Item label="Loại đề">
+                    <Tag color="blue" bordered={false} style={{ borderRadius: '4px', fontSize: '11px', margin: 0 }}>{typeText}</Tag>
                   </Descriptions.Item>
-                  <Descriptions.Item label="Thời lượng">{exam.duration} phút</Descriptions.Item>
-                  <Descriptions.Item label="Ngày tạo">{exam.createdAt ? new Date(exam.createdAt).toLocaleDateString('vi-VN') : '-'}</Descriptions.Item>
+                  <Descriptions.Item label="Trạng thái">
+                    <Badge
+                      status={statusInfo.color === 'green' ? 'success' : statusInfo.color === 'red' ? 'error' : 'default'}
+                      text={statusInfo.text}
+                      style={{ fontSize: '13px' }}
+                    />
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Ngày tạo">
+                    {exam.createdAt ? new Date(exam.createdAt).toLocaleDateString('vi-VN') : '-'}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Thời lượng" span={2}>
+                    {exam.skillDurations && Object.keys(exam.skillDurations).length > 0 ? (
+                      <Space size="middle" wrap style={{ marginTop: '2px' }}>
+                        {Object.entries(exam.skillDurations).map(([skill, time]) => (
+                          <Space key={skill} size={4}>
+                            <Text type="secondary" style={{ fontSize: '12px' }}>{getSkillLabel(skill)}:</Text>
+                            <Text strong style={{ fontSize: '12px' }}>{time}′</Text>
+                          </Space>
+                        ))}
+                        <Tag color="blue" style={{ borderRadius: '4px', border: 'none', background: '#e6f7ff', color: '#1890ff', fontWeight: 600 }}>
+                          Tổng {Object.values(exam.skillDurations).reduce((a, b) => a + b, 0)} phút
+                        </Tag>
+                      </Space>
+                    ) : (
+                      `${exam.duration || 0} phút`
+                    )}
+                  </Descriptions.Item>
                 </Descriptions>
               </Card>
 

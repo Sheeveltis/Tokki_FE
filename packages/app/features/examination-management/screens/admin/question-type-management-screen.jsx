@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Modal, Form, Space, Select, Tooltip } from 'antd'
-import { PlusOutlined, FilterOutlined, EyeOutlined } from '@ant-design/icons'
+import { Modal, Form, Space, Select, Tooltip, Table, Tag, Button, Typography } from 'antd'
+import { PlusOutlined, FilterOutlined, EyeOutlined, DownloadOutlined, UploadOutlined, FileExcelOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
-import { fetchQuestionTypes } from '../../api/question-type-management.js'
+import { fetchQuestionTypes, importQuestionTypes, exportQuestionTypes, downloadTemplateQuestionType } from '../../api/question-type-management.js'
 import { QuestionTypeForm } from '../../components/admin/create-question-type/QuestionTypeForm.jsx'
 import { createQuestionType } from '../../api/create-question-type.js'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 import { getCurrentUserRole } from '../../../../provider/api/client.js'
-
 const { Option } = Select
+const { Text } = Typography
 
 export function QuestionTypeManagement({ basePath = '/admin' }) {
   const router = useRouter()
@@ -29,6 +29,13 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
   const [loading, setLoading] = useState(false)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [creating, setCreating] = useState(false)
+
+  const [importing, setImporting] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [templateLoading, setTemplateLoading] = useState(false)
+  const [importResult, setImportResult] = useState(null)
+  const [importModalOpen, setImportModalOpen] = useState(false)
+
   const [form] = Form.useForm()
 
   const loadData = async (currentFilters) => {
@@ -67,6 +74,69 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
         page: isSizeChanged ? 1 : newPage
       }
     })
+  }
+
+  const handleExport = async () => {
+    try {
+      setExporting(true)
+      const blob = await exportQuestionTypes()
+      const url = window.URL.createObjectURL(new Blob([blob]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `QuestionTypes_${new Date().getTime()}.xlsx`)
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      showAdminSuccess('Xuất file Excel thành công')
+    } catch (err) {
+      showAdminError(err?.message || 'Xuất file Excel thất bại')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const handleDownloadTemplate = async () => {
+    try {
+      setTemplateLoading(true)
+      const blob = await downloadTemplateQuestionType()
+      const url = window.URL.createObjectURL(new Blob([blob]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `Template_QuestionType.xlsx`)
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      showAdminError(err?.message || 'Tải template thất bại')
+    } finally {
+      setTemplateLoading(false)
+    }
+  }
+
+  const handleImport = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      setImporting(true)
+      const res = await importQuestionTypes(file)
+      setImportResult(res)
+      setImportModalOpen(true)
+      if (res.isSuccess) {
+        showAdminSuccess(res.message || 'Import thành công')
+        loadData(filters)
+      } else {
+        showAdminError(res.message || 'Import có lỗi xảy ra')
+      }
+    } catch (err) {
+      showAdminError(err?.message || 'Import thất bại')
+    } finally {
+      setImporting(false)
+      // Reset input để có thể chọn lại cùng 1 file
+      e.target.value = ''
+    }
   }
 
   const columns = useMemo(() => [
@@ -200,17 +270,40 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
 
   const actions = useMemo(() => {
     if (isStaff) return []
-    return [{
-      label: 'Thêm mới',
-      icon: <PlusOutlined />,
-      type: 'primary',
-      onPress: () => {
-        form.resetFields()
-        form.setFieldsValue({ isActive: true })
-        setCreateModalOpen(true)
+    return [
+      {
+        label: 'Tải Template',
+        icon: <DownloadOutlined />,
+        type: 'default',
+        loading: templateLoading,
+        onPress: handleDownloadTemplate
+      },
+      {
+        label: 'Nhập Excel',
+        icon: <UploadOutlined />,
+        type: 'default',
+        loading: importing,
+        onPress: () => document.getElementById('import-excel-input').click()
+      },
+      {
+        label: 'Xuất Excel',
+        icon: <FileExcelOutlined />,
+        type: 'default',
+        loading: exporting,
+        onPress: handleExport
+      },
+      {
+        label: 'Thêm mới',
+        icon: <PlusOutlined />,
+        type: 'primary',
+        onPress: () => {
+          form.resetFields()
+          form.setFieldsValue({ isActive: true })
+          setCreateModalOpen(true)
+        }
       }
-    }]
-  }, [isStaff, form])
+    ]
+  }, [isStaff, form, templateLoading, importing, exporting])
 
   return (
     <>
@@ -275,6 +368,92 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
         >
           <QuestionTypeForm form={form} />
         </Form>
+      </Modal>
+
+      {/* Hidden file input for import */}
+      <input
+        type="file"
+        id="import-excel-input"
+        style={{ display: 'none' }}
+        accept=".xlsx, .xls"
+        onChange={handleImport}
+      />
+
+      {/* Import Result Modal */}
+      <Modal
+        title="Kết quả Import Excel"
+        open={importModalOpen}
+        onCancel={() => setImportModalOpen(false)}
+        footer={[
+          <Button key="close" type="primary" onClick={() => setImportModalOpen(false)}>
+            Đóng
+          </Button>
+        ]}
+        width={800}
+        centered
+      >
+        {importResult && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{
+              padding: 12,
+              borderRadius: 8,
+              backgroundColor: importResult.isSuccess ? '#f6ffed' : '#fff2f0',
+              border: `1px solid ${importResult.isSuccess ? '#b7eb8f' : '#ffccc7'}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12
+            }}>
+              {importResult.isSuccess ? (
+                <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 24 }} />
+              ) : (
+                <CloseCircleOutlined style={{ color: '#ff4d4f', fontSize: 24 }} />
+              )}
+              <Text strong style={{ fontSize: 16 }}>{importResult.message}</Text>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <Text strong>Chi tiết:</Text>
+              <Table
+                size="small"
+                dataSource={[
+                  ...(importResult.data?.successList?.map(item => ({ ...item, type: 'success' })) || []),
+                  ...(importResult.data?.failureList?.map(item => ({ ...item, type: 'failure' })) || [])
+                ]}
+                columns={[
+                  {
+                    title: 'Mã',
+                    dataIndex: 'code',
+                    key: 'code',
+                    width: 150,
+                  },
+                  {
+                    title: 'Tên',
+                    dataIndex: 'name',
+                    key: 'name',
+                  },
+                  {
+                    title: 'Kết quả',
+                    dataIndex: 'type',
+                    key: 'type',
+                    width: 120,
+                    render: (type) => (
+                      <Tag color={type === 'success' ? 'green' : 'red'}>
+                        {type === 'success' ? 'Thành công' : 'Thất bại'}
+                      </Tag>
+                    )
+                  },
+                  {
+                    title: 'Lý do',
+                    dataIndex: 'reason',
+                    key: 'reason',
+                  }
+                ]}
+                pagination={{ pageSize: 10 }}
+                rowKey={(record, index) => `${record.code}-${index}`}
+              />
+            </div>
+          </div>
+        )}
       </Modal>
     </>
   )

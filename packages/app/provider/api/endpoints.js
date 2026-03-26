@@ -235,6 +235,9 @@ export const ENDPOINTS = {
     IMPORT_QUESTIONS: '/Excel/import/questions', // POST: Import câu hỏi từ Excel theo QuestionTypeId
     IMPORT_ACCOUNT: '/Excel/import/account', // POST: Import tài khoản từ Excel
     EXPORT_ACCOUNT: '/Excel/export/account', // GET: Export tài khoản ra Excel
+    IMPORT_QUESTION_TYPES: '/Excel/import/question-types', // POST: Import loại câu hỏi từ Excel
+    EXPORT_QUESTION_TYPES: '/Excel/export/question-types', // GET: Export loại câu hỏi ra Excel
+    TEMPLATE_QUESTION_TYPE: '/Excel/template/question-type', // GET: Tải template mẫu loại câu hỏi
   },
   EMAIL: {
     CAMPAIGNS_CREATE: '/email-campaigns',           // POST: Tạo chiến dịch email thủ công

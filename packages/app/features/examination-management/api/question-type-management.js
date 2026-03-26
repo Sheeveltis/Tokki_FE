@@ -54,3 +54,43 @@ export async function deleteQuestionType(id) {
     handleApiError(error, 'Không thể xóa loại câu hỏi')
   }
 }
+
+/**
+ * Import question types from Excel file
+ * @param {File} file - Excel file to import
+ * @returns {Promise<Object>} Response with successList and failureList
+ */
+export async function importQuestionTypes(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const res = await apiClient.post(ENDPOINTS.EXCEL.IMPORT_QUESTION_TYPES, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+  return res.data
+}
+
+/**
+ * Export all question types to Excel
+ * @returns {Promise<Blob>} Excel file blob
+ */
+export async function exportQuestionTypes() {
+  const res = await apiClient.get(ENDPOINTS.EXCEL.EXPORT_QUESTION_TYPES, {
+    responseType: 'blob',
+  })
+  return res.data
+}
+
+/**
+ * Download Excel template for question types
+ * @returns {Promise<Blob>} Excel template blob
+ */
+export async function downloadTemplateQuestionType() {
+  const res = await apiClient.get(ENDPOINTS.EXCEL.TEMPLATE_QUESTION_TYPE, {
+    responseType: 'blob',
+  })
+  return res.data
+}
+
