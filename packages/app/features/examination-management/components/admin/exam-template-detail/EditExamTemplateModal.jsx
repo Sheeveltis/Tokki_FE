@@ -9,7 +9,6 @@ const { TextArea } = Input
 const examTypeOptions = [
   { value: 'TOPIK I', label: 'TOPIK I' },
   { value: 'TOPIK II', label: 'TOPIK II' },
-  { value: 'Test đầu vào', label: 'Test đầu vào' },
 ]
 
 function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {

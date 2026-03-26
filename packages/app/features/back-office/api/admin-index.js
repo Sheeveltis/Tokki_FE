@@ -406,8 +406,8 @@ export async function fetchExamTemplates(params = {}) {
       Name: item.name,
       description: item.description,
       Description: item.description,
-      examType: item.type === 1 ? 'TOPIK I' : item.type === 2 ? 'TOPIK II' : item.type === 3 ? 'Test đầu vào' : '',
-      ExamType: item.type === 1 ? 'TOPIK I' : item.type === 2 ? 'TOPIK II' : item.type === 3 ? 'Test đầu vào' : '',
+      examType: item.type === 1 ? 'TOPIK I' : item.type === 2 ? 'TOPIK II' : '',
+      ExamType: item.type === 1 ? 'TOPIK I' : item.type === 2 ? 'TOPIK II' : '',
       status: item.status,
       type: item.type,
       totalParts: item.totalParts || 0,
@@ -455,13 +455,12 @@ export async function fetchExamTemplate(examTemplateId) {
     const examTypeMap = {
       1: 'TOPIK I',
       2: 'TOPIK II',
-      3: 'Test đầu vào',
     }
 
     // Map parts từ API format sang format component đang sử dụng
     const transformParts = (parts) => {
       if (!parts || !Array.isArray(parts)) return []
-      
+
       // Group parts theo skill
       const groupedBySkill = {}
       parts.forEach((part) => {
@@ -482,7 +481,7 @@ export async function fetchExamTemplate(examTemplateId) {
           TemplatePartId: part.templatePartId, // Giữ lại để có thể update/delete
         })
       })
-      
+
       // Convert thành mảng parts với QuestionGroups
       return Object.keys(groupedBySkill).map((skill) => ({
         Skill: parseInt(skill),
@@ -518,7 +517,6 @@ export async function updateExamTemplate(examTemplateId, payload) {
     const examTypeToNumber = {
       'TOPIK I': 1,
       'TOPIK II': 2,
-      'Test đầu vào': 3,
     }
 
     // Format payload từ component format sang API format
@@ -555,7 +553,6 @@ export async function updateExamTemplate(examTemplateId, payload) {
     const examTypeMap = {
       1: 'TOPIK I',
       2: 'TOPIK II',
-      3: 'Test đầu vào',
     }
 
     return {
@@ -842,7 +839,6 @@ export async function createExamTemplate(payload) {
     const examTypeToNumber = {
       'TOPIK I': 1,
       'TOPIK II': 2,
-      'Test đầu vào': 3,
     }
 
     // Format payload từ component format sang API format
@@ -862,11 +858,11 @@ export async function createExamTemplate(payload) {
     const responseData = res?.data
     if (!responseData?.isSuccess) {
       // Xử lý error từ API
-      const errorMessage = 
+      const errorMessage =
         responseData?.message ||
         (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
         'Không thể tạo mẫu đề'
-      
+
       // Tạo error object với message
       const error = new Error(errorMessage)
       error.status = responseData?.statusCode || 400

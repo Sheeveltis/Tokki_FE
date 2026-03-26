@@ -23,7 +23,7 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
 
   const [filters, setFilters] = useState({
     search: '',
-    status: 1, // Default status is Published (1)
+    status: null, // Default status is All
     type: null,
     page: 1,
     size: 20,
@@ -311,7 +311,6 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
         <Option value={null}>Tất cả loại đề</Option>
         <Option value={1}>TOPIK I</Option>
         <Option value={2}>TOPIK II</Option>
-        <Option value={3}>Test đầu vào</Option>
       </Select>
     </Space>
   )

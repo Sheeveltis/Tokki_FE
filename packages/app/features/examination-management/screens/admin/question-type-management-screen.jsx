@@ -263,7 +263,6 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
       >
         <Option value={1}>TOPIK I</Option>
         <Option value={2}>TOPIK II</Option>
-        <Option value={3}>Test đầu vào</Option>
       </Select>
     </Space>
   )

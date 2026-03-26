@@ -13,7 +13,6 @@ export const useQuestionTypeColumns = (onView) => {
   const examTypeLabelMap = {
     1: 'TOPIK I',
     2: 'TOPIK II',
-    3: 'Test đầu vào',
   }
 
   return useMemo(() => [

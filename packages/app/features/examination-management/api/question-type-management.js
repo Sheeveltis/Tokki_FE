@@ -28,7 +28,7 @@ export async function fetchQuestionTypeById(id) {
  * @param {string} payload.description - Description
  * @param {number} payload.skill - Skill enum (1: Nghe, 2: Đọc, 3: Viết)
  * @param {number} payload.difficulty - Difficulty enum (1: Dễ, 2: Trung bình, 3: Khó)
- * @param {number} payload.examType - Exam type enum (1: TOPIK I, 2: TOPIK II, 3: Test đầu vào)
+ * @param {number} payload.examType - Exam type enum (1: TOPIK I, 2: TOPIK II)
  * @param {number} payload.status - Status enum (0: Không hoạt động, 1: Hoạt động)
  * @returns {Promise<Object>} Updated question type object
  */
