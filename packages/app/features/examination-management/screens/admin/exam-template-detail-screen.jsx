@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'solito/navigation'
 import { Card, Space, Typography, Spin, Alert, Descriptions, Modal, message, Button, Tooltip, Tag } from 'antd'
-import { QuestionCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
+import { 
+  QuestionCircleOutlined, 
+  CheckCircleOutlined, 
+  CloseCircleOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  InfoCircleOutlined
+} from '@ant-design/icons'
 import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
 import ExamTemplatePartsForm from '../../components/admin/exam-template-detail/ExamTemplatePartsForm.jsx'
 import EditExamTemplateModal from '../../components/admin/exam-template-detail/EditExamTemplateModal.jsx'
@@ -45,6 +52,7 @@ export function ExamTemplateDetailScreen() {
   const [statusChangeModalOpen, setStatusChangeModalOpen] = useState(false)
   const [statusChangeLoading, setStatusChangeLoading] = useState(false)
   const [isPartsDirty, setIsPartsDirty] = useState(false)
+  const [infoCollapsed, setInfoCollapsed] = useState(false)
 
   const currentRole = getCurrentUserRole()
   const isAdmin = currentRole === 'Admin'
@@ -354,13 +362,13 @@ export function ExamTemplateDetailScreen() {
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'flex-start',
+            alignItems: 'center',
             flexWrap: 'wrap',
             gap: 12,
           }}
         >
           <div>
-            <Title level={3} style={{ marginBottom: 4 }}>
+            <Title level={3} style={{ marginBottom: 4, marginTop: 0 }}>
               Chi tiết mẫu đề
             </Title>
             <Text type="secondary">ID: {examTemplate.examTemplateId}</Text>
@@ -408,155 +416,154 @@ export function ExamTemplateDetailScreen() {
           </Space>
         </div>
 
-        {/* Thông tin cơ bản */}
-        <Card
-          size="small"
-          styles={{ body: { padding: '12px 24px' } }}
-          title={<Text strong style={{ fontSize: 16 }}>Thông tin cơ bản</Text>}
-          extra={
-            <Tooltip title="Hướng dẫn Thông tin cơ bản">
-              <QuestionCircleOutlined
-                onClick={() => openGuide('info')}
-                style={{ fontSize: 18, cursor: 'pointer', color: '#8c8c8c' }}
-              />
-            </Tooltip>
-          }
-        >
-          <Descriptions
-            column={{ xs: 1, sm: 2, md: 3 }}
-            size="small"
-            layout="vertical"
-          >
-            <Descriptions.Item label={<Text type="secondary">Tên mẫu đề</Text>}>
-              <Text strong>{examTemplate.name || '-'}</Text>
-            </Descriptions.Item>
-            <Descriptions.Item label={<Text type="secondary">Loại đề</Text>}>
-              <Tag color="processing">{examTemplate.examType || '-'}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label={<Text type="secondary">Trạng thái</Text>}>
-              <Space size="small" align="center">
-                <div
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    backgroundColor: statusMap[examTemplate.status ?? 0]?.colorHex || '#d9d9d9',
-                    boxShadow: `0 0 6px ${statusMap[examTemplate.status ?? 0]?.colorHex || '#d9d9d9'}80`
-                  }}
-                />
-                <Text strong>
-                  {getStatusInfo(examTemplate.status ?? 0).label}
-                </Text>
-                {examTemplate.status === 3 && isAdmin && (
-                  <Space size={4}>
-                    <div
-                      onClick={(e) => {
-                        e?.stopPropagation?.()
-                        handleOpenApprovalModal('approve')
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: approvalLoading ? 'not-allowed' : 'pointer',
-                        padding: '2px 4px',
-                        borderRadius: 4,
-                        transition: 'all 0.2s ease',
-                        opacity: approvalLoading ? 0.5 : 1,
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!approvalLoading) {
-                          e.currentTarget.style.backgroundColor = '#f6ffed'
-                          e.currentTarget.style.transform = 'scale(1.1)'
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!approvalLoading) {
-                          e.currentTarget.style.backgroundColor = 'transparent'
-                          e.currentTarget.style.transform = 'scale(1)'
-                        }
-                      }}
-                      title="Phê duyệt"
-                    >
-                      <CheckCircleOutlined style={{ fontSize: 14, color: '#52c41a' }} />
-                    </div>
-                    <div
-                      onClick={(e) => {
-                        e?.stopPropagation?.()
-                        handleOpenApprovalModal('reject')
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: approvalLoading ? 'not-allowed' : 'pointer',
-                        padding: '2px 4px',
-                        borderRadius: 4,
-                        transition: 'all 0.2s ease',
-                        opacity: approvalLoading ? 0.5 : 1,
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!approvalLoading) {
-                          e.currentTarget.style.backgroundColor = '#fff1f0'
-                          e.currentTarget.style.transform = 'scale(1.1)'
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!approvalLoading) {
-                          e.currentTarget.style.backgroundColor = 'transparent'
-                          e.currentTarget.style.transform = 'scale(1)'
-                        }
-                      }}
-                      title="Từ chối"
-                    >
-                      <CloseCircleOutlined style={{ fontSize: 14, color: '#ff4d4f' }} />
-                    </div>
-                  </Space>
-                )}
-              </Space>
-            </Descriptions.Item>
-            <Descriptions.Item label={<Text type="secondary">Mô tả</Text>} span={2}>
-              {examTemplate.description || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label={<Text type="secondary">Ngày cập nhật</Text>}>
-              {formatDate(examTemplate.updatedAt || examTemplate.createdAt)}
-            </Descriptions.Item>
-          </Descriptions>
-        </Card>
-
-        {/* Quản lý các phần */}
-        <Card
-          size="small"
-          title="Quản lý các phần của đề thi"
-          extra={
-            <Tooltip title="Hướng dẫn Quản lý các phần">
-              <QuestionCircleOutlined
-                onClick={() => openGuide('parts')}
-                style={{ fontSize: 18, cursor: 'pointer' }}
-              />
-            </Tooltip>
-          }
-        >
-          <ExamTemplatePartsForm
-            examTemplateId={examTemplateId}
-            initialParts={examTemplate.Parts || []}
-            examTemplate={examTemplate}
-            onDirtyChange={setIsPartsDirty}
-            onPartsAdded={async () => {
-              // Reload lại dữ liệu exam template sau khi add parts thành công
-              try {
-                setIsPartsDirty(false)
-                setLoading(true)
-                const data = await fetchExamTemplate(examTemplateId)
-                setExamTemplate(data)
-              } catch (err) {
-                message.error(err?.message || 'Không thể tải lại thông tin mẫu đề')
-              } finally {
-                setLoading(false)
+        {/* Main Content Area: Flex Layout */}
+        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          {/* Left Column: Exam Structure */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <Card
+              size="small"
+              title={<Text strong style={{ fontSize: 16 }}>Quản lý các phần của đề thi</Text>}
+              styles={{ body: { padding: '20px 24px' } }}
+              extra={
+                <Tooltip title="Hướng dẫn Quản lý các phần">
+                  <QuestionCircleOutlined
+                    onClick={() => openGuide('parts')}
+                    style={{ fontSize: 18, cursor: 'pointer', color: '#8c8c8c' }}
+                  />
+                </Tooltip>
               }
+            >
+              <ExamTemplatePartsForm
+                examTemplateId={examTemplateId}
+                initialParts={examTemplate.Parts || []}
+                examTemplate={examTemplate}
+                onDirtyChange={setIsPartsDirty}
+                onPartsAdded={async () => {
+                  try {
+                    setIsPartsDirty(false)
+                    setLoading(true)
+                    const data = await fetchExamTemplate(examTemplateId)
+                    setExamTemplate(data)
+                  } catch (err) {
+                    message.error(err?.message || 'Không thể tải lại thông tin mẫu đề')
+                  } finally {
+                    setLoading(false)
+                  }
+                }}
+              />
+            </Card>
+          </div>
+
+          {/* Right Column: Basic Information (Collapsible) */}
+          <div 
+            style={{ 
+              width: infoCollapsed ? 60 : 400, 
+              flexShrink: 0, 
+              transition: 'all 0.3s ease',
+              position: 'sticky',
+              top: 20,
+              zIndex: 10
             }}
-          />
-        </Card>
+          >
+            <Card
+              size="small"
+              title={!infoCollapsed && <Text strong style={{ fontSize: 16 }}>Thông tin cơ bản</Text>}
+              extra={
+                <Space>
+                  {!infoCollapsed && (
+                    <Tooltip title="Hướng dẫn">
+                      <QuestionCircleOutlined
+                        onClick={() => openGuide('info')}
+                        style={{ fontSize: 16, cursor: 'pointer', color: '#8c8c8c' }}
+                      />
+                    </Tooltip>
+                  )}
+                  <Button 
+                    type="text" 
+                    size="small"
+                    icon={infoCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />} 
+                    onClick={() => setInfoCollapsed(!infoCollapsed)}
+                    title={infoCollapsed ? "Mở rộng" : "Thu gọn"}
+                  />
+                </Space>
+              }
+              styles={{ 
+                body: { 
+                  padding: infoCollapsed ? '12px 0' : '16px 20px',
+                  display: infoCollapsed ? 'none' : 'block'
+                } 
+              }}
+              style={{ overflow: 'hidden' }}
+            >
+              {!infoCollapsed && (
+                <Descriptions
+                  column={1}
+                  size="small"
+                  layout="vertical"
+                  bordered
+                  labelStyle={{ backgroundColor: '#fafafa', fontWeight: 600, fontSize: 13 }}
+                  contentStyle={{ fontSize: 13, padding: '8px 12px' }}
+                >
+                  <Descriptions.Item label="Tên mẫu đề">
+                    <Space size="small" align="center">
+                      <Tooltip title={getStatusInfo(examTemplate.status ?? 0).label}>
+                        <div
+                          style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            backgroundColor: statusMap[examTemplate.status ?? 0]?.colorHex || '#d9d9d9',
+                            boxShadow: `0 0 6px ${statusMap[examTemplate.status ?? 0]?.colorHex || '#d9d9d9'}80`,
+                            cursor: 'default'
+                          }}
+                        />
+                      </Tooltip>
+                      <Text strong>{examTemplate.name || '-'}</Text>
+                      
+                      {examTemplate.status === 3 && isAdmin && (
+                        <Space size={4} style={{ marginLeft: 8 }}>
+                          <Tooltip title="Phê duyệt">
+                            <CheckCircleOutlined 
+                              style={{ color: '#52c41a', cursor: 'pointer', fontSize: 13 }} 
+                              onClick={() => handleOpenApprovalModal('approve')}
+                            />
+                          </Tooltip>
+                          <Tooltip title="Từ chối">
+                            <CloseCircleOutlined 
+                              style={{ color: '#ff4d4f', cursor: 'pointer', fontSize: 13 }} 
+                              onClick={() => handleOpenApprovalModal('reject')}
+                            />
+                          </Tooltip>
+                        </Space>
+                      )}
+                    </Space>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Loại đề">
+                    <Tag color="processing" style={{ margin: 0 }}>{examTemplate.examType || '-'}</Tag>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Mô tả">
+                    <div style={{ maxHeight: 100, overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+                      {examTemplate.description || '-'}
+                    </div>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Ngày cập nhật">
+                    {formatDate(examTemplate.updatedAt || examTemplate.createdAt)}
+                  </Descriptions.Item>
+                </Descriptions>
+              )}
+              {infoCollapsed && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, paddingTop: 10 }}>
+                  <Tooltip title="Xem thông tin" placement="left">
+                    <InfoCircleOutlined 
+                      style={{ fontSize: 20, color: '#1890ff', cursor: 'pointer' }} 
+                      onClick={() => setInfoCollapsed(false)}
+                    />
+                  </Tooltip>
+                </div>
+              )}
+            </Card>
+          </div>
+        </div>
       </Space>
 
       {/* Modal chỉnh sửa */}
