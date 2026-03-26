@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
-import { TopikBanner } from '../topik-banner.web'
-import { SkillModulesGrid } from '../skill-modules-grid.web'
+import { TopikBanner } from '@tokki/app/features/study/screens/menu-study/components/topik-banner.web'
+import { SkillModulesGrid } from '@tokki/app/features/study/screens/menu-study/components/skill-modules-grid.web'
 import { LoginRequest } from 'components/loginRequest'
 
 /**

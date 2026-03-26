@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { View, StyleSheet, Text, TouchableOpacity, TextInput, Platform, Image } from 'react-native'
-import { submitSpacedRepetition } from '../api'
-import { NavigationPill } from '../components/navigation-pill'
-import ArrowIcon from '../assets/icon/icon-mainflow/arrow.svg'
-import SoundIcon from '../assets/icon/icon-mainflow/sound.svg'
-import CheckedIcon from '../assets/checked.png'
-import IncorrectIcon from '../assets/incorrect.png'
-import { normalizeImageSource } from '../api'
-
-import CorrectSound from '../assets/sound-effect/correct.wav'
-import WrongSound from '../assets/sound-effect/wrong.wav'
+import { submitSpacedRepetition } from '@tokki/app/features/study/api'
+import { NavigationPill } from 'components/navigation-pill'
+import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
+import SoundIcon from 'assets/icon/icon-mainflow/sound.svg'
+import CheckedIcon from 'assets/checked.png'
+import IncorrectIcon from 'assets/incorrect.png'
+import { normalizeImageSource } from '@tokki/app/features/study/api'
+import CorrectSound from 'assets/sound-effect/correct.wav'
+import WrongSound from 'assets/sound-effect/wrong.wav'
 
 // Import expo-av cho mobile (nếu có)
 let ExpoAudio = null

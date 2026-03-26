@@ -1,13 +1,12 @@
 import React from 'react'
 import { View, Text, StyleSheet, ScrollView, Platform, Pressable } from 'react-native'
-import { Navbar } from '../../../../../../../components/navbar'
-import { QuickLevelTestButton } from '../../../../components/quick-level-test-button.web'
-import { StudyStatsCards } from '../../../../components/study-stats-cards.web'
+import { Navbar } from 'components/navbar'
+import { QuickLevelTestButton } from '@tokki/app/features/study/components/quick-level-test-button.web'
+import { StudyStatsCards } from '@tokki/app/features/study/components/study-stats-cards.web'
 import { useRouter } from 'solito/navigation'
-import { studyStyles } from '../../../../styles'
 
 /**
- * MenuStudyLayout (Web): Bố cục trang menu học tập hiện đại theo phong cách dashboard
+ * MenuStudyLayout (Web): Bố cục trang menu học tập đồng bộ với phong cách Roadmap Dashboard
  */
 export function MenuStudyLayout({
   children,
@@ -20,71 +19,82 @@ export function MenuStudyLayout({
   const router = useRouter()
 
   return (
-    <View style={styles.container}>
+    <View style={styles.wrapper}>
       <Navbar />
 
-      <View style={styles.mainWrapper}>
-        {/* Header Navigation - Synchronized with Roadmap Dashboard Style */}
-        <View style={styles.header}>
-          <View style={styles.headerInner}>
-            <View style={styles.headerLeft}>
-              <Pressable 
-                onPress={onBackPress} 
-                style={({ pressed }) => [styles.exitButton, pressed && styles.actionButtonPressed]}
-              >
-                <Text style={styles.exitIcon}>←</Text>
-                <Text style={styles.exitText}>Trở lại</Text>
-              </Pressable>
-              <View style={styles.headerDivider} />
-              <View style={styles.breadcrumb}>
+      <View style={styles.mainContainer}>
+        <View style={styles.mainWrapper}>
+          {/* Top Bar Navigation - Synchronized with Roadmap */}
+          <View style={styles.topNavigation}>
+            <View style={styles.breadcrumb}>
+              <Pressable onPress={onBackPress} style={styles.breadcrumbItem}>
                 <Text style={styles.breadcrumbText}>Học tập</Text>
-                <Text style={styles.breadcrumbDivider}>/</Text>
-                <Text style={[styles.breadcrumbText, styles.breadcrumbActive]}>Chọn kỹ năng</Text>
-              </View>
-            </View>
-
-            <View style={styles.dashboardTitle}>
-              <View style={styles.titleBadge}>
-                <Text style={styles.titleBadgeText}>HỆ THỐNG HỌC TẬP</Text>
-              </View>
-              <Text style={styles.mainTitle}>TOPIK LEVEL {levelId}</Text>
-            </View>
-
-            <View style={styles.headerRight}>
-              <View style={styles.scoreBadge}>
-                <Text style={styles.scoreLabel}>TIẾN ĐỘ</Text>
-                <Text style={styles.scoreValue}>{lessonsLearned || 0}%</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Dashboard Content Area */}
-        <View style={styles.dashboardBody}>
-          {/* Left Column: Quick Actions */}
-          <View style={styles.leftColumn}>
-            <View style={styles.columnCard}>
-              <Text style={styles.columnLabel}>KIỂM TRA NHANH</Text>
-              <QuickLevelTestButton onPress={onQuickTestPress} />
+              </Pressable>
+              <Text style={styles.breadcrumbDivider}>/</Text>
+              <Text style={[styles.breadcrumbText, styles.breadcrumbActive]}>Chọn kỹ năng</Text>
             </View>
           </View>
 
-          {/* Center Column: Main Content (Banners + Grid) */}
-          <View style={styles.centerColumn}>
-            <ScrollView 
-              style={styles.mainScroll} 
-              contentContainerStyle={styles.mainScrollContent}
-              showsVerticalScrollIndicator={false}
-            >
-              {children}
-            </ScrollView>
+          {/* Hero Header Section - Synchronized with Roadmap */}
+          <View style={styles.heroSection}>
+            <View style={styles.headerTop}>
+              <View style={styles.headerText}>
+                <View style={styles.badgeRow}>
+                  <View style={styles.phaseBadge}>
+                    <Text style={styles.phaseBadgeText}>HỆ THỐNG HỌC TẬP</Text>
+                  </View>
+                  <View style={[styles.levelBadge, { backgroundColor: '#FF6B6B' }]}>
+                    <Text style={styles.levelBadgeText}>Level {levelId}</Text>
+                  </View>
+                </View>
+                <View style={styles.heroTitleRow}>
+                  <Text style={styles.mainTitle}>Chương trình học TOPIK</Text>
+                </View>
+                <Text style={styles.subtitle}>Lựa chọn kỹ năng bạn muốn rèn luyện hôm nay để chinh phục điểm số cao nhất.</Text>
+              </View>
+
+              <View style={styles.headerActions}>
+                <View style={styles.scoreBadge}>
+                  <Text style={styles.scoreLabel}>TIẾN ĐỘ TỔNG THỂ</Text>
+                  <View style={styles.scoreValueRow}>
+                    <Text style={styles.scoreValue}>{lessonsLearned || 0}%</Text>
+                    <View style={styles.miniProgressTrack}>
+                      <View style={[styles.miniProgressBar, { width: `${lessonsLearned || 0}%` }]} />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
           </View>
 
-          {/* Right Column: User Stats */}
-          <View style={styles.rightColumn}>
-            <View style={styles.columnCard}>
-              <Text style={styles.columnLabel}>THỐNG KÊ CÁ NHÂN</Text>
-              <StudyStatsCards lessonsLearned={lessonsLearned} streakDays={streakDays} />
+          {/* Main Dashboard - Sidebar Layout */}
+          <View style={styles.dashboardContainer}>
+            {/* Sidebar bên trái: Actions & Stats */}
+            <View style={styles.sidebar}>
+              <View style={styles.sidebarSection}>
+                <Text style={styles.sidebarTitle}>CÔNG CỤ HỖ TRỢ</Text>
+                <View style={styles.columnCard}>
+                  <QuickLevelTestButton onPress={onQuickTestPress} />
+                </View>
+              </View>
+
+              <View style={styles.sidebarSection}>
+                <Text style={styles.sidebarTitle}>THỐNG KÊ CÁ NHÂN</Text>
+                <View style={styles.columnCard}>
+                  <StudyStatsCards lessonsLearned={lessonsLearned} streakDays={streakDays} />
+                </View>
+              </View>
+            </View>
+
+            {/* Content Card bên phải */}
+            <View style={styles.contentCard}>
+              <ScrollView 
+                style={styles.contentCardScroll} 
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.contentCardInner}
+              >
+                {children}
+              </ScrollView>
             </View>
           </View>
         </View>
@@ -94,67 +104,38 @@ export function MenuStudyLayout({
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
     height: '100vh',
+    backgroundColor: '#FAFAFA',
     overflow: 'hidden',
   },
+  mainContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
   mainWrapper: {
+    width: '100%',
+    maxWidth: 1600,
     flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  header: {
-    height: 90,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-    justifyContent: 'center',
+    paddingTop: 24,
     paddingHorizontal: 32,
-    zIndex: 10,
-    ...(Platform.OS === 'web' && { boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }),
-  },
-  headerInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 20,
-    flex: 1,
+    overflow: 'hidden',
   },
-  exitButton: {
+  topNavigation: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: '#F9F9F9',
-  },
-  exitIcon: {
-    fontSize: 18,
-    color: '#333',
-    fontWeight: '700',
-  },
-  exitText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#333',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  headerDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: '#EEE',
+    paddingHorizontal: 4,
   },
   breadcrumb: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  breadcrumbItem: {
+    ...(Platform.OS === 'web' && { cursor: 'pointer' }),
   },
   breadcrumbText: {
     fontSize: 13,
@@ -170,100 +151,162 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
     fontWeight: '700',
   },
-  dashboardTitle: {
-    flex: 1,
+  heroSection: {
+    gap: 20,
+    paddingHorizontal: 4,
+    marginBottom: 10,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 4,
+    gap: 16,
+    flexWrap: 'wrap',
   },
-  titleBadge: {
-    backgroundColor: '#FFF2CC',
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-    borderRadius: 4,
+  headerText: {
+    flex: 1,
+    gap: 8,
+    minWidth: 300,
   },
-  titleBadgeText: {
-    fontSize: 10,
+  badgeRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 4,
+  },
+  phaseBadge: {
+    backgroundColor: '#F5F5F5',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+  },
+  phaseBadgeText: {
+    fontSize: 11,
     fontWeight: '800',
-    color: '#C28A04',
-    letterSpacing: 1,
+    color: '#666',
+    textTransform: 'uppercase',
+  },
+  levelBadge: {
+    backgroundColor: '#1A1A1A',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+  },
+  levelBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#FFF',
+    textTransform: 'uppercase',
+  },
+  heroTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   mainTitle: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: '900',
     color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
-    letterSpacing: -0.5,
+    lineHeight: 40,
+    letterSpacing: -1,
   },
-  headerRight: {
-    flex: 1,
+  subtitle: {
+    fontSize: 15,
+    color: '#666',
+    fontWeight: '500',
+    fontFamily: 'Epilogue, sans-serif',
+    maxWidth: 600,
+    lineHeight: 22,
+  },
+  headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end',
   },
   scoreBadge: {
-    alignItems: 'flex-end',
-    backgroundColor: '#F1F9F1',
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E1EEDD',
+    borderColor: '#F0F0F0',
+    minWidth: 200,
+    gap: 8,
+    ...(Platform.OS === 'web' && { boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }),
   },
   scoreLabel: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#4CAF50',
+    color: '#999',
     letterSpacing: 0.5,
   },
-  scoreValue: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#2E7D32',
-  },
-  dashboardBody: {
-    flex: 1,
+  scoreValueRow: {
     flexDirection: 'row',
-    padding: 24,
-    gap: 24,
-    backgroundColor: '#FAF9F6',
+    alignItems: 'center',
+    gap: 12,
   },
-  leftColumn: {
-    width: 280,
-    display: Platform.OS === 'web' ? 'flex' : 'none',
+  scoreValue: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
   },
-  rightColumn: {
-    width: 320,
-    display: Platform.OS === 'web' ? 'flex' : 'none',
-  },
-  centerColumn: {
+  miniProgressTrack: {
     flex: 1,
+    height: 6,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  miniProgressBar: {
     height: '100%',
+    backgroundColor: '#4CAF50',
+    borderRadius: 3,
+  },
+  dashboardContainer: {
+    flexDirection: 'row',
+    gap: 24,
+    flex: 1,
+    overflow: 'hidden',
+    paddingBottom: 10,
+  },
+  sidebar: {
+    width: 280,
+    height: '100%',
+    gap: 24,
+  },
+  sidebarSection: {
+    gap: 12,
+  },
+  sidebarTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#999',
+    letterSpacing: 1.5,
+    paddingHorizontal: 12,
   },
   columnCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    padding: 24,
+    padding: 20,
     borderWidth: 1,
     borderColor: '#F0F0F0',
     gap: 20,
     ...(Platform.OS === 'web' && { boxShadow: '0 8px 30px rgba(0,0,0,0.02)' }),
   },
-  columnLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#999',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+  contentCard: {
+    flex: 1,
+    height: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    overflow: 'hidden',
+    ...(Platform.OS === 'web' && { boxShadow: '0 10px 40px rgba(0,0,0,0.03)' }),
   },
-  mainScroll: {
+  contentCardScroll: {
     flex: 1,
   },
-  mainScrollContent: {
+  contentCardInner: {
+    padding: 32,
     gap: 24,
-    paddingBottom: 40,
-  },
-  actionButtonPressed: {
-    transform: [{ scale: 0.98 }],
-    opacity: 0.8,
   },
 })

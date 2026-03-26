@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet, Platform } from 'react-native'
-import { NavbarMobile } from '../components/navbar-mobile'
+import { NavbarMobile } from 'components/navbar-mobile'
 
 /**
  * LearnedVocabularyListLayout (Mobile): Layout cho trang danh sách từ vựng đã học trên mobile

@@ -1,12 +1,12 @@
 import React from 'react'
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native'
-import { NavigationPill } from '../components/navigation-pill'
-import ArrowIcon from '../assets/icon/icon-mainflow/arrow.svg'
-import StarIcon from '../assets/icon/icon-mainflow/star.svg'
-import { FlipCardMobile } from '../components/FlipCardMobile'
-import { normalizeImageSource } from '../api'
-import { studyStyles } from '../styles'
-import { LoadingWithContainer } from '../components/Loading'
+import { NavigationPill } from 'components/navigation-pill'
+import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
+import StarIcon from 'assets/icon/icon-mainflow/star.svg'
+import { FlipCardMobile } from 'components/FlipCardMobile'
+import { normalizeImageSource } from '@tokki/app/features/study/api'
+import { studyStyles } from '@tokki/app/features/study/styles'
+import { LoadingWithContainer } from 'components/Loading'
 
 /**
  * FlashcardLearnMain (Mobile): Nội dung chính của trang học flashcard trên mobile

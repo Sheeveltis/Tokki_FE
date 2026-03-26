@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Platform } from 'react-native'
-import { getFlashcardTopics } from '../api'
-import { getUserLevel } from '../authentication/api'
-import { getStorageItem, setStorageItem } from '../helpers/storage'
+import { getFlashcardTopics } from '@tokki/app/features/study/api'
+import { getUserLevel } from '@tokki/app/features/authentication/api'
+import { getStorageItem, setStorageItem } from '@tokki/app/helpers/storage'
 
 // Import useFocusEffect chỉ trên mobile (React Navigation)
 let useFocusEffect = null

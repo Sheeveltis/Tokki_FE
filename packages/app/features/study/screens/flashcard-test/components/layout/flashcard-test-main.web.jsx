@@ -1,10 +1,10 @@
 import React from 'react'
 import { View, Text, StyleSheet, Pressable, Image, ScrollView, Platform, TouchableOpacity } from 'react-native'
-import CloseIcon from '../assets/icon/icon-mainflow/arrow.svg'
-import SettingIcon from '../assets/icon/icon-mainflow/setting.svg'
+import CloseIcon from 'assets/icon/icon-mainflow/arrow.svg'
+import SettingIcon from 'assets/icon/icon-mainflow/setting.svg'
 import { QuestionCard, TypeAnswerCard, SettingsModal } from '../index'
-import { normalizeImageSource } from '../api'
-import { LoadingWithContainer } from '../components/Loading'
+import { normalizeImageSource } from '@tokki/app/features/study/api'
+import { LoadingWithContainer } from 'components/Loading'
 
 /**
  * FlashcardTestMain (Web): Nội dung chính của trang test flashcard trên web

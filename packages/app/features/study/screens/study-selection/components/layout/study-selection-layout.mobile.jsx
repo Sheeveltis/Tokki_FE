@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet, ScrollView } from 'react-native'
-import { NavbarMobile } from '../components/navbar-mobile'
+import { NavbarMobile } from 'components/navbar-mobile'
 
 /**
  * StudySelectionLayout (Mobile): Bố cục trang chọn lộ trình học cho mobile

@@ -2,7 +2,7 @@ import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import { TopikBanner } from '../topik-banner.web'
 import { SkillModulesGrid } from '../skill-modules-grid.web'
-import { LoginRequest } from '../components/loginRequest'
+import { LoginRequest } from 'components/loginRequest'
 
 /**
  * MenuStudyMain (Mobile): Nội dung chính của trang menu học tập

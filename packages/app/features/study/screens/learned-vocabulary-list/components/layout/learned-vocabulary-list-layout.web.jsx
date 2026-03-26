@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
-import { Navbar } from '../components/navbar'
+import { Navbar } from 'components/navbar'
 
 /**
  * LearnedVocabularyListLayout (Web): Layout cho trang danh sách từ vựng đã học trên web

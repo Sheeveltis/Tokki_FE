@@ -1,20 +1,20 @@
 import React, { useEffect, useRef } from 'react'
 import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image, Modal, Dimensions, Platform } from 'react-native'
-import { NavigationPill } from '../components/navigation-pill'
-import ArrowIcon from '../assets/icon/icon-mainflow/arrow.svg'
-import { normalizeImageSource } from '../api'
-import { studyStyles } from '../styles'
-import { LoadingWithContainer } from '../components/Loading'
-import { FlipCardMobile } from '../components/FlipCardMobile'
-import SoundIcon from '../assets/icon/icon-mainflow/sound.svg'
+import { NavigationPill } from 'components/navigation-pill'
+import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
+import { normalizeImageSource } from '@tokki/app/features/study/api'
+import { studyStyles } from '@tokki/app/features/study/styles'
+import { LoadingWithContainer } from 'components/Loading'
+import { FlipCardMobile } from 'components/FlipCardMobile'
+import SoundIcon from 'assets/icon/icon-mainflow/sound.svg'
 // Import sound effects - sử dụng require() cho React Native
 // Trong React Native, require() trả về một số (module ID) hoặc object
 let CorrectSfx = null
 let WrongSfx = null
 
 try {
-  const correctModule = require('../../../../../../assets/sound-effect/correct.wav')
-  const wrongModule = require('../../../../../../assets/sound-effect/wrong.wav')
+  const correctModule = require('assets/sound-effect/correct.wav')
+  const wrongModule = require('assets/sound-effect/wrong.wav')
   
   // Xử lý các trường hợp khác nhau của require()
   // Trường hợp 1: require() trả về number trực tiếp (module ID)
@@ -49,8 +49,8 @@ try {
   // Thử load lại với đường dẫn khác nếu có thể
   try {
     // Fallback: thử với đường dẫn từ root
-    CorrectSfx = require('../../../../../assets/sound-effect/correct.wav')
-    WrongSfx = require('../../../../../assets/sound-effect/wrong.wav')
+    CorrectSfx = require('assets/sound-effect/correct.wav')
+    WrongSfx = require('assets/sound-effect/wrong.wav')
   } catch (e2) {
     // Fallback failed
   }

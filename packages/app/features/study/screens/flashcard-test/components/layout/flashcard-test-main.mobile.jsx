@@ -1,9 +1,9 @@
 import React from 'react'
 import { View, Text, StyleSheet, Pressable, Image, ScrollView } from 'react-native'
-import CloseIcon from '../assets/icon/icon-mainflow/arrow.svg'
+import CloseIcon from 'assets/icon/icon-mainflow/arrow.svg'
 import { QuestionCard, TypeAnswerCard } from '../index'
-import { normalizeImageSource } from '../api'
-import { LoadingWithContainer } from '../components/Loading'
+import { normalizeImageSource } from '@tokki/app/features/study/api'
+import { LoadingWithContainer } from 'components/Loading'
 
 /**
  * FlashcardTestMain (Mobile): Nội dung chính của trang test flashcard trên mobile

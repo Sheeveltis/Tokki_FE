@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet, Platform } from 'react-native'
-import { NavbarMobile } from '../components/navbar-mobile'
+import { NavbarMobile } from 'components/navbar-mobile'
 
 /**
  * FlashcardListLayout (Mobile): Layout cho trang danh sách flashcard trên mobile

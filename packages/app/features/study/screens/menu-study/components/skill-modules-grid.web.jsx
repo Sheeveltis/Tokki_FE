@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
-import { SKILL_MODULES } from '../../../mockData'
-import { normalizeImageSource } from '../../../api'
+import { SKILL_MODULES } from '@tokki/app/features/study/mockData'
+import { normalizeImageSource } from '@tokki/app/features/study/api'
 
 // Helper function để render icon - hỗ trợ cả SVG component và Image source
 const renderIcon = (icon, style, resizeMode = 'contain') => {
@@ -226,8 +226,8 @@ const styles = StyleSheet.create({
     }),
   },
   itemButtonActive: {
-    backgroundColor: '#1A1A1A',
-    borderColor: '#1A1A1A',
+    backgroundColor: '#F4A950',
+    borderColor: '#F4A950',
   },
   itemIconWrapper: {
     width: 32,
@@ -236,9 +236,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    ...(Platform.OS === 'web' && { boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }),
   },
   itemIconWrapperActive: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
   itemIcon: {
     width: 18,

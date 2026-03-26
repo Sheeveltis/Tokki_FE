@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
-import { normalizeImageSource } from '../api'
-import StarIcon from '../assets/icon/icon-mainflow/star.svg'
+import { normalizeImageSource } from '@tokki/app/features/study/api'
+import StarIcon from 'assets/icon/icon-mainflow/star.svg'
 
 /**
  * QuestionCard: Component hiển thị một câu hỏi trắc nghiệm

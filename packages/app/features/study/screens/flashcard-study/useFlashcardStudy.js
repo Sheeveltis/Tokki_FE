@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getFlashcardsByTopic, getFavoriteVocabularies, addFavorite, removeFavorite } from '../api'
+import { getFlashcardsByTopic, getFavoriteVocabularies, addFavorite, removeFavorite } from '@tokki/app/features/study/api'
 
 /**
  * Hook xử lý logic cho FlashcardStudyScreen

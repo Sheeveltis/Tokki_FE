@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { getLearnedVocabularies } from '../api'
+import { getLearnedVocabularies } from '@tokki/app/features/study/api'
 
 /**
  * Hook xử lý logic cho LearnedVocabularyListScreen

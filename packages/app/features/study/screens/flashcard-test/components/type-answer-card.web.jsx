@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, TextInput, Platform, Pressable, Image } from 'react-native'
-import StarIcon from '../assets/icon/icon-mainflow/star.svg'
-import { normalizeImageSource } from '../api'
+import StarIcon from 'assets/icon/icon-mainflow/star.svg'
+import { normalizeImageSource } from '@tokki/app/features/study/api'
 
 /**
  * TypeAnswerCard: Component hiển thị câu hỏi với chế độ gõ đáp án

@@ -1,10 +1,10 @@
 import React from 'react'
 import { View, StyleSheet, Text, TouchableOpacity, TextInput, Pressable, Platform, Image } from 'react-native'
-import { NavigationPill } from '../components/navigation-pill'
-import ArrowIcon from '../assets/icon/icon-mainflow/arrow.svg'
-import { studyStyles } from '../styles'
-import { LoadingWithContainer } from '../components/Loading'
-import { normalizeImageSource } from '../api'
+import { NavigationPill } from 'components/navigation-pill'
+import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
+import { studyStyles } from '@tokki/app/features/study/styles'
+import { LoadingWithContainer } from 'components/Loading'
+import { normalizeImageSource } from '@tokki/app/features/study/api'
 
 /**
  * LearnedVocabularyListMain (Web): Nội dung chính của trang danh sách từ vựng đã học trên web

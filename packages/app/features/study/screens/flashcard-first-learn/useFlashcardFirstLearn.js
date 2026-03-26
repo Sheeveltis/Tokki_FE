@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Platform } from 'react-native'
-import { completeTopic, getFlashcardsForStudy, submitSpacedRepetitionWithCorrect } from '../api'
+import { completeTopic, getFlashcardsForStudy, submitSpacedRepetitionWithCorrect } from '@tokki/app/features/study/api'
 
 // Import expo-av cho mobile (nếu có)
 let ExpoAudio = null

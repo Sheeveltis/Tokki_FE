@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import { StudyLayout } from './components/study-layout.web'
-import { StudyMain } from './components/study-main.web'
+import { StudyLayout } from '@tokki/app/features/study/components/study-layout.web'
+import { StudyMain } from '@tokki/app/features/study/components/study-main.web'
 import { useRouter } from 'solito/navigation'
 
 /**

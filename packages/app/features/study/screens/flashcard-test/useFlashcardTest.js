@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Platform } from 'react-native'
-import { getFlashcardsByTopic, getFavoriteVocabularies, submitSpacedRepetition } from '../api'
-import KoreanImage from '../assets/icon/icon-mainflow/korean.png'
+import { getFlashcardsByTopic, getFavoriteVocabularies, submitSpacedRepetition } from '@tokki/app/features/study/api'
+import KoreanImage from 'assets/icon/icon-mainflow/korean.png'
 
 /**
  * Hook xử lý logic cho FlashcardTestScreen

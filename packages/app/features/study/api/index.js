@@ -1,6 +1,6 @@
-import { apiClient } from '../../../provider/api/client'
-import { ENDPOINTS } from '../../../provider/api/endpoints'
-import DefaultBunny from '../../../../assets/bunny/14.png'
+import { apiClient } from '@tokki/app/provider/api/client'
+import { ENDPOINTS } from '@tokki/app/provider/api/endpoints'
+import DefaultBunny from 'assets/bunny/14.png'
 
 /**
  * Utility function để normalize image source cho React Native và Web
@@ -101,7 +101,7 @@ export const getFlashcardTopics = async (
   } catch (error) {
     console.error('Error fetching flashcard topics:', error)
     // Fallback về mock data khi có lỗi hoặc backend chưa sẵn sàng
-    const { FLASHCARD_TOPICS } = await import('../../vocabulary/mockData')
+    const { FLASHCARD_TOPICS } = await import('@tokki/app/features/vocabulary/mockData')
 
     if (levelId === undefined || levelId === null || levelId === '') {
       return FLASHCARD_TOPICS
@@ -155,7 +155,7 @@ export const getFlashcardsByTopic = async (topicId) => {
     // Fallback về mock data khi có lỗi (để test trên mobile khi chưa có backend)
     console.warn('Using mock data for topic:', topicId)
     try {
-      const { getMockVocabulariesByTopic } = await import('../../vocabulary/mockData')
+      const { getMockVocabulariesByTopic } = await import('@tokki/app/features/vocabulary/mockData')
       const mockData = getMockVocabulariesByTopic(topicId)
       if (mockData && mockData.length > 0) {
         return mockData
@@ -216,7 +216,7 @@ export const getFlashcardsForStudy = async (topicId, count = 5) => {
     // Fallback về mock data khi có lỗi (để test trên mobile khi chưa có backend)
     console.warn('Using mock data for study topic:', topicId)
     try {
-      const { getMockVocabulariesByTopic } = await import('../../vocabulary/mockData')
+      const { getMockVocabulariesByTopic } = await import('@tokki/app/features/vocabulary/mockData')
       const mockData = getMockVocabulariesByTopic(topicId)
       if (mockData && mockData.length > 0) {
         // Trả về số lượng theo count, nhưng không quá số lượng có sẵn
@@ -286,7 +286,7 @@ export const getFavoriteVocabularies = async ({ pageNumber = 1, pageSize = 100, 
     // Fallback về mock data khi có lỗi (để test trên mobile khi chưa có backend)
     console.warn('Using mock data for favorite vocabularies')
     try {
-      const { getMockFavoriteVocabularies } = await import('../../vocabulary/mockData')
+      const { getMockFavoriteVocabularies } = await import('@tokki/app/features/vocabulary/mockData')
       const mockData = getMockFavoriteVocabularies()
       if (mockData && mockData.length > 0) {
         // Áp dụng pagination và search nếu có
@@ -455,7 +455,7 @@ export const getLearnedVocabularies = async ({ limit = 100 } = {}) => {
     // Fallback về mock data khi có lỗi (để test trên mobile khi chưa có backend)
     console.warn('Using mock data for learned vocabularies')
     try {
-      const { getMockLearnedVocabularies } = await import('../../vocabulary/mockData')
+      const { getMockLearnedVocabularies } = await import('@tokki/app/features/vocabulary/mockData')
       const mockData = getMockLearnedVocabularies()
       if (mockData && mockData.length > 0) {
         // Trả về số lượng theo limit

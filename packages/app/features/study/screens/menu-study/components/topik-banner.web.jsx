@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Pressable, Image, Platform, Animated } from 'react-native'
-import { normalizeImageSource } from '../../../../api'
-
-import BunnyWithCarrot from '../../../../../../../assets/bunny/14.png'
-import BackgroundPattern from '../../../../../../../assets/background1.png'
+import { normalizeImageSource } from '@tokki/app/features/study/api'
+import BunnyWithCarrot from 'assets/bunny/14.png'
+import BackgroundPattern from 'assets/background1.png'
 
 /**
  * TopikBanner: Banner hiện đại với thiết kế cao cấp
@@ -99,16 +98,16 @@ const styles = StyleSheet.create({
     }),
   },
   bannerActive: {
-    borderColor: '#1A1A1A',
-    transform: [{ scale: 0.995 }],
+    borderColor: '#F4A950',
+    transform: [{ scale: 0.998 }],
     ...(Platform.OS === 'web' && {
-      boxShadow: '0 15px 45px rgba(0,0,0,0.1)',
+      boxShadow: '0 20px 50px rgba(0,0,0,0.06)',
     }),
   },
   bgContainer: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 0,
-    ...(Platform.OS === 'web' && { transition: 'background-color 0.3s ease' }),
+    ...(Platform.OS === 'web' && { transition: 'background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }),
   },
   pattern: {
     ...StyleSheet.absoluteFillObject,
@@ -149,22 +148,26 @@ const styles = StyleSheet.create({
   actionBadge: {
     backgroundColor: '#F7F7F7',
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     borderRadius: 100,
     borderWidth: 1,
     borderColor: '#F0F0F0',
+    minWidth: 120,
+    alignItems: 'center',
+    ...(Platform.OS === 'web' && { transition: 'all 0.3s ease' }),
   },
   actionBadgeActive: {
-    backgroundColor: '#FFCF6C',
-    borderColor: '#FFCF6C',
+    backgroundColor: '#F4A950',
+    borderColor: '#F4A950',
+    ...(Platform.OS === 'web' && { boxShadow: '0 8px 20px rgba(244,169,80,0.2)' }),
   },
   actionText: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#333',
+    color: '#999',
     letterSpacing: 1,
   },
   actionTextActive: {
-    color: '#000',
+    color: '#FFFFFF',
   },
 })
