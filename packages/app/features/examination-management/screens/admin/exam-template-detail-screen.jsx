@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'solito/navigation'
-import { Card, Space, Typography, Spin, Alert, Descriptions, Modal, message, Button, Tooltip } from 'antd'
+import { Card, Space, Typography, Spin, Alert, Descriptions, Modal, message, Button, Tooltip, Tag } from 'antd'
 import { QuestionCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
 import ExamTemplatePartsForm from '../../components/admin/exam-template-detail/ExamTemplatePartsForm.jsx'
@@ -331,7 +331,7 @@ export function ExamTemplateDetailScreen() {
 
   return (
     <div>
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+      <Space orientation="vertical" size="large" style={{ width: '100%' }}>
         {/* Header */}
         <div
           style={{
@@ -394,46 +394,44 @@ export function ExamTemplateDetailScreen() {
         {/* Thông tin cơ bản */}
         <Card
           size="small"
-          title="Thông tin cơ bản"
+          styles={{ body: { padding: '12px 24px' } }}
+          title={<Text strong style={{ fontSize: 16 }}>Thông tin cơ bản</Text>}
           extra={
             <Tooltip title="Hướng dẫn Thông tin cơ bản">
               <QuestionCircleOutlined
                 onClick={() => openGuide('info')}
-                style={{ fontSize: 18, cursor: 'pointer' }}
+                style={{ fontSize: 18, cursor: 'pointer', color: '#8c8c8c' }}
               />
             </Tooltip>
           }
         >
           <Descriptions
-            column={{ xs: 1, sm: 2 }}
-            bordered
+            column={{ xs: 1, sm: 2, md: 3 }}
             size="small"
+            layout="vertical"
           >
-            <Descriptions.Item label="Tên mẫu đề">
-              {examTemplate.name || '-'}
+            <Descriptions.Item label={<Text type="secondary">Tên mẫu đề</Text>}>
+              <Text strong>{examTemplate.name || '-'}</Text>
             </Descriptions.Item>
-            <Descriptions.Item label="Loại đề">
-              {examTemplate.examType || '-'}
+            <Descriptions.Item label={<Text type="secondary">Loại đề</Text>}>
+              <Tag color="processing">{examTemplate.examType || '-'}</Tag>
             </Descriptions.Item>
-            <Descriptions.Item label="Mô tả">
-              {examTemplate.description || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="Trạng thái">
-              <Space size="middle" align="center">
+            <Descriptions.Item label={<Text type="secondary">Trạng thái</Text>}>
+              <Space size="small" align="center">
                 <div
                   style={{
-                    width: 10,
-                    height: 10,
+                    width: 8,
+                    height: 8,
                     borderRadius: '50%',
                     backgroundColor: statusMap[examTemplate.status ?? 0]?.colorHex || '#d9d9d9',
                     boxShadow: `0 0 6px ${statusMap[examTemplate.status ?? 0]?.colorHex || '#d9d9d9'}80`
                   }}
                 />
-                <Text style={{ fontWeight: 500 }}>
+                <Text strong>
                   {getStatusInfo(examTemplate.status ?? 0).label}
                 </Text>
                 {examTemplate.status === 3 && isAdmin && (
-                  <>
+                  <Space size={4}>
                     <div
                       onClick={(e) => {
                         e?.stopPropagation?.()
@@ -452,7 +450,7 @@ export function ExamTemplateDetailScreen() {
                       onMouseEnter={(e) => {
                         if (!approvalLoading) {
                           e.currentTarget.style.backgroundColor = '#f6ffed'
-                          e.currentTarget.style.transform = 'scale(1.2)'
+                          e.currentTarget.style.transform = 'scale(1.1)'
                         }
                       }}
                       onMouseLeave={(e) => {
@@ -463,7 +461,7 @@ export function ExamTemplateDetailScreen() {
                       }}
                       title="Phê duyệt"
                     >
-                      <CheckCircleOutlined style={{ fontSize: 16, color: '#52c41a', transition: 'color 0.2s ease' }} />
+                      <CheckCircleOutlined style={{ fontSize: 14, color: '#52c41a' }} />
                     </div>
                     <div
                       onClick={(e) => {
@@ -483,7 +481,7 @@ export function ExamTemplateDetailScreen() {
                       onMouseEnter={(e) => {
                         if (!approvalLoading) {
                           e.currentTarget.style.backgroundColor = '#fff1f0'
-                          e.currentTarget.style.transform = 'scale(1.2)'
+                          e.currentTarget.style.transform = 'scale(1.1)'
                         }
                       }}
                       onMouseLeave={(e) => {
@@ -494,16 +492,16 @@ export function ExamTemplateDetailScreen() {
                       }}
                       title="Từ chối"
                     >
-                      <CloseCircleOutlined style={{ fontSize: 16, color: '#ff4d4f', transition: 'color 0.2s ease' }} />
+                      <CloseCircleOutlined style={{ fontSize: 14, color: '#ff4d4f' }} />
                     </div>
-                  </>
+                  </Space>
                 )}
               </Space>
             </Descriptions.Item>
-            <Descriptions.Item label="Ngày tạo">
-              {formatDate(examTemplate.createdAt)}
+            <Descriptions.Item label={<Text type="secondary">Mô tả</Text>} span={2}>
+              {examTemplate.description || '-'}
             </Descriptions.Item>
-            <Descriptions.Item label="Ngày cập nhật">
+            <Descriptions.Item label={<Text type="secondary">Ngày cập nhật</Text>}>
               {formatDate(examTemplate.updatedAt || examTemplate.createdAt)}
             </Descriptions.Item>
           </Descriptions>

@@ -77,7 +77,7 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
       onCancel={handleCancelClick}
       onOk={handleOk}
       confirmLoading={loading}
-      okText="Cập nhật"
+      okText="Lưu"
       cancelText="Hủy"
       width={600}
       destroyOnClose
