@@ -1,5 +1,6 @@
 import React from 'react'
-import { View, Text, StyleSheet, Pressable, Image, ScrollView, Platform, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, Pressable, ScrollView, Platform, TouchableOpacity } from 'react-native'
+import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
 import CloseIcon from 'assets/icon/icon-mainflow/arrow.svg'
 import SettingIcon from 'assets/icon/icon-mainflow/setting.svg'
 import { QuestionCard, TypeAnswerCard, SettingsModal } from '../index'
@@ -124,7 +125,8 @@ export function FlashcardTestMain({
               <View style={[styles.progressFill, { width: `${enableParts ? currentPartProgress : progress}%` }]} />
             </View>
             <Text style={styles.progressNumber}>
-              {enableParts ? currentPartQuestions.length : questions.length}
+              {enableParts ? currentQuestionIndex + 1 : currentQuestionIndex + 1} 
+              <Text style={{ fontSize: 13, color: '#999', fontWeight: '400' }}> / {enableParts ? currentPartQuestions.length : questions.length}</Text>
             </Text>
           </View>
           
@@ -143,17 +145,13 @@ export function FlashcardTestMain({
               style={styles.settingButton}
               onPress={onOpenSettings}
             >
-              <Image
-                source={normalizeImageSource(SettingIcon)}
-                style={styles.settingIcon}
-                resizeMode="contain"
+              <StudyIcon
+                source={SettingIcon}
+                width={20}
+                height={20}
+                tintColor="#F1BE4B"
               />
             </TouchableOpacity>
-          )}
-          {onClose && (
-            <Pressable style={styles.closeButton} onPress={onClose}>
-              <Text style={styles.closeButtonText}>✕</Text>
-            </Pressable>
           )}
         </View>
       </View>

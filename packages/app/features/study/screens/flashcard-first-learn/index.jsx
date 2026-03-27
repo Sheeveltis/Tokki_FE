@@ -116,7 +116,12 @@ export function FlashcardFirstLearnScreen({
   }, [allWordsCompleted, showContinueDialog, safeBack])
 
   return (
-    <Layout>
+    <Layout
+      levelId={route?.params?.levelId || 1}
+      onBackPress={handleBackPress}
+      lessonsLearned={30}
+      streakDays={30}
+    >
       <Main
         title={title}
         current={current}

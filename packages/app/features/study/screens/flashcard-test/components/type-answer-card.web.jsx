@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, TextInput, Platform, Pressable, Image } from 'react-native'
+import { View, Text, StyleSheet, TextInput, Platform, Pressable } from 'react-native'
+import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
 import StarIcon from 'assets/icon/icon-mainflow/star.svg'
-import { normalizeImageSource } from '@tokki/app/features/study/api'
 
 /**
  * TypeAnswerCard: Component hiển thị câu hỏi với chế độ gõ đáp án
@@ -61,16 +61,12 @@ export function TypeAnswerCard({
           onToggleFavorite()
         }}
       >
-        <Image
-          source={normalizeImageSource(iconToUse)}
-          style={[
-            styles.starIcon,
-            {
-              tintColor: isFavorite ? '#F1BE4B' : '#FFFFFF',
-              opacity: isFavorite ? 1 : 0.5,
-            }
-          ]}
-          resizeMode="contain"
+        <StudyIcon
+          source={iconToUse}
+          width={28}
+          height={28}
+          tintColor={isFavorite ? '#F1BE4B' : '#FFFFFF'}
+          style={{ opacity: isFavorite ? 1 : 0.5 }}
         />
       </Pressable>
     )

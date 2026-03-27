@@ -52,48 +52,17 @@ export function LearnedVocabularyListMain({
   // Render error state
   if (error && vocabularies.length === 0) {
     return (
-      <>
-        <View style={styles.headerTop}>
-          <View style={styles.backBtn}>
-            <NavigationPill
-              label="Quay lại"
-              icon={ArrowIcon}
-              iconStyle={{ transform: [{ scaleX: -1 }] }}
-              onPress={onBackPress}
-              textStyle={{ fontWeight: '700' }}
-            />
-          </View>
-        </View>
-        <View style={styles.titleContainer}>
-          {title ? <Text style={styles.title}>{title}</Text> : null}
-        </View>
-        <View style={styles.errorContainer}>
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-          <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
-            <Text style={styles.retryButtonText}>Thử lại</Text>
-          </TouchableOpacity>
-        </View>
-      </>
+      <View style={styles.errorContainer}>
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
+          <Text style={styles.retryButtonText}>Thử lại</Text>
+        </TouchableOpacity>
+      </View>
     )
   }
 
   return (
     <>
-      <View style={styles.headerTop}>
-        <View style={styles.backBtn}>
-          <NavigationPill
-            label="Quay lại"
-            to={undefined}
-            icon={ArrowIcon}
-            iconStyle={{ transform: [{ scaleX: -1 }] }}
-            onPress={onBackPress}
-            textStyle={{ fontWeight: '700' }}
-          />
-        </View>
-      </View>
-      <View style={styles.titleContainer}>
-        {title ? <Text style={styles.title}>{title}</Text> : null}
-      </View>
 
       {/* Instructions Box */}
       {vocabularies.length > 0 && (

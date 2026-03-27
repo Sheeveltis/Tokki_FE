@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
-import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
-import { normalizeImageSource } from '@tokki/app/features/study/api'
+import { View, Text, StyleSheet, Pressable, Platform } from 'react-native'
+import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
 import StarIcon from 'assets/icon/icon-mainflow/star.svg'
 
 /**
@@ -84,16 +84,12 @@ export function QuestionCard({
           onToggleFavorite()
         }}
       >
-        <Image
-          source={normalizeImageSource(iconToUse)}
-          style={[
-            styles.starIcon,
-            {
-              tintColor: isFavorite ? '#F1BE4B' : '#FFFFFF',
-              opacity: isFavorite ? 1 : 0.5,
-            }
-          ]}
-          resizeMode="contain"
+        <StudyIcon
+          source={iconToUse}
+          width={28}
+          height={28}
+          tintColor={isFavorite ? '#F1BE4B' : '#FFFFFF'}
+          style={{ opacity: isFavorite ? 1 : 0.5 }}
         />
       </Pressable>
     )

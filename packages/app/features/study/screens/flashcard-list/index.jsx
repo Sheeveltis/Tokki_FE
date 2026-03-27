@@ -129,7 +129,15 @@ export function FlashcardListScreen({
   }
 
   return (
-    <Layout>
+    <Layout
+      levelId={routeLevelId}
+      onBackPress={handleBackPress}
+      onQuickTestPress={otherProps.onQuickTestPress}
+      lessonsLearned={otherProps.lessonsLearned}
+      streakDays={otherProps.streakDays}
+      onFavoritesPress={handleFavoritesPress}
+      onLearnedPress={handleLearnedPress}
+    >
       <Main
         title={title}
         topics={topics}

@@ -104,7 +104,12 @@ export function LearnedVocabularyListScreen({
 
   // Chế độ list (mặc định)
   return (
-    <Layout>
+    <Layout
+      levelId={1} // Fallback levelId
+      onBackPress={handleBackPress}
+      lessonsLearned={30}
+      streakDays={30}
+    >
       <Main
         title={title}
         vocabularies={vocabularies}

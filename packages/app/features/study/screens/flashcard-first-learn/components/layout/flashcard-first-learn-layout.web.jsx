@@ -1,35 +1,25 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { Navbar } from 'components/navbar'
+import { StudyLayoutSynchronized } from '@tokki/app/features/study/components/study-layout-synchronized.web'
 
-export function FlashcardFirstLearnLayout({ children }) {
+/**
+ * FlashcardFirstLearnLayout (Web): Layout cho trang học từ vựng lần đầu trên web
+ */
+export function FlashcardFirstLearnLayout({ 
+  children,
+  levelId,
+  onBackPress
+}) {
   return (
-    <View style={styles.root}>
-      <Navbar />
-      <View style={styles.contentWrapper}>{children}</View>
-    </View>
+    <StudyLayoutSynchronized
+      levelId={levelId}
+      onBackPress={onBackPress}
+      title="Học từ mới"
+      subtitle="Tiếp cận những từ vựng mới một cách dễ dàng và hiệu quả."
+      breadcrumbActive="Học mới"
+    >
+      {children}
+    </StudyLayoutSynchronized>
   )
 }
-
-const styles = StyleSheet.create({
-  root: {
-    height: '100vh',
-    flex: 1,
-    backgroundColor: '#FFD7D0',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingVertical: 24,
-  },
-  contentWrapper: {
-    width: '70%',
-    maxWidth: 1200,
-    alignItems: 'center',
-    backgroundColor: '#F5F0DD',
-    paddingVertical: 24,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    gap: 16,
-  },
-})
 
 

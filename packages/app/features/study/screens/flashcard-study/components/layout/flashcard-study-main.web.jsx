@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
-import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
-import { NavigationPill } from 'components/navigation-pill'
+import { View, Text, StyleSheet, Pressable, Platform } from 'react-native'
+import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
 import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
 import StarIcon from 'assets/icon/icon-mainflow/star.svg'
 import { FlashcardActionButton, FlashcardVocabularyList } from '@tokki/app/features/study/components/shared'
@@ -132,137 +132,41 @@ export function FlashcardStudyMain({
   // Error state
   if (error && flashcards.length === 0) {
     return (
-      <>
-        <View style={styles.header}>
-          <NavigationPill
-            label="Trở lại"
-            to={undefined}
-            icon={ArrowIcon}
-            iconStyle={{ transform: [{ scaleX: -1 }] }}
-            onPress={onBackPress}
-            textStyle={{ fontWeight: '700' }}
-          />
-        </View>
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>{error}</Text>
-          <Pressable style={styles.resetButton} onPress={onRetry}>
-            <Text style={styles.resetButtonText}>Thử lại</Text>
-          </Pressable>
-        </View>
-      </>
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>{error}</Text>
+        <Pressable style={styles.resetButton} onPress={onRetry}>
+          <Text style={styles.resetButtonText}>Thử lại</Text>
+        </Pressable>
+      </View>
     )
   }
 
   // Không có từ vựng
   if (!flashcards || flashcards.length === 0) {
     return (
-      <>
-        <View style={styles.header}>
-          <NavigationPill
-            label="Trở lại"
-            to={undefined}
-            icon={ArrowIcon}
-            iconStyle={{ transform: [{ scaleX: -1 }] }}
-            onPress={onBackPress}
-            textStyle={{ fontWeight: '700' }}
-          />
-        </View>
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Chưa có từ vựng nào</Text>
-        </View>
-      </>
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>Chưa có từ vựng nào</Text>
+      </View>
     )
   }
 
   // Hiển thị thông báo khi tất cả thẻ đã học xong
   if (unlearnedCount === 0 && total > 0) {
     return (
-      <>
-        <View style={styles.header}>
-          <NavigationPill
-            label="Trở lại"
-            to={undefined}
-            icon={ArrowIcon}
-            iconStyle={{ transform: [{ scaleX: -1 }] }}
-            onPress={onBackPress}
-            textStyle={{ fontWeight: '700' }}
-          />
-        </View>
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Chúc mừng! Bạn đã hoàn thành tất cả từ vựng!</Text>
-          <Pressable 
-            style={styles.resetButton}
-            onPress={onResetAllLearned}
-          >
-            <Text style={styles.resetButtonText}>Học lại từ đầu</Text>
-          </Pressable>
-        </View>
-      </>
-    )
-  }
-
-  // Hiển thị thông báo khi chưa có thẻ nào
-  if (total === 0) {
-    return (
-      <>
-        <View style={styles.header}>
-          <NavigationPill
-            label="Trở lại"
-            to={undefined}
-            icon={ArrowIcon}
-            iconStyle={{ transform: [{ scaleX: -1 }] }}
-            onPress={onBackPress}
-            textStyle={{ fontWeight: '700' }}
-          />
-        </View>
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Chưa có từ vựng nào</Text>
-        </View>
-      </>
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>Chúc mừng! Bạn đã hoàn thành tất cả từ vựng!</Text>
+        <Pressable 
+          style={styles.resetButton}
+          onPress={onResetAllLearned}
+        >
+          <Text style={styles.resetButtonText}>Học lại từ đầu</Text>
+        </Pressable>
+      </View>
     )
   }
 
   return (
     <>
-      {/* Header with back and title */}
-      <View style={styles.header}>
-        <NavigationPill
-          label="Trở lại"
-          to={undefined}
-          icon={ArrowIcon}
-          iconStyle={{ transform: [{ scaleX: -1 }] }}
-          onPress={onBackPress}
-          textStyle={{ fontWeight: '700' }}
-        />
-        {(onFavoritesPress || onTestPress) && (
-          <View style={styles.headerButtons}>
-            {onFavoritesPress && (
-              <Pressable style={styles.favoritesButton} onPress={onFavoritesPress}>
-                <Image
-                  source={normalizeImageSource(StarIcon)}
-                  style={styles.favoritesIcon}
-                  resizeMode="contain"
-                />
-                <Text style={styles.favoritesButtonText}>Từ vựng yêu thích</Text>
-              </Pressable>
-            )}
-            {onTestPress && (
-              <Pressable style={styles.reviewButton} onPress={onTestPress}>
-                <Image
-                  source={normalizeImageSource(BunnyTest)}
-                  style={styles.reviewIcon}
-                  resizeMode="contain"
-                />
-                <Text style={styles.reviewButtonText}>Ôn tập</Text>
-              </Pressable>
-            )}
-          </View>
-        )}
-      </View>
-      <View>
-        <Text style={styles.title}>{title}</Text>
-      </View>
-
       {/* Flashcard */}
       <View style={styles.cardContainer}>
         <FlipCard
@@ -285,25 +189,24 @@ export function FlashcardStudyMain({
         />
       </View>
 
-      {/* Mark as Learned Button - Đã ẩn */}
-
       {/* Pagination */}
       <View style={styles.pagination}>
         <Pressable style={styles.navBtn} onPress={onPrev}>
-          <Image 
-            source={normalizeImageSource(ArrowIcon)} 
-            style={[styles.navIcon, { transform: [{ scaleX: -1 }] }]} 
-            resizeMode="contain" 
+          <StudyIcon 
+            source={ArrowIcon} 
+            style={{ transform: [{ scaleX: -1 }] }} 
+            width={24}
+            height={24}
           />
         </Pressable>
         <Text style={styles.pageText}>
           {currentIndex + 1} / {unlearnedCount}
         </Text>
         <Pressable style={styles.navBtn} onPress={onNext}>
-          <Image 
-            source={normalizeImageSource(ArrowIcon)} 
-            style={styles.navIcon} 
-            resizeMode="contain" 
+          <StudyIcon 
+            source={ArrowIcon} 
+            width={24}
+            height={24}
           />
         </Pressable>
       </View>

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
-import { View, Text, StyleSheet, Pressable, Image, TouchableOpacity, Animated, Platform } from 'react-native'
-import { NavigationPill } from 'components/navigation-pill'
+import { View, Text, StyleSheet, Pressable, TouchableOpacity, Animated, Platform } from 'react-native'
+import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
 import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
 import StarIcon from 'assets/icon/icon-mainflow/star.svg'
 import CorrectIcon from 'assets/icon/icon-mainflow/correct.svg'
@@ -237,10 +237,11 @@ export function FlashcardLearnMain({
             ]}
             onPress={onShuffle}
           >
-            <Image
-              source={normalizeImageSource(RandomIcon)}
-              style={styles.iconImage}
-              resizeMode="contain"
+            <StudyIcon
+              source={RandomIcon}
+              width={20}
+              height={20}
+              tintColor={colors.neutralBlack}
             />
           </TouchableOpacity>
           <TouchableOpacity
@@ -327,16 +328,17 @@ export function FlashcardLearnMain({
         {/* Status Badge - nằm giữa 2 nút */}
         <View style={styles.statusBadge}>
           {isLearned ? (
-            <Image
-              source={normalizeImageSource(CorrectIcon)}
-              style={[styles.statusIcon, { tintColor: colors.correct }]}
-              resizeMode="contain"
+            <StudyIcon
+              source={CorrectIcon}
+              width={32}
+              height={32}
+              tintColor={colors.correct}
             />
           ) : (
-            <Image
-              source={normalizeImageSource(IncorrectImage)}
-              style={[styles.statusIcon, { tintColor: colors.wrong }]}
-              resizeMode="contain"
+            <StudyIcon
+              source={IncorrectImage}
+              width={32}
+              height={32}
             />
           )}
         </View>

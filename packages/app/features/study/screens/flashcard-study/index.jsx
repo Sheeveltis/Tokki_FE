@@ -99,7 +99,14 @@ export function FlashcardStudyScreen({
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
 
   return (
-    <Layout>
+    <Layout
+      levelId={route?.params?.levelId || 1}
+      onBackPress={handleBackPress}
+      lessonsLearned={30} // Fallback value
+      streakDays={30} // Fallback value
+      onTestPress={onTestPress}
+      onFavoritesPress={onFavoritesPress}
+    >
       <Main
         title={screenTitle}
         flashcards={flashcards}

@@ -1,12 +1,11 @@
 import React, { useEffect, useRef } from 'react'
-import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image, Platform, Modal } from 'react-native'
-import { NavigationPill } from 'components/navigation-pill'
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Platform, Modal, Image as RNImage } from 'react-native'
+import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
 import { normalizeImageSource } from '@tokki/app/features/study/api'
-import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
+import SoundIcon from 'assets/icon/icon-mainflow/sound.svg'
 import { studyStyles } from '@tokki/app/features/study/styles'
 import { LoadingWithContainer } from 'components/Loading'
 import { FlipCard } from 'components/FlipCard'
-import SoundIcon from 'assets/icon/icon-mainflow/sound.svg'
 import CorrectSfx from 'assets/sound-effect/correct.wav'
 import WrongSfx from 'assets/sound-effect/wrong.wav'
 import DoneSfx from 'assets/sound-effect/done.wav'
@@ -123,7 +122,7 @@ export function FlashcardFirstLearnMain({
             backContent={
               <View style={styles.flipBack}>
                 {current.imageUrl ? (
-                  <Image
+                  <RNImage
                     source={normalizeImageSource(current.imageUrl)}
                     style={styles.flipImage}
                     resizeMode="cover"
@@ -157,10 +156,11 @@ export function FlashcardFirstLearnMain({
           {currentStepKey === 'listen' ? (
             <View style={styles.audioRow}>
               <TouchableOpacity style={styles.audioButton} onPress={onPlaySound}>
-                <Image
-                  source={normalizeImageSource(SoundIcon)}
-                  style={styles.audioIcon}
-                  resizeMode="contain"
+                <StudyIcon
+                  source={SoundIcon}
+                  width={32}
+                  height={32}
+                  tintColor="#1F1F1F"
                 />
               </TouchableOpacity>
             </View>
@@ -200,15 +200,16 @@ export function FlashcardFirstLearnMain({
         <View style={[styles.resultBadge, isCorrect ? styles.resultCorrect : styles.resultWrong]} />
 
         {current.imageUrl ? (
-          <Image source={normalizeImageSource(current.imageUrl)} style={styles.cardImage} resizeMode="cover" />
+          <RNImage source={normalizeImageSource(current.imageUrl)} style={styles.cardImage} resizeMode="cover" />
         ) : null}
         <View style={styles.resultContent}>
           <View style={styles.resultHeader}>
             <TouchableOpacity style={styles.audioButtonSmall} onPress={onPlaySound}>
-              <Image
-                source={normalizeImageSource(SoundIcon)}
-                style={styles.audioIconSmall}
-                resizeMode="contain"
+              <StudyIcon
+                source={SoundIcon}
+                width={20}
+                height={20}
+                tintColor="#FFFFFF"
               />
             </TouchableOpacity>
             <Text style={[styles.cardWord, styles.resultTextOnColor]}>
@@ -248,23 +249,12 @@ export function FlashcardFirstLearnMain({
 
   if (error && (!current || total === 0)) {
     return (
-      <>
-        <View style={styles.headerTop}>
-          <NavigationPill
-            label="Quay lại"
-            icon={ArrowIcon}
-            iconStyle={{ transform: [{ scaleX: -1 }] }}
-            onPress={onBackPress}
-            textStyle={{ fontWeight: '700' }}
-          />
-        </View>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
-            <Text style={styles.retryText}>Thử lại</Text>
-          </TouchableOpacity>
-        </View>
-      </>
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
+          <Text style={styles.retryText}>Thử lại</Text>
+        </TouchableOpacity>
+      </View>
     )
   }
 
@@ -272,54 +262,22 @@ export function FlashcardFirstLearnMain({
     // Hiển thị thông báo khi đã học hết từ vựng
     if (allWordsCompleted) {
       return (
-        <>
-          <View style={styles.headerTop}>
-            <NavigationPill
-              label="Quay lại"
-              icon={ArrowIcon}
-              iconStyle={{ transform: [{ scaleX: -1 }] }}
-              onPress={onBackPress}
-              textStyle={{ fontWeight: '700' }}
-            />
-          </View>
-          <View style={styles.emptyContainer}>
-            <Text style={styles.completedText}>Bạn đã học hết từ vựng!</Text>
-            <Text style={styles.completedSubtext}>Đang chuyển về danh sách từ vựng...</Text>
-          </View>
-        </>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.completedText}>Bạn đã học hết từ vựng!</Text>
+          <Text style={styles.completedSubtext}>Đang chuyển về danh sách từ vựng...</Text>
+        </View>
       )
     }
     
     return (
-      <>
-        <View style={styles.headerTop}>
-          <NavigationPill
-            label="Quay lại"
-            icon={ArrowIcon}
-            iconStyle={{ transform: [{ scaleX: -1 }] }}
-            onPress={onBackPress}
-            textStyle={{ fontWeight: '700' }}
-          />
-        </View>
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Chưa có từ vựng nào</Text>
-        </View>
-      </>
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>Chưa có từ vựng nào</Text>
+      </View>
     )
   }
 
   return (
     <>
-      <View style={styles.headerTop}>
-        <NavigationPill
-          label="Quay lại"
-          icon={ArrowIcon}
-          iconStyle={{ transform: [{ scaleX: -1 }] }}
-          onPress={onBackPress}
-          textStyle={{ fontWeight: '700' }}
-        />
-      </View>
-
       <View style={styles.progressBar}>
         <View style={[styles.progressFill, { width: `${progress}%` }]} />
       </View>

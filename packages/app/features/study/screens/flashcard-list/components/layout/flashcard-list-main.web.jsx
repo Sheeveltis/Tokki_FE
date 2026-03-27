@@ -1,11 +1,8 @@
 import React from 'react'
-import { View, StyleSheet, Text, TouchableOpacity, TextInput, Pressable, Platform, Image } from 'react-native'
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Pressable, Platform } from 'react-native'
 import { FlashcardTopicCard } from '@tokki/app/features/study/components/shared'
 import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
-import StarIcon from 'assets/icon/icon-mainflow/star.svg'
-import BookIcon from 'assets/icon/navigate-app/book.svg'
-import { normalizeImageSource } from '@tokki/app/features/study/api'
 import { studyStyles } from '@tokki/app/features/study/styles'
 import { LoadingWithContainer } from 'components/Loading'
 
@@ -52,42 +49,6 @@ export function FlashcardListMain({
   if (error && topics.length === 0) {
     return (
       <>
-        <View style={styles.headerTop}>
-          <View style={styles.backBtn}>
-            <NavigationPill
-              label="Quay lại"
-              icon={ArrowIcon}
-              iconStyle={{ transform: [{ scaleX: -1 }] }}
-              onPress={onBackPress}
-              textStyle={{ fontWeight: '700' }}
-            />
-          </View>
-        <View style={styles.headerButtons}>
-          {onFavoritesPress ? (
-            <Pressable style={styles.favoritesButton} onPress={onFavoritesPress}>
-              <Image
-                source={normalizeImageSource(StarIcon)}
-                style={styles.favoritesIcon}
-                resizeMode="contain"
-              />
-              <Text style={styles.favoritesButtonText}>Từ vựng yêu thích</Text>
-            </Pressable>
-          ) : null}
-          {onLearnedPress ? (
-            <Pressable style={styles.learnedButton} onPress={onLearnedPress}>
-              <Image
-                source={normalizeImageSource(BookIcon)}
-                style={styles.learnedIcon}
-                resizeMode="contain"
-              />
-              <Text style={styles.learnedButtonText}>Từ vựng đã học</Text>
-            </Pressable>
-          ) : null}
-        </View>
-      </View>
-      <View style={styles.titleContainer}>
-          {title ? <Text style={styles.title}>{title}</Text> : null}
-        </View>
         <View style={styles.errorContainer}>
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
           <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
@@ -100,44 +61,6 @@ export function FlashcardListMain({
 
   return (
     <>
-      <View style={styles.headerTop}>
-        <View style={styles.backBtn}>
-          <NavigationPill
-            label="Quay lại"
-            to={undefined}
-            icon={ArrowIcon}
-            iconStyle={{ transform: [{ scaleX: -1 }] }}
-            onPress={onBackPress}
-            textStyle={{ fontWeight: '700' }}
-          />
-        </View>
-        <View style={styles.headerButtons}>
-          {onFavoritesPress ? (
-            <Pressable style={styles.favoritesButton} onPress={onFavoritesPress}>
-              <Image
-                source={normalizeImageSource(StarIcon)}
-                style={styles.favoritesIcon}
-                resizeMode="contain"
-              />
-              <Text style={styles.favoritesButtonText}>Từ vựng yêu thích</Text>
-            </Pressable>
-          ) : null}
-          {onLearnedPress ? (
-            <Pressable style={styles.learnedButton} onPress={onLearnedPress}>
-              <Image
-                source={normalizeImageSource(BookIcon)}
-                style={styles.learnedIcon}
-                resizeMode="contain"
-              />
-              <Text style={styles.learnedButtonText}>Ôn tập từ vựng</Text>
-            </Pressable>
-          ) : null}
-        </View>
-      </View>
-      <View style={styles.titleContainer}>
-        {title ? <Text style={styles.title}>{title}</Text> : null}
-      </View>
-
       <View style={styles.searchContainer}>
         <View style={styles.searchInputWrapper}>
           <TextInput
@@ -448,7 +371,7 @@ const styles = StyleSheet.create({
     color: '#1F1F1F',
   },
   listContainer: {
-    width: '80%',
+    width: '100%',
     maxWidth: '100%',
     gap: 30,
   },

@@ -75,7 +75,12 @@ export function FlashcardTestScreen({
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
 
   return (
-    <Layout>
+    <Layout
+      levelId={1} // Fallback levelId
+      onBackPress={onBackPress}
+      lessonsLearned={30}
+      streakDays={30}
+    >
       <Main
         questions={questions}
         currentQuestion={currentQuestion}

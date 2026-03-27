@@ -70,11 +70,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 10,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0px 10px 20px rgba(0,0,0,0.25)',
+    } : {
+      shadowColor: '#000',
+      shadowOpacity: 0.25,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 10,
+    }),
   },
 })
 

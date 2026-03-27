@@ -1,39 +1,24 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { Navbar } from 'components/navbar'
+import { StudyLayoutSynchronized } from '@tokki/app/features/study/components/study-layout-synchronized.web'
 
 /**
  * LearnedVocabularyListLayout (Web): Layout cho trang danh sách từ vựng đã học trên web
  */
-export function LearnedVocabularyListLayout({ children }) {
+export function LearnedVocabularyListLayout({ 
+  children,
+  levelId,
+  onBackPress
+}) {
   return (
-    <View style={styles.root}>
-      <Navbar />
-      <View style={styles.contentWrapper}>
-        {children}
-      </View>
-    </View>
+    <StudyLayoutSynchronized
+      levelId={levelId}
+      onBackPress={onBackPress}
+      title="Từ vựng đã học"
+      subtitle="Xem lại danh sách các từ vựng bạn đã ghi nhớ để củng cố kiến thức."
+      breadcrumbActive="Đã học"
+    >
+      {children}
+    </StudyLayoutSynchronized>
   )
 }
-
-const styles = StyleSheet.create({
-  root: {
-    height: '100%',
-    flex: 1,
-    backgroundColor: '#FFD7D0',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingVertical: 24,
-  },
-  contentWrapper: {
-    width: '70%',
-    maxWidth: 1200,
-    alignItems: 'center',
-    backgroundColor: '#F5F0DD',
-    paddingVertical: 24,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    gap: 16,
-  },
-})
 
