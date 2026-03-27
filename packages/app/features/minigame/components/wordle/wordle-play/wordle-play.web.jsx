@@ -1,4 +1,4 @@
-import React from 'react'
+import { useEffect } from 'react'
 import { View, Text, StyleSheet, Image, ImageBackground, Pressable, Platform } from 'react-native'
 
 import { WordleGrid } from './components/WordleGrid'
@@ -9,14 +9,14 @@ import { WordleMenuPopup } from './components/WordleMenuPopup'
 import { HowToPlayTour } from './components/HowToPlayTour'
 import { useWordlePlayControl } from './useWordlePlayControl'
 
-import BackgroundImage from '../../../../../../assets/BackgroundSolite.png'
+import BackgroundImage from '../../../../../../assets/BackgroundSolite.jpg'
+import BannerSolitare from '../../../../../../assets/BannerSolitare.png'
 import MenuIcon from '../../../../../../assets/menu-solitare.png'
 
 export function WordlePlayWeb(props) {
   const {
     WORD_LENGTH,
     MAX_GUESSES,
-    TOPIC_NAME,
     rows,
     gameState,
     targetWord,
@@ -38,18 +38,43 @@ export function WordlePlayWeb(props) {
     handlePlayWordAudio,
   } = useWordlePlayControl(props)
 
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return
+
+    const prevBodyOverflow = document.body.style.overflow
+    const prevHtmlOverflow = document.documentElement.style.overflow
+    const prevBodyScrollbarGutter = document.body.style.scrollbarGutter
+    const prevHtmlScrollbarGutter = document.documentElement.style.scrollbarGutter
+
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.scrollbarGutter = 'auto'
+    document.documentElement.style.scrollbarGutter = 'auto'
+
+    return () => {
+      document.body.style.overflow = prevBodyOverflow
+      document.documentElement.style.overflow = prevHtmlOverflow
+      document.body.style.scrollbarGutter = prevBodyScrollbarGutter
+      document.documentElement.style.scrollbarGutter = prevHtmlScrollbarGutter
+    }
+  }, [])
+
   return (
     <ImageBackground source={BackgroundImage} style={styles.container}>
       <View style={styles.overlay}>
         <View style={styles.header}>
-          <View style={styles.volumeWrapper}>
-            <VolumeControl />
+          <View style={styles.headerLeft}>
+            <View style={styles.soundBox}>
+              <VolumeControl />
+            </View>
           </View>
 
-          <Text style={styles.title}>Wordle</Text>
-          <Text style={styles.topic}>Chủ đề: {TOPIC_NAME}</Text>
+          <View style={styles.titleWrapper}>
+            <Image source={BannerSolitare} style={styles.bannerImage} />
+            <Text style={styles.titleText}>Wordle</Text>
+          </View>
 
-          <View style={styles.headerRightActions}>
+          <View style={styles.headerRight}>
             <Pressable style={styles.howToBtn} onPress={handleHowToPlay}>
               <Text style={styles.howToText}>Cách chơi</Text>
             </Pressable>
@@ -141,71 +166,97 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
+    overflow: 'hidden',
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
   },
   header: {
-    paddingTop: 18,
-    paddingHorizontal: 24,
-    paddingBottom: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  volumeWrapper: {
-    position: 'absolute',
-    left: 24,
-    top: 18,
-    zIndex: 5,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#3A2A1A',
-  },
-  topic: {
-    marginTop: 4,
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#5D4037',
-  },
-  headerRightActions: {
-    position: 'absolute',
-    right: 24,
-    top: 18,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 8,
+    width: '100%',
+    zIndex: 10,
+  },
+  headerLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  soundBox: {
+    backgroundColor: '#fff7ea',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.12)',
+    top: -20,
+  },
+  titleWrapper: {
+    flex: 2,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -60,
+  },
+  bannerImage: {
+    width: 270,
+    height: 150,
+    resizeMode: 'contain',
+  },
+  titleText: {
+    position: 'absolute',
+    top: '58%',
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 3, height: 3 },
+    textShadowRadius: 2,
+    fontFamily: Platform.OS === 'web' ? 'Epilogue, sans-serif' : undefined,
+  },
+  headerRight: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
     gap: 10,
+    top: -15,
   },
   howToBtn: {
-    backgroundColor: '#fff7ea',
+    backgroundColor: '#8B4513',
     paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 999,
+    paddingVertical: 8,
+    borderRadius: 10,
+    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
   },
   howToText: {
     fontWeight: '700',
-    color: '#5D4037',
+    color: '#FFFFFF',
+    fontSize: 14,
   },
   menuBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 60,
+    height: 60,
     alignItems: 'center',
     justifyContent: 'center',
   },
   menuIcon: {
-    width: 42,
-    height: 42,
+    width: 50,
+    height: 50,
     resizeMode: 'contain',
   },
   content: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    justifyContent: 'flex-start',
+    paddingTop: -10,
+    paddingBottom: 50,
   },
   gameLayout: {
     width: '100%',
