@@ -1,6 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { StyleSheet, Text, View, Pressable, Modal, ActivityIndicator, Platform, ScrollView } from 'react-native'
+import { useRouter } from 'solito/navigation'
 import { Navbar } from '../../../../../components/navbar'
+import { NavigationPill } from '../../../../../components/navigation-pill'
+import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
 import { RoadmapLearningDayList } from './roadmap-learning-day-list'
 import { RoadmapExamHistoryModal } from './roadmap-exam-history-modal.web'
 import HistoryIcon from '../../../../../assets/icon/icon-roadmap/history.svg'
@@ -12,29 +15,77 @@ const getTopikPhaseByLevel = (level) => {
   return 'TOPIK I'
 }
 
-export function RoadmapLearningLayout({ roadmapData, isLoading = false, error = null, onRetry }) {
+export function RoadmapLearningLayout({
+  roadmapData,
+  isLoading = false,
+  error = null,
+  onRetry,
+  initialWeekIndex = null,
+  initialDayIndex = null,
+}) {
+  const router = useRouter()
   const [isHistoryModalVisible, setIsHistoryModalVisible] = useState(false)
   const [isInfoModalVisible, setIsInfoModalVisible] = useState(false)
 
+  // ĐỔI MỚI: Quản lý tuần hiện tại
+  const [activeWeekIndex, setActiveWeekIndex] = useState(null)
+
+  const weeks = useMemo(() => roadmapData?.weeks || [], [roadmapData])
+
+  // Khởi tạo tuần đang học hoặc tuần từ URL (Đồng bộ sâu)
+  useEffect(() => {
+    if (weeks.length > 0 && activeWeekIndex === null) {
+      if (initialWeekIndex !== null) {
+        const found = weeks.find(w => w.weekIndex === initialWeekIndex)
+        if (found) {
+          setActiveWeekIndex(initialWeekIndex)
+          return
+        }
+      }
+      const inProgress = weeks.find(w => w.status === 'InProgress')
+      setActiveWeekIndex(inProgress?.weekIndex || weeks[0].weekIndex)
+    }
+  }, [weeks, initialWeekIndex, activeWeekIndex])
+
   const activeWeek = useMemo(() => {
-    const weeks = roadmapData?.weeks || []
-    if (!Array.isArray(weeks) || !weeks.length) return null
-    const inProgressWeek = weeks.find((week) => week?.status === 'InProgress')
-    if (inProgressWeek) return inProgressWeek
-    const weekWithTasks = weeks.find((week) => Array.isArray(week?.tasks) && week.tasks.length)
-    if (weekWithTasks) return weekWithTasks
-    return weeks[0]
-  }, [roadmapData?.weeks])
+    return weeks.find(w => w.weekIndex === activeWeekIndex) || (weeks.length > 0 ? weeks[0] : null)
+  }, [weeks, activeWeekIndex])
+
+  const handleWeekChange = (index) => {
+    setActiveWeekIndex(index)
+    // Cập nhật URL để sync trạng thái, giữ cho trải nghiệm như một ứng dụng desktop
+    router.replace(`/roadmap/learning?week=${index}`, undefined, { shallow: true })
+  }
 
   const targetAim = roadmapData?.targetAim || 1
   const hasWriting = useMemo(() => targetAim >= 3, [targetAim])
   const phaseLabel = useMemo(() => getTopikPhaseByLevel(targetAim), [targetAim])
 
+  // Logic xác định tuần tối đa có thể xem (Tuần đang học + 1 tuần tiếp theo)
+  const maxViewableWeekIndex = useMemo(() => {
+    const inProgressIndex = weeks.find(w => w.status === 'InProgress')?.weekIndex
+    if (inProgressIndex !== undefined) return inProgressIndex + 1
+
+    // Nếu chưa có tuần nào in progress, cho phép xem tuần 1
+    if (weeks.length > 0) return weeks[0].weekIndex
+    return 1
+  }, [weeks])
+
+  // Thống kê bài học của tuần đang chọn
+  const weekStats = useMemo(() => {
+    if (!activeWeek?.tasks) return { completed: 0, total: 0 }
+    const tasks = activeWeek.tasks
+    return {
+      completed: tasks.filter(t => t.isCompleted).length,
+      total: tasks.length
+    }
+  }, [activeWeek])
+
   if (isLoading) {
     return (
       <View style={styles.wrapper}>
         <Navbar />
-        <View style={[styles.contentWrapper, styles.centerContent]}>
+        <View style={[styles.centerContent, { flex: 1, marginTop: 100 }]}>
           <ActivityIndicator size="large" color="#FFCF6C" />
           <Text style={styles.loadingText}>Đang chuẩn bị lộ trình của bạn...</Text>
         </View>
@@ -46,7 +97,7 @@ export function RoadmapLearningLayout({ roadmapData, isLoading = false, error = 
     return (
       <View style={styles.wrapper}>
         <Navbar />
-        <View style={[styles.contentWrapper, styles.centerContent]}>
+        <View style={[styles.centerContent, { flex: 1, marginTop: 100 }]}>
           <Text style={styles.errorText}>{error || 'Không thể tải lộ trình hiện tại.'}</Text>
           <RoadmapTestButton title="Thử lại ngay" onPress={onRetry} style={styles.retryButton} />
         </View>
@@ -58,68 +109,171 @@ export function RoadmapLearningLayout({ roadmapData, isLoading = false, error = 
     <View style={styles.wrapper}>
       <Navbar />
 
-      <View style={styles.contentWrapper}>
-        <View style={styles.header}>
-          <View style={styles.headerTop}>
-            <View style={styles.headerText}>
-              <View style={styles.badgeRow}>
-                <View style={styles.phaseBadge}>
-                  <Text style={styles.phaseBadgeText}>{phaseLabel}</Text>
+      <View style={styles.mainContainer}>
+        <View style={styles.mainWrapper}>
+          {/* Top Bar Navigation */}
+          <View style={styles.topNavigation}>
+            <View style={styles.breadcrumb}>
+              <Text style={styles.breadcrumbText}>Học tập</Text>
+              <Text style={styles.breadcrumbDivider}>/</Text>
+              <Text style={[styles.breadcrumbText, styles.breadcrumbActive]}>Lộ trình cá nhân</Text>
+            </View>
+          </View>
+
+          {/* Hero Header Section */}
+          <View style={styles.heroSection}>
+            <View style={styles.headerTop}>
+              <View style={styles.headerText}>
+                <View style={styles.badgeRow}>
+                  <View style={styles.phaseBadge}>
+                    <Text style={styles.phaseBadgeText}>{phaseLabel}</Text>
+                  </View>
+                  <View style={[styles.levelBadge, { backgroundColor: '#FF6B6B' }]}>
+                    <Text style={styles.levelBadgeText}>Level{targetAim}</Text>
+                  </View>
                 </View>
-                <View style={[styles.levelBadge, { backgroundColor: '#FF6B6B' }]}>
-                  <Text style={styles.levelBadgeText}>Level {targetAim}</Text>
+                <View style={styles.heroTitleRow}>
+                  <Text style={styles.mainTitle}>Chương trình học tập của bạn</Text>
+                  <Pressable
+                    onPress={() => setIsInfoModalVisible(true)}
+                    style={({ pressed }) => [styles.infoIconWrapper, pressed && styles.infoIconPressed]}
+                  >
+                    <Text style={styles.infoIconText}>i</Text>
+                  </Pressable>
                 </View>
+                <Text style={styles.subtitle}>Thiết kế dựa trên kết quả đầu vào. Hãy chinh phục mục tiêu mỗi ngày!</Text>
               </View>
-              <View style={styles.titleRow}>
-                <Text style={styles.title}>Lộ trình học tập cá nhân</Text>
+
+              <View style={styles.headerActions}>
                 <Pressable
-                  onPress={() => setIsInfoModalVisible(true)}
-                  style={({ pressed }) => [styles.infoIconWrapper, pressed && styles.infoIconPressed]}
+                  onPress={() => setIsHistoryModalVisible(true)}
+                  style={({ pressed }) => [styles.historyIconButton, pressed && styles.historyIconButtonPressed]}
                 >
-                  <Text style={styles.infoIconText}>i</Text>
+                  <HistoryIcon width={20} height={20} />
+                  <Text style={styles.historyBtnText}>Lịch sử bài làm</Text>
                 </Pressable>
               </View>
-              <Text style={styles.subtitle}>Cùng Tokki chinh phục mục tiêu của bạn mỗi ngày</Text>
             </View>
+          </View>
 
-            <View style={styles.headerActions}>
-              <Pressable
-                onPress={() => setIsHistoryModalVisible(true)}
-                style={({ pressed }) => [styles.historyIconButton, pressed && styles.historyIconButtonPressed]}
+          {/* Main Dashboard - Sidebar Layout */}
+          <View style={styles.dashboardContainer}>
+            {/* Sidebar bên trái: Danh sách các tuần */}
+            <View style={styles.weekSidebar}>
+              <Text style={styles.sidebarTitle}>LỘ TRÌNH 13 TUẦN</Text>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.sidebarContent}
+                style={styles.sidebarScroll}
               >
-                <HistoryIcon width={22} height={22} />
-              </Pressable>
+                {weeks.map((week) => {
+                  const isActive = week.weekIndex === activeWeekIndex
+                  const isFinished = week.status === 'Completed'
+                  const isInProgress = week.status === 'InProgress'
+
+                  const hasContent = Array.isArray(week.tasks) && week.tasks.length > 0
+                  const isNextWeek = week.weekIndex <= maxViewableWeekIndex
+                  const isDisabled = !isFinished && !isInProgress && (!hasContent || !isNextWeek)
+
+                  return (
+                    <Pressable
+                      key={week.weekIndex}
+                      onPress={() => !isDisabled && handleWeekChange(week.weekIndex)}
+                      disabled={isDisabled}
+                      style={({ pressed }) => [
+                        styles.sideWeekPill,
+                        isActive && styles.sideWeekPillActive,
+                        isFinished && styles.sideWeekPillFinished,
+                        isDisabled && styles.sideWeekPillDisabled,
+                        pressed && !isDisabled && styles.weekPillPressed,
+                      ]}
+                    >
+                      <View style={styles.sideWeekHeader}>
+                        <Text style={[styles.sideWeekText, isActive && styles.sideWeekTextActive, isDisabled && styles.sideWeekTextDisabled]}>
+                          Tuần {week.weekIndex}
+                        </Text>
+                        {isFinished && <Text style={styles.weekCheck}>✓</Text>}
+                        {isInProgress && !isActive && <View style={styles.inProgressSmallDot} />}
+                        {isDisabled && <View style={styles.lockIcon} />}
+                      </View>
+
+                      <View style={styles.sideWeekMiniProgress}>
+                        <View
+                          style={[
+                            styles.sideWeekMiniProgressBar,
+                            {
+                              width: `${week.progressPercent || 0}%`,
+                              backgroundColor: isDisabled ? '#EEE' : (isActive ? '#F4A950' : (isFinished ? '#4CAF50' : '#D1D1D1'))
+                            }
+                          ]}
+                        />
+                      </View>
+                    </Pressable>
+                  )
+                })}
+              </ScrollView>
+            </View>
+
+            {/* Content Card bên phải */}
+            <View style={styles.contentCard}>
+              <ScrollView style={styles.contentCardScroll} showsVerticalScrollIndicator={false}>
+                <View style={styles.contentCardInner}>
+                  {/* Tóm tắt tuần đang chọn */}
+                  <View style={styles.weekFocusArea}>
+                    <View style={styles.weekFocusHeader}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.weekFocusLabel}>NHIỆM VỤ TUẦN {activeWeekIndex}</Text>
+                        <Text style={styles.weekFocusGoal} numberOfLines={2}>{activeWeek?.focusGoal || 'Duy trì phong độ học tập ổn định'}</Text>
+                      </View>
+                      <View style={[styles.statusBadge, activeWeek?.status === 'InProgress' ? styles.statusBadgeActive : (activeWeek?.status === 'Completed' ? styles.statusBadgeFinished : styles.statusBadgePending)]}>
+                        <Text style={[styles.statusBadgeText, activeWeek?.status === 'InProgress' ? styles.statusBadgeTextActive : (activeWeek?.status === 'Completed' ? styles.statusBadgeTextFinished : styles.statusBadgeTextPending)]}>
+                          {activeWeek?.status === 'InProgress' ? 'ĐANG HỌC' : (activeWeek?.status === 'Completed' ? 'ĐÃ XONG' : 'CHƯA ĐẾN')}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.weekStatsRow}>
+                      <View style={styles.statBox}>
+                        <Text style={styles.statVal}>
+                          {activeWeek?.progressPercent != null
+                            ? activeWeek.progressPercent
+                            : Math.floor((weekStats.completed / (weekStats.total || 1)) * 100)}%
+                        </Text>
+                        <Text style={styles.statLabel}>Hoàn thành tuần</Text>
+                      </View>
+                      <View style={styles.statDivider} />
+                      <View style={styles.statBox}>
+                        <Text style={styles.statVal}>{weekStats.completed}/{weekStats.total}</Text>
+                        <Text style={styles.statLabel}>Tiến độ tuần</Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View style={styles.cardDivider} />
+
+                  <View style={styles.listWrapper}>
+                    {activeWeek ? (
+                      <RoadmapLearningDayList
+                        hasWriting={hasWriting}
+                        targetAim={targetAim}
+                        weeks={weeks}
+                        activeWeek={activeWeek}
+                        initialDayIndex={initialDayIndex}
+                      />
+                    ) : (
+                      <View style={styles.centerContent}>
+                        <ActivityIndicator color="#FF6B6B" />
+                      </View>
+                    )}
+                  </View>
+                </View>
+              </ScrollView>
             </View>
           </View>
-
-          <View style={styles.cardDivider} />
-
-          <View style={styles.progressSection}>
-            <View style={styles.progressHeader}>
-              <View style={styles.progressInfo}>
-                <Text style={styles.progressLabel}>Tiến độ lộ trình</Text>
-                <Text style={styles.progressValue}>{roadmapData?.progressPercent || 0}%</Text>
-              </View>
-              <Text style={styles.progressStatusText}>
-                {roadmapData?.progressPercent === 100 ? 'Hoàn thành xuất sắc!' : 'Hãy tiếp tục cố gắng nhé!'}
-              </Text>
-            </View>
-            <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: `${roadmapData?.progressPercent || 0}%` }]} />
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.listWrapper}>
-          <RoadmapLearningDayList
-            hasWriting={hasWriting}
-            targetAim={targetAim}
-            weeks={roadmapData.weeks || []}
-            activeWeek={activeWeek}
-          />
         </View>
       </View>
 
+      {/* Modals */}
       <RoadmapExamHistoryModal visible={isHistoryModalVisible} onClose={() => setIsHistoryModalVisible(false)} />
 
       <Modal visible={isInfoModalVisible} transparent animationType="fade" onRequestClose={() => setIsInfoModalVisible(false)}>
@@ -153,7 +307,7 @@ export function RoadmapLearningLayout({ roadmapData, isLoading = false, error = 
                       <Text style={styles.weekInfoTitle}>Tuần {activeWeek.weekIndex}</Text>
                       <View style={styles.statusIndicator}>
                         <View style={styles.statusDot} />
-                        <Text style={styles.statusText}>Đang diễn ra</Text>
+                        <Text style={styles.statusText}>{activeWeek.status === 'Completed' ? 'Hoàn thành' : 'Đang diễn ra'}</Text>
                       </View>
                     </View>
                     {!!activeWeek.focusGoal && <Text style={styles.weekInfoGoal}>{activeWeek.focusGoal}</Text>}
@@ -171,44 +325,168 @@ export function RoadmapLearningLayout({ roadmapData, isLoading = false, error = 
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    minHeight: '100vh',
-    maxHeight: '100vh',
-    overflow: 'hidden',
+    height: '100vh',
     backgroundColor: '#FAFAFA',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingVertical: 24,
-    paddingHorizontal: 16,
+    overflow: 'hidden',
   },
-  contentWrapper: {
-    width: '100%',
-    maxWidth: 1200,
+  mainContainer: {
     flex: 1,
-    minHeight: 0,
+    alignItems: 'center',
+  },
+  mainWrapper: {
+    width: '95%',
+    maxWidth: 1400,
+    flex: 1,
+    marginTop: 24,
+    marginBottom: 24,
+    gap: 20,
+    overflow: 'hidden',
+  },
+  topNavigation: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  breadcrumb: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  breadcrumbText: {
+    fontSize: 13,
+    color: '#999',
+    fontWeight: '500',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  breadcrumbDivider: {
+    fontSize: 13,
+    color: '#EEE',
+  },
+  breadcrumbActive: {
+    color: '#1A1A1A',
+    fontWeight: '700',
+  },
+  heroSection: {
+    gap: 20,
+    paddingHorizontal: 4,
+  },
+  dashboardContainer: {
+    flexDirection: 'row',
+    gap: 24,
+    flex: 1,
+    overflow: 'hidden',
+    paddingBottom: 10,
+  },
+  weekSidebar: {
+    width: 250,
+    height: '100%',
+  },
+  sidebarTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#999',
+    letterSpacing: 1.5,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  sidebarScroll: {
+    flex: 1,
+  },
+  sidebarContent: {
+    gap: 10,
+    paddingBottom: 20,
+  },
+  sideWeekPill: {
+    padding: 16,
+    borderRadius: 16,
     backgroundColor: '#FFFFFF',
-    // marginTop: 64, // Space for navbar
-    paddingHorizontal: 28,
-    paddingTop: 32,
-    paddingBottom: 24,
+    borderWidth: 1,
+    borderColor: '#EAEAEA',
+    gap: 8,
+    ...(Platform.OS === 'web' && { cursor: 'pointer', transition: 'all 0.15s ease' }),
+  },
+  sideWeekPillActive: {
+    borderColor: '#F4A950',
+    backgroundColor: '#FFFFFF',
+    ...(Platform.OS === 'web' && { boxShadow: '0 4px 12px rgba(244,169,80,0.1)' }),
+  },
+  sideWeekPillFinished: {
+    backgroundColor: '#F1F9F1',
+    borderColor: '#C8E6C9',
+  },
+  sideWeekPillDisabled: {
+    backgroundColor: '#F9F9F9',
+    borderColor: '#EEEEEE',
+    opacity: 0.5,
+  },
+  sideWeekHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  sideWeekText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  sideWeekTextActive: {
+    color: '#1A1A1A',
+    fontWeight: '800',
+  },
+  sideWeekTextDisabled: {
+    color: '#BBB',
+  },
+  sideWeekMiniProgressBar: {
+    height: '100%',
+    borderRadius: 1.5,
+  },
+  inProgressSmallDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#F4A950',
+  },
+  sideWeekMiniProgress: {
+    height: 3,
+    backgroundColor: '#EEE',
+    borderRadius: 1.5,
+    overflow: 'hidden',
+  },
+  sideWeekMiniProgressBar: {
+    height: '100%',
+    borderRadius: 1.5,
+  },
+  contentCard: {
+    flex: 1,
+    height: '100%',
+    backgroundColor: '#FFFFFF',
     borderRadius: 24,
     borderWidth: 1,
     borderColor: '#F0F0F0',
-    gap: 20,
+    overflow: 'hidden',
     ...(Platform.OS === 'web' && { boxShadow: '0 10px 40px rgba(0,0,0,0.03)' }),
   },
-  header: {
-    gap: 20,
-    flexShrink: 0
+  contentCardScroll: {
+    flex: 1,
+  },
+  contentCardInner: {
+    padding: 32,
+    gap: 0,
   },
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 16,
+    flexWrap: 'wrap',
   },
   headerText: {
     flex: 1,
-    gap: 6
+    gap: 8,
+    minWidth: 300,
   },
   badgeRow: {
     flexDirection: 'row',
@@ -216,7 +494,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   phaseBadge: {
-    backgroundColor: '#FFF2CC',
+    backgroundColor: '#F5F5F5',
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 6,
@@ -224,10 +502,11 @@ const styles = StyleSheet.create({
   phaseBadgeText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#C28A04',
+    color: '#666',
     textTransform: 'uppercase',
   },
   levelBadge: {
+    backgroundColor: '#1A1A1A',
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 6,
@@ -238,114 +517,176 @@ const styles = StyleSheet.create({
     color: '#FFF',
     textTransform: 'uppercase',
   },
-  titleRow: {
+  heroTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  title: {
-    fontSize: 26,
+  mainTitle: {
+    fontSize: 32,
     fontWeight: '900',
     color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 40,
+    letterSpacing: -1,
   },
   infoIconWrapper: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#F5F5F5',
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#EAEAEA',
     alignItems: 'center',
     justifyContent: 'center',
+    ...(Platform.OS === 'web' && { boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }),
   },
   infoIconPressed: {
-    backgroundColor: '#EAEAEA',
+    backgroundColor: '#F5F5F5',
   },
   infoIconText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#666',
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#999',
   },
   subtitle: {
     fontSize: 15,
     color: '#666',
     fontWeight: '500',
     fontFamily: 'Epilogue, sans-serif',
+    maxWidth: 600,
+    lineHeight: 22,
   },
   headerActions: {
     flexDirection: 'row',
-    gap: 12,
+    alignItems: 'center',
   },
   historyIconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#1A1A1A',
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    ...(Platform.OS === 'web' && { boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }),
-  },
-  historyIconButtonPressed: {
-    backgroundColor: '#333',
-    transform: [{ scale: 0.95 }]
-  },
-  cardDivider: {
-    height: 1,
-    backgroundColor: '#F5F5F5',
-  },
-  progressSection: {
     gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 100,
+    backgroundColor: '#F4A950',
+    ...(Platform.OS === 'web' && { boxShadow: '0 8px 24px rgba(244,169,80,0.2)' }),
   },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  progressInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  progressLabel: {
+  historyBtnText: {
+    color: '#FFF',
     fontSize: 14,
     fontWeight: '700',
+  },
+  historyIconButtonPressed: {
+    backgroundColor: '#D38E3F',
+    transform: [{ scale: 0.96 }]
+  },
+  weekPillPressed: {
+    transform: [{ scale: 0.98 }],
+  },
+  weekCheck: {
+    fontSize: 12,
+    color: '#4CAF50',
+    fontWeight: '900',
+  },
+  lockIcon: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#BBB',
+  },
+  weekFocusArea: {
+    gap: 16,
+    marginBottom: 8,
+  },
+  weekFocusHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 20,
+  },
+  weekFocusLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#999',
+    letterSpacing: 1.5,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+  },
+  weekFocusGoal: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 28,
+    letterSpacing: -0.5,
+  },
+  statusBadge: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    marginTop: 4,
+    borderWidth: 1,
+  },
+  statusBadgeActive: {
+    backgroundColor: '#FFF8F0',
+    borderColor: '#F4A950',
+  },
+  statusBadgeFinished: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#A5D6A7',
+  },
+  statusBadgePending: {
+    backgroundColor: '#F5F5F5',
+    borderColor: '#EEE',
+  },
+  statusBadgeText: {
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  statusBadgeTextActive: {
+    color: '#D38E3F',
+  },
+  statusBadgeTextFinished: {
+    color: '#388E3C',
+  },
+  statusBadgeTextPending: {
+    color: '#999',
+  },
+  weekStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 32,
+    marginTop: 8,
+  },
+  statBox: {
+    gap: 4,
+  },
+  statVal: {
+    fontSize: 26,
+    fontWeight: '900',
     color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
   },
-  progressValue: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#FF6B6B',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  progressStatusText: {
+  statLabel: {
     fontSize: 12,
     color: '#888',
     fontWeight: '500',
     fontFamily: 'Epilogue, sans-serif',
   },
-  progressBarBg: {
-    height: 10,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 5,
-    overflow: 'hidden',
+  statDivider: {
+    width: 1,
+    height: 36,
+    backgroundColor: '#EEEEEE',
   },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: '#FF6B6B',
-    borderRadius: 5,
-    ...(Platform.OS === 'web' && {
-      transition: 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
-    }),
+  cardDivider: {
+    height: 1,
+    backgroundColor: '#F5F5F5',
+    marginVertical: 20,
   },
   listWrapper: {
     flex: 1,
-    minHeight: 0,
-    backgroundColor: '#FAFAFA',
-    borderRadius: 16,
-    overflow: 'hidden',
-    padding: 2,
+    minHeight: 300,
   },
   centerContent: {
     alignItems: 'center',
@@ -437,7 +778,7 @@ const styles = StyleSheet.create({
   assessmentBox: {
     backgroundColor: '#FFFDF8',
     borderRadius: 18,
-    padding: 20,
+    padding: 24,
     borderWidth: 1,
     borderColor: '#FFF2CC',
   },
@@ -453,7 +794,7 @@ const styles = StyleSheet.create({
   weekInfoBox: {
     backgroundColor: '#F8F9FA',
     borderRadius: 18,
-    padding: 20,
+    padding: 24,
     borderWidth: 1,
     borderColor: '#F0F0F0',
     gap: 12,
@@ -475,7 +816,7 @@ const styles = StyleSheet.create({
     gap: 6,
     backgroundColor: '#E8F5E9',
     paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
     borderRadius: 6,
   },
   statusDot: {

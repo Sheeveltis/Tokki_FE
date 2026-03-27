@@ -8,30 +8,21 @@ import {
   Typography,
   message,
   Button,
-  Divider,
   Card,
   Modal,
-  Descriptions,
   Upload,
-  Spin,
   Tabs,
   Tag,
   Tooltip,
-  List,
   Table,
+  Row,
+  Col,
 } from 'antd'
 import {
   PlusOutlined,
   DeleteOutlined,
-  UpOutlined,
-  DownOutlined,
-  EyeOutlined,
-  EyeInvisibleOutlined,
   EditOutlined,
-  CloseOutlined,
-  UploadOutlined,
   InboxOutlined,
-  CopyOutlined,
   MenuOutlined
 } from '@ant-design/icons'
 import { fetchQuestionTypes, updateExamTemplateParts, uploadTemplatePartImageToCloudinary, updateTemplatePart } from '../../../../back-office/api/admin-index.js'
@@ -214,15 +205,16 @@ export const getSkillLabel = (skill) => {
   return option?.label || `Skill ${skill}`
 }
 
-export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [], examTemplate = null, onPartsAdded }) {
+export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [], examTemplate = null, onPartsAdded, onDirtyChange }) {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [activePartIndex, setActivePartIndex] = useState(0)
   const [addPartModalOpen, setAddPartModalOpen] = useState(false)
   const [selectedSkillForNewPart, setSelectedSkillForNewPart] = useState(null)
-  const [collapsedGroups, setCollapsedGroups] = useState(new Set()) // Track các bộ câu đang được collapse
-  const [editingGroups, setEditingGroups] = useState(new Set()) // Track các bộ câu đang ở chế độ chỉnh sửa
-  const [editingGroup, setEditingGroup] = useState(null) // { partName, groupName, groupIndex, skill }
+  const [editingGroup, setEditingGroup] = useState(null) // { partName, groupName, groupIndex, groupKey, skill }
+  const [initialGroupValues, setInitialGroupValues] = useState(null) // Lưu giá trị ban đầu để Hủy
+  const [modifiedGroups, setModifiedGroups] = useState(new Set()) // Track các bộ câu đã được chỉnh sửa ('partIdx-groupIdx')
+
   const addPartRef = React.useRef(null) // Ref để lưu hàm add từ Form.List
   const partsCountRef = React.useRef(0) // Ref để lưu số lượng phần hiện tại
   const loadedSkillsRef = React.useRef(new Set()) // Ref để track các skill đã load
@@ -231,11 +223,10 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
   const [questionTypesBySkill, setQuestionTypesBySkill] = useState({})
   const [loadingQuestionTypes, setLoadingQuestionTypes] = useState({})
 
-  // Lấy examType từ examTemplate (1 = TOPIK I, 2 = TOPIK II, 3 = Test đầu vào)
+  // Lấy examType từ examTemplate (1 = TOPIK I, 2 = TOPIK II)
   const examType = examTemplate?.type ||
     (examTemplate?.examType === 'TOPIK I' ? 1 :
-      examTemplate?.examType === 'TOPIK II' ? 2 :
-        examTemplate?.examType === 'Test đầu vào' ? 3 : null) || null
+      examTemplate?.examType === 'TOPIK II' ? 2 : null) || null
 
   // Template đã xuất bản (status = 1) thì chỉ cho xem, không cho chỉnh sửa
   const isActiveTemplate = examTemplate?.status === 1
@@ -287,15 +278,29 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
     return () => cancelAnimationFrame(rafId)
   }, [watchParts, examType, loadQuestionTypes, questionTypesBySkill, loadingQuestionTypes])
 
-  // Set initial values
+  // Khi initialParts thay đổi (từ server), cập nhật form
   useEffect(() => {
-    if (initialParts.length > 0) {
-      form.setFieldsValue({ parts: initialParts })
+    if (initialParts && Array.isArray(initialParts)) {
+      // Sắp xếp theo Skill: 1 (Nghe), 2 (Đọc), 3 (Viết)
+      const sortedParts = [...initialParts].sort((a, b) => (a.Skill || 0) - (b.Skill || 0))
+      form.setFieldsValue({ parts: sortedParts })
     } else {
-      // Nếu chưa có phần nào, để trống (không tự động tạo phần)
       form.setFieldsValue({ parts: [] })
     }
   }, [initialParts, form])
+
+  // Cập nhật dirty state cho component cha
+  useEffect(() => {
+    if (onDirtyChange) {
+      const parts = form.getFieldValue('parts') || []
+      const hasNewGroup = parts.some(part =>
+        (part.QuestionGroups || []).some(group => !group.TemplatePartId)
+      )
+      const isDirty = hasNewGroup || modifiedGroups.size > 0
+      onDirtyChange(isDirty)
+    }
+  }, [modifiedGroups, onDirtyChange, watchParts])
+
 
   const handleSubmit = async (values) => {
     try {
@@ -318,118 +323,86 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
       // Mỗi phần (Part) có Skill, và trong phần đó có nhiều TemplateParts (QuestionGroups)
       // Mỗi TemplatePart cần có: Skill (từ Part cha hoặc từ chính nó), QuestionFrom, QuestionTo, PartTitle, Instruction, Mark, ExampleUrl, QuestionTypeId
       const newTemplateParts = []
+      const updatePromises = []
 
       if (actualParts && Array.isArray(actualParts)) {
         // Trước tiên, upload tất cả các ảnh chưa upload lên Cloudinary
         for (let partIndex = 0; partIndex < actualParts.length; partIndex++) {
           const part = actualParts[partIndex]
           const questionGroups = part.QuestionGroups || []
+          const partSkill = part.Skill // Skill từ Part cha
 
           for (let groupIndex = 0; groupIndex < questionGroups.length; groupIndex++) {
             const group = questionGroups[groupIndex]
 
-            // Chỉ lấy các parts mới (không có TemplatePartId) để add thêm
-            // Nếu đã có TemplatePartId thì bỏ qua (đã tồn tại trong database)
-            if (group.TemplatePartId) {
-              continue
-            }
-
             // Lấy ExampleUrl từ form field trực tiếp để đảm bảo có originFileObj
-            // Sử dụng getFieldValue để lấy giá trị thực tế từ form
             const exampleUrlFieldPath = ['parts', partIndex, 'QuestionGroups', groupIndex, 'ExampleUrl']
             const exampleUrlValue = form.getFieldValue(exampleUrlFieldPath) || group?.ExampleUrl
 
             let exampleUrl = null
 
-            // Debug: Log để kiểm tra
-            console.log('ExampleUrl value:', exampleUrlValue, 'Type:', typeof exampleUrlValue, 'Is Array:', Array.isArray(exampleUrlValue))
-
             // Kiểm tra xem có file cần upload không
-            // ExampleUrl có thể là:
-            // 1. Array (fileList từ Upload component với valuePropName="fileList")
-            // 2. String URL (từ database hoặc đã upload trước đó)
-            // 3. null/undefined
-
             if (exampleUrlValue) {
-              // Nếu là array (fileList từ Upload component)
               if (Array.isArray(exampleUrlValue) && exampleUrlValue.length > 0) {
                 const fileItem = exampleUrlValue[0]
-
-                console.log('File item:', fileItem, 'Has originFileObj:', !!fileItem?.originFileObj, 'Has URL:', fileItem?.url)
-
-                // Kiểm tra xem có originFileObj không (file chưa upload)
                 if (fileItem?.originFileObj) {
                   try {
-                    console.log('Uploading image to Cloudinary...')
-                    // Upload file lên Cloudinary
                     const imageUrl = await uploadTemplatePartImageToCloudinary(fileItem.originFileObj)
-                    console.log('Upload successful, URL:', imageUrl)
-                    if (imageUrl) {
-                      exampleUrl = imageUrl
-                    }
+                    if (imageUrl) exampleUrl = imageUrl
                   } catch (error) {
                     console.error('Error uploading image:', error)
                     message.error(`Lỗi upload ảnh: ${error.message || 'Upload thất bại'}`)
-                    exampleUrl = null
                   }
-                }
-                // Nếu đã có URL từ Cloudinary (http/https)
-                else if (fileItem?.url && (fileItem.url.startsWith('http://') || fileItem.url.startsWith('https://'))) {
-                  console.log('Using existing URL:', fileItem.url)
+                } else if (fileItem?.url && (fileItem.url.startsWith('http://') || fileItem.url.startsWith('https://'))) {
                   exampleUrl = fileItem.url
                 }
-                // Nếu là base64 preview (data:) nhưng không có originFileObj -> có thể file đã bị mất originFileObj
-                else if (fileItem?.url && fileItem.url.startsWith('data:')) {
-                  console.warn('File has base64 URL but no originFileObj, cannot upload')
-                  message.warning('Ảnh đã được chọn nhưng không thể upload. Vui lòng chọn lại ảnh.')
-                  exampleUrl = null
-                }
-                // Trường hợp khác - có thể file đã bị mất originFileObj
-                else {
-                  console.warn('File item exists but has no originFileObj or valid URL')
-                  exampleUrl = null
-                }
-              }
-              // Nếu đã là string URL (từ database hoặc đã upload trước đó)
-              else if (typeof exampleUrlValue === 'string') {
-                console.log('Using string URL:', exampleUrlValue)
+              } else if (typeof exampleUrlValue === 'string') {
                 exampleUrl = exampleUrlValue
               }
             }
 
-            // Cập nhật lại vào group để dùng cho templateParts
-            group.ExampleUrl = exampleUrl
-
-            const partSkill = part.Skill // Skill từ Part cha
-
-            newTemplateParts.push({
-              // Không có TemplatePartId vì đây là part mới cần add
-              Skill: group.Skill || partSkill, // Ưu tiên Skill từ group, nếu không có thì lấy từ Part cha
+            const payload = {
+              examTemplateId: examTemplateId,
+              Skill: group.Skill || partSkill,
               QuestionFrom: group.QuestionFrom,
               QuestionTo: group.QuestionTo,
               PartTitle: group.PartTitle,
               Instruction: group.Instruction,
               Mark: group.Mark,
-              ExampleUrl: group.ExampleUrl || null, // URL từ Cloudinary hoặc null
-              QuestionTypeId: group.QuestionTypeId, // Foreign key trỏ đến QuestionTypes table
-            })
+              ExampleUrl: exampleUrl || null,
+              QuestionTypeId: group.QuestionTypeId,
+            }
+
+            // Nếu đã có TemplatePartId thì gán vào updatePromises để update
+            if (group.TemplatePartId) {
+              updatePromises.push(updateTemplatePart(group.TemplatePartId, payload))
+            } else {
+              // Nếu chưa có TemplatePartId thì add vào mảng để tạo mới
+              newTemplateParts.push(payload)
+            }
           }
         }
       }
 
-      // Kiểm tra xem có parts mới nào cần add không
-      if (newTemplateParts.length === 0) {
-        message.info('Không có parts mới nào cần thêm. Các parts đã tồn tại sẽ không được cập nhật.')
+      // Kiểm tra xem có gì để lưu không
+      if (newTemplateParts.length === 0 && updatePromises.length === 0) {
+        message.info('Không có thay đổi nào cần lưu.')
         return
       }
 
-      // Sau khi upload tất cả ảnh, gọi API để add các parts mới
-      await updateExamTemplateParts(examTemplateId, newTemplateParts)
+      // Thực thi các promise update
+      if (updatePromises.length > 0) {
+        await Promise.all(updatePromises)
+      }
+
+      // Thực thi api add mới nếu có
+      if (newTemplateParts.length > 0) {
+        await updateExamTemplateParts(examTemplateId, newTemplateParts)
+      }
 
       // Sau khi lưu thành công, tắt chế độ chỉnh sửa cho tất cả các bộ câu
-      setEditingGroups(new Set())
 
-      message.success(`Đã thêm ${newTemplateParts.length} parts mới thành công`)
+      message.success(`Đã lưu cấu trúc đề thi thành công (${updatePromises.length} cập nhật, ${newTemplateParts.length} thêm mới)`)
 
       // Gọi callback để component cha reload lại dữ liệu
       if (onPartsAdded) {
@@ -490,6 +463,108 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
         }
       })
   }, [questionTypesBySkill])
+
+  // Hàm check trùng lặp số câu hỏi
+  const validateQuestionRange = (_, value) => {
+    if (value === undefined || value === null) return Promise.resolve()
+
+    const { partName, groupName, groupIndex } = editingGroup || {}
+    const formValues = form.getFieldsValue(true)
+    const currentGroup = formValues?.parts?.[partName]?.QuestionGroups?.[groupName]
+
+    if (!currentGroup) return Promise.resolve()
+
+    const from = currentGroup.QuestionFrom
+    const to = currentGroup.QuestionTo
+
+    if (from === undefined || to === undefined) return Promise.resolve()
+    if (from > to) return Promise.reject(new Error('Số câu bắt đầu không được lớn hơn câu kết thúc'))
+
+    // Duyệt qua tất cả các phần và tất cả các bộ câu hỏi
+    const allParts = formValues.parts || []
+    for (let pIdx = 0; pIdx < allParts.length; pIdx++) {
+      const groups = allParts[pIdx].QuestionGroups || []
+      for (let gIdx = 0; gIdx < groups.length; gIdx++) {
+        // Bỏ qua chính nó
+        // Use partName and groupName from editingGroup to identify the current group
+        if (pIdx === partName && gIdx === groupName) continue
+
+        const other = groups[gIdx]
+        if (!other || other.QuestionFrom === undefined || other.QuestionTo === undefined) continue
+
+        // Kiểm tra overlap
+        if (Math.max(from, other.QuestionFrom) <= Math.min(to, other.QuestionTo)) {
+          return Promise.reject(new Error(`Số câu ${from}-${to} trùng với Nhóm ${gIdx + 1} của Phần ${pIdx + 1} (${other.QuestionFrom}-${other.QuestionTo})`))
+        }
+      }
+    }
+
+    return Promise.resolve()
+  }
+
+  // Hàm mở modal chỉnh sửa và sao lưu giá trị ban đầu
+  const handleOpenEditGroup = (groupInfo) => {
+    const { partName, groupName } = groupInfo
+    const currentValues = form.getFieldValue(['parts', partName, 'QuestionGroups', groupName])
+
+    // Sao lưu giá trị ban đầu để có thể Hủy (bảo toàn File objects cho upload ảnh)
+    const backup = currentValues ? { ...currentValues } : {}
+    if (Array.isArray(currentValues?.ExampleUrl)) {
+      backup.ExampleUrl = [...currentValues.ExampleUrl]
+    }
+
+    setInitialGroupValues(backup)
+    setEditingGroup(groupInfo)
+  }
+
+  // Hàm hủy chỉnh sửa - khôi phục lại giá trị ban đầu
+  const handleCancelEdit = () => {
+    if (editingGroup && initialGroupValues) {
+      const { partName, groupName } = editingGroup
+      form.setFieldValue(['parts', partName, 'QuestionGroups', groupName], initialGroupValues)
+
+      // Re-validate các bộ câu khác vì dải câu vừa được phục hồi có thể hết lỗi
+      form.validateFields()
+    }
+    setEditingGroup(null)
+    setInitialGroupValues(null)
+  }
+
+  // Hàm lưu chỉnh sửa - chỉ đơn giản là đóng modal vì form đã được cập nhật
+  const handleSaveEdit = async () => {
+    try {
+      const { partName, groupName, groupKey } = editingGroup
+
+      // Kiểm tra validation trước khi lưu tạm
+      await form.validateFields([
+        ['parts', partName, 'QuestionGroups', groupName, 'QuestionFrom'],
+        ['parts', partName, 'QuestionGroups', groupName, 'QuestionTo'],
+        ['parts', partName, 'QuestionGroups', groupName, 'QuestionTypeId'],
+        ['parts', partName, 'QuestionGroups', groupName, 'Mark'],
+        ['parts', partName, 'QuestionGroups', groupName, 'PartTitle'],
+        ['parts', partName, 'QuestionGroups', groupName, 'Instruction']
+      ])
+
+      const currentValues = form.getFieldValue(['parts', partName, 'QuestionGroups', groupName])
+
+      // So sánh để đánh dấu modified (sử dụng stringify đơn giản cho các trường text/number)
+      const simplifiedBackup = { ...initialGroupValues, ExampleUrl: undefined }
+      const simplifiedCurrent = { ...currentValues, ExampleUrl: undefined }
+      const isModified = JSON.stringify(simplifiedBackup) !== JSON.stringify(simplifiedCurrent) ||
+        initialGroupValues?.ExampleUrl?.length !== currentValues?.ExampleUrl?.length
+
+      if (isModified) {
+        setModifiedGroups(prev => new Set(prev).add(groupKey))
+      }
+
+      setEditingGroup(null)
+      setInitialGroupValues(null)
+    } catch (error) {
+      // Nếu có lỗi validation (như trùng dải câu), Modal sẽ không đóng
+      console.error('Validation failed:', error)
+    }
+  }
+
 
   return (
     <>
@@ -613,7 +688,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                         border: '1px solid #f0f0f0',
                         borderBottom: 'none'
                       }}>
-                        <Space size="middle">
+                        <Space orientation="horizontal" size="middle" align="center">
                           <MenuOutlined style={{ color: '#8c8c8c', fontSize: 18 }} />
                           <Text strong style={{ fontSize: 16 }}>Cấu trúc câu hỏi - {getSkillLabel(skill)}</Text>
                         </Space>
@@ -656,76 +731,84 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
 
                             const columns = [
                               {
-                                title: <Text style={{ fontSize: 14 }}>#</Text>,
+                                title: <Text style={{ fontSize: 13, color: '#8c8c8c' }}>STT</Text>,
                                 dataIndex: 'index',
                                 key: 'index',
-                                width: 50,
-                                render: (i) => <Text type="secondary" style={{ fontSize: 14 }}>{i + 1}</Text>
+                                width: 60,
+                                render: (i) => <Text type="secondary" style={{ fontSize: 13 }}>#{i + 1}</Text>
                               },
                               {
-                                title: <Text style={{ fontSize: 14 }}>Dạng câu & Tên nhóm</Text>,
+                                title: <Text style={{ fontSize: 13, color: '#8c8c8c' }}>Dạng câu & Tiêu đề phu</Text>,
                                 key: 'typeAndTitle',
                                 render: (_, record) => {
                                   const type = questionTypes.find(t => t.value === record.QuestionTypeId)
                                   return (
                                     <Space direction="vertical" size={2}>
                                       <Space>
-                                        <Tag color="cyan" style={{ fontSize: 14, margin: 0 }}>{type?.code || '??'}</Tag>
-                                        <Text strong style={{ fontSize: 14 }}>{type?.name || 'Dạng câu mới'}</Text>
+                                        <Tag color="blue" bordered={false} style={{ fontSize: 12, margin: 0 }}>
+                                          {type?.code || '??'}
+                                        </Tag>
+                                        <Text strong style={{ fontSize: 15, color: '#262626' }}>
+                                          {type?.name || 'Chưa thiết lập'}
+                                        </Text>
                                       </Space>
-                                      {record.PartTitle && <Text type="secondary" style={{ fontSize: 14 }}>{record.PartTitle}</Text>}
+                                      {record.PartTitle && (
+                                        <Text type="secondary" style={{ fontSize: 13, marginLeft: 2 }}>
+                                          {record.PartTitle}
+                                        </Text>
+                                      )}
                                     </Space>
                                   )
                                 }
                               },
                               {
-                                title: <Text style={{ fontSize: 14 }}>Phạm vi</Text>,
+                                title: <Text style={{ fontSize: 13, color: '#8c8c8c' }}>Phạm vi</Text>,
                                 key: 'range',
                                 align: 'center',
-                                width: 140,
+                                width: 160,
                                 render: (_, record) => (
-                                  <Tag color="orange" style={{ padding: '4px 8px', fontSize: 14, margin: 0 }}>
-                                    Câu {record.QuestionFrom || '?'} - {record.QuestionTo || '?'}
+                                  <Tag color="cyan" style={{ border: 'none', padding: '2px 10px', fontSize: 14 }}>
+                                    Câu {record.QuestionFrom || '?'}-{record.QuestionTo || '?'}
                                   </Tag>
                                 )
                               },
                               {
-                                title: <Text style={{ fontSize: 14 }}>Điểm</Text>,
+                                title: <Text style={{ fontSize: 13, color: '#8c8c8c' }}>Điểm</Text>,
                                 dataIndex: 'Mark',
                                 key: 'Mark',
                                 align: 'center',
                                 width: 100,
-                                render: (mark) => <Text strong style={{ color: '#F87218', fontSize: 14 }}>{mark || 0}</Text>
+                                render: (mark) => <Text strong style={{ color: '#F87218', fontSize: 16 }}>{mark || 0}</Text>
                               },
                               {
-                                title: <Text style={{ fontSize: 14 }}>Thao tác</Text>,
+                                title: <Text style={{ fontSize: 13, color: '#8c8c8c' }}>Thao tác</Text>,
                                 key: 'actions',
-                                width: 100,
+                                width: 120,
                                 align: 'center',
                                 render: (_, record) => (
-                                  <Space size="middle">
-                                    <Tooltip title="Chỉnh sửa chi tiết">
-                                      <Button
-                                        type="primary"
-                                        ghost
-                                        size="middle"
-                                        icon={<EditOutlined />}
-                                        style={{ borderRadius: 6 }}
-                                        onClick={() => setEditingGroup({ partName, groupName: record.name, groupIndex: record.index, skill })}
-                                      />
-                                    </Tooltip>
-                                    {!isActiveTemplate && (
-                                      <Tooltip title="Xóa">
+                                  <div className="row-action-buttons">
+                                    <Space size="small">
+                                      <Tooltip title="Chỉnh sửa chi tiết">
                                         <Button
                                           type="text"
-                                          danger
                                           size="middle"
-                                          icon={<DeleteOutlined style={{ fontSize: 18 }} />}
-                                          onClick={() => removeGroup(record.index)}
+                                          icon={<EditOutlined style={{ color: '#1890ff' }} />}
+                                          onClick={() => handleOpenEditGroup({ partName, groupName: record.name, groupIndex: record.index, groupKey: record.key, skill })}
                                         />
                                       </Tooltip>
-                                    )}
-                                  </Space>
+                                      {!isActiveTemplate && (
+                                        <Tooltip title="Xóa">
+                                          <Button
+                                            type="text"
+                                            danger
+                                            size="middle"
+                                            icon={<DeleteOutlined style={{ fontSize: 16 }} />}
+                                            onClick={() => removeGroup(record.index)}
+                                          />
+                                        </Tooltip>
+                                      )}
+                                    </Space>
+                                  </div>
                                 )
                               }
                             ]
@@ -744,7 +827,20 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                         style={{ marginTop: 16 }}
                                         onClick={() => {
                                           addGroup({ Skill: skill, QuestionFrom: 1, QuestionTo: 1, Mark: 1 })
-                                          setEditingGroup({ partName, groupName: groupFields.length, groupIndex: groupFields.length, skill })
+                                          // Để groupFields cập nhật, ta dùng setTimeout
+                                          setTimeout(() => {
+                                            const updatedValues = form.getFieldsValue(true)
+                                            const currentGroups = updatedValues.parts[partName].QuestionGroups
+                                            const newIndex = currentGroups.length - 1
+                                            // Lấy key từ groupFields thực tế bằng cách render lại hoặc đoán index
+                                            handleOpenEditGroup({
+                                              partName,
+                                              groupName: newIndex,
+                                              groupIndex: newIndex,
+                                              groupKey: `new-${Date.now()}`, // Temporary fallback if key not yet available
+                                              skill
+                                            })
+                                          }, 0)
                                         }}
                                       >
                                         Thêm bộ câu đầu tiên
@@ -753,14 +849,32 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                   </div>
                                 ) : (
                                   <>
+                                    <style>
+                                      {`
+                                        .row-action-buttons {
+                                          opacity: 0;
+                                          transition: opacity 0.2s;
+                                        }
+                                        .ant-table-row:hover .row-action-buttons {
+                                          opacity: 1;
+                                        }
+                                        .modified-row {
+                                          background-color: #fffbe6 !important;
+                                        }
+                                        .modified-row:hover > td {
+                                          background-color: #fff1b8 !important;
+                                        }
+                                      `}
+                                    </style>
                                     <Table
                                       dataSource={tableData}
                                       columns={columns}
                                       pagination={false}
-                                      size="middle"
+                                      size="large"
                                       bordered={false}
                                       rowKey="key"
-                                      scroll={{ y: 350 }} // Cố định chiều cao và cuộn bên trong
+                                      rowClassName={(record) => (!record.TemplatePartId || modifiedGroups.has(record.key)) ? 'modified-row' : ''}
+                                      scroll={{ y: 400 }} // Tăng nhẹ chiều cao
                                       style={{ marginBottom: 16 }}
                                     />
                                     {!isActiveTemplate && (
@@ -768,12 +882,27 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                         type="dashed"
                                         block
                                         icon={<PlusOutlined />}
+                                        style={{
+                                          height: 48,
+                                          borderRadius: 8,
+                                          fontSize: 15,
+                                          color: '#8c8c8c'
+                                        }}
                                         onClick={() => {
                                           const lastGroup = tableData[tableData.length - 1]
                                           const nextFrom = lastGroup ? (lastGroup.QuestionTo + 1) : 1
                                           addGroup({ Skill: skill, QuestionFrom: nextFrom, QuestionTo: nextFrom, Mark: 1 })
                                           setTimeout(() => {
-                                            setEditingGroup({ partName, groupName: groupFields.length, groupIndex: groupFields.length, skill })
+                                            const updatedValues = form.getFieldsValue(true)
+                                            const currentGroups = updatedValues.parts[partName].QuestionGroups
+                                            const newIndex = currentGroups.length - 1
+                                            handleOpenEditGroup({
+                                              partName,
+                                              groupName: newIndex,
+                                              groupIndex: newIndex,
+                                              groupKey: `new-${Date.now()}`,
+                                              skill
+                                            })
                                           }, 0)
                                         }}
                                       >
@@ -795,16 +924,16 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                   <div style={{ marginTop: 24, textAlign: 'right' }}>
                     <Button
                       type="primary"
+                      block
                       onClick={() => form.submit()}
                       loading={loading}
                       size="large"
                       style={{
-                        borderRadius: 8, minWidth: 160, height: 45,
-                        backgroundColor: '#F87218', borderColor: '#F87218',
-                        boxShadow: '0 4px 10px rgba(248, 114, 24, 0.2)'
+                        borderRadius: 8,
+                        // minWidth: '100px'
                       }}
                     >
-                      Xác nhận lưu tất cả
+                      Lưu
                     </Button>
                   </div>
                 )}
@@ -828,13 +957,19 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
               return
             }
 
-            if (addPartRef.current) {
-              addPartRef.current({
-                Skill: selectedSkillForNewPart,
-                QuestionGroups: []
-              })
-              setActivePartIndex(partsCountRef.current)
+            // Cách tiếp cận mới: Lấy các phần hiện tại, thêm phần mới, sort lại và set lại form
+            const currentParts = form.getFieldValue('parts') || []
+            const newParts = [...currentParts, { Skill: selectedSkillForNewPart, QuestionGroups: [] }]
+            const sortedParts = newParts.sort((a, b) => (a.Skill || 0) - (b.Skill || 0))
+
+            form.setFieldsValue({ parts: sortedParts })
+
+            // Tìm index mới của skill vừa thêm
+            const newIndex = sortedParts.findIndex(p => p.Skill === selectedSkillForNewPart)
+            if (newIndex !== -1) {
+              setActivePartIndex(newIndex)
             }
+
             setAddPartModalOpen(false)
             setSelectedSkillForNewPart(null)
           }}
@@ -878,101 +1013,135 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
             </div>
           }
           open={!!editingGroup}
-          onOk={() => setEditingGroup(null)}
-          onCancel={() => setEditingGroup(null)}
+          onOk={handleSaveEdit}
+          onCancel={handleCancelEdit}
           footer={[
             <Button
-              key="close"
+              key="cancel"
+              size="middle"
+              style={{ borderRadius: 8, minWidth: 100 }}
+              onClick={handleCancelEdit}
+            >
+              Hủy
+            </Button>,
+            <Button
+              key="submit"
               type="primary"
               size="middle"
               style={{ borderRadius: 8, minWidth: 100, backgroundColor: '#1890ff' }}
-              onClick={() => setEditingGroup(null)}
+              onClick={handleSaveEdit}
             >
-              Đóng
+              Lưu
             </Button>
           ]}
-          width={560}
+          width={900}
           centered
-          destroyOnClose={false}
+          destroyOnHidden={false}
         >
           {editingGroup && (() => {
             const { partName, groupName, skill } = editingGroup
             const questionTypes = getQuestionTypesBySkill(skill)
 
             return (
-              <div style={{ padding: '4px 0 16px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-                  <Form.Item
-                    name={['parts', partName, 'QuestionGroups', groupName, 'QuestionTypeId']}
-                    label={<Text strong style={{ fontSize: 14 }}>Loại câu hỏi</Text>}
-                    rules={[{ required: true, message: 'Vui lòng chọn' }]}
-                    style={{ gridColumn: '1 / -1', marginBottom: 12 }}
-                  >
-                    <Select
-                      options={questionTypes}
-                      size="middle"
-                      showSearch
-                      disabled={isActiveTemplate}
-                      placeholder="Chọn dạng câu hỏi..."
-                      style={{ borderRadius: 8 }}
-                    />
-                  </Form.Item>
+              <div style={{ padding: '8px 0' }}>
+                <Row gutter={24}>
+                  <Col span={14}>
+                    <Form.Item
+                      name={['parts', partName, 'QuestionGroups', groupName, 'QuestionTypeId']}
+                      label={<Text strong style={{ fontSize: 14 }}>Loại câu hỏi</Text>}
+                      rules={[{ required: true, message: 'Vui lòng chọn' }]}
+                      style={{ marginBottom: 16 }}
+                    >
+                      <Select
+                        options={questionTypes}
+                        size="middle"
+                        showSearch
+                        disabled={isActiveTemplate}
+                        placeholder="Chọn dạng câu hỏi..."
+                        style={{ borderRadius: 8 }}
+                      />
+                    </Form.Item>
 
-                  <Form.Item
-                    name={['parts', partName, 'QuestionGroups', groupName, 'QuestionFrom']}
-                    label={<Text strong style={{ fontSize: 14 }}>Từ câu</Text>}
-                    rules={[{ required: true }]}
-                    style={{ marginBottom: 12 }}
-                  >
-                    <InputNumber min={1} size="middle" style={{ width: '100%', borderRadius: 8 }} disabled={isActiveTemplate} />
-                  </Form.Item>
+                    <Row gutter={16}>
+                      <Col span={8}>
+                        <Form.Item
+                          name={['parts', partName, 'QuestionGroups', groupName, 'QuestionFrom']}
+                          label={<Text strong style={{ fontSize: 14 }}>Từ câu</Text>}
+                          rules={[
+                            { required: true, message: 'Vui lòng nhập' },
+                            { validator: validateQuestionRange }
+                          ]}
+                          style={{ marginBottom: 16 }}
+                          validateTrigger={['onChange', 'onBlur']}
+                        >
+                          <InputNumber min={1} size="middle" style={{ width: '100%', borderRadius: 8 }} disabled={isActiveTemplate} />
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          name={['parts', partName, 'QuestionGroups', groupName, 'QuestionTo']}
+                          label={<Text strong style={{ fontSize: 14 }}>Đến câu</Text>}
+                          rules={[
+                            { required: true, message: 'Vui lòng nhập' },
+                            { validator: validateQuestionRange }
+                          ]}
+                          style={{ marginBottom: 16 }}
+                          validateTrigger={['onChange', 'onBlur']}
+                        >
+                          <InputNumber min={1} size="middle" style={{ width: '100%', borderRadius: 8 }} disabled={isActiveTemplate} />
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          name={['parts', partName, 'QuestionGroups', groupName, 'Mark']}
+                          label={<Text strong style={{ fontSize: 14 }}>Điểm</Text>}
+                          rules={[{ required: true, message: 'Vui lòng nhập điểm' }]}
+                          style={{ marginBottom: 16 }}
+                        >
+                          <InputNumber min={0} step={1} size="middle" style={{ width: '100%', borderRadius: 8 }} disabled={isActiveTemplate} />
+                        </Form.Item>
+                      </Col>
+                    </Row>
 
-                  <Form.Item
-                    name={['parts', partName, 'QuestionGroups', groupName, 'QuestionTo']}
-                    label={<Text strong style={{ fontSize: 14 }}>Đến câu</Text>}
-                    rules={[{ required: true }]}
-                    style={{ marginBottom: 12 }}
-                  >
-                    <InputNumber min={1} size="middle" style={{ width: '100%', borderRadius: 8 }} disabled={isActiveTemplate} />
-                  </Form.Item>
+                    <Form.Item
+                      name={['parts', partName, 'QuestionGroups', groupName, 'PartTitle']}
+                      label={<Text strong style={{ fontSize: 14 }}>Tiêu đề hiển thị</Text>}
+                      rules={[{ required: true, message: 'Vui lòng nhập tiêu đề' }]}
+                      style={{ marginBottom: 16 }}
+                    >
+                      <Input size="middle" style={{ borderRadius: 8 }} disabled={isActiveTemplate} placeholder="Tiêu đề chính của nhóm câu..." />
+                    </Form.Item>
 
-                  <Form.Item
-                    name={['parts', partName, 'QuestionGroups', groupName, 'Mark']}
-                    label={<Text strong style={{ fontSize: 14 }}>Điểm</Text>}
-                    rules={[{ required: true }]}
-                    style={{ marginBottom: 12 }}
-                  >
-                    <InputNumber min={0} step={1} size="middle" style={{ width: '100%', borderRadius: 8 }} disabled={isActiveTemplate} />
-                  </Form.Item>
+                    <Form.Item
+                      name={['parts', partName, 'QuestionGroups', groupName, 'Instruction']}
+                      label={<Text strong style={{ fontSize: 14 }}>Hướng dẫn thí sinh</Text>}
+                      rules={[{ required: true, message: 'Vui lòng nhập hướng dẫn' }]}
+                      style={{ marginBottom: 0 }}
+                    >
+                      <TextArea rows={4} style={{ borderRadius: 8 }} disabled={isActiveTemplate} placeholder="Ví dụ: Đọc đoạn văn sau và chọn đáp án..." />
+                    </Form.Item>
+                  </Col>
 
-                  <Form.Item
-                    name={['parts', partName, 'QuestionGroups', groupName, 'PartTitle']}
-                    label={<Text strong style={{ fontSize: 14 }}>Tiêu đề hiển thị</Text>}
-                    rules={[{ required: true }]}
-                    style={{ gridColumn: '1 / -1', marginBottom: 12 }}
-                  >
-                    <Input size="middle" style={{ borderRadius: 8 }} disabled={isActiveTemplate} placeholder="Tiêu đề chính của nhóm câu..." />
-                  </Form.Item>
+                  <Col span={10}>
+                    <Form.Item
+                      name={['parts', partName, 'QuestionGroups', groupName, 'ExampleUrl']}
+                      label={<Text strong style={{ fontSize: 14 }}>Ảnh ví dụ</Text>}
+                      style={{ marginBottom: 0 }}
+                      valuePropName="fileList"
+                      getValueFromEvent={e => Array.isArray(e) ? e : e?.fileList}
+                    >
+                      <ImageUploadField disabled={isActiveTemplate} />
+                    </Form.Item>
 
-                  <Form.Item
-                    name={['parts', partName, 'QuestionGroups', groupName, 'Instruction']}
-                    label={<Text strong style={{ fontSize: 14 }}>Hướng dẫn thí sinh</Text>}
-                    rules={[{ required: true }]}
-                    style={{ gridColumn: '1 / -1', marginBottom: 12 }}
-                  >
-                    <TextArea rows={3} style={{ borderRadius: 8 }} disabled={isActiveTemplate} placeholder="Ví dụ: Đọc đoạn văn sau và chọn đáp án..." />
-                  </Form.Item>
-
-                  <Form.Item
-                    name={['parts', partName, 'QuestionGroups', groupName, 'ExampleUrl']}
-                    label={<Text strong style={{ fontSize: 14 }}>Ảnh ví dụ</Text>}
-                    style={{ gridColumn: '1 / -1', marginBottom: 0 }}
-                    valuePropName="fileList"
-                    getValueFromEvent={e => Array.isArray(e) ? e : e?.fileList}
-                  >
-                    <ImageUploadField disabled={isActiveTemplate} />
-                  </Form.Item>
-                </div>
+                    <div style={{ marginTop: 20, padding: 16, background: '#f5f5f5', borderRadius: 8, border: '1px solid #f0f0f0' }}>
+                      <Title level={5} style={{ fontSize: 13, marginBottom: 8, color: '#595959' }}>Thông tin bổ sung</Title>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        Hãy đảm bảo phạm vi câu hỏi không bị trùng lặp với các bộ câu khác trong cùng một phần.
+                        Ảnh ví dụ nên có kích thước rõ nét để thí sinh dễ dàng theo dõi.
+                      </Text>
+                    </div>
+                  </Col>
+                </Row>
               </div>
             )
           })()}

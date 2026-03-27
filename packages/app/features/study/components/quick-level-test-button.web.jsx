@@ -1,9 +1,9 @@
 import React from 'react'
 import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
-import { colors } from '../../../color'
-import { normalizeImageSource } from '../api'
+import { colors } from '@tokki/app/color'
+import { normalizeImageSource } from '@tokki/app/features/study/api'
 
-import BunnyIcon from '../../../../assets/bunny/1.png'
+import BunnyIcon from 'assets/bunny/1.png'
 
 /**
  * QuickLevelTestButton: Nút kiểm tra level nhanh

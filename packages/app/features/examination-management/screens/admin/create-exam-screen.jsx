@@ -13,7 +13,6 @@ const { Option } = Select
 const TYPE_MAP = {
   1: 'TOPIK I',
   2: 'TOPIK II',
-  3: 'Test đầu vào',
 }
 
 export function CreateExamScreen() {
@@ -124,7 +123,6 @@ export function CreateExamScreen() {
                 >
                   <Radio value={1}>TOPIK I</Radio>
                   <Radio value={2}>TOPIK II</Radio>
-                  <Radio value={3}>Test đầu vào</Radio>
                 </Radio.Group>
               </Form.Item>
 

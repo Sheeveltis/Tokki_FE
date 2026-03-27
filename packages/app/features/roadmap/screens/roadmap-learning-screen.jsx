@@ -1,24 +1,30 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import { Platform } from 'react-native'
+import { useSearchParams } from 'solito/navigation'
 import { RoadmapLearningLayout } from '../components/roadmap-learning/roadmap-learning-layout.web'
-import { apiClient, getAuthToken } from '../../../provider/api/client'
+import { apiClient } from '../../../provider/api/client'
 import { ENDPOINTS } from '../../../provider/api/endpoints'
 
-// Screen hiển thị lộ trình học theo ngày cho từng kỹ năng (nghe/đọc/viết)
+// Screen hiển thị lộ trình học tập - Đồng bộ hóa trạng thái với URL parameters
 export function RoadmapLearningScreen() {
+  const searchParams = useSearchParams()
+  
+  // Đồng bộ index tuần/ngày từ URL
+  const weekIndexFromUrl = useMemo(() => {
+    const val = searchParams?.get?.('week')
+    return val ? parseInt(val) : null
+  }, [searchParams])
+
+  const dayIndexFromUrl = useMemo(() => {
+    const val = searchParams?.get?.('day')
+    return val ? parseInt(val) : null
+  }, [searchParams])
+
   const [roadmapData, setRoadmapData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
-  const hasFetchedRef = useRef(false)
 
   const fetchCurrentRoadmap = useCallback(async () => {
-    const token = getAuthToken()
-    if (!token) {
-      setIsLoading(false)
-      setRoadmapData(null)
-      setError('Bạn cần đăng nhập để xem lộ trình học.')
-      return
-    }
-
     setIsLoading(true)
     setError(null)
     try {
@@ -26,6 +32,7 @@ export function RoadmapLearningScreen() {
       const data = response?.data?.data || null
       setRoadmapData(data)
     } catch (err) {
+      console.error('Failed to fetch roadmap:', err)
       const status = err?.response?.status
       if (status === 401) {
         setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
@@ -39,9 +46,14 @@ export function RoadmapLearningScreen() {
   }, [])
 
   useEffect(() => {
-    if (hasFetchedRef.current) return
-    hasFetchedRef.current = true
     fetchCurrentRoadmap()
+
+    // Re-fetch khi window quay lại focus (ví dụ sau khi học xong ở tab khác hoặc quay lại trình duyệt)
+    if (Platform.OS === 'web') {
+      const onFocus = () => fetchCurrentRoadmap()
+      window.addEventListener('focus', onFocus)
+      return () => window.removeEventListener('focus', onFocus)
+    }
   }, [fetchCurrentRoadmap])
 
   return (
@@ -50,7 +62,11 @@ export function RoadmapLearningScreen() {
       isLoading={isLoading}
       error={error}
       onRetry={fetchCurrentRoadmap}
+      initialWeekIndex={weekIndexFromUrl}
+      initialDayIndex={dayIndexFromUrl}
     />
   )
 }
+
+
 

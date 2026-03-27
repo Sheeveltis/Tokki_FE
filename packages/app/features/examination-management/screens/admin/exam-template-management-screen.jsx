@@ -11,11 +11,11 @@ const { Option } = Select
 
 // Mapping trạng thái theo enum ExamTemplateStatus
 const STATUS_CONFIG = {
-  0: { label: 'Nháp', color: '#8c8c8c' },
-  1: { label: 'Đã xuất bản', color: '#52c41a' },
-  2: { label: 'Đã xóa', color: '#f5222d' },
-  3: { label: 'Chờ phê duyệt', color: '#fa8c16' },
-  4: { label: 'Từ chối', color: '#f5222d' },
+  0: { label: 'Nháp', color: 'default', colorHex: '#8c8c8c' },
+  1: { label: 'Đã xuất bản', color: 'success', colorHex: '#52c41a' },
+  2: { label: 'Đã xóa', color: 'error', colorHex: '#f5222d' },
+  3: { label: 'Chờ phê duyệt', color: 'warning', colorHex: '#fa8c16' },
+  4: { label: 'Từ chối', color: 'volcano', colorHex: '#f5222d' },
 }
 
 export function ExamTemplateManagement({ initialData = null, basePath = '/admin' }) {
@@ -23,7 +23,7 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
 
   const [filters, setFilters] = useState({
     search: '',
-    status: 1, // Default status is Published (1)
+    status: null, // Default status is All
     type: null,
     page: 1,
     size: 20,
@@ -111,9 +111,9 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
                 width: 14,
                 height: 14,
                 borderRadius: '50%',
-                backgroundColor: cfg.color,
+                backgroundColor: cfg.colorHex,
                 margin: '0 auto',
-                boxShadow: '0 0 4px rgba(0,0,0,0.3)',
+                boxShadow: `0 0 6px ${cfg.colorHex}60`,
                 cursor: 'pointer'
               }}
             />
@@ -229,8 +229,8 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
                 width: 10,
                 height: 10,
                 borderRadius: '50%',
-                backgroundColor: cfg.color,
-                boxShadow: `0 0 6px ${cfg.color}80`
+                backgroundColor: cfg.colorHex,
+                boxShadow: `0 0 6px ${cfg.colorHex}80`
               }}
             />
           </Tooltip>
@@ -295,8 +295,8 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
       >
         <Option value={null}>Tất cả trạng thái</Option>
         <Option value={0}>Nháp</Option>
-        <Option value={1}>Đã xuất bản</Option>
         <Option value={3}>Chờ phê duyệt</Option>
+        <Option value={1}>Đã xuất bản</Option>
         <Option value={4}>Từ chối</Option>
         <Option value={2}>Đã xóa</Option>
       </Select>
@@ -311,7 +311,6 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
         <Option value={null}>Tất cả loại đề</Option>
         <Option value={1}>TOPIK I</Option>
         <Option value={2}>TOPIK II</Option>
-        <Option value={3}>Test đầu vào</Option>
       </Select>
     </Space>
   )
@@ -321,7 +320,7 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
       label: 'Thêm mới',
       icon: <PlusOutlined />,
       type: 'primary',
-      onPress: () => setCreateOpen(true)
+      onPress: () => setCreateModalOpen(true)
     }
   ]
 

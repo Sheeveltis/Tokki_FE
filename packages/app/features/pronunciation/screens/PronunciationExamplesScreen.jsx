@@ -99,7 +99,7 @@ export default PronunciationExamplesScreen
 
 const styles = StyleSheet.create({
   titleContainer: { width: '100%', alignItems: 'center', marginTop: 12, marginBottom: 24 },
-  title: { fontSize: 32, fontWeight: '700', color: '#1F1F1F', fontFamily: 'Epilogue, sans-serif', textAlign: 'center' },
+  title: { fontSize: 36, fontWeight: '900', color: '#1F1F1F', fontFamily: 'Epilogue, sans-serif', textAlign: 'center' },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, minHeight: 220 },
   errorText: { fontSize: 14, color: '#ff4d4f', marginBottom: 12, textAlign: 'center' },
   retryButton: { backgroundColor: '#F1BE4B', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8 },

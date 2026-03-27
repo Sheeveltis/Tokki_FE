@@ -37,6 +37,8 @@ config.resolver = {
   alias: {
     'components': path.resolve(workspaceRoot, 'packages/components'),
     'app': path.resolve(workspaceRoot, 'packages/app'),
+    '@tokki/app': path.resolve(workspaceRoot, 'packages/app'),
+    'assets': path.resolve(workspaceRoot, 'packages/assets'),
   },
 }
 

@@ -1,10 +1,10 @@
 import React from 'react'
 import { View, Text, StyleSheet, Image, Platform } from 'react-native'
-import { colors } from '../../../color'
-import { normalizeImageSource } from '../api'
+import { colors } from '@tokki/app/color'
+import { normalizeImageSource } from '@tokki/app/features/study/api'
 
-import StarIcon from '../../../../assets/icon/decor/19.png'
-import LeafIcon from '../../../../assets/icon/decor/18.png'
+import StarIcon from 'assets/icon/decor/19.png'
+import LeafIcon from 'assets/icon/decor/18.png'
 
 /**
  * StudyStatsCards: Component hiển thị 2 card thống kê học tập

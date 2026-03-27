@@ -1,0 +1,80 @@
+import React from 'react'
+import { View, StyleSheet } from 'react-native'
+import { TopikBanner } from '../topik-banner.web'
+import { SkillModulesGrid } from '../skill-modules-grid.web'
+import { LoginRequest } from 'components/loginRequest'
+
+/**
+ * MenuStudyMain (Mobile): Nội dung chính của trang menu học tập
+ */
+export function MenuStudyMain({ 
+  levelId, 
+  onModulePress,
+  showLoginRequest,
+  onCloseLoginRequest,
+  onAlphabetPress,
+  onTopikRoadmapPress,
+}) {
+
+  return (
+    <View style={styles.container}>
+      {/* Banner Học chữ cái - chỉ hiển thị cho level 1 */}
+      {levelId === 1 && (
+        <TopikBanner
+          title="HỌC CHỮ CÁI"
+          onPress={onAlphabetPress}
+        />
+      )}
+
+      {/* Banner TOPIK Learning Path */}
+      <TopikBanner levelId={levelId} onPress={onTopikRoadmapPress} />
+      
+
+      {/* Grid các skill modules */}
+      <SkillModulesGrid levelId={levelId} onModulePress={onModulePress} />
+
+      {showLoginRequest && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <LoginRequest onClose={onCloseLoginRequest} />
+          </View>
+        </View>
+      )}
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+    alignItems: 'center',
+    gap: 12,
+    paddingTop: 4,
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingHorizontal: 16,
+  },
+  modalCard: {
+    maxWidth: '90%',
+    width: '100%',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
+  },
+})
+

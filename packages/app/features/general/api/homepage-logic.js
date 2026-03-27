@@ -10,7 +10,7 @@
 
 // Mock data cho demo - thay bằng API thật khi backend sẵn sàng
 const MOCK_HOME_DATA = {
-  title: 'Chào Mừng Đến Với Tokki',
+  title: 'Chào mừng đến với Tokki',
   subtitle: 'Nền tảng học tiếng Hàn hiệu quả',
   content: 'Tokki là ứng dụng học tiếng Hàn được thiết kế để giúp bạn nắm vững ngôn ngữ một cách dễ dàng và thú vị. Khám phá các bài học, từ vựng, và bài tập thực hành ngay hôm nay!',
   marketingContent: {
@@ -26,15 +26,15 @@ const MOCK_HOME_DATA = {
   },
   items: [
     {
-      title: 'Bài Học Mới',
+      title: 'Bài học mới',
       description: 'Khám phá các bài học mới nhất được cập nhật hàng tuần',
     },
     {
-      title: 'Từ Vựng',
+      title: 'Từ vựng',
       description: 'Học từ vựng theo chủ đề với hình ảnh và ví dụ minh họa',
     },
     {
-      title: 'Luyện Tập',
+      title: 'Luyện tập',
       description: 'Thực hành với các bài tập tương tác và kiểm tra kiến thức',
     },
   ],
@@ -97,7 +97,7 @@ export const getSidebarData = async () => {
  */
 export const processHomeItems = (items) => {
   if (!Array.isArray(items)) return []
-  
+
   // Ví dụ: sắp xếp, filter, format, etc.
   return items
     .filter(item => item && item.title)

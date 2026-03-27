@@ -78,7 +78,6 @@ export function QuestionTypeForm({ form }) {
           options={[
             { value: 1, label: 'TOPIK I' },
             { value: 2, label: 'TOPIK II' },
-            { value: 3, label: 'Test đầu vào' },
           ]}
         />
       </Form.Item>

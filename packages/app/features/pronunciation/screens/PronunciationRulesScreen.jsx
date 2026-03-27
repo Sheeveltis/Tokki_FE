@@ -113,7 +113,7 @@ export default PronunciationRulesScreen
 
 const styles = StyleSheet.create({
   titleContainer: { width: '100%', alignItems: 'center', marginTop: 12 },
-  title: { fontSize: 44, fontWeight: '700', color: '#1F1F1F', fontFamily: 'Epilogue, sans-serif', textAlign: 'center' },
+  title: { fontSize: 36, fontWeight: '900', color: '#1F1F1F', fontFamily: 'Epilogue, sans-serif', textAlign: 'center' },
   searchContainer: { flexDirection: 'row', alignItems: 'center', gap: 8, width: '90%', maxWidth: 900, marginTop: 8, marginBottom: 16 },
   searchInputWrapper: { flex: 1 },
   searchInput: { width: '100%', height: 40, paddingHorizontal: 12, borderRadius: 100, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E0E0E0' },

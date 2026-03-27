@@ -19,7 +19,6 @@ export function QuestionTypeInfoCard({ questionType, isEditing: isEditingProp, o
   const examTypeLabelMap = {
     1: 'TOPIK I',
     2: 'TOPIK II',
-    3: 'Test đầu vào',
   }
 
   const difficultyLabelMap = {
@@ -188,7 +187,6 @@ export function QuestionTypeInfoCard({ questionType, isEditing: isEditingProp, o
                   <Select size="large" placeholder="Chọn TOPIK level">
                     <Select.Option value={1}>TOPIK I</Select.Option>
                     <Select.Option value={2}>TOPIK II</Select.Option>
-                    <Select.Option value={3}>Test đầu vào</Select.Option>
                   </Select>
                 </Form.Item>
               ) : examType ? (

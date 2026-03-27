@@ -9,7 +9,6 @@ const { TextArea } = Input
 const examTypeOptions = [
   { value: 'TOPIK I', label: 'TOPIK I' },
   { value: 'TOPIK II', label: 'TOPIK II' },
-  { value: 'Test đầu vào', label: 'Test đầu vào' },
 ]
 
 function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
@@ -77,7 +76,7 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
       onCancel={handleCancelClick}
       onOk={handleOk}
       confirmLoading={loading}
-      okText="Cập nhật"
+      okText="Lưu"
       cancelText="Hủy"
       width={600}
       destroyOnClose
