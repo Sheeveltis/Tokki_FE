@@ -54,7 +54,9 @@ const renderHtmlText = (htmlString, defaultStyle, boldStyle) => {
 const PronunciationFeedbackText = ({ htmlString, evaluationWords }) => {
   if (!htmlString) return null
   
-  const [selectedGuide, setSelectedGuide] = useState(null)
+  const [activeWord, setActiveWord] = useState(null) // { index, guide, x, y, width, height }
+  const wrapperRef = React.useRef(null)
+  const wordRefs = React.useRef({})
   
   // Clean HTML p tags
   const cleanStr = htmlString.replace(/<\/?p>/g, '').trim()
@@ -62,16 +64,27 @@ const PronunciationFeedbackText = ({ htmlString, evaluationWords }) => {
   // Filter out insertions to get the reference words matched by the AI
   const referenceWordsFeedback = (evaluationWords || []).filter(w => w.errorType !== 'Insertion')
   
-  const getWordStyle = (feedback) => {
+  const getWordStyle = (feedback, isActive) => {
     if (!feedback) return { color: '#FFF' }
-    
-    // Nếu điểm cực thấp hoặc có lỗi nghiêm trọng -> Đỏ
     if (feedback.errorType !== 'None' && feedback.accuracyScore < 50) return { color: '#F44336' }
-    
-    // Nếu AI đánh dấu cần phản hồi (isFeedback: true) hoặc điểm trung bình -> Vàng
     if (feedback.isFeedback || (feedback.errorType !== 'None' && feedback.accuracyScore < 80)) return { color: '#FFC107' }
-    
     return { color: '#FFF' }
+  }
+
+  const handleWordPress = (idx, guide) => {
+    if (activeWord?.index === idx) {
+      setActiveWord(null)
+      return
+    }
+    
+    // Measure relative to the wrapper to get precise coordinates
+    wordRefs.current[idx]?.measureLayout(
+      wrapperRef.current,
+      (x, y, width, height) => {
+        setActiveWord({ index: idx, guide, x, y, width, height })
+      },
+      (err) => console.warn('Measure failed', err)
+    )
   }
 
   const parseHtml = () => {
@@ -81,11 +94,9 @@ const PronunciationFeedbackText = ({ htmlString, evaluationWords }) => {
     let globalWordIdx = 0
 
     segments.forEach((segment, segmentIdx) => {
-      if (segment === '<b>') {
-        isBold = true
-      } else if (segment === '</b>') {
-        isBold = false
-      } else if (segment) {
+      if (segment === '<b>') isBold = true
+      else if (segment === '</b>') isBold = false
+      else if (segment) {
         const wordsInSegment = segment.split(/(\s+)/).filter(p => p !== '')
         
         wordsInSegment.forEach((wordPart, wordPartIdx) => {
@@ -93,16 +104,19 @@ const PronunciationFeedbackText = ({ htmlString, evaluationWords }) => {
             elements.push(<Text key={`space-${segmentIdx}-${wordPartIdx}`}>{wordPart}</Text>)
           } else {
             const feedback = referenceWordsFeedback[globalWordIdx]
-            const wordStyle = getWordStyle(feedback)
+            const isActive = activeWord?.index === globalWordIdx
+            const currentIdx = globalWordIdx
             
             elements.push(
               <Text 
-                key={`word-${segmentIdx}-${wordPartIdx}`} 
-                onPress={() => feedback?.repairGuide && setSelectedGuide(feedback.repairGuide)}
+                key={`word-${currentIdx}`}
+                ref={r => wordRefs.current[currentIdx] = r}
+                onPress={() => feedback?.repairGuide && handleWordPress(currentIdx, feedback.repairGuide)}
                 style={[
                   styles.targetText, 
-                  wordStyle, 
+                  getWordStyle(feedback, isActive), 
                   isBold && styles.targetTextBold,
+                  isActive && styles.targetTextActive,
                   feedback?.repairGuide && { textDecorationLine: 'underline', textDecorationStyle: 'dotted' }
                 ]}
               >
@@ -117,19 +131,31 @@ const PronunciationFeedbackText = ({ htmlString, evaluationWords }) => {
     return elements
   }
 
+  // Determine if tooltip should be above or below (simple logic: bottom line = above)
+  const isBottomLine = activeWord && activeWord.y > 40
+  const tooltipWidth = 480
+
   return (
-    <View style={styles.targetScriptWrapper}>
+    <View style={styles.targetScriptWrapper} ref={wrapperRef} collapsable={false}>
       <Text style={styles.targetScriptContainer}>{parseHtml()}</Text>
       
-      {selectedGuide && (
-        <View style={styles.guideBubble}>
-          <View style={styles.guideHeader}>
-            <Text style={styles.guideTitle}>Gợi ý từ Tokki</Text>
-            <Pressable style={styles.closeGuide} onPress={() => setSelectedGuide(null)}>
-              <Text style={styles.closeGuideText}>✕</Text>
-            </Pressable>
-          </View>
-          <Text style={styles.guideText}>{selectedGuide}</Text>
+      {activeWord && (
+        <View 
+          style={[
+            styles.smartTooltip, 
+            { 
+              top: isBottomLine ? activeWord.y - 120 : activeWord.y + activeWord.height + 15, // Adjusted offset for larger bubble
+              left: Math.max(10, activeWord.x + (activeWord.width / 2) - (tooltipWidth / 2)),
+              width: tooltipWidth,
+            }
+          ]}
+        >
+           <View style={[isBottomLine ? styles.triangleDown : styles.triangleUp]} />
+           <View style={styles.tooltipHeader}>
+              <Text style={styles.tooltipTitle}>Gợi ý sửa</Text>
+              <Pressable onPress={() => setActiveWord(null)}><Text style={styles.tooltipClose}>✕</Text></Pressable>
+           </View>
+           <Text style={styles.tooltipContentText}>{activeWord.guide}</Text>
         </View>
       )}
     </View>
@@ -366,8 +392,8 @@ export function PronunciationExampleDetailScreen({ exampleId: exampleIdProp, onB
 
 const styles = StyleSheet.create({
   scrollContent: { paddingBottom: 60, paddingTop: 10 },
-  titleContainer: { width: '100%', alignItems: 'center', marginBottom: 20 },
-  title: { fontSize: 20, fontWeight: '900', color: '#1F1F1F', fontFamily: 'Epilogue, sans-serif', letterSpacing: 0.8, textTransform: 'uppercase' },
+  titleContainer: { width: '100%', alignItems: 'center', marginBottom: 24 },
+  title: { fontSize: 36, fontWeight: '900', color: '#1F1F1F', fontFamily: 'Epilogue, sans-serif', textAlign: 'center' },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, minHeight: 400 },
   
   contentWrapper: {
@@ -419,30 +445,85 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif', 
     lineHeight: 38, 
     fontWeight: '800',
-    letterSpacing: 0.5
+    letterSpacing: 0.5,
+    paddingHorizontal: 2,
+  },
+  targetTextActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    borderRadius: 6,
   },
   targetTextBold: { },
   
-  guideBubble: {
+  smartTooltip: {
+    position: 'absolute',
     backgroundColor: '#FFFFFF',
-    padding: 18,
-    borderRadius: 20,
+    padding: 14,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#FFC107',
-    width: '100%',
-    marginTop: 20,
-    zIndex: 100,
+    zIndex: 9999, // Ensure it's on top of everything
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 15,
   },
-  guideHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  guideTitle: { fontSize: 13, fontWeight: '800', color: '#B08E1C', textTransform: 'uppercase' },
-  guideText: { fontSize: 14, color: '#2C3E50', lineHeight: 21, fontFamily: 'Epilogue, sans-serif', fontWeight: '500' },
-  closeGuide: { padding: 4 },
-  closeGuideText: { fontSize: 18, color: '#ABB2B9', fontWeight: 'bold' },
+  tooltipHeader: {
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 6
+  },
+  tooltipTitle: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#B08E1C',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  tooltipClose: {
+    fontSize: 16,
+    color: '#ABB2B9',
+    fontWeight: 'bold',
+    padding: 4,
+  },
+  tooltipContentText: {
+    fontSize: 14,
+    color: '#1F1F1F',
+    lineHeight: 20,
+    fontFamily: 'Epilogue, sans-serif',
+    fontWeight: '600',
+  },
+  triangleUp: {
+    position: 'absolute',
+    top: -12,
+    left: '50%',
+    marginLeft: -10,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 10,
+    borderRightWidth: 10,
+    borderBottomWidth: 12,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: '#FFC107',
+    zIndex: 10000,
+  },
+  triangleDown: {
+    position: 'absolute',
+    bottom: -12,
+    left: '50%',
+    marginLeft: -10,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 10,
+    borderRightWidth: 10,
+    borderTopWidth: 12,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: '#FFC107',
+    zIndex: 10000,
+  },
   
   actionRow: { width: '100%', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
   audioButtonWrapper: { 
