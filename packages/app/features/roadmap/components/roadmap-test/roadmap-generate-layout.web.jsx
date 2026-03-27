@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { StyleSheet, View, Text, ScrollView, Pressable, Platform, Image } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { Navbar } from '../../../../../components/navbar'
@@ -24,6 +24,7 @@ export function RoadmapGenerateLayout({
   onGenerateRoadmap,
   isGeneratingRoadmap = false,
   generateError = null,
+  progressData = null,
 }) {
   const router = useRouter()
   const [selectedDuration, setSelectedDuration] = useState(null)
@@ -57,6 +58,13 @@ export function RoadmapGenerateLayout({
   const hasFeedback = Boolean(feedbackData)
   const durationOptions = feedbackData?.durationOptions || []
 
+  // Effect to handle navigation when progressData shows completion
+  useEffect(() => {
+    if (progressData?.isCompleted && progressData?.roadmapId) {
+      router.push('/roadmap/learning')
+    }
+  }, [progressData, router])
+
   if (feedbackLoading) {
     return (
       <View style={styles.wrapper}>
@@ -86,13 +94,12 @@ export function RoadmapGenerateLayout({
 
   const handleCreateRoadmap = async () => {
     if (!selectedDuration || isGeneratingRoadmap) return
-    const roadmapId = await onGenerateRoadmap?.({
+    await onGenerateRoadmap?.({
       durationDays: selectedDuration,
     })
-    if (roadmapId) {
-      router.push('/roadmap/learning')
-    }
   }
+
+
 
   return (
     <View style={styles.wrapper}>
@@ -244,6 +251,34 @@ export function RoadmapGenerateLayout({
               error={detailError}
               onClose={() => setDetailModalVisible(false)}
             />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Progress Modal */}
+      <Modal
+        visible={isGeneratingRoadmap && !!progressData}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.progressCard}>
+            <Text style={styles.progressTitle}>Đang tạo lộ trình của bạn</Text>
+            <Text style={styles.progressStep}>{progressData?.step || 'Đang chuẩn bị...'}</Text>
+
+            <View style={styles.progressBarWrapper}>
+              <View
+                style={[
+                  styles.progressBar,
+                  { width: `${progressData?.percent || 0}%` },
+                ]}
+              />
+            </View>
+
+            <View style={styles.progressFooter}>
+              <Text style={styles.progressPercent}>{progressData?.percent || 0}%</Text>
+              <Text style={styles.progressNote}>Có thể mất khoảng 1 phút. Vui lòng không đóng trang này.</Text>
+            </View>
           </View>
         </View>
       </Modal>
@@ -585,5 +620,59 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' && {
       boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
     }),
+  },
+  progressCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 32,
+    padding: 32,
+    width: '100%',
+    maxWidth: 480,
+    alignItems: 'center',
+    gap: 20,
+    boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+  },
+  progressTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+  },
+  progressStep: {
+    fontSize: 15,
+    color: '#666',
+    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 22,
+    minHeight: 44,
+  },
+  progressBarWrapper: {
+    width: '100%',
+    height: 12,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#F1BE4B',
+    borderRadius: 6,
+  },
+  progressFooter: {
+    width: '100%',
+    alignItems: 'center',
+    gap: 12,
+  },
+  progressPercent: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#F1BE4B',
+  },
+  progressNote: {
+    fontSize: 13,
+    color: '#999',
+    textAlign: 'center',
+    fontWeight: '500',
+    fontStyle: 'italic',
   },
 })

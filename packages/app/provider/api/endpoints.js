@@ -290,6 +290,7 @@ export const ENDPOINTS = {
     DURATION_RECOMMENDATION: '/Roadmap/duration-recommendation',
     FEEDBACK: '/Roadmap/entrance-feedback',
     GENERATE: '/Roadmap/generate',
+    PROGRESS: (jobId) => `/Roadmap/progress/${encodeURIComponent(jobId)}`,
     CURRENT: '/Roadmap/current',
     TASK_DETAIL: (taskId) => `/Roadmap/task/${encodeURIComponent(taskId)}/detail`,
     COMPLETE: '/Roadmap/complete',
