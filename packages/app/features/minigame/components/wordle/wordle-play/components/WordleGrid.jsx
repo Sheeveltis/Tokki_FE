@@ -1,7 +1,6 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import { WordleRow } from './WordleRow'
-import { WordleTargetRow } from './WordleTargetRow'
 import { WordleInputRow } from './WordleInputRow'
 
 // rows: mảng các feedbacks từ API, mỗi phần tử là một mảng feedback cho 1 lượt đoán
@@ -43,9 +42,6 @@ export function WordleGrid({
 
   return (
     <View style={styles.grid}>
-      {gameState !== 'won' && (
-        <WordleTargetRow wordLength={wordLength} targetWord={targetWord} />
-      )}
       {renderedRows}
     </View>
   )

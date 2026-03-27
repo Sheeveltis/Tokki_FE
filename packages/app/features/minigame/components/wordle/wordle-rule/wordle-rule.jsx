@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   },
   ground: {
     width: '100%',
-    height: Platform.OS === 'web' ? 190 : 140,
+    height: Platform.OS === 'web' ? 170 : 140,
   },
 })
 

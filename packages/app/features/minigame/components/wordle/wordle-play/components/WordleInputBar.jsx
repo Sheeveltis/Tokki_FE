@@ -39,55 +39,63 @@ const styles = StyleSheet.create({
     marginVertical: 15,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10,
+    gap: 12,
   },
   input: {
     flex: 1,
-    minHeight: 50,
+    minHeight: 56,
     maxHeight: 150,
-    backgroundColor: '#fff',
-    borderRadius: 25,
+    backgroundColor: '#FFF9E3', // Soft cream
+    borderRadius: 16,
     paddingHorizontal: 20,
     paddingVertical: 15,
     fontSize: 18,
-    borderWidth: 1,
-    borderColor: '#d3d6da',
+    borderWidth: 3,
+    borderColor: '#8D6E63', // Wooden frame
+    color: '#4E342E',
     textAlign: 'left',
     ...Platform.select({
       web: {
         outlineStyle: 'none',
         overflowY: 'auto',
         resize: 'none',
+        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)',
       },
     }),
   },
   submitButton: {
-    backgroundColor: '#6aaa64',
+    backgroundColor: '#4CAF50', // Friendly green
     paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 25,
+    paddingVertical: 14,
+    borderRadius: 16,
     minWidth: 80,
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({
       web: {
         cursor: 'pointer',
+        boxShadow: '0 4px 0 #2E7D32, 0 4px 8px rgba(0,0,0,0.2)',
       },
     }),
   },
   submitButtonDisabled: {
-    backgroundColor: '#d3d6da',
+    backgroundColor: '#CFD8DC',
     opacity: 0.6,
     ...Platform.select({
       web: {
         cursor: 'not-allowed',
+        boxShadow: 'none',
+        transform: [{ translateY: 2 }],
       },
     }),
   },
   submitButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '900',
+    textShadowColor: 'rgba(0,0,0,0.2)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 1,
   },
 })
 

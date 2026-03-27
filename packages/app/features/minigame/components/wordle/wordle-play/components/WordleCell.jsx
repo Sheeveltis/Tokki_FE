@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet, Platform } from 'react-native'
 
 /**
  * WordleCell dùng feedback từ API:
@@ -85,40 +85,49 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
   },
   dotYellow: {
-    backgroundColor: '#C9B458',
+    backgroundColor: '#FDD835',
   },
   dotInactive: {
-    backgroundColor: '#B0BEC5',
+    backgroundColor: 'rgba(255,255,255,0.4)',
   },
   cell: {
     width: 52,
     height: 52,
-    borderWidth: 2,
-    borderColor: '#d3d6da',
+    borderWidth: 3,
+    borderColor: '#8D6E63', // Wooden frame color
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 6,
-    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+    backgroundColor: '#FFF9C4', // Soft clay color
+    ...(Platform.OS === 'web' && {
+      boxShadow: 'inset 0 -4px 0 rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.15)',
+    }),
   },
   cellGreen: {
-    backgroundColor: '#6AAA64',
-    borderColor: '#6AAA64',
+    backgroundColor: '#81C784',
+    borderColor: '#388E3C',
   },
   cellYellow: {
-    backgroundColor: '#C9B458',
-    borderColor: '#C9B458',
+    backgroundColor: '#FFF176',
+    borderColor: '#FBC02D',
   },
   cellGray: {
-    backgroundColor: '#787C7E',
-    borderColor: '#787C7E',
+    backgroundColor: '#CFD8DC',
+    borderColor: '#90A4AE',
   },
   text: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1a1a1b',
+    fontWeight: '900',
+    color: '#4E342E',
+    textShadowColor: 'rgba(255,255,255,0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 1,
   },
   whiteText: {
-    color: '#fff',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0,0,0,0.2)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 1,
   },
 })
 
