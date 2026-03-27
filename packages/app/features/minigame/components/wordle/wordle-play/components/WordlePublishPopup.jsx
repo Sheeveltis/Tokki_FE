@@ -53,25 +53,31 @@ const styles = StyleSheet.create({
   container: {
     width: '90%',
     maxWidth: 400,
-    backgroundColor: '#FFF5E6',
-    borderRadius: 20,
+    backgroundColor: '#FFF9E3',
+    borderRadius: 24,
+    borderWidth: 3,
+    borderColor: '#8D6E63',
     padding: 24,
     alignItems: 'center',
     elevation: 12,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+    }),
   },
   title: {
-    fontSize: 22,
-    fontWeight: '800',
+    fontSize: 24,
+    fontWeight: '900',
     marginBottom: 12,
     textAlign: 'center',
-    color: '#1C1C1C',
+    color: '#8B4513',
   },
   message: {
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 24,
-    color: '#4E342E',
+    color: '#5D4037',
     lineHeight: 22,
+    fontWeight: '500',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -83,21 +89,33 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 16,
     alignItems: 'center',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+    }),
   },
   confirmButton: {
-    backgroundColor: '#6AAA64',
+    backgroundColor: '#4CAF50',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 0 #2E7D32, 0 4px 8px rgba(0,0,0,0.15)',
+    }),
   },
   cancelButton: {
     backgroundColor: '#CFD8DC',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 0 #90A4AE, 0 4px 8px rgba(0,0,0,0.1)',
+    }),
   },
   confirmButtonText: {
     color: '#fff',
-    fontWeight: '700',
+    fontWeight: '900',
     fontSize: 16,
+    textShadowColor: 'rgba(0,0,0,0.1)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 1,
   },
   cancelButtonText: {
     color: '#37474F',
-    fontWeight: '700',
+    fontWeight: '800',
     fontSize: 16,
   },
 })

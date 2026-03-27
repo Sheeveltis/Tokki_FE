@@ -170,8 +170,10 @@ const styles = StyleSheet.create({
     maxWidth: 640,
     maxHeight: Platform.OS === 'web' ? '90vh' : '88%',
 
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FFF9E3',
     borderRadius: 24,
+    borderWidth: 3,
+    borderColor: '#8D6E63',
 
     paddingVertical: 20,
     paddingHorizontal: 18,
@@ -180,7 +182,7 @@ const styles = StyleSheet.create({
 
     ...Platform.select({
       web: {
-        boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
       },
       default: {
         elevation: 12,
@@ -189,9 +191,9 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1C1C1C',
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#8B4513',
     textAlign: 'center',
     marginBottom: 12,
   },
@@ -287,24 +289,31 @@ const styles = StyleSheet.create({
     marginTop: 14,
     backgroundColor: '#4CAF50',
     paddingVertical: 14,
-    borderRadius: 20,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 0 #2E7D32, 0 4px 8px rgba(0,0,0,0.2)',
+    }),
   },
 
   confirmButtonPressed: {
     opacity: 0.85,
-    transform: [{ scale: 0.97 }],
+    ...(Platform.OS === 'web' ? { transform: [{ translateY: 2 }] } : { transform: [{ scale: 0.97 }] }),
   },
 
   confirmButtonDisabled: {
+    backgroundColor: '#CFD8DC',
     opacity: 0.6,
   },
 
   confirmButtonText: {
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: '900',
     color: '#FFFFFF',
+    textShadowColor: 'rgba(0,0,0,0.2)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 1,
   },
 })
 
