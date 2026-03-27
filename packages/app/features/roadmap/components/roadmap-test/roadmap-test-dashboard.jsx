@@ -9,6 +9,7 @@ export function RoadmapTestDashboard({
   onSave,
   isSaving = false,
   isSubmitting = false,
+  isLastSection = false,
   currentQuestion = 1,
   onQuestionSelect,
 }) {
@@ -102,21 +103,23 @@ export function RoadmapTestDashboard({
             <Text style={styles.saveButtonText}>{isSaving ? 'Đang lưu...' : 'Lưu bài'}</Text>
           </Pressable>
         )}
-        <Pressable
-          onPress={onSubmit}
-          disabled={isSubmitting}
-          style={({ pressed }) => [
-            styles.submitButton,
-            pressed && styles.submitButtonPressed,
-            isSubmitting && styles.submitButtonDisabled,
-          ]}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Text style={styles.submitButtonText}>Nộp Bài</Text>
-          )}
-        </Pressable>
+        {isLastSection && (
+          <Pressable
+            onPress={onSubmit}
+            disabled={isSubmitting}
+            style={({ pressed }) => [
+              styles.submitButton,
+              pressed && styles.submitButtonPressed,
+              isSubmitting && styles.submitButtonDisabled,
+            ]}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.submitButtonText}>Nộp Bài</Text>
+            )}
+          </Pressable>
+        )}
       </View>
     </View>
   )

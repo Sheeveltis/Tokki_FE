@@ -212,7 +212,11 @@ export function RoadmapTestQuestion({
                       value={twoPartAnswer?.a || ''}
                       onChange={(e) => handleTwoPartChange('a', e.target.value)}
                       placeholder="Nhập phần ㉠..."
-                      style={styles.q51Textarea}
+                      style={{
+                        ...styles.q51Textarea,
+                        lineHeight: '1.5',
+                        ...(Platform.OS === 'web' && { outline: 'none' })
+                      }}
                       rows={4}
                     />
                   ) : (
@@ -233,7 +237,11 @@ export function RoadmapTestQuestion({
                       value={twoPartAnswer?.b || ''}
                       onChange={(e) => handleTwoPartChange('b', e.target.value)}
                       placeholder="Nhập phần ㉡..."
-                      style={styles.q51Textarea}
+                      style={{
+                        ...styles.q51Textarea,
+                        lineHeight: '1.5',
+                        ...(Platform.OS === 'web' && { outline: 'none' })
+                      }}
                       rows={4}
                     />
                   ) : (
@@ -262,7 +270,11 @@ export function RoadmapTestQuestion({
                     }
                   }}
                   placeholder="Nhập câu trả lời của bạn ở đây..."
-                  style={styles.writingTextarea}
+                  style={{
+                    ...styles.writingTextarea,
+                    lineHeight: '1.5',
+                    ...(Platform.OS === 'web' && { outline: 'none' })
+                  }}
                   rows={8}
                 />
               ) : (
@@ -420,6 +432,7 @@ const styles = StyleSheet.create({
   },
   writingTextarea: {
     width: '100%',
+    lineHeight: 22, // Fallback for mobile
     minHeight: 180,
     padding: 16,
     fontSize: 15,
@@ -429,7 +442,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#F3F4F6',
     borderRadius: 16,
-    lineHeight: 22,
     ...(Platform.OS === 'web' && {
       boxSizing: 'border-box',
       outlineStyle: 'none',
@@ -449,6 +461,7 @@ const styles = StyleSheet.create({
   },
   q51Textarea: {
     width: '100%',
+    lineHeight: 22, // Fallback for mobile
     minHeight: 80,
     padding: 12,
     fontSize: 15,
@@ -460,7 +473,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     ...(Platform.OS === 'web' && {
       boxSizing: 'border-box',
-      outlineStyle: 'none',
     }),
   },
   optionImage: {

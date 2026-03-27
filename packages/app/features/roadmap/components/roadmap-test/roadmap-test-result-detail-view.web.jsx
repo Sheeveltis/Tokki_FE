@@ -237,6 +237,29 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
                               )}
                             </View>
                           )}
+
+                          {!!q?.explanation && (
+                            <View style={styles.explanationBox}>
+                              <Text style={styles.explanationTitle}>Giải thích:</Text>
+                              {Platform.OS === 'web' ? (
+                                <div
+                                  style={{
+                                    fontSize: '14px',
+                                    lineHeight: '1.6',
+                                    color: '#4B5563',
+                                    fontFamily: 'Inter, sans-serif'
+                                  }}
+                                  dangerouslySetInnerHTML={{ __html: String(q.explanation) }}
+                                />
+                              ) : (
+                                <Text style={styles.explanationText}>
+                                  {String(q.explanation)
+                                    .replace(/<br\s*\/?>/gi, '\n')
+                                    .replace(/<\/?[^>]+(>|$)/g, '')}
+                                </Text>
+                              )}
+                            </View>
+                          )}
                         </View>
                       )
                     })()}
@@ -479,4 +502,25 @@ const styles = StyleSheet.create({
   aiSection: { gap: 4 },
   aiSectionTitle: { fontSize: 12, fontWeight: '800', color: '#F1BE4B' },
   aiFeedback: { fontSize: 14, color: '#666' },
+  explanationBox: {
+    marginTop: 16,
+    padding: 16,
+    backgroundColor: '#F0F9FF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E0F2FE',
+    gap: 8,
+  },
+  explanationTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0369A1',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  explanationText: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: '#4B5563',
+  },
 })

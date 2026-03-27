@@ -286,6 +286,8 @@ const mapExamToSections = (examData) => {
             imageUrl: type === 'image' || type === 'writing' ? sharedMediaUrl : null,
             options,
             questionTypeCode: q.questionTypeCode || null,
+            partTitle: p.partName || '',
+            partDescription: p.description || '',
             rawQuestion: q, // lưu raw để lấy userQuestionId, answerContent khi sync
           })
         })
@@ -325,6 +327,8 @@ const mapExamToSections = (examData) => {
             imageUrl: type === 'image' || type === 'writing' ? q.mediaUrl : null,
             options,
             questionTypeCode: q.questionTypeCode || null,
+            partTitle: p.partName || '',
+            partDescription: p.description || '',
             rawQuestion: q,
           })
         })
@@ -401,7 +405,8 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [examTitle, setExamTitle] = useState('')
   const [answers, setAnswers] = useState({}) // answers theo section: { [sectionKey]: { [questionNo]: optionIndex } }
-  const [timeRemaining, setTimeRemaining] = useState('08 : 00')
+  const [timeRemaining, setTimeRemaining] = useState('00 : 00')
+  const [skillTimeRemaining, setSkillTimeRemaining] = useState({})
   const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(0)
   const [, setTotalQuestions] = useState(8)
   const [isLoading, setIsLoading] = useState(true)
@@ -412,6 +417,8 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
   const submitConfirmResolverRef = useRef(null)
   const [backConfirmVisible, setBackConfirmVisible] = useState(false)
   const backConfirmResolverRef = useRef(null)
+  const [sectionConfirmVisible, setSectionConfirmVisible] = useState(false)
+  const [pendingSectionKey, setPendingSectionKey] = useState(null)
   const [toastVisible, setToastVisible] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const [toastType, setToastType] = useState('success')
@@ -481,8 +488,20 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
               ? examData.duration * 60
               : getTestConfig(level).totalTime
 
-        setTimeRemainingSeconds(totalSeconds)
-        setTimeRemaining(formatTime(totalSeconds))
+        // Initialize skillTimeRemaining. If API doesn't provide it, fall back to global duration divided equally
+        const skillRemaining = examData.skillTimeRemaining || {}
+        if (Object.keys(skillRemaining).length === 0) {
+          mappedSections.forEach(s => {
+            skillRemaining[s.key] = totalSeconds / mappedSections.length
+          })
+        }
+        setSkillTimeRemaining(skillRemaining)
+
+        const firstSectionKey = mappedSections[0]?.key || null
+        const currentSkillSeconds = firstSectionKey ? (skillRemaining[firstSectionKey] || 0) : totalSeconds
+        
+        setTimeRemainingSeconds(currentSkillSeconds)
+        setTimeRemaining(formatTime(currentSkillSeconds))
         const firstSectionQuestion = mappedSections[0]?.questions?.[0]
         setCurrentQuestion(firstSectionQuestion?.questionNumber || 1)
         setCurrentQuestionIndex(0)
@@ -514,6 +533,8 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         setExamTitle('')
 
         const totalSeconds = testConfig.totalTime
+        const skillRemaining = { mock: totalSeconds }
+        setSkillTimeRemaining(skillRemaining)
         setTimeRemainingSeconds(totalSeconds)
         setTimeRemaining(formatTime(totalSeconds))
 
@@ -532,27 +553,58 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     }
   }, [level, examKey, examId])
 
-  // Countdown timer
+  // Countdown timer for the active skill
   useEffect(() => {
-    if (timeRemainingSeconds <= 0) {
-      return
-    }
+    if (isLoading || !activeSectionKey || isSubmitting) return
 
     const timer = setInterval(() => {
-      setTimeRemainingSeconds((prev) => {
-        if (prev <= 1) {
-          // Time's up - auto submit or show alert
-          handleSubmit()
-          return 0
+      setSkillTimeRemaining((prev) => {
+        const currentSeconds = prev[activeSectionKey]
+        if (typeof currentSeconds !== 'number' || currentSeconds <= 0) {
+          return prev
         }
-        const newSeconds = prev - 1
-        setTimeRemaining(formatTime(newSeconds))
-        return newSeconds
+        return {
+          ...prev,
+          [activeSectionKey]: currentSeconds - 1,
+        }
       })
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [timeRemainingSeconds])
+  }, [isLoading, activeSectionKey, isSubmitting])
+
+  // Watch current skill time to update display and handle timeout
+  useEffect(() => {
+    const currentSeconds = skillTimeRemaining[activeSectionKey]
+    if (typeof currentSeconds === 'number') {
+      setTimeRemaining(formatTime(currentSeconds))
+      setTimeRemainingSeconds(currentSeconds)
+
+      if (currentSeconds <= 0 && !isLoading && !isSubmitting) {
+        handleSectionTimeout()
+      }
+    }
+  }, [activeSectionKey, skillTimeRemaining, isLoading, isSubmitting])
+
+  const handleSectionTimeout = () => {
+    const currentIndex = sections.findIndex((s) => s.key === activeSectionKey)
+    if (currentIndex >= 0 && currentIndex < sections.length - 1) {
+      const nextSection = sections[currentIndex + 1]
+      // Auto switch to next section (isAuto = true)
+      handleChangeSection(nextSection.key, true)
+    } else if (currentIndex === sections.length - 1) {
+      // Last section finished -> auto submit
+      handleSubmit(true)
+    }
+  }
+
+  const performSectionSwitch = (sectionKey) => {
+    const nextSection = sections.find((s) => s.key === sectionKey)
+    const firstQuestion = nextSection?.questions?.[0]
+    setActiveSectionKey(sectionKey)
+    setCurrentQuestionIndex(0)
+    setCurrentQuestion(firstQuestion?.questionNumber || 1)
+  }
 
   // Dùng ref để lưu latest values cho auto-save
   const sectionsRef = useRef(sections)
@@ -785,18 +837,25 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     if (typeof resolve === 'function') resolve(true)
   }
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (isAuto = false) => {
     if (isSubmitting) return
 
-    setTimeRemainingSeconds(0)
+    // If auto-submit, we don't clear the timer here (it's already 0)
+    if (!isAuto) {
+      setTimeRemainingSeconds(0)
+    }
 
     if (!userExamId) {
-      Alert.alert('Thông báo', 'Bạn đang làm đề mẫu. Kết quả không được lưu.')
+      if (!isAuto) {
+        Alert.alert('Thông báo', 'Bạn đang làm đề mẫu. Kết quả không được lưu.')
+      }
       return
     }
 
-    const confirmed = await confirmSubmit()
-    if (!confirmed) return
+    if (!isAuto) {
+      const confirmed = await confirmSubmit()
+      if (!confirmed) return
+    }
 
     setIsSubmitting(true)
     try {
@@ -847,13 +906,41 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     }
   }
 
-  const handleChangeSection = (sectionKey) => {
+  const handleChangeSection = (sectionKey, isAuto = false) => {
     if (sectionKey === activeSectionKey) return
-    const nextSection = sections.find((s) => s.key === sectionKey)
-    const firstQuestion = nextSection?.questions?.[0]
-    setActiveSectionKey(sectionKey)
-    setCurrentQuestionIndex(0)
-    setCurrentQuestion(firstQuestion?.questionNumber || 1)
+
+    const currentIndex = sections.findIndex((s) => s.key === activeSectionKey)
+    const targetIndex = sections.findIndex((s) => s.key === sectionKey)
+
+    // Block going back to previous sections
+    if (targetIndex < currentIndex) {
+      setToastMessage('Bạn không thể quay lại phần thi đã qua.')
+      setToastType('error')
+      setToastVisible(true)
+      return
+    }
+
+    // Manual switch to next section requires confirmation
+    if (!isAuto && targetIndex > currentIndex) {
+      setPendingSectionKey(sectionKey)
+      setSectionConfirmVisible(true)
+      return
+    }
+
+    performSectionSwitch(sectionKey)
+  }
+
+  const handleConfirmSectionChange = () => {
+    if (pendingSectionKey) {
+      performSectionSwitch(pendingSectionKey)
+    }
+    setSectionConfirmVisible(false)
+    setPendingSectionKey(null)
+  }
+
+  const handleCancelSectionChange = () => {
+    setSectionConfirmVisible(false)
+    setPendingSectionKey(null)
   }
 
   // Handle back to learning page
@@ -885,12 +972,15 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     router.push(`/roadmap/learning?level=${level}`)
   }
 
-  const activeSection = sections.find((s) => s.key === activeSectionKey)
+  const activeSectionIndex = sections.findIndex((s) => s.key === activeSectionKey)
+  const activeSection = sections[activeSectionIndex]
   const sectionQuestions = activeSection?.questions || []
   const currentQuestionData =
     sectionQuestions[currentQuestionIndex] ||
     sectionQuestions.find((q) => q.questionNumber === currentQuestion) ||
     sectionQuestions[0]
+  
+  const isLastSection = activeSectionIndex === sections.length - 1 && sections.length > 0
 
   const handleManualSave = async () => {
     if (isSaving) return
@@ -1014,13 +1104,14 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
           {/* Left: Question */}
           <View style={styles.questionContainer}>
             {/* Instruction for current section (moved down from header) */}
-            {(activeSection?.title || activeSection?.description) && (
+            {/* Instruction for current part/question (extracted from question data) */}
+            {(currentQuestionData?.partTitle || currentQuestionData?.partDescription) && (
               <View style={styles.instructionBox}>
-                {!!activeSection?.title && (
-                  <Text style={styles.instructionTitle}>{String(activeSection.title)}</Text>
+                {!!currentQuestionData?.partTitle && (
+                  <Text style={styles.instructionTitle}>{String(currentQuestionData.partTitle)}</Text>
                 )}
-                {!!activeSection?.description && (
-                  <Text style={styles.instructionSubtitle}>{String(activeSection.description)}</Text>
+                {!!currentQuestionData?.partDescription && (
+                  <Text style={styles.instructionSubtitle}>{String(currentQuestionData.partDescription)}</Text>
                 )}
               </View>
             )}
@@ -1047,17 +1138,25 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
           {/* Right: Dashboard */}
           <View style={styles.dashboardContainer}>
             <View style={[styles.sectionTabsRow, styles.dashboardHeaderTabs]}>
-              {sections.map((section) => (
-                <RoadmapTestButton
-                  key={section.key}
-                  title={section.label}
-                  onPress={() => handleChangeSection(section.key)}
-                  style={[
-                    styles.sectionTab,
-                    activeSectionKey === section.key && styles.sectionTabActive,
-                  ]}
-                />
-              ))}
+              {sections.map((section, index) => {
+                const currentIndex = sections.findIndex((s) => s.key === activeSectionKey)
+                const isPrevious = index < currentIndex
+                const isFinished = skillTimeRemaining[section.key] <= 0 && section.key !== activeSectionKey
+
+                return (
+                  <RoadmapTestButton
+                    key={section.key}
+                    title={section.label}
+                    onPress={() => handleChangeSection(section.key)}
+                    disabled={isPrevious || isFinished}
+                    style={[
+                      styles.sectionTab,
+                      activeSectionKey === section.key && styles.sectionTabActive,
+                      (isPrevious || isFinished) && styles.sectionTabDisabled,
+                    ]}
+                  />
+                )
+              })}
             </View>
 
             <RoadmapTestDashboard
@@ -1070,6 +1169,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
               onSave={handleManualSave}
               isSaving={isSaving}
               isSubmitting={isSubmitting}
+              isLastSection={isLastSection}
               currentQuestion={currentQuestion}
               onQuestionSelect={handleQuestionSelect}
             />
@@ -1127,6 +1227,47 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
                 ]}
               >
                 <Text style={styles.confirmButtonOkText}>Nộp bài</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Section change confirm modal */}
+      <Modal
+        visible={sectionConfirmVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancelSectionChange}
+      >
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmModal}>
+            <Text style={styles.confirmTitle}>Xác nhận chuyển phần thi</Text>
+            <Text style={styles.confirmMessage}>
+              Bạn có chắc chắn muốn kết thúc phần thi {activeSection?.label || 'này'} và chuyển sang phần thi tiếp theo? 
+              Một khi đã chuyển, bạn sẽ không thể quay lại để sửa đáp án của phần cũ.
+            </Text>
+
+            <View style={styles.confirmActions}>
+              <Pressable
+                onPress={handleCancelSectionChange}
+                style={({ pressed }) => [
+                  styles.confirmButton,
+                  styles.confirmButtonCancel,
+                  pressed && styles.confirmButtonPressed,
+                ]}
+              >
+                <Text style={styles.confirmButtonCancelText}>Hủy</Text>
+              </Pressable>
+              <Pressable
+                onPress={handleConfirmSectionChange}
+                style={({ pressed }) => [
+                  styles.confirmButton,
+                  styles.confirmButtonOk,
+                  pressed && styles.confirmButtonPressed,
+                ]}
+              >
+                <Text style={styles.confirmButtonOkText}>Đồng ý</Text>
               </Pressable>
             </View>
           </View>
@@ -1356,6 +1497,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFE5B3',
     borderColor: '#FFC107',
     borderWidth: 1,
+  },
+  sectionTabDisabled: {
+    opacity: 0.5,
+    backgroundColor: '#E0E0E0',
   },
   navigationButtons: {
     flexDirection: 'row',
