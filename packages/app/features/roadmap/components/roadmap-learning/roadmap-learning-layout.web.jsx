@@ -29,6 +29,7 @@ export function RoadmapLearningLayout({
 
   // ĐỔI MỚI: Quản lý tuần hiện tại
   const [activeWeekIndex, setActiveWeekIndex] = useState(null)
+  const [hoveredWeekIndex, setHoveredWeekIndex] = useState(null)
 
   const weeks = useMemo(() => roadmapData?.weeks || [], [roadmapData])
 
@@ -179,10 +180,13 @@ export function RoadmapLearningLayout({
                     <Pressable
                       key={week.weekIndex}
                       onPress={() => !isDisabled && handleWeekChange(week.weekIndex)}
+                      onHoverIn={() => Platform.OS === 'web' && !isDisabled && setHoveredWeekIndex(week.weekIndex)}
+                      onHoverOut={() => Platform.OS === 'web' && setHoveredWeekIndex(null)}
                       disabled={isDisabled}
                       style={({ pressed }) => [
                         styles.sideWeekPill,
                         isActive && styles.sideWeekPillActive,
+                        !isActive && !isDisabled && hoveredWeekIndex === week.weekIndex && styles.sideWeekPillHovered,
                         isFinished && styles.sideWeekPillFinished,
                         isDisabled && styles.sideWeekPillDisabled,
                         pressed && !isDisabled && styles.weekPillPressed,
@@ -410,6 +414,10 @@ const styles = StyleSheet.create({
     borderColor: '#F4A950',
     backgroundColor: '#FFFFFF',
     ...(Platform.OS === 'web' && { boxShadow: '0 4px 12px rgba(244,169,80,0.1)' }),
+  },
+  sideWeekPillHovered: {
+    borderColor: '#F4A950',
+    backgroundColor: '#FFFDF5',
   },
   sideWeekPillFinished: {
     backgroundColor: '#F1F9F1',

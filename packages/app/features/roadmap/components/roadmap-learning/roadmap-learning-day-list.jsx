@@ -80,6 +80,7 @@ export function RoadmapLearningDayList({ hasWriting, targetAim = 1, weeks = [], 
 
   const dayKeys = useMemo(() => Object.keys(lessonsByDay).map(Number).sort((a, b) => a - b), [lessonsByDay])
   const [activeDay, setActiveDay] = useState(null)
+  const [hoveredDay, setHoveredDay] = useState(null)
 
   // Khởi tạo ngày đang học hoặc ngày từ URL
   useEffect(() => {
@@ -119,9 +120,20 @@ export function RoadmapLearningDayList({ hasWriting, targetAim = 1, weeks = [], 
                 <Pressable
                   key={day}
                   onPress={() => handleDayChange(day)}
-                  style={({ pressed }) => [styles.dayPill, active && styles.dayPillActive, pressed && styles.dayPillPressed]}
+                  onHoverIn={() => Platform.OS === 'web' && setHoveredDay(day)}
+                  onHoverOut={() => Platform.OS === 'web' && setHoveredDay(null)}
+                  style={({ pressed }) => [
+                    styles.dayPill,
+                    active && styles.dayPillActive,
+                    !active && hoveredDay === day && styles.dayPillHovered,
+                    pressed && styles.dayPillPressed
+                  ]}
                 >
-                  <Text style={[styles.dayPillText, active && styles.dayPillTextActive]}>Ngày {day}</Text>
+                  <Text style={[
+                    styles.dayPillText,
+                    active && styles.dayPillTextActive,
+                    (!active && hoveredDay === day) && styles.dayPillTextHovered
+                  ]}>Ngày {day}</Text>
                 </Pressable>
               )
             })}
@@ -164,9 +176,11 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' && { transition: 'all 0.2s', cursor: 'pointer' }),
   },
   dayPillActive: { backgroundColor: '#F4A950', borderColor: '#F4A950' },
+  dayPillHovered: { backgroundColor: '#FFF4E6', borderColor: '#F4A950' },
   dayPillPressed: { transform: [{ scale: 0.98 }] },
   dayPillText: { fontSize: 13, fontWeight: '600', color: '#666', fontFamily: 'Epilogue, sans-serif' },
   dayPillTextActive: { color: '#FFFFFF', fontWeight: '800' },
+  dayPillTextHovered: { color: '#F4A950' },
   lessonPanel: {
     flex: 1, minHeight: 0, backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: '#F0F0F0', padding: 20, gap: 16,
   },

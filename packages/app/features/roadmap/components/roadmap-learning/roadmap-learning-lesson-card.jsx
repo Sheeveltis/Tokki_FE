@@ -51,14 +51,14 @@ export function RoadmapLearningLessonCard({
           <View style={[styles.iconCircle, iconCircleStyle]}>{renderIcon(icon)}</View>
           <View style={styles.texts}>
             <View style={styles.titleRow}>
-              <Text style={styles.title} numberOfLines={2}>{title}</Text>
+              <Text style={[styles.title, isHovered && styles.titleHovered]} numberOfLines={2}>{title}</Text>
               {isCompleted && (
                 <View style={styles.checkWrapper}>
                   <Text style={styles.checkIcon}>✓</Text>
                 </View>
               )}
             </View>
-            {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+            {!!subtitle && <Text style={[styles.subtitle, isHovered && styles.subtitleHovered]}>{subtitle}</Text>}
           </View>
         </View>
         <View style={[styles.actionButton, actionButtonStyle, styles.headerActionButton]}>
@@ -96,8 +96,8 @@ export function RoadmapLearningLessonCard({
           {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
         </View>
       </View>
-      <View style={[styles.actionButton, actionButtonStyle]}>
-        <Text style={[styles.actionLabel, isCompleted && styles.completedActionLabel]}>{actionLabel}</Text>
+      <View style={[styles.actionButton, actionButtonStyle, isHovered && styles.actionButtonHovered]}>
+        <Text style={[styles.actionLabel, isCompleted && styles.completedActionLabel, isHovered && styles.actionLabelHovered]}>{actionLabel}</Text>
       </View>
     </Pressable>
   )
@@ -126,9 +126,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   containerHovered: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F4A950',
+    borderColor: '#F4A950',
     transform: [{ translateY: -2 }],
-    ...(Platform.OS === 'web' && { boxShadow: '0 12px 24px rgba(0,0,0,0.06)' }),
+    ...(Platform.OS === 'web' && { boxShadow: '0 12px 24px rgba(244,169,80,0.25)' }),
+  },
+  actionButtonHovered: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'transparent',
+  },
+  actionLabelHovered: {
+    color: '#FFFFFF',
   },
   completedCard: {
     backgroundColor: '#FFFFFF',
@@ -210,11 +218,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
     lineHeight: 22,
   },
+  titleHovered: {
+    color: '#FFFFFF',
+  },
   subtitle: {
     fontSize: 13,
     color: '#777',
     fontWeight: '500',
     fontFamily: 'Epilogue, sans-serif',
+  },
+  subtitleHovered: {
+    color: 'rgba(255,255,255,0.8)',
   },
   actionButton: {
     paddingVertical: 8,

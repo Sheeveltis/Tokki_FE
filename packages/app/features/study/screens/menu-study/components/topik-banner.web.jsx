@@ -11,7 +11,7 @@ export function TopikBanner({
   title,
   levelId,
   bunnyImage = BunnyWithCarrot,
-  backgroundColor = '#1A1A1A',
+  backgroundColor = '#F4A950',
   borderColor = '#F0F0F0',
   backgroundPattern = BackgroundPattern,
   onPress,

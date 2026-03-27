@@ -53,17 +53,7 @@ export function MenuStudyLayout({
                 <Text style={styles.subtitle}>Lựa chọn kỹ năng bạn muốn rèn luyện hôm nay để chinh phục điểm số cao nhất.</Text>
               </View>
 
-              <View style={styles.headerActions}>
-                <View style={styles.scoreBadge}>
-                  <Text style={styles.scoreLabel}>TIẾN ĐỘ TỔNG THỂ</Text>
-                  <View style={styles.scoreValueRow}>
-                    <Text style={styles.scoreValue}>{lessonsLearned || 0}%</Text>
-                    <View style={styles.miniProgressTrack}>
-                      <View style={[styles.miniProgressBar, { width: `${lessonsLearned || 0}%` }]} />
-                    </View>
-                  </View>
-                </View>
-              </View>
+
             </View>
           </View>
 
@@ -221,45 +211,6 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  scoreBadge: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
-    minWidth: 200,
-    gap: 8,
-    ...(Platform.OS === 'web' && { boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }),
-  },
-  scoreLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#999',
-    letterSpacing: 0.5,
-  },
-  scoreValueRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  scoreValue: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: '#1A1A1A',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  miniProgressTrack: {
-    flex: 1,
-    height: 6,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  miniProgressBar: {
-    height: '100%',
-    backgroundColor: '#4CAF50',
-    borderRadius: 3,
   },
   dashboardContainer: {
     flexDirection: 'row',
