@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
-import { FlashcardTopicCard } from '../../study/components/shared'
+import { PronunciationExampleCard } from './PronunciationExampleCard'
 
 export function PronunciationExampleList({ examples, onSelectExample }) {
   if (!Array.isArray(examples) || examples.length === 0) {
@@ -17,18 +17,11 @@ export function PronunciationExampleList({ examples, onSelectExample }) {
   return (
     <View style={styles.container}>
       {sortedExamples.map((example) => (
-        <FlashcardTopicCard
+        <PronunciationExampleCard
           key={String(example.id)}
-          icon={
-            <View style={styles.numberIcon}>
-              <Text style={styles.numberText}>{example.sortOrder}</Text>
-            </View>
-          }
-          title={example.text || 'Không có nội dung'}
-          subtitle="Luyện tập phát âm"
-          progress={0}
-          compact={true}
-          showBadge={false}
+          sortOrder={example.sortOrder}
+          text={example.text || 'Không có nội dung'}
+          subtitle="Chạm để bắt đầu luyện tập"
           onPress={() => onSelectExample?.(example)}
         />
       ))}
@@ -40,12 +33,6 @@ const styles = StyleSheet.create({
   container: { width: '100%', gap: 16 },
   emptyContainer: { width: '100%', alignItems: 'center', justifyContent: 'center', padding: 16 },
   emptyText: { fontSize: 14, color: '#666', fontFamily: 'Epilogue, sans-serif' },
-  numberIcon: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: '#7FB069', 
-    alignItems: 'center', justifyContent: 'center',
-  },
-  numberText: { fontSize: 16, fontWeight: 'bold', color: '#FFF', fontFamily: 'Epilogue, sans-serif' },
 })
 
 export default PronunciationExampleList
