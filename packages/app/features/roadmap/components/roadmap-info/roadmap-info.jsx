@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Modal, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Modal, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native'
 import { TOPIK_LEVELS, formatTime, getTotalTime } from '../../api/roadmap-info'
 
 const LEVELS = TOPIK_LEVELS.map((l) => ({ value: l.level, label: l.label }))
@@ -20,10 +20,20 @@ const TOPIK_REQUIREMENTS = [
   { value: 6, displayName: 'TOPIK II - Level 6', passScore: 230, totalScore: 300 },
 ]
 
+const TOPIK_DETAILED_DATA = [
+  { level: 'Cấp 1', target: '80/200 ', listening: '15/30 câu (50đ)', reading: '12/40 câu (30đ)', writing: 'Không thi', strategy: 'Làm chắc các câu chào hỏi, số đếm, đồ vật.' },
+  { level: 'Cấp 2', target: '140/200', listening: '24/30 câu (80đ)', reading: '24/40 câu (60đ)', writing: 'Không thi', strategy: 'Hoàn thành 80% bài thi sơ cấp.' },
+  { level: 'Cấp 3', target: '120/300', listening: '22/50 câu (44đ)', reading: '23/50 câu (46đ)', writing: '30/100đ', strategy: 'Tập trung câu 51, 52 và nửa câu 53.' },
+  { level: 'Cấp 4', target: '150/300', listening: '28/50 câu (56đ)', reading: '27/50 câu (54đ)', writing: '40/100đ', strategy: 'Làm tốt câu 53 (Biểu đồ) để gánh điểm.' },
+  { level: 'Cấp 5', target: '190/300', listening: '35/50 câu (70đ)', reading: '35/50 câu (70đ)', writing: '50/100đ', strategy: 'Bắt đầu phải viết được câu 54 (nghị luận).' },
+  { level: 'Cấp 6', target: '230/300', listening: '43/50 câu (86đ)', reading: '42/50 câu (84đ)', writing: '60/100đ', strategy: 'Phải đúng các câu cực khó (từ câu 40 trở đi).' },
+]
+
 export function RoadmapInfo({ onStart, initialLevel = 1 }) {
   const [selectedLevel, setSelectedLevel] = useState(initialLevel)
   const [selectedSelfDeclaredLevel, setSelectedSelfDeclaredLevel] = useState(SELF_DECLARED_LEVELS[0].value)
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false)
+  const [isRequirementsModalOpen, setIsRequirementsModalOpen] = useState(false)
   const [openListKey, setOpenListKey] = useState(null)
 
   const selectedLevelInfo = useMemo(
@@ -98,6 +108,18 @@ export function RoadmapInfo({ onStart, initialLevel = 1 }) {
           ))}
         </View>
       </View>
+
+      <Pressable
+        onPress={() => setIsRequirementsModalOpen(true)}
+        style={({ pressed }) => [
+          styles.viewDetailsButton,
+          pressed && styles.viewDetailsButtonPressed
+        ]}
+      >
+        <Text style={styles.viewDetailsText}>Xem chi tiết chuẩn đầu ra & chiến thuật</Text>
+      </Pressable>
+
+
 
       <View style={styles.footerSection}>
         <Text style={styles.instruction}>Bắt đầu bài kiểm tra để kích hoạt lộ trình riêng cho bạn</Text>
@@ -200,6 +222,56 @@ export function RoadmapInfo({ onStart, initialLevel = 1 }) {
                 <Text style={styles.confirmButtonText}>Bắt đầu kiểm tra</Text>
               </Pressable>
             </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <Modal visible={isRequirementsModalOpen} transparent animationType="fade" onRequestClose={() => setIsRequirementsModalOpen(false)}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setIsRequirementsModalOpen(false)}
+        >
+          <View style={[styles.selectionModalContainer, { maxWidth: 900, padding: 24 }]}>
+            <View style={[styles.modalHeader, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }]}>
+              <View>
+                <Text style={styles.selectionTitle}>Chuẩn đầu ra TOPIK</Text>
+                <Text style={styles.modalSubtitle}>Chỉ tiêu điểm đạt và chiến thuật cho từng cấp độ</Text>
+              </View>
+              <TouchableOpacity onPress={() => setIsRequirementsModalOpen(false)} style={styles.closeModalButton}>
+                <Text style={styles.closeModalButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tableScroll}>
+              <View style={styles.table}>
+                <View style={styles.tableHeader}>
+                  <Text style={[styles.headerCell, { width: 80 }]}>Cấp độ</Text>
+                  <Text style={[styles.headerCell, { width: 100 }]}>Mục tiêu</Text>
+                  <Text style={[styles.headerCell, { width: 140 }]}>Nghe</Text>
+                  <Text style={[styles.headerCell, { width: 140 }]}>Đọc</Text>
+                  <Text style={[styles.headerCell, { width: 100 }]}>Viết</Text>
+                  <Text style={[styles.headerCell, { flex: 1, minWidth: 240 }]}>Chiến thuật trọng tâm</Text>
+                </View>
+                {TOPIK_DETAILED_DATA.map((row, index) => (
+                  <View key={index} style={[styles.tableRow, index === TOPIK_DETAILED_DATA.length - 1 && { borderBottomWidth: 0 }]}>
+                    <Text style={[styles.cell, { width: 80, fontWeight: '700', color: '#1A1A1A' }]}>{row.level}</Text>
+                    <Text style={[styles.cell, { width: 100, fontWeight: '600', color: '#0066FF' }]}>{row.target}</Text>
+                    <Text style={[styles.cell, { width: 140 }]}>{row.listening}</Text>
+                    <Text style={[styles.cell, { width: 140 }]}>{row.reading}</Text>
+                    <Text style={[styles.cell, { width: 100 }]}>{row.writing}</Text>
+                    <Text style={[styles.cell, { minWidth: 240, flex: 1, fontSize: 13, lineHeight: 18 }]}>{row.strategy}</Text>
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+
+            <TouchableOpacity 
+              style={[styles.modalCloseButton, { marginTop: 20 }]} 
+              onPress={() => setIsRequirementsModalOpen(false)}
+            >
+              <Text style={styles.modalCloseButtonText}>Đóng</Text>
+            </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -541,6 +613,96 @@ const styles = StyleSheet.create({
   dropdownItemTextSelected: {
     fontWeight: '800',
     color: '#1A1A1A',
+  },
+  tableScroll: {
+    marginTop: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    backgroundColor: '#FAFAFA',
+  },
+  table: {
+    minWidth: 800,
+    width: '100%',
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#F8F9FB',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+    paddingVertical: 12,
+  },
+  headerCell: {
+    paddingHorizontal: 12,
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#888',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+  },
+  cell: {
+    paddingHorizontal: 12,
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+  },
+  viewDetailsButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#0066FF',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -8,
+  },
+  viewDetailsButtonPressed: {
+    backgroundColor: '#F0F7FF',
+    transform: [{ scale: 0.98 }],
+  },
+  viewDetailsText: {
+    color: '#0066FF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  closeModalButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeModalButtonText: {
+    fontSize: 18,
+    color: '#999',
+    fontWeight: '600',
+  },
+  modalCloseButton: {
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 20,
+    backgroundColor: '#F1BE4B',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 14px rgba(241, 190, 75, 0.4)',
+    }),
+  },
+  modalCloseButtonText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
   },
 })
 

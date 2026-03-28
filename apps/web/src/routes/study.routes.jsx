@@ -42,15 +42,7 @@ function StudyRoute() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    const storedLevel = typeof window !== 'undefined'
-      ? window.localStorage.getItem('userLevel')
-      : null
-
-    if (storedLevel) {
-      navigate(`/menu-study?level=${storedLevel}`, { replace: true })
-    } else {
-      setReady(true)
-    }
+    navigate('/menu-study?level=1', { replace: true })
   }, [navigate])
 
   if (!ready) return null
@@ -73,7 +65,7 @@ function MenuStudyRoute() {
   return (
     <MenuStudy
       levelId={levelId}
-      onBackPress={() => navigate('/study')}
+      onBackPress={() => navigate('/')}
       onQuickTestPress={() => navigate('/test')}
       lessonsLearned={30}
       streakDays={30}

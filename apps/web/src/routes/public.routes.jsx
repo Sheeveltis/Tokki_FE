@@ -39,7 +39,7 @@ function RootHomeRoute() {
   return (
     <HomeScreen
       onHomePress={() => navigate('/')}
-      onRoadmapPress={() => navigate('/study')}
+      onRoadmapPress={() => navigate('/menu-study?level=1')}
       onFlashcardPress={() => navigate('/flashcard')}
       onBlogPress={() => navigate('/blog')}
       onProfilePress={() => navigate('/profile')}

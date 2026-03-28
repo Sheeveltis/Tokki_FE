@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Platform } from 'react-native'
 import { getFlashcardTopics } from '@tokki/app/features/study/api'
-import { getUserLevel } from '@tokki/app/features/authentication/api'
-import { getStorageItem, setStorageItem } from '@tokki/app/helpers/storage'
 
 // Import useFocusEffect chỉ trên mobile (React Navigation)
 let useFocusEffect = null
@@ -33,65 +31,16 @@ export function useFlashcardList(levelId) {
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
-  const [userLevel, setUserLevel] = useState(null)
-  const [isLevelResolved, setIsLevelResolved] = useState(false)
+  const [isLevelResolved] = useState(true)
 
   const [pageNumber, setPageNumber] = useState(1)
   const pageSize = 5
 
   const debounceTimerRef = useRef(null)
 
-  // Resolve level của user (ưu tiên lấy từ storage, fallback gọi API)
-  useEffect(() => {
-    let cancelled = false
 
-    const resolve = async () => {
-      try {
-        const stored = await getStorageItem('userLevel')
-        const storedLevel = stored != null ? parseInt(String(stored), 10) : NaN
-        if (!Number.isNaN(storedLevel) && storedLevel >= 1 && storedLevel <= 6) {
-          if (!cancelled) {
-            setUserLevel(storedLevel)
-            setIsLevelResolved(true)
-          }
-          return
-        }
 
-        const resp = await getUserLevel()
-        const apiLevel = resp?.data?.level
-        const parsed = apiLevel != null ? parseInt(String(apiLevel), 10) : NaN
-        if (resp?.isSuccess && !Number.isNaN(parsed) && parsed >= 1 && parsed <= 6) {
-          try {
-            await setStorageItem('userLevel', String(parsed))
-          } catch (e) {
-            // Không chặn flow nếu lưu storage fail
-          }
-          if (!cancelled) {
-            setUserLevel(parsed)
-            setIsLevelResolved(true)
-          }
-          return
-        }
-
-        if (!cancelled) {
-          setUserLevel(null)
-          setIsLevelResolved(true)
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setUserLevel(null)
-          setIsLevelResolved(true)
-        }
-      }
-    }
-
-    resolve()
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  const effectiveLevelId = userLevel ?? levelId ?? null
+  const effectiveLevelId = levelId ?? null
 
   const fetchTopics = useCallback(async () => {
     if (!isLevelResolved) return

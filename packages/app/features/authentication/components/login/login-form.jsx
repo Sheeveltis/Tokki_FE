@@ -24,7 +24,7 @@ if (Platform.OS !== 'web') {
 }
 import { TextInput } from '../../../../../components/textInput'
 import { Button } from '../../../../../components/button'
-import { login, getUserLevel, loginWithGoogle } from '../../api'
+import { login, loginWithGoogle } from '../../api'
 import { setAuthToken, clearAuthToken } from '../../../../provider/api/client'
 import { heartbeatService } from '../shared/heartbeat-service'
 import { showApiNotification } from '../../utils/notification'
@@ -169,19 +169,6 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
         // Lưu token để dùng cho các request authorize
         // setAuthToken đã tự động mã hóa và lưu vào storage, không cần gọi setToken nữa
         await setAuthToken(token)
-        // Sau khi có token, lấy level hiện tại của user và lưu lại
-        try {
-          const levelResp = await getUserLevel()
-          if (levelResp?.isSuccess && levelResp.data?.level != null) {
-            const levelValue = String(levelResp.data.level)
-            await setStorageItem('userLevel', levelValue)
-            // Thông báo nếu cần lắng nghe thay đổi level
-            dispatchStorageEvent('user-level-changed')
-          }
-        } catch (e) {
-          // Không chặn flow login nếu gọi API level thất bại
-          console.error('Không thể lấy level người dùng:', e)
-        }
         // TODO: Lưu thông tin user vào context / storage nếu cần
         console.log('Đăng nhập thành công:', {
           token,
@@ -200,7 +187,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
         // Web: chuyển đến homepage (dùng solito router)
         setTimeout(() => {
           if (Platform.OS === 'web') {
-            router.push('/homepage')
+            router.push('/menu-study?level=1')
           } else {
             // Trên native, dùng React Navigation
             if (navigation) {
@@ -325,21 +312,10 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
               }
 
               await setAuthToken(token)
-              try {
-                const levelResp = await getUserLevel()
-                if (levelResp?.isSuccess && levelResp.data?.level != null) {
-                  const levelValue = String(levelResp.data.level)
-                  await setStorageItem('userLevel', levelValue)
-                  dispatchStorageEvent('user-level-changed')
-                }
-              } catch (e) {
-                console.error('Không thể lấy level người dùng:', e)
-              }
-
               heartbeatService.start()
 
               setTimeout(() => {
-                router.push('/homepage')
+                router.push('/menu-study?level=1')
               }, 500)
             } else {
               await clearAuthToken()

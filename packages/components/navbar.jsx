@@ -110,7 +110,7 @@ export const Navbar = ({ position = 'fixed' }) => {
   const navMenu = useMemo(
     () => [
       { label: 'Trang chủ', icon: HomeIcon, path: '/homepage', tint: colors.DarkGreen },
-      { label: 'Học tập', icon: StudyIcon, path: '/study', tint: colors.accentPink },
+      { label: 'Học tập', icon: StudyIcon, path: '/menu-study?level=1', tint: colors.accentPink },
       { label: 'Lộ trình', icon: RoadmapIcon, path: '/roadmap/info', tint: colors.Mustard },
       { label: 'Từ vựng', icon: FlashcardIcon, path: '/flashcard', tint: colors.background },
       { label: 'Từ điển', icon: DictionaryIcon, path: '/dictionary', tint: colors.neutralBlack },
