@@ -622,14 +622,14 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
               const partData = form.getFieldValue(['parts', name])
               const skillName = partData?.Skill || ''
               const skillLabel = skillOptions.find((opt) => opt.value === skillName)?.label || ''
+              const isActive = index === validActiveIndex
 
               return {
                 key: String(index),
                 label: (
-                  <Space>
-                    <span style={{ fontSize: 14 }}>Phần {index + 1}</span>
-                    <Tag color="blue" style={{ margin: 0, fontSize: 14 }}>{skillLabel}</Tag>
-                  </Space>
+                  <span style={{ fontSize: 14 }}>
+                    Phần {index + 1} {skillLabel}
+                  </span>
                 ),
                 children: null,
               }
@@ -641,25 +641,67 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
 
             return (
               <div style={{ background: '#fff', borderRadius: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <div style={{ marginBottom: 16 }}>
+                  <style>
+                    {`
+                      .exam-parts-tabs .ant-tabs-tab {
+                        transition: all 0.3s;
+                        border-radius: 8px 8px 0 0 !important;
+                        margin-right: 4px !important;
+                      }
+                      .exam-parts-tabs .ant-tabs-tab-active {
+                        background-color: #1890ff !important;
+                        border-color: #1890ff !important;
+                      }
+                      .exam-parts-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+                        color: #fff !important;
+                      }
+                      .exam-parts-tabs .ant-tabs-tab-active .ant-tabs-tab-btn span {
+                        color: #fff !important;
+                      }
+                      .exam-parts-tabs .ant-tabs-tab:hover span {
+                        color: #1890ff !important;
+                      }
+                      .exam-parts-tabs .ant-tabs-tab-active:hover span {
+                        color: #fff !important;
+                      }
+                    `}
+                  </style>
                   <Tabs
                     activeKey={String(validActiveIndex >= 0 ? validActiveIndex : 0)}
                     onChange={onTabChange}
                     items={items}
                     type="card"
+                    className="exam-parts-tabs"
                     style={{ flex: 1, marginBottom: -16 }}
+                    tabBarExtraContent={
+                      <Space>
+                        {fields.length > 0 && !isActiveTemplate && (
+                          <Button
+                            type="text"
+                            danger
+                            size="middle"
+                            icon={<DeleteOutlined />}
+                            onClick={() => handleRemovePart(fields[validActiveIndex]?.name)}
+                            style={{ fontSize: 13 }}
+                          >
+                            Xóa phần này
+                          </Button>
+                        )}
+                        {canAddMore && !isActiveTemplate && (
+                          <Button
+                            type="primary"
+                            ghost
+                            icon={<PlusOutlined />}
+                            onClick={handleAddPart}
+                            size="middle"
+                          >
+                            Thêm phần
+                          </Button>
+                        )}
+                      </Space>
+                    }
                   />
-                  {canAddMore && !isActiveTemplate && (
-                    <Button
-                      type="primary"
-                      ghost
-                      icon={<PlusOutlined />}
-                      onClick={handleAddPart}
-                      size="middle"
-                    >
-                      Thêm phần
-                    </Button>
-                  )}
                 </div>
 
                 {/* Empty State */}
@@ -690,39 +732,11 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                   const skill = form.getFieldValue(['parts', partName, 'Skill'])
 
                   return (
-                    <div key={partKey} style={{ marginTop: 24 }}>
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '12px 16px',
-                        background: '#f8f9fa',
-                        borderRadius: '8px 8px 0 0',
-                        border: '1px solid #f0f0f0',
-                        borderBottom: 'none'
-                      }}>
-                        <Space orientation="horizontal" size="middle" align="center">
-                          <MenuOutlined style={{ color: '#8c8c8c', fontSize: 18 }} />
-                          <Text strong style={{ fontSize: 16 }}>Cấu trúc câu hỏi - {getSkillLabel(skill)}</Text>
-                        </Space>
-                        {!isActiveTemplate && (
-                          <Button
-                            type="text"
-                            danger
-                            size="middle"
-                            icon={<DeleteOutlined />}
-                            onClick={() => handleRemovePart(partName)}
-                            style={{ fontSize: 14 }}
-                          >
-                            Xóa phần này
-                          </Button>
-                        )}
-                      </div>
-
+                    <div key={partKey} style={{ marginTop: 16 }}>
                       <div style={{
                         border: '1px solid #f0f0f0',
-                        borderRadius: '0 0 8px 8px',
-                        padding: '16px 20px',
+                        borderRadius: '8px',
+                        padding: '20px 24px',
                         background: '#fff'
                       }}>
                         <Form.Item {...restPartField} name={[partName, 'Skill']} hidden>
