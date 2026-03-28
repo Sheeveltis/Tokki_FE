@@ -4,6 +4,7 @@ import { Select, Space, message, Tooltip, Input } from 'antd'
 import { EyeOutlined, DownloadOutlined, UploadOutlined, FilterOutlined, PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
 
 import { fetchUsers, importAccount, exportAccount } from '../../../api/user-management.js'
+import { useManagementFilters } from '../../../../back-office/hooks/use-management-filters'
 import AccountDetails from './account-details'
 import DeleteUserConfirm from '../user-detail/DeleteUserConfirm'
 import UserEditModal from './user-edit-modal'
@@ -44,7 +45,7 @@ export default function AccountManage({ basePath = '/admin' }) {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [userToDelete, setUserToDelete] = useState(null)
 
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useManagementFilters({
     search: '',
     searchEmail: '',
     searchPhone: '',
@@ -53,6 +54,7 @@ export default function AccountManage({ basePath = '/admin' }) {
     page: 1,
     size: 20
   })
+
   const [importResult, setImportResult] = useState(null)
   const [importing, setImporting] = useState(false)
   const fileInputRef = useRef(null)

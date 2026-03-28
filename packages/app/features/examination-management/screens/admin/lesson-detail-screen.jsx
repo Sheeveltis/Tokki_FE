@@ -131,15 +131,7 @@ export function LessonDetailScreen() {
         <div style={{ padding: 24 }}>
           <Alert type="error" message="Lỗi" description={error} />
           <Button
-            onClick={() => {
-              if (currentPortal === 'staff') {
-                router.push('/staff?tab=lessons')
-              } else if (currentPortal === 'moderator') {
-                router.push('/moderator?tab=lessons')
-              } else {
-                router.push('/admin?tab=lessons')
-              }
-            }}
+            onClick={() => router.back()}
             style={{ marginTop: 10, height: 'auto', padding: '8px 24px' }}
           >
             Quay lại
@@ -153,15 +145,7 @@ export function LessonDetailScreen() {
         <div style={{ padding: 24 }}>
           <Alert type="warning" message="Không tìm thấy bài học" />
           <Button
-            onClick={() => {
-              if (currentPortal === 'staff') {
-                router.push('/staff?tab=lessons')
-              } else if (currentPortal === 'moderator') {
-                router.push('/moderator?tab=lessons')
-              } else {
-                router.push('/admin?tab=lessons')
-              }
-            }}
+            onClick={() => router.back()}
             style={{ marginTop: 12, height: 'auto', padding: '8px 24px' }}
           >
             Quay lại danh sách
@@ -182,15 +166,7 @@ export function LessonDetailScreen() {
             </div>
             <Space>
               <Button
-                onClick={() => {
-                  if (currentPortal === 'staff') {
-                    router.push('/staff?tab=lessons')
-                  } else if (currentPortal === 'moderator') {
-                    router.push('/moderator?tab=lessons')
-                  } else {
-                    router.push('/admin?tab=lessons')
-                  }
-                }}
+                onClick={() => router.back()}
                 style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#BCD0CA', borderColor: '#BCD0CA', color: '#373039' }}
               >
                 Quay lại

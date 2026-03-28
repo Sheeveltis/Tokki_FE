@@ -306,11 +306,11 @@ export function ExamTemplateDetailScreen() {
         okText: 'Rời đi',
         cancelText: 'Hủy',
         onOk: () => {
-          router.push('/admin?tab=exam-template')
+          router.back()
         }
       })
     } else {
-      router.push('/admin?tab=exam-template')
+      router.back()
     }
   }
 

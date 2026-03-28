@@ -8,6 +8,7 @@ import { uploadPassageImageToCloudinary, uploadPassageAudioToCloudinary } from '
 import CreatePassageModal from './CreatePassageModal'
 import UpdatePassageModal from './UpdatePassageModal'
 import ManagementLayout from '../../../../../../components/layout/management-layout'
+import { useManagementFilters } from '../../../../back-office/hooks/use-management-filters.js'
 
 const { Text } = Typography
 
@@ -27,7 +28,7 @@ export function PassageList() {
   const [selectedPassage, setSelectedPassage] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
 
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useManagementFilters({
     search: '',
     mediaType: null,
     status: null,

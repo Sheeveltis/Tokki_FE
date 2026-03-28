@@ -7,6 +7,8 @@ import { useExamTemplatesQuery } from '../../../back-office/api/useAdminQueries.
 import { duplicateExamTemplate } from '../../../back-office/api/admin-index.js'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 
+import { useManagementFilters } from '../../../back-office/hooks/use-management-filters.js'
+
 const { Option } = Select
 
 // Mapping trạng thái theo enum ExamTemplateStatus
@@ -21,7 +23,7 @@ const STATUS_CONFIG = {
 export function ExamTemplateManagement({ initialData = null, basePath = '/admin' }) {
   const router = useRouter()
 
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useManagementFilters({
     search: '',
     status: null, // Default status is All
     type: null,

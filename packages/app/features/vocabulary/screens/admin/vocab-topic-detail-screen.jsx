@@ -738,15 +738,7 @@ export function FlashcardTopicDetailScreen() {
           <Button
             type="primary"
             style={{ marginTop: 10, minWidth: 120 }}
-            onClick={() => {
-              if (currentPortal === 'staff') {
-                router.push('/staff')
-              } else if (currentPortal === 'moderator') {
-                router.push('/moderator')
-              } else {
-                router.push('/admin')
-              }
-            }}
+            onClick={() => router.back()}
           >
             Quay lại
           </Button>
@@ -761,15 +753,7 @@ export function FlashcardTopicDetailScreen() {
           <Button
             type="primary"
             style={{ marginTop: 12, minWidth: 140 }}
-            onClick={() => {
-              if (currentPortal === 'staff') {
-                router.push('/staff?tab=vocabulary-topics')
-              } else if (currentPortal === 'moderator') {
-                router.push('/moderator?tab=vocabulary-topics')
-              } else {
-                router.push('/admin?tab=vocabulary-topics')
-              }
-            }}
+            onClick={() => router.back()}
           >
             Quay lại danh sách
           </Button>
@@ -861,15 +845,7 @@ export function FlashcardTopicDetailScreen() {
                         </Button>
                       )}
                       <Button
-                        onClick={() => {
-                          if (currentPortal === 'staff') {
-                            router.push('/staff?tab=vocabulary-topics')
-                          } else if (currentPortal === 'moderator') {
-                            router.push('/moderator?tab=approve-flashcard-topic')
-                          } else {
-                            router.push('/admin?tab=vocabulary-topics')
-                          }
-                        }}
+                        onClick={() => router.back()}
                       >
                         Quay lại
                       </Button>

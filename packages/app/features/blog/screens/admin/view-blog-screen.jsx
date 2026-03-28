@@ -94,7 +94,7 @@ export function ViewBlogScreen() {
   }
 
   const handleBack = () => {
-    router.push(`${portalPrefix}?tab=blog`)
+    router.back()
   }
 
   const handleDelete = async () => {
@@ -182,7 +182,7 @@ export function ViewBlogScreen() {
           <Text style={styles.errorText}>{error || 'Không tìm thấy bài viết'}</Text>
           <Button
             icon={<ArrowLeftOutlined />}
-            onClick={handleBack}
+            onClick={() => router.back()}
             style={{ marginTop: 16 }}
           >
             Quay lại
@@ -201,7 +201,7 @@ export function ViewBlogScreen() {
           <View style={styles.headerLeft}>
             <Button
               icon={<ArrowLeftOutlined />}
-              onClick={handleBack}
+              onClick={() => router.back()}
               style={styles.backButton}
             >
               Quay lại

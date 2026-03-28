@@ -10,6 +10,7 @@ import ManagementLayout from '../../../../../components/layout/management-layout
 import FlashcardTopicCreateModal from '../../components/admin/vocab-topic-management/vocab-topic-create-modal.jsx'
 import TopicApprovalModal from '../../components/admin/vocab-topic-detail/topic-approval-modal.jsx'
 import FlashcardTopicEditModal from '../../components/admin/vocab-topic-detail/vocab-topic-edit-modal.jsx'
+import { useManagementFilters } from '../../../back-office/hooks/use-management-filters.js'
 
 const { Option } = Select
 
@@ -44,14 +45,26 @@ export function FlashcardTopicManagement({ initialData = null }) {
   const [loading, setLoading] = useState(!initialData)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [createLoading, setCreateLoading] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [level, setLevel] = useState(1)
-  const [status, setStatus] = useState(defaultStatus)
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 20,
-    total: 0,
+  
+  const [filters, setFilters] = useManagementFilters({
+    page: 1,
+    size: 20,
+    search: '',
+    level: 1,
+    status: defaultStatus
   })
+
+  // Aliases for compatibility
+  const searchTerm = filters.search
+  const level = filters.level
+  const status = filters.status
+  const pagination = {
+    current: filters.page,
+    pageSize: filters.size,
+    total: 0 // Will be updated by loadData
+  }
+  const [totalItems, setTotalItems] = useState(0)
+
   const [approvalModalOpen, setApprovalModalOpen] = useState(false)
   const [approvalLoading, setApprovalLoading] = useState(false)
   const [topicIdForApproval, setTopicIdForApproval] = useState(null)
@@ -77,11 +90,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
           status: statusFilter !== 'all' ? statusFilter : undefined,
         })
         setData(result.items || [])
-        setPagination({
-          current: result.pageNumber || page,
-          pageSize: result.pageSize || pageSize,
-          total: result.totalCount || 0,
-        })
+        setTotalItems(result.totalCount || 0)
       } catch (error) {
         console.error('Error loading flashcard topics:', error)
         setData([])
@@ -104,8 +113,8 @@ export function FlashcardTopicManagement({ initialData = null }) {
     }
 
     searchTimeoutRef.current = setTimeout(() => {
-      setPagination((prev) => ({ ...prev, current: 1 }))
-      loadData(1, pagination.pageSize, searchTerm, level, status)
+      setFilters(prev => ({ ...prev, page: 1 }))
+      loadData(1, filters.size, filters.search, filters.level, filters.status)
     }, 500)
 
     return () => {
@@ -118,14 +127,19 @@ export function FlashcardTopicManagement({ initialData = null }) {
 
   // Load khi level hoặc status thay đổi
   useEffect(() => {
-    setPagination((prev) => ({ ...prev, current: 1 }))
-    loadData(1, pagination.pageSize, searchTerm, level, status)
+    setFilters(prev => ({ ...prev, page: 1 }))
+    loadData(1, filters.size, filters.search, filters.level, filters.status)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [level, status])
+  }, [filters.level, filters.status])
 
   // Cập nhật pending count khi load data với status = 3
   const handleTableChange = (newPagination) => {
-    loadData(newPagination.current, newPagination.pageSize, searchTerm, level, status)
+    setFilters(prev => ({
+      ...prev,
+      page: newPagination.current,
+      size: newPagination.pageSize
+    }))
+    loadData(newPagination.current, newPagination.pageSize, filters.search, filters.level, filters.status)
   }
 
   const handleCreate = async (values) => {
@@ -155,13 +169,11 @@ export function FlashcardTopicManagement({ initialData = null }) {
   }
 
   const handleShowPendingApproval = () => {
-    setStatus(3)
-    setPagination((prev) => ({ ...prev, current: 1 }))
+    setFilters(prev => ({ ...prev, status: 3, page: 1 }))
   }
 
   const handleBackToList = () => {
-    setStatus(defaultStatus)
-    setPagination((prev) => ({ ...prev, current: 1 }))
+    setFilters(prev => ({ ...prev, status: defaultStatus, page: 1 }))
   }
 
   const handleOpenApprovalModal = (topicId, type, e) => {
@@ -195,9 +207,6 @@ export function FlashcardTopicManagement({ initialData = null }) {
 
       // Reload lại danh sách sau khi phê duyệt
       await loadData(pagination.current, pagination.pageSize, searchTerm, level, status)
-
-      // Refresh pending count
-      await loadPendingCount()
 
       setApprovalModalOpen(false)
       setTopicIdForApproval(null)
@@ -319,7 +328,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
       align: 'center',
       width: 80,
       render: (_, __, index) =>
-        (pagination.current - 1) * pagination.pageSize + index + 1,
+        (filters.page - 1) * filters.size + index + 1,
     },
     { title: 'Tiêu đề', dataIndex: 'title', key: 'title', width: 200 },
     {
@@ -475,7 +484,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
         )
       },
     },
-  ], [portalPrefix, router, status, currentPortal, pagination.current, pagination.pageSize])
+  ], [portalPrefix, router, status, currentPortal, filters.page, filters.size])
 
   const actions = [
     {
@@ -521,18 +530,17 @@ export function FlashcardTopicManagement({ initialData = null }) {
     <>
       <ManagementLayout
         searchPlaceholder="Tìm kiếm theo tên chủ đề..."
-        searchValue={searchTerm}
-        onSearchChange={setSearchTerm}
+        searchValue={filters.search}
+        onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
         onSearchSubmit={() => {
-          setPagination((prev) => ({ ...prev, current: 1 }))
-          loadData(1, pagination.pageSize, searchTerm, level, status)
+          setFilters(prev => ({ ...prev, page: 1 }))
         }}
         extraFilters={
           <Space wrap>
             <Select
               placeholder="Chọn level"
               value={level}
-              onChange={(value) => setLevel(value || 1)}
+              onChange={(value) => setFilters(prev => ({ ...prev, level: value || 1, page: 1 }))}
               style={{ width: 150 }}
             >
               {[1, 2, 3, 4, 5, 6].map((lvl) => (
@@ -544,7 +552,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
             <Select
               placeholder="Chọn trạng thái"
               value={status}
-              onChange={setStatus}
+              onChange={(val) => setFilters(prev => ({ ...prev, status: val, page: 1 }))}
               style={{ width: 150 }}
             >
               {STATUS_OPTIONS.map((option) => (
@@ -561,9 +569,9 @@ export function FlashcardTopicManagement({ initialData = null }) {
           dataSource: data,
           loading,
           pagination: {
-            current: pagination.current,
-            pageSize: pagination.pageSize,
-            total: pagination.total,
+            current: filters.page,
+            pageSize: filters.size,
+            total: totalItems,
             showSizeChanger: true,
             showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} chủ đề`,
             pageSizeOptions: ['10', '20', '50', '100'],

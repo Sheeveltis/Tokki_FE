@@ -6,11 +6,17 @@ import { Input, Space, Button } from 'antd'
 import { EyeOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons'
 import { useLessonsQuery } from '../../../back-office/api/useAdminQueries.js'
 import ManagementTable from '../../../../../components/ManagementTable'
+import { useManagementFilters } from '../../../back-office/hooks/use-management-filters.js'
 
 export function LessonManagement({ initialData = null }) {
   const router = useRouter()
   const { data = initialData || [], isLoading } = useLessonsQuery(initialData)
-  const [search, setSearch] = useState('')
+  
+  const [filters, setFilters] = useManagementFilters({
+    search: '',
+    page: 1,
+    size: 20
+  })
 
   // Xác định cổng hiện tại dựa vào URL
   const getCurrentPortal = () => {
@@ -29,7 +35,7 @@ export function LessonManagement({ initialData = null }) {
   }, [currentPortal])
 
   const filteredData = useMemo(() => {
-    const q = search.trim().toLowerCase()
+    const q = (filters.search || '').trim().toLowerCase()
     if (!q) return data
     return data.filter(
       (item) =>
@@ -37,7 +43,7 @@ export function LessonManagement({ initialData = null }) {
         (item.author || '').toLowerCase().includes(q) ||
         (item.updatedAt || '').toLowerCase().includes(q),
     )
-  }, [data, search])
+  }, [data, filters.search])
 
   const columns = useMemo(() => [
     { title: 'Tiêu đề', dataIndex: 'title', key: 'title' },
@@ -86,8 +92,8 @@ export function LessonManagement({ initialData = null }) {
           prefix={<SearchOutlined />}
           placeholder="Tìm theo tiêu đề, tác giả, ngày cập nhật"
           style={{ maxWidth: 360 }}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={filters.search}
+          onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
         />
         <Button
           type="primary"
@@ -101,6 +107,11 @@ export function LessonManagement({ initialData = null }) {
         columns={columns}
         dataSource={filteredData}
         loading={isLoading && !initialData}
+        pagination={{
+          current: filters.page,
+          pageSize: filters.size,
+          onChange: (page, size) => setFilters(prev => ({ ...prev, page, size }))
+        }}
       />
     </>
   )

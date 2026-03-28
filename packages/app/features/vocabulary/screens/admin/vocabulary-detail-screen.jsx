@@ -384,15 +384,7 @@ export function VocabularyDetailScreen() {
           <Button
             type="primary"
             style={{ marginTop: 10, minWidth: 120 }}
-            onClick={() => {
-              if (currentPortal === 'staff') {
-                router.push('/staff?tab=vocabulary-words')
-              } else if (currentPortal === 'moderator') {
-                router.push('/moderator?tab=approve-vocabulary')
-              } else {
-                router.push('/admin?tab=vocabulary-words')
-              }
-            }}
+            onClick={() => router.back()}
           >
             Quay lại
           </Button>
@@ -415,15 +407,7 @@ export function VocabularyDetailScreen() {
           <Button
             type="primary"
             style={{ marginTop: 12, minWidth: 140 }}
-            onClick={() => {
-              if (currentPortal === 'staff') {
-                router.push('/staff?tab=vocabulary-words')
-              } else if (currentPortal === 'moderator') {
-                router.push('/moderator?tab=approve-vocabulary')
-              } else {
-                router.push('/admin?tab=vocabulary-words')
-              }
-            }}
+            onClick={() => router.back()}
           >
             Quay lại danh sách
           </Button>
@@ -444,15 +428,7 @@ export function VocabularyDetailScreen() {
             </div>
             <Space>
               <Button
-                onClick={() => {
-                  if (currentPortal === 'staff') {
-                    router.push('/staff?tab=vocabulary-words')
-                  } else if (currentPortal === 'moderator') {
-                    router.push('/moderator?tab=approve-vocabulary')
-                  } else {
-                    router.push('/admin?tab=vocabulary-words')
-                  }
-                }}
+                onClick={() => router.back()}
               >
                 Quay lại
               </Button>

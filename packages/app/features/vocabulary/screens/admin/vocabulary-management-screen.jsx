@@ -8,6 +8,7 @@ import { fetchVocabularies, updateVocabulary, deleteVocabulary, uploadVocabulary
 import VocabularyEditModal from '../../components/admin/vocabulary-detail/vocabulary-edit-modal.jsx'
 import VocabularyCreateModal from '../../components/admin/vocabulary-detail/vocabulary-create-modal.jsx'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
+import { useManagementFilters } from '../../../back-office/hooks/use-management-filters.js'
 
 const STATUS_OPTIONS = [
   { value: 1, label: 'Hoạt động' },
@@ -24,7 +25,7 @@ export function VocabularyManagement({ initialData = null }) {
     pageSize: 20,
     total: 0,
   })
-  const [filters, setFilters] = useState({ search: '', status: 1, page: 1, size: 20 })
+  const [filters, setFilters] = useManagementFilters({ search: '', status: 1, page: 1, size: 20 })
 
   const [editOpen, setEditOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)

@@ -8,6 +8,8 @@ import { QuestionTypeForm } from '../../components/admin/create-question-type/Qu
 import { createQuestionType } from '../../api/create-question-type.js'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 import { getCurrentUserRole } from '../../../../provider/api/client.js'
+import { useManagementFilters } from '../../../back-office/hooks/use-management-filters.js'
+
 const { Option } = Select
 const { Text } = Typography
 
@@ -16,7 +18,7 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
   const role = getCurrentUserRole()
   const isStaff = role === 'Staff'
 
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useManagementFilters({
     search: '',
     skill: null,
     difficulty: null,

@@ -9,6 +9,8 @@ import { useExamsAdmin } from '../../api/exam-hooks.js'
 import CreateExamModal from '../../components/admin/create-exam-modal.jsx'
 import { useQueryClient } from '@tanstack/react-query'
 
+import { useManagementFilters } from '../../../back-office/hooks/use-management-filters.js'
+
 const { Option } = Select
 
 // Map status enum values to display text
@@ -28,7 +30,7 @@ export function ExamManagement({ initialData = null }) {
   const router = useRouter()
   const queryClient = useQueryClient()
   
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useManagementFilters({
     search: '',
     status: 'ALL',
     type: undefined,

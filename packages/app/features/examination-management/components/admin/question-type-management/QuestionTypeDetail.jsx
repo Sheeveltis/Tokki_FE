@@ -138,7 +138,7 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
     <div style={{ padding: 24 }}>
         <QuestionTypeHeaderActions
           questionTypeId={questionTypeId}
-          onBack={() => router.push(`${basePath}?tab=question-bank`)}
+          onBack={() => router.back()}
           onEdit={() => setIsEditing(true)}
           deleting={deleting}
           onDelete={async () => {

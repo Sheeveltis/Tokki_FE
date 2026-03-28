@@ -540,7 +540,7 @@ export function ExamDetailScreen() {
           </div>
           <Space size="middle">
             <Button
-              onClick={() => router.push('/admin?tab=exam-management')}
+              onClick={() => router.back()}
               icon={<UndoOutlined />}
               style={{ borderRadius: '8px' }}
             >
