@@ -149,6 +149,7 @@ export const ENDPOINTS = {
   },
   VOCABULARY: {
     ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
+    USER_SEARCH: '/Vocabulary/search-for-user',
     ADMIN_CREATE: '/Vocabulary/admin/create-a-vocabulary',
     ADD_VOCABULARY_LIST: '/Vocabulary/bulk',
     FLASH_CARD_TOPIC: '/Vocabulary/flash-card',

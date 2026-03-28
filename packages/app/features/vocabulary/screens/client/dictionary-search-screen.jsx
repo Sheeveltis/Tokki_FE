@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native'
 import { useRouter } from 'solito/navigation'
-import { fetchVocabularies } from '../../api'
+import { searchVocabulariesForUser } from '../../api'
 
 /**
  * Màn Dictionary dành cho user:
@@ -39,26 +39,10 @@ export function DictionarySearchScreen() {
     try {
       setLoading(true)
 
-      // Reuse logic từ VocabularyManagement: phân biệt vocabId và searchText
-      let vocabId = null
-      let searchText = null
-
-      const hasKorean = /[가-힣]/.test(trimmed)
-      const hasSpace = trimmed.includes(' ')
-      const isLongId = trimmed.length >= 10 && trimmed.length <= 20
-
-      if (!hasKorean && !hasSpace && isLongId && /^[a-zA-Z0-9_-]+$/.test(trimmed)) {
-        vocabId = trimmed
-      } else {
-        searchText = trimmed
-      }
-
-      const res = await fetchVocabularies({
+      const res = await searchVocabulariesForUser({
         pageNumber: 1,
         pageSize: 20,
-        status: 1,
-        vocabId,
-        searchText,
+        searchTerm: trimmed,
       })
 
       const items = Array.isArray(res?.items) ? res.items : []

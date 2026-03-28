@@ -90,6 +90,67 @@ export async function fetchVocabularies(params = {}) {
       pageSize: params.pageSize || 20,
       totalCount: 0,
       totalPages: 0,
+    }
+  }
+}
+
+/**
+ * Tìm kiếm từ vựng cho user (không cần quyền admin)
+ * @param {Object} params - Tham số tìm kiếm
+ * @param {string} params.searchTerm - Từ khóa tìm kiếm
+ * @param {number} params.pageNumber - Số trang
+ * @param {number} params.pageSize - Số item mỗi trang
+ * @returns {Promise<Object>} - { items, pageNumber, pageSize, totalCount, totalPages, hasNextPage, hasPreviousPage }
+ */
+export async function searchVocabulariesForUser(params = {}) {
+  try {
+    const {
+      searchTerm = '',
+      pageNumber = 1,
+      pageSize = 20,
+    } = params
+
+    const queryParams = {
+      searchTerm,
+      pageNumber,
+      pageSize,
+    }
+
+    const res = await apiClient.get(ENDPOINTS.VOCABULARY.USER_SEARCH, {
+      params: queryParams,
+    })
+
+    const payload = res?.data
+    if (!payload?.isSuccess) {
+      const message = payload?.message || 'Không thể tìm kiếm từ vựng'
+      throw new Error(message)
+    }
+
+    const pagingData = payload?.data
+    const items = Array.isArray(pagingData?.items) ? pagingData.items : []
+
+    const mappedItems = items.map((item) => ({
+      ...item,
+      id: item.vocabularyId,
+    }))
+
+    return {
+      items: mappedItems,
+      pageNumber: pagingData?.pageNumber || pageNumber,
+      pageSize: pagingData?.pageSize || pageSize,
+      totalCount: pagingData?.totalCount || 0,
+      totalPages: pagingData?.totalPages || 0,
+      hasNextPage: pagingData?.hasNextPage || false,
+      hasPreviousPage: pagingData?.hasPreviousPage || false,
+    }
+  } catch (error) {
+    console.error('Error searching vocabularies for user:', error)
+    return {
+      items: [],
+      pageNumber: params.pageNumber || 1,
+      pageSize: params.pageSize || 20,
+      totalCount: 0,
+      totalPages: 0,
       hasNextPage: false,
       hasPreviousPage: false,
     }
@@ -128,6 +189,42 @@ export async function fetchVocabularyDetail(vocabularyId) {
     }
   } catch (error) {
     console.error('Error fetching vocabulary detail:', error)
+    handleApiError(error, 'Không thể tải chi tiết từ vựng')
+    throw error
+  }
+}
+
+/**
+ * Lấy chi tiết từ vựng cho user
+ * @param {string} vocabularyId 
+ */
+export async function fetchVocabularyDetailForUser(vocabularyId) {
+  try {
+    if (!vocabularyId) {
+      throw new Error('VocabularyId là bắt buộc')
+    }
+
+    const res = await apiClient.get(ENDPOINTS.VOCABULARY.USER_GET_DETAIL(vocabularyId))
+
+    const payload = res?.data
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể tải chi tiết từ vựng'
+      throw new Error(message)
+    }
+
+    const data = payload?.data
+
+    // Map data để tương thích với component
+    return {
+      ...data,
+      id: data?.vocabularyId || vocabularyId,
+      vocabularyId: data?.vocabularyId || vocabularyId,
+    }
+  } catch (error) {
+    console.error('Error fetching vocabulary detail for user:', error)
     handleApiError(error, 'Không thể tải chi tiết từ vựng')
     throw error
   }

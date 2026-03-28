@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, Platform } from 'react-native'
 import { TopikBanner } from '../topik-banner.web'
 import { SkillModulesGrid } from '../skill-modules-grid.web'
 import { LoginRequest } from 'components/loginRequest'
