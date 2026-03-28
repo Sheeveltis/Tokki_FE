@@ -93,9 +93,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '900',
-    textShadowColor: 'rgba(0,0,0,0.2)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 1,
+    ...Platform.select({
+      web: {
+        textShadow: '1px 1px 1px rgba(0,0,0,0.2)',
+      },
+      default: {
+        textShadowColor: 'rgba(0,0,0,0.2)',
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 1,
+      },
+    }),
   },
 })
 

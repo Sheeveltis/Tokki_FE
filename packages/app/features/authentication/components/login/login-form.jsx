@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
+import { CheckOutlined } from '@ant-design/icons'
 // Import useNavigation cho native
 let useNavigation = null
 if (Platform.OS !== 'web') {
@@ -55,6 +56,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
   const insets = useSafeAreaInsets() // Lấy safe area insets để tránh navigation bar
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [apiResponse, setApiResponse] = useState(null)
@@ -140,7 +142,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
 
     try {
       // Gọi API login (toàn bộ xử lý lỗi network / format response nằm trong tầng API)
-      const response = await login({ email, password })
+      const response = await login({ email, password, rememberMe })
 
       // Lưu response để hiển thị HelperAdmin
       setApiResponse(response)
@@ -445,12 +447,25 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
             secureTextEntry
           />
         </View>
+        
+        <View style={styles.rememberForgotRow}>
+          <TouchableOpacity 
+            style={styles.rememberRow} 
+            onPress={() => setRememberMe(!rememberMe)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+              {rememberMe && <CheckOutlined style={styles.checkIcon} />}
+            </View>
+            <Text style={styles.rememberText}>Ghi nhớ đăng nhập</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={handleForgotPassword} activeOpacity={0.8}>
+            <Text style={styles.forgotText}>Quên mật khẩu?</Text>
+          </TouchableOpacity>
+        </View>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-        <TouchableOpacity onPress={handleForgotPassword} activeOpacity={0.8}>
-          <Text style={styles.forgotText}>Quên mật khẩu?</Text>
-        </TouchableOpacity>
 
         <Button
           title={loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
@@ -606,9 +621,43 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
   },
   forgotText: {
-    marginTop: 4,
     fontSize: 13,
-    color: '#111',
+    color: '#8B4513',
+    fontWeight: '600',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  rememberForgotRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: -4,
+  },
+  rememberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderWidth: 1.5,
+    borderColor: '#CCC',
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF',
+  },
+  checkboxChecked: {
+    backgroundColor: '#4C662B',
+    borderColor: '#4C662B',
+  },
+  checkIcon: {
+    fontSize: 12,
+    color: '#FFF',
+  },
+  rememberText: {
+    fontSize: 13,
+    color: '#555',
     fontFamily: 'Epilogue, sans-serif',
   },
   submitBtn: {

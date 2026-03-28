@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
+import { CheckOutlined } from '@ant-design/icons'
 import { TextInput } from '../../../../../components/textInput'
 import { Button } from '../../../../../components/button'
 import { login } from '../../api'
@@ -17,6 +18,7 @@ export function AdminLoginForm() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [apiResponse, setApiResponse] = useState(null)
@@ -79,7 +81,7 @@ export function AdminLoginForm() {
 
     try {
       // Gọi API login
-      const response = await login({ email, password })
+      const response = await login({ email, password, rememberMe })
 
       // Lưu response để hiển thị HelperAdmin
       setApiResponse(response)
@@ -201,6 +203,19 @@ export function AdminLoginForm() {
           />
         </View>
 
+        <View style={styles.rememberRowContainer}>
+          <TouchableOpacity 
+            style={styles.rememberRow} 
+            onPress={() => setRememberMe(!rememberMe)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+              {rememberMe && <CheckOutlined style={styles.checkIcon} />}
+            </View>
+            <Text style={styles.rememberText}>Ghi nhớ đăng nhập</Text>
+          </TouchableOpacity>
+        </View>
+
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
         <Button
@@ -278,6 +293,37 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'Epilogue, sans-serif',
     marginBottom: 8,
+  },
+  rememberRowContainer: {
+    marginBottom: 16,
+  },
+  rememberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderWidth: 1.5,
+    borderColor: '#CCC',
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF',
+  },
+  checkboxChecked: {
+    backgroundColor: '#4C662B',
+    borderColor: '#4C662B',
+  },
+  checkIcon: {
+    fontSize: 12,
+    color: '#FFF',
+  },
+  rememberText: {
+    fontSize: 13,
+    color: '#555',
+    fontFamily: 'Epilogue, sans-serif',
   },
   submitBtn: {
     marginTop: 8,
