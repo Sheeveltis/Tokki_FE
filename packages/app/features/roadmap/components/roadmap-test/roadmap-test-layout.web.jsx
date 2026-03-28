@@ -413,6 +413,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
   const [, setLoadError] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitConfirmVisible, setSubmitConfirmVisible] = useState(false)
+  const [submitConfirmMessage, setSubmitConfirmMessage] = useState('')
   const submitConfirmResolverRef = useRef(null)
   const [backConfirmVisible, setBackConfirmVisible] = useState(false)
   const backConfirmResolverRef = useRef(null)
@@ -586,15 +587,8 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
   }, [activeSectionKey, skillTimeRemaining, isLoading, isSubmitting])
 
   const handleSectionTimeout = () => {
-    const currentIndex = sections.findIndex((s) => s.key === activeSectionKey)
-    if (currentIndex >= 0 && currentIndex < sections.length - 1) {
-      const nextSection = sections[currentIndex + 1]
-      // Auto switch to next section (isAuto = true)
-      handleChangeSection(nextSection.key, true)
-    } else if (currentIndex === sections.length - 1) {
-      // Last section finished -> auto submit
-      handleSubmit(true)
-    }
+    // Luôn gọi handleSubmit(true) để sync đáp án và chuyển phần hoặc nộp bài dựa trên logic handleSubmit
+    handleSubmit(true)
   }
 
   const performSectionSwitch = (sectionKey) => {
@@ -796,9 +790,10 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
   }
 
   // Handle submit
-  const confirmSubmit = () =>
+  const confirmSubmit = (message) =>
     new Promise((resolve) => {
       submitConfirmResolverRef.current = resolve
+      setSubmitConfirmMessage(message || '')
       setSubmitConfirmVisible(true)
     })
 
@@ -821,7 +816,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
 
     // If auto-submit, we don't clear the timer here (it's already 0)
     if (!isAuto) {
-      setTimeRemainingSeconds(0)
+      // timeRemainingSeconds logic handled below
     }
 
     if (!userExamId) {
@@ -831,55 +826,71 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
       return
     }
 
+    const activeSectionSnapshot = activeSection
+    const activeSectionIndexSnapshot = activeSectionIndex
+    const isLastSkill = activeSectionIndexSnapshot === sections.length - 1
+
     if (!isAuto) {
-      const confirmed = await confirmSubmit()
+      const confirmText = isLastSkill
+        ? 'Bạn có chắc chắn muốn nộp bài? Sau khi nộp, bạn sẽ không thể chỉnh sửa đáp án.'
+        : `Bạn có chắc chắn muốn nộp phần thi ${activeSectionSnapshot?.label || ''} và chuyển sang phần tiếp theo?`
+      
+      const confirmed = await confirmSubmit(confirmText)
       if (!confirmed) return
     }
 
     setIsSubmitting(true)
     try {
-      // 0) Sync tất cả đáp án (MCQ + Writing) trước khi submit
+      // 0) Sync tất cả đáp án (MCQ + Writing) trước khi submit/next-skill
       await syncAllAnswersBeforeSubmit()
 
-      // 1) Submit exam
-      const submitResp = await apiClient.post(ENDPOINTS.USER_EXAM.SUBMIT, {
-        userExamId,
-      })
+      if (isLastSkill) {
+        // timeRemainingSeconds logic only for final submit
+        if (!isAuto) setTimeRemainingSeconds(0)
 
-      const submittedUserExamId = submitResp?.data?.data?.userExamId || userExamId
-      const isSubmitSuccess = submitResp?.data?.isSuccess !== false
+        // 1) Submit exam
+        const submitResp = await apiClient.post(ENDPOINTS.USER_EXAM.SUBMIT, {
+          userExamId,
+        })
 
-      if (!isSubmitSuccess || !submittedUserExamId) {
-        Alert.alert('Lỗi', 'Không thể nộp bài. Vui lòng thử lại.')
-        return
+        const submittedUserExamId = submitResp?.data?.data?.userExamId || userExamId
+        const isSubmitSuccess = submitResp?.data?.isSuccess !== false
+
+        if (!isSubmitSuccess || !submittedUserExamId) {
+          Alert.alert('Lỗi', 'Không thể nộp bài. Vui lòng thử lại.')
+          return
+        }
+
+        // 3) GET result để đảm bảo kết quả đã được tính toán
+        try {
+          const resultUrl = ENDPOINTS.USER_EXAM.RESULT(submittedUserExamId)
+          await apiClient.get(resultUrl)
+        } catch (resultError) {
+          console.error('Failed to fetch result after grading:', resultError)
+        }
+
+        // 4) Navigate to result page
+        router.push(
+          `/roadmap/test/result?userExamId=${encodeURIComponent(
+            submittedUserExamId
+          )}&level=${encodeURIComponent(String(level))}&isEntrance=${isEntrance ? '1' : '0'}`
+        )
+
+        startExamOncePromise = null
+      } else {
+        // Gọi next-skill API
+        await apiClient.put(ENDPOINTS.USER_EXAM.NEXT_SKILL(userExamId))
+
+        // Chuyển phần tiếp theo
+        const nextSection = sections[activeSectionIndexSnapshot + 1]
+        if (nextSection) {
+          handleChangeSection(nextSection.key, true)
+        }
       }
-
-      // 2) Chạy API grading cho các câu writing Q51, Q52, Q53, Q54 (nếu có)
-      // const sectionsSnapshot = sectionsRef.current.length ? sectionsRef.current : sections
-      // await gradeTopikWriting(sectionsSnapshot)
-
-      // 3) GET result để đảm bảo kết quả đã được tính toán
-      try {
-        const resultUrl = ENDPOINTS.USER_EXAM.RESULT(submittedUserExamId)
-        await apiClient.get(resultUrl)
-      } catch (resultError) {
-        console.error('Failed to fetch result after grading:', resultError)
-        // Tiếp tục navigate ngay cả khi GET result lỗi (result page sẽ tự fetch lại)
-      }
-
-      // 4) Navigate to result page (kèm level để "Làm đề khác" quay về đúng level)
-      router.push(
-        `/roadmap/test/result?userExamId=${encodeURIComponent(
-          submittedUserExamId
-        )}&level=${encodeURIComponent(String(level))}&isEntrance=${isEntrance ? '1' : '0'}`
-      )
-
-      // Sau khi đã nộp xong và chuyển sang màn hình kết quả,
-      // lần vào làm bài tiếp theo phải tạo userExamId mới
-      startExamOncePromise = null
     } catch (error) {
-      console.error('Failed to submit exam:', error)
-      Alert.alert('Lỗi', 'Không thể nộp bài. Vui lòng thử lại.')
+      console.error('Failed to submit exam/skill:', error)
+      const errorMsg = isLastSkill ? 'Không thể nộp bài. Vui lòng thử lại.' : 'Không thể chuyển phần. Vui lòng thử lại.'
+      Alert.alert('Lỗi', errorMsg)
     } finally {
       setIsSubmitting(false)
     }
@@ -909,12 +920,30 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     performSectionSwitch(sectionKey)
   }
 
-  const handleConfirmSectionChange = () => {
-    if (pendingSectionKey) {
-      performSectionSwitch(pendingSectionKey)
+  const handleConfirmSectionChange = async () => {
+    if (pendingSectionKey && !isSubmitting) {
+      setIsSubmitting(true)
+      try {
+        // Sync answers before switching via manual tab
+        await syncAllAnswersBeforeSubmit()
+
+        // Call next-skill API if transitioning forward
+        if (userExamId) {
+          await apiClient.put(ENDPOINTS.USER_EXAM.NEXT_SKILL(userExamId))
+        }
+
+        performSectionSwitch(pendingSectionKey)
+      } catch (error) {
+        console.error('Failed to switch section manually:', error)
+        setToastMessage('Không thể chuyển phần. Vui lòng thử lại.')
+        setToastType('error')
+        setToastVisible(true)
+      } finally {
+        setIsSubmitting(false)
+        setSectionConfirmVisible(false)
+        setPendingSectionKey(null)
+      }
     }
-    setSectionConfirmVisible(false)
-    setPendingSectionKey(null)
   }
 
   const handleCancelSectionChange = () => {
@@ -1151,9 +1180,9 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
       >
         <View style={styles.confirmOverlay}>
           <View style={styles.confirmModal}>
-            <Text style={styles.confirmTitle}>Xác nhận nộp bài</Text>
+            <Text style={styles.confirmTitle}>Xác nhận</Text>
             <Text style={styles.confirmMessage}>
-              Bạn có chắc chắn muốn nộp bài? Sau khi nộp, bạn sẽ không thể chỉnh sửa đáp án.
+              {submitConfirmMessage || 'Bạn có chắc chắn muốn thực hiện hành động này?'}
             </Text>
 
             <View style={styles.confirmActions}>

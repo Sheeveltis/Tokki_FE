@@ -88,23 +88,23 @@ export function RoadmapTestDashboard({
 
       {/* Navigation, Save and Submit */}
       <View style={styles.bottomSection}>
-        {isLastSection && (
-          <Pressable
-            onPress={onSubmit}
-            disabled={isSubmitting}
-            style={({ pressed }) => [
-              styles.submitButton,
-              pressed && styles.submitButtonPressed,
-              isSubmitting && styles.submitButtonDisabled,
-            ]}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Text style={styles.submitButtonText}>Nộp Bài</Text>
-            )}
-          </Pressable>
-        )}
+        <Pressable
+          onPress={onSubmit}
+          disabled={isSubmitting}
+          style={({ pressed }) => [
+            styles.submitButton,
+            pressed && styles.submitButtonPressed,
+            isSubmitting && styles.submitButtonDisabled,
+          ]}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={styles.submitButtonText}>
+              {isLastSection ? 'Nộp Bài' : 'Xác nhận & Sang phần tiếp'}
+            </Text>
+          )}
+        </Pressable>
       </View>
     </View>
   )
