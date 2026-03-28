@@ -112,10 +112,7 @@ const styles = StyleSheet.create({
     gap: 16,
     borderWidth: 3,
     borderColor: '#79964E',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
   },
   modeIconContainer: {
     width: 120,

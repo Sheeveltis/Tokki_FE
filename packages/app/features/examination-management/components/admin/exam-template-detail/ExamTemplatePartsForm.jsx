@@ -445,18 +445,15 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
 
   // Lọc question types theo skill từ API
   // QuestionTypeId là foreign key trỏ đến bảng QuestionTypes để lấy thông tin dạng câu hỏi
-  const getQuestionTypesBySkill = React.useCallback((skill) => {
+  const getQuestionTypesBySkill = React.useCallback((skill, includeInactive = false) => {
     if (!skill) return []
 
     // Lấy question types từ state (đã được load từ API)
     const types = questionTypesBySkill[skill] || []
 
-    // Không gọi loadQuestionTypes ở đây để tránh setState trong render
-    // Việc load sẽ được xử lý trong useEffect
-
-    // Filter chỉ lấy active và map về format cho Select
+    // Filter và map về format cho Select hoặc Table
     return types
-      .filter((qt) => qt.IsActive !== false && qt.isActive !== false)
+      .filter((qt) => includeInactive || (qt.IsActive !== false && qt.isActive !== false))
       .map((qt) => {
         const code = qt.Code || qt.code || ''
         const name = qt.Name || qt.name || ''
@@ -676,7 +673,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                       borderRadius: 12
                     }}
                   >
-                    <Space direction="vertical" size="large">
+                    <Space orientation="vertical" size="large">
                       <div style={{ fontSize: 40, color: '#d9d9d9' }}><PlusOutlined /></div>
                       <div>
                         <Title level={5}>Chưa có phần nào được thiết lập</Title>
@@ -734,7 +731,8 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
 
                         <Form.List name={[partName, 'QuestionGroups']}>
                           {(groupFields, { add: addGroup, remove: removeGroup, move: moveGroup }) => {
-                            const questionTypes = getQuestionTypesBySkill(skill)
+                            // Lấy cả các question types đã bị ẩn (inactive) để hiển thị code trong bảng
+                            const allQuestionTypes = getQuestionTypesBySkill(skill, true)
                             const tableData = groupFields.map(({ key, name }, index) => {
                               const values = form.getFieldValue(['parts', partName, 'QuestionGroups', name]) || {}
                               return {
@@ -757,11 +755,11 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                 title: <Text style={{ fontSize: 13, color: '#8c8c8c' }}>Dạng câu & Tiêu đề phu</Text>,
                                 key: 'typeAndTitle',
                                 render: (_, record) => {
-                                  const type = questionTypes.find(t => t.value === record.QuestionTypeId)
+                                  const type = allQuestionTypes.find(t => t.value === record.QuestionTypeId)
                                   return (
-                                    <Space direction="vertical" size={2}>
+                                    <Space orientation="vertical" size={2}>
                                       <Space>
-                                        <Tag color="blue" bordered={false} style={{ fontSize: 12, margin: 0 }}>
+                                        <Tag color="blue" variant="filled" style={{ fontSize: 12, margin: 0 }}>
                                           {type?.code || '??'}
                                         </Tag>
                                         <Text strong style={{ fontSize: 15, color: '#262626' }}>

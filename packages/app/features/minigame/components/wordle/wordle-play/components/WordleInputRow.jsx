@@ -151,9 +151,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#4E342E',
     textAlign: 'center',
-    textShadowColor: 'rgba(255,255,255,0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 1,
+    textShadow: '1px 1px 1px rgba(255,255,255,0.5)',
   },
 })
 

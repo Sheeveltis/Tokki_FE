@@ -522,8 +522,10 @@ export function ExamTemplateDetailScreen() {
                   size="small"
                   layout="vertical"
                   bordered
-                  labelStyle={{ backgroundColor: '#fafafa', fontWeight: 600, fontSize: 13 }}
-                  contentStyle={{ fontSize: 13, padding: '8px 12px' }}
+                  styles={{
+                    label: { backgroundColor: '#fafafa', fontWeight: 600, fontSize: 13 },
+                    content: { fontSize: 13, padding: '8px 12px' }
+                  }}
                 >
                   <Descriptions.Item label="Tên mẫu đề">
                     <Space size="small" align="center">

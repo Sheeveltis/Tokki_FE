@@ -788,9 +788,18 @@ export async function rejectExamTemplate(examTemplateId, reason) {
 // Question Type APIs
 export async function fetchQuestionTypes(params = {}) {
   try {
-    const { skill = null, examType = null } = params
+    const { 
+      skill = null, 
+      examType = null,
+      pageNumber = 1,
+      pageSize = 100 
+    } = params
 
-    const queryParams = {}
+    const queryParams = {
+      pageNumber: pageNumber,
+      pageSize: pageSize
+    }
+
     if (skill !== null && skill !== undefined) {
       queryParams.skill = skill
     }
@@ -811,7 +820,10 @@ export async function fetchQuestionTypes(params = {}) {
       throw new Error(message)
     }
 
-    const items = Array.isArray(payload?.data) ? payload.data : []
+    // Xử lý dữ liệu trả về: có thể là array trực tiếp hoặc object chứa items (paged)
+    const items = Array.isArray(payload?.data) 
+      ? payload.data 
+      : (Array.isArray(payload?.data?.items) ? payload.data.items : [])
 
     // Map dữ liệu từ API response về format component đang sử dụng
     return items.map((item) => ({
