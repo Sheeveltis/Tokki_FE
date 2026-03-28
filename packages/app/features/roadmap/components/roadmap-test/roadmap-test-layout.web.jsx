@@ -349,8 +349,8 @@ const mapExamToSections = (examData) => {
 
   const sections = [
     buildSection('listening', 'Nghe', part.listening, 'audio'),
-    buildSection('reading', 'Đọc', part.reading, 'text'),
     buildSection('writing', 'Viết', part.writing, 'writing'),
+    buildSection('reading', 'Đọc', part.reading, 'text'),
   ].filter(Boolean)
 
   return sections
@@ -412,7 +412,6 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
   const [isLoading, setIsLoading] = useState(true)
   const [, setLoadError] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
   const [submitConfirmVisible, setSubmitConfirmVisible] = useState(false)
   const submitConfirmResolverRef = useRef(null)
   const [backConfirmVisible, setBackConfirmVisible] = useState(false)
@@ -752,32 +751,6 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     })
   }
 
-  const handleQuestionAnswerSelect = (answerIndex) => {
-    const questionNumber = currentQuestionData?.questionNumber || currentQuestion
-    handleAnswerSelect(questionNumber, answerIndex)
-  }
-
-  // Handle writing answer change (tự luận)
-  const handleWritingAnswerChange = (text) => {
-    if (!activeSectionKey) return
-
-    const questionData = currentQuestionData
-    if (!questionData || questionData.type !== 'writing') return
-
-    // Writing là lưu riêng từng câu (theo userQuestionId). Nhưng state đang key theo questionNumber.
-    // Khi user đổi section/tab hoặc bấm Lưu bài ngay sau khi gõ, `currentQuestion` có thể đã thay đổi
-    // khiến đáp án bị set vào câu khác => nút Lưu bài không thấy để sync.
-    // => luôn dùng questionNumber snapshot từ currentQuestionData.
-    const questionNumber = questionData.questionNumber
-
-    setAnswers((prev) => ({
-      ...prev,
-      [activeSectionKey]: {
-        ...(prev[activeSectionKey] || {}),
-        [questionNumber]: text,
-      },
-    }))
-  }
 
   // Handle question selection from dashboard
   const handleQuestionSelect = (questionNum) => {
@@ -787,6 +760,14 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     if (nextIndex >= 0) {
       setCurrentQuestionIndex(nextIndex)
       setCurrentQuestion(questionNum)
+
+      // Scroll to question on web
+      if (Platform.OS === 'web') {
+        const element = document.getElementById(`question-${questionNum}`)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }
     }
   }
 
@@ -798,8 +779,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
       const nextIndex = currentQuestionIndex + 1
       const nextQuestion = activeSection?.questions?.[nextIndex]
       if (nextQuestion) {
-        setCurrentQuestionIndex(nextIndex)
-        setCurrentQuestion(nextQuestion.questionNumber)
+        handleQuestionSelect(nextQuestion.questionNumber)
       }
     }
   }
@@ -810,8 +790,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
       const prevIndex = currentQuestionIndex - 1
       const prevQuestion = activeSection?.questions?.[prevIndex]
       if (prevQuestion) {
-        setCurrentQuestionIndex(prevIndex)
-        setCurrentQuestion(prevQuestion.questionNumber)
+        handleQuestionSelect(prevQuestion.questionNumber)
       }
     }
   }
@@ -982,69 +961,6 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
   
   const isLastSection = activeSectionIndex === sections.length - 1 && sections.length > 0
 
-  const handleManualSave = async () => {
-    if (isSaving) return
-    setIsSaving(true)
-    try {
-      // Dùng ref nếu có (luôn là snapshot mới nhất), fallback sang state
-      const currentSections = sectionsRef.current.length ? sectionsRef.current : sections
-      const currentAnswers = Object.keys(answersRef.current || {}).length
-        ? answersRef.current
-        : answers
-
-      // 1) Lưu toàn bộ đáp án trắc nghiệm (listening/reading)
-      const mcqAnswersPayload = buildAllMcqAnswersPayload(currentSections, currentAnswers)
-      if (mcqAnswersPayload.length > 0) {
-        await syncMcqAnswers(mcqAnswersPayload)
-      }
-
-      // 2) Lưu toàn bộ đáp án Writing
-      const writingSection = currentSections.find((section) => section.key === 'writing')
-      if (writingSection) {
-        const writingAnswers = currentAnswers[writingSection.key] || {}
-        const writingPromises = []
-
-        writingSection.questions.forEach((q) => {
-          if (q.type !== 'writing' || !q.rawQuestion) return
-
-          const raw = q.rawQuestion
-          const answerValue = writingAnswers[q.questionNumber]
-          // Nếu answerValue là undefined, vẫn gửi chuỗi rỗng để xóa/cập nhật nếu cần, 
-          // trừ khi user chưa bao giờ chạm vào câu đó.
-          if (answerValue === undefined || !raw.userQuestionId) return
-
-          const questionTypeCode =
-            q.questionTypeCode || raw.questionTypeCode || raw.questionType?.code
-          const serializedAnswer = serializeWritingAnswerForApi(
-            answerValue,
-            questionTypeCode
-          )
-
-          writingPromises.push(
-            syncWritingAnswer(raw.userQuestionId, serializedAnswer || '')
-          )
-        })
-
-        if (writingPromises.length > 0) {
-          // Sử dụng Promise.allSettled để đảm bảo nếu một câu lỗi thì các câu khác vẫn được lưu
-          await Promise.allSettled(writingPromises)
-        }
-      }
-
-      // Hiển thị toast notification thành công
-      setToastMessage('Đáp án của bạn đã được lưu thành công!')
-      setToastType('success')
-      setToastVisible(true)
-    } catch (error) {
-      console.error('Failed to manually save answers:', error)
-      // Hiển thị toast notification lỗi
-      setToastMessage('Không thể lưu bài. Vui lòng thử lại.')
-      setToastType('error')
-      setToastVisible(true)
-    } finally {
-      setIsSaving(false)
-    }
-  }
 
   if (isLoading) {
     return (
@@ -1103,35 +1019,70 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         <View style={styles.contentRow}>
           {/* Left: Question */}
           <View style={styles.questionContainer}>
-            {/* Instruction for current section (moved down from header) */}
-            {/* Instruction for current part/question (extracted from question data) */}
-            {(currentQuestionData?.partTitle || currentQuestionData?.partDescription) && (
-              <View style={styles.instructionBox}>
-                {!!currentQuestionData?.partTitle && (
-                  <Text style={styles.instructionTitle}>{String(currentQuestionData.partTitle)}</Text>
-                )}
-                {!!currentQuestionData?.partDescription && (
-                  <Text style={styles.instructionSubtitle}>{String(currentQuestionData.partDescription)}</Text>
-                )}
-              </View>
-            )}
+            {(() => {
+              const groupedParts = []
+              let currentPart = null
 
-            {currentQuestionData && (
-              <RoadmapTestQuestion
-                questionNumber={currentQuestionData.questionNumber}
-                type={currentQuestionData.type}
-                questionText={currentQuestionData.questionText}
-                audioUrl={currentQuestionData.audioUrl}
-                imageUrl={currentQuestionData.imageUrl}
-                options={currentQuestionData.options}
-                questionTypeCode={currentQuestionData.questionTypeCode}
-                selectedAnswer={(answers[activeSectionKey] || {})[currentQuestion]}
-                onAnswerSelect={handleQuestionAnswerSelect}
-                onAnswerChange={
-                  currentQuestionData.type === 'writing' ? handleWritingAnswerChange : undefined
+              sectionQuestions.forEach((q) => {
+                const partKey = `${q.partTitle}|${q.partDescription}`
+                if (!currentPart || currentPart.key !== partKey) {
+                  currentPart = {
+                    key: partKey,
+                    title: q.partTitle,
+                    description: q.partDescription,
+                    questions: [],
+                  }
+                  groupedParts.push(currentPart)
                 }
-              />
-            )}
+                currentPart.questions.push(q)
+              })
+
+              return groupedParts.map((part, pIdx) => (
+                <View key={pIdx} style={styles.partGroup}>
+                  {(part.title || part.description) && (
+                    <View style={styles.instructionBox}>
+                      {!!part.title && (
+                        <Text style={styles.instructionTitle}>{String(part.title)}</Text>
+                      )}
+                      {!!part.description && (
+                        <Text style={styles.instructionSubtitle}>{String(part.description)}</Text>
+                      )}
+                    </View>
+                  )}
+                  <View style={styles.partQuestionsList}>
+                    {part.questions.map((q) => (
+                      <View
+                        key={q.id || q.questionNumber}
+                        id={Platform.OS === 'web' ? `question-${q.questionNumber}` : undefined}
+                      >
+                        <RoadmapTestQuestion
+                          questionNumber={q.questionNumber}
+                          type={q.type}
+                          questionText={q.questionText}
+                          audioUrl={q.audioUrl}
+                          imageUrl={q.imageUrl}
+                          options={q.options}
+                          questionTypeCode={q.questionTypeCode}
+                          selectedAnswer={(answers[activeSectionKey] || {})[q.questionNumber]}
+                          onAnswerSelect={(val) => handleAnswerSelect(q.questionNumber, val)}
+                          onAnswerChange={(val) => {
+                             if (q.type === 'writing') {
+                               setAnswers((prev) => ({
+                                 ...prev,
+                                 [activeSectionKey]: {
+                                   ...(prev[activeSectionKey] || {}),
+                                   [q.questionNumber]: val,
+                                 },
+                               }))
+                             }
+                          }}
+                        />
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ))
+            })()}
 
           </View>
 
@@ -1166,8 +1117,6 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
               answers={answers[activeSectionKey] || {}}
               onAnswerSelect={handleAnswerSelect}
               onSubmit={handleSubmit}
-              onSave={handleManualSave}
-              isSaving={isSaving}
               isSubmitting={isSubmitting}
               isLastSection={isLastSection}
               currentQuestion={currentQuestion}
@@ -1463,11 +1412,18 @@ const styles = StyleSheet.create({
   },
   questionContainer: {
     flex: 1.4,
-    gap: 16,
+    gap: 24,
     ...(Platform.OS === 'web' && {
       overflowY: 'auto',
-      paddingRight: 8,
+      paddingRight: 12,
     }),
+  },
+  partGroup: {
+    gap: 16,
+    marginBottom: 20,
+  },
+  partQuestionsList: {
+    gap: 16,
   },
   dashboardContainer: {
     flex: 0.6,
