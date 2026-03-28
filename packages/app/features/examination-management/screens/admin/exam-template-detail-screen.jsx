@@ -1,13 +1,19 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'solito/navigation'
 import { Card, Space, Typography, Spin, Alert, Descriptions, Modal, message, Button, Tooltip, Tag } from 'antd'
-import { 
-  QuestionCircleOutlined, 
-  CheckCircleOutlined, 
+import {
+  QuestionCircleOutlined,
+  CheckCircleOutlined,
   CloseCircleOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  ClockCircleOutlined,
+  AppstoreOutlined,
+  ProfileOutlined,
+  FileTextOutlined,
+  AlignLeftOutlined,
+  CalendarOutlined
 } from '@ant-design/icons'
 import { useQueryClient } from '@tanstack/react-query'
 import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
@@ -112,7 +118,7 @@ export function ExamTemplateDetailScreen() {
 
       message.success('Đã cập nhật thông tin mẫu đề thành công')
       setEditModalOpen(false)
-      
+
       // Invalidate list queries
       queryClient.invalidateQueries({ queryKey: ['admin', 'exam-templates'] })
     } catch (err) {
@@ -179,10 +185,10 @@ export function ExamTemplateDetailScreen() {
           await deleteExamTemplate(examTemplateId)
 
           message.success('Đã xóa mẫu đề thành công')
-          
+
           // Invalidate list queries
           queryClient.invalidateQueries({ queryKey: ['admin', 'exam-templates'] })
-          
+
           // Quay lại trang danh sách
           router.push('/admin?tab=exam-template')
         } catch (err) {
@@ -228,7 +234,7 @@ export function ExamTemplateDetailScreen() {
             message.success('Đã gửi mẫu đề để phê duyệt')
             const data = await fetchExamTemplate(examTemplateId)
             setExamTemplate(data)
-            
+
             // Invalidate list queries
             queryClient.invalidateQueries({ queryKey: ['admin', 'exam-templates'] })
           } else {
@@ -276,7 +282,7 @@ export function ExamTemplateDetailScreen() {
       setExamTemplate(data)
       setApprovalModalOpen(false)
       setApprovalMode('approve')
-      
+
       // Invalidate list queries
       queryClient.invalidateQueries({ queryKey: ['admin', 'exam-templates'] })
     } catch (err) {
@@ -303,7 +309,7 @@ export function ExamTemplateDetailScreen() {
         const data = await fetchExamTemplate(examTemplateId)
         setExamTemplate(data)
         setStatusChangeModalOpen(false)
-        
+
         // Invalidate list queries
         queryClient.invalidateQueries({ queryKey: ['admin', 'exam-templates'] })
       } else {
@@ -462,7 +468,7 @@ export function ExamTemplateDetailScreen() {
                     setLoading(true)
                     const data = await fetchExamTemplate(examTemplateId)
                     setExamTemplate(data)
-                    
+
                     // Invalidate list queries
                     queryClient.invalidateQueries({ queryKey: ['admin', 'exam-templates'] })
                   } catch (err) {
@@ -476,10 +482,10 @@ export function ExamTemplateDetailScreen() {
           </div>
 
           {/* Right Column: Basic Information (Collapsible) */}
-          <div 
-            style={{ 
-              width: infoCollapsed ? 60 : 400, 
-              flexShrink: 0, 
+          <div
+            style={{
+              width: infoCollapsed ? 60 : 400,
+              flexShrink: 0,
               transition: 'all 0.3s ease',
               position: 'sticky',
               top: 20,
@@ -499,86 +505,140 @@ export function ExamTemplateDetailScreen() {
                       />
                     </Tooltip>
                   )}
-                  <Button 
-                    type="text" 
+                  <Button
+                    type="text"
                     size="small"
-                    icon={infoCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />} 
+                    icon={infoCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
                     onClick={() => setInfoCollapsed(!infoCollapsed)}
                     title={infoCollapsed ? "Mở rộng" : "Thu gọn"}
                   />
                 </Space>
               }
-              styles={{ 
-                body: { 
+              styles={{
+                body: {
                   padding: infoCollapsed ? '12px 0' : '16px 20px',
                   display: infoCollapsed ? 'none' : 'block'
-                } 
+                }
               }}
               style={{ overflow: 'hidden' }}
             >
               {!infoCollapsed && (
-                <Descriptions
-                  column={1}
-                  size="small"
-                  layout="vertical"
-                  bordered
-                  styles={{
-                    label: { backgroundColor: '#fafafa', fontWeight: 600, fontSize: 13 },
-                    content: { fontSize: 13, padding: '8px 12px' }
-                  }}
-                >
-                  <Descriptions.Item label="Tên mẫu đề">
-                    <Space size="small" align="center">
+                <div style={{ padding: '4px 0' }}>
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <Tooltip title={getStatusInfo(examTemplate.status ?? 0).label}>
                         <div
                           style={{
-                            width: 8,
-                            height: 8,
+                            width: 10,
+                            height: 10,
                             borderRadius: '50%',
                             backgroundColor: statusMap[examTemplate.status ?? 0]?.colorHex || '#d9d9d9',
                             boxShadow: `0 0 6px ${statusMap[examTemplate.status ?? 0]?.colorHex || '#d9d9d9'}80`,
-                            cursor: 'default'
+                            cursor: 'default',
+                            flexShrink: 0
                           }}
                         />
                       </Tooltip>
-                      <Text strong>{examTemplate.name || '-'}</Text>
-                      
+                      <Title level={4} style={{ margin: 0, fontSize: 19, flex: 1 }}>
+                        {examTemplate.name || '-'}
+                      </Title>
+
                       {examTemplate.status === 3 && isAdmin && (
-                        <Space size={4} style={{ marginLeft: 8 }}>
+                        <Space size={8} style={{ flexShrink: 0 }}>
                           <Tooltip title="Phê duyệt">
                             <CheckCircleOutlined 
-                              style={{ color: '#52c41a', cursor: 'pointer', fontSize: 13 }} 
+                              style={{ color: '#52c41a', cursor: 'pointer', fontSize: 18 }} 
                               onClick={() => handleOpenApprovalModal('approve')}
                             />
                           </Tooltip>
                           <Tooltip title="Từ chối">
                             <CloseCircleOutlined 
-                              style={{ color: '#ff4d4f', cursor: 'pointer', fontSize: 13 }} 
+                              style={{ color: '#ff4d4f', cursor: 'pointer', fontSize: 18 }} 
                               onClick={() => handleOpenApprovalModal('reject')}
                             />
                           </Tooltip>
                         </Space>
                       )}
-                    </Space>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Loại đề">
-                    <Tag color="processing" style={{ margin: 0 }}>{examTemplate.examType || '-'}</Tag>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Mô tả">
-                    <div style={{ maxHeight: 100, overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
-                      {examTemplate.description || '-'}
                     </div>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Ngày cập nhật">
-                    {formatDate(examTemplate.updatedAt || examTemplate.createdAt)}
-                  </Descriptions.Item>
-                </Descriptions>
+                  </div>
+
+                  {/* Highlights Grid */}
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: '1fr 1fr', 
+                    gap: 12, 
+                    marginBottom: 20,
+                    background: '#fafafa',
+                    padding: 12,
+                    borderRadius: 8,
+                    border: '1px solid #f0f0f0'
+                  }}>
+                    <div style={{ padding: '4px 8px' }}>
+                      <Text type="secondary" style={{ fontSize: 17, display: 'block', marginBottom: 4 }}>
+                        <AppstoreOutlined style={{ marginRight: 6 }} /> Số phần
+                      </Text>
+                      <Text strong style={{ fontSize: 17, color: '#1890ff' }}>{examTemplate.totalParts || 0}</Text>
+                    </div>
+                    <div style={{ padding: '4px 8px' }}>
+                      <Text type="secondary" style={{ fontSize: 17, display: 'block', marginBottom: 4 }}>
+                        <ProfileOutlined style={{ marginRight: 6 }} /> Tổng số câu
+                      </Text>
+                      <Text strong style={{ fontSize: 17, color: '#52c41a' }}>{examTemplate.totalQuestions || 0}</Text>
+                    </div>
+                  </div>
+
+                  {/* Details List */}
+                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                    <div>
+                      <Text type="secondary" style={{ fontSize: 17, display: 'block', marginBottom: 4 }}>
+                        <FileTextOutlined style={{ marginRight: 8 }} /> Loại đề
+                      </Text>
+                      <Tag color="processing" variant="filled" style={{ margin: 0, border: 'none', fontSize: 17 }}>
+                        {examTemplate.examType || '-'}
+                      </Tag>
+                    </div>
+
+                    <div>
+                      <Text type="secondary" style={{ fontSize: 17, display: 'block', marginBottom: 4 }}>
+                        <AlignLeftOutlined style={{ marginRight: 8 }} /> Mô tả
+                      </Text>
+                      <div style={{ 
+                        maxHeight: 120, 
+                        overflowY: 'auto', 
+                        whiteSpace: 'pre-wrap', 
+                        fontSize: 17, 
+                        color: '#595959',
+                        padding: '8px 12px',
+                        background: '#fff',
+                        borderRadius: 6,
+                        border: '1px solid #f0f0f0',
+                        lineHeight: '1.6'
+                      }}>
+                        {examTemplate.description || 'Chưa có mô tả'}
+                      </div>
+                    </div>
+
+                    <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 16, marginTop: 4 }}>
+                      <Space size="middle">
+                        <div>
+                          <Text type="secondary" style={{ fontSize: 17 }}>
+                            <CalendarOutlined style={{ marginRight: 6 }} /> Cập nhật lần cuối:
+                          </Text>
+                          <br />
+                          <Text style={{ fontSize: 17 }}>
+                            {formatDate(examTemplate.updatedAt || examTemplate.createdAt)}
+                          </Text>
+                        </div>
+                      </Space>
+                    </div>
+                  </Space>
+                </div>
               )}
               {infoCollapsed && (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, paddingTop: 10 }}>
                   <Tooltip title="Xem thông tin" placement="left">
-                    <InfoCircleOutlined 
-                      style={{ fontSize: 20, color: '#1890ff', cursor: 'pointer' }} 
+                    <InfoCircleOutlined
+                      style={{ fontSize: 20, color: '#1890ff', cursor: 'pointer' }}
                       onClick={() => setInfoCollapsed(false)}
                     />
                   </Tooltip>

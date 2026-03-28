@@ -627,7 +627,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
               return {
                 key: String(index),
                 label: (
-                  <span style={{ fontSize: 14 }}>
+                  <span style={{ fontSize: 13 }}>
                     Phần {index + 1} {skillLabel}
                   </span>
                 ),
@@ -773,10 +773,10 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                   return (
                                     <Space orientation="vertical" size={2}>
                                       <Space>
-                                        <Tag color="blue" variant="filled" style={{ fontSize: 12, margin: 0 }}>
+                                        <Tag color="blue" variant="filled" style={{ fontSize: 11, margin: 0 }}>
                                           {type?.code || '??'}
                                         </Tag>
-                                        <Text strong style={{ fontSize: 15, color: '#262626' }}>
+                                        <Text strong style={{ fontSize: 13, color: '#262626' }}>
                                           {type?.name || 'Chưa thiết lập'}
                                         </Text>
                                       </Space>
@@ -795,7 +795,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                 align: 'center',
                                 width: 160,
                                 render: (_, record) => (
-                                  <Tag color="cyan" style={{ border: 'none', padding: '2px 10px', fontSize: 14 }}>
+                                  <Tag color="cyan" style={{ border: 'none', padding: '2px 10px', fontSize: 13 }}>
                                     Câu {record.QuestionFrom || '?'}-{record.QuestionTo || '?'}
                                   </Tag>
                                 )
@@ -806,7 +806,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                 key: 'Mark',
                                 align: 'center',
                                 width: 100,
-                                render: (mark) => <Text strong style={{ color: '#F87218', fontSize: 16 }}>{mark || 0}</Text>
+                                render: (mark) => <Text strong style={{ color: '#F87218', fontSize: 13 }}>{mark || 0}</Text>
                               },
                               {
                                 title: <Text style={{ fontSize: 13, color: '#8c8c8c' }}>Thao tác</Text>,
@@ -913,7 +913,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                         style={{
                                           height: 48,
                                           borderRadius: 8,
-                                          fontSize: 15,
+                                          fontSize: 13,
                                           color: '#8c8c8c'
                                         }}
                                         onClick={() => {
