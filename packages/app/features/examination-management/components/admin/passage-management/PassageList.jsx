@@ -62,7 +62,7 @@ export function PassageList() {
 
   useEffect(() => {
     loadData(filters)
-  }, [filters.page, filters.size, filters.mediaType, filters.status])
+  }, [filters.page, filters.size, filters.mediaType, filters.status, filters.search])
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value, page: 1 }))

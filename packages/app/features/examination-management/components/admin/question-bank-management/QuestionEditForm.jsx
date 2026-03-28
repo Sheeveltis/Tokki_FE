@@ -40,7 +40,7 @@ export function QuestionEditForm({
         {currentQuestionType && (
           <div style={{ padding: 8, backgroundColor: '#f5f5f5', borderRadius: 4, fontSize: '12px' }}>
             <div><strong>Kỹ năng:</strong> {['Nghe', 'Đọc', 'Viết'][currentQuestionType.skill - 1]}</div>
-            <div><strong>Độ khó:</strong> {['Dễ', 'Trung bình', 'Khó'][currentQuestionType.difficulty - 1]}</div>
+            <div><strong>Độ khó:</strong> {['Dễ', 'Trung bình', 'Khó', 'Rất khó'][currentQuestionType.difficulty - 1]}</div>
           </div>
         )}
       </div>

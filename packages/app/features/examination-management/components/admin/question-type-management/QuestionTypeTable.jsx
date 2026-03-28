@@ -8,6 +8,7 @@ export const useQuestionTypeColumns = (onView) => {
     1: 'Dễ',
     2: 'Trung bình',
     3: 'Khó',
+    4: 'Rất khó',
   }
 
   const examTypeLabelMap = {

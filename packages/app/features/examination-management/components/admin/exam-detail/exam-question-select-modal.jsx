@@ -20,6 +20,8 @@ export function ExamQuestionSelectModal({ open, templatePartId, onCancel, onSele
   const [pageNumber, setPageNumber] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [totalCount, setTotalCount] = useState(0)
+  const [questionTypeCode, setQuestionTypeCode] = useState(null)
+  const [questionTypeName, setQuestionTypeName] = useState(null)
   const [searchText, setSearchText] = useState('')
 
   const loadData = async (page = pageNumber, size = pageSize, search = searchText) => {
@@ -36,6 +38,8 @@ export function ExamQuestionSelectModal({ open, templatePartId, onCancel, onSele
       setPageNumber(res.pageNumber || page)
       setPageSize(res.pageSize || size)
       setTotalCount(res.totalCount || 0)
+      setQuestionTypeCode(res.questionTypeCode)
+      setQuestionTypeName(res.questionTypeName)
     } catch (err) {
       console.error('Failed to load questions by part', err)
     } finally {
@@ -123,8 +127,14 @@ export function ExamQuestionSelectModal({ open, templatePartId, onCancel, onSele
   return (
     <Modal
       title={
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <span style={{ fontSize: 18, fontWeight: 600, color: '#111827' }}>Chọn câu hỏi thay thế</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 18, fontWeight: 600, color: '#111827' }}>Chọn câu hỏi cho bộ:</span>
+            {questionTypeCode && <Tag color="blue" style={{ fontSize: 14, margin: 0 }}>{questionTypeCode}</Tag>}
+          </div>
+          {questionTypeName && (
+             <Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>{questionTypeName}</Text>
+          )}
           <Text type="secondary" style={{ fontSize: 12 }}>
             Tìm và chọn một câu hỏi trong ngân hàng để thay cho câu hiện tại.
           </Text>
@@ -135,7 +145,7 @@ export function ExamQuestionSelectModal({ open, templatePartId, onCancel, onSele
       footer={null}
       width={960}
       centered
-      destroyOnClose
+      destroyOnHidden
       styles={{
         header: {
           padding: '20px 24px 12px',

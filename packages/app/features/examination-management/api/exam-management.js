@@ -155,6 +155,8 @@ export async function fetchQuestionsByPart(params = {}) {
     totalPages: data.totalPages || 1,
     hasNextPage: data.hasNextPage || false,
     hasPreviousPage: data.hasPreviousPage || false,
+    questionTypeCode: data.questionTypeCode,
+    questionTypeName: data.questionTypeName,
   }
 }
 

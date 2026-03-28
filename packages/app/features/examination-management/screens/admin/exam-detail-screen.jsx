@@ -646,9 +646,16 @@ export function ExamDetailScreen() {
                     <div key={partId || partIndex} id={`part-${partId}`} style={{ marginBottom: '32px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <Title level={4} style={{ margin: 0 }}>
-                            Phần {partIndex + 1}: {templatePart.templatePartsTitle || 'Nội dung thi'}
-                          </Title>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Title level={4} style={{ margin: 0 }}>
+                              Phần {partIndex + 1}: {templatePart.templatePartsTitle || 'Nội dung thi'}
+                            </Title>
+                            {templatePart.questionTypeCode && (
+                              <Tag color="blue" bordered={false} style={{ margin: 0, fontWeight: 600 }}>
+                                {templatePart.questionTypeCode}
+                              </Tag>
+                            )}
+                          </div>
                           {partPendingCount > 0 && <Badge count={partPendingCount} style={{ backgroundColor: '#faad14' }} />}
                         </div>
                         <Popconfirm
@@ -1001,7 +1008,7 @@ export function ExamDetailScreen() {
           onOk={handleConfirmSelectedQuestion}
           onCancel={handleBackToQuestionList}
           width={800}
-          destroyOnClose
+          destroyOnHidden
           footer={[
             <Button key="back" onClick={handleBackToQuestionList}>Quay lại</Button>,
             <Button key="ok" type="primary" onClick={handleConfirmSelectedQuestion}>Xác nhận chọn</Button>,

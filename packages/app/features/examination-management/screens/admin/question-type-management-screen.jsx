@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Modal, Form, Space, Select, Tooltip, Table, Tag, Button, Typography } from 'antd'
-import { PlusOutlined, FilterOutlined, EyeOutlined, DownloadOutlined, UploadOutlined, FileExcelOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
+import { PlusOutlined, FilterOutlined, EyeOutlined, DownloadOutlined, UploadOutlined, FileExcelOutlined, CheckCircleOutlined, CloseCircleOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import { fetchQuestionTypes, importQuestionTypes, exportQuestionTypes, downloadTemplateQuestionType } from '../../api/question-type-management.js'
 import { QuestionTypeForm } from '../../components/admin/create-question-type/QuestionTypeForm.jsx'
@@ -10,7 +10,6 @@ import ManagementLayout from '../../../../../components/layout/management-layout
 import { getCurrentUserRole } from '../../../../provider/api/client.js'
 import { useManagementFilters } from '../../../back-office/hooks/use-management-filters.js'
 
-const { Option } = Select
 const { Text } = Typography
 
 export function QuestionTypeManagement({ basePath = '/admin' }) {
@@ -44,14 +43,15 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
     try {
       setLoading(true)
       const params = {
-        ...(currentFilters.search?.trim() ? { keyword: currentFilters.search.trim() } : {}),
-        ...(currentFilters.skill ? { skill: currentFilters.skill } : {}),
-        ...(currentFilters.difficulty ? { difficulty: currentFilters.difficulty } : {}),
-        ...(currentFilters.examType ? { examType: currentFilters.examType } : {}),
+        keyword: currentFilters.search?.trim() || undefined,
+        skill: currentFilters.skill || undefined,
+        difficulty: currentFilters.difficulty || undefined,
+        examType: currentFilters.examType || undefined,
+        pageNumber: currentFilters.page,
+        pageSize: currentFilters.size,
       }
-      const list = await fetchQuestionTypes(params)
-      // Giả sử API chưa phân trang server-side, ta bọc lại cho đúng format
-      setData({ items: list || [], total: (list || []).length })
+      const result = await fetchQuestionTypes(params)
+      setData({ items: result?.items || [], total: result?.totalCount || 0 })
     } catch (err) {
       showAdminError(err?.message || 'Không thể tải danh sách loại câu hỏi')
     } finally {
@@ -61,7 +61,7 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
 
   useEffect(() => {
     loadData(filters)
-  }, [filters.skill, filters.difficulty, filters.examType])
+  }, [filters.page, filters.size, filters.skill, filters.difficulty, filters.examType, filters.search])
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value, page: 1 }))
@@ -181,7 +181,7 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
       key: 'difficulty',
       width: 120,
       render: (difficulty) => {
-        const difficultyMap = { 1: 'Dễ', 2: 'Trung bình', 3: 'Khó' }
+        const difficultyMap = { 1: 'Dễ', 2: 'Trung bình', 3: 'Khó', 4: 'Rất khó' }
         return <span>{difficultyMap[difficulty] || difficulty}</span>
       },
     },
@@ -194,7 +194,7 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
       render: (isActive) => {
         const color = isActive ? '#52c41a' : '#8c8c8c'
         return (
-          <Tooltip title={isActive ? 'Hoạt động' : 'Tạm ẩn'}>
+          <Tooltip title={isActive ? 'Hoạt động' : 'Tạm ẩn'} color={color} placement="top">
             <div
               style={{
                 width: 14,
@@ -214,17 +214,28 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
       title: 'Hành động',
       key: 'actions',
       align: 'center',
-      width: 90,
+      width: 120,
       render: (_, record) => (
-        <Tooltip title="Xem chi tiết">
-          <EyeOutlined
-            style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
-            onClick={(e) => {
-              e?.stopPropagation?.()
-              router.push(`${basePath}/question-type/${record.questionTypeId}`)
-            }}
-          />
-        </Tooltip>
+        <Space size="large">
+          <Tooltip title="Xem chi tiết">
+            <EyeOutlined
+              style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
+              onClick={(e) => {
+                e?.stopPropagation?.()
+                router.push(`${basePath}/question-type/${record.questionTypeId}`)
+              }}
+            />
+          </Tooltip>
+          <Tooltip title="Chỉnh sửa">
+            <EditOutlined
+              style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
+              onClick={(e) => {
+                e?.stopPropagation?.()
+                router.push(`${basePath}/question-type/${record.questionTypeId}`)
+              }}
+            />
+          </Tooltip>
+        </Space>
       ),
     },
   ], [filters, router, basePath])
@@ -232,40 +243,44 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
   const extraFilters = (
     <Space wrap>
       <Select
-        placeholder="Kỹ năng"
+        placeholder="Tất cả kỹ năng"
         allowClear
-        style={{ width: 140 }}
+        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
         value={filters.skill}
         onChange={(val) => handleFilterChange('skill', val)}
         suffixIcon={<FilterOutlined />}
-      >
-        <Option value={1}>Nghe</Option>
-        <Option value={2}>Đọc</Option>
-        <Option value={3}>Viết</Option>
-      </Select>
+        options={[
+          { value: 1, label: 'Nghe' },
+          { value: 2, label: 'Đọc' },
+          { value: 3, label: 'Viết' },
+        ]}
+      />
       <Select
-        placeholder="Mức độ"
+        placeholder="Tất cả mức độ"
         allowClear
-        style={{ width: 140 }}
+        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
         value={filters.difficulty}
         onChange={(val) => handleFilterChange('difficulty', val)}
         suffixIcon={<FilterOutlined />}
-      >
-        <Option value={1}>Dễ</Option>
-        <Option value={2}>Trung bình</Option>
-        <Option value={3}>Khó</Option>
-      </Select>
+        options={[
+          { value: 1, label: 'Dễ' },
+          { value: 2, label: 'Trung bình' },
+          { value: 3, label: 'Khó' },
+          { value: 4, label: 'Rất khó' },
+        ]}
+      />
       <Select
-        placeholder="Loại đề"
+        placeholder="Tất cả loại đề"
         allowClear
-        style={{ width: 140 }}
+        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
         value={filters.examType}
         onChange={(val) => handleFilterChange('examType', val)}
         suffixIcon={<FilterOutlined />}
-      >
-        <Option value={1}>TOPIK I</Option>
-        <Option value={2}>TOPIK II</Option>
-      </Select>
+        options={[
+          { value: 1, label: 'TOPIK I' },
+          { value: 2, label: 'TOPIK II' },
+        ]}
+      />
     </Space>
   )
 
@@ -312,7 +327,7 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
         searchPlaceholder="Tìm kiếm..."
         searchValue={filters.search}
         onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
-        onSearchSubmit={() => loadData(filters)}
+        onSearchSubmit={() => handleFilterChange('search', filters.search)}
         extraFilters={extraFilters}
         actions={actions}
         tableProps={{
@@ -335,7 +350,7 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
         title="Tạo bộ câu hỏi mới"
         open={createModalOpen}
         onCancel={() => setCreateModalOpen(false)}
-        destroyOnClose
+        destroyOnHidden
         centered
         okText="Tạo"
         cancelText="Hủy"

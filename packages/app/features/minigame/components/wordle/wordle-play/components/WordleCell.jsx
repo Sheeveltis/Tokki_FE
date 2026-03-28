@@ -119,15 +119,23 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '900',
     color: '#4E342E',
-    textShadowColor: 'rgba(255,255,255,0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 1,
+    ...(Platform.OS === 'web' ? {
+      textShadow: '1px 1px 1px rgba(255,255,255,0.5)'
+    } : {
+      textShadowColor: 'rgba(255,255,255,0.5)',
+      textShadowOffset: { width: 1, height: 1 },
+      textShadowRadius: 1,
+    }),
   },
   whiteText: {
     color: '#FFFFFF',
-    textShadowColor: 'rgba(0,0,0,0.2)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 1,
+    ...(Platform.OS === 'web' ? {
+      textShadow: '1px 1px 1px rgba(0,0,0,0.2)'
+    } : {
+      textShadowColor: 'rgba(0,0,0,0.2)',
+      textShadowOffset: { width: 1, height: 1 },
+      textShadowRadius: 1,
+    }),
   },
 })
 

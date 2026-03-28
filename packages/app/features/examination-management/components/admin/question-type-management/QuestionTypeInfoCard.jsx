@@ -25,6 +25,7 @@ export function QuestionTypeInfoCard({ questionType, isEditing: isEditingProp, o
     1: { label: 'Dễ', color: 'green' },
     2: { label: 'Trung bình', color: 'orange' },
     3: { label: 'Khó', color: 'red' },
+    4: { label: 'Rất khó', color: 'volcano' },
   }
 
   const skillInfo = skillEnumMap[questionType?.skill] || { label: 'Không xác định', color: 'default' }
@@ -211,6 +212,7 @@ export function QuestionTypeInfoCard({ questionType, isEditing: isEditingProp, o
                     <Select.Option value={1}>Dễ</Select.Option>
                     <Select.Option value={2}>Trung bình</Select.Option>
                     <Select.Option value={3}>Khó</Select.Option>
+                    <Select.Option value={4}>Rất khó</Select.Option>
                   </Select>
                 </Form.Item>
               ) : difficultyInfo ? (

@@ -5,8 +5,7 @@ import { handleApiError } from '../../back-office/api/admin-index.js'
 export async function fetchQuestionTypes(params = {}) {
   try {
     const res = await apiClient.get(ENDPOINTS.QUESTION_TYPE.GET_ALL, { params })
-    console.log('[QuestionType API] GET_ALL params:', params)
-    console.log('[QuestionType API] GET_ALL response:', res?.data)
+
     return res.data?.data || []
   } catch (error) {
     console.error('[QuestionType API] GET_ALL error:', error?.response?.data || error)
@@ -27,7 +26,7 @@ export async function fetchQuestionTypeById(id) {
  * @param {string} payload.code - Question type code
  * @param {string} payload.description - Description
  * @param {number} payload.skill - Skill enum (1: Nghe, 2: Đọc, 3: Viết)
- * @param {number} payload.difficulty - Difficulty enum (1: Dễ, 2: Trung bình, 3: Khó)
+ * @param {number} payload.difficulty - Difficulty enum (1: Dễ, 2: Trung bình, 3: Khó, 4: Rất khó)
  * @param {number} payload.examType - Exam type enum (1: TOPIK I, 2: TOPIK II)
  * @param {number} payload.status - Status enum (0: Không hoạt động, 1: Hoạt động)
  * @returns {Promise<Object>} Updated question type object

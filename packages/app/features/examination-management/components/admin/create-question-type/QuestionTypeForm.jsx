@@ -63,6 +63,7 @@ export function QuestionTypeForm({ form }) {
             { value: 1, label: 'Dễ' },
             { value: 2, label: 'Trung bình' },
             { value: 3, label: 'Khó' },
+            { value: 4, label: 'Rất khó' },
           ]}
         />
       </Form.Item>
