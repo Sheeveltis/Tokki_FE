@@ -195,9 +195,25 @@ const ImageUploadField = ({ value, onChange }) => {
 // Skill mapping theo enum QuestionSkill
 const skillOptions = [
   { value: 1, label: 'Nghe' },      // Listening = 1
-  { value: 2, label: 'Đọc' },       // Reading = 2
   { value: 3, label: 'Viết' },      // Writing = 3
+  { value: 2, label: 'Đọc' },       // Reading = 2
 ]
+
+// Thứ tự sắp xếp kỹ năng: Nghe (1) -> Viết (3) -> Đọc (2)
+const skillSortOrder = {
+  1: 1, // Nghe
+  3: 2, // Viết
+  2: 3  // Đọc
+}
+
+const sortPartsBySkill = (parts) => {
+  if (!parts || !Array.isArray(parts)) return []
+  return [...parts].sort((a, b) => {
+    const orderA = skillSortOrder[a.Skill] || 99
+    const orderB = skillSortOrder[b.Skill] || 99
+    return orderA - orderB
+  })
+}
 
 // Helper function để lấy label của skill
 export const getSkillLabel = (skill) => {
@@ -281,8 +297,8 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
   // Khi initialParts thay đổi (từ server), cập nhật form
   useEffect(() => {
     if (initialParts && Array.isArray(initialParts)) {
-      // Sắp xếp theo Skill: 1 (Nghe), 2 (Đọc), 3 (Viết)
-      const sortedParts = [...initialParts].sort((a, b) => (a.Skill || 0) - (b.Skill || 0))
+      // Sắp xếp theo Skill: Nghe (1) -> Viết (3) -> Đọc (2)
+      const sortedParts = sortPartsBySkill(initialParts)
       form.setFieldsValue({ parts: sortedParts })
     } else {
       form.setFieldsValue({ parts: [] })
@@ -960,7 +976,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
             // Cách tiếp cận mới: Lấy các phần hiện tại, thêm phần mới, sort lại và set lại form
             const currentParts = form.getFieldValue('parts') || []
             const newParts = [...currentParts, { Skill: selectedSkillForNewPart, QuestionGroups: [] }]
-            const sortedParts = newParts.sort((a, b) => (a.Skill || 0) - (b.Skill || 0))
+            const sortedParts = sortPartsBySkill(newParts)
 
             form.setFieldsValue({ parts: sortedParts })
 

@@ -9,6 +9,7 @@ import {
   MenuUnfoldOutlined,
   InfoCircleOutlined
 } from '@ant-design/icons'
+import { useQueryClient } from '@tanstack/react-query'
 import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
 import ExamTemplatePartsForm from '../../components/admin/exam-template-detail/ExamTemplatePartsForm.jsx'
 import EditExamTemplateModal from '../../components/admin/exam-template-detail/EditExamTemplateModal.jsx'
@@ -35,6 +36,7 @@ const getStatusInfo = (status) => {
 
 export function ExamTemplateDetailScreen() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const params = useParams()
   const examTemplateId = params?.id || params?.ExamTemplateId
 
@@ -110,6 +112,9 @@ export function ExamTemplateDetailScreen() {
 
       message.success('Đã cập nhật thông tin mẫu đề thành công')
       setEditModalOpen(false)
+      
+      // Invalidate list queries
+      queryClient.invalidateQueries({ queryKey: ['admin', 'exam-templates'] })
     } catch (err) {
       message.error(err?.message || 'Cập nhật thất bại')
     }
@@ -174,6 +179,10 @@ export function ExamTemplateDetailScreen() {
           await deleteExamTemplate(examTemplateId)
 
           message.success('Đã xóa mẫu đề thành công')
+          
+          // Invalidate list queries
+          queryClient.invalidateQueries({ queryKey: ['admin', 'exam-templates'] })
+          
           // Quay lại trang danh sách
           router.push('/admin?tab=exam-template')
         } catch (err) {
@@ -219,6 +228,9 @@ export function ExamTemplateDetailScreen() {
             message.success('Đã gửi mẫu đề để phê duyệt')
             const data = await fetchExamTemplate(examTemplateId)
             setExamTemplate(data)
+            
+            // Invalidate list queries
+            queryClient.invalidateQueries({ queryKey: ['admin', 'exam-templates'] })
           } else {
             message.error('Gửi duyệt mẫu đề thất bại')
           }
@@ -264,6 +276,9 @@ export function ExamTemplateDetailScreen() {
       setExamTemplate(data)
       setApprovalModalOpen(false)
       setApprovalMode('approve')
+      
+      // Invalidate list queries
+      queryClient.invalidateQueries({ queryKey: ['admin', 'exam-templates'] })
     } catch (err) {
       message.error(err?.message || 'Thao tác phê duyệt / từ chối thất bại')
     } finally {
@@ -288,6 +303,9 @@ export function ExamTemplateDetailScreen() {
         const data = await fetchExamTemplate(examTemplateId)
         setExamTemplate(data)
         setStatusChangeModalOpen(false)
+        
+        // Invalidate list queries
+        queryClient.invalidateQueries({ queryKey: ['admin', 'exam-templates'] })
       } else {
         message.error('Chuyển trạng thái thất bại')
       }
@@ -444,6 +462,9 @@ export function ExamTemplateDetailScreen() {
                     setLoading(true)
                     const data = await fetchExamTemplate(examTemplateId)
                     setExamTemplate(data)
+                    
+                    // Invalidate list queries
+                    queryClient.invalidateQueries({ queryKey: ['admin', 'exam-templates'] })
                   } catch (err) {
                     message.error(err?.message || 'Không thể tải lại thông tin mẫu đề')
                   } finally {

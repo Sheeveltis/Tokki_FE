@@ -66,6 +66,11 @@ export function ExamManagement({ initialData = null }) {
     })
   }
 
+  // Refetch when component mounts to ensure data is fresh (especially when coming back from detail)
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ['exams', 'admin'] })
+  }, [queryClient])
+
   const columns = useMemo(() => [
     {
       title: () => (

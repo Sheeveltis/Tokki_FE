@@ -6,6 +6,7 @@ import CreateExamTemplateModal from '../../components/admin/create-exam-template
 import { useExamTemplatesQuery } from '../../../back-office/api/useAdminQueries.js'
 import { duplicateExamTemplate } from '../../../back-office/api/admin-index.js'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
+import { useQueryClient } from '@tanstack/react-query'
 
 import { useManagementFilters } from '../../../back-office/hooks/use-management-filters.js'
 
@@ -22,6 +23,7 @@ const STATUS_CONFIG = {
 
 export function ExamTemplateManagement({ initialData = null, basePath = '/admin' }) {
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   const [filters, setFilters] = useManagementFilters({
     search: '',
@@ -62,6 +64,11 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
       }
     })
   }
+
+  // Refetch when component mounts
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ['admin', 'exam-templates'] })
+  }, [queryClient])
 
   const columns = useMemo(() => [
     {

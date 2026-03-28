@@ -482,11 +482,20 @@ export async function fetchExamTemplate(examTemplateId) {
         })
       })
 
-      // Convert thành mảng parts với QuestionGroups
-      return Object.keys(groupedBySkill).map((skill) => ({
-        Skill: parseInt(skill),
-        QuestionGroups: groupedBySkill[skill],
-      }))
+      // Thứ tự sắp xếp kỹ năng mong muốn
+      const skillSortOrder = {
+        1: 1, // Nghe
+        3: 2, // Viết
+        2: 3, // Đọc
+      }
+
+      // Convert thành mảng parts với QuestionGroups và sắp xếp theo skillSortOrder
+      return Object.keys(groupedBySkill)
+        .sort((a, b) => (skillSortOrder[a] || 99) - (skillSortOrder[b] || 99))
+        .map((skill) => ({
+          Skill: parseInt(skill),
+          QuestionGroups: groupedBySkill[skill],
+        }))
     }
 
     // Map dữ liệu từ API response - chỉ trả về format từ API (camelCase) để tránh duplicate
