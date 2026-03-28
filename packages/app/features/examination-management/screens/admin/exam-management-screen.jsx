@@ -32,7 +32,7 @@ export function ExamManagement({ initialData = null }) {
   
   const [filters, setFilters] = useManagementFilters({
     search: '',
-    status: 'ALL',
+    status: undefined,
     type: undefined,
     page: 1,
     size: 20,
@@ -45,7 +45,7 @@ export function ExamManagement({ initialData = null }) {
     PageNumber: filters.page,
     PageSize: filters.size,
     SearchTerm: filters.search || undefined,
-    Status: filters.status === 'ALL' ? undefined : filters.status,
+    Status: filters.status,
     Type: filters.type,
   })
 
@@ -219,14 +219,13 @@ export function ExamManagement({ initialData = null }) {
   const extraFilters = (
     <Space wrap>
       <Select
-        placeholder="Trạng thái"
+        placeholder="Tất cả trạng thái"
         allowClear
         style={{ width: 160 }}
         value={filters.status}
-        onChange={(val) => handleFilterChange('status', val || 'ALL')}
+        onChange={(val) => handleFilterChange('status', val)}
         suffixIcon={<FilterOutlined />}
       >
-        <Option value="ALL">Tất cả trạng thái</Option>
         <Option value={0}>Nháp</Option>
         <Option value={1}>Đã xuất bản</Option>
         <Option value={2}>Đã xóa</Option>
