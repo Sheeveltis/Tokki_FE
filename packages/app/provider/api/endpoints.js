@@ -299,5 +299,7 @@ export const ENDPOINTS = {
   },
   SYSTEM_CONFIGS: {
     GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,
+    GET_ALL: '/system-configs',
+    UPDATE: '/system-configs',
   },
 }

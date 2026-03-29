@@ -21,6 +21,8 @@ import { ExamPreviewScreen } from '@tokki/app/features/examination-management/sc
 import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocab-topic-detail-screen'
 import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocabulary-detail-screen'
 import { CreateVocabularyScreen } from '@tokki/app/features/vocabulary/screens/admin/create-vocabulary-screen'
+import SystemConfigManagement from '@tokki/app/features/system/screens/system-config-management-screen'
+import SystemConfigDetailScreen from '@tokki/app/features/system/screens/system-config-detail-screen'
 
 import { Outlet } from 'react-router-dom'
 import { AdminLayout } from '@tokki/app/features/back-office/components/admin/admin-layout.web'
@@ -90,6 +92,10 @@ export const adminRoutes = [
       { path: 'exams/create', element: <CreateExamScreen /> },
       { path: 'exams/:id', element: <ExamDetailScreen /> },
       { path: 'exams/:id/preview', element: <ExamPreviewScreen /> },
+
+      // Admin - System Config Module
+      { path: 'system-config', element: <SystemConfigManagement /> },
+      { path: 'system-config/:key', element: <SystemConfigDetailScreen /> },
     ]
   }
 ]

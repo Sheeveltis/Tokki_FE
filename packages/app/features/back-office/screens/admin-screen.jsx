@@ -25,6 +25,7 @@ const LazyManualEmail = lazy(() => import('../../customer-service-management/scr
 const LazyQuestionTypeManagement = lazy(() => import('../../examination-management/screens/admin/question-type-management-screen'))
 const LazyPassageManagement = lazy(() => import('../../examination-management/screens/admin/passage-management-screen'))
 const LazyTitleManagement = lazy(() => import('../../general/components/title-management/title-management-screen'))
+const LazySystemConfigManagement = lazy(() => import('../../system/screens/system-config-management-screen'))
 
 const LoadingFallback = () => <Spin />
 
@@ -206,6 +207,11 @@ export function AdminScreen() {
       'exam-management': (
         <Suspense fallback={<LoadingFallback />}>
           <LazyExamManagement />
+        </Suspense>
+      ),
+      'system-config': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazySystemConfigManagement />
         </Suspense>
       ),
     }),
