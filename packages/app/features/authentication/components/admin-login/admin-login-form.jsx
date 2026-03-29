@@ -8,6 +8,8 @@ import { TextInput } from '../../../../../components/textInput'
 import { Button } from '../../../../../components/button'
 import { login } from '../../api'
 import { setAuthToken, clearAuthToken } from '../../../../provider/api/client'
+import { encryptToken, decryptToken } from '../../../../helpers/token-encryption'
+import { setStorageItem, getStorageItem, removeStorageItem } from '../../../../helpers/storage'
 import { HelperAdmin } from '../../../../../components/HelperAdmin'
 import LogoImage from '../../../../../assets/logo-text.png'
 
@@ -38,6 +40,29 @@ export function AdminLoginForm() {
 
   // Danh sách role được phép truy cập admin panel
   const allowedRoles = ['Admin', 'Staff', 'Moderator']
+
+  // Load remembered credentials on mount
+  React.useEffect(() => {
+    const loadRememberedCredentials = async () => {
+      try {
+        const savedEmail = await getStorageItem('admin_rememberedEmail')
+        const savedPassword = await getStorageItem('admin_rememberedPassword')
+        
+        if (savedEmail) {
+          setEmail(savedEmail)
+          setRememberMe(true)
+        }
+        if (savedPassword) {
+          const decryptedPassword = decryptToken(savedPassword)
+          setPassword(decryptedPassword)
+        }
+      } catch (error) {
+        console.error('Error loading admin remembered credentials:', error)
+      }
+    }
+    
+    loadRememberedCredentials()
+  }, [])
 
   const handleSubmit = async () => {
     if (loading) return
@@ -108,6 +133,16 @@ export function AdminLoginForm() {
 
         // Lưu token để dùng cho các request authorize
         await setAuthToken(token)
+
+        // Lưu hoặc xóa thông tin ghi nhớ đăng nhập
+        if (rememberMe) {
+          await setStorageItem('admin_rememberedEmail', email)
+          const encryptedPassword = encryptToken(password)
+          await setStorageItem('admin_rememberedPassword', encryptedPassword)
+        } else {
+          await removeStorageItem('admin_rememberedEmail')
+          await removeStorageItem('admin_rememberedPassword')
+        }
 
         console.log('Đăng nhập thành công:', {
           email,

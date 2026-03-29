@@ -29,8 +29,8 @@ import { login, loginWithGoogle } from '../../api'
 import { setAuthToken, clearAuthToken } from '../../../../provider/api/client'
 import { heartbeatService } from '../shared/heartbeat-service'
 import { showApiNotification } from '../../utils/notification'
-import { encryptToken } from '../../../../helpers/token-encryption'
-import { setStorageItem, removeStorageItem, dispatchStorageEvent } from '../../../../helpers/storage'
+import { encryptToken, decryptToken } from '../../../../helpers/token-encryption'
+import { setStorageItem, getStorageItem, removeStorageItem, dispatchStorageEvent } from '../../../../helpers/storage'
 import { HelperAdmin } from '../../../../../components/HelperAdmin'
 import LogoImage from '../../../../../assets/logo-text.png'
 import { NavigationPill } from '../../../../../components/navigation-pill'
@@ -96,6 +96,28 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
   // Cleanup khi component unmount
   // Cleanup heartbeat service khi component unmount
   React.useEffect(() => {
+    // Load remembered credentials
+    const loadRememberedCredentials = async () => {
+      try {
+        const savedEmail = await getStorageItem('rememberedEmail')
+        const savedPassword = await getStorageItem('rememberedPassword')
+        
+        if (savedEmail) {
+          setEmail(savedEmail)
+          setRememberMe(true)
+        }
+        if (savedPassword) {
+          // Giải mã mật khẩu nếu có
+          const decryptedPassword = decryptToken(savedPassword)
+          setPassword(decryptedPassword)
+        }
+      } catch (error) {
+        console.error('Error loading remembered credentials:', error)
+      }
+    }
+    
+    loadRememberedCredentials()
+
     return () => {
       heartbeatService.stop()
     }
@@ -171,6 +193,17 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
         // Lưu token để dùng cho các request authorize
         // setAuthToken đã tự động mã hóa và lưu vào storage, không cần gọi setToken nữa
         await setAuthToken(token)
+
+        // Lưu hoặc xóa thông tin ghi nhớ đăng nhập
+        if (rememberMe) {
+          await setStorageItem('rememberedEmail', email)
+          const encryptedPassword = encryptToken(password)
+          await setStorageItem('rememberedPassword', encryptedPassword)
+        } else {
+          await removeStorageItem('rememberedEmail')
+          await removeStorageItem('rememberedPassword')
+        }
+
         // TODO: Lưu thông tin user vào context / storage nếu cần
         console.log('Đăng nhập thành công:', {
           token,
