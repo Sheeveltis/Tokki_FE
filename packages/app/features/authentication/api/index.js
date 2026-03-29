@@ -151,7 +151,7 @@ export const login = async ({ email, password, rememberMe = false }) => {
       email,
       password,
       rememberMe,
-    }, { withCredentials: true })
+    })
     console.log('[Login API] Response:', response.data)
 
     // Trả về response từ API (đã được format sẵn)
@@ -211,7 +211,7 @@ export const loginWithGoogle = async ({ idToken, isComfirmToMergeAcc = false }) 
     const response = await apiClient.post(ENDPOINTS.ACCOUNT.GOOGLE_LOGIN, {
       idToken,
       isComfirmToMergeAcc,
-    }, { withCredentials: true })
+    })
 
     return response.data
   } catch (error) {
