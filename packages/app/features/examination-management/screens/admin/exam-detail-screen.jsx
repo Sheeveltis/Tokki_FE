@@ -547,6 +547,13 @@ export function ExamDetailScreen() {
               Quay lại danh sách
             </Button>
             <Button
+              onClick={() => router.push(`/admin/exams/${examId}/preview`)}
+              icon={<EyeOutlined />}
+              style={{ borderRadius: '8px' }}
+            >
+              Xem thử đề thi
+            </Button>
+            <Button
               type="primary"
               onClick={handleOpenStatusModal}
               disabled={statusChangeLoading || isLockedExam}

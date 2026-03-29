@@ -17,6 +17,7 @@ import { PassageManagementScreen } from '@tokki/app/features/examination-managem
 import { ExamTemplateDetailScreen } from '@tokki/app/features/examination-management/screens/admin/exam-template-detail-screen'
 import { ExamDetailScreen } from '@tokki/app/features/examination-management/screens/admin/exam-detail-screen'
 import { CreateExamScreen } from '@tokki/app/features/examination-management/screens/admin/create-exam-screen'
+import { ExamPreviewScreen } from '@tokki/app/features/examination-management/screens/admin/exam-preview-screen'
 import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocab-topic-detail-screen'
 import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocabulary-detail-screen'
 import { CreateVocabularyScreen } from '@tokki/app/features/vocabulary/screens/admin/create-vocabulary-screen'
@@ -88,6 +89,7 @@ export const adminRoutes = [
       // Admin - Exams Module
       { path: 'exams/create', element: <CreateExamScreen /> },
       { path: 'exams/:id', element: <ExamDetailScreen /> },
+      { path: 'exams/:id/preview', element: <ExamPreviewScreen /> },
     ]
   }
 ]
