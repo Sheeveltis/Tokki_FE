@@ -79,6 +79,10 @@ export const ENDPOINTS = {
   },
   CATEGORY: {
     GET_ALL: '/Category',
+    GET_PAGED: '/Category/paged',
+    CREATE: '/Category',
+    UPDATE: (id) => `/Category/${id}`,
+    DELETE: (id) => `/Category/${id}`,
   },
   PAYMENT: {
     CREATE: '/Payment',
@@ -141,11 +145,11 @@ export const ENDPOINTS = {
   },
   PRONUNCIATION_EXAMPLE: {
     GET_BY_RULE_ID: (ruleId) => `/PronunciationExample/rules/${ruleId}/examples`, // GET: Lấy danh sách ví dụ theo rule
-    GET_BY_ID: (exampleId) => `/PronunciationExample/examples/${exampleId}`, // GET: Lấy chi tiết ví dụ
+    GET_BY_ID: (exampleId) => `/PronunciationExample/${exampleId}`, // GET: Lấy chi tiết ví dụ
   },
   PRONUNCIATION_RULES: {
     CREATE: '/PronunciationRules', // POST: Tạo pronunciation rule
-    GET_ALL: '/PronunciationRules/rules', // GET: Lấy danh sách pronunciation rules
+    GET_ALL: '/PronunciationRules', // GET: Lấy danh sách pronunciation rules
   },
   VOCABULARY: {
     ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
