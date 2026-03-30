@@ -7,6 +7,7 @@ import TapSound from '../../../../../../assets/sound-effect/solitare/tap.wav'
 import FailSound from '../../../../../../assets/sound-effect/solitare/fail.wav'
 import SuccessSound from '../../../../../../assets/sound-effect/solitare/success.wav'
 import { submitWordleGuess, getWordleResult } from '../../../api/wordle-level-api'
+import { awardMinigameXP } from '../../../api/api'
 import { hasSeenHowToPlayTour } from './components/HowToPlayTour'
 
 export function useWordlePlayControl({
@@ -312,6 +313,13 @@ export function useWordlePlayControl({
               setWordResult(result || null)
             } catch (error) {
               console.error('[useWordlePlayControl] Error fetching wordle result:', error)
+            }
+
+            try {
+              await awardMinigameXP(_level)
+              console.log('[useWordlePlayControl] ✅ Awarded XP for wordle')
+            } catch (xpError) {
+              console.error('[useWordlePlayControl] ⚠️ Failed awarding XP:', xpError)
             }
           } else if (hasGrayOrYellow && failSoundRef.current) {
             try {
