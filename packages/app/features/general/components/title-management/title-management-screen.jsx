@@ -32,7 +32,7 @@ export function TitleManagementScreen() {
     search: '',
     status: null,
   })
-  
+
   const loadData = async () => {
     try {
       setLoading(true)
@@ -97,7 +97,7 @@ export function TitleManagementScreen() {
         width: 120,
         render: (val) => val ?? 0,
       },
-      
+
       {
         title: 'Màu',
         dataIndex: 'colorHex',
@@ -132,7 +132,7 @@ export function TitleManagementScreen() {
             <img
               src={val}
               alt="icon"
-              style={{ width: 40, height: 40, objectFit: 'contain', borderRadius: 4, border: '1px solid #d9d9d9' }}
+              style={{ width: 40, height: 40, objectFit: 'contain' }}
             />
           ) : (
             '-'
@@ -146,7 +146,7 @@ export function TitleManagementScreen() {
         width: 100,
         render: (val) => {
           const cfg = STATUS_CONFIG[Number(val)] || STATUS_CONFIG[0]
-      
+
           return (
             <Tooltip title={cfg.label} color={cfg.color} placement="top">
               <div
@@ -189,7 +189,7 @@ export function TitleManagementScreen() {
                 justifyContent: 'center',
               }}
             />
-      
+
             <Popconfirm
               title="Xác nhận xóa"
               description="Bạn có chắc chắn muốn xóa danh hiệu này?"
@@ -224,7 +224,7 @@ export function TitleManagementScreen() {
   const handleCreate = async (payload) => {
     try {
       setCreating(true)
-      
+
       // Upload ảnh lên Cloudinary nếu có iconFile
       let iconUrl = payload.iconUrl
       if (payload.iconFile) {
