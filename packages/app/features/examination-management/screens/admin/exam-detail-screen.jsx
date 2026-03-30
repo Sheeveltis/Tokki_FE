@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'solito/navigation'
 import { Space, Spin, Alert, message, Modal, Row, Col, Tabs, Typography, Button, Descriptions, FloatButton, Table } from 'antd'
-import { FileTextOutlined, AreaChartOutlined, InfoCircleOutlined, BookOutlined, ClockCircleOutlined, CalendarOutlined, UserOutlined, TeamOutlined } from '@ant-design/icons'
+import { FileTextOutlined, AreaChartOutlined, InfoCircleOutlined, BookOutlined, ClockCircleOutlined, CalendarOutlined, UserOutlined, TeamOutlined, SettingOutlined } from '@ant-design/icons'
 import { useExamDetailAdmin, useExamStatsAdmin } from '../../api/exam-hooks.js'
 import { fetchExamDetailAdmin, regenerateExamPart, updateExamQuestion, updateExamStatus } from '../../api/exam-management.js'
 import { useQueryClient } from '@tanstack/react-query'
@@ -19,6 +19,7 @@ import ExamStatisticsBar from '../../components/admin/exam-detail/exam-statistic
 import ExamContentTab from '../../components/admin/exam-detail/exam-content-tab.jsx'
 import ExamAnalysisTab from '../../components/admin/exam-detail/exam-analysis-tab.jsx'
 import ExamParticipantsTab from '../../components/admin/exam-detail/exam-participants-tab.jsx'
+import ExamSettingsTab from '../../components/admin/exam-detail/exam-settings-tab.jsx'
 import QuestionNavigator from '../../components/admin/exam-detail/question-navigator.jsx'
 
 const { Text: AntdText, Title } = Typography
@@ -556,6 +557,11 @@ export function ExamDetailScreen() {
       key: 'participants',
       label: <Space><TeamOutlined /><span style={{ fontWeight: 500 }}>Danh sách làm bài</span></Space>,
       children: <ExamParticipantsTab examId={examId} />
+    },
+    {
+      key: 'settings',
+      label: <Space><SettingOutlined /><span style={{ fontWeight: 500 }}>Cài đặt đề</span></Space>,
+      children: <ExamSettingsTab examId={examId} />
     },
   ]
 
