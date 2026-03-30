@@ -50,7 +50,7 @@ export const ExamDetailHeader = ({ exam, statusLoading, onStatusClick }) => {
         </Button>
 
         <Button 
-           onClick={() => router.push(`/admin/exams/preview/${exam.examId}`)}
+           onClick={() => router.push(`/admin/exams/${exam.examId}/preview`)}
         >
           Xem thử
         </Button>

@@ -44,9 +44,9 @@ export const ExamParticipantsTab = ({ examId }) => {
       key: 'user',
       render: (_, record) => (
         <Space size="middle">
-          <Avatar 
-            src={record.userAvatar} 
-            icon={!record.userAvatar ? <UserOutlined /> : null} 
+          <Avatar
+            src={record.userAvatar}
+            icon={!record.userAvatar ? <UserOutlined /> : null}
             size="large"
             style={{ backgroundColor: '#f0f2f5', border: '1px solid #d9d9d9' }}
           />
@@ -61,26 +61,26 @@ export const ExamParticipantsTab = ({ examId }) => {
       title: 'Mã bài làm',
       dataIndex: 'userExamId',
       key: 'userExamId',
+      align: 'center',
       render: (text) => <Text copyable style={{ color: '#8c8c8c' }}>{text}</Text>,
     },
     {
-      title: 'Điểm số',
+      title: 'Điểm',
       dataIndex: 'score',
       key: 'score',
       sorter: true,
       align: 'center',
       render: (score) => (
-        <div style={{ 
-          display: 'inline-flex', 
-          alignItems: 'center', 
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
           gap: 6,
-          backgroundColor: '#f6ffed', 
-          border: '1px solid #b7eb8f',
-          padding: '4px 12px',
+          // backgroundColor: '#f6ffed',
+          // border: '1px solid #b7eb8f',
+          // padding: '4px 12px',
           borderRadius: 16
         }}>
-          <TrophyOutlined style={{ color: '#52c41a' }} />
-          <Text strong style={{ color: '#389e0d' }}>{score}</Text>
+          <Text>{score}</Text>
         </div>
       )
     },
@@ -88,6 +88,7 @@ export const ExamParticipantsTab = ({ examId }) => {
       title: 'Thời gian nộp bài',
       dataIndex: 'submitTime',
       key: 'submitTime',
+      align: 'center',
       sorter: true,
       defaultSortOrder: 'descend',
       render: (time) => (
