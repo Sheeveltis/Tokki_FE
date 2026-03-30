@@ -83,8 +83,8 @@ export default function ManagementLayout({
     const calculateTableHeight = () => {
       if (tableWrapperRef.current) {
         const rect = tableWrapperRef.current.getBoundingClientRect()
-        // Giảm bớt khoảng trừ vì pagination đã nằm ngoài
-        const availableHeight = window.innerHeight - rect.top - 60
+        // Giảm bớt khoảng trừ vì pagination đã nằm ngoài, cần trừ thêm gap, padding của layout và chiều cao của header bảng
+        const availableHeight = window.innerHeight - rect.top - 180
         setTableScrollY(availableHeight > 300 ? availableHeight : 300)
       }
     }
@@ -129,13 +129,13 @@ export default function ManagementLayout({
           {renderCard && (
             <Segmented
               options={[
-                { 
-                  value: 'table', 
-                  icon: <Tooltip title="Xem dạng bảng"><TableOutlined /></Tooltip> 
+                {
+                  value: 'table',
+                  icon: <Tooltip title="Xem dạng bảng"><TableOutlined /></Tooltip>
                 },
-                { 
-                  value: 'card', 
-                  icon: <Tooltip title="Xem dạng lưới"><AppstoreOutlined /></Tooltip> 
+                {
+                  value: 'card',
+                  icon: <Tooltip title="Xem dạng lưới"><AppstoreOutlined /></Tooltip>
                 },
               ]}
               value={viewMode}

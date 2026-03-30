@@ -221,17 +221,75 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
                               </View>
                               <Text style={styles.writingAnswerLabel}>Bài làm:</Text>
                               <View style={styles.writingAnswerBox}>
-                                <Text style={styles.writingAnswerText}>{q?.answerContent || '(Trống)'}</Text>
+                                <Text style={styles.writingAnswerText}>
+                                  {Array.isArray(q?.aiAnalysis?.results)
+                                    ? q.aiAnalysis.results
+                                        .map((r) => `${r.blank_id}: ${r.user_answer || '(Trống)'}`)
+                                        .join('\n')
+                                    : q?.answerContent || '(Trống)'}
+                                </Text>
                               </View>
 
                               {q?.aiAnalysis && (
                                 <View style={styles.aiBox}>
                                   <Text style={styles.aiTitle}>Phân tích AI ({q?.aiAnalysis?.totalScore ?? 0}đ)</Text>
-                                  {q.aiAnalysis.overallFeedback && (
-                                    <View style={styles.aiSection}>
-                                      <Text style={styles.aiSectionTitle}>Nhận xét</Text>
-                                      <Text style={styles.aiFeedback}>{q.aiAnalysis.overallFeedback}</Text>
-                                    </View>
+                                  
+                                  {/* For Fill-in-the-blanks type (questions 51, 52) */}
+                                  {Array.isArray(q?.aiAnalysis?.results) ? (
+                                    q.aiAnalysis.results.map((res, idx) => (
+                                      <View key={idx} style={[styles.aiSection, idx > 0 && { marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F0E6D2' }]}>
+                                        <View style={styles.blankHeader}>
+                                          <Text style={styles.blankTitle}>Ô {res.blank_id}:</Text>
+                                          <Text style={[
+                                            styles.evaluationBadge, 
+                                            res.evaluation === 'correct' ? styles.evalCorrect : 
+                                            res.evaluation === 'partial' ? styles.evalPartial : styles.evalIncorrect
+                                          ]}>
+                                            {res.evaluation === 'correct' ? 'Đúng' : res.evaluation === 'partial' ? 'Một phần' : 'Sai'}
+                                          </Text>
+                                        </View>
+                                        <Text style={styles.aiFeedback}><Text style={{ fontWeight: '700' }}>Câu trả lời: </Text>{res.user_answer || '(Trống)'}</Text>
+                                        <Text style={styles.aiFeedback}><Text style={{ fontWeight: '700' }}>Nhận xét: </Text>{res.feedback}</Text>
+                                        {res.suggestions?.length > 0 && (
+                                          <Text style={styles.aiFeedback}><Text style={{ fontWeight: '700' }}>Gợi ý: </Text>{res.suggestions.join(', ')}</Text>
+                                        )}
+                                      </View>
+                                    ))
+                                  ) : (
+                                    <>
+                                      {q.aiAnalysis.overallFeedback && (
+                                        <View style={styles.aiSection}>
+                                          <Text style={styles.aiSectionTitle}>Nhận xét tổng quát</Text>
+                                          <Text style={styles.aiFeedback}>{q.aiAnalysis.overallFeedback}</Text>
+                                        </View>
+                                      )}
+                                      {q.aiAnalysis.contentFeedback && (
+                                        <View style={styles.aiSection}>
+                                          <Text style={styles.aiSectionTitle}>Nội dung ({q.aiAnalysis.contentScore ?? 0}đ)</Text>
+                                          <Text style={styles.aiFeedback}>{q.aiAnalysis.contentFeedback}</Text>
+                                        </View>
+                                      )}
+                                      {q.aiAnalysis.organizationFeedback && (
+                                        <View style={styles.aiSection}>
+                                          <Text style={styles.aiSectionTitle}>Bố cục ({q.aiAnalysis.organizationScore ?? 0}đ)</Text>
+                                          <Text style={styles.aiFeedback}>{q.aiAnalysis.organizationFeedback}</Text>
+                                        </View>
+                                      )}
+                                      {q.aiAnalysis.languageFeedback && (
+                                        <View style={styles.aiSection}>
+                                          <Text style={styles.aiSectionTitle}>Ngôn ngữ ({q.aiAnalysis.languageScore ?? 0}đ)</Text>
+                                          <Text style={styles.aiFeedback}>{q.aiAnalysis.languageFeedback}</Text>
+                                        </View>
+                                      )}
+                                      {q.aiAnalysis.polishedVersion && (
+                                        <View style={styles.aiSection}>
+                                          <Text style={styles.aiSectionTitle}>Bản sửa tham khảo</Text>
+                                          <View style={styles.polishedBox}>
+                                            <Text style={styles.polishedText}>{q.aiAnalysis.polishedVersion}</Text>
+                                          </View>
+                                        </View>
+                                      )}
+                                    </>
                                   )}
                                 </View>
                               )}
@@ -501,7 +559,52 @@ const styles = StyleSheet.create({
   aiTitle: { fontSize: 16, fontWeight: '800' },
   aiSection: { gap: 4 },
   aiSectionTitle: { fontSize: 12, fontWeight: '800', color: '#F1BE4B' },
-  aiFeedback: { fontSize: 14, color: '#666' },
+  aiFeedback: { fontSize: 14, color: '#666', lineHeight: 20 },
+  blankHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  blankTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#333',
+  },
+  evaluationBadge: {
+    fontSize: 10,
+    fontWeight: '800',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    textTransform: 'uppercase',
+  },
+  evalCorrect: {
+    backgroundColor: '#D1FAE5',
+    color: '#059669',
+  },
+  evalPartial: {
+    backgroundColor: '#FEF3C7',
+    color: '#D97706',
+  },
+  evalIncorrect: {
+    backgroundColor: '#FEE2E2',
+    color: '#DC2626',
+  },
+  polishedBox: {
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: '#F0FDF4',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#DCFCE7',
+  },
+  polishedText: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: '#166534',
+    fontStyle: 'italic',
+  },
   explanationBox: {
     marginTop: 16,
     padding: 16,

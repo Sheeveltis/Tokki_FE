@@ -445,18 +445,15 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
 
   // Lọc question types theo skill từ API
   // QuestionTypeId là foreign key trỏ đến bảng QuestionTypes để lấy thông tin dạng câu hỏi
-  const getQuestionTypesBySkill = React.useCallback((skill) => {
+  const getQuestionTypesBySkill = React.useCallback((skill, includeInactive = false) => {
     if (!skill) return []
 
     // Lấy question types từ state (đã được load từ API)
     const types = questionTypesBySkill[skill] || []
 
-    // Không gọi loadQuestionTypes ở đây để tránh setState trong render
-    // Việc load sẽ được xử lý trong useEffect
-
-    // Filter chỉ lấy active và map về format cho Select
+    // Filter và map về format cho Select hoặc Table
     return types
-      .filter((qt) => qt.IsActive !== false && qt.isActive !== false)
+      .filter((qt) => includeInactive || (qt.IsActive !== false && qt.isActive !== false))
       .map((qt) => {
         const code = qt.Code || qt.code || ''
         const name = qt.Name || qt.name || ''
@@ -625,14 +622,14 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
               const partData = form.getFieldValue(['parts', name])
               const skillName = partData?.Skill || ''
               const skillLabel = skillOptions.find((opt) => opt.value === skillName)?.label || ''
+              const isActive = index === validActiveIndex
 
               return {
                 key: String(index),
                 label: (
-                  <Space>
-                    <span style={{ fontSize: 14 }}>Phần {index + 1}</span>
-                    <Tag color="blue" style={{ margin: 0, fontSize: 14 }}>{skillLabel}</Tag>
-                  </Space>
+                  <span style={{ fontSize: 13 }}>
+                    Phần {index + 1} {skillLabel}
+                  </span>
                 ),
                 children: null,
               }
@@ -644,25 +641,67 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
 
             return (
               <div style={{ background: '#fff', borderRadius: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <div style={{ marginBottom: 16 }}>
+                  <style>
+                    {`
+                      .exam-parts-tabs .ant-tabs-tab {
+                        transition: all 0.3s;
+                        border-radius: 8px 8px 0 0 !important;
+                        margin-right: 4px !important;
+                      }
+                      .exam-parts-tabs .ant-tabs-tab-active {
+                        background-color: #1890ff !important;
+                        border-color: #1890ff !important;
+                      }
+                      .exam-parts-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+                        color: #fff !important;
+                      }
+                      .exam-parts-tabs .ant-tabs-tab-active .ant-tabs-tab-btn span {
+                        color: #fff !important;
+                      }
+                      .exam-parts-tabs .ant-tabs-tab:hover span {
+                        color: #1890ff !important;
+                      }
+                      .exam-parts-tabs .ant-tabs-tab-active:hover span {
+                        color: #fff !important;
+                      }
+                    `}
+                  </style>
                   <Tabs
                     activeKey={String(validActiveIndex >= 0 ? validActiveIndex : 0)}
                     onChange={onTabChange}
                     items={items}
                     type="card"
+                    className="exam-parts-tabs"
                     style={{ flex: 1, marginBottom: -16 }}
+                    tabBarExtraContent={
+                      <Space>
+                        {fields.length > 0 && !isActiveTemplate && (
+                          <Button
+                            type="text"
+                            danger
+                            size="middle"
+                            icon={<DeleteOutlined />}
+                            onClick={() => handleRemovePart(fields[validActiveIndex]?.name)}
+                            style={{ fontSize: 13 }}
+                          >
+                            Xóa phần này
+                          </Button>
+                        )}
+                        {canAddMore && !isActiveTemplate && (
+                          <Button
+                            type="primary"
+                            ghost
+                            icon={<PlusOutlined />}
+                            onClick={handleAddPart}
+                            size="middle"
+                          >
+                            Thêm phần
+                          </Button>
+                        )}
+                      </Space>
+                    }
                   />
-                  {canAddMore && !isActiveTemplate && (
-                    <Button
-                      type="primary"
-                      ghost
-                      icon={<PlusOutlined />}
-                      onClick={handleAddPart}
-                      size="middle"
-                    >
-                      Thêm phần
-                    </Button>
-                  )}
                 </div>
 
                 {/* Empty State */}
@@ -676,7 +715,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                       borderRadius: 12
                     }}
                   >
-                    <Space direction="vertical" size="large">
+                    <Space orientation="vertical" size="large">
                       <div style={{ fontSize: 40, color: '#d9d9d9' }}><PlusOutlined /></div>
                       <div>
                         <Title level={5}>Chưa có phần nào được thiết lập</Title>
@@ -693,39 +732,11 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                   const skill = form.getFieldValue(['parts', partName, 'Skill'])
 
                   return (
-                    <div key={partKey} style={{ marginTop: 24 }}>
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '12px 16px',
-                        background: '#f8f9fa',
-                        borderRadius: '8px 8px 0 0',
-                        border: '1px solid #f0f0f0',
-                        borderBottom: 'none'
-                      }}>
-                        <Space orientation="horizontal" size="middle" align="center">
-                          <MenuOutlined style={{ color: '#8c8c8c', fontSize: 18 }} />
-                          <Text strong style={{ fontSize: 16 }}>Cấu trúc câu hỏi - {getSkillLabel(skill)}</Text>
-                        </Space>
-                        {!isActiveTemplate && (
-                          <Button
-                            type="text"
-                            danger
-                            size="middle"
-                            icon={<DeleteOutlined />}
-                            onClick={() => handleRemovePart(partName)}
-                            style={{ fontSize: 14 }}
-                          >
-                            Xóa phần này
-                          </Button>
-                        )}
-                      </div>
-
+                    <div key={partKey} style={{ marginTop: 16 }}>
                       <div style={{
                         border: '1px solid #f0f0f0',
-                        borderRadius: '0 0 8px 8px',
-                        padding: '16px 20px',
+                        borderRadius: '8px',
+                        padding: '20px 24px',
                         background: '#fff'
                       }}>
                         <Form.Item {...restPartField} name={[partName, 'Skill']} hidden>
@@ -734,7 +745,8 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
 
                         <Form.List name={[partName, 'QuestionGroups']}>
                           {(groupFields, { add: addGroup, remove: removeGroup, move: moveGroup }) => {
-                            const questionTypes = getQuestionTypesBySkill(skill)
+                            // Lấy cả các question types đã bị ẩn (inactive) để hiển thị code trong bảng
+                            const allQuestionTypes = getQuestionTypesBySkill(skill, true)
                             const tableData = groupFields.map(({ key, name }, index) => {
                               const values = form.getFieldValue(['parts', partName, 'QuestionGroups', name]) || {}
                               return {
@@ -757,14 +769,14 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                 title: <Text style={{ fontSize: 13, color: '#8c8c8c' }}>Dạng câu & Tiêu đề phu</Text>,
                                 key: 'typeAndTitle',
                                 render: (_, record) => {
-                                  const type = questionTypes.find(t => t.value === record.QuestionTypeId)
+                                  const type = allQuestionTypes.find(t => t.value === record.QuestionTypeId)
                                   return (
-                                    <Space direction="vertical" size={2}>
+                                    <Space orientation="vertical" size={2}>
                                       <Space>
-                                        <Tag color="blue" bordered={false} style={{ fontSize: 12, margin: 0 }}>
+                                        <Tag color="blue" variant="filled" style={{ fontSize: 11, margin: 0 }}>
                                           {type?.code || '??'}
                                         </Tag>
-                                        <Text strong style={{ fontSize: 15, color: '#262626' }}>
+                                        <Text strong style={{ fontSize: 13, color: '#262626' }}>
                                           {type?.name || 'Chưa thiết lập'}
                                         </Text>
                                       </Space>
@@ -783,7 +795,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                 align: 'center',
                                 width: 160,
                                 render: (_, record) => (
-                                  <Tag color="cyan" style={{ border: 'none', padding: '2px 10px', fontSize: 14 }}>
+                                  <Tag color="cyan" style={{ border: 'none', padding: '2px 10px', fontSize: 13 }}>
                                     Câu {record.QuestionFrom || '?'}-{record.QuestionTo || '?'}
                                   </Tag>
                                 )
@@ -794,7 +806,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                 key: 'Mark',
                                 align: 'center',
                                 width: 100,
-                                render: (mark) => <Text strong style={{ color: '#F87218', fontSize: 16 }}>{mark || 0}</Text>
+                                render: (mark) => <Text strong style={{ color: '#F87218', fontSize: 13 }}>{mark || 0}</Text>
                               },
                               {
                                 title: <Text style={{ fontSize: 13, color: '#8c8c8c' }}>Thao tác</Text>,
@@ -901,7 +913,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                         style={{
                                           height: 48,
                                           borderRadius: 8,
-                                          fontSize: 15,
+                                          fontSize: 13,
                                           color: '#8c8c8c'
                                         }}
                                         onClick={() => {

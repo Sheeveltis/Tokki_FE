@@ -12,6 +12,8 @@ export function RoadmapTestQuestion({
   selectedAnswer = null,
   onAnswerSelect,
   onAnswerChange, // For writing type
+  showCorrectAnswer = false,
+  correctAnswer = null,
 }) {
   const [, setCurrentTime] = useState(0)
   const [, setTotalTime] = useState(0)
@@ -309,6 +311,7 @@ export function RoadmapTestQuestion({
                   styles.answerOption,
                   option?.imageUrl && styles.answerOptionWithImage,
                   isSelected && styles.answerOptionSelected,
+                  showCorrectAnswer && answerNumber === correctAnswer && styles.answerOptionCorrect,
                 ]}
               >
                 <Text style={styles.answerOptionLabel}>{answerNumber}.</Text>
@@ -405,6 +408,11 @@ const styles = StyleSheet.create({
   answerOptionSelected: {
     backgroundColor: '#FFFBEB',
     borderColor: '#FEF3C7',
+  },
+  answerOptionCorrect: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#10B981',
+    borderWidth: 2,
   },
   answerOptionLabel: {
     fontSize: 13,

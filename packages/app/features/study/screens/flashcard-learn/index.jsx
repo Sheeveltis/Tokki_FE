@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { Platform } from 'react-native'
 import { useFlashcardLearn } from './useFlashcardLearn'
-import { 
+import {
   FlashcardLearnLayout as WebLayout,
   FlashcardLearnMain as WebMain,
   FlashcardLearnLayoutMobile as MobileLayout,
@@ -45,7 +45,7 @@ export function LearnScreen({
   // Chỉ sử dụng hooks trên mobile để tránh lỗi trên web
   let route = routeProp
   let navigation = navigationProp
-  
+
   if (Platform.OS !== 'web' && useRoute && useNavigation) {
     if (!route) {
       route = useRoute()
@@ -67,7 +67,7 @@ export function LearnScreen({
     }
   }
   const [slideDirection, setSlideDirection] = useState(null) // 'left' | 'right' | null
-  
+
   const {
     flashcards,
     unlearnedFlashcards,

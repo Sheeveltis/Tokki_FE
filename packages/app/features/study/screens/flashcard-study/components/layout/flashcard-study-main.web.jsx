@@ -169,6 +169,19 @@ export function FlashcardStudyMain({
     <>
       {/* Flashcard */}
       <View style={styles.cardContainer}>
+        {/* Navigation Arrows */}
+        <Pressable 
+          style={[styles.absNavBtn, styles.absPrevBtn]} 
+          onPress={onPrev}
+        >
+          <StudyIcon 
+            source={ArrowIcon} 
+            style={{ transform: [{ scaleX: -1 }] }} 
+            width={28}
+            height={28}
+          />
+        </Pressable>
+
         <FlipCard
           word={current.word}
           meaning={current.meaning}
@@ -187,28 +200,24 @@ export function FlashcardStudyMain({
           onToggleFavorite={onToggleFavorite}
           onPlaySound={current?.audioUrl ? handlePlaySound : undefined}
         />
-      </View>
 
-      {/* Pagination */}
-      <View style={styles.pagination}>
-        <Pressable style={styles.navBtn} onPress={onPrev}>
+        <Pressable 
+          style={[styles.absNavBtn, styles.absNextBtn]} 
+          onPress={onNext}
+        >
           <StudyIcon 
             source={ArrowIcon} 
-            style={{ transform: [{ scaleX: -1 }] }} 
-            width={24}
-            height={24}
+            width={28}
+            height={28}
           />
         </Pressable>
+      </View>
+
+      {/* Pagination text only at bottom */}
+      <View style={styles.pagination}>
         <Text style={styles.pageText}>
           {currentIndex + 1} / {unlearnedCount}
         </Text>
-        <Pressable style={styles.navBtn} onPress={onNext}>
-          <StudyIcon 
-            source={ArrowIcon} 
-            width={24}
-            height={24}
-          />
-        </Pressable>
       </View>
 
       {/* Vocabulary List */}
@@ -292,10 +301,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pagination: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 16,
-    marginTop: 8,
+    marginTop: 16,
+    marginBottom: 8,
   },
   navBtn: {
     width: 44,
@@ -304,6 +316,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1BE4B',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  absNavBtn: {
+    position: 'absolute',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#F1BE4B',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+    top: '50%',
+    transform: [{ translateY: -26 }],
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      transition: 'all 0.2s ease',
+    }),
+  },
+  absPrevBtn: {
+    left: -26,
+  },
+  absNextBtn: {
+    right: -26,
   },
   navIcon: {
     width: 20,

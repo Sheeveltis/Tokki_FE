@@ -79,6 +79,10 @@ export const ENDPOINTS = {
   },
   CATEGORY: {
     GET_ALL: '/Category',
+    GET_PAGED: '/Category/paged',
+    CREATE: '/Category',
+    UPDATE: (id) => `/Category/${id}`,
+    DELETE: (id) => `/Category/${id}`,
   },
   PAYMENT: {
     CREATE: '/Payment',
@@ -91,6 +95,7 @@ export const ENDPOINTS = {
   },
   ACCOUNT: {
     LOGIN: '/Account/login',
+    REFRESH: '/Account/refresh',
     GOOGLE_LOGIN: '/Account/google-login',
     REGISTER: '/Account/register',
     FORGOT_PASSWORD_RESET: '/Account/forgot-password/reset',
@@ -140,11 +145,11 @@ export const ENDPOINTS = {
   },
   PRONUNCIATION_EXAMPLE: {
     GET_BY_RULE_ID: (ruleId) => `/PronunciationExample/rules/${ruleId}/examples`, // GET: Lấy danh sách ví dụ theo rule
-    GET_BY_ID: (exampleId) => `/PronunciationExample/examples/${exampleId}`, // GET: Lấy chi tiết ví dụ
+    GET_BY_ID: (exampleId) => `/PronunciationExample/${exampleId}`, // GET: Lấy chi tiết ví dụ
   },
   PRONUNCIATION_RULES: {
     CREATE: '/PronunciationRules', // POST: Tạo pronunciation rule
-    GET_ALL: '/PronunciationRules/rules', // GET: Lấy danh sách pronunciation rules
+    GET_ALL: '/PronunciationRules', // GET: Lấy danh sách pronunciation rules
   },
   VOCABULARY: {
     ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
@@ -265,6 +270,8 @@ export const ENDPOINTS = {
   EXAMS: {
     ADMIN_LIST: '/Exams/admin',              // GET: Lấy danh sách exams cho admin (query: PageNumber, PageSize, Status, Type)
     ADMIN_DETAIL: '/Exams/admin/detail',     // GET: Lấy chi tiết exam cho admin (query: examId)
+    ADMIN_STATS: (id) => `/Exams/admin/stats/${id}`, // GET: Lấy thống kê exam
+    ADMIN_PARTICIPANTS: (id) => `/Exams/admin/stats/${id}/participants`, // GET: Danh sách người làm bài
     GET_BY_ID: (id) => `/Exams/${id}`,      // GET: Lấy chi tiết exam
     CREATE: '/Exams',                        // POST: Tạo exam mới
     UPDATE: (id) => `/Exams/${id}`,          // PUT: Cập nhật exam
@@ -288,6 +295,7 @@ export const ENDPOINTS = {
     ANALYSIS: (userExamId) => `/UserExam/${encodeURIComponent(userExamId)}/analysis`,
     HISTORY: '/UserExam/user/history',
     PRACTICE_QUESTIONS: (questionTypeId, quantity = 10) => `/UserExam/${encodeURIComponent(questionTypeId)}?quantity=${quantity}`,
+    NEXT_SKILL: (userExamId) => `/UserExam/user/${encodeURIComponent(userExamId)}/next-skill`,
   },
   ROADMAP: {
     DURATION_RECOMMENDATION: '/Roadmap/duration-recommendation',
@@ -300,5 +308,7 @@ export const ENDPOINTS = {
   },
   SYSTEM_CONFIGS: {
     GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,
+    GET_ALL: '/system-configs',
+    UPDATE: '/system-configs',
   },
 }

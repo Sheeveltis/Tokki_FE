@@ -14,18 +14,35 @@ const extractErrorMessage = (error, fallbackMessage) => {
 
 const extractData = (response) => {
   const payload = response?.data
-  if (payload && typeof payload === 'object' && 'data' in payload) {
-    return payload.data
+  
+  // Nếu payload có isSuccess = false, throw error luôn để catch block xử lý
+  if (payload && typeof payload === 'object' && payload.isSuccess === false) {
+    const errorMsg = payload.message || (Array.isArray(payload.errors) && payload.errors[0]?.description) || 'API Error'
+    throw new Error(errorMsg)
   }
+
+  // Nếu có bọc trong data
+  if (payload && typeof payload === 'object' && 'data' in payload) {
+    const data = payload.data
+    // Hỗ trợ paginated response (data.items)
+    if (data && typeof data === 'object' && 'items' in data) {
+      return data.items
+    }
+    return data
+  }
+  
+  // Trả về payload nếu không có bọc data
   return payload
 }
 
 export const getPronunciationRules = async () => {
   try {
+    // Sử dụng API_BASE_URL trực tiếp kết hợp endpoint để đảm bảo URL theo chuẩn api/PronunciationRules
     const res = await apiClient.get(`${API_BASE_URL}${ENDPOINTS.PRONUNCIATION_RULES.GET_ALL}`)
     const data = extractData(res)
 
     if (!Array.isArray(data)) {
+      console.warn('DEBUG: PronunciationRules API did not return an array after extraction:', data)
       return []
     }
 
@@ -41,6 +58,7 @@ export const getPronunciationRules = async () => {
         _raw: item,
       }))
   } catch (error) {
+    console.error('Error in getPronunciationRules:', error)
     throw new Error(extractErrorMessage(error, 'Không thể tải danh sách quy tắc phát âm'))
   }
 }
@@ -62,15 +80,17 @@ export const getPronunciationExamplesByRuleId = async (ruleId) => {
     const data = extractData(res)
 
     if (!Array.isArray(data)) {
+      console.warn('DEBUG: PronunciationExamples API did not return an array after extraction:', data)
       return []
     }
 
     return data.map((item) => ({
       id: item.exampleId,
-      text: item.rawScript,
-      sortOrder: item.sortOrder
+      text: item.rawScript || item.targetScript || '',
+      sortOrder: item.sortOrder || 0
     }))
   } catch (error) {
+    console.error('Error in getPronunciationExamplesByRuleId:', error)
     throw new Error(extractErrorMessage(error, 'Không thể tải ví dụ phát âm'))
   }
 }

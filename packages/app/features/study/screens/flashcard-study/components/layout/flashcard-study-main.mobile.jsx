@@ -317,7 +317,7 @@ export function FlashcardStudyMain({
       <View style={styles.pagination}>
         <Pressable style={styles.navBtn} onPress={onPrev}>
           <View style={[styles.navIconContainer, { transform: [{ scaleX: -1 }] }]}>
-            <ArrowIcon width={20} height={20} fill="#1F1F1F" />
+            <ArrowIcon width={24} height={24} fill="#1F1F1F" />
           </View>
         </Pressable>
         <Text style={styles.pageText}>
@@ -325,7 +325,7 @@ export function FlashcardStudyMain({
         </Text>
         <Pressable style={styles.navBtn} onPress={onNext}>
           <View style={styles.navIconContainer}>
-            <ArrowIcon width={20} height={20} fill="#1F1F1F" />
+            <ArrowIcon width={24} height={24} fill="#1F1F1F" />
           </View>
         </Pressable>
       </View>
@@ -408,10 +408,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pagination: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    marginTop: 8,
+    justifyContent: 'center',
+    gap: 20,
+    marginTop: 16,
+    marginBottom: 8,
   },
   navBtn: {
     width: 44,

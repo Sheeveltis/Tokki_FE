@@ -85,4 +85,6 @@ export function SystemLog({ initialData = null }) {
   )
 }
 
+export default SystemLog
+
 

@@ -126,7 +126,7 @@ export const sendEmailVerificationOtp = async (email) => {
  *   - Success: { isSuccess: true, data: { token, fullName, role, avatarUrl }, message, statusCode: 200 }
  *   - Error: { isSuccess: false, data: null, errors: [...], message, statusCode: 400 }
  */
-export const login = async ({ email, password }) => {
+export const login = async ({ email, password, rememberMe = false }) => {
   try {
     // Validate input
     if (!email || !password) {
@@ -146,10 +146,11 @@ export const login = async ({ email, password }) => {
 
     // Gọi API
     console.log('[Login API] Calling:', ENDPOINTS.ACCOUNT.LOGIN)
-    console.log('[Login API] Payload:', { email, password: '***' })
+    console.log('[Login API] Payload:', { email, password: '***', rememberMe })
     const response = await apiClient.post(ENDPOINTS.ACCOUNT.LOGIN, {
       email,
       password,
+      rememberMe,
     })
     console.log('[Login API] Response:', response.data)
 

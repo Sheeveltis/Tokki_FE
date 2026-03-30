@@ -55,6 +55,7 @@ export function AdminLayout({
     if (pathname.includes('/admin/blog/')) key = 'blog'
     if (pathname.includes('/admin/lessons/')) key = 'lessons'
     if (pathname.includes('/admin/vocab-topic/')) key = 'vocabulary-topics'
+    if (pathname.includes('/admin/system-config/')) key = 'system-config'
 
     // Tìm parent
     for (const item of adminMenuItems) {

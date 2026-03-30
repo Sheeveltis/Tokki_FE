@@ -39,6 +39,16 @@ export async function fetchExamDetailAdmin(examId) {
 }
 
 /**
+ * Lấy dữ liệu thống kê của kì thi (admin)
+ * @param {string} examId - ID của exam
+ * @returns {Promise<Object|null>} - Thống kê exam hoặc null
+ */
+export async function fetchExamStatsAdmin(examId) {
+  const res = await apiClient.get(ENDPOINTS.EXAMS.ADMIN_STATS(examId))
+  return res.data?.data || null
+}
+
+/**
  * Lấy chi tiết exam theo ID
  * @param {string} examId - ID của exam
  * @returns {Promise<Object|null>} - Thông tin exam hoặc null
@@ -170,4 +180,39 @@ export async function fetchQuestionsByPart(params = {}) {
 export async function regenerateExamPart(payload) {
   const res = await apiClient.post(ENDPOINTS.EXAMS.REGENERATE_PART, payload)
   return res.data
+}
+
+/**
+ * Lấy danh sách người tham gia thi
+ * @param {Object} params
+ * @param {string} params.examId
+ * @param {number} [params.PageNumber=1]
+ * @param {number} [params.PageSize=10]
+ * @param {number} [params.SortBy=0] - 0: SubmitTime, 1: Score
+ * @param {boolean} [params.IsDescending=true]
+ * @returns {Promise<Object>}
+ */
+export async function fetchExamParticipantsAdmin(params = {}) {
+  const { examId, PageNumber = 1, PageSize = 10, SortBy = 0, IsDescending = true } = params
+  
+  const res = await apiClient.get(ENDPOINTS.EXAMS.ADMIN_PARTICIPANTS(examId), {
+    params: {
+      pageNumber: PageNumber,
+      pageSize: PageSize,
+      sortBy: SortBy,
+      isDescending: IsDescending
+    }
+  })
+  
+  const data = res.data?.data || {}
+  
+  return {
+    items: data.items || [],
+    pageNumber: data.pageNumber || PageNumber,
+    pageSize: data.pageSize || PageSize,
+    totalCount: data.totalCount || 0,
+    totalPages: data.totalPages || 1,
+    hasNextPage: data.hasNextPage || false,
+    hasPreviousPage: data.hasPreviousPage || false,
+  }
 }

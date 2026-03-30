@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchExamsAdmin, fetchExamDetailAdmin, fetchExamById } from './exam-management.js'
+import { fetchExamsAdmin, fetchExamDetailAdmin, fetchExamById, fetchExamStatsAdmin, fetchExamParticipantsAdmin } from './exam-management.js'
 
 /**
  * React Query hook để lấy danh sách exams cho admin
@@ -34,6 +34,19 @@ export const useExamDetailAdmin = (examId) => {
 }
 
 /**
+ * React Query hook để lấy thống kê exam theo ID (admin)
+ * @param {string} examId - ID của exam
+ */
+export const useExamStatsAdmin = (examId) => {
+  return useQuery({
+    queryKey: ['exam', 'admin', 'stats', examId],
+    queryFn: () => fetchExamStatsAdmin(examId),
+    enabled: !!examId,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+/**
  * React Query hook để lấy chi tiết exam theo ID
  * @param {string} examId - ID của exam
  */
@@ -46,3 +59,16 @@ export const useExamById = (examId) => {
   })
 }
 
+/**
+ * React Query hook để lấy danh sách người tham gia thi cho admin
+ * @param {Object} params
+ */
+export const useExamParticipantsAdmin = (params = {}) => {
+  const { examId, PageNumber = 1, PageSize = 10, SortBy = 0, IsDescending = true } = params
+  
+  return useQuery({
+    queryKey: ['exam', 'admin', 'participants', examId, PageNumber, PageSize, SortBy, IsDescending],
+    queryFn: () => fetchExamParticipantsAdmin({ examId, PageNumber, PageSize, SortBy, IsDescending }),
+    enabled: !!examId,
+  })
+}

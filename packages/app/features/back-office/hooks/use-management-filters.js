@@ -20,7 +20,7 @@ export function useManagementFilters(initialValues) {
       const val = searchParams?.get(key)
       if (val !== null && val !== undefined) {
         // Chuyển đổi kiểu dữ liệu cơ bản (số)
-        if (!isNaN(val) && val.trim() !== '' && typeof initialValues[key] === 'number') {
+        if (!isNaN(val) && val.trim() !== '' && (typeof initialValues[key] === 'number' || initialValues[key] === null || initialValues[key] === undefined)) {
           params[key] = Number(val)
         } else if (val === 'null') {
           params[key] = null

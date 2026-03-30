@@ -6,8 +6,6 @@ export function RoadmapTestDashboard({
   questionNumbers = [], // danh sách questionNo thật của section hiện tại
   answers = {},
   onSubmit,
-  onSave,
-  isSaving = false,
   isSubmitting = false,
   isLastSection = false,
   currentQuestion = 1,
@@ -90,36 +88,23 @@ export function RoadmapTestDashboard({
 
       {/* Navigation, Save and Submit */}
       <View style={styles.bottomSection}>
-        {onSave && (
-          <Pressable
-            onPress={onSave}
-            disabled={isSaving}
-            style={({ pressed }) => [
-              styles.saveButton,
-              pressed && styles.saveButtonPressed,
-              isSaving && styles.saveButtonDisabled,
-            ]}
-          >
-            <Text style={styles.saveButtonText}>{isSaving ? 'Đang lưu...' : 'Lưu bài'}</Text>
-          </Pressable>
-        )}
-        {isLastSection && (
-          <Pressable
-            onPress={onSubmit}
-            disabled={isSubmitting}
-            style={({ pressed }) => [
-              styles.submitButton,
-              pressed && styles.submitButtonPressed,
-              isSubmitting && styles.submitButtonDisabled,
-            ]}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Text style={styles.submitButtonText}>Nộp Bài</Text>
-            )}
-          </Pressable>
-        )}
+        <Pressable
+          onPress={onSubmit}
+          disabled={isSubmitting}
+          style={({ pressed }) => [
+            styles.submitButton,
+            pressed && styles.submitButtonPressed,
+            isSubmitting && styles.submitButtonDisabled,
+          ]}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={styles.submitButtonText}>
+              {isLastSection ? 'Nộp Bài' : 'Xác nhận & Sang phần tiếp'}
+            </Text>
+          )}
+        </Pressable>
       </View>
     </View>
   )
@@ -207,26 +192,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F5F5F5',
     paddingTop: 12,
-  },
-  saveButton: {
-    backgroundColor: '#F5F5F5',
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  saveButtonPressed: {
-    transform: [{ scale: 0.98 }],
-    opacity: 0.9,
-  },
-  saveButtonDisabled: {
-    opacity: 0.5,
-  },
-  saveButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#666',
-    fontFamily: 'Epilogue, sans-serif',
   },
   submitButton: {
     backgroundColor: '#F1BE4B',

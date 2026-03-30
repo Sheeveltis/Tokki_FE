@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
 import { Space, Select, Modal, InputNumber, Tooltip } from 'antd'
-import { EyeOutlined, EditOutlined, SwapOutlined, PlusOutlined, GlobalOutlined, ArrowLeftOutlined, CheckCircleOutlined, CloseCircleOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
+import { EyeOutlined, EditOutlined, SwapOutlined, PlusOutlined, GlobalOutlined, ArrowLeftOutlined, CheckCircleOutlined, CloseCircleOutlined, UploadOutlined, DownloadOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useRouter } from 'solito/navigation'
-import { searchFlashcardTopics, createFlashcardTopic, approveTopic, rejectTopic, updateFlashcardTopic, uploadTopicImageToCloudinary, updateTopicOrderIndex } from '../../api/index.js'
+import { searchFlashcardTopics, createFlashcardTopic, approveTopic, rejectTopic, updateFlashcardTopic, uploadTopicImageToCloudinary, updateTopicOrderIndex, deleteTopic } from '../../api/index.js'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 import FlashcardTopicCreateModal from '../../components/admin/vocab-topic-management/vocab-topic-create-modal.jsx'
@@ -316,6 +316,32 @@ export function FlashcardTopicManagement({ initialData = null }) {
     setOrderModalOpen(true)
   }
 
+  const handleDeleteTopic = async (record, e) => {
+    e?.stopPropagation?.()
+    Modal.confirm({
+      title: 'Xóa chủ đề',
+      content: `Bạn có chắc chắn muốn xóa chủ đề "${record?.title || record?._raw?.topicName}" không?`,
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          const topicId = record?.id || record?.topicId || record?._raw?.topicId
+          if (!topicId) {
+            showAdminError('Không tìm thấy ID chủ đề')
+            return
+          }
+          await deleteTopic(topicId)
+          showAdminSuccess('Xóa chủ đề thành công')
+          await loadData(pagination.current, pagination.pageSize, searchTerm, level, status)
+        } catch (err) {
+          const errorMessage = err?.message || err?.errors?.[0]?.description || 'Không thể xóa chủ đề'
+          showAdminError(errorMessage, err?.statusCode)
+        }
+      },
+    })
+  }
+
   // Tính toán portalPrefix một lần dựa trên currentPortal
   const portalPrefix = useMemo(() => {
     return currentPortal === 'staff' ? '/staff' : currentPortal === 'moderator' ? '/moderator' : '/admin'
@@ -445,23 +471,11 @@ export function FlashcardTopicManagement({ initialData = null }) {
       title: 'Hành động',
       key: 'actions',
       align: 'center',
-      width: 190,
+      width: 220,
       render: (_, record) => {
         const iconStyle = { fontSize: 18, cursor: 'pointer', color: '#1890ff' }
         return (
           <Space size="large">
-            <Tooltip title="Chỉnh sửa">
-              <EditOutlined
-                style={iconStyle}
-                onClick={(e) => handleOpenEditModal(record, e)}
-              />
-            </Tooltip>
-            <Tooltip title="Đổi vị trí">
-              <SwapOutlined
-                style={iconStyle}
-                onClick={(e) => handleOpenOrderIndexModal(record, e)}
-              />
-            </Tooltip>
             <Tooltip title="Xem chi tiết">
               <EyeOutlined
                 style={iconStyle}
@@ -471,6 +485,18 @@ export function FlashcardTopicManagement({ initialData = null }) {
                 }}
               />
             </Tooltip>
+            <Tooltip title="Chỉnh sửa">
+              <EditOutlined
+                style={iconStyle}
+                onClick={(e) => handleOpenEditModal(record, e)}
+              />
+            </Tooltip>
+            <Tooltip title="Xóa">
+              <DeleteOutlined
+                style={iconStyle}
+                onClick={(e) => handleDeleteTopic(record, e)}
+              />
+            </Tooltip>
             <Tooltip title="Xem trên web user">
               <GlobalOutlined
                 style={iconStyle}
@@ -478,6 +504,12 @@ export function FlashcardTopicManagement({ initialData = null }) {
                   e?.stopPropagation?.()
                   window.open(`/flashcard/study?topic=${record.id}`, '_blank')
                 }}
+              />
+            </Tooltip>
+            <Tooltip title="Đổi vị trí">
+              <SwapOutlined
+                style={iconStyle}
+                onClick={(e) => handleOpenOrderIndexModal(record, e)}
               />
             </Tooltip>
           </Space>
