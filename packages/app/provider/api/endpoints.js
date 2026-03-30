@@ -263,6 +263,8 @@ export const ENDPOINTS = {
   EXAMS: {
     ADMIN_LIST: '/Exams/admin',              // GET: Lấy danh sách exams cho admin (query: PageNumber, PageSize, Status, Type)
     ADMIN_DETAIL: '/Exams/admin/detail',     // GET: Lấy chi tiết exam cho admin (query: examId)
+    ADMIN_STATS: (id) => `/Exams/admin/stats/${id}`, // GET: Lấy thống kê exam
+    ADMIN_PARTICIPANTS: (id) => `/Exams/admin/stats/${id}/participants`, // GET: Danh sách người làm bài
     GET_BY_ID: (id) => `/Exams/${id}`,      // GET: Lấy chi tiết exam
     CREATE: '/Exams',                        // POST: Tạo exam mới
     UPDATE: (id) => `/Exams/${id}`,          // PUT: Cập nhật exam
