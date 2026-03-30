@@ -63,6 +63,7 @@ export function QuestionTypeForm({ form }) {
             { value: 1, label: 'Dễ' },
             { value: 2, label: 'Trung bình' },
             { value: 3, label: 'Khó' },
+            { value: 4, label: 'Rất khó' },
           ]}
         />
       </Form.Item>
@@ -78,7 +79,6 @@ export function QuestionTypeForm({ form }) {
           options={[
             { value: 1, label: 'TOPIK I' },
             { value: 2, label: 'TOPIK II' },
-            { value: 3, label: 'Test đầu vào' },
           ]}
         />
       </Form.Item>

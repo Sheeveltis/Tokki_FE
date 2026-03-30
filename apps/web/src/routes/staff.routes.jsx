@@ -10,37 +10,61 @@ import { ViewBlogScreen } from '@tokki/app/features/blog/screens/admin/view-blog
 import { EditBlogScreen } from '@tokki/app/features/blog/screens/admin/edit-blog-screen'
 import { FlashcardTopicDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocab-topic-detail-screen'
 import { VocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/admin/vocabulary-detail-screen'
+import { CreateVocabularyScreen } from '@tokki/app/features/vocabulary/screens/admin/create-vocabulary-screen'
 import { QuestionTypeDetailScreen } from '@tokki/app/features/examination-management/components/admin/question-type-management/QuestionTypeDetail'
 import { QuestionTypeManagement } from '@tokki/app/features/examination-management/screens/admin/question-type-management-screen'
 
+import { Outlet } from 'react-router-dom'
+import { StaffLayout } from '@tokki/app/features/back-office/components/staff/staff-layout.web'
+import { useRouter } from 'solito/navigation'
+import { clearAuthToken } from '@tokki/app/provider/api/client'
+
 /**
- * Staff Routes - Container Components
+ * Staff Routes - Persistence Wrapper
  */
-function StaffRoute() {
-  return <StaffScreen />
+function StaffLayoutWrapper() {
+  const router = useRouter()
+  return (
+    <StaffLayout 
+      onLogout={async () => {
+        await clearAuthToken()
+        router.push('/admin-login')
+      }}
+      onNavigate={(key) => router.push(`/staff?tab=${key}`)}
+    >
+      <Outlet />
+    </StaffLayout>
+  )
 }
 
 /**
  * Staff Routes Configuration
  */
 export const staffRoutes = [
-  // Staff Dashboard
-  { path: '/staff', element: <StaffRoute /> },
+  {
+    path: '/staff',
+    element: <StaffLayoutWrapper />,
+    children: [
+      { index: true, element: <StaffScreen /> },
+      
+      // Staff - User Management
+      { path: 'users/:id', element: <StaffUserDetailScreen /> },
 
-  // Staff - User Management
-  { path: '/staff/users/:id', element: <StaffUserDetailScreen /> },
-
-  // Staff - Content Management
-  { path: '/staff/vocab-topic/:id', element: <FlashcardTopicDetailScreen /> },
-  { path: '/staff/lessons/:id', element: <LessonDetailScreen /> },
-  { path: '/staff/blog/:id/edit', element: <EditBlogScreen /> },
-  { path: '/staff/blog/:id', element: <ViewBlogScreen /> },
-  { path: '/staff/vocab/:id', element: <VocabularyDetailScreen /> },
-  // Staff - Question Type / Question Bank detail
-  { path: '/staff/question-type/:id', element: <QuestionTypeDetailScreen basePath="/staff" layout="staff" /> },
-  { path: '/staff/question-type', element: <QuestionTypeManagement basePath="/staff" /> },
-  { path: '/staff/exam-templates/:id', element: <ExamTemplateDetailScreen /> },
-  { path: '/staff/question-bank/create', element: <CreateQuestionScreen basePath="/staff" layout="staff" /> },
+      // Staff - Content Management
+      { path: 'vocab-topic/:id', element: <FlashcardTopicDetailScreen /> },
+      { path: 'lessons/:id', element: <LessonDetailScreen /> },
+      { path: 'blog/:id/edit', element: <EditBlogScreen /> },
+      { path: 'blog/:id', element: <ViewBlogScreen /> },
+      { path: 'vocab/:id', element: <VocabularyDetailScreen /> },
+      { path: 'vocab/create', element: <CreateVocabularyScreen /> },
+      
+      // Staff - Question Type / Question Bank detail
+      { path: 'question-type/:id', element: <QuestionTypeDetailScreen basePath="/staff" layout="staff" /> },
+      { path: 'question-type', element: <QuestionTypeManagement basePath="/staff" /> },
+      { path: 'exam-templates/:id', element: <ExamTemplateDetailScreen /> },
+      { path: 'question-bank/create', element: <CreateQuestionScreen basePath="/staff" layout="staff" /> },
+    ]
+  }
 ]
 
 /**
@@ -48,6 +72,15 @@ export const staffRoutes = [
  */
 export function renderStaffRoutes() {
   return staffRoutes.map((route) => (
-    <Route key={route.path} path={route.path} element={route.element} />
+    <Route key={route.path} path={route.path} element={route.element}>
+      {route.children?.map(child => (
+        <Route 
+          key={child.path || 'index'} 
+          index={child.index} 
+          path={child.path} 
+          element={child.element} 
+        />
+      ))}
+    </Route>
   ))
 }

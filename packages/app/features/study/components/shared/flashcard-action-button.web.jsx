@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
-import { normalizeImageSource } from '../../api'
+import { View, Text, StyleSheet, Pressable, Platform } from 'react-native'
+import { StudyIcon } from '../study-icon.web'
 
 /**
  * FlashcardActionButton: Nút hành động cho trang học flashcard (Học/Kiểm tra)
@@ -24,10 +24,11 @@ export function FlashcardActionButton({
     >
       {icon && (
         <View style={styles.left}>
-          <Image
-            source={normalizeImageSource(icon)}
-            style={styles.icon}
-            resizeMode="contain"
+          <StudyIcon
+            source={icon}
+            width={20}
+            height={20}
+            tintColor="#1F1F1F"
           />
         </View>
       )}

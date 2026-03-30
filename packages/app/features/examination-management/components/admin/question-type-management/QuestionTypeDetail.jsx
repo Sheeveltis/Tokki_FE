@@ -120,30 +120,25 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
 
   if (loading) {
     return (
-      <LayoutComponent defaultKey="question-bank" onNavigate={handleNavigate}>
-        <div style={{ padding: 24, textAlign: 'center' }}>
-          <Text type="secondary">Đang tải...</Text>
-        </div>
-      </LayoutComponent>
+      <div style={{ padding: 24, textAlign: 'center' }}>
+        <Text type="secondary">Đang tải...</Text>
+      </div>
     )
   }
 
   if (error || !questionType) {
     return (
-      <LayoutComponent defaultKey="question-bank" onNavigate={handleNavigate}>
-        <div style={{ padding: 24, textAlign: 'center' }}>
-          <Text type="secondary">{error || 'Không tìm thấy loại câu hỏi'}</Text>
-        </div>
-      </LayoutComponent>
+      <div style={{ padding: 24, textAlign: 'center' }}>
+        <Text type="secondary">{error || 'Không tìm thấy loại câu hỏi'}</Text>
+      </div>
     )
   }
 
   return (
-    <LayoutComponent defaultKey="question-bank" onNavigate={handleNavigate}>
-      <div style={{ padding: 24 }}>
+    <div style={{ padding: 24 }}>
         <QuestionTypeHeaderActions
           questionTypeId={questionTypeId}
-          onBack={() => router.push(`${basePath}?tab=question-bank`)}
+          onBack={() => router.back()}
           onEdit={() => setIsEditing(true)}
           deleting={deleting}
           onDelete={async () => {
@@ -253,7 +248,6 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
 
         {/* Pagination handled inside QuestionCardList via props */} 
       </div>
-    </LayoutComponent>
   )
 }
 

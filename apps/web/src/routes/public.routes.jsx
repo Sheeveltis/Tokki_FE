@@ -25,7 +25,7 @@ import { SolitarePlayWeb } from '@tokki/app/features/minigame/components/solitar
 import { SolitareResultScreen } from '@tokki/app/features/minigame/screens/solitare/solitare-result-screen'
 import { WordleRuleScreen } from '@tokki/app/features/minigame/screens/wordle/wordle-rule-screen'
 import { WordlePlayScreen } from '@tokki/app/features/minigame/screens/wordle/wordle-play-screen'
-import { WordleBoardScreen } from '@tokki/app/features/minigame/screens/wordle/wordle-board.screen'
+import { WordleBoardScreen } from '@tokki/app/features/minigame/screens/wordle/wordle-board-screen'
 import { DictionarySearchScreen } from '@tokki/app/features/vocabulary/screens/client/dictionary-search-screen'
 import { DictionaryVocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/client/dictionary-detail-screen'
 import { Navbar } from 'components/navbar'
@@ -39,7 +39,7 @@ function RootHomeRoute() {
   return (
     <HomeScreen
       onHomePress={() => navigate('/')}
-      onRoadmapPress={() => navigate('/study')}
+      onRoadmapPress={() => navigate('/menu-study?level=1')}
       onFlashcardPress={() => navigate('/flashcard')}
       onBlogPress={() => navigate('/blog')}
       onProfilePress={() => navigate('/profile')}

@@ -406,8 +406,8 @@ export async function fetchExamTemplates(params = {}) {
       Name: item.name,
       description: item.description,
       Description: item.description,
-      examType: item.type === 1 ? 'TOPIK I' : item.type === 2 ? 'TOPIK II' : item.type === 3 ? 'Test đầu vào' : '',
-      ExamType: item.type === 1 ? 'TOPIK I' : item.type === 2 ? 'TOPIK II' : item.type === 3 ? 'Test đầu vào' : '',
+      examType: item.type === 1 ? 'TOPIK I' : item.type === 2 ? 'TOPIK II' : '',
+      ExamType: item.type === 1 ? 'TOPIK I' : item.type === 2 ? 'TOPIK II' : '',
       status: item.status,
       type: item.type,
       totalParts: item.totalParts || 0,
@@ -455,13 +455,12 @@ export async function fetchExamTemplate(examTemplateId) {
     const examTypeMap = {
       1: 'TOPIK I',
       2: 'TOPIK II',
-      3: 'Test đầu vào',
     }
 
     // Map parts từ API format sang format component đang sử dụng
     const transformParts = (parts) => {
       if (!parts || !Array.isArray(parts)) return []
-      
+
       // Group parts theo skill
       const groupedBySkill = {}
       parts.forEach((part) => {
@@ -482,12 +481,21 @@ export async function fetchExamTemplate(examTemplateId) {
           TemplatePartId: part.templatePartId, // Giữ lại để có thể update/delete
         })
       })
-      
-      // Convert thành mảng parts với QuestionGroups
-      return Object.keys(groupedBySkill).map((skill) => ({
-        Skill: parseInt(skill),
-        QuestionGroups: groupedBySkill[skill],
-      }))
+
+      // Thứ tự sắp xếp kỹ năng mong muốn
+      const skillSortOrder = {
+        1: 1, // Nghe
+        3: 2, // Viết
+        2: 3, // Đọc
+      }
+
+      // Convert thành mảng parts với QuestionGroups và sắp xếp theo skillSortOrder
+      return Object.keys(groupedBySkill)
+        .sort((a, b) => (skillSortOrder[a] || 99) - (skillSortOrder[b] || 99))
+        .map((skill) => ({
+          Skill: parseInt(skill),
+          QuestionGroups: groupedBySkill[skill],
+        }))
     }
 
     // Map dữ liệu từ API response - chỉ trả về format từ API (camelCase) để tránh duplicate
@@ -518,7 +526,6 @@ export async function updateExamTemplate(examTemplateId, payload) {
     const examTypeToNumber = {
       'TOPIK I': 1,
       'TOPIK II': 2,
-      'Test đầu vào': 3,
     }
 
     // Format payload từ component format sang API format
@@ -555,7 +562,6 @@ export async function updateExamTemplate(examTemplateId, payload) {
     const examTypeMap = {
       1: 'TOPIK I',
       2: 'TOPIK II',
-      3: 'Test đầu vào',
     }
 
     return {
@@ -782,9 +788,18 @@ export async function rejectExamTemplate(examTemplateId, reason) {
 // Question Type APIs
 export async function fetchQuestionTypes(params = {}) {
   try {
-    const { skill = null, examType = null } = params
+    const { 
+      skill = null, 
+      examType = null,
+      pageNumber = 1,
+      pageSize = 100 
+    } = params
 
-    const queryParams = {}
+    const queryParams = {
+      pageNumber: pageNumber,
+      pageSize: pageSize
+    }
+
     if (skill !== null && skill !== undefined) {
       queryParams.skill = skill
     }
@@ -805,7 +820,10 @@ export async function fetchQuestionTypes(params = {}) {
       throw new Error(message)
     }
 
-    const items = Array.isArray(payload?.data) ? payload.data : []
+    // Xử lý dữ liệu trả về: có thể là array trực tiếp hoặc object chứa items (paged)
+    const items = Array.isArray(payload?.data) 
+      ? payload.data 
+      : (Array.isArray(payload?.data?.items) ? payload.data.items : [])
 
     // Map dữ liệu từ API response về format component đang sử dụng
     return items.map((item) => ({
@@ -842,7 +860,6 @@ export async function createExamTemplate(payload) {
     const examTypeToNumber = {
       'TOPIK I': 1,
       'TOPIK II': 2,
-      'Test đầu vào': 3,
     }
 
     // Format payload từ component format sang API format
@@ -862,11 +879,11 @@ export async function createExamTemplate(payload) {
     const responseData = res?.data
     if (!responseData?.isSuccess) {
       // Xử lý error từ API
-      const errorMessage = 
+      const errorMessage =
         responseData?.message ||
         (Array.isArray(responseData?.errors) && responseData.errors[0]?.description) ||
         'Không thể tạo mẫu đề'
-      
+
       // Tạo error object với message
       const error = new Error(errorMessage)
       error.status = responseData?.statusCode || 400

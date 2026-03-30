@@ -60,7 +60,7 @@ export function QuestionTypeSelectorModal({
                 >
                   <div><strong>{type.name}</strong></div>
                   <div>Kỹ năng: {['Nghe', 'Đọc', 'Viết'][type.skill - 1]}</div>
-                  <div>Độ khó: {['Dễ', 'Trung bình', 'Khó'][type.difficulty - 1]}</div>
+                  <div>Độ khó: {['Dễ', 'Trung bình', 'Khó', 'Rất khó'][type.difficulty - 1]}</div>
                   <div>Mã: {type.code}</div>
                   {!isCompatible && editForm?.passageId && (
                     <div style={{ color: '#ff4d4f', fontSize: '11px', marginTop: 4 }}>

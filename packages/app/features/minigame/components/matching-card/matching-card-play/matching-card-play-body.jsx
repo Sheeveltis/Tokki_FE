@@ -13,9 +13,9 @@ const shuffle = (list = []) => {
 }
 
 const LEVEL_CONFIG = {
-  easy: { pairs: 12, size: 'large' },
-  medium: { pairs: 18, size: 'medium' },
-  hard: { pairs: 27, size: 'small' },
+  easy: { pairs: 4, size: 'large' },
+  medium: { pairs: 9, size: 'medium' },
+  hard: { pairs: 18, size: 'small' },
 }
 
 /**
@@ -111,7 +111,7 @@ export function MatchingCardPlayBody({ topicId, levelId, quantity: quantityProp,
   }
 
   return (
-    <View style={styles.grid}>
+    <View style={styles.grid} nativeID="matching-card-grid">
       {cards.map((card) => {
         const isFlipped = flipped.some((c) => c.id === card.id)
         const isMatched = matchedSet.has(card.id)
@@ -129,6 +129,7 @@ export function MatchingCardPlayBody({ topicId, levelId, quantity: quantityProp,
             flipped={isFlipped || isMatched}
             matched={isMatched}
             style={sizeStyle}
+            size={levelConfig.size}
             onFlip={() => onFlipCard(card)}
             imgUrl={card.imgUrl}
           />
@@ -147,20 +148,24 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 9,
+    gap: 8,
     justifyContent: 'center',
   },
   cardLarge: {
-    transform: [{ scale: 1.0 }],
-    margin: 15,
+    transform: [{ scale: 2.0 }],
+    margin: 66.9,
+    width: 200,
+    height: 200,
   },
   cardMedium: {
-    transform: [{ scale: 1.0 }],
-    margin: 6,
+    transform: [{ scale: 2.0 }],
+    margin: 24.9,
+    width: 170,
+    height: 170,
   },
   cardSmall: {
-    transform: [{ scale: 0.8 }],
-    margin: -10,
+    transform: [{ scale: 1.0 }],
+    margin: 6,
   },
 })
 

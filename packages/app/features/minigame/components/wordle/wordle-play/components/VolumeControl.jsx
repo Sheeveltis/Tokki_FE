@@ -9,80 +9,33 @@ const VOLUME_CONTROL_CSS = `
 .wordle-volume {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #fff7ea;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  justify-content: center;
 }
 
-.wordle-volume__icon {
+.wordle-volume__button {
   border: none;
-  background: transparent;
+  background: #fff7ea;
   cursor: pointer;
   font-size: 20px;
   line-height: 1;
+  font-weight: 700;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #222;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
   transition: transform 0.15s ease, color 0.15s ease, opacity 0.15s ease;
 }
 
-.wordle-volume__icon--muted {
+.wordle-volume__button--muted {
   color: #b0bec5;
-  opacity: 0.7;
 }
 
-.wordle-volume__icon:hover {
+.wordle-volume__button:hover {
   transform: scale(1.05);
-}
-
-.wordle-volume__slider {
-  display: flex;
-  align-items: center;
-  width: 140px;
-}
-
-.wordle-volume__range {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 4px;
-  background: #111;
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.wordle-volume__range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #111;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.wordle-volume__range::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #111;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.wordle-volume__range:hover::-webkit-slider-thumb,
-.wordle-volume__range:active::-webkit-slider-thumb,
-.wordle-volume__range:hover::-moz-range-thumb,
-.wordle-volume__range:active::-moz-range-thumb {
-  transform: scale(1.1);
-  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.08);
 }
 `
 
@@ -175,23 +128,12 @@ export function VolumeControl() {
       <div className="wordle-volume">
         <button
           type="button"
-          className={`wordle-volume__icon ${isMuted ? 'wordle-volume__icon--muted' : ''}`}
+          className={`wordle-volume__button ${isMuted ? 'wordle-volume__button--muted' : ''}`}
           onClick={toggleMute}
           aria-label={isMuted ? 'Unmute' : 'Mute'}
         >
-          🔊
+          {isMuted ? '🔇' : '🔊'}
         </button>
-        <div className="wordle-volume__slider">
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={isMuted ? 0 : volume}
-            onChange={handleSliderChange}
-            className="wordle-volume__range"
-          />
-        </div>
       </div>
     </>
   )

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
+import { View, Text, StyleSheet, Pressable, Image as RNImage, Platform } from 'react-native'
+import { StudyIcon } from '../study-icon.web'
 import { normalizeImageSource } from '../../api'
 import CompleteStamp from '../../../../../assets/icon/decor/complete-stamp.png'
 
@@ -37,10 +38,10 @@ export function FlashcardTopicCard({
       ]}
     >
       <View style={[styles.left, compact && styles.leftCompact]}>
-        <Image
-          source={normalizeImageSource(icon)}
-          style={[styles.avatar, compact && styles.avatarCompact]}
-          resizeMode="contain"
+        <StudyIcon
+          source={icon}
+          width={compact ? (Platform.OS === 'web' ? 48 : 40) : 100}
+          height={compact ? (Platform.OS === 'web' ? 48 : 40) : 100}
         />
       </View>
       <View style={[styles.divider, compact && styles.dividerCompact]} />
@@ -57,7 +58,7 @@ export function FlashcardTopicCard({
       {shouldShowBadge ? (
         <View style={[styles.right, compact && styles.rightCompact]}>
           {isComplete ? (
-            <Image
+            <RNImage
               source={normalizeImageSource(CompleteStamp)}
               style={[styles.badgeStamp, compact && styles.badgeStampCompact]}
               resizeMode="contain"
@@ -81,10 +82,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: '#FDEEB9',
     borderRadius: 80,
-    shadowColor: '#F1BE4B',
-    shadowOpacity: 1,
-    shadowRadius: 1,
-    shadowOffset: { width: 0, height: 6 },
+    ...Platform.select({
+      web: {
+        boxShadow: '0 6px 0 #F1BE4B',
+      },
+      default: {
+        shadowColor: '#F1BE4B',
+        shadowOpacity: 1,
+        shadowRadius: 1,
+        shadowOffset: { width: 0, height: 6 },
+      },
+    }),
     ...(Platform.OS === 'web' && {
       transitionProperty: 'transform, box-shadow, background-color, border-color',
       transitionDuration: '150ms',
@@ -98,9 +106,17 @@ const styles = StyleSheet.create({
   cardCompact: {
     paddingVertical: Platform.OS === 'web' ? 10 : 8,
     paddingHorizontal: Platform.OS === 'web' ? 50 : 16,
+    paddingHorizontal: Platform.OS === 'web' ? 50 : 16,
     borderRadius: 100,
-    shadowOffset: { width: 0, height: 4 },
     backgroundColor: '#F1BE4B',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 0 #F1BE4B',
+      },
+      default: {
+        shadowOffset: { width: 0, height: 4 },
+      },
+    }),
     ...(Platform.OS !== 'web' && {
       marginBottom: 12,
     }),
@@ -110,9 +126,16 @@ const styles = StyleSheet.create({
   },
   cardActive: {
     transform: [{ translateY: -2 }],
-    shadowOpacity: 0.22,
     backgroundColor: '#F1BE4B',
     borderColor: '#F1BE4B',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 8px 12px rgba(241, 190, 75, 0.4)',
+      },
+      default: {
+        shadowOpacity: 0.22,
+      },
+    }),
   },
   left: {
     width: 90,

@@ -29,31 +29,7 @@ export function StaffUserDetailScreen() {
     return <AccountDetails userId={userId} />
   }, [userId])
 
-  const screens = useMemo(
-    () => ({
-      users: detailContent,
-    }),
-    [detailContent],
-  )
-
-  return (
-    <StaffLayout
-      screens={screens}
-      defaultKey="users"
-      onNavigate={handleNavigate}
-      onLogout={async () => {
-        // Xóa token khi đăng xuất
-        await clearAuthToken()
-        // Dùng window.location.href để đảm bảo redirect hoạt động
-        // Redirect về /staff để hiển thị login form
-        if (typeof window !== 'undefined') {
-          window.location.href = '/staff'
-        } else {
-          router.push('/staff')
-        }
-      }}
-    />
-  )
+  return detailContent
 }
 
 export default StaffUserDetailScreen

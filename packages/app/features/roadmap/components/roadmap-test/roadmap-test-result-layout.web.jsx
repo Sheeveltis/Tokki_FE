@@ -1,13 +1,23 @@
-import React from 'react'
-import { StyleSheet, View, Text, ScrollView, Pressable, Platform } from 'react-native'
+import { useState } from 'react'
+import { StyleSheet, View, Text, ScrollView, Pressable, Platform, Modal } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { Navbar } from '../../../../../components/navbar'
 import { RoadmapTestButton } from './roadmap-test-button'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
 import { NavigationPill } from '../../../../../components/navigation-pill'
+import {
+  InfoCircleOutlined,
+  OrderedListOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+} from '@ant-design/icons'
+import { Modal as RNModal } from 'react-native'
+import { RoadmapTestResultDetailView } from './roadmap-test-result-detail-view'
+import { apiClient } from '../../../../provider/api/client'
 
 const SectionScoreCard = ({
   label,
+  sectionKey,
   score,
   maxScore,
   correctAnswers,
@@ -58,7 +68,7 @@ const SectionScoreCard = ({
                 showPendingMessage && styles.detailLinkTextDisabled,
               ]}
             >
-              {showPendingMessage ? 'Đang chấm...' : 'Xem chi tiết'}
+              {showPendingMessage ? 'Đang chấm...' : 'Chi tiết'}
             </Text>
           </Pressable>
         )}
@@ -73,8 +83,36 @@ export function RoadmapTestResultLayout({
   isLoading,
   error,
   isGraded = false,
+  isEntrance = false,
+  onNavigateToGenerate,
+  onRetake,
 }) {
   const router = useRouter()
+
+  const [detailModalVisible, setDetailModalVisible] = useState(false)
+  const [detailSection, setDetailSection] = useState(null)
+  const [detailData, setDetailData] = useState(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [detailError, setDetailError] = useState(null)
+
+  const fetchDetail = async (section) => {
+    if (!userExamId || !section) return
+    setDetailModalVisible(true)
+    setDetailSection(section)
+    setDetailLoading(true)
+    setDetailError(null)
+    setDetailData(null)
+    try {
+      const url = `/UserExam/${encodeURIComponent(userExamId)}/result/${encodeURIComponent(section)}`
+      const response = await apiClient.get(url)
+      setDetailData(response?.data?.data)
+    } catch (err) {
+      console.error('Failed to fetch detail:', err)
+      setDetailError('Không thể tải chi tiết phần này.')
+    } finally {
+      setDetailLoading(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -103,86 +141,139 @@ export function RoadmapTestResultLayout({
     )
   }
 
-  const { userName, examTitle, listening, reading, writing, totalScore } = resultData
-  const toDetail = (sectionKey) =>
-    `/roadmap/test/result/detail?userExamId=${encodeURIComponent(userExamId || '')}&section=${encodeURIComponent(
-      sectionKey
-    )}`
+  const { userName, examTitle, listening, reading, writing, totalScore } = resultData || {}
+
+  const sectionCards = [
+    listening
+      ? {
+        key: 'listening',
+        label: 'Nghe',
+        score: listening.score,
+        maxScore: listening.maxScore,
+        correctAnswers: listening.correctAnswers,
+        totalQuestions: listening.totalQuestions,
+        isGraded: true,
+      }
+      : null,
+    reading
+      ? {
+        key: 'reading',
+        label: 'Đọc',
+        score: reading.score,
+        maxScore: reading.maxScore,
+        correctAnswers: reading.correctAnswers,
+        totalQuestions: reading.totalQuestions,
+        isGraded: true,
+      }
+      : null,
+    writing
+      ? {
+        key: 'writing',
+        label: 'Viết',
+        score: writing.score,
+        maxScore: writing.maxScore,
+        correctAnswers: writing.correctAnswers,
+        totalQuestions: writing.totalQuestions,
+        isGraded,
+      }
+      : null,
+  ].filter(Boolean)
 
   return (
     <View style={styles.wrapper}>
       <Navbar />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
-          <View style={styles.backButtonContainer}>
-            <NavigationPill
-              label="Quay lại"
-              to={undefined}
-              icon={ArrowIcon}
-              onPress={() => router.push('/roadmap/info')}
-              textStyle={{ fontWeight: '700' }}
-              iconStyle={{ transform: [{ scaleX: -1 }] }}
-            />
+          <View style={styles.headerSection}>
+            <Text style={styles.title}>Kết quả bài thi</Text>
+            {examTitle && (
+              <Text style={styles.examTitle}>{examTitle}</Text>
+            )}
           </View>
 
-          <Text style={styles.title}>Kết quả bài thi</Text>
-          {userName && (
-            <Text style={styles.subtitle}>
-              Thí sinh: {userName}
-            </Text>
-          )}
-          {examTitle && (
-            <Text style={styles.examTitle}>{examTitle}</Text>
-          )}
-
           <View style={styles.totalScoreBox}>
-            <Text style={styles.totalScoreLabel}>Tổng điểm</Text>
+            <Text style={styles.totalScoreLabel}>Tổng điểm đạt được</Text>
             <Text style={styles.totalScoreValue}>{totalScore ?? 0}</Text>
           </View>
 
           <View style={styles.sectionsRow}>
-            {listening && (
+            {sectionCards.map((card) => (
               <SectionScoreCard
-                label="Nghe"
-                score={listening.score}
-                maxScore={listening.maxScore}
-                correctAnswers={listening.correctAnswers}
-                totalQuestions={listening.totalQuestions}
-                onViewDetail={() => router.push(toDetail('listening'))}
+                key={card.key}
+                sectionKey={card.key}
+                label={card.label}
+                score={card.score}
+                maxScore={card.maxScore}
+                correctAnswers={card.correctAnswers}
+                totalQuestions={card.totalQuestions}
+                onViewDetail={() => fetchDetail(card.key)}
+                isGraded={card.isGraded}
               />
-            )}
-            {reading && (
-              <SectionScoreCard
-                label="Đọc"
-                score={reading.score}
-                maxScore={reading.maxScore}
-                correctAnswers={reading.correctAnswers}
-                totalQuestions={reading.totalQuestions}
-                onViewDetail={() => router.push(toDetail('reading'))}
-              />
-            )}
-            {writing && (
-              <SectionScoreCard
-                label="Viết"
-                score={writing.score}
-                maxScore={writing.maxScore}
-                correctAnswers={writing.correctAnswers}
-                totalQuestions={writing.totalQuestions}
-                onViewDetail={() => router.push(toDetail('writing'))}
-                isGraded={isGraded}
-              />
-            )}
+            ))}
           </View>
 
-          <View style={styles.actionsRow}>
-            <RoadmapTestButton
-              title="Về trang lộ trình"
-              onPress={() => router.push('/roadmap/info')}
-              style={[styles.actionButton, styles.actionButtonSecondary]}
-            />
+          {!isGraded && (
+            <View style={styles.waitingNotice}>
+              <InfoCircleOutlined style={{ color: '#F1BE4B', fontSize: 16 }} />
+              <Text style={styles.waitingNoticeText}>
+                Đang chấm bài Viết bằng AI. Kết quả sẽ tự động cập nhật sau ít giây...
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.actionsColumn}>
+            {isEntrance && (
+              <RoadmapTestButton
+                title={isGraded ? "Tạo lộ trình học tập" : "Đang chờ chấm điểm..."}
+                onPress={onNavigateToGenerate}
+                disabled={!isGraded}
+                style={[
+                  styles.actionButton,
+                  styles.actionButtonPrimary,
+                  !isGraded && styles.actionButtonDisabled
+                ]}
+                hoverStyle={!isGraded ? null : styles.actionButtonPrimaryHover}
+                textStyle={styles.actionButtonPrimaryText}
+              />
+            )}
+            <View style={styles.secondaryActionsRow}>
+              <RoadmapTestButton
+                title="Làm kiểm tra lại"
+                onPress={onRetake}
+                style={[styles.actionButtonMinor, styles.actionButtonSecondary]}
+                hoverStyle={styles.actionButtonSecondaryHover}
+                textStyle={styles.actionButtonSecondaryText}
+              />
+              <RoadmapTestButton
+                title="Quay lại trang lộ trình"
+                onPress={() => router.push('/roadmap/info')}
+                style={[styles.actionButtonMinor, styles.actionButtonSecondary]}
+                hoverStyle={styles.actionButtonSecondaryHover}
+                textStyle={styles.actionButtonSecondaryText}
+              />
+            </View>
           </View>
         </View>
       </ScrollView>
+
+      <RNModal
+        visible={detailModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDetailModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBody}>
+            <RoadmapTestResultDetailView
+              section={detailSection}
+              detailData={detailData}
+              isLoading={detailLoading}
+              error={detailError}
+              onClose={() => setDetailModalVisible(false)}
+            />
+          </View>
+        </View>
+      </RNModal>
     </View>
   )
 }
@@ -190,172 +281,291 @@ export function RoadmapTestResultLayout({
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: '#FFEFE1',
+    backgroundColor: '#FAF9F6',
     minHeight: '100vh',
   },
   scrollContent: {
-    paddingVertical: 32,
+    paddingVertical: 40,
     paddingHorizontal: 24,
     alignItems: 'center',
-    paddingBottom: 80,
+    paddingBottom: 100,
   },
   backButtonContainer: {
     alignSelf: 'flex-start',
-    marginBottom: 0,
+    marginBottom: 8,
   },
   content: {
     width: '100%',
-    maxWidth: 600,
-    backgroundColor: '#FDF7EC',
-    borderRadius: 24,
-    padding: 32,
-    gap: 24,
+    maxWidth: 1200,
+    gap: 32,
   },
   centerContent: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
-    gap: 16,
+    gap: 20,
   },
   loadingText: {
     fontSize: 16,
-    color: '#5F5F5F',
+    color: '#999',
+    fontWeight: '600',
     fontFamily: 'Epilogue, sans-serif',
   },
   errorText: {
     fontSize: 16,
-    color: '#C62828',
+    color: '#EF4444',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
+    fontWeight: '600',
   },
   backButton: {
-    minWidth: 140,
+    minWidth: 160,
+  },
+  headerSection: {
+    alignItems: 'center',
+    gap: 8,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1C1C1C',
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
+    letterSpacing: -1,
+  },
+  waitingNotice: {
+    backgroundColor: '#FFFBE6',
+    borderWidth: 1,
+    borderColor: '#FFE58F',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 8,
+    alignSelf: 'center',
+    maxWidth: 600,
+    width: '100%',
+  },
+  waitingNoticeText: {
+    fontSize: 14,
+    color: '#856404',
+    fontFamily: 'Epilogue, sans-serif',
+    fontWeight: '600',
+    flex: 1,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#5F5F5F',
+    fontSize: 15,
+    color: '#666',
     fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   examTitle: {
     fontSize: 14,
-    color: '#8E8E8E',
+    color: '#999',
     fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
+    fontWeight: '500',
   },
   totalScoreBox: {
-    backgroundColor: '#FFF2CC',
-    borderRadius: 16,
-    paddingVertical: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 32,
+    paddingVertical: 40,
     paddingHorizontal: 32,
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#FFC56E',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 20px 50px rgba(0,0,0,0.05)',
+    }),
   },
   totalScoreLabel: {
     fontSize: 14,
-    color: '#5F5F5F',
-    fontFamily: 'Epilogue, sans-serif',
-    marginBottom: 4,
+    color: '#999',
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: 8,
   },
   totalScoreValue: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: '#1C1C1C',
+    fontSize: 72,
+    fontWeight: '900',
+    color: '#F1BE4B',
     fontFamily: 'Epilogue, sans-serif',
+    letterSpacing: -2,
   },
   sectionsRow: {
-    gap: 16,
+    flexDirection: 'row',
+    gap: 20,
+    flexWrap: 'wrap',
   },
   sectionCard: {
+    flex: 1,
+    minWidth: 240,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 24,
+    padding: 24,
     borderWidth: 1,
-    borderColor: '#FFE0B3',
-  },
-  sectionLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
+    borderColor: '#F0F0F0',
+    gap: 16,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
+      transition: 'transform 0.2s ease',
+      ':hover': {
+        transform: 'translateY(-4px)',
+      }
+    }),
   },
   sectionTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 12,
+    alignItems: 'flex-start',
   },
-  sectionScoreText: {
+  sectionLabel: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#2E7D32',
+    fontWeight: '900',
+    color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
   },
   sectionDetailText: {
-    fontSize: 14,
-    color: '#5F5F5F',
+    fontSize: 13,
+    color: '#999',
+    fontWeight: '700',
+    fontFamily: 'Epilogue, sans-serif',
+    backgroundColor: '#F9FAFB',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  sectionScoreText: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#F1BE4B',
     fontFamily: 'Epilogue, sans-serif',
   },
   sectionBottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 12,
+    alignItems: 'flex-end',
     marginTop: 8,
   },
   detailLink: {
-    paddingVertical: 4,
-    paddingHorizontal: 0,
-  },
-  detailLinkPressed: {
-    opacity: 0.7,
+    backgroundColor: '#F5F5F5',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
   },
   detailLinkText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1C1C1C',
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#666',
     fontFamily: 'Epilogue, sans-serif',
-    textDecorationLine: 'none',
-  },
-  detailLinkDisabled: {
-    opacity: 0.5,
-  },
-  detailLinkTextDisabled: {
-    color: '#8E8E8E',
   },
   pendingText: {
-    fontSize: 14,
-    color: '#FF9800',
-    fontFamily: 'Epilogue, sans-serif',
-    fontWeight: '600',
+    fontSize: 12,
+    color: '#F1BE4B',
+    fontWeight: '800',
+    textTransform: 'uppercase',
   },
   pendingScoreText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#8E8E8E',
-    fontFamily: 'Epilogue, sans-serif',
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#CCC',
   },
-  actionsRow: {
+  actionsColumn: {
+    flexDirection: 'column',
+    gap: 16,
+    alignItems: 'center',
+    marginTop: 40,
+  },
+  secondaryActionsRow: {
     flexDirection: 'row',
     gap: 16,
     justifyContent: 'center',
-    marginTop: 8,
+    width: '100%',
+    maxWidth: 600,
   },
   actionButton: {
-    minWidth: 160,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    width: '100%',
+    maxWidth: 600,
+    paddingVertical: 18,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionButtonMinor: {
+    flex: 1,
+    maxWidth: 300,
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionButtonPrimary: {
+    backgroundColor: '#F1BE4B',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 10px 25px rgba(241, 190, 75, 0.4)',
+      transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+    }),
+  },
+  actionButtonPrimaryHover: {
+    ...(Platform.OS === 'web' && {
+      transform: 'translateY(-4px)',
+      boxShadow: '0 15px 35px rgba(241, 190, 75, 0.6)',
+      backgroundColor: '#F7C965',
+    }),
   },
   actionButtonSecondary: {
-    backgroundColor: '#FFF4DA',
+    backgroundColor: '#e0dfddff',
+    borderWidth: 1.5,
+    borderColor: '#EFEFEF',
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.2s ease',
+    }),
+  },
+  actionButtonSecondaryHover: {
+    ...(Platform.OS === 'web' && {
+      backgroundColor: '#F9FAFB',
+      borderColor: '#F1BE4B',
+    }),
+  },
+  actionButtonPrimaryText: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  actionButtonSecondaryText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#555',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  actionButtonDisabled: {
+    opacity: 0.6,
+    backgroundColor: '#E5E7EB',
+    ...(Platform.OS === 'web' && {
+      boxShadow: 'none',
+      cursor: 'not-allowed',
+    }),
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalBody: {
+    width: '100%',
+    maxWidth: 1000,
+    height: '85vh',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 32,
+    overflow: 'hidden',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+    }),
   },
 })

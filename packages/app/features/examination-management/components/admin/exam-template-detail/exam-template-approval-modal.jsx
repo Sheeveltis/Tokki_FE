@@ -26,9 +26,6 @@ export function ExamTemplateApprovalModal({ open, loading, onCancel, onSubmit, i
         rejectionReason: '',
       })
       setApprovalType(type)
-    } else {
-      form.resetFields()
-      setApprovalType('approve')
     }
   }, [open, form, initialApprovalType])
 
@@ -77,7 +74,7 @@ export function ExamTemplateApprovalModal({ open, loading, onCancel, onSubmit, i
           borderRadius: 8,
         },
       }}
-      destroyOnClose
+      destroyOnHidden
       centered
       styles={{
         header: { 

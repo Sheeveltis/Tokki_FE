@@ -12,19 +12,20 @@ export default function ManagementTable({
   rowKey = 'id',
   pagination,
   onChange,
-  scroll, 
+  scroll,
+  size = 'middle',
 }) {
   const safeDataSource = Array.isArray(dataSource) ? dataSource : []
   return (
     <Table
-      size="middle"
+      size={size}
       rowKey={rowKey}
       columns={columns}
       dataSource={safeDataSource}
       loading={loading}
       pagination={pagination !== undefined ? pagination : { pageSize: 8 }}
       onChange={onChange}
-      scroll={scroll} 
+      scroll={scroll}
       onRow={(record) => ({
         onClick: () => onRowClick && onRowClick(record),
         style: { cursor: onRowClick ? 'pointer' : 'default' },

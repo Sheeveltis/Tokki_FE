@@ -1,5 +1,6 @@
 import { apiClient } from '../../../provider/api/client'
-import { ENDPOINTS } from '../../../provider/api/endpoints'
+import { ENDPOINTS, API_BASE_URL } from '../../../provider/api/endpoints'
+import axios from 'axios'
 
 const extractErrorMessage = (error, fallbackMessage) => {
   const data = error?.response?.data
@@ -21,7 +22,7 @@ const extractData = (response) => {
 
 export const getPronunciationRules = async () => {
   try {
-    const res = await apiClient.get(ENDPOINTS.PRONUNCIATION_RULES.GET_ALL)
+    const res = await apiClient.get(`${API_BASE_URL}${ENDPOINTS.PRONUNCIATION_RULES.GET_ALL}`)
     const data = extractData(res)
 
     if (!Array.isArray(data)) {
@@ -46,7 +47,7 @@ export const getPronunciationRules = async () => {
 
 export const createPronunciationRule = async (payload) => {
   try {
-    const res = await apiClient.post(ENDPOINTS.PRONUNCIATION_RULES.CREATE, payload)
+    const res = await apiClient.post(`${API_BASE_URL}${ENDPOINTS.PRONUNCIATION_RULES.CREATE}`, payload)
     return extractData(res)
   } catch (error) {
     throw new Error(extractErrorMessage(error, 'Không thể tạo quy tắc phát âm'))
@@ -57,7 +58,7 @@ export const getPronunciationExamplesByRuleId = async (ruleId) => {
   if (!ruleId) return []
 
   try {
-    const res = await apiClient.get(ENDPOINTS.PRONUNCIATION_EXAMPLE.GET_BY_RULE_ID(ruleId))
+    const res = await apiClient.get(`${API_BASE_URL}${ENDPOINTS.PRONUNCIATION_EXAMPLE.GET_BY_RULE_ID(ruleId)}`)
     const data = extractData(res)
 
     if (!Array.isArray(data)) {
@@ -78,7 +79,7 @@ export const getPronunciationExampleById = async (exampleId) => {
   if (!exampleId) return null
 
   try {
-    const res = await apiClient.get(ENDPOINTS.PRONUNCIATION_EXAMPLE.GET_BY_ID(exampleId))
+    const res = await apiClient.get(`${API_BASE_URL}${ENDPOINTS.PRONUNCIATION_EXAMPLE.GET_BY_ID(exampleId)}`)
     const item = extractData(res)
 
     if (!item) return null
@@ -100,22 +101,27 @@ export const getPronunciationExampleById = async (exampleId) => {
   }
 }
 
-export const evaluatePronunciation = async (payload) => {
+export const evaluatePronunciation = async (formData) => {
   try {
-    const res = await apiClient.post(ENDPOINTS.PRONUNCIATION.EVALUATE, payload)
+    // Sử dụng API_BASE_URL trực tiếp để đảm bảo Domain được đính kèm như yêu cầu
+    const res = await apiClient.post(`${API_BASE_URL}${ENDPOINTS.PRONUNCIATION.EVALUATE}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 60000, // Tăng timeout lên 60s cho AI đánh giá
+    })
     const data = extractData(res)
 
     if (!data || typeof data !== 'object') {
-      return {
-        score: null,
-        feedback: 'Không có dữ liệu đánh giá',
-        _raw: data,
-      }
+     throw new Error('Dữ liệu đánh giá không hợp lệ')
     }
 
     return {
-      score: typeof data?.score === 'number' ? data.score : null,
-      feedback: data?.feedback || data?.comment || 'Đã nhận kết quả đánh giá',
+      score: data.accuracyScore ?? 0,
+      accuracyScore: data.accuracyScore ?? 0,
+      fluencyScore: data.fluencyScore ?? 0,
+      completenessScore: data.completenessScore ?? 0,
+      prosodyScore: data.prosodyScore ?? 0,
+      aiFeedback: data.aiFeedback || 'Đã nhận kết quả đánh giá',
+      words: data.words || [],
       _raw: data,
     }
   } catch (error) {

@@ -3,6 +3,7 @@ import React from 'react'
 import { SolitarePlayWebTopicSlot } from './solitare-play-web-topic-slot'
 import { SolitarePlayWebColumnCard } from './solitare-play-web-column-card'
 import { SolitarePlayWebDraw } from './solitare-play-web-draw'
+import BackgroundColumn from '../../../../../../../assets/BackgroundColumn.png'
 
 // Styles for body component
 const styles = {
@@ -28,8 +29,8 @@ const styles = {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 60,
-    marginTop: 4,
+    marginBottom: 30,
+    marginTop: 30,
     gap: 15,
     flexShrink: 0,
     height: 'auto',
@@ -39,7 +40,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 15,
+    gap: 20,
     flex: 1,
   },
   columnsRow: {
@@ -50,8 +51,9 @@ const styles = {
     flex: 1,
     minHeight: 0,
     overflow: 'hidden',
-    gap: 8,
+    gap: 5,
     marginTop: 10,
+
   },
   column: {
     display: 'flex',
@@ -61,11 +63,15 @@ const styles = {
     flex: 1,
     minWidth: 0,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    border: '2px dashed rgba(255, 255, 255, 0.2)',
+  
+    backgroundImage: `url(${BackgroundColumn})`,
+    backgroundSize: '100% 100%',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'center',
+  
     position: 'relative',
     overflow: 'visible',
-    paddingTop: 10,
+    paddingTop: 50,
   },
 }
 
@@ -80,79 +86,103 @@ export function SolitarePlayWebBody({
   setCardRef,
   setColumnRef,
   onMouseDown,
+  collapsingColumns = [],
+  hiddenCompletedColumns = [],
 }) {
-  // First 4 slots are temporary slots
   const tempSlots = slots.slice(0, 4)
 
   return (
     <div style={styles.bodyWrapper}>
       <div style={styles.board}>
-        {/* Top section: DrawRec on left, 4 temp slots on right */}
         <div style={styles.topSection}>
-          {/* DrawRec with 2 cards */}
+        <div
+          id="solitaire-draw"
+          data-tour="solitaire-draw"
+          style={{ top: -23, position: 'relative' }}
+        >
           <SolitarePlayWebDraw />
+        </div>
 
-          {/* 4 temporary slots */}
           <div style={styles.topicRow}>
-            {tempSlots.map((slot, index) => (
-              <div
-                key={`temp-slot-${index}`}
-                data-slot-index={index}
-              >
-                <SolitarePlayWebTopicSlot
-                  slot={slot}
-                  index={index}
-                  setSlotRef={setSlotRef}
-                  celebrate={celebrateSlot === index}
-                  isTempSlot={true}
-                  onMouseDown={onMouseDown}
-                  flippedCards={flippedCards}
-                  isMoving={
-                    (draggedCards && draggedCards.isFromSlot && draggedCards.slotIndex === index) ||
-                    (movingCard && movingCard.targetType === 'slot' && movingCard.targetIndex === index)
-                  }
-                />
-              </div>
-            ))}
+            <div
+              id="solitaire-temp-slots"
+              data-tour="solitaire-temp-slots"
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: 15,
+                justifyContent: 'flex-end',
+              }}
+            >
+              {tempSlots.map((slot, index) => (
+                <div key={`temp-slot-${index}`} data-slot-index={index}>
+                  <SolitarePlayWebTopicSlot
+                    slot={slot}
+                    index={index}
+                    setSlotRef={setSlotRef}
+                    celebrate={celebrateSlot === index}
+                    isTempSlot={true}
+                    onMouseDown={onMouseDown}
+                    flippedCards={flippedCards}
+                    isMoving={
+                      (draggedCards &&
+                        draggedCards.isFromSlot &&
+                        draggedCards.slotIndex === index) ||
+                      (movingCard &&
+                        movingCard.targetType === 'slot' &&
+                        movingCard.targetIndex === index)
+                    }
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div style={styles.columnsRow}>
+        <div style={styles.columnsRow} id="solitaire-columns" data-tour="solitaire-columns">
           {columns.map((column, colIndex) => {
-            // Calculate card height: only reduce when too many cards, keep default size when few cards
+            const isCollapsing = collapsingColumns.some(
+              (item) => item.columnIndex === colIndex
+            )
+            const isHiddenCompleted = hiddenCompletedColumns.includes(colIndex)
             const cardCount = column.cards.length
-            const DEFAULT_CARD_HEIGHT = 144 // Match temporary slot size
-            const MAX_CARDS_BEFORE_SHRINK = 8 // Only shrink if more than this many cards
-            
+            const DEFAULT_CARD_HEIGHT = 144
+            const MAX_CARDS_BEFORE_SHRINK = 8
+
             let maxCardHeight = `${DEFAULT_CARD_HEIGHT}px`
-            
+
             if (cardCount > MAX_CARDS_BEFORE_SHRINK) {
-              // Only reduce height when there are too many cards
-              const stackOffset = 122 // Card overlap offset (reduced proportionally)
+              const stackOffset = 122
               const totalOverlap = (cardCount - 1) * stackOffset
-              const availableHeight = `calc(100% - 20px)` // Reserve padding
+              const availableHeight = `calc(100% - 20px)`
               maxCardHeight = `calc((${availableHeight} + ${totalOverlap}px) / ${cardCount})`
             }
-            
+
             return (
               <div
                 key={column.id}
-                style={styles.column}
+                style={{
+                  ...styles.column,
+                  opacity: isHiddenCompleted ? 0 : isCollapsing ? 0.15 : 1,
+                  pointerEvents: isCollapsing ? 'none' : 'auto',
+                  transition: 'opacity 0.2s ease',
+                }}
                 data-column-index={colIndex}
                 ref={(r) => {
                   if (r) setColumnRef(colIndex, r)
                 }}
               >
                 {column.cards.map((card, cardIndex) => {
-                const isTop = cardIndex === column.cards.length - 1
-                
-                // Xác định card có đang được kéo hoặc đang animate không
-                const isBeingDragged = draggedCards && 
-                  !draggedCards.isFromSlot &&
-                  draggedCards.columnIndex === colIndex && 
-                  cardIndex >= draggedCards.startCardIndex
-                
-                const isAnimateMoving = movingCard && movingCard.cards?.some(c => c.id === card.id)
+                  const isTop = cardIndex === column.cards.length - 1
+
+                  const isBeingDragged =
+                    draggedCards &&
+                    !draggedCards.isFromSlot &&
+                    draggedCards.columnIndex === colIndex &&
+                    cardIndex >= draggedCards.startCardIndex
+
+                  const isAnimateMoving =
+                    movingCard && movingCard.cards?.some((c) => c.id === card.id)
 
                   return (
                     <SolitarePlayWebColumnCard

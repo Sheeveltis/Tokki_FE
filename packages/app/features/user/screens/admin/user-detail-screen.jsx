@@ -24,7 +24,7 @@ export function UserDetailScreen() {
 
   const detailContent = useMemo(() => {
     if (!userId) return null
-    return <AccountDetails userId={userId} />
+    return <AccountDetails userId={userId} onBack={() => router.back()} />
   }, [userId])
 
   const screens = useMemo(
@@ -35,14 +35,7 @@ export function UserDetailScreen() {
     [detailContent],
   )
 
-  return (
-    <AdminLayout
-      screens={screens}
-      defaultKey={defaultTab}
-      onNavigate={handleNavigate}
-      onLogout={() => router.push('/login')}
-    />
-  )
+  return detailContent
 }
 
 export default UserDetailScreen

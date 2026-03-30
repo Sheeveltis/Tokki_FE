@@ -44,10 +44,10 @@ const styles = {
     boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
   },
   cardLeft: {
-    backgroundColor: 'rgba(255, 166, 77, 0.36)', // #FFA64D with 36% opacity
+    backgroundColor: 'rgba(255, 208, 160)', // #FFA64D with 36% opacity
   },
   cardRight: {
-    backgroundColor: 'rgba(255, 255, 255, 0.36)', // #FFFFFF with 36% opacity
+    backgroundColor: '#FFE5D9', // #FFFFFF with 36% opacity
   },
   leaf: {
     position: 'absolute',

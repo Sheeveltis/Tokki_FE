@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import { View, Text, StyleSheet, Platform } from 'react-native'
 import { motion } from 'framer-motion'
 
@@ -78,8 +78,8 @@ export function WordleKeyboard({ rows = [], onKeyPress }) {
             justifyContent: 'center',
           }}
           whileTap={{ 
-            y: 5,
-            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+            y: 3,
+            boxShadow: '0 1px 0 rgba(0,0,0,0.2)',
           }}
           onClick={handleKeyClick}
           onMouseDown={(e) => {
@@ -115,16 +115,10 @@ export function WordleKeyboard({ rows = [], onKeyPress }) {
           )
   }
 
-  // Chia thành 2 hàng ngang
-  const row1 = [
-    ...HANGUL_ROWS[0],
-    ...HANGUL_ROWS[1],
-  ]
-  const row2 = [
-    ...HANGUL_ROWS[2],
-    'Xóa',
-    'Gửi',
-  ]
+  // Chia thành 3 hàng ngang
+  const row1 = HANGUL_ROWS[0]
+  const row2 = HANGUL_ROWS[1]
+  const row3 = [...HANGUL_ROWS[2], 'Xóa', 'Gửi']
 
   return (
     <View style={styles.keyboard}>
@@ -133,6 +127,9 @@ export function WordleKeyboard({ rows = [], onKeyPress }) {
       </View>
       <View style={styles.row}>
         {row2.map(renderKey)}
+      </View>
+      <View style={styles.row}>
+        {row3.map(renderKey)}
       </View>
     </View>
   )
@@ -153,9 +150,9 @@ const styles = StyleSheet.create({
   },
   key: {
     minWidth: 42,
-    height: 48,
-    backgroundColor: '#F5F5DC', // Beige/cream color
-    borderRadius: 6,
+    height: 52,
+    backgroundColor: '#FFF9E3', // Soft cream/pastel
+    borderRadius: 14, // Bubbly
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 8,
@@ -165,32 +162,41 @@ const styles = StyleSheet.create({
       WebkitUserSelect: 'none',
       MozUserSelect: 'none',
       msUserSelect: 'none',
-      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1)',
-      transition: 'all 0.1s ease',
+      boxShadow: '0 4px 0 #EAD7AE, 0 6px 8px rgba(0, 0, 0, 0.15)',
+      transition: 'all 0.05s ease',
     }),
   },
   submitKey: {
-    minWidth: 60,
-    backgroundColor: '#6aaa64',
+    minWidth: 70,
+    backgroundColor: '#4CAF50', // Friendly Green
     ...(Platform.OS === 'web' && {
-      boxShadow: '0 2px 4px rgba(106, 170, 100, 0.3), 0 1px 2px rgba(0, 0, 0, 0.1)',
+      boxShadow: '0 4px 0 #2E7D32, 0 6px 8px rgba(0, 0, 0, 0.15)',
     }),
   },
   deleteKey: {
-    minWidth: 60,
-    backgroundColor: '#787c7e',
+    minWidth: 70,
+    backgroundColor: '#EF5350', // Soft earthy red
     ...(Platform.OS === 'web' && {
-      boxShadow: '0 2px 4px rgba(120, 124, 126, 0.3), 0 1px 2px rgba(0, 0, 0, 0.1)',
+      boxShadow: '0 4px 0 #C62828, 0 6px 8px rgba(0, 0, 0, 0.15)',
     }),
   },
   correct: {
-    backgroundColor: '#6aaa64',
+    backgroundColor: '#4CAF50',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 0 #2E7D32, 0 6px 8px rgba(0, 0, 0, 0.15)',
+    }),
   },
   present: {
-    backgroundColor: '#c9b458',
+    backgroundColor: '#FBC02D',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 0 #F9A825, 0 6px 8px rgba(0, 0, 0, 0.15)',
+    }),
   },
   absent: {
-    backgroundColor: '#787c7e',
+    backgroundColor: '#90A4AE',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 0 #546E7A, 0 6px 8px rgba(0, 0, 0, 0.15)',
+    }),
   },
   keyText: {
     fontSize: 16,

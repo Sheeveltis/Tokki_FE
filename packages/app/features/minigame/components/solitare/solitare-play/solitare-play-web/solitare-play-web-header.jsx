@@ -1,7 +1,6 @@
-import React from 'react'
-
 import BannerSolitare from '../../../../../../../assets/BannerSolitare.png'
 import MenuIcon from '../../../../../../../assets/menu-solitare.png'
+import BackgroundClock from '../../../../../../../assets/backgroundClock.png'
 
 const formatTime = (seconds) => {
   const m = Math.floor(seconds / 60)
@@ -25,17 +24,38 @@ const styles = {
     gap: 15,
   },
   timeBox: {
+    position: 'relative',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 100,
+    minWidth: 160,
+    height: 60,
+  },
+  timeWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 0,
+    paddingTop: 20,
+  },
+  timeBackground: {
+    width: 150,
+    height: 60,
+    objectFit: 'contain',
+  },
+  timeContent: {
+    position: 'absolute',
+    inset: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 7,
   },
   bannerWrapper: {
     position: 'relative',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
+    flex: '0 0 auto',
   },
   bannerImage: {
     width: '100%',
@@ -59,23 +79,29 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 100,
+    minWidth: 160,
+    height: 60,
+    paddingTop: 20,
   },
-  scoreBanner: {
+  scoreBackground: {
     width: 160,
-    height: 90,
+    height: 60,
     objectFit: 'contain',
   },
-  scoreText: {
+  scoreContent: {
     position: 'absolute',
-    top: '65%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
+    inset: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scoreText: {
     fontSize: 14,
     fontWeight: 800,
-    color: '#FFFFFF',
+    color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
+    paddingTop: 26,
   },
   timeText: {
     fontSize: 15,
@@ -98,40 +124,112 @@ const styles = {
     width: 80,
     height: 'auto',
   },
+  guideButton: {
+    position: 'absolute',
+    top: 140,
+    right: 0,
+    cursor: 'pointer',
+    border: 'none',
+    background: '#8B4513',
+    color: '#fff',
+    fontWeight: 700,
+    fontSize: 14,
+    padding: '8px 12px',
+    borderRadius: 10,
+    zIndex: 10,
+  },
+  soundButton: {
+    cursor: 'pointer',
+    border: 'none',
+    background: '#fff7ea',
+    color: '#222',
+    fontWeight: 700,
+    fontSize: 16,
+    width: 36,
+    height: 36,
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.12)',
+  },
+  soundButtonMuted: {
+    color: '#b0bec5',
+  },
 }
 
-export function SolitarePlayWebHeader({ timeLeft, score, isGameWon = false, level = 'Easy', onMenuClick }) {
+export function SolitarePlayWebHeader({
+  timeLeft,
+  score,
+  isGameWon = false,
+  level = 'Easy',
+  onMenuClick,
+  onGuideClick,
+  onToggleSound,
+  isMuted = false,
+}) {
   return (
     <div style={styles.headerRow}>
       <div style={styles.headerContainer}>
-        <div style={styles.timeBox}>
-          <span style={styles.timeText}>
-            {isGameWon ? '🎉 Hoàn thành!' : formatTime(timeLeft)}
-          </span>
+      <div style={styles.timeWrapper}>
+        {onToggleSound && (
+          <button
+            style={{
+              ...styles.soundButton,
+              ...(isMuted ? styles.soundButtonMuted : null),
+            }}
+            onClick={onToggleSound}
+            aria-label={isMuted ? 'Unmute' : 'Mute'}
+          >
+            {isMuted ? '🔇' : '🔊'}
+          </button>
+        )}
+        <div style={styles.timeBox} id="solitaire-timer" data-tour="solitaire-timer">
+          <img src={BackgroundClock} alt="" style={styles.timeBackground} />
+          <div style={styles.timeContent}>
+            <span style={styles.timeText}>
+              {isGameWon ? '🎉 Hoàn thành!' : formatTime(timeLeft)}
+            </span>
+          </div>
         </div>
+      </div>
 
-        <div style={styles.bannerWrapper}>
+      <div style={styles.bannerWrapper}>
+        <div style={styles.bannerWrapper} id="solitaire-level" data-tour="solitaire-level">
           <img src={BannerSolitare} alt="" style={styles.bannerImage} />
           <span style={styles.bannerText}>
             {isGameWon ? '🎊 Chiến thắng!' : `Level ${level}`}
           </span>
         </div>
+      </div>
 
-        <div style={styles.scoreBox}>
-          <img src={BannerSolitare} alt="" style={styles.scoreBanner} />
+      <div style={styles.scoreBox} id="solitaire-score" data-tour="solitaire-score">
+        <img src={BackgroundClock} alt="" style={styles.scoreBackground} />
+        <div style={styles.scoreContent}>
           <span style={styles.scoreText}>{score}</span>
         </div>
+      </div>
 
-        {onMenuClick && (
-          <button 
-            style={styles.menuButton}
-            onClick={onMenuClick}
-            onMouseDown={(e) => e.preventDefault()}
-            aria-label="Menu"
-          >
-            <img src={MenuIcon} alt="Menu" style={styles.menuIcon} />
-          </button>
-        )}
+      {onMenuClick && (
+        <button
+          id="solitaire-menu"
+          data-tour="solitaire-menu"
+          style={styles.menuButton}
+          onClick={onMenuClick}
+          onMouseDown={(e) => e.preventDefault()}
+          aria-label="Menu"
+        >
+          <img src={MenuIcon} alt="Menu" style={styles.menuIcon} />
+        </button>
+      )}
+      {onGuideClick && (
+        <button
+          style={styles.guideButton}
+          onClick={onGuideClick}
+        >
+          Cách Chơi
+        </button>
+      )}
       </div>
     </div>
   )

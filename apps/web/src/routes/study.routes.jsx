@@ -3,24 +3,24 @@ import { Route, useParams } from 'react-router-dom'
 import { useRouteNavigation } from './utils/navigation-helpers'
 import { createLazyRouteContainer } from './utils/route-container'
 
-import { StudyScreen } from '@tokki/app/features/study/screen'
-import { MenuStudy } from '@tokki/app/features/study/menu-study'
+import { StudyScreen } from '@tokki/app/features/study/screens/study-screen'
+import { MenuStudy } from '@tokki/app/features/study/screens/menu-study'
 import AlphabetSelectModeScreen from '@tokki/app/features/alphabet/screens/client/alphabet-select-mode-screen'
 import AlphabetStudyScreen from '@tokki/app/features/alphabet/screens/client/alphabet-study-screen'
 import AlphabetLearnScreen from '@tokki/app/features/alphabet/screens/client/alphabet-learn-screen'
 import AlphabetTypingScreen from '@tokki/app/features/alphabet/screens/client/alphabet-typing-screen'
 import AlphabetPronunciationScreen from '@tokki/app/features/alphabet/screens/client/alphabet-pronunciation-screen'
 import { AlphabetTestScreen } from '@tokki/app/features/alphabet/screens/client/alphabet-test-screen'
-import TestScreen from '@tokki/app/features/study/flashcard-test'
+import TestScreen from '@tokki/app/features/study/screens/flashcard-test'
 
-import FlashcardListScreen from '@tokki/app/features/study/flashcard-list'
-import FlashcardFirstLearnScreen from '@tokki/app/features/study/flashcard-first-learn'
-import FlashcardStudyScreen from '@tokki/app/features/study/flashcard-study'
-import LearnScreen from '@tokki/app/features/study/flashcard-learn'
-import LearnedVocabularyListScreen from '@tokki/app/features/study/learned-vocabulary-list'
-import { PronunciationRulesScreen } from '@tokki/app/features/pronunciation/screens/pronunciation-rules-screen'
-import { PronunciationExamplesScreen } from '@tokki/app/features/pronunciation/screens/pronunciation-examples-screen'
-import { PronunciationExampleDetailScreen } from '@tokki/app/features/pronunciation/screens/pronunciation-example-detail-screen'
+import FlashcardListScreen from '@tokki/app/features/study/screens/flashcard-list'
+import FlashcardFirstLearnScreen from '@tokki/app/features/study/screens/flashcard-first-learn'
+import FlashcardStudyScreen from '@tokki/app/features/study/screens/flashcard-study'
+import LearnScreen from '@tokki/app/features/study/screens/flashcard-learn'
+import LearnedVocabularyListScreen from '@tokki/app/features/study/screens/learned-vocabulary-list'
+import { PronunciationRulesScreen } from '@tokki/app/features/pronunciation/screens/PronunciationRulesScreen'
+import { PronunciationExamplesScreen } from '@tokki/app/features/pronunciation/screens/PronunciationExamplesScreen'
+import { PronunciationExampleDetailScreen } from '@tokki/app/features/pronunciation/screens/PronunciationExampleDetailScreen'
 
 import { STUDY_PAGE_TITLES, TOPIC_TITLES } from '@tokki/app/features/study/constants'
 import { RoadmapInfoScreen } from '@tokki/app/features/roadmap/screens/roadmap-info-screen'
@@ -30,6 +30,8 @@ import { RoadmapTestResultDetailScreen } from '@tokki/app/features/roadmap/scree
 import { RoadmapLearningScreen } from '@tokki/app/features/roadmap/screens/roadmap-learning-screen'
 import { RoadmapTipsScreen } from '@tokki/app/features/roadmap/screens/roadmap-tips-screen'
 import { RoadmapPracticeScreen } from '@tokki/app/features/roadmap/screens/roadmap-practice-screen'
+import { RoadmapPracticeTestScreen } from '@tokki/app/features/roadmap/screens/roadmap-practice-test-screen'
+import { RoadmapGenerateScreen } from '@tokki/app/features/roadmap/screens/roadmap-generate-screen'
 const AlphabetDrawingScreen = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
 
 /**
@@ -40,15 +42,7 @@ function StudyRoute() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    const storedLevel = typeof window !== 'undefined'
-      ? window.localStorage.getItem('userLevel')
-      : null
-
-    if (storedLevel) {
-      navigate(`/menu-study?level=${storedLevel}`, { replace: true })
-    } else {
-      setReady(true)
-    }
+    navigate('/menu-study?level=1', { replace: true })
   }, [navigate])
 
   if (!ready) return null
@@ -71,7 +65,7 @@ function MenuStudyRoute() {
   return (
     <MenuStudy
       levelId={levelId}
-      onBackPress={() => navigate('/study')}
+      onBackPress={() => navigate('/')}
       onQuickTestPress={() => navigate('/test')}
       lessonsLearned={30}
       streakDays={30}
@@ -187,7 +181,7 @@ function FlashcardRoute() {
         if (!topicId) return
         const progress = topic?.progress ?? 0
         const isProgressComplete = progress >= 100
-        
+
         // Nếu progress === 100%, điều hướng đến trang study (FlashcardStudyScreen)
         if (isProgressComplete || topic?.isProgressComplete) {
           navigate(`/flashcard/study?topic=${topicId}`)
@@ -348,7 +342,7 @@ function PronunciationExamplesRoute() {
       ruleId={ruleId}
       ruleTitle={ruleTitle}
       onBackPress={() => navigate('/pronunciation')}
-      onExamplePress={(example) => 
+      onExamplePress={(example) =>
         navigate(`/pronunciation/example-detail?exampleId=${example?.id}&ruleId=${ruleId}`)
       }
     />
@@ -364,7 +358,7 @@ function PronunciationExampleDetailRoute() {
   return (
     <PronunciationExampleDetailScreen
       exampleId={exampleId}
-      onBackPress={() => 
+      onBackPress={() =>
         navigate(`/pronunciation/examples?ruleId=${ruleId}&ruleTitle=${encodeURIComponent(ruleTitle || '')}`)
       }
     />
@@ -397,10 +391,16 @@ function RoadmapPracticeRoute() {
   return <RoadmapPracticeScreen practiceId={id} />
 }
 
+function RoadmapPracticeTestRoute() {
+  const { id } = useParams()
+  // "id" here corresponds to questionTypeId
+  return <RoadmapPracticeTestScreen questionTypeId={id} />
+}
+
 function AlphabetLettersDrawingRoute() {
   const { navigate } = useRouteNavigation()
   const LazyComponent = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
-  
+
   return (
     <Suspense fallback={<div>Đang tải màn vẽ chữ...</div>}>
       <LazyComponent onBackPress={() => navigate('/alphabet/letters')} />
@@ -411,7 +411,7 @@ function AlphabetLettersDrawingRoute() {
 function AlphabetSyllablesDrawingRoute() {
   const { navigate } = useRouteNavigation()
   const LazyComponent = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
-  
+
   return (
     <Suspense fallback={<div>Đang tải màn vẽ chữ...</div>}>
       <LazyComponent onBackPress={() => navigate('/alphabet/syllables')} />
@@ -463,8 +463,10 @@ export const studyRoutes = [
   { path: '/roadmap/test', element: <RoadmapTestRoute /> },
   { path: '/roadmap/test/result', element: <RoadmapTestResultScreen /> },
   { path: '/roadmap/test/result/detail', element: <RoadmapTestResultDetailScreen /> },
+  { path: '/roadmap/test/result/generate', element: <RoadmapGenerateScreen /> },
   { path: '/roadmap/learning', element: <RoadmapLearningRoute /> },
   { path: '/roadmap/learning/practice/:id', element: <RoadmapPracticeRoute /> },
+  { path: '/roadmap/practice-test/:id', element: <RoadmapPracticeTestRoute /> },
   { path: '/roadmap/learning/tips/:id', element: <RoadmapTipsRoute /> },
   { path: '/roadmap/tips', element: <RoadmapTipsIndexRoute /> },
 ]

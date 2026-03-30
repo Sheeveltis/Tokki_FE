@@ -1,10 +1,8 @@
 'use client'
 
-import React, { useMemo, useState, useEffect } from 'react'
-import { useRouter } from 'solito/navigation'
+import { useMemo, useState, useEffect } from 'react'
 import { Card, Space, Select, Table, Typography, List, Tag, Modal, Input, Button } from 'antd'
-import { UploadOutlined, FileExcelOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../../components/buttonV2.jsx'
+import { UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { VocabularyGuideButton } from './vocabulary-guide-modal'
 
 export function TopicVocabSection({
@@ -32,12 +30,12 @@ export function TopicVocabSection({
   isModerator = false, // Prop để ẩn các chức năng không được phép cho moderator
   excelImportResult = null,
 }) {
-  const router = useRouter()
   const { Text } = Typography
   const [removeMode, setRemoveMode] = useState(false)
   const [pageSize, setPageSize] = useState(10)
   const [currentPage, setCurrentPage] = useState(1)
   const [searchKeyword, setSearchKeyword] = useState('')
+  const [addVocabModalOpen, setAddVocabModalOpen] = useState(false)
 
   const selectedOptions = useMemo(() => {
     if (!Array.isArray(selecting) || !Array.isArray(availableOptions)) return []
@@ -55,7 +53,7 @@ export function TopicVocabSection({
       const text = (item.text || '').toLowerCase()
       const definition = (item.definition || '').toLowerCase()
       const id = (item.vocabularyId || item.id || '').toLowerCase()
-      
+
       return text.includes(keyword) || definition.includes(keyword) || id.includes(keyword)
     })
   }, [dataSource, searchKeyword])
@@ -77,13 +75,14 @@ export function TopicVocabSection({
 
   const columns = [
     {
-      title: 'ID',
-      dataIndex: 'vocabularyId',
-      key: 'vocabularyId',
-      width: 250,
-      render: (_, record) => {
+      title: 'Từ',
+      dataIndex: 'text',
+      key: 'text',
+      width: 180,
+      ellipsis: true,
+      render: (text, record) => {
         const id = record.vocabularyId || record.id
-        if (!id) return '-'
+        if (!id) return text
         return (
           <a
             href={`/admin/vocab/${id}`}
@@ -93,46 +92,38 @@ export function TopicVocabSection({
               e.preventDefault()
               window.open(`/admin/vocab/${id}`, '_blank', 'noopener,noreferrer')
             }}
+            style={{ fontWeight: 600 }}
           >
-            {id}
+            {text}
           </a>
         )
       },
     },
-    { title: 'Từ', dataIndex: 'text', key: 'text' },
-    { title: 'Phiên âm', dataIndex: 'pronunciation', key: 'pronunciation' },
-    { title: 'Định nghĩa', dataIndex: 'definition', key: 'definition' },
+    { title: 'Phiên âm', dataIndex: 'pronunciation', key: 'pronunciation', width: 200, ellipsis: true },
+    {
+      title: 'Định nghĩa',
+      dataIndex: 'definition',
+      key: 'definition',
+      width: 300,
+      ellipsis: true,
+      render: (value) => value || '-',
+    },
   ]
 
   return (
     <Card
+      size="small"
+      style={{ borderRadius: 10 }}
       title={
         <Space
           style={{ width: '100%', justifyContent: 'space-between', alignItems: 'center' }}
+          wrap
         >
           <Space>
-            <Text strong>Từ vựng trong chủ đề</Text>
+            <Text strong style={{ fontSize: 16 }}>Từ vựng trong chủ đề</Text>
             {onOpenGuide && <VocabularyGuideButton onOpen={onOpenGuide} />}
           </Space>
-          <Space>
-            {onExportExcel && !isModerator && (
-              <Button
-                icon={<FileExcelOutlined />}
-                onClick={onExportExcel}
-                disabled={exportingExcel}
-                loading={exportingExcel}
-                style={{
-                  backgroundColor: '#dc3545', // đỏ cho Export
-                  borderColor: '#dc3545',
-                  color: '#fff',
-                  minWidth: 140,
-                  height: 40,
-                }}
-              >
-                {exportingExcel ? 'Đang xuất...' : 'Xuất Excel'}
-              </Button>
-            )}
-
+          <Space wrap>
             {onExcelUpload && !isModerator && (
               <>
                 <input
@@ -143,21 +134,26 @@ export function TopicVocabSection({
                   onChange={onExcelUpload}
                 />
                 <Button
+                  type="primary"
                   icon={<UploadOutlined />}
                   onClick={() => fileInputRef?.current?.click()}
                   disabled={uploadingExcel}
                   loading={uploadingExcel}
-                  style={{
-                    backgroundColor: '#217346',
-                    borderColor: '#217346',
-                    color: '#fff',
-                    minWidth: 140,
-                    height: 40,
-                  }}
                 >
-                  {uploadingExcel ? 'Đang import...' : 'Import Excel'}
+                  {uploadingExcel ? 'Đang import...' : 'Import'}
                 </Button>
               </>
+            )}
+            {onExportExcel && !isModerator && (
+              <Button
+                type="primary"
+                icon={<DownloadOutlined />}
+                onClick={onExportExcel}
+                disabled={exportingExcel}
+                loading={exportingExcel}
+              >
+                {exportingExcel ? 'Đang xuất...' : 'Export'}
+              </Button>
             )}
           </Space>
         </Space>
@@ -165,52 +161,18 @@ export function TopicVocabSection({
     >
       {!isModerator && (
         <Space direction="vertical" size="small" style={{ marginBottom: 12, width: '100%' }}>
-          <Space style={{ width: '100%', justifyContent: 'space-between' }} align="start">
-            <div style={{ flex: 1 }}>
-              <Select
-                mode="multiple"
-                allowClear
-                placeholder="Tìm và chọn từ vựng để thêm"
-                style={{
-                  width: '100%',
-                  minWidth: 600,
-                  ...selectStyle,
-                }}
-                value={selecting}
-                options={availableOptions}
-                onChange={onSelectingChange}
-                onSearch={onSearch}
-                onFocus={onFocus}
-                showSearch
-                filterOption={false}
-                loading={searching}
-                size="middle"
-                optionFilterProp="label"
-                maxTagCount="responsive"
-              />
-              <Text type="secondary" style={{ display: 'block', marginTop: 4 }}>
-                Đã chọn <Text strong>{selecting?.length || 0}</Text> từ vựng để thêm vào chủ đề
-              </Text>
-            </div>
+          <Space style={{ width: '100%', justifyContent: 'space-between' }} wrap>
+            <Text type="secondary">
+              Đã chọn <Text strong>{selecting?.length || 0}</Text> từ vựng để thêm vào chủ đề
+            </Text>
             <Space>
-              {onQuickAdd && (
-                <ButtonV2
-                  title="Tạo từ vựng nhanh"
-                  onPress={onQuickAdd}
-                  color="#F1BE4B"
-                  style={{ minWidth: 160, paddingVertical: 10 }}
-                  textStyle={{ fontSize: 14 }}
-                />
-              )}
-
-              <ButtonV2
-                title={adding ? 'Đang thêm...' : 'Thêm vào chủ đề'}
-                onPress={onAdd}
-                disabled={!selecting?.length || adding}
-                color="mint"
-                style={{ minWidth: 180, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
+              <Button type="primary" onClick={() => setAddVocabModalOpen(true)}>
+                Chọn từ vựng từ hệ thống
+              </Button>
+              {onQuickAdd && <Button onClick={onQuickAdd}>Tạo từ vựng nhanh</Button>}
+              <Button type="primary" onClick={onAdd} disabled={!selecting?.length || adding} loading={adding}>
+                {adding ? 'Đang thêm...' : 'Thêm vào chủ đề'}
+              </Button>
             </Space>
           </Space>
 
@@ -250,103 +212,131 @@ export function TopicVocabSection({
           )}
         </Space>
       )}
-      <Space direction="vertical" size="small" style={{ width: '100%', marginBottom: 8 }}>
-        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-          <Space direction="vertical" size={2}>
-            <Space align="center">
-              <Text strong>Từ vựng hiện có trong chủ đề</Text>
-              <Text type="secondary" style={{ fontSize: 13 }}>
-                (Tổng: <Text strong>{totalItems}</Text> từ vựng)
-              </Text>
-            </Space>
-            {removeMode && (
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                Đang ở chế độ chọn để gỡ. Tick vào các từ vựng muốn gỡ rồi bấm "Gỡ từ vựng đã chọn".
-              </Text>
-            )}
-          </Space>
-          <Space>
-          <Space align="center">
-            <Text type="secondary" style={{ fontSize: 13 }}>Hiển thị:</Text>
+      {!isModerator && (
+        <Modal
+          title="Chọn từ vựng từ hệ thống"
+          open={addVocabModalOpen}
+          onCancel={() => setAddVocabModalOpen(false)}
+          footer={null}
+          width={760}
+          centered
+        >
+          <Space direction="vertical" size="small" style={{ width: '100%' }}>
             <Select
-              value={pageSize}
-              onChange={(value) => {
-                setPageSize(value)
-                setCurrentPage(1) // Reset về trang đầu khi đổi pageSize
+              mode="multiple"
+              allowClear
+              placeholder="Tìm và chọn từ vựng để thêm"
+              style={{
+                width: '100%',
+                ...selectStyle,
               }}
-              style={{ width: 100 }}
-              options={[
-                { label: '5', value: 5 },
-                { label: '10', value: 10 },
-                { label: '20', value: 20 },
-                { label: '50', value: 50 },
-                { label: '100', value: 100 },
-              ]}
+              value={selecting}
+              options={availableOptions}
+              onChange={onSelectingChange}
+              onSearch={onSearch}
+              onFocus={onFocus}
+              showSearch
+              filterOption={false}
+              loading={searching}
+              size="middle"
+              optionFilterProp="label"
+              maxTagCount="responsive"
             />
+            <Text type="secondary">
+              Chọn nhiều từ vựng rồi bấm "Thêm vào chủ đề" ở màn hình chính.
+            </Text>
           </Space>
-          {!isModerator && (
-            <>
-              <ButtonV2
-                title={removeMode ? 'Hủy chọn xóa' : 'Chọn từ để gỡ'}
-                onPress={() => {
-                  if (removeMode) {
-                    // Tắt chế độ xóa thì clear selection
-                    onRemovingKeysChange([])
-                  }
-                  setRemoveMode(!removeMode)
-                }}
-                color={removeMode ? 'ivory' : 'charcoal'}
-                style={{ paddingVertical: 8, minWidth: 150 }}
-                textStyle={{ fontSize: 13 }}
-              />
-              <ButtonV2
-                title={removing ? 'Đang gỡ...' : 'Gỡ từ vựng đã chọn'}
-                onPress={() => {
-                  if (!removeMode || !removingKeys?.length || removing) return
+        </Modal>
+      )}
+      <div
+        style={{
+          width: '100%',
+          marginBottom: 10,
+          padding: 10,
+          border: '1px solid #f0f0f0',
+          borderRadius: 8,
+          background: '#fcfcfc',
+        }}
+      >
+        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+          <Space style={{ width: '100%', justifyContent: 'space-between' }} wrap>
+            <Space direction="vertical" size={2}>
+              <Text strong>Từ vựng hiện có trong chủ đề</Text>
+              {removeMode && (
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  Đang ở chế độ chọn để gỡ. Tick vào các từ vựng muốn gỡ rồi bấm "Gỡ từ vựng đã chọn".
+                </Text>
+              )}
+            </Space>
+          </Space>
+          <Space
+            style={{ width: '100%', justifyContent: 'space-between', alignItems: 'flex-start' }}
+            wrap
+          >
+            <Input.Search
+              placeholder="Tìm kiếm theo từ, định nghĩa"
+              allowClear
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              style={{ width: '20vw', flex: 1 }}
+              size="middle"
+            />
+            <Space wrap>
+              {!isModerator && (
+                <>
+                  <Button
+                    onClick={() => {
+                      if (removeMode) onRemovingKeysChange([])
+                      setRemoveMode(!removeMode)
+                    }}
+                  >
+                    {removeMode ? 'Hủy chọn xóa' : 'Chọn từ để gỡ'}
+                  </Button>
+                  <Button
+                    danger
+                    onClick={() => {
+                      if (!removeMode || !removingKeys?.length || removing) return
 
-                  Modal.confirm({
-                    title: 'Xác nhận gỡ từ vựng',
-                    content: `Bạn có chắc muốn gỡ ${removingKeys?.length || 0} từ vựng khỏi chủ đề này?`,
-                    okText: 'Gỡ',
-                    cancelText: 'Hủy',
-                    okButtonProps: { danger: true },
-                    onOk: onRemove,
-                  })
-                }}
-                disabled={!removeMode || !removingKeys?.length || removing}
-                color="poppy"
-                style={{ paddingVertical: 8, minWidth: 180 }}
-                textStyle={{ fontSize: 13 }}
-              />
-            </>
-          )}
+                      Modal.confirm({
+                        title: 'Xác nhận gỡ từ vựng',
+                        content: `Bạn có chắc muốn gỡ ${removingKeys?.length || 0} từ vựng khỏi chủ đề này?`,
+                        okText: 'Gỡ',
+                        cancelText: 'Hủy',
+                        okButtonProps: { danger: true },
+                        onOk: onRemove,
+                      })
+                    }}
+                    disabled={!removeMode || !removingKeys?.length || removing}
+                    loading={removing}
+                  >
+                    {removing ? 'Đang gỡ...' : 'Gỡ từ vựng đã chọn'}
+                  </Button>
+                </>
+              )}
+            </Space>
           </Space>
         </Space>
-        <Input.Search
-          placeholder="Tìm kiếm theo từ, định nghĩa hoặc ID..."
-          allowClear
-          value={searchKeyword}
-          onChange={(e) => setSearchKeyword(e.target.value)}
-          style={{ width: '100%', maxWidth: 600 }}
-          size="middle"
-        />
-      </Space>
+      </div>
       <Table
         rowSelection={
           removeMode && !isModerator
             ? {
-                selectedRowKeys: removingKeys,
-                onChange: onRemovingKeysChange,
-              }
+              selectedRowKeys: removingKeys,
+              onChange: onRemovingKeysChange,
+            }
             : undefined
         }
         columns={columns}
         dataSource={paginatedDataSource}
+        size="small"
+        bordered
+        tableLayout="fixed"
+        scroll={{ x: '100%', y: 400 }}
         pagination={{
           current: currentPage,
           pageSize: pageSize,
           total: totalItems,
-          showSizeChanger: false, // Đã có Select riêng ở trên
+          showSizeChanger: false,
           showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} từ vựng`,
           onChange: (page) => setCurrentPage(page),
           pageSizeOptions: ['5', '10', '20', '50', '100'],

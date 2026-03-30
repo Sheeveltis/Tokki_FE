@@ -97,10 +97,7 @@ const styles = StyleSheet.create({
     paddingVertical: 50,
     paddingHorizontal: 32,
     alignItems: 'center',
-    shadowColor: '#00000025',
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
+    boxShadow: '0px 6px 12px rgba(0, 0, 0, 0.12)',
   },
   levelGrid: {
     gap: 60,
@@ -123,15 +120,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#00000015',
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
+    boxShadow: '0px 6px 10px rgba(0, 0, 0, 0.15)',
     elevation: 3,
     borderWidth: 1,
     borderColor: '#F1F1F1',
     ...(Platform.OS === 'web' && {
-      transitionProperty: 'transform, shadowOpacity, shadowRadius, borderColor, backgroundColor',
+      transitionProperty: 'transform, boxShadow, borderColor, backgroundColor',
       transitionDuration: '200ms',
       transitionTimingFunction: 'ease-out',
       cursor: 'pointer',
@@ -140,7 +134,7 @@ const styles = StyleSheet.create({
   levelCardHovered: {
     transform: [{ scale: 1.08 }],
     borderWidth: 2,
-    shadowOpacity: 0,
+    boxShadow: 'none',
     ...(Platform.OS === 'web' && {
       transitionProperty: 'transform, borderColor, backgroundColor',
       transitionDuration: '200ms',

@@ -143,12 +143,15 @@ export function QuickAddVocabularyModal({ open, onCancel, onSuccess, topicId, on
     <Modal
       title="Tạo từ vựng nhanh"
       open={open}
+      centered
+      maskClosable={false}
       onCancel={handleCancel}
       onOk={handleSubmit}
       confirmLoading={loading}
       okText="Tạo và thêm vào chủ đề"
       cancelText="Hủy"
       width={600}
+      styles={{ body: { maxHeight: '70vh', overflowY: 'auto' } }}
       destroyOnClose
     >
       <Form form={form} layout="vertical" style={{ marginTop: 16 }}>

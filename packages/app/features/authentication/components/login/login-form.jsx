@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
+import { CheckOutlined } from '@ant-design/icons'
 // Import useNavigation cho native
 let useNavigation = null
 if (Platform.OS !== 'web') {
@@ -24,12 +25,12 @@ if (Platform.OS !== 'web') {
 }
 import { TextInput } from '../../../../../components/textInput'
 import { Button } from '../../../../../components/button'
-import { login, getUserLevel, loginWithGoogle } from '../../api'
+import { login, loginWithGoogle } from '../../api'
 import { setAuthToken, clearAuthToken } from '../../../../provider/api/client'
 import { heartbeatService } from '../shared/heartbeat-service'
 import { showApiNotification } from '../../utils/notification'
-import { encryptToken } from '../../../../helpers/token-encryption'
-import { setStorageItem, removeStorageItem, dispatchStorageEvent } from '../../../../helpers/storage'
+import { encryptToken, decryptToken } from '../../../../helpers/token-encryption'
+import { setStorageItem, getStorageItem, removeStorageItem, dispatchStorageEvent } from '../../../../helpers/storage'
 import { HelperAdmin } from '../../../../../components/HelperAdmin'
 import LogoImage from '../../../../../assets/logo-text.png'
 import { NavigationPill } from '../../../../../components/navigation-pill'
@@ -55,6 +56,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
   const insets = useSafeAreaInsets() // Lấy safe area insets để tránh navigation bar
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [apiResponse, setApiResponse] = useState(null)
@@ -94,6 +96,28 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
   // Cleanup khi component unmount
   // Cleanup heartbeat service khi component unmount
   React.useEffect(() => {
+    // Load remembered credentials
+    const loadRememberedCredentials = async () => {
+      try {
+        const savedEmail = await getStorageItem('rememberedEmail')
+        const savedPassword = await getStorageItem('rememberedPassword')
+        
+        if (savedEmail) {
+          setEmail(savedEmail)
+          setRememberMe(true)
+        }
+        if (savedPassword) {
+          // Giải mã mật khẩu nếu có
+          const decryptedPassword = decryptToken(savedPassword)
+          setPassword(decryptedPassword)
+        }
+      } catch (error) {
+        console.error('Error loading remembered credentials:', error)
+      }
+    }
+    
+    loadRememberedCredentials()
+
     return () => {
       heartbeatService.stop()
     }
@@ -140,7 +164,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
 
     try {
       // Gọi API login (toàn bộ xử lý lỗi network / format response nằm trong tầng API)
-      const response = await login({ email, password })
+      const response = await login({ email, password, rememberMe })
 
       // Lưu response để hiển thị HelperAdmin
       setApiResponse(response)
@@ -169,19 +193,17 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
         // Lưu token để dùng cho các request authorize
         // setAuthToken đã tự động mã hóa và lưu vào storage, không cần gọi setToken nữa
         await setAuthToken(token)
-        // Sau khi có token, lấy level hiện tại của user và lưu lại
-        try {
-          const levelResp = await getUserLevel()
-          if (levelResp?.isSuccess && levelResp.data?.level != null) {
-            const levelValue = String(levelResp.data.level)
-            await setStorageItem('userLevel', levelValue)
-            // Thông báo nếu cần lắng nghe thay đổi level
-            dispatchStorageEvent('user-level-changed')
-          }
-        } catch (e) {
-          // Không chặn flow login nếu gọi API level thất bại
-          console.error('Không thể lấy level người dùng:', e)
+
+        // Lưu hoặc xóa thông tin ghi nhớ đăng nhập
+        if (rememberMe) {
+          await setStorageItem('rememberedEmail', email)
+          const encryptedPassword = encryptToken(password)
+          await setStorageItem('rememberedPassword', encryptedPassword)
+        } else {
+          await removeStorageItem('rememberedEmail')
+          await removeStorageItem('rememberedPassword')
         }
+
         // TODO: Lưu thông tin user vào context / storage nếu cần
         console.log('Đăng nhập thành công:', {
           token,
@@ -200,7 +222,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
         // Web: chuyển đến homepage (dùng solito router)
         setTimeout(() => {
           if (Platform.OS === 'web') {
-            router.push('/homepage')
+            router.push('/menu-study?level=1')
           } else {
             // Trên native, dùng React Navigation
             if (navigation) {
@@ -325,21 +347,10 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
               }
 
               await setAuthToken(token)
-              try {
-                const levelResp = await getUserLevel()
-                if (levelResp?.isSuccess && levelResp.data?.level != null) {
-                  const levelValue = String(levelResp.data.level)
-                  await setStorageItem('userLevel', levelValue)
-                  dispatchStorageEvent('user-level-changed')
-                }
-              } catch (e) {
-                console.error('Không thể lấy level người dùng:', e)
-              }
-
               heartbeatService.start()
 
               setTimeout(() => {
-                router.push('/homepage')
+                router.push('/menu-study?level=1')
               }, 500)
             } else {
               await clearAuthToken()
@@ -469,12 +480,25 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
             secureTextEntry
           />
         </View>
+        
+        <View style={styles.rememberForgotRow}>
+          <TouchableOpacity 
+            style={styles.rememberRow} 
+            onPress={() => setRememberMe(!rememberMe)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+              {rememberMe && <CheckOutlined style={styles.checkIcon} />}
+            </View>
+            <Text style={styles.rememberText}>Ghi nhớ đăng nhập</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={handleForgotPassword} activeOpacity={0.8}>
+            <Text style={styles.forgotText}>Quên mật khẩu?</Text>
+          </TouchableOpacity>
+        </View>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-        <TouchableOpacity onPress={handleForgotPassword} activeOpacity={0.8}>
-          <Text style={styles.forgotText}>Quên mật khẩu?</Text>
-        </TouchableOpacity>
 
         <Button
           title={loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
@@ -630,9 +654,43 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
   },
   forgotText: {
-    marginTop: 4,
     fontSize: 13,
-    color: '#111',
+    color: '#8B4513',
+    fontWeight: '600',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  rememberForgotRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: -4,
+  },
+  rememberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderWidth: 1.5,
+    borderColor: '#CCC',
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF',
+  },
+  checkboxChecked: {
+    backgroundColor: '#4C662B',
+    borderColor: '#4C662B',
+  },
+  checkIcon: {
+    fontSize: 12,
+    color: '#FFF',
+  },
+  rememberText: {
+    fontSize: 13,
+    color: '#555',
     fontFamily: 'Epilogue, sans-serif',
   },
   submitBtn: {

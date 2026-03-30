@@ -5,21 +5,28 @@ import { useRouter } from 'solito/navigation'
 import { Tag, Space, Row, Col } from 'antd'
 import { EyeOutlined } from '@ant-design/icons'
 import { statusArticle } from '../../../../string.js'
-import DetailDrawer from '../../../../../components/DetailDrawer'
 import { getBlogsAdmin, getBlogSummary, getTopBlogsByViews, getTopAuthors } from '../../api'
 import { BlogSearchActions } from '../../components/blog-management/BlogSearchActions'
 import { BlogStatsTable } from '../../components/blog-management/BlogStatsTable'
 import { TopBlogsCard } from '../../components/blog-management/TopBlogsCard'
 import { TopAuthorsCard } from '../../components/blog-management/TopAuthorsCard'
+import { useManagementFilters } from '../../../back-office/hooks/use-management-filters.js'
 
 export function BlogManagement({ initialData = null }) {
   const router = useRouter()
   const [data, setData] = useState(initialData || [])
   const [loading, setLoading] = useState(!initialData)
-  const [drawerItem, setDrawerItem] = useState(null)
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState()
-  const [pageNumber, setPageNumber] = useState(1)
+  
+  const [filters, setFilters] = useManagementFilters({
+    page: 1,
+    status: null,
+  })
+
+  // Aliases for compatibility
+  const pageNumber = filters.page
+  const statusFilter = filters.status
+
   const [totalPages, setTotalPages] = useState(1)
   const [summary, setSummary] = useState({ totalBlogs: 0, totalViews: 0, totalPublished: 0 })
   const [topBlogs, setTopBlogs] = useState([])
@@ -70,26 +77,20 @@ export function BlogManagement({ initialData = null }) {
         const res = await getBlogsAdmin({ pageNumber: page, pageSize: PAGE_SIZE, status: statusParam })
         setData(res.items || [])
         setTotalPages(res.totalPages || 1)
-        setPageNumber(res.pageNumber || 1)
+        if (res.pageNumber !== filters.page) {
+           setFilters(prev => ({ ...prev, page: res.pageNumber || 1 }))
+        }
       } finally {
         setLoading(false)
       }
     }
-    load(pageNumber, statusFilter)
-  }, [initialData, statusFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+    load(filters.page, filters.status)
+  }, [initialData, filters.status, filters.page]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handlePageChange = async (delta) => {
-    const next = pageNumber + delta
+  const handlePageChange = (delta) => {
+    const next = filters.page + delta
     if (next < 1 || next > totalPages) return
-    try {
-      setLoading(true)
-      const res = await getBlogsAdmin({ pageNumber: next, pageSize: PAGE_SIZE, status: statusFilter })
-      setData(res.items || [])
-      setTotalPages(res.totalPages || 1)
-      setPageNumber(res.pageNumber || next)
-    } finally {
-      setLoading(false)
-    }
+    setFilters(prev => ({ ...prev, page: next }))
   }
 
   const filteredData = useMemo(() => {
@@ -180,8 +181,7 @@ export function BlogManagement({ initialData = null }) {
           onSearchChange={setSearch}
           status={statusFilter}
           onStatusChange={(val) => {
-            setPageNumber(1)
-            setStatusFilter(val)
+            setFilters({ page: 1, status: val })
           }}
           onCreate={() => router.push(`${portalPrefix}/blog/create`)}
         />
@@ -196,7 +196,6 @@ export function BlogManagement({ initialData = null }) {
               pageNumber={pageNumber}
               totalPages={totalPages}
               onPageChange={handlePageChange}
-              onRowClick={(record) => setDrawerItem(record)}
             />
           </Col>
 
@@ -208,12 +207,6 @@ export function BlogManagement({ initialData = null }) {
           </Col>
         </Row>
 
-        <DetailDrawer
-          open={!!drawerItem}
-          onClose={() => setDrawerItem(null)}
-          title="Chi tiết bài viết"
-          data={drawerItem || {}}
-        />
       </Space>
     </>
   )

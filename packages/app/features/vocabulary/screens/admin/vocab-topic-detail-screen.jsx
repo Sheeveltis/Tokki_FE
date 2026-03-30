@@ -2,8 +2,7 @@
 
 import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'solito/navigation'
-import { Card, Space, Typography, Spin, Alert, Modal } from 'antd'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
+import { Card, Space, Typography, Spin, Alert, Modal, Button } from 'antd'
 import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
 import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web.jsx'
 import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
@@ -736,19 +735,13 @@ export function FlashcardTopicDetailScreen() {
       return (
         <div style={{ padding: 24 }}>
           <Alert type="error" message="Lỗi" description={error} />
-          <ButtonV2
-            title="Quay lại"
+          <Button
+            type="primary"
             style={{ marginTop: 10, minWidth: 120 }}
-            onPress={() => {
-              if (currentPortal === 'staff') {
-                router.push('/staff')
-              } else if (currentPortal === 'moderator') {
-                router.push('/moderator')
-              } else {
-                router.push('/admin')
-              }
-            }}
-          />
+            onClick={() => router.back()}
+          >
+            Quay lại
+          </Button>
         </div>
       )
     }
@@ -757,133 +750,155 @@ export function FlashcardTopicDetailScreen() {
       return (
         <div style={{ padding: 24 }}>
           <Alert type="warning" message="Không tìm thấy chủ đề" />
-          <ButtonV2
-            title="Quay lại danh sách"
+          <Button
+            type="primary"
             style={{ marginTop: 12, minWidth: 140 }}
-            onPress={() => {
-              if (currentPortal === 'staff') {
-                router.push('/staff?tab=vocabulary-topics')
-              } else if (currentPortal === 'moderator') {
-                router.push('/moderator?tab=vocabulary-topics')
-              } else {
-                router.push('/admin?tab=vocabulary-topics')
-              }
-            }}
-          />
+            onClick={() => router.back()}
+          >
+            Quay lại danh sách
+          </Button>
         </div>
       )
     }
 
     return (
-      <div style={{ padding: 24 }}>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <Space style={{ justifyContent: 'space-between', width: '100%' }}>
-            <div>
-              <Title level={3} style={{ marginBottom: 4 }}>
-                Chi tiết chủ đề flashcard
-              </Title>
-              <Text type="secondary">ID: {detailTopic.id}</Text>
+      <div
+        style={{
+          height: '100%',
+          padding: 12,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+            minHeight: 0,
+            overflow: 'auto',
+            paddingRight: 4,
+          }}
+        >
+          <Card style={{ borderRadius: 10 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                gap: 12,
+                flexWrap: 'wrap',
+                padding: 4,
+              }}
+            >
+              <div>
+                <Title level={3} style={{ marginBottom: 2, marginTop: 0 }}>
+                  Chi tiết chủ đề flashcard
+                </Title>
+                <Text type="secondary">ID: {detailTopic.id}</Text>
+              </div>
+              <Space wrap size={[8, 8]}>
+                {(() => {
+                  const topicStatus = detailTopic?._raw?.status ?? detailTopic?.status
+                  const isDraft = topicStatus === 0
+                  const isActive = topicStatus === 1
+                  const isDeleted = topicStatus === 2
+                  const isRejected = topicStatus === 4
+                  const userRole = getCurrentUserRole()
+                  const isAdmin = userRole === 'Admin'
+                  const isStaff = userRole === 'Staff'
+                  const isModerator = userRole === 'Moderator'
+
+                  const cannotEditForStaffModerator = (isStaff || isModerator) && (isActive || isDeleted)
+
+                  const hasVocab =
+                    (typeof detailTopic?.vocabularyCount === 'number'
+                      ? detailTopic.vocabularyCount
+                      : Array.isArray(topicVocabIds)
+                      ? topicVocabIds.length
+                      : Array.isArray(topicVocabData)
+                      ? topicVocabData.length
+                      : 0) > 0
+
+                  const canSubmitForApproval = isStaff && (isDraft || isRejected) && hasVocab && !isDeleted
+
+                  return (
+                    <>
+                      <Button
+                        type="primary"
+                        onClick={() => setEditOpen(true)}
+                        disabled={isDeleted || editLoading || cannotEditForStaffModerator}
+                      >
+                        Chỉnh sửa
+                      </Button>
+                      {canSubmitForApproval && (
+                        <Button onClick={handleSubmitForApproval} disabled={submittingForApproval}>
+                          {submittingForApproval ? 'Đang gửi...' : 'Gửi chờ duyệt'}
+                        </Button>
+                      )}
+                      {!isDeleted && !isModerator && (
+                        <Button danger onClick={handleDelete} disabled={deleteLoading}>
+                          {deleteLoading ? 'Đang xóa...' : 'Xóa'}
+                        </Button>
+                      )}
+                      <Button
+                        onClick={() => router.back()}
+                      >
+                        Quay lại
+                      </Button>
+                    </>
+                  )
+                })()}
+              </Space>
             </div>
-            <Space>
-              {(() => {
-                const topicStatus = detailTopic?._raw?.status ?? detailTopic?.status
-                const isDraft = topicStatus === 0
-                const isActive = topicStatus === 1
-                const isDeleted = topicStatus === 2
-                const isPendingApproval = topicStatus === 3
-                const isRejected = topicStatus === 4
-                const userRole = getCurrentUserRole()
-                const isAdmin = userRole === 'Admin'
-                const isStaff = userRole === 'Staff'
-                const isModerator = userRole === 'Moderator'
-
-                // Staff và Moderator không được chỉnh sửa khi status = 1 (Active) hoặc 2 (Deleted)
-                const cannotEditForStaffModerator = (isStaff || isModerator) && (isActive || isDeleted)
-
-                const hasVocab =
-                  (typeof detailTopic?.vocabularyCount === 'number'
-                    ? detailTopic.vocabularyCount
-                    : Array.isArray(topicVocabIds)
-                    ? topicVocabIds.length
-                    : Array.isArray(topicVocabData)
-                    ? topicVocabData.length
-                    : 0) > 0
-
-                // Staff có thể gửi lại phê duyệt khi status = 0 (Draft) hoặc 4 (Rejected)
-                const canSubmitForApproval = isStaff && (isDraft || isRejected) && hasVocab && !isDeleted
-
-                return (
-                  <>
-                    <ButtonV2
-                      title="Chỉnh sửa"
-                      color="poppy"
-                      onPress={() => setEditOpen(true)}
-                      disabled={isDeleted || editLoading || cannotEditForStaffModerator}
-                      style={{ minWidth: 110, paddingVertical: 10 }}
-                      textStyle={{ fontSize: 14 }}
-                    />
-                    {!isDeleted && isAdmin && (
-                      <ButtonV2
-                        title="Chuyển trạng thái"
-                        color="sage"
-                        onPress={() => setStatusChangeModalOpen(true)}
-                        disabled={statusChangeLoading}
-                        style={{ minWidth: 140, paddingVertical: 10 }}
-                        textStyle={{ fontSize: 14 }}
-                      />
-                    )}
-                    {canSubmitForApproval && (
-                      <ButtonV2
-                        title={submittingForApproval ? 'Đang gửi...' : 'Gửi chờ duyệt'}
-                        color="sage"
-                        onPress={handleSubmitForApproval}
-                        disabled={submittingForApproval}
-                        style={{ minWidth: 140, paddingVertical: 10 }}
-                        textStyle={{ fontSize: 14 }}
-                      />
-                    )}
-                    {!isDeleted && !isModerator && (
-                      <ButtonV2
-                        title={deleteLoading ? 'Đang xóa...' : 'Xóa'}
-                        color="charcoal"
-                        onPress={handleDelete}
-                        disabled={deleteLoading}
-                        style={{ minWidth: 90, paddingVertical: 10 }}
-                        textStyle={{ fontSize: 14 }}
-                      />
-                    )}
-                    <ButtonV2
-                      title="Quay lại"
-                      color="mint"
-                      onPress={() => {
-                        if (currentPortal === 'staff') {
-                          router.push('/staff?tab=vocabulary-topics')
-                        } else if (currentPortal === 'moderator') {
-                          router.push('/moderator?tab=approve-flashcard-topic')
-                        } else {
-                          router.push('/admin?tab=vocabulary-topics')
-                        }
-                      }}
-                      style={{ minWidth: 100, paddingVertical: 10 }}
-                      textStyle={{ fontSize: 14 }}
-                    />
-                  </>
-                )
-              })()}
-            </Space>
-          </Space>
+          </Card>
 
           <HelperAdmin response={apiResponse} />
-          <TopicInfoCard 
-            topic={detailTopic} 
-            isAdmin={(() => {
-              const userRole = getCurrentUserRole()
-              return userRole === 'Admin'
-            })()}
-            onApprove={() => handleOpenApprovalModal('approve')}
-            onReject={() => handleOpenApprovalModal('reject')}
-            approvalLoading={approvalLoading}
-          />
+          
+          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 600 }}>
+              <TopicVocabSection
+                selecting={selecting}
+                onSelectingChange={setSelecting}
+                removingKeys={removingKeys}
+                onRemovingKeysChange={setRemovingKeys}
+                availableOptions={availableOptions}
+                onSearch={handleSearchVocab}
+                onFocus={handleSelectFocus}
+                searching={searching}
+                onAdd={handleAddVocab}
+                adding={adding}
+                onRemove={handleRemoveVocab}
+                removing={removing}
+                dataSource={topicVocabData}
+                onQuickAdd={currentPortal !== 'moderator' ? () => setQuickAddModalOpen(true) : undefined}
+                onExcelUpload={currentPortal !== 'moderator' ? handleExcelFileSelect : undefined}
+                uploadingExcel={uploadingExcel}
+                fileInputRef={fileInputRef}
+                onExportExcel={currentPortal !== 'moderator' ? handleExportExcel : undefined}
+                exportingExcel={exportingExcel}
+                onOpenGuide={() => setGuideModalOpen(true)}
+                isModerator={currentPortal === 'moderator'}
+                excelImportResult={excelImportResult}
+              />
+            </div>
+            
+            <div style={{ width: 450, flexShrink: 0, position: 'sticky', top: 0 }}>
+              <TopicInfoCard
+                topic={detailTopic}
+                isAdmin={(() => {
+                  const userRole = getCurrentUserRole()
+                  return userRole === 'Admin'
+                })()}
+                onApprove={() => handleOpenApprovalModal('approve')}
+                onReject={() => handleOpenApprovalModal('reject')}
+                approvalLoading={approvalLoading}
+              />
+            </div>
+          </div>
           <FlashcardTopicEditModal
             open={editOpen}
             loading={editLoading}
@@ -898,30 +913,6 @@ export function FlashcardTopicDetailScreen() {
             onSubmit={handleUpdate}
             isModerator={currentPortal === 'moderator'}
             isStaff={currentPortal === 'staff'}
-          />
-          <TopicVocabSection
-            selecting={selecting}
-            onSelectingChange={setSelecting}
-            removingKeys={removingKeys}
-            onRemovingKeysChange={setRemovingKeys}
-            availableOptions={availableOptions}
-            onSearch={handleSearchVocab}
-            onFocus={handleSelectFocus}
-            searching={searching}
-            onAdd={handleAddVocab}
-            adding={adding}
-            onRemove={handleRemoveVocab}
-            removing={removing}
-            dataSource={topicVocabData}
-            onQuickAdd={currentPortal !== 'moderator' ? () => setQuickAddModalOpen(true) : undefined}
-            onExcelUpload={currentPortal !== 'moderator' ? handleExcelFileSelect : undefined}
-            uploadingExcel={uploadingExcel}
-            fileInputRef={fileInputRef}
-            onExportExcel={currentPortal !== 'moderator' ? handleExportExcel : undefined}
-            exportingExcel={exportingExcel}
-            onOpenGuide={() => setGuideModalOpen(true)}
-            isModerator={currentPortal === 'moderator'}
-            excelImportResult={excelImportResult}
           />
           <QuickAddVocabularyModal
             open={quickAddModalOpen}
@@ -973,7 +964,7 @@ export function FlashcardTopicDetailScreen() {
             onCancel={() => setStatusChangeModalOpen(false)}
             onSubmit={handleStatusChange}
           />
-        </Space>
+        </div>
       </div>
     )
   })()
@@ -982,37 +973,7 @@ export function FlashcardTopicDetailScreen() {
     'vocabulary-topics': detailContent,
   }
 
-  // Chọn layout dựa vào cổng hiện tại
-  if (currentPortal === 'staff') {
-    return (
-      <StaffLayout
-        screens={screens}
-        defaultKey={defaultTab}
-        onNavigate={handleNavigate}
-        onLogout={() => router.push('/login')}
-      />
-    )
-  }
-
-  if (currentPortal === 'moderator') {
-    return (
-      <ModeratorLayout
-        screens={screens}
-        defaultKey={defaultTab}
-        onNavigate={handleNavigate}
-        onLogout={() => router.push('/login')}
-      />
-    )
-  }
-
-  return (
-    <AdminLayout
-      screens={screens}
-      defaultKey={defaultTab}
-      onNavigate={handleNavigate}
-      onLogout={() => router.push('/login')}
-    />
-  )
+  return detailContent
 }
 
 export default FlashcardTopicDetailScreen

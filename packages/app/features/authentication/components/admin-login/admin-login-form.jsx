@@ -3,10 +3,13 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
+import { CheckOutlined } from '@ant-design/icons'
 import { TextInput } from '../../../../../components/textInput'
 import { Button } from '../../../../../components/button'
 import { login } from '../../api'
 import { setAuthToken, clearAuthToken } from '../../../../provider/api/client'
+import { encryptToken, decryptToken } from '../../../../helpers/token-encryption'
+import { setStorageItem, getStorageItem, removeStorageItem } from '../../../../helpers/storage'
 import { HelperAdmin } from '../../../../../components/HelperAdmin'
 import LogoImage from '../../../../../assets/logo-text.png'
 
@@ -17,6 +20,7 @@ export function AdminLoginForm() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [apiResponse, setApiResponse] = useState(null)
@@ -36,6 +40,29 @@ export function AdminLoginForm() {
 
   // Danh sách role được phép truy cập admin panel
   const allowedRoles = ['Admin', 'Staff', 'Moderator']
+
+  // Load remembered credentials on mount
+  React.useEffect(() => {
+    const loadRememberedCredentials = async () => {
+      try {
+        const savedEmail = await getStorageItem('admin_rememberedEmail')
+        const savedPassword = await getStorageItem('admin_rememberedPassword')
+        
+        if (savedEmail) {
+          setEmail(savedEmail)
+          setRememberMe(true)
+        }
+        if (savedPassword) {
+          const decryptedPassword = decryptToken(savedPassword)
+          setPassword(decryptedPassword)
+        }
+      } catch (error) {
+        console.error('Error loading admin remembered credentials:', error)
+      }
+    }
+    
+    loadRememberedCredentials()
+  }, [])
 
   const handleSubmit = async () => {
     if (loading) return
@@ -79,7 +106,7 @@ export function AdminLoginForm() {
 
     try {
       // Gọi API login
-      const response = await login({ email, password })
+      const response = await login({ email, password, rememberMe })
 
       // Lưu response để hiển thị HelperAdmin
       setApiResponse(response)
@@ -106,6 +133,16 @@ export function AdminLoginForm() {
 
         // Lưu token để dùng cho các request authorize
         await setAuthToken(token)
+
+        // Lưu hoặc xóa thông tin ghi nhớ đăng nhập
+        if (rememberMe) {
+          await setStorageItem('admin_rememberedEmail', email)
+          const encryptedPassword = encryptToken(password)
+          await setStorageItem('admin_rememberedPassword', encryptedPassword)
+        } else {
+          await removeStorageItem('admin_rememberedEmail')
+          await removeStorageItem('admin_rememberedPassword')
+        }
 
         console.log('Đăng nhập thành công:', {
           email,
@@ -201,6 +238,19 @@ export function AdminLoginForm() {
           />
         </View>
 
+        <View style={styles.rememberRowContainer}>
+          <TouchableOpacity 
+            style={styles.rememberRow} 
+            onPress={() => setRememberMe(!rememberMe)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+              {rememberMe && <CheckOutlined style={styles.checkIcon} />}
+            </View>
+            <Text style={styles.rememberText}>Ghi nhớ đăng nhập</Text>
+          </TouchableOpacity>
+        </View>
+
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
         <Button
@@ -248,13 +298,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 32,
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
     elevation: 4,
   },
   headerBlock: {
@@ -284,6 +328,37 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'Epilogue, sans-serif',
     marginBottom: 8,
+  },
+  rememberRowContainer: {
+    marginBottom: 16,
+  },
+  rememberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderWidth: 1.5,
+    borderColor: '#CCC',
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF',
+  },
+  checkboxChecked: {
+    backgroundColor: '#4C662B',
+    borderColor: '#4C662B',
+  },
+  checkIcon: {
+    fontSize: 12,
+    color: '#FFF',
+  },
+  rememberText: {
+    fontSize: 13,
+    color: '#555',
+    fontFamily: 'Epilogue, sans-serif',
   },
   submitBtn: {
     marginTop: 8,

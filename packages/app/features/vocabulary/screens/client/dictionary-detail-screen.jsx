@@ -6,7 +6,7 @@ import { useRouter } from 'solito/navigation'
 import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
 import SoundIcon from '../../../../../assets/icon/icon-mainflow/sound.svg'
-import { fetchVocabularyDetail, fetchUserVocabularyExamples } from '../../api'
+import { fetchVocabularyDetailForUser, fetchUserVocabularyExamples } from '../../api'
 
 // Hàm normalize image source để xử lý URL ảnh
 const normalizeImageSource = (src) => {
@@ -47,7 +47,7 @@ export function DictionaryVocabularyDetailScreen({ vocabularyId }) {
         setLoading(true)
         setError('')
         const [data, exampleList] = await Promise.all([
-          fetchVocabularyDetail(vocabularyId),
+          fetchVocabularyDetailForUser(vocabularyId),
           fetchUserVocabularyExamples(vocabularyId),
         ])
         if (mounted) {

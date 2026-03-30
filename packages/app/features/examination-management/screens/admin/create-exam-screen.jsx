@@ -3,8 +3,6 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Card, Form, Space, Typography, Input, Select, Radio, message } from 'antd'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
-import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
 import { createExam } from '../../api/exam-management.js'
 import { fetchExamTemplates } from '../../../back-office/api/admin-index.js'
 
@@ -15,7 +13,6 @@ const { Option } = Select
 const TYPE_MAP = {
   1: 'TOPIK I',
   2: 'TOPIK II',
-  3: 'Test đầu vào',
 }
 
 export function CreateExamScreen() {
@@ -26,9 +23,6 @@ export function CreateExamScreen() {
   const [examTemplates, setExamTemplates] = useState([])
   const [loadingTemplates, setLoadingTemplates] = useState(false)
 
-  const handleNavigate = (key) => {
-    router.push(`/admin?tab=${key}`)
-  }
 
   // Fetch exam templates khi examType thay đổi
   useEffect(() => {
@@ -95,7 +89,7 @@ export function CreateExamScreen() {
   }
 
   return (
-    <AdminLayout defaultKey="exam-management" onNavigate={handleNavigate}>
+    <>
       <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           {/* Header */}
@@ -129,7 +123,6 @@ export function CreateExamScreen() {
                 >
                   <Radio value={1}>TOPIK I</Radio>
                   <Radio value={2}>TOPIK II</Radio>
-                  <Radio value={3}>Test đầu vào</Radio>
                 </Radio.Group>
               </Form.Item>
 
@@ -209,28 +202,27 @@ export function CreateExamScreen() {
               {/* Buttons */}
               <Form.Item>
                 <Space>
-                  <ButtonV2
-                    title="Tạo đề thi"
-                    color="#F1BE4B"
-                    onPress={() => form.submit()}
+                  <Button
+                    type="primary"
+                    onClick={() => form.submit()}
                     loading={loading}
-                    style={{ minWidth: 120, paddingVertical: 10 }}
-                    textStyle={{ fontSize: 14 }}
-                  />
-                  <ButtonV2
-                    title="Hủy"
-                    color="charcoal"
-                    onPress={() => router.push('/admin?tab=exam-management')}
-                    style={{ minWidth: 100, paddingVertical: 10 }}
-                    textStyle={{ fontSize: 14 }}
-                  />
+                    style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#F1BE4B', borderColor: '#F1BE4B' }}
+                  >
+                    Tạo đề thi
+                  </Button>
+                  <Button
+                    onClick={() => router.push('/admin?tab=exam-management')}
+                    style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#373039', color: '#fff', border: 'none' }}
+                  >
+                    Hủy
+                  </Button>
                 </Space>
               </Form.Item>
             </Form>
           </Card>
         </Space>
       </div>
-    </AdminLayout>
+    </>
   )
 }
 

@@ -16,6 +16,19 @@ const TOKEN_KEY = 'token'
 let inMemoryToken = null
 let storageCache = null
 let isLoggingOut = false // Cờ chặn gọi hàm redirect nhiều lần
+let isRefreshing = false
+let failedQueue = []
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error)
+    } else {
+      prom.resolve(token)
+    }
+  })
+  failedQueue = []
+}
 
 export const setAuthToken = async (token) => {
   inMemoryToken = token || null
@@ -51,16 +64,24 @@ export const getAuthToken = () => {
     const stored = window.localStorage.getItem(TOKEN_KEY)
     if (stored) {
       const decryptedToken = decryptToken(stored)
-      // Chặn luôn nếu decrypt ra chuỗi rác
-      if (decryptedToken && decryptedToken !== stored && isValidJWTFormat(decryptedToken)) {
+
+      // 1) Token đã mã hóa đúng chuẩn
+      if (decryptedToken && isValidJWTFormat(decryptedToken)) {
         inMemoryToken = decryptedToken
         storageCache = decryptedToken
         return decryptedToken
-      } else if (!decryptedToken || !isValidJWTFormat(decryptedToken)) {
-        // Dọn rác
-        inMemoryToken = null
-        storageCache = null
       }
+
+      // 2) Fallback: token lưu dạng plain JWT (để tương thích dữ liệu cũ)
+      if (isValidJWTFormat(stored)) {
+        inMemoryToken = stored
+        storageCache = stored
+        return stored
+      }
+
+      // 3) Giá trị rác
+      inMemoryToken = null
+      storageCache = null
     }
   }
   return null
@@ -115,7 +136,7 @@ export const isCurrentTokenExpired = () => {
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -173,19 +194,72 @@ const handleTokenExpired = async (options = {}) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const status = error.response?.status;
-    
-    // Log lỗi gọn gàng hơn
-    console.error(`[API Error ${status}]`, error.config?.url, error.response?.data?.message || '');
-    
-    if (status === 401) {
-      const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
-      if (currentPath.includes('/admin') || currentPath.includes('/staff') || currentPath.includes('/moderator')) {
+  async (error) => {
+    const originalRequest = error.config
+    const status = error.response?.status
+
+    // Nếu lỗi 401 và chưa được retry
+    if (status === 401 && !originalRequest._retry) {
+      // Đánh dấu request này đang được retry để tránh loop vô tận
+      originalRequest._retry = true
+
+      // Nếu đang trong quá trình refresh token, cho request này vào queue chờ
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        })
+          .then((token) => {
+            originalRequest.headers['Authorization'] = `Bearer ${token}`
+            return apiClient(originalRequest)
+          })
+          .catch((err) => Promise.reject(err))
+      }
+
+      isRefreshing = true
+
+      try {
+        console.log('[Auth] Token expired, attempting to refresh...')
+        // Gọi API refresh (Dùng axios trực tiếp để tránh interceptor headers hoặc logic cũ)
+        const response = await axios.post(`${API_BASE_URL}${ENDPOINTS.ACCOUNT.REFRESH}`, {}, { withCredentials: true })
+
+        if (response.data && response.data.isSuccess && response.data.data?.token) {
+          const newToken = response.data.data.token
+          console.log('[Auth] Refresh successful, retrying original request.')
+          
+          // Lưu token mới
+          await setAuthToken(newToken)
+          
+          // Cập nhật Authorization header cho apiClient (cho các request sau này)
+          apiClient.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
+          
+          // Xử lý hàng đợi
+          processQueue(null, newToken)
+          
+          // Retry request gốc
+          originalRequest.headers['Authorization'] = `Bearer ${newToken}`
+          return apiClient(originalRequest)
+        } else {
+          throw new Error('Refresh response marked as failed')
+        }
+      } catch (refreshError) {
+        console.error('[Auth] Refresh token failed:', refreshError)
+        processQueue(refreshError, null)
+        
+        // Nếu refresh thất bại, xóa token và chuyển về trang login
         handleTokenExpired()
+        return Promise.reject(refreshError)
+      } finally {
+        isRefreshing = false
       }
     }
-    
+
+    // Log lỗi gọn gàng hơn cho các trường hợp khác
+    if (error.response) {
+      console.error(`[API Error ${status}]`, originalRequest.url, error.response.data?.message || '')
+    } else {
+      console.error('[API Error Network]', error.message)
+    }
+
     if (status === 404) {
       const token = getAuthToken()
       const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
@@ -193,7 +267,7 @@ apiClient.interceptors.response.use(
         console.warn('404 error on protected route with null token. Possible sync issue.')
       }
     }
-    
+
     return Promise.reject(error)
   }
 )

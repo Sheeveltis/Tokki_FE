@@ -1,9 +1,8 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Alert, Card, Spin, Table, Typography, Space, Button, Popconfirm } from 'antd'
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
-import { ButtonV2 } from '../../../../../components/buttonV2.jsx'
+import { Alert, Card, Spin, Table, Typography, Space, Button, Popconfirm, Input, Select, Tooltip } from 'antd'
+import { PlusOutlined, FilterOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import { fetchTitles, createTitle, updateTitle, deleteTitle } from '../../api/title'
 import { uploadTitleImageToCloudinary } from '../../../back-office/api/cloudinary'
@@ -11,6 +10,12 @@ import CreateTitleModal from './CreateTitleModal'
 import UpdateTitleModal from './UpdateTitleModal'
 
 const { Title, Text } = Typography
+
+const STATUS_CONFIG = {
+  0: { label: 'Nháp', color: '#8c8c8c' },
+  1: { label: 'Hoạt động', color: '#52c41a' },
+  2: { label: 'Ẩn', color: '#f5222d' },
+}
 
 export function TitleManagementScreen() {
   const [loading, setLoading] = useState(false)
@@ -23,6 +28,11 @@ export function TitleManagementScreen() {
   const [deletingId, setDeletingId] = useState(null)
   const [selectedTitle, setSelectedTitle] = useState(null)
 
+  const [filters, setFilters] = useState({
+    search: '',
+    status: null,
+  })
+  
   const loadData = async () => {
     try {
       setLoading(true)
@@ -41,13 +51,32 @@ export function TitleManagementScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const columns = useMemo(() => {
-    const statusColors = {
-      1: { color: 'green', label: 'Hoạt động' },
-      0: { color: 'default', label: 'Nháp' },
-      2: { color: 'red', label: 'Ẩn' },
-    }
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }))
+  }
 
+  const filteredData = useMemo(() => {
+    return data.filter((item) => {
+      const titleName = item?.name ?? item?.titleName ?? item?.TitleName ?? ''
+      const itemStatus = item?.status
+
+      const matchSearch = titleName
+        .toLowerCase()
+        .includes((filters.search || '').trim().toLowerCase())
+
+      const matchStatus =
+        filters.status === null || filters.status === undefined
+          ? true
+          : Number(itemStatus) === Number(filters.status)
+
+      return matchSearch && matchStatus
+    })
+  }, [data, filters])
+
+  const columns = useMemo(() => {
     return [
       {
         title: 'Tên danh hiệu',
@@ -113,10 +142,26 @@ export function TitleManagementScreen() {
         title: 'Trạng thái',
         dataIndex: 'status',
         key: 'status',
-        width: 120,
+        align: 'center',
+        width: 100,
         render: (val) => {
-          const info = statusColors[val] || { color: 'default', label: val ?? '-' }
-          return <Text style={{ color: info.color === 'default' ? undefined : info.color }}>{info.label}</Text>
+          const cfg = STATUS_CONFIG[Number(val)] || STATUS_CONFIG[0]
+      
+          return (
+            <Tooltip title={cfg.label} color={cfg.color} placement="top">
+              <div
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: '50%',
+                  backgroundColor: cfg.color,
+                  margin: '0 auto',
+                  boxShadow: '0 0 4px rgba(0,0,0,0.3)',
+                  cursor: 'pointer',
+                }}
+              />
+            </Tooltip>
+          )
         },
       },
       {
@@ -124,23 +169,27 @@ export function TitleManagementScreen() {
         key: 'action',
         width: 120,
         fixed: 'right',
+        align: 'center',
         render: (_, record) => (
           <Space size="small">
             <Button
+              type="primary"
               size="small"
+              icon={<EditOutlined />}
               onClick={() => {
                 setSelectedTitle(record)
                 setUpdateOpen(true)
               }}
               style={{
-                color: '#000',
-                borderColor: '#000',
-                backgroundColor: '#fff',
-                borderRadius: 4,
+                width: 26,
+                height: 26,
+                borderRadius: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
-            >
-              Sửa
-            </Button>
+            />
+      
             <Popconfirm
               title="Xác nhận xóa"
               description="Bạn có chắc chắn muốn xóa danh hiệu này?"
@@ -150,17 +199,19 @@ export function TitleManagementScreen() {
               okButtonProps={{ danger: true }}
             >
               <Button
+                danger
                 size="small"
+                icon={<DeleteOutlined />}
                 loading={deletingId === (record?.titleId || record?.id || record?.TitleId)}
                 style={{
-                  color: '#ff4d4f',
-                  borderColor: '#ff4d4f',
-                  backgroundColor: '#fff',
-                  borderRadius: 4,
+                  width: 26,
+                  height: 26,
+                  borderRadius: 8,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
-              >
-                Xóa
-              </Button>
+              />
             </Popconfirm>
           </Space>
         ),
@@ -276,13 +327,52 @@ export function TitleManagementScreen() {
           <Title level={3} style={{ marginBottom: 4 }}>Quản lí danh hiệu</Title>
           <Text type="secondary">Danh sách danh hiệu (Titles)</Text>
         </div>
-        <ButtonV2
-          title="Thêm danh hiệu"
-          color="#F1BE4B"
-          onPress={() => setCreateOpen(true)}
-          style={{ minWidth: 140, paddingVertical: 10 }}
-          textStyle={{ fontSize: 14 }}
+        <Button
+          icon={<PlusOutlined />}
+          onClick={() => setCreateOpen(true)}
+          style={{
+            backgroundColor: '#F1BE4B',
+            borderColor: '#F1BE4B',
+            color: '#111',
+            borderRadius: 6,
+            fontWeight: 500,
+          }}
+        >
+          Thêm mới
+        </Button>
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'flex-start',
+          alignItems: 'center',
+          gap: 12,
+          flexWrap: 'wrap',
+        }}
+      >
+        <Input.Search
+          placeholder="Tìm theo tên..."
+          allowClear
+          value={filters.search}
+          onChange={(e) => handleFilterChange('search', e.target.value)}
+          style={{ width: 280 }}
         />
+
+        <Space wrap>
+          <Select
+            allowClear
+            placeholder="Lọc trạng thái"
+            suffixIcon={<FilterOutlined />}
+            style={{ width: 160 }}
+            value={filters.status}
+            onChange={(val) => handleFilterChange('status', val)}
+            options={Object.entries(STATUS_CONFIG).map(([val, cfg]) => ({
+              value: Number(val),
+              label: cfg.label,
+            }))}
+          />
+        </Space>
       </div>
 
       <Card>
@@ -297,7 +387,7 @@ export function TitleManagementScreen() {
           <Table
             rowKey={rowKey}
             columns={columns}
-            dataSource={data}
+            dataSource={filteredData}
             pagination={{ pageSize: 10 }}
           />
         )}

@@ -1,9 +1,9 @@
 import React from 'react'
 import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
-import { colors } from '../../../color'
-import { normalizeImageSource } from '../api'
+import { colors } from '@tokki/app/color'
+import { normalizeImageSource } from '@tokki/app/features/study/api'
 
-import BunnyIcon from '../../../../assets/bunny/1.png'
+import BunnyIcon from 'assets/bunny/1.png'
 
 /**
  * QuickLevelTestButton: Nút kiểm tra level nhanh
@@ -56,10 +56,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2,
-    shadowColor: '#00000015',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }
+      : {
+          shadowColor: '#00000015',
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 4 },
+        }),
   },
   rectangleContainer: {
     position: 'absolute',
@@ -72,10 +76,14 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#FFD699',
     zIndex: 1,
-    shadowColor: '#00000015',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }
+      : {
+          shadowColor: '#00000015',
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 4 },
+        }),
   },
   icon: {
     width: 80,

@@ -138,7 +138,7 @@ export function WordleLevelPopup({ loading, levelsData = [], onClose, onSelectLe
 
 const styles = StyleSheet.create({
   overlay: {
-    position: 'fixed',
+    position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
@@ -147,9 +147,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2000,
+    elevation: 20,
+    paddingHorizontal: 16,
   },
   card: {
-    width: '90%',
+    width: '100%',
     maxWidth: 480,
     backgroundColor: '#FFF5E6',
     borderRadius: 26,

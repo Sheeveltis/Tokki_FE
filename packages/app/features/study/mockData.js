@@ -1,19 +1,7 @@
-import HeadphoneIcon from '../../../assets/icon/icon-mainflow/headphone.svg'
-import RadioIcon from '../../../assets/icon/icon-mainflow/radio.svg'
-import PodcastIcon from '../../../assets/icon/icon-mainflow/podcast.svg'
-import MusicIcon from '../../../assets/icon/icon-mainflow/music.svg'
-import EarIcon from '../../../assets/icon/icon-mainflow/ear.svg'
-import ChatboxIcon from '../../../assets/icon/icon-mainflow/chatbox.svg'
-import AIIcon from '../../../assets/icon/icon-mainflow/ai.svg'
-import ReadIcon from '../../../assets/icon/icon-mainflow/read.svg'
-import BlogIcon from '../../../assets/icon/icon-mainflow/blog.svg'
-import BookIcon from '../../../assets/icon/icon-mainflow/bookandsky.svg'
-import NewsIcon from '../../../assets/icon/icon-mainflow/news.svg'
-import WriteImage from '../../../assets/icon/icon-mainflow/write_image.jpg'
-import KoreanImage from '../../../assets/icon/icon-mainflow/korean.png'
-import FolderIcon from '../../../assets/icon/icon-mainflow/folder.svg'
-import GameIcon from '../../../assets/icon/icon-mainflow/game.svg'
-import WriteIcon from '../../../assets/icon/icon-mainflow/write.svg'
+import ChatboxIcon from 'assets/icon/icon-mainflow/chatbox.svg'
+import AIIcon from 'assets/icon/icon-mainflow/ai.svg'
+import FolderIcon from 'assets/icon/icon-mainflow/folder.svg'
+import GameIcon from 'assets/icon/icon-mainflow/game.svg'
 
 export { FLASHCARD_TOPICS, FLASHCARDS } from '../vocabulary/mockData'
 
@@ -59,42 +47,12 @@ export const ALPHABET_LETTERS = [
  */
 export const SKILL_MODULES = [
   {
-    id: 'listening',
-    title: 'NGHE',
-    icon: HeadphoneIcon,
-    items: [
-      { label: 'Radio', icon: RadioIcon },
-      { label: 'Podcast', icon: PodcastIcon },
-      { label: 'Nhạc', icon: MusicIcon },
-      { label: 'Nghe chép chính tả', icon: EarIcon },
-    ],
-  },
-  {
     id: 'speaking',
     title: 'NÓI',
     icon: ChatboxIcon,
     items: [
-      { label: 'Nghe chép chính tả', icon: ChatboxIcon },
       { label: 'Luyện nói với A.I', icon: AIIcon },
     ],
-  },
-  {
-    id: 'reading',
-    title: 'ĐỌC',
-    icon: ReadIcon,
-    items: [
-      { label: 'Blog', icon: BlogIcon },
-      { label: 'Truyện', icon: BookIcon },
-      { label: 'Báo', icon: NewsIcon },
-      { label: 'Đọc văn bản', icon: ReadIcon },
-    ],
-  },
-  {
-    id: 'writing',
-    title: 'VIẾT',
-    icon: WriteImage,
-    isImageModule: true,
-    items: [],
   },
   {
     id: 'vocabulary',
@@ -104,13 +62,6 @@ export const SKILL_MODULES = [
       { label: 'Chủ đề', icon: FolderIcon },
       { label: 'Minigame', icon: GameIcon },
     ],
-  },
-  {
-    id: 'grammar',
-    title: 'NGỮ PHÁP',
-    icon: KoreanImage,
-    isImageModule: true,
-    items: [],
   },
 ]
 

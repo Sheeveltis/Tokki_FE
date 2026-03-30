@@ -3,10 +3,29 @@ import { Image, Pressable, StyleSheet, Text, View, Platform } from 'react-native
 
 const normalizeImageSource = (src) => {
   if (!src) return null
-  if (typeof src === 'number' || src.uri) return src
+  if (typeof src === 'number' || src?.uri) return src
   if (typeof src === 'object' && src.src) return { uri: src.src }
   if (typeof src === 'string') return { uri: src }
-  return src
+  return null
+}
+
+const renderIcon = (icon) => {
+  if (!icon) return null
+
+  if (typeof icon === 'function') {
+    const SvgIcon = icon
+    return <SvgIcon width={24} height={24} />
+  }
+
+  if (typeof icon === 'object' && typeof icon.default === 'function') {
+    const SvgIcon = icon.default
+    return <SvgIcon width={24} height={24} />
+  }
+
+  const source = normalizeImageSource(icon)
+  if (!source) return null
+
+  return <Image source={source} style={styles.iconImage} resizeMode="contain" />
 }
 
 export function RoadmapLearningLessonCard({
@@ -15,31 +34,35 @@ export function RoadmapLearningLessonCard({
   subtitle,
   actionLabel,
   onPress,
+  isCompleted = false,
   tone = 'primary',
   variant = 'default', // 'default' | 'header'
 }) {
-  const toneStyles = tone === 'secondary' ? styles.secondaryCard : styles.primaryCard
+  const cardBaseStyle = isCompleted ? styles.completedCard : styles.incompleteCard
+  const actionButtonStyle = isCompleted ? styles.completedActionButton : styles.incompleteActionButton
+  const iconCircleStyle = isCompleted ? styles.completedIconCircle : styles.incompleteIconCircle
   const [isHovered, setIsHovered] = useState(false)
 
   // Header variant: không hover xám, không onPress riêng (để click pass cho DayItem)
   if (variant === 'header') {
     return (
-      <View style={[styles.container, toneStyles]}>
+      <View style={[styles.container, cardBaseStyle, styles.headerContainer]}>
         <View style={styles.left}>
-          <View style={styles.iconCircle}>
-            <Image
-              source={normalizeImageSource(icon)}
-              style={styles.iconImage}
-              resizeMode="contain"
-            />
-          </View>
+          <View style={[styles.iconCircle, iconCircleStyle]}>{renderIcon(icon)}</View>
           <View style={styles.texts}>
-            <Text style={styles.title}>{title}</Text>
-            {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+            <View style={styles.titleRow}>
+              <Text style={[styles.title, isHovered && styles.titleHovered]} numberOfLines={2}>{title}</Text>
+              {isCompleted && (
+                <View style={styles.checkWrapper}>
+                  <Text style={styles.checkIcon}>✓</Text>
+                </View>
+              )}
+            </View>
+            {!!subtitle && <Text style={[styles.subtitle, isHovered && styles.subtitleHovered]}>{subtitle}</Text>}
           </View>
         </View>
-        <View style={styles.actionButton}>
-          <Text style={styles.actionLabel}>{actionLabel}</Text>
+        <View style={[styles.actionButton, actionButtonStyle, styles.headerActionButton]}>
+          <Text style={[styles.actionLabel, isCompleted && styles.completedActionLabel]}>{actionLabel}</Text>
         </View>
       </View>
     )
@@ -53,26 +76,28 @@ export function RoadmapLearningLessonCard({
       onHoverOut={() => Platform.OS === 'web' && setIsHovered(false)}
       style={({ pressed }) => [
         styles.container,
-        toneStyles,
+        cardBaseStyle,
+        styles.defaultContainer,
         isHovered && styles.containerHovered,
         pressed && styles.containerPressed,
       ]}
     >
       <View style={styles.left}>
-        <View style={styles.iconCircle}>
-          <Image
-            source={normalizeImageSource(icon)}
-            style={styles.iconImage}
-            resizeMode="contain"
-          />
-        </View>
+        <View style={[styles.iconCircle, iconCircleStyle]}>{renderIcon(icon)}</View>
         <View style={styles.texts}>
-          <Text style={styles.title}>{title}</Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.title} numberOfLines={2}>{title}</Text>
+            {isCompleted && (
+              <View style={styles.checkWrapper}>
+                <Text style={styles.checkIcon}>✓</Text>
+              </View>
+            )}
+          </View>
           {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
         </View>
       </View>
-      <View style={styles.actionButton}>
-        <Text style={styles.actionLabel}>{actionLabel}</Text>
+      <View style={[styles.actionButton, actionButtonStyle, isHovered && styles.actionButtonHovered]}>
+        <Text style={[styles.actionLabel, isCompleted && styles.completedActionLabel, isHovered && styles.actionLabelHovered]}>{actionLabel}</Text>
       </View>
     </Pressable>
   )
@@ -81,79 +106,150 @@ export function RoadmapLearningLessonCard({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    padding: 14,
-    borderRadius: 18,
+    padding: 16,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
-      transitionProperty: 'transform, box-shadow, background-color',
-      transitionDuration: '160ms',
-      transitionTimingFunction: 'ease-out',
+      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
     }),
   },
-  containerHovered: {
-    transform: [{ translateY: -1 }],
-    backgroundColor: '#F0F0F0',
+  headerContainer: {
+    minHeight: 72,
   },
   containerPressed: {
-    transform: [{ scale: 0.99 }],
+    transform: [{ scale: 0.98 }],
   },
-  primaryCard: {
-    backgroundColor: '#FFE7A5',
+  defaultContainer: {
+    borderWidth: 1,
   },
-  secondaryCard: {
-    backgroundColor: '#FFF8F0',
+  containerHovered: {
+    backgroundColor: '#F4A950',
+    borderColor: '#F4A950',
+    transform: [{ translateY: -2 }],
+    ...(Platform.OS === 'web' && { boxShadow: '0 12px 24px rgba(244,169,80,0.25)' }),
+  },
+  actionButtonHovered: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'transparent',
+  },
+  actionLabelHovered: {
+    color: '#FFFFFF',
+  },
+  completedCard: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#48BB78',
+    borderWidth: 1.5,
+  },
+  incompleteCard: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#F0F0F0',
+    ...(Platform.OS === 'web' && { boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }),
+  },
+  completedActionButton: {
+    backgroundColor: '#48BB78',
+    borderColor: '#48BB78',
+  },
+  incompleteActionButton: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#EEEEEE',
   },
   left: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
     flex: 1,
+    minWidth: 0,
   },
   iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F4A950',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
+  },
+  completedIconCircle: {
+    backgroundColor: '#F0FFF4',
+    borderWidth: 1.5,
+    borderColor: '#48BB78',
+  },
+  incompleteIconCircle: {
+    backgroundColor: '#F8F9FA',
+    borderWidth: 1,
+    borderColor: '#EEEEEE',
   },
   iconImage: {
     width: 24,
     height: 24,
-    tintColor: '#666666',
-  },
-  iconText: {
-    fontSize: 18,
   },
   texts: {
     flex: 1,
     gap: 2,
+    minWidth: 0,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  checkWrapper: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#4CAF50',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FFF',
+  },
+  checkIcon: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: '900',
   },
   title: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1C1C1C',
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 22,
+  },
+  titleHovered: {
+    color: '#FFFFFF',
   },
   subtitle: {
     fontSize: 13,
-    color: '#4A4A4A',
+    color: '#777',
+    fontWeight: '500',
     fontFamily: 'Epilogue, sans-serif',
+  },
+  subtitleHovered: {
+    color: 'rgba(255,255,255,0.8)',
   },
   actionButton: {
     paddingVertical: 8,
     paddingHorizontal: 16,
-    borderRadius: 999,
-    backgroundColor: '#FFCF6C',
+    borderRadius: 12,
+    flexShrink: 0,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  headerActionButton: {
+    marginLeft: 8,
   },
   actionLabel: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#1C1C1C',
+    fontWeight: '800',
+    color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
   },
+  completedActionLabel: {
+    color: '#2F855A',
+  },
 })
+
 

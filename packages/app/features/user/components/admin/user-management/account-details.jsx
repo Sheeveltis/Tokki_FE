@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Card, Descriptions, Space, Spin, Typography, message, Input, Select, Row, Col, Avatar, DatePicker, Upload, Modal, Button } from 'antd'
 import { EditOutlined, UploadOutlined } from '@ant-design/icons'
+import ImgCrop from 'antd-img-crop'
 import dayjs from 'dayjs'
 import { fetchUserDetail, updateUserProfile, uploadAvatarToCloudinary } from '../../../api/user-detail'
 import PopupConfirm from './popup-confirm'
@@ -19,11 +20,11 @@ const getRoleLabel = (val) => {
   }
 }
 
-export default function AccountDetails({ userId, onAfterChange, onBack }) {
+export default function AccountDetails({ userId, onAfterChange, onBack, initialEdit = false }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [user, setUser] = useState(null)
-  const [editing, setEditing] = useState(false)
+  const [editing, setEditing] = useState(initialEdit)
   const [form, setForm] = useState({
     fullName: '',
     phoneNumber: '',
@@ -182,16 +183,23 @@ export default function AccountDetails({ userId, onAfterChange, onBack }) {
                     <div title={Number(user.status) === 1 ? 'Hoạt động' : Number(user.status) === 2 ? 'Đã bị khóa' : 'Vô hiệu hóa'}
                       style={{ position: 'absolute', bottom: 0, left: 0, zIndex: 2, width: 30, height: 30, borderRadius: '50%', backgroundColor: Number(user.status) === 1 ? '#52c41a' : Number(user.status) === 2 ? '#ff4d4f' : '#d9d9d9', border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} />
                     <Avatar size={120} src={user.avatarUrl || undefined} style={{ border: '3px solid #e8e8e8', opacity: uploadingAvatar ? 0.5 : 1 }}>{!user.avatarUrl && (user.fullName?.[0]?.toUpperCase() || 'U')}</Avatar>
-                    <Upload beforeUpload={handleAvatarUpload} showUploadList={false} accept="image/*" disabled={uploadingAvatar}>
-                      <div style={{ position: 'absolute', bottom: 0, right: 0, background: uploadingAvatar ? '#ccc' : '#1890ff', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: uploadingAvatar ? 'not-allowed' : 'pointer', border: '2px solid white' }}>
-                        <UploadOutlined style={{ color: 'white', fontSize: 16 }} />
-                      </div>
-                    </Upload>
+                    <ImgCrop rotation aspect={1} cropShape="round" okText="Xác nhận" cancelText="Hủy" modalTitle="Chỉnh sửa ảnh đại diện">
+                      <Upload 
+                        beforeUpload={handleAvatarUpload} 
+                        showUploadList={false} 
+                        accept="image/*" 
+                        disabled={uploadingAvatar}
+                      >
+                        <div style={{ position: 'absolute', bottom: 0, right: 0, background: uploadingAvatar ? '#ccc' : '#1890ff', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: uploadingAvatar ? 'not-allowed' : 'pointer', border: '2px solid white' }}>
+                          <UploadOutlined style={{ color: 'white', fontSize: 16 }} />
+                        </div>
+                      </Upload>
+                    </ImgCrop>
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <Title level={4} style={{ margin: '0 0 4px 0' }}>{fmt(user.fullName)}</Title>
                     <Text type="secondary" style={{ fontSize: 14 }}>{getRoleLabel(user.role)}</Text><br />
-                    <Text type="secondary" style={{ fontSize: 12 }}><strong>UID: </strong>{user.userId || user.id}</Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}><strong>ID: </strong>{user.userId || user.id}</Text>
                   </div>
                 </div>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -205,11 +213,7 @@ export default function AccountDetails({ userId, onAfterChange, onBack }) {
                       <div style={{ marginTop: 16 }}><Text type="secondary" style={{ fontSize: 12, display: 'block' }}>Ngày cập nhật:</Text><Text strong>{fmtDate(user.updatedAt)}</Text></div>
                     </Col>
                   </Row>
-                  <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-                    {Number(user.status) !== 0 && <Button danger onClick={() => setDeleteOpen(true)} style={{ minWidth: 140 }}>Vô hiệu hóa</Button>}
-                    {editing && <Button onClick={handleCancelEditing} style={{ minWidth: 140 }}>Hủy</Button>}
-                    <Button type="primary" onClick={handleUpdateClick} style={{ minWidth: 140 }}>{editing ? 'Lưu' : 'Cập nhật'}</Button>
-                  </div>
+
                 </div>
               </div>
             </Card>
@@ -241,7 +245,12 @@ export default function AccountDetails({ userId, onAfterChange, onBack }) {
         </Row>
 
         {/* Cụm nút phía cuối trang đã được giữ nguyên */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 12 }}>
+          {Number(user.status) !== 0 && (
+            <Button danger onClick={() => setDeleteOpen(true)} style={{ minWidth: 120, paddingTop: 10, paddingBottom: 10 }}>
+              Vô hiệu hóa
+            </Button>
+          )}
           <Button onClick={onBack} style={{ minWidth: 120, paddingTop: 10, paddingBottom: 10 }}> Quay lại </Button>
           {editing && <Button onClick={handleCancelEditing} style={{ minWidth: 120, paddingTop: 10, paddingBottom: 10 }}> Hủy </Button>}
           <Button type="primary" onClick={handleUpdateClick} style={{ minWidth: 120, paddingTop: 10, paddingBottom: 10 }}> {editing ? 'Lưu' : 'Cập nhật'} </Button>

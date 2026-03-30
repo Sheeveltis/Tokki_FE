@@ -28,6 +28,10 @@ import { FlashcardTestScreen } from 'app/features/study/flashcard-test'
 import { FlashcardFirstLearnScreen } from 'app/features/study/flashcard-first-learn'
 import { MenuStudyScreen } from 'app/features/study/menu-study/menu-study-screen.native'
 import { LearnedVocabularyListScreen } from 'app/features/study/learned-vocabulary-list'
+import { MinigameScreen } from 'app/features/minigame/screens/minigame-screen'
+import { WordleRuleScreen } from 'app/features/minigame/screens/wordle/wordle-rule-screen'
+import { WordlePlayScreen } from 'app/features/minigame/screens/wordle/wordle-play-screen'
+import { WordleBoardScreen } from 'app/features/minigame/screens/wordle/wordle-board-screen'
 
 const Stack = createNativeStackNavigator()
 
@@ -167,6 +171,34 @@ export function NativeNavigation() {
       <Stack.Screen
         name="learned-vocabulary-list"
         component={LearnedVocabularyListScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="minigame"
+        component={MinigameScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="wordle-rule"
+        component={WordleRuleScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="wordle-play"
+        component={WordlePlayScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="wordle-board"
+        component={WordleBoardScreen}
         options={{
           headerShown: false,
         }}

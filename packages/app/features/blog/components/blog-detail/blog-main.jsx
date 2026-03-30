@@ -67,9 +67,7 @@ const styles = StyleSheet.create({
     lineHeight: 42,
     color: '#1a1a1a',
     letterSpacing: -0.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.1)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    textShadow: '0px 1px 2px rgba(0, 0, 0, 0.1)',
   },
   image: {
     width: '100%',

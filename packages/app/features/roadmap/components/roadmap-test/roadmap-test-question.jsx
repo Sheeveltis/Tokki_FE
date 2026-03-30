@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Pressable, StyleSheet, Text, View, Platform, TextInput } from 'react-native'
-import { RoadmapTestAnswer } from './roadmap-test-answer'
 
 export function RoadmapTestQuestion({
   questionNumber = 1,
@@ -13,23 +12,15 @@ export function RoadmapTestQuestion({
   selectedAnswer = null,
   onAnswerSelect,
   onAnswerChange, // For writing type
+  showCorrectAnswer = false,
+  correctAnswer = null,
 }) {
-  const [currentTime, setCurrentTime] = useState(0)
-  const [totalTime, setTotalTime] = useState(0)
-  const [isPlaying, setIsPlaying] = useState(false)
+  const [, setCurrentTime] = useState(0)
+  const [, setTotalTime] = useState(0)
+  const [, setIsPlaying] = useState(false)
   const [volume, setVolume] = useState(100)
-  const [progress, setProgress] = useState(0)
-  const [progressBarLayout, setProgressBarLayout] = useState({ width: 0, x: 0 })
-  const [volumeSliderLayout, setVolumeSliderLayout] = useState({ width: 0, x: 0 })
+  const [, setProgress] = useState(0)
   const audioRef = useRef(null)
-
-  // Format seconds to MM:SS
-  const formatTime = (seconds) => {
-    if (!seconds || isNaN(seconds)) return '00:00'
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
-  }
 
   // Initialize audio element when audioUrl changes
   useEffect(() => {
@@ -79,7 +70,7 @@ export function RoadmapTestQuestion({
       audio.addEventListener('volumechange', handleVolumeChange)
 
       // Set initial volume
-      audio.volume = volume / 100
+      audio.volume = (volume || 100) / 100
 
       return () => {
         // Stop and cleanup audio
@@ -100,79 +91,13 @@ export function RoadmapTestQuestion({
     }
   }, [audioUrl, type, volume])
 
-  const handlePlayPause = () => {
-    if (Platform.OS === 'web' && audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause()
-      } else {
-        audioRef.current.play().catch((error) => {
-          console.error('Error playing audio:', error)
-        })
-      }
-    }
-  }
 
-  const handleProgressClick = (event) => {
-    if (Platform.OS === 'web' && audioRef.current && totalTime > 0 && progressBarLayout.width > 0) {
-      let clickX
-      
-      // Try to get click position from native event (React Native Web)
-      if (event.nativeEvent && typeof event.nativeEvent.locationX === 'number') {
-        clickX = event.nativeEvent.locationX
-      } else if (event.nativeEvent && event.nativeEvent.pageX) {
-        // Fallback: calculate from pageX
-        clickX = event.nativeEvent.pageX - progressBarLayout.x
-      } else {
-        return
-      }
-      
-      const percentage = Math.max(0, Math.min(1, clickX / progressBarLayout.width))
-      const newTime = percentage * totalTime
-      audioRef.current.currentTime = newTime
-    }
-  }
 
-  const handleVolumeClick = (event) => {
-    if (volumeSliderLayout.width > 0) {
-      let clickX
-      
-      // Try to get click position from native event (React Native Web)
-      if (event.nativeEvent && typeof event.nativeEvent.locationX === 'number') {
-        clickX = event.nativeEvent.locationX
-      } else if (event.nativeEvent && event.nativeEvent.pageX) {
-        // Fallback: calculate from pageX
-        clickX = event.nativeEvent.pageX - volumeSliderLayout.x
-      } else if (Platform.OS === 'web' && event.nativeEvent) {
-        // Try to get from target element
-        const target = event.nativeEvent.target
-        if (target) {
-          const rect = target.getBoundingClientRect()
-          clickX = event.nativeEvent.pageX - rect.left
-        } else {
-          return
-        }
-      } else {
-        return
-      }
-      
-      const percentage = Math.max(0, Math.min(100, (clickX / volumeSliderLayout.width) * 100))
-      handleVolumeChange(percentage)
-    }
-  }
+  // Check if this is Q51/Q52 type (has 2 parts: ㉠ and ㉡)
+  const isTwoPartWriting = questionTypeCode && ['Q51', 'Q52'].includes(String(questionTypeCode).slice(-3))
 
-  const handleVolumeChange = (newVolume) => {
-    const clampedVolume = Math.max(0, Math.min(100, newVolume))
-    setVolume(clampedVolume)
-    if (Platform.OS === 'web' && audioRef.current) {
-      audioRef.current.volume = clampedVolume / 100
-    }
-  }
-
-  // Check if this is Q51 type (has 2 parts: ㉠ and ㉡)
-  const isQ51 = questionTypeCode && String(questionTypeCode).slice(-3) === 'Q51'
-
-  // Parse Q51 answer from selectedAnswer (could be object {a, b} or string)
-  const parseQ51Answer = () => {
+  // Parse Q51/Q52 answer from selectedAnswer (could be object {a, b} or string)
+  const parseTwoPartAnswer = () => {
     if (!selectedAnswer) return { a: '', b: '' }
     if (typeof selectedAnswer === 'object' && selectedAnswer !== null) {
       return { a: selectedAnswer.a || '', b: selectedAnswer.b || '' }
@@ -197,17 +122,44 @@ export function RoadmapTestQuestion({
     return { a: '', b: '' }
   }
 
-  const q51Answer = isQ51 ? parseQ51Answer() : null
+  const twoPartAnswer = isTwoPartWriting ? parseTwoPartAnswer() : null
 
-  const handleQ51Change = (part, value) => {
+  const handleTwoPartChange = (part, value) => {
     if (!onAnswerChange) return
     const newAnswer = {
-      ...q51Answer,
+      ...twoPartAnswer,
       [part]: value,
     }
     onAnswerChange(newAnswer)
   }
 
+
+  const hasImageOptions = options.some((option) => option?.imageUrl)
+
+  const normalizeHtmlText = (value) => {
+    if (!value) return ''
+    return String(value)
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/?[^>]+(>|$)/g, '')
+  }
+
+  const renderHtmlText = (value, style) => {
+    if (Platform.OS === 'web') {
+      return (
+        <span
+          style={{ 
+            ...style, 
+            display: 'block', 
+            lineHeight: '1.5', // Điều chỉnh tỉ lệ này (1.4 - 1.6) để dòng khít lại
+            wordBreak: 'break-word' 
+          }}
+          dangerouslySetInnerHTML={{ __html: String(value || '') }}
+        />
+      )
+    }
+  
+    return <Text style={style}>{normalizeHtmlText(value)}</Text>
+  }
 
   return (
     <View style={styles.container}>
@@ -229,18 +181,7 @@ export function RoadmapTestQuestion({
         )
       ) : (
         <View style={styles.questionTextContainer}>
-          <Text style={styles.questionText}>{questionText || 'Câu hỏi mẫu'}</Text>
-        </View>
-      )}
-
-      {/* Options */}
-      {type !== 'writing' && (
-        <View style={styles.optionsContainer}>
-          {options.map((option, index) => (
-            <Text key={index} style={styles.optionText}>
-              {index + 1}: {option}
-            </Text>
-          ))}
+          {renderHtmlText(questionText || 'Câu hỏi mẫu', styles.questionText)}
         </View>
       )}
 
@@ -261,8 +202,8 @@ export function RoadmapTestQuestion({
             </View>
           )}
           
-          {isQ51 ? (
-            // Q51: 2 separate inputs for ㉠ and ㉡
+          {isTwoPartWriting ? (
+            // Q51/Q52: 2 separate inputs for ㉠ and ㉡
             <>
               <Text style={styles.writingLabel}>Nhập câu trả lời:</Text>
               <View style={styles.q51Container}>
@@ -270,16 +211,20 @@ export function RoadmapTestQuestion({
                   <Text style={styles.q51PartLabel}>㉠:</Text>
                   {Platform.OS === 'web' ? (
                     <textarea
-                      value={q51Answer?.a || ''}
-                      onChange={(e) => handleQ51Change('a', e.target.value)}
+                      value={twoPartAnswer?.a || ''}
+                      onChange={(e) => handleTwoPartChange('a', e.target.value)}
                       placeholder="Nhập phần ㉠..."
-                      style={styles.q51Textarea}
+                      style={{
+                        ...styles.q51Textarea,
+                        lineHeight: '1.5',
+                        ...(Platform.OS === 'web' && { outline: 'none' })
+                      }}
                       rows={4}
                     />
                   ) : (
                     <TextInput
-                      value={q51Answer?.a || ''}
-                      onChangeText={(text) => handleQ51Change('a', text)}
+                      value={twoPartAnswer?.a || ''}
+                      onChangeText={(text) => handleTwoPartChange('a', text)}
                       placeholder="Nhập phần ㉠..."
                       style={styles.q51TextInput}
                       multiline
@@ -291,16 +236,20 @@ export function RoadmapTestQuestion({
                   <Text style={styles.q51PartLabel}>㉡:</Text>
                   {Platform.OS === 'web' ? (
                     <textarea
-                      value={q51Answer?.b || ''}
-                      onChange={(e) => handleQ51Change('b', e.target.value)}
+                      value={twoPartAnswer?.b || ''}
+                      onChange={(e) => handleTwoPartChange('b', e.target.value)}
                       placeholder="Nhập phần ㉡..."
-                      style={styles.q51Textarea}
+                      style={{
+                        ...styles.q51Textarea,
+                        lineHeight: '1.5',
+                        ...(Platform.OS === 'web' && { outline: 'none' })
+                      }}
                       rows={4}
                     />
                   ) : (
                     <TextInput
-                      value={q51Answer?.b || ''}
-                      onChangeText={(text) => handleQ51Change('b', text)}
+                      value={twoPartAnswer?.b || ''}
+                      onChangeText={(text) => handleTwoPartChange('b', text)}
                       placeholder="Nhập phần ㉡..."
                       style={styles.q51TextInput}
                       multiline
@@ -323,7 +272,11 @@ export function RoadmapTestQuestion({
                     }
                   }}
                   placeholder="Nhập câu trả lời của bạn ở đây..."
-                  style={styles.writingTextarea}
+                  style={{
+                    ...styles.writingTextarea,
+                    lineHeight: '1.5',
+                    ...(Platform.OS === 'web' && { outline: 'none' })
+                  }}
                   rows={8}
                 />
               ) : (
@@ -340,13 +293,47 @@ export function RoadmapTestQuestion({
           )}
         </View>
       ) : (
-        <RoadmapTestAnswer
-          selectedAnswer={selectedAnswer}
-          onAnswerSelect={onAnswerSelect}
-          containerStyle={styles.answerButtonsContainer}
-          buttonSize={40}
-          gap={16}
-        />
+        <View
+          style={[
+            styles.optionsContainer,
+            hasImageOptions && styles.optionsImageContainer,
+            styles.answerSelectContainer,
+          ]}
+        >
+          {options.map((option, index) => {
+            const answerNumber = index + 1
+            const isSelected = selectedAnswer === answerNumber
+            return (
+              <Pressable
+                key={answerNumber}
+                onPress={() => onAnswerSelect?.(answerNumber)}
+                style={[
+                  styles.answerOption,
+                  option?.imageUrl && styles.answerOptionWithImage,
+                  isSelected && styles.answerOptionSelected,
+                  showCorrectAnswer && answerNumber === correctAnswer && styles.answerOptionCorrect,
+                ]}
+              >
+                <Text style={styles.answerOptionLabel}>{answerNumber}.</Text>
+                {option?.imageUrl ? (
+                  Platform.OS === 'web' ? (
+                    <img
+                      src={option.imageUrl}
+                      alt={`Option ${answerNumber}`}
+                      style={styles.optionImage}
+                    />
+                  ) : (
+                    <Text style={styles.optionImagePlaceholder}>
+                      [Image: {option.imageUrl}]
+                    </Text>
+                  )
+                ) : (
+                  <Text style={styles.optionText}>{option?.content || ''}</Text>
+                )}
+              </Pressable>
+            )
+          })}
+        </View>
       )}
     </View>
   )
@@ -354,250 +341,120 @@ export function RoadmapTestQuestion({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFF8F0',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-    gap: 20,
-    // Inner shadow và upper shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
-    // Inner shadow effect (sử dụng border để tạo hiệu ứng)
+    padding: 20,
+    gap: 16,
     borderWidth: 1,
     borderColor: '#F0F0F0',
-  },
-  audioWebWrapper: {
-    width: '100%',
-    borderRadius: 999,
-    overflow: 'hidden',
-    backgroundColor: '#F5F5F5',
     ...(Platform.OS === 'web' && {
-      boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.1)',
+      boxShadow: '0 8px 24px rgba(0,0,0,0.03)',
     }),
   },
   questionTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1C1C1C',
+    fontWeight: '900',
+    color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
-  },
-  audioPlayer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 8,
-    ...(Platform.OS === 'web' && {
-      boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.1)',
-    }),
-  },
-  playButton: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-  },
-  playIconTriangle: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 10,
-    borderTopWidth: 6,
-    borderBottomWidth: 6,
-    borderLeftColor: '#4A4A4A',
-    borderTopColor: 'transparent',
-    borderBottomColor: 'transparent',
-    marginLeft: 2,
-  },
-  pauseIcon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 3,
-    width: 20,
-    height: 20,
-  },
-  pauseBar: {
-    width: 3,
-    height: 12,
-    backgroundColor: '#4A4A4A',
-    borderRadius: 1,
-  },
-  playIconText: {
-    fontSize: 16,
-    color: '#4A4A4A',
-  },
-  timeText: {
-    fontSize: 13,
-    color: '#4A4A4A',
-    fontFamily: 'Epilogue, sans-serif',
-    minWidth: 40,
-    fontWeight: '500',
-  },
-  progressBarContainer: {
-    flex: 1,
-    height: 4,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 2,
-    position: 'relative',
-    cursor: Platform.OS === 'web' ? 'pointer' : 'default',
-    overflow: 'visible',
-  },
-  progressBar: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#E0E0E0',
-    borderRadius: 2,
-    position: 'relative',
-    overflow: 'visible',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#4A4A4A',
-    borderRadius: 2,
-    ...(Platform.OS === 'web' && {
-      transition: 'width 0.1s linear',
-    }),
-  },
-  progressDot: {
-    position: 'absolute',
-    top: -4,
-    marginLeft: -6,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#4A4A4A',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    ...(Platform.OS === 'web' && {
-      transition: 'left 0.1s linear',
-      boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.2)',
-    }),
-  },
-  volumeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  volumeIcon: {
-    fontSize: 16,
-    color: '#4A4A4A',
-  },
-  volumeSlider: {
-    width: 60,
-    height: 4,
-    borderRadius: 2,
-    position: 'relative',
-    cursor: Platform.OS === 'web' ? 'pointer' : 'default',
-    overflow: 'visible',
-    ...(Platform.OS === 'web' && {
-      userSelect: 'none',
-    }),
-  },
-  volumeBar: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#E0E0E0',
-    borderRadius: 2,
-    position: 'relative',
-    overflow: 'visible',
-  },
-  volumeFill: {
-    height: '100%',
-    backgroundColor: '#4A4A4A',
-    borderRadius: 2,
-    ...(Platform.OS === 'web' && {
-      transition: 'width 0.1s linear',
-    }),
-  },
-  volumeDot: {
-    position: 'absolute',
-    top: -2,
-    marginLeft: -4,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#4A4A4A',
-    ...(Platform.OS === 'web' && {
-      transition: 'left 0.1s linear',
-      boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.2)',
-    }),
+    letterSpacing: -0.5,
   },
   questionTextContainer: {
     paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+    marginBottom: 4,
   },
   questionText: {
     fontSize: 16,
-    color: '#1C1C1C',
+    color: '#333',
     fontFamily: 'Epilogue, sans-serif',
     lineHeight: 24,
+    fontWeight: '500',
+  },
+  audioWebWrapper: {
+    width: '100%',
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#F8F9FA',
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#EEEEEE',
   },
   optionsContainer: {
+    gap: 10,
+  },
+  optionsImageContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
+    justifyContent: 'space-between',
+  },
+  answerOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1.5,
+    borderColor: '#F3F4F6',
+  },
+  answerOptionWithImage: {
+    width: '49%',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: 8,
+  },
+  answerOptionSelected: {
+    backgroundColor: '#FFFBEB',
+    borderColor: '#FEF3C7',
+  },
+  answerOptionCorrect: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#10B981',
+    borderWidth: 2,
+  },
+  answerOptionLabel: {
+    fontSize: 13,
+    color: '#999',
+    fontFamily: 'Epilogue, sans-serif',
+    fontWeight: '800',
+    width: 20,
   },
   optionText: {
-    fontSize: 16,
-    color: '#1C1C1C',
+    flex: 1,
+    fontSize: 15,
+    color: '#1F2937',
     fontFamily: 'Epilogue, sans-serif',
-    lineHeight: 24,
-  },
-  answerButtonsContainer: {
-    justifyContent: 'flex-start',
-    paddingLeft: 15,
+    fontWeight: '600',
   },
   writingContainer: {
     gap: 12,
   },
-  writingImageContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  writingImagePlaceholder: {
-    fontSize: 14,
-    color: '#999',
-    fontStyle: 'italic',
-  },
   writingLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
-    marginBottom: 8,
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#374151',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   writingTextarea: {
     width: '100%',
-    minHeight: 200,
-    padding: 12,
-    fontSize: 16,
+    lineHeight: 22, // Fallback for mobile
+    minHeight: 180,
+    padding: 16,
+    fontSize: 15,
     fontFamily: 'Epilogue, sans-serif',
-    color: '#1C1C1C',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    resize: 'vertical',
-    outline: 'none',
+    color: '#1F2937',
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1.5,
+    borderColor: '#F3F4F6',
+    borderRadius: 16,
     ...(Platform.OS === 'web' && {
       boxSizing: 'border-box',
+      outlineStyle: 'none',
+      resize: 'vertical',
     }),
-  },
-  writingTextInput: {
-    width: '100%',
-    minHeight: 200,
-    padding: 12,
-    fontSize: 16,
-    fontFamily: 'Epilogue, sans-serif',
-    color: '#1C1C1C',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    textAlignVertical: 'top',
   },
   q51Container: {
     gap: 16,
@@ -606,40 +463,31 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   q51PartLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1A1A1A',
   },
   q51Textarea: {
     width: '100%',
-    minHeight: 120,
+    lineHeight: 22, // Fallback for mobile
+    minHeight: 80,
     padding: 12,
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'Epilogue, sans-serif',
-    color: '#1C1C1C',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    resize: 'vertical',
-    outline: 'none',
+    color: '#1F2937',
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1.5,
+    borderColor: '#F3F4F6',
+    borderRadius: 12,
     ...(Platform.OS === 'web' && {
       boxSizing: 'border-box',
     }),
   },
-  q51TextInput: {
-    width: '100%',
-    minHeight: 120,
-    padding: 12,
-    fontSize: 16,
-    fontFamily: 'Epilogue, sans-serif',
-    color: '#1C1C1C',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    textAlignVertical: 'top',
+  optionImage: {
+    maxWidth: '100%',
+    height: 150,
+    borderRadius: 10,
+    resizeMode: 'contain',
   },
 })
 
