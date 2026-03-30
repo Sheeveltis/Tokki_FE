@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import UserIcon from '../../../../../../assets/user.png'
@@ -12,13 +12,12 @@ const normalizeImageSource = (src) => {
 }
 
 const MOCK_USER = {
-  name: 'Phạm Quý',
-  phone: '0368182797',
   avatar: UserIcon,
 }
 
-export function UserAvatarCard({ user = MOCK_USER, onAvatarPress }) {
+export function UserAvatarCard({ user = MOCK_USER, onAvatarPress, style }) {
   const fileInputRef = useRef(null)
+  const [isHovered, setIsHovered] = useState(false)
 
   const handleAvatarPress = () => {
     if (!onAvatarPress) return
@@ -48,10 +47,23 @@ export function UserAvatarCard({ user = MOCK_USER, onAvatarPress }) {
   }
 
   return (
-    <View style={styles.card}>
-      <Pressable onPress={handleAvatarPress} style={styles.avatarPressable}>
+    <View style={[styles.card, style]}>
+      <Pressable
+        onPress={handleAvatarPress}
+        onHoverIn={() => setIsHovered(true)}
+        onHoverOut={() => setIsHovered(false)}
+        style={styles.avatarPressable}
+      >
         <View style={styles.avatarWrap}>
           <Image source={normalizeImageSource(user.avatar)} style={styles.avatar} resizeMode="cover" />
+
+          {isHovered && (
+            <View style={styles.hoverOverlay}>
+              <Text style={styles.editIcon}>✎</Text>
+            </View>
+          )}
+
+
           {Platform.OS === 'web' &&
             React.createElement('input', {
               ref: fileInputRef,
@@ -62,9 +74,6 @@ export function UserAvatarCard({ user = MOCK_USER, onAvatarPress }) {
             })}
         </View>
       </Pressable>
-
-      <Text style={styles.name}>{user.name}</Text>
-      <Text style={styles.phone}>{user.phone}</Text>
     </View>
   )
 }
@@ -73,12 +82,13 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    paddingVertical: 18,
+    paddingVertical: 43,
     paddingHorizontal: 16,
     alignItems: 'center',
-    gap: 10,
-    minWidth: 180,
+    justifyContent: 'center',
+    minWidth: 220,
     minHeight: 180,
+    height: '100%',
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -91,35 +101,32 @@ const styles = StyleSheet.create({
     cursor: 'pointer',
   },
   avatarWrap: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
+    width: 128,
+    height: 128,
+    borderRadius: 64,
     backgroundColor: '#D9D9D9',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+    position: 'relative',
   },
   avatar: {
-    width: 60,
-    height: 60,
+    width: 128,
+    height: 128,
+  },
+  hoverOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  editIcon: {
+    color: '#FFFFFF',
+    fontSize: 26,
+    fontWeight: '700',
   },
   hiddenInput: {
     display: 'none',
-  },
-  name: {
-    marginTop: 6,
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#1B1B1B',
-    fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
-  },
-  phone: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1B1B1B',
-    fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
   },
 })
 

@@ -43,12 +43,36 @@ export const updateSecurityInfo = async (payload) => {
 }
 
 /**
- * Cập nhật avatar bằng cách gửi avatarUrl (base64 hoặc url) qua API profile
- * @param {string} avatarUrl - Image data (url hoặc base64 data URL)
+ * Upload ảnh avatar lên Cloudinary
+ * @param {File|Blob} file - File ảnh cần upload
+ * @returns {Promise<string>} URL Cloudinary
+ */
+export const uploadAvatarToCloudinary = async (file) => {
+  if (!file) throw new Error('Không có file ảnh')
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const res = await apiClient.post(ENDPOINTS.CLOUDINARY.UPLOAD_AVATAR, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+
+  const response = res.data
+  if (response?.isSuccess && response?.data) {
+    return response.data
+  }
+  throw new Error(response?.message || 'Không thể upload ảnh lên Cloudinary')
+}
+
+/**
+ * Cập nhật avatarUrl vào profile account hiện tại
+ * @param {string} avatarUrl - URL ảnh đã upload lên Cloudinary
  * @returns {Promise<Object>} Updated user data
  */
 export const uploadAvatar = async (avatarUrl) => {
-  if (!avatarUrl) throw new Error('Không có dữ liệu ảnh')
+  if (!avatarUrl) throw new Error('Không có avatarUrl')
 
   const res = await apiClient.put(ENDPOINTS.ACCOUNT.PROFILE, { avatarUrl })
   const response = res.data
