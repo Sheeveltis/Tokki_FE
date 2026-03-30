@@ -13,7 +13,12 @@ import {
   ProfileOutlined,
   FileTextOutlined,
   AlignLeftOutlined,
-  CalendarOutlined
+  CalendarOutlined,
+  SendOutlined,
+  SwapOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ArrowLeftOutlined
 } from '@ant-design/icons'
 import { useQueryClient } from '@tanstack/react-query'
 import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
@@ -402,8 +407,15 @@ export function ExamTemplateDetailScreen() {
             {isStaff && [0, 4].includes(examTemplate.status ?? 0) && (
               <Button
                 type="primary"
+                icon={<SendOutlined />}
                 onClick={handleSubmitForApproval}
                 loading={submittingForApproval}
+                style={{
+                  borderRadius: 20,
+                  height: 40,
+                  padding: '0 20px',
+                  fontWeight: 600
+                }}
               >
                 Gửi duyệt
               </Button>
@@ -412,8 +424,15 @@ export function ExamTemplateDetailScreen() {
             {isAdmin && (
               <Button
                 type="primary"
+                icon={<SwapOutlined />}
                 onClick={() => setStatusChangeModalOpen(true)}
                 loading={statusChangeLoading}
+                style={{
+                  borderRadius: 20,
+                  height: 40,
+                  padding: '0 20px',
+                  fontWeight: 600
+                }}
               >
                 Chuyển trạng thái
               </Button>
@@ -423,18 +442,36 @@ export function ExamTemplateDetailScreen() {
                   - Staff: chỉ được chỉnh sửa khi trạng thái là Draft (0) hoặc Từ chối (4)
               */}
             <Button
+              type="primary"
+              icon={<EditOutlined />}
               onClick={handleEdit}
               disabled={isStaff && ![0, 4].includes(examTemplate.status ?? 0)}
+              style={{
+                borderRadius: 20,
+                height: 40,
+                padding: '0 20px',
+                fontWeight: 600
+              }}
             >
               Chỉnh sửa
             </Button>
             {/* Chỉ cho phép xóa khi không phải trạng thái Đã xuất bản */}
             {examTemplate.status !== 1 && (
-              <Button danger onClick={handleDelete} loading={deleting}>
+              <Button danger icon={<DeleteOutlined />} onClick={handleDelete} loading={deleting} style={{
+                borderRadius: 20,
+                height: 40,
+                padding: '0 20px',
+                fontWeight: 600
+              }}>
                 Xóa
               </Button>
             )}
-            <Button onClick={handleBack}>
+            <Button icon={<ArrowLeftOutlined />} onClick={handleBack} style={{
+              borderRadius: 20,
+              height: 40,
+              padding: '0 20px',
+              fontWeight: 600
+            }}>
               Quay lại
             </Button>
           </Space>

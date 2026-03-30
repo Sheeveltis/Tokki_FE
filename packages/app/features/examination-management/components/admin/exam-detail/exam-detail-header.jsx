@@ -7,7 +7,8 @@ import {
   ClockCircleOutlined,
   EditOutlined,
   SettingOutlined,
-  DownloadOutlined
+  DownloadOutlined,
+  SwapOutlined
 } from '@ant-design/icons';
 import { useRouter } from 'solito/navigation';
 import { exportExamPdf } from '../../../api/exam-management';
@@ -70,35 +71,71 @@ export const ExamDetailHeader = ({ exam, statusLoading, onStatusClick }) => {
 
       <Space size="small" wrap>
         <Button
+          icon={<EyeOutlined />}
           onClick={() => router.push(`/admin/exams/${exam.examId}/preview`)}
+          style={{
+            borderRadius: 20,
+            height: 40,
+            padding: '0 20px',
+            fontWeight: 600
+          }}
         >
           Xem thử
         </Button>
 
         <Button
+          type="dashed"
           icon={<DownloadOutlined />}
           loading={downloading}
           onClick={handleExportPdf}
+          style={{
+            borderRadius: 20,
+            height: 40,
+            padding: '0 20px',
+            fontWeight: 600
+          }}
         >
           Xuất PDF
         </Button>
 
         <Button
           type="primary"
+          icon={<SwapOutlined />}
           loading={statusLoading}
           onClick={onStatusClick}
+          style={{
+            borderRadius: 20,
+            height: 40,
+            padding: '0 20px',
+            fontWeight: 600
+          }}
         >
           Chuyển trạng thái
         </Button>
 
         <Button
+          type="primary"
+          icon={<EditOutlined />}
           onClick={() => window.dispatchEvent(new CustomEvent('OPEN_EDIT_INFO_MODAL'))}
+          style={{
+            borderRadius: 20,
+            height: 40,
+            padding: '0 20px',
+            fontWeight: 600
+          }}
         >
           Chỉnh sửa
         </Button>
 
         <Button
+          icon={<ArrowLeftOutlined />}
           onClick={() => router.back()}
+          style={{
+            borderRadius: 20,
+            height: 40,
+            padding: '0 20px',
+            fontWeight: 600
+          }}
         >
           Quay lại
         </Button>

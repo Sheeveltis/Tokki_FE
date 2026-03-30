@@ -152,10 +152,12 @@ export const ExamSettingsTab = ({ examId }) => {
         <div style={{ marginTop: 24, display: 'flex', justifyContent: 'flex-end' }}>
           <Button 
             type="primary" 
+            icon={<SaveOutlined />}
             htmlType="submit" 
             loading={saving}
+            style={{ borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
           >
-            Lưu cài đặt
+            Lưu
           </Button>
         </div>
       </Form>

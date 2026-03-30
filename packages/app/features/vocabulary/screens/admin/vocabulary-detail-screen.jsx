@@ -3,6 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'solito/navigation'
 import { Space, Typography, Spin, Alert, Modal, Button, message } from 'antd'
+import {
+  EditOutlined,
+  DeleteOutlined,
+  ArrowLeftOutlined
+} from '@ant-design/icons'
 import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
 import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web.jsx'
 import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
@@ -383,7 +388,8 @@ export function VocabularyDetailScreen() {
           />
           <Button
             type="primary"
-            style={{ marginTop: 10, minWidth: 120 }}
+            icon={<ArrowLeftOutlined />}
+            style={{ marginTop: 10, minWidth: 120, borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
             onClick={() => router.back()}
           >
             Quay lại
@@ -406,7 +412,8 @@ export function VocabularyDetailScreen() {
           />
           <Button
             type="primary"
-            style={{ marginTop: 12, minWidth: 140 }}
+            icon={<ArrowLeftOutlined />}
+            style={{ marginTop: 12, minWidth: 140, borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
             onClick={() => router.back()}
           >
             Quay lại danh sách
@@ -428,14 +435,31 @@ export function VocabularyDetailScreen() {
             </div>
             <Space>
               <Button
+                icon={<ArrowLeftOutlined />}
                 onClick={() => router.back()}
+                style={{
+                  borderRadius: 20,
+                  height: 40,
+                  padding: '0 20px',
+                  fontWeight: 600
+                }}
               >
                 Quay lại
               </Button>
-              <Button danger loading={deleteLoading} onClick={handleDelete}>
+              <Button danger icon={<DeleteOutlined />} loading={deleteLoading} onClick={handleDelete} style={{
+                borderRadius: 20,
+                height: 40,
+                padding: '0 20px',
+                fontWeight: 600
+              }}>
                 {deleteLoading ? 'Đang xóa...' : 'Xóa'}
               </Button>
-              <Button type="primary" onClick={() => setEditOpen(true)}>
+              <Button type="primary" icon={<EditOutlined />} onClick={() => setEditOpen(true)} style={{
+                borderRadius: 20,
+                height: 40,
+                padding: '0 20px',
+                fontWeight: 600
+              }}>
                 Chỉnh sửa
               </Button>
             </Space>

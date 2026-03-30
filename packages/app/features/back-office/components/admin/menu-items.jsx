@@ -26,7 +26,7 @@ export const adminMenuItems = [
     icon: <UserOutlined />,
     label: 'Quản lý Người dùng',
     children: [
-      { key: 'users-all', icon: <UserOutlined />, label: 'Tài khoản' },
+      { key: 'users-all', icon: <UserOutlined />, label: 'Người dùng' },
       { key: 'title-management', icon: <TrophyOutlined />, label: 'Danh hiệu' },
     ],
   },

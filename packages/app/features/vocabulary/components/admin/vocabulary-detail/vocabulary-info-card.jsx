@@ -335,8 +335,8 @@ export function VocabularyInfoCard({ vocab, onAddExample, onEditExample, onDelet
       <Card
         title={<Text strong>Danh sách câu mẫu ({examples.length})</Text>}
         extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={onAddExample}>
-            Thêm câu mẫu
+          <Button type="primary" icon={<PlusOutlined />} onClick={onAddExample} style={{ borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}>
+            Thêm
           </Button>
         }
       >
