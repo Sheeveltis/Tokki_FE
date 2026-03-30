@@ -421,18 +421,21 @@ export function ExamDetailScreen() {
             skill: 'Nghe (Listening)',
             questions: statsDataForAnalysis?.skillQuestionCounts?.listening || 0,
             duration: exam?.skillDurations?.listening || 0,
+            score: null,
           },
           {
             key: 'reading',
             skill: 'Đọc (Reading)',
             questions: statsDataForAnalysis?.skillQuestionCounts?.reading || 0,
             duration: exam?.skillDurations?.reading || 0,
+            score: null,
           },
           {
             key: 'writing',
             skill: 'Viết (Writing)',
             questions: statsDataForAnalysis?.skillQuestionCounts?.writing || 0,
             duration: exam?.skillDurations?.writing || 0,
+            score: null,
           }
         ];
 
@@ -456,6 +459,13 @@ export function ExamDetailScreen() {
             key: 'duration',
             align: 'center',
             render: (val) => <AntdText>{val} phút</AntdText>
+          },
+          {
+            title: 'Điểm số',
+            dataIndex: 'score',
+            key: 'score',
+            align: 'center',
+            render: (val) => <AntdText>{val ? `${val} điểm` : '-'}</AntdText>
           },
         ];
 
@@ -512,6 +522,9 @@ export function ExamDetailScreen() {
                         </Table.Summary.Cell>
                         <Table.Summary.Cell index={2} align="center">
                           <AntdText strong>{exam.duration || 0} phút</AntdText>
+                        </Table.Summary.Cell>
+                        <Table.Summary.Cell index={3} align="center">
+                          <AntdText type="danger" strong>{exam.maxScore || 0} điểm</AntdText>
                         </Table.Summary.Cell>
                       </Table.Summary.Row>
                     </Table.Summary>

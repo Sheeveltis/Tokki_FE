@@ -277,6 +277,7 @@ export const ENDPOINTS = {
     GET_QUESTIONS_BY_PART: '/Exams/get-questions-by-part', // GET: Lấy danh sách câu hỏi theo templatePartId
     UPDATE_EXAM_QUESTION: '/Exams/update-exam-question', // PUT: Cập nhật 1 câu hỏi trong đề (body: { examId, questionBankId, questionNo })
     REGENERATE_PART: '/Exams/regenerate-part', // POST: Random/regenerate lại bộ câu hỏi của một phần (body: { examId, templatePartId })
+    EXPORT_PDF: (id) => `/Exams/${id}/export-pdf`, // GET: Xuất PDF
   },
   USER_EXAM: {
     TAKE_EXAM: (examId, isShuffle = true) =>

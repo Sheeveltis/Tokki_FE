@@ -53,9 +53,9 @@ export const adminMenuItems = [
     icon: <FileDoneOutlined />,
     label: 'Quản lý Đề',
     children: [
-      { key: 'exam-template', icon: <FormOutlined />, label: 'Cấu trúc đề' },
       { key: 'question-bank', icon: <QuestionCircleOutlined />, label: 'Bộ câu hỏi' },
-      { key: 'passage-management', icon: <FileTextOutlined />, label: 'Passage' },
+      { key: 'exam-template', icon: <FormOutlined />, label: 'Cấu trúc đề' },
+      // { key: 'passage-management', icon: <FileTextOutlined />, label: 'Passage' },
       { key: 'exam-management', icon: <FileDoneOutlined />, label: 'Đề' },
     ],
   },
@@ -81,8 +81,8 @@ export const adminMenuItems = [
     ],
   },
   { key: 'ai-statistics', icon: <ThunderboltOutlined />, label: 'Báo cáo thống kê A.I' },
-  { key: 'system-log', icon: <DatabaseOutlined />, label: 'System Log' },
-  { key: 'settings', icon: <SettingOutlined />, label: 'Cài đặt' },
+  // { key: 'system-log', icon: <DatabaseOutlined />, label: 'System Log' },
+  // { key: 'settings', icon: <SettingOutlined />, label: 'Cài đặt' },
   { key: 'system-config', icon: <DatabaseOutlined />, label: 'Cấu hình hệ thống' },
   {
     type: 'divider',
