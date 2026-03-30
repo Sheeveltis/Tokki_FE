@@ -1,5 +1,5 @@
 import React from 'react'
-import { ImageBackground, ScrollView, StyleSheet, View } from 'react-native'
+import { ImageBackground, StyleSheet, View } from 'react-native'
 import { Navbar } from '../../../../../../components/navbar'
 import { UserDashboard } from '../../admin/user-management/user-dashboard'
 import { UserInformation } from './user-information'
@@ -29,13 +29,13 @@ export function UserProfileLayout({ onActionPress }) {
         resizeMode="cover"
         imageStyle={styles.bgImage}
       >
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.content}>
           <View style={styles.row}>
             <UserDashboard onActionPress={onActionPress} initialActive="profile" />
             <View style={styles.spacer} />
             <UserInformation />
           </View>
-        </ScrollView>
+        </View>
       </ImageBackground>
     </View>
   )
