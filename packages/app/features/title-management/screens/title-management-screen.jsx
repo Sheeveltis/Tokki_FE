@@ -1,25 +1,26 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Alert, Card, Spin, Table, Typography, Space, Button, Popconfirm, Input, Select, Tooltip } from 'antd'
+import { Alert, Card, Spin, Table, Typography, Space, Button, Input, Select, Tooltip, message } from 'antd'
 import { PlusOutlined, FilterOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
-import { showAdminSuccess, showAdminError } from '../../../../components/HelperAdmin.jsx'
 import { fetchTitles, createTitle, updateTitle, deleteTitle } from '../api/title'
 import { uploadTitleImageToCloudinary } from '../../back-office/api/cloudinary'
 import CreateTitleModal from '../components/CreateTitleModal'
 import UpdateTitleModal from '../components/UpdateTitleModal'
+import { showDeleteTitleConfirm } from '../components/DeleteTitleConfirm'
+
+import ManagementLayout from '../../../../components/layout/management-layout'
 
 const { Title, Text } = Typography
 
 const STATUS_CONFIG = {
-  0: { label: 'Nháp', color: '#8c8c8c' },
+  0: { label: 'Ẩn', color: '#8c8c8c' },
   1: { label: 'Hoạt động', color: '#52c41a' },
-  2: { label: 'Ẩn', color: '#f5222d' },
+  // 2: { label: 'Ẩn', color: '#f5222d' },
 }
 
 export function TitleManagementScreen() {
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const [data, setData] = useState([])
   const [createOpen, setCreateOpen] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -27,20 +28,35 @@ export function TitleManagementScreen() {
   const [updating, setUpdating] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
   const [selectedTitle, setSelectedTitle] = useState(null)
+  const [totalCount, setTotalCount] = useState(0)
+
+  const getApiErrorMessage = (err, fallback) => {
+    const apiMessage = err?.response?.data?.message
+    const apiErrors = err?.response?.data?.errors
+    const firstError = Array.isArray(apiErrors) && apiErrors.length ? apiErrors[0]?.description : null
+    return apiMessage || firstError || err?.message || fallback
+  }
 
   const [filters, setFilters] = useState({
     search: '',
     status: null,
+    page: 1,
+    size: 10
   })
-  
+
   const loadData = async () => {
     try {
       setLoading(true)
-      setError('')
-      const items = await fetchTitles()
-      setData(Array.isArray(items) ? items : [])
+      const resData = await fetchTitles(filters)
+      if (resData?.items) {
+        setData(resData.items)
+        setTotalCount(resData.totalCount || 0)
+      } else {
+        setData(Array.isArray(resData) ? resData : [])
+        setTotalCount(Array.isArray(resData) ? resData.length : 0)
+      }
     } catch (e) {
-      setError(e?.message || 'Không thể tải danh sách danh hiệu')
+      message.error(getApiErrorMessage(e, 'Không thể tải danh sách danh hiệu'))
     } finally {
       setLoading(false)
     }
@@ -48,92 +64,90 @@ export function TitleManagementScreen() {
 
   useEffect(() => {
     loadData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [filters.page, filters.size, filters.status]) // Only load on these changes. For search, we will trigger manually or on button click.
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({
       ...prev,
       [key]: value,
+      page: 1
     }))
   }
 
-  const filteredData = useMemo(() => {
-    return data.filter((item) => {
-      const titleName = item?.name ?? item?.titleName ?? item?.TitleName ?? ''
-      const itemStatus = item?.status
-
-      const matchSearch = titleName
-        .toLowerCase()
-        .includes((filters.search || '').trim().toLowerCase())
-
-      const matchStatus =
-        filters.status === null || filters.status === undefined
-          ? true
-          : Number(itemStatus) === Number(filters.status)
-
-      return matchSearch && matchStatus
-    })
-  }, [data, filters])
+  const handleSearchSubmit = () => {
+    setFilters(prev => ({ ...prev, page: 1 }))
+    loadData()
+  }
 
   const columns = useMemo(() => {
+    const iconStyle = { fontSize: 18, cursor: 'pointer', color: '#1890ff' }
     return [
       {
-        title: 'Tên danh hiệu',
-        dataIndex: 'name',
-        key: 'name',
-        render: (val, record) => val ?? record?.titleName ?? record?.TitleName ?? '-',
-      },
-      {
-        title: 'Mô tả',
-        dataIndex: 'description',
-        key: 'description',
-        render: (val) => val ?? '-',
-      },
-      {
-        title: 'XP yêu cầu',
-        dataIndex: 'requiredXP',
-        key: 'requiredXP',
-        width: 120,
-        render: (val) => val ?? 0,
-      },
-      
-      {
-        title: 'Màu',
-        dataIndex: 'colorHex',
-        key: 'colorHex',
-        width: 120,
-        render: (val) =>
-          val ? (
-            <Space size={6}>
-              <span
-                style={{
-                  display: 'inline-block',
-                  width: 14,
-                  height: 14,
-                  borderRadius: 4,
-                  backgroundColor: val,
-                  border: '1px solid #d9d9d9',
-                }}
-              />
-              <Text code>{val}</Text>
-            </Space>
-          ) : (
-            '-'
-          ),
+        title: 'STT',
+        key: 'stt',
+        align: 'center',
+        width: 60,
+        render: (_, __, index) => (filters.page - 1) * filters.size + index + 1
       },
       {
         title: 'Icon',
         dataIndex: 'iconUrl',
         key: 'iconUrl',
         width: 80,
+        align: 'center',
         render: (val) =>
           val ? (
             <img
               src={val}
               alt="icon"
-              style={{ width: 40, height: 40, objectFit: 'contain', borderRadius: 4, border: '1px solid #d9d9d9' }}
+              style={{ width: 40, height: 40, objectFit: 'contain', borderRadius: 4, border: '1px solid #f0f0f0' }}
             />
+          ) : (
+            <div style={{ width: 40, height: 40, backgroundColor: '#f5f5f5', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>-</div>
+          ),
+      },
+      {
+        title: 'Tên danh hiệu',
+        dataIndex: 'name',
+        key: 'name',
+        width: 250,
+        render: (val, record) => <Text strong>{val ?? record?.titleName ?? record?.TitleName ?? '-'}</Text>,
+      },
+      {
+        title: 'Mô tả',
+        dataIndex: 'description',
+        key: 'description',
+        render: (val) => <Text type="secondary">{val || '-'}</Text>,
+      },
+      {
+        title: 'XP yêu cầu',
+        dataIndex: 'requiredXP',
+        key: 'requiredXP',
+        width: 120,
+        align: 'center',
+        render: (val) => <Text strong style={{ color: '#faad14' }}>{val?.toLocaleString() ?? 0}</Text>,
+      },
+      {
+        title: 'Màu sắc',
+        dataIndex: 'colorHex',
+        key: 'colorHex',
+        width: 120,
+        align: 'center',
+        render: (val) =>
+          val ? (
+            <Space size={6}>
+              <div
+                style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: 4,
+                  backgroundColor: val,
+                  border: '1px solid #d9d9d9',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}
+              />
+              <Text code>{val.toUpperCase()}</Text>
+            </Space>
           ) : (
             '-'
           ),
@@ -146,7 +160,6 @@ export function TitleManagementScreen() {
         width: 100,
         render: (val) => {
           const cfg = STATUS_CONFIG[Number(val)] || STATUS_CONFIG[0]
-      
           return (
             <Tooltip title={cfg.label} color={cfg.color} placement="top">
               <div
@@ -165,79 +178,58 @@ export function TitleManagementScreen() {
         },
       },
       {
-        title: 'Thao tác',
+        title: 'Hành động',
         key: 'action',
         width: 120,
-        fixed: 'right',
         align: 'center',
         render: (_, record) => (
-          <Space size="small">
-            <Button
-              type="primary"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => {
-                setSelectedTitle(record)
-                setUpdateOpen(true)
-              }}
-              style={{
-                width: 26,
-                height: 26,
-                borderRadius: 8,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            />
-      
-            <Popconfirm
-              title="Xác nhận xóa"
-              description="Bạn có chắc chắn muốn xóa danh hiệu này?"
-              onConfirm={() => handleDelete(record)}
-              okText="Xóa"
-              cancelText="Hủy"
-              okButtonProps={{ danger: true }}
-            >
-              <Button
-                danger
-                size="small"
-                icon={<DeleteOutlined />}
-                loading={deletingId === (record?.titleId || record?.id || record?.TitleId)}
-                style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: 8,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+          <Space size="large">
+            <Tooltip title="Chỉnh sửa">
+              <EditOutlined
+                style={iconStyle}
+                onClick={() => {
+                  setSelectedTitle(record)
+                  setUpdateOpen(true)
                 }}
               />
-            </Popconfirm>
+            </Tooltip>
+            <Tooltip title="Xóa">
+              <DeleteOutlined
+                style={{ ...iconStyle, color: '#ff4d4f' }}
+                loading={deletingId === (record?.titleId || record?.id || record?.TitleId)}
+                onClick={() => {
+                  showDeleteTitleConfirm({
+                    titleName: record?.name || record?.titleName || record?.TitleName || 'không tên',
+                    onConfirm: () => handleDelete(record)
+                  })
+                }}
+              />
+            </Tooltip>
           </Space>
         ),
       },
     ]
-  }, [deletingId])
+  }, [deletingId, filters.page, filters.size])
 
   const rowKey = (record) => record?.titleId ?? record?.id ?? record?.TitleId ?? JSON.stringify(record)
 
   const handleCreate = async (payload) => {
     try {
       setCreating(true)
-      
-      // Upload ảnh lên Cloudinary nếu có iconFile
       let iconUrl = payload.iconUrl
       if (payload.iconFile) {
         try {
           const uploadResult = await uploadTitleImageToCloudinary(payload.iconFile)
           iconUrl = uploadResult?.url || uploadResult?.secureUrl || uploadResult
         } catch (uploadError) {
-          showAdminError(uploadError?.message || 'Không thể upload ảnh lên Cloudinary')
+          api.error({
+            message: 'Lỗi upload',
+            description: 'Không thể upload ảnh lên Cloudinary',
+          })
           return
         }
       }
 
-      // Tạo payload cuối cùng với iconUrl từ Cloudinary
       const finalPayload = {
         name: payload.name,
         description: payload.description,
@@ -248,11 +240,11 @@ export function TitleManagementScreen() {
       }
 
       const result = await createTitle(finalPayload)
-      showAdminSuccess(result?.message || 'Đã tạo danh hiệu mới thành công')
+      message.success(result?.message || 'Đã tạo danh hiệu mới thành công')
       setCreateOpen(false)
       await loadData()
     } catch (e) {
-      showAdminError(e?.message || 'Không thể tạo danh hiệu')
+      message.error(getApiErrorMessage(e, 'Không thể tạo danh hiệu'))
     } finally {
       setCreating(false)
     }
@@ -263,23 +255,21 @@ export function TitleManagementScreen() {
       setUpdating(true)
       const titleId = payload.titleId || selectedTitle?.titleId || selectedTitle?.id || selectedTitle?.TitleId
       if (!titleId) {
-        showAdminError('Không tìm thấy ID danh hiệu')
+        message.error('Không tìm thấy ID danh hiệu')
         return
       }
 
-      // Upload ảnh lên Cloudinary nếu có iconFile mới
       let iconUrl = payload.iconUrl || selectedTitle?.iconUrl
       if (payload.iconFile) {
         try {
           const uploadResult = await uploadTitleImageToCloudinary(payload.iconFile)
           iconUrl = uploadResult?.url || uploadResult?.secureUrl || uploadResult
         } catch (uploadError) {
-          showAdminError(uploadError?.message || 'Không thể upload ảnh lên Cloudinary')
+          message.error('Không thể upload ảnh lên Cloudinary')
           return
         }
       }
 
-      // Tạo payload cuối cùng với iconUrl từ Cloudinary
       const finalPayload = {
         name: payload.name,
         description: payload.description,
@@ -290,12 +280,12 @@ export function TitleManagementScreen() {
       }
 
       const result = await updateTitle(titleId, finalPayload)
-      showAdminSuccess(result?.message || 'Đã cập nhật danh hiệu thành công')
+      message.success(result?.message || 'Đã cập nhật danh hiệu thành công')
       setUpdateOpen(false)
       setSelectedTitle(null)
       await loadData()
     } catch (e) {
-      showAdminError(e?.message || 'Không thể cập nhật danh hiệu')
+      message.error(getApiErrorMessage(e, 'Không thể cập nhật danh hiệu'))
     } finally {
       setUpdating(false)
     }
@@ -304,94 +294,72 @@ export function TitleManagementScreen() {
   const handleDelete = async (record) => {
     const titleId = record?.titleId || record?.id || record?.TitleId
     if (!titleId) {
-      showAdminError('Không tìm thấy ID danh hiệu')
+      message.error('Không tìm thấy ID danh hiệu')
       return
     }
 
     try {
       setDeletingId(titleId)
       const result = await deleteTitle(titleId)
-      showAdminSuccess(result?.message || 'Đã xóa danh hiệu thành công')
+      message.success(result?.message || 'Đã xóa danh hiệu thành công')
       await loadData()
     } catch (e) {
-      showAdminError(e?.message || 'Không thể xóa danh hiệu')
+      message.error(getApiErrorMessage(e, 'Không thể xóa danh hiệu'))
     } finally {
       setDeletingId(null)
     }
   }
 
+  const actions = [
+    {
+      label: 'Thêm mới',
+      icon: <PlusOutlined />,
+      type: 'primary',
+      onPress: () => setCreateOpen(true)
+    }
+  ]
+
+  const extraFilters = (
+    <Space wrap>
+      <Select
+        allowClear
+        placeholder="Lọc trạng thái"
+        suffixIcon={<FilterOutlined />}
+        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
+        value={filters.status}
+        onChange={(val) => handleFilterChange('status', val)}
+        options={Object.entries(STATUS_CONFIG).map(([val, cfg]) => ({
+          value: Number(val),
+          label: cfg.label,
+        }))}
+      />
+    </Space>
+  )
+
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 12 }}>
-        <div>
-          <Title level={3} style={{ marginBottom: 4 }}>Quản lí danh hiệu</Title>
-          <Text type="secondary">Danh sách danh hiệu (Titles)</Text>
-        </div>
-        <Button
-          icon={<PlusOutlined />}
-          onClick={() => setCreateOpen(true)}
-          style={{
-            backgroundColor: '#F1BE4B',
-            borderColor: '#F1BE4B',
-            color: '#111',
-            borderRadius: 6,
-            fontWeight: 500,
-          }}
-        >
-          Thêm mới
-        </Button>
-      </div>
-
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'flex-start',
-          alignItems: 'center',
-          gap: 12,
-          flexWrap: 'wrap',
+    <>
+      <ManagementLayout
+        title="Quản lí danh hiệu"
+        searchPlaceholder="Tìm theo tên..."
+        searchValue={filters.search}
+        onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
+        onSearchSubmit={handleSearchSubmit}
+        extraFilters={extraFilters}
+        actions={actions}
+        tableProps={{
+          columns,
+          dataSource: data,
+          loading,
+          rowKey: rowKey,
+          pagination: {
+            current: filters.page,
+            pageSize: filters.size,
+            total: totalCount,
+            showSizeChanger: true,
+            onChange: (p, s) => setFilters(prev => ({ ...prev, page: p, size: s }))
+          }
         }}
-      >
-        <Input.Search
-          placeholder="Tìm theo tên..."
-          allowClear
-          value={filters.search}
-          onChange={(e) => handleFilterChange('search', e.target.value)}
-          style={{ width: 280 }}
-        />
-
-        <Space wrap>
-          <Select
-            allowClear
-            placeholder="Lọc trạng thái"
-            suffixIcon={<FilterOutlined />}
-            style={{ width: 160 }}
-            value={filters.status}
-            onChange={(val) => handleFilterChange('status', val)}
-            options={Object.entries(STATUS_CONFIG).map(([val, cfg]) => ({
-              value: Number(val),
-              label: cfg.label,
-            }))}
-          />
-        </Space>
-      </div>
-
-      <Card>
-
-        {error ? <Alert type="error" showIcon message="Lỗi" description={error} style={{ marginBottom: 16 }} /> : null}
-
-        {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}>
-            <Spin />
-          </div>
-        ) : (
-          <Table
-            rowKey={rowKey}
-            columns={columns}
-            dataSource={filteredData}
-            pagination={{ pageSize: 10 }}
-          />
-        )}
-      </Card>
+      />
 
       <CreateTitleModal
         open={createOpen}
@@ -410,7 +378,7 @@ export function TitleManagementScreen() {
         loading={updating}
         initialData={selectedTitle}
       />
-    </Space>
+    </>
   )
 }
 

@@ -2,10 +2,15 @@ import { apiClient } from '../../../provider/api/client'
 import { ENDPOINTS } from '../../../provider/api/endpoints'
 
 export async function fetchTitles(params = {}) {
-  const res = await apiClient.get(ENDPOINTS.TITLE.GET_ALL, { params })
-  const data = res.data?.data
-  // handle paged ({ items }) or array responses
-  return Array.isArray(data) ? data : data?.items || []
+  const queryParams = {
+    PageNumber: params.page || 1,
+    PageSize: params.size || 10,
+    SearchTerm: params.search || '',
+    Status: params.status,
+  }
+
+  const res = await apiClient.get(ENDPOINTS.TITLE.GET_ALL, { params: queryParams })
+  return res.data?.data
 }
 
 export async function createTitle(payload) {

@@ -1,21 +1,21 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Modal, Form, Input, InputNumber, Switch, ColorPicker, Space, Upload } from 'antd'
+import { Modal, Form, Input, InputNumber, ColorPicker, Space, Upload, Button, Typography, Row, Col, notification } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
-import { showAdminError } from '../../../../components/HelperAdmin.jsx'
 import { createObjectUrl, revokeObjectUrl } from '../../examination-management/api/upload-utils'
 
 const { TextArea } = Input
 const { Dragger } = Upload
+const { Text } = Typography
 
 export function UpdateTitleModal({ open, onCancel, onSubmit, loading, initialData }) {
+  const [api, contextHolder] = notification.useNotification()
   const [form] = Form.useForm()
   const colorHex = Form.useWatch('colorHex', form)
   const iconFile = Form.useWatch('iconFile', form)
   const [iconPreviewUrl, setIconPreviewUrl] = useState('')
 
-  // Set initial values when modal opens or initialData changes
   useEffect(() => {
     if (open && initialData) {
       form.setFieldsValue({
@@ -27,23 +27,18 @@ export function UpdateTitleModal({ open, onCancel, onSubmit, loading, initialDat
         iconFile: null,
         isSystemGiven: initialData.isSystemGiven ?? false,
       })
-      if (initialData.iconUrl) {
-        setIconPreviewUrl(initialData.iconUrl)
-      } else {
-        setIconPreviewUrl('')
-      }
+      setIconPreviewUrl(initialData.iconUrl || '')
     }
   }, [open, initialData, form])
 
-  // Cleanup object URLs on unmount
   useEffect(() => {
     return () => {
-      revokeObjectUrl(iconPreviewUrl)
+      if (iconPreviewUrl && iconPreviewUrl !== initialData?.iconUrl) {
+        revokeObjectUrl(iconPreviewUrl)
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Update preview when file changes
   useEffect(() => {
     if (iconFile) {
       const url = createObjectUrl(iconFile)
@@ -64,7 +59,10 @@ export function UpdateTitleModal({ open, onCancel, onSubmit, loading, initialDat
     beforeUpload: (file) => {
       const isImage = file.type.startsWith('image/')
       if (!isImage) {
-        showAdminError('Chỉ chấp nhận file hình ảnh!')
+        api.error({
+          message: 'Lỗi định dạng',
+          description: 'Chỉ chấp nhận file hình ảnh!',
+        })
         return Upload.LIST_IGNORE
       }
       form.setFieldsValue({ iconFile: file })
@@ -72,134 +70,117 @@ export function UpdateTitleModal({ open, onCancel, onSubmit, loading, initialDat
     },
   }
 
+  const handleCancel = () => {
+    form.resetFields()
+    setIconPreviewUrl('')
+    onCancel?.()
+  }
+
   return (
     <Modal
-      title="Sửa danh hiệu"
+      title={<span style={{ fontWeight: 700, fontSize: 18 }}>Chỉnh sửa danh hiệu</span>}
       open={open}
-      onCancel={() => {
-        form.resetFields()
-        setIconPreviewUrl('')
-        onCancel?.()
-      }}
-      onOk={() => form.submit()}
-      okText="Cập nhật"
-      cancelText="Hủy"
-      confirmLoading={loading}
+      onCancel={handleCancel}
+      footer={[
+        <Button key="back" onClick={handleCancel} style={{ borderRadius: 20, height: 40, padding: '0 24px', fontWeight: 600 }}>
+          Hủy
+        </Button>,
+        <Button key="submit" type="primary" loading={loading} onClick={() => form.submit()} style={{ borderRadius: 20, height: 40, padding: '0 24px', fontWeight: 600 }}>
+          Cập nhật
+        </Button>,
+      ]}
+      width={800}
       destroyOnClose
     >
+      {contextHolder}
       <Form
         form={form}
         layout="vertical"
-        initialValues={{
-          isSystemGiven: false,
-          requiredXP: 0,
-        }}
+        style={{ marginTop: 16 }}
+        initialValues={{ isSystemGiven: false, requiredXP: 0 }}
         onFinish={(values) => {
-          try {
-            // Validate required fields
-            if (!values.name?.trim()) {
-              showAdminError('Vui lòng nhập tên danh hiệu')
-              return
-            }
-
-            // Prepare payload
-            const payload = {
-              titleId: initialData?.titleId || initialData?.id || initialData?.TitleId || '',
-              name: values.name.trim(),
-              description: values.description?.trim() || '',
-              requiredXP: values.requiredXP ?? 0,
-              colorHex: values.colorHex?.trim() || '',
-              iconUrl: values.iconUrl?.trim() || '',
-              iconFile: values.iconFile || null,
-              isSystemGiven: values.isSystemGiven ?? false,
-            }
-
-            onSubmit?.(payload)
-          } catch (e) {
-            showAdminError(e?.message || 'Dữ liệu không hợp lệ')
+          const payload = {
+            titleId: initialData?.titleId || initialData?.id || initialData?.TitleId || '',
+            name: values.name.trim(),
+            description: values.description?.trim() || '',
+            requiredXP: values.requiredXP ?? 0,
+            colorHex: values.colorHex?.trim() || '',
+            iconUrl: values.iconUrl?.trim() || '',
+            iconFile: values.iconFile || null,
+            isSystemGiven: values.isSystemGiven ?? false,
           }
+          onSubmit?.(payload)
         }}
       >
-        <Form.Item
-          label="Tên danh hiệu"
-          name="name"
-          rules={[{ required: true, message: 'Vui lòng nhập tên danh hiệu' }]}
-        >
-          <Input placeholder="Nhập tên danh hiệu" />
-        </Form.Item>
+        <Row gutter={24}>
+          <Col span={14}>
+            <Form.Item
+              label={<span style={{ fontWeight: 600 }}>Tên danh hiệu</span>}
+              name="name"
+              rules={[{ required: true, message: 'Vui lòng nhập tên danh hiệu' }]}
+            >
+              <Input placeholder="Ví dụ: Kẻ hủy diệt, Chiến thần..." size="large" style={{ borderRadius: 8 }} />
+            </Form.Item>
 
-        <Form.Item label="Mô tả" name="description">
-          <TextArea rows={3} placeholder="Nhập mô tả (tùy chọn)" />
-        </Form.Item>
+            <Form.Item label={<span style={{ fontWeight: 600 }}>Mô tả</span>} name="description">
+              <TextArea rows={3} placeholder="Nhập mô tả cho danh hiệu này..." size="large" style={{ borderRadius: 8 }} />
+            </Form.Item>
 
-        <Form.Item
-          label="XP yêu cầu"
-          name="requiredXP"
-          rules={[{ type: 'number', min: 0, message: 'XP yêu cầu phải lớn hơn hoặc bằng 0' }]}
-        >
-          <InputNumber
-            style={{ width: '100%' }}
-            placeholder="Nhập XP yêu cầu"
-            min={0}
-          />
-        </Form.Item>
-
-        <Form.Item label="Màu" name="colorHex">
-          <Space direction="vertical" size="small" style={{ width: '100%' }}>
-            <div>
-              <ColorPicker
-                showText
-                format="hex"
-                value={colorHex || '#1677ff'}
-                onChange={(color) => {
-                  const hexValue = color.toHexString()
-                  form.setFieldsValue({ colorHex: hexValue })
-                }}
+            <Form.Item
+              label={<span style={{ fontWeight: 600 }}>XP yêu cầu</span>}
+              name="requiredXP"
+              rules={[{ required: true, message: 'Vui lòng nhập XP' }]}
+            >
+              <InputNumber
+                style={{ width: '100%', borderRadius: 8 }}
+                placeholder="Ví dụ: 1000"
+                min={0}
+                size="large"
               />
-              <style>{`
-                .ant-color-picker-format-select,
-                .ant-color-picker-format-selector,
-                .ant-color-picker-format-btn,
-                [class*="format-select"],
-                [class*="format-selector"] {
-                  display: none !important;
-                }
-              `}</style>
-            </div>
-            <Input
-              value={colorHex || ''}
-              placeholder="Nhập mã màu hex (ví dụ: #FF5733)"
-              onChange={(e) => {
-                form.setFieldsValue({ colorHex: e.target.value })
-              }}
-              addonBefore="Mã màu"
-            />
-          </Space>
-        </Form.Item>
+            </Form.Item>
 
-        <Form.Item label="Icon">
-          <Space direction="vertical" size="small" style={{ width: '100%' }}>
-            <Dragger {...iconUploadProps}>
-              <p className="ant-upload-drag-icon">
-                <InboxOutlined />
-              </p>
-              <p className="ant-upload-text">Nhấp hoặc kéo thả ảnh icon vào đây</p>
-              <p className="ant-upload-hint">Chỉ nhận file hình ảnh</p>
-            </Dragger>
-
-            {iconPreviewUrl ? (
-              <div style={{ marginTop: 12 }}>
-                <img
-                  src={iconPreviewUrl}
-                  alt="Icon preview"
-                  style={{ maxWidth: '100%', maxHeight: 240, borderRadius: 8, border: '1px solid #d9d9d9' }}
+            <Form.Item label={<span style={{ fontWeight: 600 }}>Màu sắc mã Hex</span>} name="colorHex">
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <ColorPicker
+                  showText
+                  format="hex"
+                  value={colorHex || '#1677ff'}
+                  onChange={(color) => form.setFieldsValue({ colorHex: color.toHexString() })}
+                  style={{ flex: 1, height: 40, borderRadius: 8 }}
+                />
+                <Input
+                  value={colorHex || ''}
+                  placeholder="Ví dụ: #1890FF"
+                  size="large"
+                  style={{ borderRadius: 8, flex: 3 }}
+                  onChange={(e) => form.setFieldsValue({ colorHex: e.target.value })}
                 />
               </div>
-            ) : null}
-          </Space>
-        </Form.Item>
+            </Form.Item>
+          </Col>
 
-        {/* Hidden fields */}
+          <Col span={10}>
+            <Form.Item label={<span style={{ fontWeight: 600 }}>Biểu tượng (Icon)</span>}>
+              <Dragger {...iconUploadProps} style={{ borderRadius: 12, padding: '24px 0', border: '2px dashed #d9d9d9', height: 200 }}>
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined style={{ color: '#1890ff' }} />
+                </p>
+                <p className="ant-upload-text" style={{ fontWeight: 500, fontSize: 13 }}>Nhấp hoặc kéo thả ảnh</p>
+              </Dragger>
+
+              {iconPreviewUrl && (
+                <div style={{ marginTop: 16, textAlign: 'center', padding: 12, backgroundColor: '#fafafa', borderRadius: 12, border: '1px solid #f0f0f0' }}>
+                  <img
+                    src={iconPreviewUrl}
+                    alt="Icon preview"
+                    style={{ width: 100, height: 100, objectFit: 'contain' }}
+                  />
+                </div>
+              )}
+            </Form.Item>
+          </Col>
+        </Row>
+
         <Form.Item name="iconFile" hidden>
           <Input type="hidden" />
         </Form.Item>
@@ -212,4 +193,3 @@ export function UpdateTitleModal({ open, onCancel, onSubmit, loading, initialDat
 }
 
 export default UpdateTitleModal
-
