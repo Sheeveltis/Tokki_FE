@@ -327,20 +327,25 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     backgroundColor: '#FAFAFA',
-    minHeight: '100vh',
+    ...(Platform.OS === 'web' && {
+      height: '100%',
+      overflow: 'hidden',
+    }),
   },
   mainContainer: {
     flex: 1,
     alignItems: 'center',
+    overflow: 'hidden',
   },
   mainWrapper: {
     width: '95%',
     maxWidth: 1400,
     flex: 1,
-    marginTop: 24,
-    marginBottom: 24,
+    paddingTop: 24,
+    paddingBottom: 24,
     gap: 20,
     alignSelf: 'center',
+    overflow: 'hidden',
   },
   topNavigation: {
     flexDirection: 'row',

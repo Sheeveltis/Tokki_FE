@@ -45,7 +45,11 @@ export function RoadmapPracticeLayout({ practiceId }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.mainWrapper}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        style={styles.scrollView}
+        contentContainerStyle={styles.mainWrapper}
+      >
         {/* Top Bar Navigation */}
         <View style={styles.topNavigation}>
           <Pressable 
@@ -97,7 +101,7 @@ export function RoadmapPracticeLayout({ practiceId }) {
             ))}
           </View>
         </View>
-      </View>
+      </ScrollView>
     </View>
   )
 }
@@ -106,15 +110,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FAFAFA',
-    minHeight: '100vh',
+    ...(Platform.OS === 'web' && {
+      height: '100%',
+      overflow: 'hidden',
+    }),
     alignItems: 'center',
-    paddingVertical: 40,
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
   },
   mainWrapper: {
     width: '90%',
     maxWidth: 900,
     gap: 32,
     alignSelf: 'center',
+    paddingTop: 40,
+    paddingBottom: 40,
   },
   topNavigation: {
     flexDirection: 'row',

@@ -358,9 +358,9 @@ export function PublicLayout() {
   const shouldHideFooter = isRoadmapRoute || isMenuStudyRoute
 
   return (
-    <View style={{ flex: 1, minHeight: '100vh', backgroundColor: '#fff' }}>
+    <View style={{ flex: 1, height: shouldHideFooter ? '100vh' : undefined, minHeight: '100vh', backgroundColor: '#fff', overflow: shouldHideFooter ? 'hidden' : 'visible' }}>
       <Navbar />
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, overflow: shouldHideFooter ? 'hidden' : 'visible' }}>
         <Outlet />
       </View>
       {!shouldHideFooter && <Footer />}

@@ -77,7 +77,7 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                             <Text style={[styles.phaseBadgeText, isCompleted && styles.phaseBadgeTextCompleted]}>{skill || 'Chung'}</Text>
                           </View>
                           <View style={styles.levelBadge}>
-                            <Text style={styles.levelBadgeText}>Trình độ {level}</Text>
+                            <Text style={styles.levelBadgeText}>LEVEL {level}</Text>
                           </View>
                         </View>
 
@@ -207,20 +207,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FAFAFA',
-    minHeight: '100vh',
+    ...(Platform.OS === 'web' && {
+      height: '100%',
+      overflow: 'hidden',
+    }),
   },
   mainContainer: {
     flex: 1,
     alignItems: 'center',
+    overflow: 'hidden',
   },
   mainWrapper: {
     width: '95%',
     maxWidth: 1400,
     flex: 1,
-    marginTop: 24,
-    marginBottom: 24,
+    paddingTop: 24,
+    paddingBottom: 24,
     gap: 20,
     alignSelf: 'center',
+    overflow: 'hidden',
   },
   topNavigation: {
     flexDirection: 'row',
@@ -306,7 +311,7 @@ const styles = StyleSheet.create({
     color: '#388E3C',
   },
   levelBadge: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FF6B6B',
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 6,
@@ -314,7 +319,7 @@ const styles = StyleSheet.create({
   levelBadgeText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#666',
+    color: '#fff',
     textTransform: 'uppercase',
   },
   titleRow: {
@@ -467,32 +472,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#F1BE4B',
     padding: 24,
     borderRadius: 24,
     marginTop: 40,
-    ...(Platform.OS === 'web' && { boxShadow: '0 12px 30px rgba(0,0,0,0.15)' }),
+    borderWidth: 1,
+    borderColor: '#E2B03A',
+    ...(Platform.OS === 'web' && { 
+      boxShadow: '0 12px 30px rgba(241, 190, 75, 0.25)',
+      transition: 'all 0.2s ease',
+    }),
   },
   nextShortcutPressed: {
-    backgroundColor: '#333',
-    transform: [{ scale: 0.99 }],
+    backgroundColor: '#E2B03A',
+    transform: [{ scale: 0.98 }],
   },
   nextLabel: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#FF6B6B',
+    color: 'rgba(0, 0, 0, 0.5)',
     letterSpacing: 2,
     marginBottom: 4,
   },
   nextTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFF',
+    color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
   },
   nextArrow: {
     fontSize: 24,
-    color: '#FFF',
+    color: '#1A1A1A',
     fontWeight: '300',
   },
   centerContent: {
