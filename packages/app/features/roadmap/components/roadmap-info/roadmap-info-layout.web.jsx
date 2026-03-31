@@ -15,7 +15,7 @@ const normalizeImageSource = (src) => {
 
 export function RoadmapInfoLayout({ onStart, initialLevel }) {
   return (
-    <View style={styles.wrapper}>
+    <ScrollView style={styles.wrapper} contentContainerStyle={styles.scrollContent}>
       <View style={styles.contentRow}>
         <View style={styles.bunnySection}>
           <View style={styles.bunnyBackgroundCircle} />
@@ -26,7 +26,7 @@ export function RoadmapInfoLayout({ onStart, initialLevel }) {
           <RoadmapInfo onStart={onStart} initialLevel={initialLevel} />
         </View>
       </View>
-    </View>
+    </ScrollView>
   )
 }
 
@@ -34,49 +34,49 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     backgroundColor: '#FAF9F6', // More sophisticated off-white
-    minHeight: '100vh',
-  },
-  scrollView: {
-    flex: 1,
   },
   scrollContent: {
-    // paddingTop: 40,
-    // paddingBottom: 140, // Space for ground
+    paddingTop: 40,
+    paddingBottom: 80,
+    paddingHorizontal: 20,
     alignItems: 'center',
+    minHeight: '100vh',
   },
+
   contentRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 60,
-    maxWidth: 1200,
-    width: '90%',
-    paddingVertical: 40,
+    gap: 80,
+    maxWidth: 1400,
+    width: '100%',
+    // paddingVertical: 60,
+    // paddingHorizontal: 20,
   },
   bunnySection: {
-    flex: 0.8,
+    flex: 1,
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 320,
+    minWidth: 400,
   },
   bunnyBackgroundCircle: {
     position: 'absolute',
-    width: 320,
-    height: 320,
-    borderRadius: 160,
+    width: 440,
+    height: 440,
+    borderRadius: 220,
     backgroundColor: 'rgba(255, 230, 200, 0.4)',
-    bottom: -20,
+    bottom: -40,
   },
   bunnyImage: {
     width: '100%',
-    height: 480,
+    height: 540,
     zIndex: 1,
   },
   infoSection: {
-    flex: 1.2,
-    minWidth: 500,
-    maxWidth: 720,
+    flex: 1,
+    minWidth: 600,
+    maxWidth: 800,
   },
   groundContainer: {
     position: 'absolute',
