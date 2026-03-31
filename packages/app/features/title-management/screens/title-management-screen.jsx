@@ -3,11 +3,11 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Alert, Card, Spin, Table, Typography, Space, Button, Popconfirm, Input, Select, Tooltip } from 'antd'
 import { PlusOutlined, FilterOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
-import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
-import { fetchTitles, createTitle, updateTitle, deleteTitle } from '../../api/title'
-import { uploadTitleImageToCloudinary } from '../../../back-office/api/cloudinary'
-import CreateTitleModal from './CreateTitleModal'
-import UpdateTitleModal from './UpdateTitleModal'
+import { showAdminSuccess, showAdminError } from '../../../../components/HelperAdmin.jsx'
+import { fetchTitles, createTitle, updateTitle, deleteTitle } from '../api/title'
+import { uploadTitleImageToCloudinary } from '../../back-office/api/cloudinary'
+import CreateTitleModal from '../components/CreateTitleModal'
+import UpdateTitleModal from '../components/UpdateTitleModal'
 
 const { Title, Text } = Typography
 

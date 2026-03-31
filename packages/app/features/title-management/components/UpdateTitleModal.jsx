@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react'
 import { Modal, Form, Input, InputNumber, Switch, ColorPicker, Space, Upload } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
-import { showAdminError } from '../../../../../components/HelperAdmin.jsx'
-import { createObjectUrl, revokeObjectUrl } from '../../../examination-management/api/upload-utils'
+import { showAdminError } from '../../../../components/HelperAdmin.jsx'
+import { createObjectUrl, revokeObjectUrl } from '../../examination-management/api/upload-utils'
 
 const { TextArea } = Input
 const { Dragger } = Upload
