@@ -7,6 +7,7 @@ export async function fetchTitles(params = {}) {
     PageSize: params.size || 10,
     SearchTerm: params.search || '',
     Status: params.status,
+    RequirementType: params.requirementType,
   }
 
   const res = await apiClient.get(ENDPOINTS.TITLE.GET_ALL, { params: queryParams })

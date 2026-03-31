@@ -61,13 +61,7 @@ export function HomeScreen({
   // Render LandingPage with LandingLayout on Web for premium experience
   if (Platform.OS === 'web') {
     return (
-      <LandingLayout 
-        onHomePress={onHomePress}
-        onRoadmapPress={handleRoadmapPress}
-        onFlashcardPress={onFlashcardPress}
-        onBlogPress={onBlogPress}
-        onProfilePress={onProfilePress}
-      >
+      <LandingLayout>
         <LandingPage 
           onRoadmapPress={handleRoadmapPress}
           onFlashcardPress={onFlashcardPress}
@@ -82,13 +76,8 @@ export function HomeScreen({
   return (
     <HomeLayout
       sidebarData={sidebarData}
-      onHomePress={onHomePress}
-      onRoadmapPress={handleRoadmapPress}
-      onFlashcardPress={onFlashcardPress}
-      onBlogPress={onBlogPress}
-      onProfilePress={onProfilePress}
     >
       <HomeMain />
     </HomeLayout>
   )
-}
+}

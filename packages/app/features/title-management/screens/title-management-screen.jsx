@@ -14,9 +14,16 @@ import ManagementLayout from '../../../../components/layout/management-layout'
 const { Title, Text } = Typography
 
 const STATUS_CONFIG = {
-  0: { label: 'Ẩn', color: '#8c8c8c' },
+  0: { label: 'Ẩn', color: '#8c8c8c' },
   1: { label: 'Hoạt động', color: '#52c41a' },
-  // 2: { label: 'Ẩn', color: '#f5222d' },
+}
+
+const REQUIREMENT_TYPE_CONFIG = {
+  0: { label: 'Cấp độ (Level)', color: '#1890ff' },
+  1: { label: 'XP', color: '#faad14' },
+  2: { label: 'Chuỗi ngày (Streak)', color: '#ff4d4f' },
+  3: { label: 'Tổng ngày học', color: '#52c41a' },
+  4: { label: 'Ngày vắng mặt (Inactivity)', color: '#ff7875' },
 }
 
 export function TitleManagementScreen() {
@@ -40,6 +47,7 @@ export function TitleManagementScreen() {
   const [filters, setFilters] = useState({
     search: '',
     status: null,
+    requirementType: null,
     page: 1,
     size: 10
   })
@@ -64,7 +72,7 @@ export function TitleManagementScreen() {
 
   useEffect(() => {
     loadData()
-  }, [filters.page, filters.size, filters.status]) // Only load on these changes. For search, we will trigger manually or on button click.
+  }, [filters.page, filters.size, filters.status, filters.requirementType]) // Only load on these changes. For search, we will trigger manually or on button click.
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({
@@ -120,12 +128,20 @@ export function TitleManagementScreen() {
         render: (val) => <Text type="secondary">{val || '-'}</Text>,
       },
       {
-        title: 'XP yêu cầu',
-        dataIndex: 'requiredXP',
-        key: 'requiredXP',
-        width: 120,
-        align: 'center',
-        render: (val) => <Text strong style={{ color: '#faad14' }}>{val?.toLocaleString() ?? 0}</Text>,
+        title: 'Điều kiện nhận',
+        key: 'requirement',
+        width: 180,
+        render: (_, record) => {
+          const type = record?.requirementType ?? 0
+          const quant = record?.requirementQuantity ?? 0
+          const cfg = REQUIREMENT_TYPE_CONFIG[type]
+          return (
+            <Space direction="vertical" size={0}>
+              <Text style={{ fontSize: 12, color: cfg?.color }}>{cfg?.label}</Text>
+              <Text strong>{quant?.toLocaleString()} {type === 0 ? 'Lv' : type === 1 ? 'XP' : 'Ngày'}</Text>
+            </Space>
+          )
+        },
       },
       {
         title: 'Màu sắc',
@@ -209,7 +225,7 @@ export function TitleManagementScreen() {
         ),
       },
     ]
-  }, [deletingId, filters.page, filters.size])
+  }, [deletingId, filters.page, filters.size, data])
 
   const rowKey = (record) => record?.titleId ?? record?.id ?? record?.TitleId ?? JSON.stringify(record)
 
@@ -233,7 +249,8 @@ export function TitleManagementScreen() {
       const finalPayload = {
         name: payload.name,
         description: payload.description,
-        requiredXP: payload.requiredXP,
+        requirementType: payload.requirementType,
+        requirementQuantity: payload.requirementQuantity,
         colorHex: payload.colorHex,
         iconUrl: iconUrl || '',
         isSystemGiven: payload.isSystemGiven,
@@ -273,7 +290,8 @@ export function TitleManagementScreen() {
       const finalPayload = {
         name: payload.name,
         description: payload.description,
-        requiredXP: payload.requiredXP,
+        requirementType: payload.requirementType,
+        requirementQuantity: payload.requirementQuantity,
         colorHex: payload.colorHex,
         iconUrl: iconUrl || '',
         isSystemGiven: payload.isSystemGiven,
@@ -321,6 +339,18 @@ export function TitleManagementScreen() {
 
   const extraFilters = (
     <Space wrap>
+      <Select
+        allowClear
+        placeholder="Lọc điều kiện"
+        suffixIcon={<FilterOutlined />}
+        style={{ width: 180, height: 32, borderRadius: 16, fontSize: 13 }}
+        value={filters.requirementType}
+        onChange={(val) => handleFilterChange('requirementType', val)}
+        options={Object.entries(REQUIREMENT_TYPE_CONFIG).map(([val, cfg]) => ({
+          value: Number(val),
+          label: cfg.label,
+        }))}
+      />
       <Select
         allowClear
         placeholder="Lọc trạng thái"

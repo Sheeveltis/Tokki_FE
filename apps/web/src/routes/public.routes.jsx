@@ -29,6 +29,11 @@ import { WordleBoardScreen } from '@tokki/app/features/minigame/screens/wordle/w
 import { DictionarySearchScreen } from '@tokki/app/features/vocabulary/screens/client/dictionary-search-screen'
 import { DictionaryVocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/client/dictionary-detail-screen'
 import { Navbar } from 'components/navbar'
+import { Footer } from 'components/footer'
+import { AppShow } from 'components/appShow'
+import BubbleChat from '@tokki/app/features/general/api/bubble-chat-index'
+import { Outlet } from 'react-router-dom'
+import { View, Platform, ScrollView } from 'react-native'
 
 /**
  * Public Routes - Container Components
@@ -205,30 +210,22 @@ function DictionaryRoute() {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        flex: 1,
         display: 'flex',
         flexDirection: 'column',
+        alignItems: 'center',
         backgroundColor: '#FFD7D0',
+        paddingVertical: 40,
       }}
     >
-      <Navbar />
       <div
         style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          width: '70%',
+          maxWidth: 1200,
+          minWidth: 0,
         }}
       >
-        <div
-          style={{
-            width: '70%',
-            maxWidth: 1200,
-            minWidth: 0,
-          }}
-        >
-          <DictionarySearchScreen />
-        </div>
+        <DictionarySearchScreen />
       </div>
     </div>
   )
@@ -245,30 +242,22 @@ function DictionaryDetailRoute() {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        flex: 1,
         display: 'flex',
         flexDirection: 'column',
+        alignItems: 'center',
         backgroundColor: '#FFD7D0',
+        paddingVertical: 40,
       }}
     >
-      <Navbar />
       <div
         style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          width: '70%',
+          maxWidth: 1200,
+          minWidth: 0,
         }}
       >
-        <div
-          style={{
-            width: '70%',
-            maxWidth: 1200,
-            minWidth: 0,
-          }}
-        >
-          <DictionaryVocabularyDetailScreen vocabularyId={id} />
-        </div>
+        <DictionaryVocabularyDetailScreen vocabularyId={id} />
       </div>
     </div>
   )
@@ -327,10 +316,47 @@ export const publicRoutes = [
 ]
 
 /**
+ * Public Layout Component
+ */
+function PublicLayout() {
+  return (
+    <View style={{ flex: 1, minHeight: '100vh', backgroundColor: '#fff' }}>
+      <Navbar />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
+        <Outlet />
+        <Footer />
+      </ScrollView>
+
+      {/* Widgets only for Web */}
+      {Platform.OS === 'web' && (
+        <>
+          <AppShow
+            style={{
+              position: 'fixed',
+              right: 20,
+              bottom: 20,
+              zIndex: 1000,
+            }}
+          />
+          <BubbleChat />
+        </>
+      )}
+    </View>
+  )
+}
+
+/**
  * Render Public Routes
  */
 export function renderPublicRoutes() {
-  return publicRoutes.map((route) => (
-    <Route key={route.path} path={route.path} element={route.element} />
-  ))
+  return (
+    <Route element={<PublicLayout />}>
+      {publicRoutes.map((route) => (
+        <Route key={route.path} path={route.path} element={route.element} />
+      ))}
+    </Route>
+  )
 }

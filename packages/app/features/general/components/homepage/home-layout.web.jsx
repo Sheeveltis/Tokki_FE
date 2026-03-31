@@ -25,54 +25,18 @@ import { AppShow } from '../../../../../components/appShow'
 export function HomeLayout({
   children,
   sidebarData,
-  onHomePress,
-  onRoadmapPress,
-  onFlashcardPress,
-  onBlogPress,
-  onProfilePress,
 }) {
   return (
     <View style={styles.root}>
-      {/* Navbar ở đầu trang */}
-      <Navbar
-        onHomePress={onHomePress}
-        onRoadmapPress={onRoadmapPress}
-        onFlashcardPress={onFlashcardPress}
-        onBlogPress={onBlogPress}
-        onProfilePress={onProfilePress}
-      />
-
-      {/* Nội dung chính */}
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={[styles.scrollContent, styles.scrollContentGrow]}
-      >
-        <View style={styles.wrapper}>
-          <View style={styles.leftCol}>
-            {children}
-          </View>
-
-          <View style={styles.rightCol}>
-            <HomeSidebar data={sidebarData} />
-          </View>
+      <View style={styles.wrapper}>
+        <View style={styles.leftCol}>
+          {children}
         </View>
-      </ScrollView>
 
-      {/* Footer ở cuối trang */}
-      <Footer style={{}} />
-
-      {/* Icon ứng dụng học (fixed) - dùng danh sách app mặc định trong AppShow */}
-      <AppShow
-        style={{
-          position: 'fixed',
-          right: 20,
-          bottom: 20, // nằm dưới bubble chat, thẳng hàng bên phải
-          zIndex: 1000,
-        }}
-      />
-
-      {/* Bubble chat hỗ trợ (tự fixed bằng CSS) */}
-      <BubbleChat />
+        <View style={styles.rightCol}>
+          <HomeSidebar data={sidebarData} />
+        </View>
+      </View>
     </View>
   )
 }

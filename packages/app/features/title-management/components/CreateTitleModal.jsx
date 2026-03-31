@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Modal, Form, Input, InputNumber, ColorPicker, Space, Upload, Button, Typography, Row, Col, notification } from 'antd'
+import { Modal, Form, Input, InputNumber, ColorPicker, Space, Upload, Button, Select, Typography, Row, Col, notification } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import { createObjectUrl, revokeObjectUrl } from '../../examination-management/api/upload-utils'
 
@@ -9,11 +9,21 @@ const { TextArea } = Input
 const { Dragger } = Upload
 const { Text } = Typography
 
+const REQUIREMENT_TYPE_CONFIG = {
+  0: { label: 'Cấp độ (Level)' },
+  1: { label: 'XP' },
+  2: { label: 'Chuỗi ngày (Streak)' },
+  3: { label: 'Tổng ngày học' },
+  4: { label: 'Ngày vắng mặt (Inactivity)' },
+}
+
 export function CreateTitleModal({ open, onCancel, onSubmit, loading }) {
   const [api, contextHolder] = notification.useNotification()
   const [form] = Form.useForm()
   const colorHex = Form.useWatch('colorHex', form)
   const iconFile = Form.useWatch('iconFile', form)
+  const requirementType = Form.useWatch('requirementType', form) ?? 0
+
   const [iconPreviewUrl, setIconPreviewUrl] = useState('')
 
   useEffect(() => {
@@ -76,19 +86,20 @@ export function CreateTitleModal({ open, onCancel, onSubmit, loading }) {
         </Button>,
       ]}
       width={800}
-      destroyOnClose
+      destroyOnHidden
     >
       {contextHolder}
       <Form
         form={form}
         layout="vertical"
         style={{ marginTop: 16 }}
-        initialValues={{ isSystemGiven: false, requiredXP: 0 }}
+        initialValues={{ isSystemGiven: false, requirementType: 0, requirementQuantity: 0 }}
         onFinish={(values) => {
           const payload = {
             name: values.name.trim(),
             description: values.description?.trim() || '',
-            requiredXP: values.requiredXP ?? 0,
+            requirementType: values.requirementType ?? 0,
+            requirementQuantity: values.requirementQuantity ?? 0,
             colorHex: values.colorHex?.trim() || '',
             iconUrl: values.iconUrl?.trim() || '',
             iconFile: values.iconFile || null,
@@ -111,18 +122,44 @@ export function CreateTitleModal({ open, onCancel, onSubmit, loading }) {
               <TextArea rows={3} placeholder="Nhập mô tả cho danh hiệu này..." size="large" style={{ borderRadius: 8 }} />
             </Form.Item>
 
-            <Form.Item
-              label={<span style={{ fontWeight: 600 }}>XP yêu cầu</span>}
-              name="requiredXP"
-              rules={[{ required: true, message: 'Vui lòng nhập XP' }]}
-            >
-              <InputNumber
-                style={{ width: '100%', borderRadius: 8 }}
-                placeholder="Ví dụ: 1000"
-                min={0}
-                size="large"
-              />
-            </Form.Item>
+            <Row gutter={12}>
+              <Col span={12}>
+                <Form.Item
+                  label={<span style={{ fontWeight: 600 }}>Loại điều kiện</span>}
+                  name="requirementType"
+                  rules={[{ required: true, message: 'Vui lòng chọn loại' }]}
+                >
+                  <Select
+                    size="large"
+                    style={{ borderRadius: 8 }}
+                    options={Object.entries(REQUIREMENT_TYPE_CONFIG).map(([val, cfg]) => ({
+                      value: Number(val),
+                      label: cfg.label,
+                    }))}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label={
+                    <span style={{ fontWeight: 600 }}>
+                      {requirementType === 0 ? 'Cấp độ yêu cầu' : 
+                       requirementType === 1 ? 'XP yêu cầu' : 
+                       requirementType === 4 ? 'Số ngày vắng mặt' : 'Số ngày yêu cầu'}
+                    </span>
+                  }
+                  name="requirementQuantity"
+                  rules={[{ required: true, message: 'Vui lòng nhập số lượng' }]}
+                >
+                  <InputNumber
+                    style={{ width: '100%', borderRadius: 8 }}
+                    placeholder="Ví dụ: 10"
+                    min={0}
+                    size="large"
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
 
             <Form.Item label={<span style={{ fontWeight: 600 }}>Màu sắc mã Hex</span>} name="colorHex">
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>

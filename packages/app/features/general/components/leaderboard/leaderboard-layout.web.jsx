@@ -115,7 +115,6 @@ export function LeaderboardLayoutWeb() {
   if (showLoginRequest) {
     return (
       <View style={styles.wrapper}>
-        <Navbar />
         <View style={styles.loginOverlay}>
           <LoginRequest onClose={() => setShowLoginRequest(false)} />
         </View>
@@ -125,7 +124,6 @@ export function LeaderboardLayoutWeb() {
 
   return (
     <View style={styles.wrapper}>
-      <Navbar />
       <View style={styles.container}>
         <View style={styles.bannerContainer}>
           <TimeFrameDropdown

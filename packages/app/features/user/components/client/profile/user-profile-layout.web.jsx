@@ -21,21 +21,19 @@ const normalizeImageSource = (src) => {
 export function UserProfileLayout({ onActionPress }) {
   return (
     <View style={styles.root}>
-      <Navbar />
-
       <ImageBackground
         source={normalizeImageSource(BgPattern)}
         style={styles.bg}
         resizeMode="cover"
         imageStyle={styles.bgImage}
       >
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.content}>
           <View style={styles.row}>
             <UserDashboard onActionPress={onActionPress} initialActive="profile" />
             <View style={styles.spacer} />
             <UserInformation />
           </View>
-        </ScrollView>
+        </View>
       </ImageBackground>
     </View>
   )

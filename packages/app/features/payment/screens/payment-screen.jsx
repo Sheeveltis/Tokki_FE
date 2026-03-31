@@ -64,9 +64,6 @@ export function PaymentScreen() {
         style={styles.backgroundImage}
       />
 
-      {/* Navbar và Footer chỉ hiển thị trên web */}
-      {Platform.OS === 'web' && <Navbar />}
-
       {/* Nội dung chính */}
       <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
         <View style={styles.wrapper}>
@@ -74,9 +71,6 @@ export function PaymentScreen() {
         </View>
       </ScrollView>
 
-      {/* Footer chỉ hiển thị trên web */}
-      {Platform.OS === 'web' && <Footer />}
-      
       {/* NavbarMobile chỉ hiển thị trên native */}
       {Platform.OS !== 'web' && <NavbarMobile />}
     </View>

@@ -62,9 +62,6 @@ export function BlogListLayout({ blogs = [], loading = false, hasMore = false, o
 
   return (
     <View style={styles.root}>
-      {/* Navbar ở đầu trang */}
-      <Navbar />
-
       {/* Nội dung chính với layout 4/5 + 1/5 */}
       <View style={styles.mainContent}>
         {/* Content area - 4/5 */}
@@ -82,39 +79,37 @@ export function BlogListLayout({ blogs = [], loading = false, hasMore = false, o
           </View>
 
           {/* Blog List - 1 hàng 1 card */}
-          <ScrollView style={styles.blogList} showsVerticalScrollIndicator={false}>
-            {filteredBlogs.map((item) => (
-              <BlogCard
-                key={item.id}
-                item={item}
-                onPress={() => router.push(`/blog/${item.slug}`)}
-              />
-            ))}
-            {filteredBlogs.length === 0 && !loading && (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyText}>
-                  Không tìm thấy bài viết phù hợp.
-                </Text>
-              </View>
-            )}
-            
-            {/* Load More Button */}
-            {hasMore && filteredBlogs.length > 0 && (
-              <View style={styles.loadMoreContainer}>
-                {loading ? (
-                  <Loading size={24} color="#5E794C" shadowColor="#5E794C50" />
-                ) : (
-                  <TouchableOpacity
-                    style={styles.loadMoreButton}
-                    onPress={onLoadMore}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.loadMoreText}>Xem thêm</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            )}
-          </ScrollView>
+          {filteredBlogs.map((item) => (
+            <BlogCard
+              key={item.id}
+              item={item}
+              onPress={() => router.push(`/blog/${item.slug}`)}
+            />
+          ))}
+          {filteredBlogs.length === 0 && !loading && (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>
+                Không tìm thấy bài viết phù hợp.
+              </Text>
+            </View>
+          )}
+          
+          {/* Load More Button */}
+          {hasMore && filteredBlogs.length > 0 && (
+            <View style={styles.loadMoreContainer}>
+              {loading ? (
+                <Loading size={24} color="#5E794C" shadowColor="#5E794C50" />
+              ) : (
+                <TouchableOpacity
+                  style={styles.loadMoreButton}
+                  onPress={onLoadMore}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.loadMoreText}>Xem thêm</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
         </View>
 
         {/* Sidebar - 1/5 */}
@@ -122,9 +117,6 @@ export function BlogListLayout({ blogs = [], loading = false, hasMore = false, o
           <BlogSidebar latestBlogs={latestBlogs} />
         </View>
       </View>
-
-      {/* Footer ở cuối trang */}
-      <Footer style={{}} />
     </View>
   )
 }
