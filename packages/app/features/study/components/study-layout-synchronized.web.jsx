@@ -20,8 +20,6 @@ export function StudyLayoutSynchronized({
 }) {
   return (
     <View style={styles.wrapper}>
-      <Navbar />
-
       <View style={styles.mainContainer}>
         <View style={styles.mainWrapper}>
           {/* Top Bar Navigation */}
@@ -97,9 +95,8 @@ export function StudyLayoutSynchronized({
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    height: '100vh',
     backgroundColor: '#FAFAFA',
-    overflow: 'hidden',
+    minHeight: '100vh',
   },
   mainContainer: {
     flex: 1,
@@ -112,7 +109,7 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingHorizontal: 32,
     gap: 20,
-    overflow: 'hidden',
+    alignSelf: 'center',
   },
   topNavigation: {
     flexDirection: 'row',

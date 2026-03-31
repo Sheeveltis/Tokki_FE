@@ -34,8 +34,6 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
 
   return (
     <View style={styles.container}>
-      <Navbar />
-
       <View style={styles.mainContainer}>
         <View style={styles.mainWrapper}>
           {/* Top Bar Navigation */}
@@ -209,8 +207,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FAFAFA',
-    height: '100vh',
-    overflow: 'hidden',
+    minHeight: '100vh',
   },
   mainContainer: {
     flex: 1,
@@ -223,7 +220,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 24,
     gap: 20,
-    overflow: 'hidden',
+    alignSelf: 'center',
   },
   topNavigation: {
     flexDirection: 'row',

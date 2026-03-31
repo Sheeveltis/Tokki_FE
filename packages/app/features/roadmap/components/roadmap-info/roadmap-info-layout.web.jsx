@@ -16,20 +16,16 @@ const normalizeImageSource = (src) => {
 export function RoadmapInfoLayout({ onStart, initialLevel }) {
   return (
     <View style={styles.wrapper}>
-      <Navbar />
-
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.contentRow}>
-          <View style={styles.bunnySection}>
-            <View style={styles.bunnyBackgroundCircle} />
-            <Image source={normalizeImageSource(BunnyImage)} style={styles.bunnyImage} resizeMode="contain" />
-          </View>
-
-          <View style={styles.infoSection}>
-            <RoadmapInfo onStart={onStart} initialLevel={initialLevel} />
-          </View>
+      <View style={styles.contentRow}>
+        <View style={styles.bunnySection}>
+          <View style={styles.bunnyBackgroundCircle} />
+          <Image source={normalizeImageSource(BunnyImage)} style={styles.bunnyImage} resizeMode="contain" />
         </View>
-      </ScrollView>
+
+        <View style={styles.infoSection}>
+          <RoadmapInfo onStart={onStart} initialLevel={initialLevel} />
+        </View>
+      </View>
     </View>
   )
 }

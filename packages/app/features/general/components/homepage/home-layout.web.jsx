@@ -1,10 +1,6 @@
 import React from 'react'
-import { View, ScrollView, StyleSheet } from 'react-native'
-import { Navbar } from '../../../../../components/navbar'
-import { Footer } from '../../../../../components/footer'
+import { View, StyleSheet } from 'react-native'
 import { HomeSidebar } from './home-sidebar'
-import BubbleChat from '../../api/bubble-chat-index'
-import { AppShow } from '../../../../../components/appShow'
 
 /**
  * HomeLayout (Web): Bố cục trang Home cho màn hình desktop
@@ -45,8 +41,9 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#fff',
-    // react-native-web: giúp layout luôn phủ đủ viewport khi zoom out
     minHeight: '100vh',
+    alignItems: 'center',
+    paddingVertical: 20,
   },
   container: {
     flex: 1,
@@ -67,6 +64,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 40,
     alignItems: 'flex-start',
+    alignSelf: 'center',
   },
   leftCol: {
     flex: 1,

@@ -10,11 +10,8 @@ import { ViewDetailPackageButton } from './view-detail-package-btn'
 export function PaymentPackageLayout() {
   return (
     <View style={styles.root}>
-      {/* Navbar ở đầu trang */}
-      <Navbar />
-
       {/* Nội dung chính */}
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+      <View style={styles.container}>
         <View style={styles.wrapper}>
           {/* Container cho 2 cards */}
           <View style={styles.cardsContainer}>
@@ -50,10 +47,7 @@ export function PaymentPackageLayout() {
             </View>
           </View>
         </View>
-      </ScrollView>
-
-      {/* Footer ở cuối trang */}
-      <Footer />
+      </View>
     </View>
   )
 }
@@ -67,11 +61,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-  },
-  scrollContent: {
     alignItems: 'center',
     paddingVertical: 40,
-    paddingBottom: 60,
   },
   wrapper: {
     width: '100%',

@@ -85,7 +85,6 @@ export function RoadmapLearningLayout({
   if (isLoading) {
     return (
       <View style={styles.wrapper}>
-        <Navbar />
         <View style={[styles.centerContent, { flex: 1, marginTop: 100 }]}>
           <ActivityIndicator size="large" color="#FFCF6C" />
           <Text style={styles.loadingText}>Đang chuẩn bị lộ trình của bạn...</Text>
@@ -97,7 +96,6 @@ export function RoadmapLearningLayout({
   if (error || !roadmapData) {
     return (
       <View style={styles.wrapper}>
-        <Navbar />
         <View style={[styles.centerContent, { flex: 1, marginTop: 100 }]}>
           <Text style={styles.errorText}>{error || 'Không thể tải lộ trình hiện tại.'}</Text>
           <RoadmapTestButton title="Thử lại ngay" onPress={onRetry} style={styles.retryButton} />
@@ -108,7 +106,6 @@ export function RoadmapLearningLayout({
 
   return (
     <View style={styles.wrapper}>
-      <Navbar />
 
       <View style={styles.mainContainer}>
         <View style={styles.mainWrapper}>
@@ -329,9 +326,8 @@ export function RoadmapLearningLayout({
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    height: '100vh',
     backgroundColor: '#FAFAFA',
-    overflow: 'hidden',
+    minHeight: '100vh',
   },
   mainContainer: {
     flex: 1,
@@ -344,7 +340,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 24,
     gap: 20,
-    overflow: 'hidden',
+    alignSelf: 'center',
   },
   topNavigation: {
     flexDirection: 'row',

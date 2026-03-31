@@ -34,11 +34,8 @@ export function PremiumPackageLayout() {
         style={styles.backgroundImage}
       />
 
-      {/* Navbar ở đầu trang */}
-      <Navbar />
-
       {/* Nội dung chính */}
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+      <View style={styles.container}>
         <View style={styles.wrapper}>
           {/* Container cho 2 phần */}
           <View style={styles.contentContainer}>
@@ -60,10 +57,7 @@ export function PremiumPackageLayout() {
             </View>
           </View>
         </View>
-      </ScrollView>
-
-      {/* Footer ở cuối trang */}
-      <Footer />
+      </View>
     </View>
   )
 }
@@ -89,11 +83,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
     zIndex: 1,
-  },
-  scrollContent: {
     alignItems: 'center',
     paddingVertical: 20,
-    paddingBottom: 30,
   },
   wrapper: {
     width: '100%',

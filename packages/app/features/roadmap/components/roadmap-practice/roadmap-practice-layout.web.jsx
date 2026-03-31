@@ -45,62 +45,59 @@ export function RoadmapPracticeLayout({ practiceId }) {
 
   return (
     <View style={styles.container}>
-      <Navbar />
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.mainWrapper}>
-          {/* Top Bar Navigation */}
-          <View style={styles.topNavigation}>
-            <Pressable 
-              onPress={() => router.back()} 
-              style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
-            >
-              <Text style={styles.backButtonArrow}>←</Text>
-              <Text style={styles.backButtonText}>Quay lại</Text>
-            </Pressable>
-            
-            <View style={styles.breadcrumb}>
-              <Text style={styles.breadcrumbText}>Học tập</Text>
-              <Text style={styles.breadcrumbDivider}>/</Text>
-              <Text style={[styles.breadcrumbText, styles.breadcrumbActive]}>Luyện tập</Text>
-            </View>
-          </View>
-
-          {/* Header Section */}
-          <View style={styles.heroSection}>
-            <View style={styles.badgeContainer}>
-              <Text style={styles.badgeText}>BỘ ĐỀ SÁT THẬT</Text>
-            </View>
-            <Text style={styles.mainTitle}>{meta.label}</Text>
-            <Text style={styles.subtitle}>{meta.description}</Text>
-          </View>
-
-          {/* Main Content Card */}
-          <View style={styles.contentCard}>
-            <View style={styles.listHeader}>
-              <Text style={styles.listTitle}>Danh sách đề ôn luyện</Text>
-              <View style={styles.countBadge}>
-                <Text style={styles.countBadgeText}>{meta.sets.length} đề</Text>
-              </View>
-            </View>
-
-            <View style={styles.listWrapper}>
-              {meta.sets.map((set) => (
-                <RoadmapLearningLessonCard
-                  key={set.id}
-                  icon={meta.icon}
-                  title={set.title}
-                  subtitle={set.subtitle}
-                  actionLabel={set.actionLabel}
-                  tone="secondary"
-                  onPress={() => {
-                    console.log('Open practice set', set.id)
-                  }}
-                />
-              ))}
-            </View>
+      <View style={styles.mainWrapper}>
+        {/* Top Bar Navigation */}
+        <View style={styles.topNavigation}>
+          <Pressable 
+            onPress={() => router.back()} 
+            style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+          >
+            <Text style={styles.backButtonArrow}>←</Text>
+            <Text style={styles.backButtonText}>Quay lại</Text>
+          </Pressable>
+          
+          <View style={styles.breadcrumb}>
+            <Text style={styles.breadcrumbText}>Học tập</Text>
+            <Text style={styles.breadcrumbDivider}>/</Text>
+            <Text style={[styles.breadcrumbText, styles.breadcrumbActive]}>Luyện tập</Text>
           </View>
         </View>
-      </ScrollView>
+
+        {/* Header Section */}
+        <View style={styles.heroSection}>
+          <View style={styles.badgeContainer}>
+            <Text style={styles.badgeText}>BỘ ĐỀ SÁT THẬT</Text>
+          </View>
+          <Text style={styles.mainTitle}>{meta.label}</Text>
+          <Text style={styles.subtitle}>{meta.description}</Text>
+        </View>
+
+        {/* Main Content Card */}
+        <View style={styles.contentCard}>
+          <View style={styles.listHeader}>
+            <Text style={styles.listTitle}>Danh sách đề ôn luyện</Text>
+            <View style={styles.countBadge}>
+              <Text style={styles.countBadgeText}>{meta.sets.length} đề</Text>
+            </View>
+          </View>
+
+          <View style={styles.listWrapper}>
+            {meta.sets.map((set) => (
+              <RoadmapLearningLessonCard
+                key={set.id}
+                icon={meta.icon}
+                title={set.title}
+                subtitle={set.subtitle}
+                actionLabel={set.actionLabel}
+                tone="secondary"
+                onPress={() => {
+                  console.log('Open practice set', set.id)
+                }}
+              />
+            ))}
+          </View>
+        </View>
+      </View>
     </View>
   )
 }
@@ -110,19 +107,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FAFAFA',
     minHeight: '100vh',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
     alignItems: 'center',
-    paddingBottom: 60,
+    paddingVertical: 40,
   },
   mainWrapper: {
     width: '90%',
     maxWidth: 900,
-    marginTop: 32,
     gap: 32,
+    alignSelf: 'center',
   },
   topNavigation: {
     flexDirection: 'row',

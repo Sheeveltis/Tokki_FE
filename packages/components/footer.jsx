@@ -41,8 +41,8 @@ const linkGroups = [
 ]
 
 const partners = [
-  'Viện Giáo dục Quốc tế Quốc gia (NIIED)', 
-  'Trung tâm Ngôn ngữ Tiếng Hàn TP.HCM', 
+  'Viện Giáo dục Quốc tế Quốc gia (NIIED)',
+  'Trung tâm Ngôn ngữ Tiếng Hàn TP.HCM',
 ];
 export const Footer = ({ style }) => {
   const { width } = useWindowDimensions()
@@ -137,7 +137,7 @@ export const Footer = ({ style }) => {
 const styles = StyleSheet.create({
   wrapper: {
     width: '100%',
-    marginTop: 48,
+    // marginTop: 48,
   },
   newsletterWrap: {
     width: '56%',

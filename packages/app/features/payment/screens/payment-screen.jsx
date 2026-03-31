@@ -65,11 +65,11 @@ export function PaymentScreen() {
       />
 
       {/* Nội dung chính */}
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+      <View style={styles.container}>
         <View style={styles.wrapper}>
           <PaymentLayout paymentId={paymentId} paymentUrl={paymentUrl} />
         </View>
-      </ScrollView>
+      </View>
 
       {/* NavbarMobile chỉ hiển thị trên native */}
       {Platform.OS !== 'web' && <NavbarMobile />}
@@ -98,11 +98,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
     zIndex: 1,
-  },
-  scrollContent: {
     alignItems: 'center',
     paddingVertical: 40,
-    paddingBottom: Platform.OS === 'web' ? 60 : 100, // Extra padding on native for navbar
   },
   wrapper: {
     width: '100%',
