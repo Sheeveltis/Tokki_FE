@@ -26,10 +26,8 @@ export function MenuStudyLayout({
           <View style={styles.topNavigation}>
             <View style={styles.breadcrumb}>
               <Pressable onPress={onBackPress} style={styles.breadcrumbItem}>
-                <Text style={styles.breadcrumbText}>Học tập</Text>
+                <Text style={[styles.breadcrumbText, styles.breadcrumbActive]}>Học tập</Text>
               </Pressable>
-              <Text style={styles.breadcrumbDivider}>/</Text>
-              <Text style={[styles.breadcrumbText, styles.breadcrumbActive]}>Chọn kỹ năng</Text>
             </View>
           </View>
 
@@ -48,36 +46,19 @@ export function MenuStudyLayout({
                 <View style={styles.heroTitleRow}>
                   <Text style={styles.mainTitle}>Chương trình học TOPIK</Text>
                 </View>
-                <Text style={styles.subtitle}>Lựa chọn kỹ năng bạn muốn rèn luyện hôm nay để chinh phục điểm số cao nhất.</Text>
+                <Text style={styles.subtitle}>Bắt đầu hành trình chinh phục tiếng Hàn với chương trình học tập tối ưu dành riêng cho bạn.</Text>
               </View>
 
 
             </View>
           </View>
 
-          {/* Main Dashboard - Sidebar Layout */}
+          {/* Main Dashboard - Single Column Layout */}
           <View style={styles.dashboardContainer}>
-            {/* Sidebar bên trái: Actions & Stats */}
-            <View style={styles.sidebar}>
-              <View style={styles.sidebarSection}>
-                <Text style={styles.sidebarTitle}>CÔNG CỤ HỖ TRỢ</Text>
-                <View style={styles.columnCard}>
-                  <QuickLevelTestButton onPress={onQuickTestPress} />
-                </View>
-              </View>
-
-              <View style={styles.sidebarSection}>
-                <Text style={styles.sidebarTitle}>THỐNG KÊ CÁ NHÂN</Text>
-                <View style={styles.columnCard}>
-                  <StudyStatsCards lessonsLearned={lessonsLearned} streakDays={streakDays} />
-                </View>
-              </View>
-            </View>
-
-            {/* Content Card bên phải */}
+            {/* Content Area */}
             <View style={styles.contentCard}>
-              <ScrollView 
-                style={styles.contentCardScroll} 
+              <ScrollView
+                style={styles.contentCardScroll}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.contentCardInner}
               >
@@ -95,20 +76,22 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     backgroundColor: '#FAFAFA',
-    minHeight: '100vh',
+    overflow: 'hidden',
   },
   mainContainer: {
     flex: 1,
     alignItems: 'center',
+    overflow: 'hidden',
   },
   mainWrapper: {
     width: '100%',
-    maxWidth: 1600,
+    maxWidth: 1400,
     flex: 1,
     paddingTop: 24,
-    paddingHorizontal: 32,
+    paddingBottom: 24,
     gap: 20,
     alignSelf: 'center',
+    overflow: 'hidden',
   },
   topNavigation: {
     flexDirection: 'row',
@@ -202,7 +185,7 @@ const styles = StyleSheet.create({
     color: '#666',
     fontWeight: '500',
     fontFamily: 'Epilogue, sans-serif',
-    maxWidth: 600,
+    // maxWidth: 600,
     lineHeight: 22,
   },
   headerActions: {
@@ -210,35 +193,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dashboardContainer: {
-    flexDirection: 'row',
-    gap: 24,
     flex: 1,
     overflow: 'hidden',
     paddingBottom: 10,
-  },
-  sidebar: {
-    width: 280,
-    height: '100%',
-    gap: 24,
-  },
-  sidebarSection: {
-    gap: 12,
-  },
-  sidebarTitle: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#999',
-    letterSpacing: 1.5,
-    paddingHorizontal: 12,
-  },
-  columnCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
-    gap: 20,
-    ...(Platform.OS === 'web' && { boxShadow: '0 8px 30px rgba(0,0,0,0.02)' }),
   },
   contentCard: {
     flex: 1,

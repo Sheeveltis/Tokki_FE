@@ -51,6 +51,8 @@ export function MenuStudy({
     >
       <Main
         levelId={levelId}
+        streakDays={streakDays}
+        lessonsLearned={lessonsLearned}
         onModulePress={handleModulePress}
         showLoginRequest={showLoginRequest}
         onCloseLoginRequest={() => setShowLoginRequest(false)}

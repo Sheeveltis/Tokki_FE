@@ -1,5 +1,7 @@
 import React from 'react'
-import { ScrollView, TouchableOpacity, Text, StyleSheet } from 'react-native'
+import { Typography } from 'antd'
+
+const { Title } = Typography
 
 // Giả lập data danh mục (Sau này lấy từ API)
 const CATEGORIES = [
@@ -11,33 +13,50 @@ const CATEGORIES = [
 
 export const CategoryFilter = React.memo(function CategoryFilter({ selectedId, onSelect }) {
   return (
-    <ScrollView 
-      horizontal 
-      showsHorizontalScrollIndicator={false} 
-      contentContainerStyle={styles.container}
-    >
-      {CATEGORIES.map(cat => {
-        const isActive = selectedId === cat.id
-        return (
-          <TouchableOpacity 
-            key={cat.id || 'all'}
-            style={[styles.item, isActive && styles.itemActive]}
-            onPress={() => onSelect(cat.id)}
-          >
-            <Text style={[styles.text, isActive && styles.textActive]}>
+    <div className="category-filter-wrapper" style={{ marginBottom: '24px' }}>
+      <Title level={5} style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', color: '#94a3b8', marginBottom: '16px', letterSpacing: '0.1em' }}>
+        Danh mục bài viết
+      </Title>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+        {CATEGORIES.map(cat => {
+          const isActive = selectedId === cat.id
+          return (
+            <div 
+              key={cat.id || 'all'}
+              className={`cat-item ${isActive ? 'active' : ''}`}
+              onClick={() => onSelect(cat.id)}
+              style={{ 
+                padding: '8px 24px', 
+                borderRadius: '12px', 
+                backgroundColor: isActive ? '#0f172a' : 'white', 
+                color: isActive ? 'white' : '#64748b',
+                fontWeight: 700,
+                fontSize: '14px',
+                cursor: 'pointer',
+                border: '1px solid',
+                borderColor: isActive ? '#0f172a' : '#f1f5f9',
+                transition: 'all 0.3s ease'
+              }}
+            >
               {cat.name}
-            </Text>
-          </TouchableOpacity>
-        )
-      })}
-    </ScrollView>
+            </div>
+          )
+        })}
+      </div>
+      
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .cat-item:hover {
+          border-color: #F1BE4B !important;
+          color: #F1BE4B !important;
+        }
+        .cat-item.active:hover {
+          color: white !important;
+          background-color: #1e293b !important;
+          border-color: #1e293b !important;
+        }
+        `
+      }} />
+    </div>
   )
-})
-
-const styles = StyleSheet.create({
-  container: { paddingHorizontal: 16, paddingVertical: 10, gap: 10 },
-  item: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#f0f0f0' },
-  itemActive: { backgroundColor: '#111' },
-  text: { fontSize: 14, fontWeight: '500', color: '#333' },
-  textActive: { color: '#fff' }
 })

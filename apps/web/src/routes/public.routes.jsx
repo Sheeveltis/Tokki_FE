@@ -34,6 +34,7 @@ import { AppShow } from 'components/appShow'
 import BubbleChat from '@tokki/app/features/general/api/bubble-chat-index'
 import { View, Platform, ScrollView } from 'react-native'
 import { useParams } from 'react-router-dom'
+import { getCurrentUserId } from '@tokki/app/provider/api/client'
 
 /**
  * Public Routes - Container Components
@@ -41,18 +42,48 @@ import { useParams } from 'react-router-dom'
 function RootHomeRoute() {
   const { navigate } = useRouteNavigation()
 
+  const handleFlashcardPress = () => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard')
+    } else {
+      navigate('/flashcard')
+    }
+  }
+
+  const handleProfilePress = () => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/profile')
+    } else {
+      navigate('/profile')
+    }
+  }
+
   return (
     <HomeScreen
       onHomePress={() => navigate('/')}
       onRoadmapPress={() => navigate('/roadmap/info')}
-      onFlashcardPress={() => navigate('/flashcard')}
+      onFlashcardPress={handleFlashcardPress}
       onBlogPress={() => navigate('/blog')}
-      onProfilePress={() => navigate('/profile')}
+      onProfilePress={handleProfilePress}
     />
   )
 }
 
 function ProfileRoute() {
+  const { navigate } = useRouteNavigation()
+
+  React.useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/profile', { replace: true })
+    }
+  }, [navigate])
+
+  const userId = getCurrentUserId()
+  if (!userId) return null
+
   return <UserScreen />
 }
 
@@ -323,6 +354,8 @@ export const publicRoutes = [
 export function PublicLayout() {
   const location = useLocation()
   const isRoadmapRoute = location.pathname.startsWith('/roadmap')
+  const isMenuStudyRoute = location.pathname.startsWith('/menu-study')
+  const shouldHideFooter = isRoadmapRoute || isMenuStudyRoute
 
   return (
     <View style={{ flex: 1, minHeight: '100vh', backgroundColor: '#fff' }}>
@@ -330,7 +363,7 @@ export function PublicLayout() {
       <View style={{ flex: 1 }}>
         <Outlet />
       </View>
-      {!isRoadmapRoute && <Footer />}
+      {!shouldHideFooter && <Footer />}
 
       {/* Widgets only for Web */}
       {Platform.OS === 'web' && (

@@ -222,6 +222,13 @@ function FlashcardRoute() {
   const { navigate, getIntQueryParam } = useRouteNavigation()
   const levelId = getIntQueryParam('level', 1)
 
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
+
   return (
     <FlashcardListScreen
       levelId={levelId}
@@ -252,6 +259,13 @@ function FlashcardStudyRoute() {
   const topicId = getQueryParam('topic')
   const topicTitle = topicId ? TOPIC_TITLES[topicId] || STUDY_PAGE_TITLES.FLASHCARD_STUDY : STUDY_PAGE_TITLES.FLASHCARD_STUDY
 
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
+
   return (
     <FlashcardStudyScreen
       title={topicTitle}
@@ -268,6 +282,13 @@ function FlashcardLearnRoute() {
   const topicId = getQueryParam('topic')
   const topicTitle = topicId ? TOPIC_TITLES[topicId] || STUDY_PAGE_TITLES.FLASHCARD_STUDY : STUDY_PAGE_TITLES.FLASHCARD_STUDY
 
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
+
   return (
     <FlashcardFirstLearnScreen
       topicId={topicId}
@@ -282,6 +303,13 @@ function FlashcardTestRoute() {
   const topicId = getQueryParam('topic')
   const noSubmit = getQueryParam('noSubmit')
   const topicTitle = topicId ? TOPIC_TITLES[topicId] || STUDY_PAGE_TITLES.FLASHCARD_STUDY : STUDY_PAGE_TITLES.FLASHCARD_STUDY
+
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
 
   return (
     <TestScreen
@@ -302,6 +330,13 @@ function FlashcardQuizRoute() {
     ? TOPIC_TITLES[topicId] || STUDY_PAGE_TITLES.FLASHCARD_STUDY
     : STUDY_PAGE_TITLES.FLASHCARD_STUDY
 
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
+
   return (
     <TestScreen
       topicId={topicId}
@@ -316,6 +351,13 @@ function FlashcardQuizRoute() {
 
 function FlashcardFavoritesRoute() {
   const { navigate } = useRouteNavigation()
+
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
 
   return (
     <FlashcardStudyScreen
@@ -332,6 +374,13 @@ function FlashcardFavoritesRoute() {
 function FlashcardFavoritesLearnRoute() {
   const { navigate } = useRouteNavigation()
 
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
+
   return (
     <LearnScreen
       topicId={null}
@@ -345,6 +394,13 @@ function FlashcardFavoritesLearnRoute() {
 function FlashcardFavoritesTestRoute() {
   const { navigate, getQueryParam } = useRouteNavigation()
   const noSubmit = getQueryParam('noSubmit')
+
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
 
   return (
     <TestScreen
@@ -361,6 +417,13 @@ function FlashcardFavoritesTestRoute() {
 
 function FlashcardLearnedRoute() {
   const { navigate } = useRouteNavigation()
+
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
 
   return (
     <LearnedVocabularyListScreen

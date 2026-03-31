@@ -1,14 +1,17 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, Text } from 'react-native'
 import { TopikBanner } from '@tokki/app/features/study/screens/menu-study/components/topik-banner.web'
 import { SkillModulesGrid } from '@tokki/app/features/study/screens/menu-study/components/skill-modules-grid.web'
 import { LoginRequest } from 'components/loginRequest'
+import { StudyStatsCards } from '@tokki/app/features/study/components/study-stats-cards.web'
 
 /**
  * MenuStudyMain (Web): Nội dung chính của trang menu học tập
  */
 export function MenuStudyMain({ 
   levelId, 
+  streakDays,
+  lessonsLearned,
   onModulePress,
   showLoginRequest,
   onCloseLoginRequest,
@@ -18,20 +21,38 @@ export function MenuStudyMain({
 
   return (
     <View style={styles.container}>
-      {/* Banner Học chữ cái - chỉ hiển thị cho level 1 */}
-      {levelId === 1 && (
-        <TopikBanner
-          title="HỌC CHỮ CÁI"
-          onPress={onAlphabetPress}
-        />
-      )}
+      {/* Header View: Banner & Stats integrated */}
+      <View style={styles.headerDashboard}>
+        <View style={styles.bannerContainer}>
+          {/* Banner TOPIK Learning Path */}
+          <TopikBanner levelId={levelId} onPress={onTopikRoadmapPress} />
+          
+          {/* Banner Học chữ cái - chỉ hiển thị cho level 1 */}
+          {levelId === 1 && (
+            <View style={{ marginTop: 16 }}>
+              <TopikBanner
+                title="HỌC CHỮ CÁI"
+                onPress={onAlphabetPress}
+                backgroundColor="#FF6B6B"
+              />
+            </View>
+          )}
+        </View>
 
-      {/* Banner TOPIK Learning Path */}
-      <TopikBanner levelId={levelId} onPress={onTopikRoadmapPress} />
-      
+        {/* Stats Section integrated to the side or top row */}
+        <View style={styles.statsContainer}>
+          <StudyStatsCards lessonsLearned={lessonsLearned} streakDays={streakDays} />
+        </View>
+      </View>
 
-      {/* Grid các skill modules */}
-      <SkillModulesGrid levelId={levelId} onModulePress={onModulePress} />
+      {/* Main Grid Section */}
+      <View style={styles.contentSection}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Chương trình đào tạo</Text>
+          <View style={styles.sectionDivider} />
+        </View>
+        <SkillModulesGrid levelId={levelId} onModulePress={onModulePress} />
+      </View>
 
       {showLoginRequest && (
         <View style={styles.modalOverlay}>
@@ -47,8 +68,45 @@ export function MenuStudyMain({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    alignItems: 'center',
+    gap: 40,
+  },
+  headerDashboard: {
+    width: '100%',
+    flexDirection: 'row',
     gap: 24,
+    flexWrap: 'wrap',
+    alignItems: 'stretch',
+  },
+  bannerContainer: {
+    flex: 2,
+    minWidth: 500,
+    gap: 16,
+  },
+  statsContainer: {
+    flex: 1,
+    minWidth: 320,
+    justifyContent: 'center',
+  },
+  contentSection: {
+    gap: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    paddingHorizontal: 4,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#999',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
+  sectionDivider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#F0F0F0',
   },
   modalOverlay: {
     position: 'absolute',

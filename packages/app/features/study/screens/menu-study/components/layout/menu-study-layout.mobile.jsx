@@ -30,7 +30,7 @@ export function MenuStudyLayout({
                 <Text style={styles.levelBadgeText}>LEVEL {levelId}</Text>
               </View>
             </View>
-            <Text style={styles.mainTitle}>Học tập kỹ năng</Text>
+            <Text style={styles.mainTitle}>Chương trình học TOPIK</Text>
           </View>
         </View>
 

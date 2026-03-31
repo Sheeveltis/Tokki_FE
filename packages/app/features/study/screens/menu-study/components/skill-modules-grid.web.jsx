@@ -2,18 +2,19 @@ import React, { useState } from 'react'
 import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
 import { SKILL_MODULES } from '@tokki/app/features/study/mockData'
 import { normalizeImageSource } from '@tokki/app/features/study/api'
+import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
 
 // Helper function để render icon - hỗ trợ cả SVG component và Image source
 const renderIcon = (icon, style, resizeMode = 'contain') => {
   if (!icon) return null
-  
+
   // Kiểm tra xem có phải là React component không (SVG component)
   const isReactComponent = icon && (
-    (typeof icon === 'function') || 
+    (typeof icon === 'function') ||
     (typeof icon === 'object' && icon.$$typeof) ||
     (typeof icon === 'object' && icon.default && (typeof icon.default === 'function' || icon.default.$$typeof))
   )
-  
+
   if (isReactComponent) {
     // Render SVG component
     const IconComponent = typeof icon === 'function' ? icon : (icon.default || icon)
@@ -23,7 +24,7 @@ const renderIcon = (icon, style, resizeMode = 'contain') => {
       </View>
     )
   }
-  
+
   // Render Image với normalizeImageSource
   const iconSource = normalizeImageSource(icon)
   if (iconSource) {
@@ -35,7 +36,7 @@ const renderIcon = (icon, style, resizeMode = 'contain') => {
       />
     )
   }
-  
+
   return null
 }
 
@@ -45,35 +46,37 @@ export function SkillModulesGrid({ levelId, onModulePress }) {
   return (
     <View style={styles.grid}>
       {SKILL_MODULES.map((module) => (
-        <Pressable
+        <View
           key={module.id}
-          onPress={() => module.isImageModule && onModulePress?.(module.id)}
-          onHoverIn={() => Platform.OS === 'web' && module.isImageModule && setHoveredItem(module.id)}
-          onHoverOut={() => Platform.OS === 'web' && module.isImageModule && setHoveredItem(null)}
-          style={({ pressed }) => [
+          style={[
             styles.moduleCard,
-            module.isImageModule && (pressed || hoveredItem === module.id) && styles.imageModulePressed,
+            {
+              backgroundColor: module.backgroundColor || '#FFFFFF',
+              borderColor: module.borderColor || '#F0F0F0',
+              borderWidth: 2,
+            },
           ]}
         >
-          {/* Header - luôn hiển thị cho tất cả modules */}
+          {/* Header */}
           <View style={styles.moduleHeader}>
-            <View style={styles.iconContainer}>
-              {renderIcon(module.icon, styles.moduleIcon, module.isImageModule ? 'cover' : 'contain')}
+            <View style={[styles.iconContainer, { backgroundColor: '#FFFFFF', borderColor: module.borderColor }]}>
+              {renderIcon(module.icon, [styles.moduleIcon, { tintColor: module.primaryColor }], module.isImageModule ? 'cover' : 'contain')}
             </View>
-            <Text style={styles.moduleTitle}>{module.title}</Text>
+            <Text style={[styles.moduleTitle, { color: module.primaryColor }]}>{module.title}</Text>
           </View>
 
           {/* Content */}
           {module.isImageModule ? (
-            // Hiển thị hình ảnh trong card cho image modules
             <View style={styles.imageContentContainer}>
               {renderIcon(module.icon, styles.moduleImage, 'cover')}
               <View style={styles.imageOverlay}>
-                <Text style={styles.exploreText}>Khám phá ngay →</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.exploreText}>Khám phá ngay</Text>
+                  <ArrowIcon width={12} height={12} fill="#FFFFFF" />
+                </View>
               </View>
             </View>
           ) : (
-            // Hiển thị items cho các module thông thường
             <>
               {module.items.length > 0 ? (
                 <View style={styles.itemsContainer}>
@@ -87,22 +90,26 @@ export function SkillModulesGrid({ levelId, onModulePress }) {
                         onHoverOut={() => Platform.OS === 'web' && setHoveredItem(null)}
                         style={({ pressed }) => [
                           styles.itemButton,
-                          (pressed || isActive) && styles.itemButtonActive,
+                          (pressed || isActive) && { backgroundColor: module.primaryColor, borderColor: module.primaryColor },
                         ]}
                       >
                         {({ pressed }) => (
                           <>
-                            <View style={[styles.itemIconWrapper, (pressed || isActive) && styles.itemIconWrapperActive]}>
+                            <View style={[
+                              styles.itemIconWrapper,
+                              { borderColor: module.borderColor + '40', borderWidth: 1 },
+                              (pressed || isActive) && styles.itemIconWrapperActive
+                            ]}>
                               {renderIcon(
-                                item.icon, 
-                                [styles.itemIcon, (pressed || isActive) && { tintColor: '#FFFFFF' }],
+                                item.icon,
+                                [styles.itemIcon, { tintColor: (pressed || isActive) ? '#FFFFFF' : module.primaryColor }],
                                 'contain'
                               )}
                             </View>
                             <Text style={[styles.itemLabel, (pressed || isActive) && { color: '#FFFFFF' }]}>
                               {item.label}
                             </Text>
-                            <Text style={[styles.arrowIcon, (pressed || isActive) && { color: '#FFFFFF' }]}>→</Text>
+                            {renderIcon(ArrowIcon, [styles.arrowIconStyle, (pressed || isActive) ? { tintColor: '#FFFFFF', opacity: 1 } : { tintColor: module.primaryColor }])}
                           </>
                         )}
                       </Pressable>
@@ -114,7 +121,7 @@ export function SkillModulesGrid({ levelId, onModulePress }) {
               )}
             </>
           )}
-        </Pressable>
+        </View>
       ))}
     </View>
   )
@@ -130,8 +137,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   moduleCard: {
-    width: Platform.OS === 'web' ? 'calc(50% - 12px)' : '100%',
-    backgroundColor: '#FFFFFF',
+    width: Platform.OS === 'web' ? 'calc(33.33% - 16px)' : '100%',
     borderRadius: 24,
     padding: 24,
     borderWidth: 1,
@@ -139,7 +145,7 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' && {
       boxShadow: '0 10px 30px rgba(0,0,0,0.02)',
       cursor: 'pointer',
-      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
     }),
     gap: 20,
     overflow: 'hidden',
@@ -215,14 +221,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    backgroundColor: '#F7F7F7',
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: '#EFEFEF',
     ...(Platform.OS === 'web' && {
-      transition: 'all 0.2s ease',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
     }),
   },
   itemButtonActive: {
@@ -252,10 +259,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
     flex: 1,
   },
-  arrowIcon: {
-    fontSize: 16,
-    color: '#CCC',
-    fontWeight: '300',
+  arrowIconStyle: {
+    width: 16,
+    height: 16,
+    opacity: 0.6,
   },
   emptyContent: {
     minHeight: 100,

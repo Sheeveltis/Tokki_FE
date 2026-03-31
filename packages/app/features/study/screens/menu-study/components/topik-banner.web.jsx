@@ -4,6 +4,8 @@ import { normalizeImageSource } from '@tokki/app/features/study/api'
 import BunnyWithCarrot from 'assets/bunny/14.png'
 import BackgroundPattern from 'assets/background1.png'
 
+import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
+
 /**
  * TopikBanner: Banner hiện đại với thiết kế cao cấp
  */
@@ -75,7 +77,14 @@ export function TopikBanner({
         </View>
 
         <View style={[styles.actionBadge, isHovered && styles.actionBadgeActive]}>
-          <Text style={[styles.actionText, isHovered && styles.actionTextActive]}>HỌC NGAY →</Text>
+          <Text style={[styles.actionText, isHovered && styles.actionTextActive]}>HỌC NGAY</Text>
+          <View style={styles.arrowWrapper}>
+            <ArrowIcon 
+              width={14} 
+              height={14} 
+              fill={isHovered ? '#FFFFFF' : '#999'} 
+            />
+          </View>
         </View>
       </View>
     </Pressable>
@@ -85,23 +94,23 @@ export function TopikBanner({
 const styles = StyleSheet.create({
   banner: {
     width: '100%',
-    height: 120,
-    borderRadius: 24,
+    height: 160,
+    borderRadius: 32,
     borderWidth: 1,
     borderColor: '#F0F0F0',
     backgroundColor: '#FFFFFF',
     overflow: 'hidden',
     ...(Platform.OS === 'web' && {
-      boxShadow: '0 8px 30px rgba(0,0,0,0.02)',
+      boxShadow: '0 10px 40px rgba(0,0,0,0.03)',
       cursor: 'pointer',
-      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
     }),
   },
   bannerActive: {
     borderColor: '#F4A950',
-    transform: [{ scale: 0.998 }],
+    transform: [{ scale: 0.995 }],
     ...(Platform.OS === 'web' && {
-      boxShadow: '0 20px 50px rgba(0,0,0,0.06)',
+      boxShadow: '0 25px 60px rgba(0,0,0,0.08)',
     }),
   },
   bgContainer: {
@@ -153,7 +162,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F0F0F0',
     minWidth: 120,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     ...(Platform.OS === 'web' && { transition: 'all 0.3s ease' }),
   },
   actionBadgeActive: {
@@ -169,5 +181,8 @@ const styles = StyleSheet.create({
   },
   actionTextActive: {
     color: '#FFFFFF',
+  },
+  arrowWrapper: {
+    marginLeft: 2,
   },
 })

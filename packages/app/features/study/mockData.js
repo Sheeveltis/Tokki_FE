@@ -2,6 +2,13 @@ import ChatboxIcon from 'assets/icon/icon-mainflow/chatbox.svg'
 import AIIcon from 'assets/icon/icon-mainflow/ai.svg'
 import FolderIcon from 'assets/icon/icon-mainflow/folder.svg'
 import GameIcon from 'assets/icon/icon-mainflow/game.svg'
+import MicroIcon from 'assets/icon/icon-mainflow/micro.svg'
+import BulbIcon from 'assets/icon/icon-mainflow/bulb.svg'
+import BookIcon from 'assets/icon/icon-mainflow/bookandsky.svg'
+import GrammarIcon from 'assets/icon/icon-mainflow/grammar.svg'
+import WriteIcon from 'assets/icon/icon-mainflow/write.svg'
+import LocateIcon from 'assets/icon/icon-mainflow/locate.svg'
+import StarIcon from 'assets/icon/icon-mainflow/star.svg'
 
 export { FLASHCARD_TOPICS, FLASHCARDS } from '../vocabulary/mockData'
 
@@ -45,23 +52,47 @@ export const ALPHABET_LETTERS = [
 /**
  * Mock data cho skill modules
  */
+/**
+ * Mock data cho skill modules
+ */
 export const SKILL_MODULES = [
   {
-    id: 'speaking',
-    title: 'NÓI',
-    icon: ChatboxIcon,
+    id: 'vocabulary',
+    title: 'HÀNH TRÌNH TỪ VỰNG',
+    backgroundColor: '#FFF9EB',
+    primaryColor: '#F4A950', // Màu cam thương hiệu
+    borderColor: '#FFE0B2',
+    icon: FolderIcon,
     items: [
-      { label: 'Luyện nói với A.I', icon: AIIcon },
+      { label: 'Học từ vựng theo chủ đề', icon: BookIcon, route: 'topics' },
+      { label: 'Minigame từ vựng', icon: GameIcon, route: 'minigame' },
+      { label: 'Ôn tập từ vựng đã học', icon: StarIcon, route: 'learned' },
     ],
   },
   {
-    id: 'vocabulary',
-    title: 'TỪ VỰNG',
-    icon: FolderIcon,
+    id: 'skills',
+    title: 'RÈN LUYỆN KỸ NĂNG',
+    backgroundColor: '#EEF6FF',
+    primaryColor: '#2196F3', // Màu xanh dương
+    borderColor: '#BBDEFB',
+    icon: ChatboxIcon,
     items: [
-      { label: 'Chủ đề', icon: FolderIcon },
-      { label: 'Minigame', icon: GameIcon },
+      { label: 'Luyện phát âm với AI', icon: MicroIcon, route: 'pronunciation' },
+      { label: 'Học bảng chữ cái cho người mới', icon: BulbIcon, route: 'alphabet' },
+      { label: 'Học lộ trình (Roadmap)', icon: LocateIcon, route: 'roadmap' },
     ],
   },
+  {
+    id: 'topik',
+    title: 'LUYỆN THI TOPIK',
+    backgroundColor: '#F7F2FF',
+    primaryColor: '#9C27B0', // Màu tím
+    borderColor: '#E1BEE7',
+    icon: BookIcon,
+    items: [
+      { label: 'Học TOPIK theo dạng', icon: GrammarIcon, route: 'topik-type' },
+      { label: 'Giải đề TOPIK', icon: WriteIcon, route: 'topik-exam' },
+    ],
+  }
 ]
 
