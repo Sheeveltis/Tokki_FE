@@ -83,11 +83,11 @@ export function TopicStatusChangeModal({ open, loading, onCancel, onSubmit, curr
       destroyOnClose
       centered
       styles={{
-        header: { 
+        header: {
           padding: '24px 24px 20px',
           borderBottom: 'none',
         },
-        body: { 
+        body: {
           padding: '0 24px 24px',
         },
         footer: {
@@ -141,25 +141,25 @@ export function TopicStatusChangeModal({ open, loading, onCancel, onSubmit, curr
                         transition: 'all 0.2s ease',
                       }}
                     >
-                      <Icon 
-                        style={{ 
-                          fontSize: 24, 
+                      <Icon
+                        style={{
+                          fontSize: 24,
                           color: isSelected ? '#ffffff' : '#9ca3af',
-                        }} 
+                        }}
                       />
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ 
-                        fontSize: 15, 
-                        fontWeight: 600, 
+                      <div style={{
+                        fontSize: 15,
+                        fontWeight: 600,
                         color: isSelected ? option.color : '#6b7280',
                         marginBottom: 4,
                       }}>
                         {option.label}
                       </div>
                       {isCurrent && (
-                        <div style={{ 
-                          fontSize: 12, 
+                        <div style={{
+                          fontSize: 12,
                           color: '#9ca3af',
                           fontStyle: 'italic',
                         }}>
@@ -192,8 +192,8 @@ export function TopicStatusChangeModal({ open, loading, onCancel, onSubmit, curr
 
         {selectedStatus !== null && selectedStatus !== currentStatus && (
           <>
-            <div 
-              style={{ 
+            <div
+              style={{
                 padding: '16px',
                 background: '#eff6ff',
                 border: '1px solid #bfdbfe',
@@ -209,8 +209,8 @@ export function TopicStatusChangeModal({ open, loading, onCancel, onSubmit, curr
               name="confirmed"
               valuePropName="checked"
               rules={[
-                { 
-                  validator: (_, value) => 
+                {
+                  validator: (_, value) =>
                     value ? Promise.resolve() : Promise.reject(new Error('Vui lòng xác nhận để tiếp tục'))
                 }
               ]}

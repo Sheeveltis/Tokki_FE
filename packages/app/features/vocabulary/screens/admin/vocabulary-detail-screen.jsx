@@ -2,15 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'solito/navigation'
-import { Space, Typography, Spin, Alert, Modal, Button, message } from 'antd'
+import { Space, Typography, Spin, Alert, Modal, Button, message, Divider } from 'antd'
 import {
   EditOutlined,
   DeleteOutlined,
   ArrowLeftOutlined
 } from '@ant-design/icons'
-import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
-import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web.jsx'
-import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
 import { updateVocabulary, fetchVocabularyDetail, uploadVocabularyImageToCloudinary, deleteVocabulary, addExampleToVocabulary, updateExample, deleteExample } from '../../api/index.js'
 import VocabularyEditModal from '../../components/admin/vocabulary-detail/vocabulary-edit-modal.jsx'
 import VocabularyInfoCard from '../../components/admin/vocabulary-detail/vocabulary-info-card.jsx'
@@ -46,7 +43,7 @@ export function VocabularyDetailScreen() {
     if (pathname === '/moderator' || pathname.startsWith('/moderator/')) return 'moderator'
     return 'admin'
   }
-  
+
   const currentPortal = getCurrentPortal()
 
   const [loading, setLoading] = useState(true)
@@ -190,7 +187,7 @@ export function VocabularyDetailScreen() {
       }
 
       await updateVocabulary(payload)
-      
+
       // Reload lại chi tiết từ vựng từ API để hiển thị dữ liệu mới nhất
       try {
         const refreshedDetail = await fetchVocabularyDetail(vocabularyId)
@@ -199,7 +196,7 @@ export function VocabularyDetailScreen() {
         console.error('Error reloading vocabulary detail:', reloadError)
         // Vẫn hiển thị success message dù reload fail
       }
-      
+
       messageApi.success('Đã cập nhật từ vựng thành công')
       setEditOpen(false)
     } catch (err) {
@@ -426,14 +423,21 @@ export function VocabularyDetailScreen() {
       <div>
         {contextHolder}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
-          <Space style={{ justifyContent: 'space-between', width: '100%' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 12,
+          }}>
             <div>
-              <Title level={3} style={{ marginBottom: 4 }}>
+              <Title level={3} style={{ marginBottom: 4, marginTop: 0 }}>
                 Chi tiết từ vựng
               </Title>
-              <Text type="secondary">ID: {detailVocab.vocabularyId || detailVocab.id}</Text>
+              <Text type="secondary" style={{ fontSize: 14 }}>ID: {detailVocab.vocabularyId || detailVocab.id}</Text>
             </div>
-            <Space>
+
+            <Space size="small" wrap>
               <Button
                 icon={<ArrowLeftOutlined />}
                 onClick={() => router.back()}
@@ -446,24 +450,39 @@ export function VocabularyDetailScreen() {
               >
                 Quay lại
               </Button>
-              <Button danger icon={<DeleteOutlined />} loading={deleteLoading} onClick={handleDelete} style={{
-                borderRadius: 20,
-                height: 40,
-                padding: '0 20px',
-                fontWeight: 600
-              }}>
-                {deleteLoading ? 'Đang xóa...' : 'Xóa'}
+
+              <Divider type="vertical" style={{ height: 24, margin: '0 12px', borderLeft: '2px solid #e8e8e8ff' }} />
+
+              <Button
+                type="primary"
+                icon={<EditOutlined />}
+                onClick={() => setEditOpen(true)}
+                style={{
+                  borderRadius: 20,
+                  height: 40,
+                  padding: '0 20px',
+                  fontWeight: 600
+                }}
+              >
+                Chỉnh sửa từ vựng
               </Button>
-              <Button type="primary" icon={<EditOutlined />} onClick={() => setEditOpen(true)} style={{
-                borderRadius: 20,
-                height: 40,
-                padding: '0 20px',
-                fontWeight: 600
-              }}>
-                Chỉnh sửa
+
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                loading={deleteLoading}
+                onClick={handleDelete}
+                style={{
+                  borderRadius: 20,
+                  height: 40,
+                  padding: '0 20px',
+                  fontWeight: 600
+                }}
+              >
+                {deleteLoading ? 'Đang xóa' : 'Xóa'}
               </Button>
             </Space>
-          </Space>
+          </div>
 
           <VocabularyInfoCard
             vocab={detailVocab}
@@ -495,11 +514,11 @@ export function VocabularyDetailScreen() {
             }}
             onSubmit={handleUpdateExample}
           />
-          </div>
-        {/* </Space> */}
+        </div>
       </div>
     )
-  })()
+  }
+  )()
 
   return detailContent
 }

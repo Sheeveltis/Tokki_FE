@@ -10,7 +10,7 @@ export function UserDetailScreen() {
   const userId = params?.id
 
   return (
-    <div style={{ height: 'calc(100vh - 90px)', overflowY: 'auto', backgroundColor: '#f0f2f5', padding: '24px' }}>
+    <div style={{ height: 'calc(100vh - 90px)', overflowY: 'auto', backgroundColor: '#f0f2f5' }}>
       {userId ? (
         <AccountDetails userId={userId} onBack={() => router.back()} />
       ) : null}

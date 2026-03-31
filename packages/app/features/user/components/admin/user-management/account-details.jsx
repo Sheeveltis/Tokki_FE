@@ -24,8 +24,8 @@ import {
 import ImgCrop from 'antd-img-crop'
 import dayjs from 'dayjs'
 import { fetchUserDetail, updateUserProfile, uploadAvatarToCloudinary } from '../../../api/user-detail'
-import PopupConfirm from './popup-confirm'
 import DeleteUserConfirm from '../user-detail/DeleteUserConfirm'
+import UserEditModal from './user-edit-modal'
 
 const { Title, Text } = Typography
 
@@ -45,16 +45,7 @@ export default function AccountDetails({ userId, onAfterChange, onBack, initialE
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [user, setUser] = useState(null)
-  const [editing, setEditing] = useState(initialEdit)
-  const [form, setForm] = useState({
-    fullName: '',
-    phoneNumber: '',
-    dateOfBirth: '',
-    role: 0,
-    status: 0,
-  })
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(initialEdit)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false)
@@ -88,13 +79,6 @@ export default function AccountDetails({ userId, onAfterChange, onBack, initialE
       const detail = await fetchUserDetail(userId)
       if (mounted) {
         setUser(detail)
-        setForm({
-          fullName: detail.fullName || '',
-          phoneNumber: detail.phoneNumber || '',
-          dateOfBirth: detail.dateOfBirth ? String(detail.dateOfBirth).slice(0, 10) : '',
-          role: Number(detail.role ?? 0),
-          status: Number(detail.status ?? 0),
-        })
       }
     } catch (err) {
       if (mounted) setError(err?.message || 'Không thể tải thông tin tài khoản.')
@@ -109,38 +93,11 @@ export default function AccountDetails({ userId, onAfterChange, onBack, initialE
     return () => { mounted = false }
   }, [userId])
 
-  const handleUpdateClick = () => setConfirmOpen(true)
-
   const getApiErrorMessage = (err, fallback) => {
     const apiMessage = err?.response?.data?.message
     const apiErrors = err?.response?.data?.errors
     const firstError = Array.isArray(apiErrors) && apiErrors.length ? apiErrors[0]?.description : null
     return apiMessage || firstError || err?.message || fallback
-  }
-
-  const handleConfirmUpdate = async () => {
-    try {
-      setSaving(true)
-      const response = await updateUserProfile({
-        targetUserId: user.userId || user.id,
-        fullName: form.fullName,
-        phoneNumber: form.phoneNumber,
-        dateOfBirth: form.dateOfBirth,
-        avatarUrl: user.avatarUrl || '',
-        role: form.role,
-        status: form.status,
-      })
-      message.success(response?.data || response?.message || 'Đã cập nhật tài khoản thành công')
-      setEditing(false)
-      setConfirmOpen(false)
-      setUser((prev) => (prev ? { ...prev, ...form } : prev))
-      onAfterChange?.()
-      await reloadUserDetail(true)
-    } catch (err) {
-      message.error(getApiErrorMessage(err, 'Cập nhật tài khoản thất bại'))
-    } finally {
-      setSaving(false)
-    }
   }
 
   const handleAvatarUpload = async (file) => {
@@ -183,20 +140,6 @@ export default function AccountDetails({ userId, onAfterChange, onBack, initialE
     }
   }
 
-  const handleCancelEditing = () => {
-    if (user) {
-      setForm({
-        fullName: user.fullName || '',
-        phoneNumber: user.phoneNumber || '',
-        dateOfBirth: user.dateOfBirth ? String(user.dateOfBirth).slice(0, 10) : '',
-        role: Number(user.role ?? 0),
-        status: Number(user.status ?? 0),
-      })
-    }
-    setEditing(false)
-    setConfirmOpen(false)
-  }
-
   if (loading) return <div style={{ minHeight: '40vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}><Spin /><Text type="secondary">Đang tải...</Text></div>
   if (error) return <div style={{ padding: 24 }}><Text type="danger">{error}</Text></div>
   if (!user) return <div style={{ padding: 24 }}><Text type="warning">Không tìm thấy tài khoản.</Text></div>
@@ -213,7 +156,7 @@ export default function AccountDetails({ userId, onAfterChange, onBack, initialE
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 12 }}>
                   <div style={{ position: 'relative', marginBottom: 20 }}>
                     <div title={Number(user.status) === 1 ? 'Hoạt động' : Number(user.status) === 2 ? 'Đã bị khóa' : 'Vô hiệu hóa'}
-                      style={{ position: 'absolute', bottom: 4, left: 4, zIndex: 2, width: 28, height: 28, borderRadius: '50%', backgroundColor: Number(user.status) === 1 ? '#52c41a' : Number(user.status) === 2 ? '#ff4d4f' : '#d9d9d9', border: '3px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+                      style={{ position: 'absolute', bottom: 8, left: 4, zIndex: 2, width: 36, height: 36, borderRadius: '50%', backgroundColor: Number(user.status) === 1 ? '#52c41a' : Number(user.status) === 2 ? '#ff4d4f' : '#d9d9d9', border: '3px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
                     <Avatar size={160} src={user.avatarUrl || undefined} style={{ border: '4px solid #f0f2f5', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', opacity: uploadingAvatar ? 0.5 : 1 }}>{!user.avatarUrl && (user.fullName?.[0]?.toUpperCase() || 'U')}</Avatar>
                     <ImgCrop rotation aspect={1} cropShape="round" okText="Xác nhận" cancelText="Hủy" modalTitle="Chỉnh sửa ảnh đại diện">
                       <Upload
@@ -266,18 +209,18 @@ export default function AccountDetails({ userId, onAfterChange, onBack, initialE
               <Card
                 title={<Space><EditOutlined style={{ color: '#1890ff' }} /><span>Chi tiết cá nhân</span></Space>}
                 style={{ borderRadius: 12, height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-                extra={!editing && <Button type="text" icon={<EditOutlined />} onClick={() => setEditing(true)}>Sửa</Button>}
+                extra={<Button type="text" icon={<EditOutlined />} onClick={() => setEditModalOpen(true)}>Sửa</Button>}
               >
                 <Descriptions column={1} bordered size="middle" labelStyle={{ width: '30%', fontWeight: 500, backgroundColor: '#fafafa' }}>
                   <Descriptions.Item label="Họ và tên">
-                    {editing ? <Input value={form.fullName} onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))} /> : <Text strong>{fmt(user.fullName)}</Text>}
+                    <Text strong>{fmt(user.fullName)}</Text>
                   </Descriptions.Item>
                   <Descriptions.Item label="Ngày sinh">
-                    {editing ? <DatePicker value={form.dateOfBirth ? dayjs(form.dateOfBirth) : null} onChange={(date) => setForm((f) => ({ ...f, dateOfBirth: date ? date.format('YYYY-MM-DD') : '' }))} format="DD/MM/YYYY" style={{ width: '100%' }} /> : fmtOnlyDate(user.dateOfBirth)}
+                    {fmtOnlyDate(user.dateOfBirth)}
                   </Descriptions.Item>
                   <Descriptions.Item label="Email">{fmt(user.email)}</Descriptions.Item>
                   <Descriptions.Item label="Số điện thoại">
-                    {editing ? <Input value={form.phoneNumber} onChange={(e) => setForm((f) => ({ ...f, phoneNumber: e.target.value }))} /> : fmt(user.phoneNumber)}
+                    {fmt(user.phoneNumber)}
                   </Descriptions.Item>
                   <Descriptions.Item label="Địa chỉ IP đăng nhập">{user.ipAddress || 'Không rõ'}</Descriptions.Item>
                 </Descriptions>
@@ -350,18 +293,10 @@ export default function AccountDetails({ userId, onAfterChange, onBack, initialE
               <Card title={<Space><LoginOutlined style={{ color: '#1890ff' }} /><span>Trạng thái tài khoản</span></Space>} style={{ borderRadius: 12, height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
                 <Descriptions column={1} bordered size="small">
                   <Descriptions.Item label="Vai trò">
-                    {editing ? (
-                      <Select value={form.role} onChange={(v) => setForm((f) => ({ ...f, role: v }))} style={{ width: '100%' }} options={ROLE_OPTIONS} />
-                    ) : (
-                      <Tag color="blue">{getRoleLabel(user.role)}</Tag>
-                    )}
+                    <Tag color="blue">{getRoleLabel(user.role)}</Tag>
                   </Descriptions.Item>
                   <Descriptions.Item label="Trạng thái">
-                    {editing ? (
-                      <Select value={form.status} onChange={(v) => setForm((f) => ({ ...f, status: v }))} style={{ width: '100%' }} options={[{ value: 0, label: 'Vô hiệu hóa' }, { value: 1, label: 'Hoạt động' }, { value: 2, label: 'Đã bị khóa' }]} />
-                    ) : (
-                      <Badge status={user.status === 1 ? 'success' : user.status === 2 ? 'error' : 'default'} text={user.status === 1 ? 'Đang hoạt động' : user.status === 2 ? 'Bị khóa' : 'Vô hiệu hóa'} />
-                    )}
+                    <Badge status={user.status === 1 ? 'success' : user.status === 2 ? 'error' : 'default'} text={user.status === 1 ? 'Đang hoạt động' : user.status === 2 ? 'Bị khóa' : 'Vô hiệu hóa'} />
                   </Descriptions.Item>
                   <Descriptions.Item label="Lần đăng nhập cuối">{fmtDate(user.lastLoginAt)}</Descriptions.Item>
                 </Descriptions>
@@ -419,8 +354,8 @@ export default function AccountDetails({ userId, onAfterChange, onBack, initialE
 
           <Button
             type="primary"
-            onClick={handleUpdateClick}
-            icon={editing ? <SaveOutlined /> : <EditOutlined />}
+            onClick={() => setEditModalOpen(true)}
+            icon={<EditOutlined />}
             style={{
               borderRadius: 20,
               height: 40,
@@ -428,23 +363,8 @@ export default function AccountDetails({ userId, onAfterChange, onBack, initialE
               fontWeight: 600,
             }}
           >
-            {editing ? 'Lưu thay đổi' : 'Chỉnh sửa thông tin cá nhân'}
+            Chỉnh sửa thông tin cá nhân
           </Button>
-
-          {editing && (
-            <Button
-              onClick={handleCancelEditing}
-              icon={<CloseOutlined />}
-              style={{
-                borderRadius: 20,
-                height: 40,
-                padding: '0 20px',
-                fontWeight: 600,
-              }}
-            >
-              Hủy
-            </Button>
-          )}
 
           {Number(user.status) !== 0 && (
             <Button
@@ -479,15 +399,15 @@ export default function AccountDetails({ userId, onAfterChange, onBack, initialE
         </div>
       </Modal>
 
-      <PopupConfirm
-        open={confirmOpen}
-        title={editing ? 'Xác nhận cập nhật' : 'Bật chế độ cập nhật'}
-        content={editing ? 'Bạn có chắc chắn muốn lưu các thay đổi này không?' : 'Bạn có muốn bắt đầu chỉnh sửa thông tin tài khoản này không?'}
-        okText={editing ? 'Lưu' : 'Bắt đầu'}
-        cancelText="Quay lại"
-        onOk={editing ? handleConfirmUpdate : () => { setEditing(true); setConfirmOpen(false); }}
-        onCancel={() => setConfirmOpen(false)}
-        confirmLoading={editing ? saving : false}
+      <UserEditModal
+        open={editModalOpen}
+        userId={userId}
+        onOk={() => {
+          setEditModalOpen(false)
+          reloadUserDetail(true)
+          onAfterChange?.()
+        }}
+        onCancel={() => setEditModalOpen(false)}
       />
 
       <DeleteUserConfirm open={deleteOpen} user={user} onConfirm={async () => { setDeleteOpen(false); onBack(); }} onCancel={() => setDeleteOpen(false)} />

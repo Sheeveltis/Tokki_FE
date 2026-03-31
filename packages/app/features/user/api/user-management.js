@@ -7,22 +7,20 @@ import { ENDPOINTS } from '../../../provider/api/endpoints'
 export const fetchUsers = async ({ 
   pageNumber = 1, 
   pageSize = 10, 
-  searchName = '', 
-  searchEmail = '',
-  searchPhone = '',
+  searchText = '', 
   status = null, 
-  role = null 
+  role = null,
+  vipStatus = null
 } = {}) => {
   const query = new URLSearchParams()
   query.set('PageNumber', pageNumber)
   query.set('PageSize', pageSize)
   
   // Chỉ gắn param vào URL nếu có giá trị (tránh gửi null lên BE)
-  if (searchName) query.set('SearchName', searchName)
-  if (searchEmail) query.set('SearchEmail', searchEmail)
-  if (searchPhone) query.set('SearchPhone', searchPhone)
+  if (searchText) query.set('SearchText', searchText)
   if (status !== null && status !== undefined && status !== '') query.set('Status', status)
   if (role !== null && role !== undefined && role !== '') query.set('Role', role)
+  if (vipStatus !== null && vipStatus !== undefined && vipStatus !== '') query.set('VipStatus', vipStatus)
 
   const url = `${ENDPOINTS.ACCOUNT.GET_ALL}?${query.toString()}`
   const res = await apiClient.get(url)

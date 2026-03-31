@@ -1,8 +1,20 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { Card, Descriptions, Image, Tag, Space, Button, Table, Typography, Empty, Tooltip } from 'antd'
-import { EditOutlined, DeleteOutlined, PlusOutlined, EyeOutlined } from '@ant-design/icons'
+import { Card, Descriptions, Image, Tag, Space, Button, Table, Typography, Empty, Tooltip, Tabs, Row, Col, Badge, Divider } from 'antd'
+import { 
+  EditOutlined, 
+  DeleteOutlined, 
+  PlusOutlined, 
+  EyeOutlined, 
+  InfoCircleOutlined, 
+  FileTextOutlined, 
+  HistoryOutlined, 
+  GlobalOutlined,
+  UserOutlined,
+  CalendarOutlined,
+  TagOutlined
+} from '@ant-design/icons'
 import { fetchUserDetail } from 'app/features/user/api/user-detail'
 
 const { Text } = Typography
@@ -209,149 +221,155 @@ export function VocabularyInfoCard({ vocab, onAddExample, onEditExample, onDelet
     },
   ]
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%', paddingBottom: 24 }}>
-      {/* Chi tiết từ vựng */}
-      <Card
-        title={<Text strong style={{ fontSize: 20 }}>Thông tin cơ bản</Text>}
-        variant="outlined"
-      >
-        <div style={{ display: 'flex', gap: '32px', alignItems: 'stretch' }}>
-          {/* Cột bên trái: Thông tin text */}
-          <div style={{ flex: 1 }}>
-            <Descriptions
-              column={{ xxl: 2, xl: 2, lg: 1, md: 1, sm: 1, xs: 1 }}
-              bordered
-              size="middle" // Chuyển từ small sang middle để tăng padding mặc định
-              labelStyle={{
-                width: '140px',
-                fontWeight: '600',
-                backgroundColor: '#fafafa',
-                fontSize: '15px' // Tăng cỡ chữ nhãn
-              }}
-              contentStyle={{
-                fontSize: '15px', // Tăng cỡ chữ nội dung
-                // padding: '12px 16px' 
-              }}
-            >
-              <Descriptions.Item label="Từ vựng" span={2}>
-                <Text strong copyable style={{ fontSize: '18px', color: '#1890ff' }}>
-                  {vocab.text}
-                </Text>
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Phiên âm" span={2}>
-                <Text type="secondary" style={{ fontSize: '16px' }}>
-                  {vocab.pronunciation || '-'}
-                </Text>
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Định nghĩa" span={2}>
-                <div style={{ fontSize: '16px', lineHeight: '1.6' }}>
-                  {vocab.definition || '-'}
-                </div>
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Người tạo">
-                {creatorId ? (
-                  <a href={`/admin/users/${creatorId}`} target="_blank" rel="noreferrer">
-                    {creatorName || creatorId}
-                  </a>
-                ) : '-'}
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Ngày tạo">
-                {formatDate(vocab.createDate || vocab.createdDate || vocab.createdAt || vocab.createAt)}
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Người cập nhật">
-                {updaterId ? (
-                  <a href={`/admin/users/${updaterId}`} target="_blank" rel="noreferrer">
-                    {updaterName || updaterId}
-                  </a>
-                ) : '-'}
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Ngày cập nhật">
-                {formatDate(vocab.updateDate || vocab.updatedDate || vocab.updatedAt || vocab.updateAt)}
-              </Descriptions.Item>
-            </Descriptions>
-          </div>
-
-          {/* Cột bên phải: Ảnh minh họa */}
-          <div style={{
-            width: '170px',
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: '#fdfdfd',
-            padding: '10px',
-            borderRadius: '12px',
-            border: '1px solid #f0f0f0'
-          }}>
-            <div style={{ textAlign: 'center', marginBottom: '12px' }}>
-              <Text type="secondary" strong style={{ fontSize: '13px', letterSpacing: '1px' }}>
-                ẢNH MINH HỌA
-              </Text>
-            </div>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {vocab.imgURL ? (
-                <Image
-                  src={vocab.imgURL}
-                  alt="vocab"
-                  style={{
-                    width: '100%',
-                    borderRadius: 8,
-                    objectFit: 'contain',
-                    maxHeight: '300px'
-                  }}
-                  preview={{ mask: <><EyeOutlined /> Xem lớn</> }}
-                />
-              ) : null}
-            </div>
-          </div>
+  const tabItems = [
+    {
+      key: 'general',
+      label: <Space><InfoCircleOutlined /><span style={{ fontWeight: 500 }}>Thông tin từ vựng</span></Space>,
+      children: (
+        <div style={{ padding: 24, backgroundColor: '#fff' }}>
+          <Row gutter={[32, 32]}>
+            <Col xs={24} lg={16}>
+              <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', borderBottom: '1px solid #f0f0f0', paddingBottom: 8 }}>
+                <FileTextOutlined style={{ marginRight: 8, color: '#1890ff' }} />
+                <Text strong style={{ color: '#595959', textTransform: 'uppercase', fontSize: 12, letterSpacing: 1 }}>Chi tiết ý nghĩa</Text>
+              </div>
+              <Table
+                dataSource={[
+                  { key: '1', label: 'Từ vựng', value: <Space size="middle" align="center"><Text strong style={{ fontSize: '20px', color: '#1890ff' }}>{vocab.text}</Text><Badge status={vocab.status === 1 ? 'success' : vocab.status === 2 ? 'error' : 'default'} /></Space> },
+                  { key: '2', label: 'Phiên âm', value: <Text type="secondary" style={{ fontSize: '16px' }}>{vocab.pronunciation || '-'}</Text> },
+                  { key: '3', label: 'Định nghĩa', value: <div style={{ fontSize: '16px', lineHeight: '1.6' }}>{vocab.definition || '-'}</div> }
+                ]}
+                columns={[
+                  { title: 'Trường thông tin', dataIndex: 'label', key: 'label', width: '250px', render: (text) => <Text type="secondary" style={{ fontWeight: 500 }}>{text}</Text> },
+                  { title: 'Giá trị', dataIndex: 'value', key: 'value' }
+                ]}
+                pagination={false}
+                bordered
+                size="middle"
+                showHeader={false}
+              />
+            </Col>
+            
+            <Col xs={24} lg={8}>
+              <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', borderBottom: '1px solid #f0f0f0', paddingBottom: 8 }}>
+                <GlobalOutlined style={{ marginRight: 8, color: '#52c41a' }} />
+                <Text strong style={{ color: '#595959', textTransform: 'uppercase', fontSize: 12, letterSpacing: 1 }}>Minh họa</Text>
+              </div>
+              <div style={{ textAlign: 'center', padding: 16, border: '1px solid #f0f0f0', borderRadius: 8 }}>
+                {vocab.imgURL ? (
+                  <Image
+                    src={vocab.imgURL}
+                    alt="vocab"
+                    style={{
+                      width: '100%',
+                      borderRadius: 8,
+                      objectFit: 'contain',
+                      maxHeight: '320px',
+                    }}
+                    preview={{ mask: <><EyeOutlined /> Xem lớn</> }}
+                  />
+                ) : (
+                  <Empty description="Chưa có ảnh minh họa" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                )}
+              </div>
+            </Col>
+          </Row>
         </div>
-      </Card>
+      )
+    },
+    {
+      key: 'examples',
+      label: <Space><PlusOutlined /><span style={{ fontWeight: 500 }}>Câu mẫu & Ví dụ</span></Space>,
+      children: (
+        <div style={{ padding: 24, backgroundColor: '#fff' }}>
+          <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f0f0f0', paddingBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <InfoCircleOutlined style={{ marginRight: 8, color: '#1890ff' }} />
+              <Text strong style={{ color: '#595959', textTransform: 'uppercase', fontSize: 12, letterSpacing: 1 }}>Danh sách câu mẫu ({examples.length})</Text>
+            </div>
+            <Button type="primary" icon={<PlusOutlined />} onClick={onAddExample} style={{ borderRadius: 20, height: 32, padding: '0 16px', fontWeight: 600 }}>
+              Thêm câu mẫu
+            </Button>
+          </div>
+          <Table
+            dataSource={examples}
+            columns={columns}
+            rowKey="exampleId"
+            pagination={examples.length > 5 ? { pageSize: 5 } : false}
+            locale={{ emptyText: <Empty description="Chưa có câu mẫu nào" /> }}
+            size="middle"
+            scroll={{ x: 'max-content' }}
+          />
+        </div>
+      )
+    },
+    {
+      key: 'system',
+      label: <Space><HistoryOutlined /><span style={{ fontWeight: 500 }}>Quản trị & Chủ đề</span></Space>,
+      children: (
+        <div style={{ padding: 24, backgroundColor: '#fff' }}>
+          <Row gutter={[32, 32]}>
+            <Col xs={24} md={12}>
+              <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', borderBottom: '1px solid #f0f0f0', paddingBottom: 8 }}>
+                <TagOutlined style={{ marginRight: 8, color: '#faad14' }} />
+                <Text strong style={{ color: '#595959', textTransform: 'uppercase', fontSize: 12, letterSpacing: 1 }}>Chủ đề liên quan</Text>
+              </div>
+              <div style={{ padding: 16, border: '1px solid #f0f0f0', borderRadius: 8, minHeight: 120 }}>
+                {topics.length > 0 ? (
+                  <Space wrap>
+                    {topics.map((topic) => (
+                      <Tag
+                        key={topic.topicId}
+                        color="blue"
+                        style={{ cursor: 'pointer', padding: '4px 12px', borderRadius: 12 }}
+                        onClick={() => window.open(`/admin/vocab-topic/${topic.topicId}`, '_blank')}
+                      >
+                        {topic.topicName}
+                      </Tag>
+                    ))}
+                  </Space>
+                ) : (
+                  <Empty description="Từ vựng này chưa thuộc chủ đề nào" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                )}
+              </div>
+            </Col>
+            
+            <Col xs={24} md={12}>
+              <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', borderBottom: '1px solid #f0f0f0', paddingBottom: 8 }}>
+                <UserOutlined style={{ marginRight: 8, color: '#1890ff' }} />
+                <Text strong style={{ color: '#595959', textTransform: 'uppercase', fontSize: 12, letterSpacing: 1 }}>Nhật ký hệ thống</Text>
+              </div>
+              <Table
+                dataSource={[
+                  { key: '1', label: 'Người tạo', value: creatorId ? <a href={`/admin/users/${creatorId}`} target="_blank" rel="noreferrer">{creatorName || creatorId}</a> : '-' },
+                  { key: '2', label: 'Ngày tạo', value: <Space><CalendarOutlined />{formatDate(vocab.createDate || vocab.createdDate || vocab.createdAt || vocab.createAt)}</Space> },
+                  { key: '3', label: 'Người cập nhật', value: updaterId ? <a href={`/admin/users/${updaterId}`} target="_blank" rel="noreferrer">{updaterName || updaterId}</a> : '-' },
+                  { key: '4', label: 'Cập nhật lần cuối', value: <Space><CalendarOutlined />{formatDate(vocab.updateDate || vocab.updatedDate || vocab.updatedAt || vocab.updateAt)}</Space> }
+                ]}
+                columns={[
+                  { title: 'Trường thông tin', dataIndex: 'label', key: 'label', width: '200px', render: (text) => <Text type="secondary" style={{ fontWeight: 500 }}>{text}</Text> },
+                  { title: 'Giá trị', dataIndex: 'value', key: 'value' }
+                ]}
+                pagination={false}
+                bordered
+                size="middle"
+                showHeader={false}
+              />
+            </Col>
+          </Row>
+        </div>
+      )
+    }
+  ]
 
-
-      {/* Chủ đề liên quan */}
-      {topics.length > 0 && (
-        <Card title="Chủ đề liên quan" size="small">
-          <Space wrap>
-            {topics.map((topic) => (
-              <Tag
-                key={topic.topicId}
-                color="blue"
-                style={{ cursor: 'pointer', padding: '4px 12px', borderRadius: 12 }}
-                onClick={() => window.open(`/admin/vocab-topic/${topic.topicId}`, '_blank')}
-              >
-                {topic.topicName}
-              </Tag>
-            ))}
-          </Space>
-        </Card>
-      )}
-
-      {/* Danh sách câu mẫu */}
-      <Card
-        title={<Text strong>Danh sách câu mẫu ({examples.length})</Text>}
-        extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={onAddExample} style={{ borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}>
-            Thêm
-          </Button>
-        }
-      >
-        <Table
-          dataSource={examples}
-          columns={columns}
-          rowKey="exampleId"
-          pagination={examples.length > 5 ? { pageSize: 5 } : false}
-          locale={{ emptyText: <Empty description="Chưa có câu mẫu nào" /> }}
-          size="middle"
-          scroll={{ x: 'max-content' }}
+  return (
+    <div style={{ width: '100%', overflowX: 'hidden' }}>
+      <div style={{ backgroundColor: '#fff', borderRadius: 8, boxShadow: '0 1px 2px rgba(0,0,0,0.05)', border: '1px solid #f0f0f0', overflow: 'hidden' }}>
+        <Tabs
+          items={tabItems}
+          tabBarStyle={{ padding: '16px 24px 0', borderBottom: '1px solid #f0f0f0', background: '#ffffff', margin: 0 }}
         />
-      </Card>
-
-
+      </div>
     </div>
   )
 }

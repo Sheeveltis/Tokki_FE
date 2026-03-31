@@ -135,8 +135,7 @@ export function UserEditModal({ open, userId, onOk, onCancel }) {
                 { value: 0, label: 'Người dùng' },
                 { value: 1, label: 'Quản trị viên' },
                 { value: 2, label: 'Nhân viên' },
-                { value: 3, label: 'Thành viên VIP' },
-                { value: 4, label: 'Kiểm duyệt viên' }
+                { value: 3, label: 'Thành viên VIP' }
               ]} />
             </Form.Item>
 
