@@ -228,7 +228,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
             if (redirectPath) {
               router.push(redirectPath);
             } else {
-              router.push('/menu-study?level=1');
+              router.push('/study');
             }
           } else {
             // Trên native, dùng React Navigation
@@ -362,7 +362,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
                 if (redirectPath) {
                   router.push(redirectPath);
                 } else {
-                  router.push('/menu-study?level=1');
+                  router.push('/study');
                 }
               }, 500)
             } else {
