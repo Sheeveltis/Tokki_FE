@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Image, StyleSheet, View } from 'react-native'
 import { normalizeImageSource } from '../../../../study/api'
 
@@ -6,6 +6,7 @@ import CarrotGround from '../../../../../../assets/carrot-ground.png'
 import MatchingCardResultContent from './matching-card-result-content'
 import { MatchingCardLeaderboardPopup } from './matching-card-leaderboard-popup'
 import { saveGameResult, updateGameResult, mapLevelToDifficulty } from '../../../api/matching-card-play-api'
+import { awardMinigameXP } from '../../../api/api'
 
 /**
  * Web layout cho màn kết quả Matching Card
@@ -26,17 +27,15 @@ import { saveGameResult, updateGameResult, mapLevelToDifficulty } from '../../..
 export function MatchingCardResultLayout({
   gameId = '',
   topicId = 'life',
-  topicName,
   levelId = 'medium',
   score = 0,
   topPercent = 5,
   timeLeft = 0,
   hasPlayed = false,
   onReplay,
-  onBack,
 }) {
-  const [saving, setSaving] = useState(false)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
+  const awardedXPRef = useRef(false)
 
   // Save game result when component mounts
   useEffect(() => {
@@ -69,7 +68,6 @@ export function MatchingCardResultLayout({
       }
 
       try {
-        setSaving(true)
         const gameDifficulty = mapLevelToDifficulty(levelId)
 
         if (hasPlayed) {
@@ -105,8 +103,16 @@ export function MatchingCardResultLayout({
         }
       } catch (error) {
         console.error('[MatchingCardResultLayout] Error saving game result:', error)
-      } finally {
-        setSaving(false)
+      }
+
+      if (!awardedXPRef.current) {
+        try {
+          await awardMinigameXP(levelId)
+          awardedXPRef.current = true
+          console.log('[MatchingCardResultLayout] ✅ Awarded XP for matching-card')
+        } catch (xpError) {
+          console.error('[MatchingCardResultLayout] ⚠️ Failed awarding XP:', xpError)
+        }
       }
     }
 

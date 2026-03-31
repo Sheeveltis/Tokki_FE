@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet, ScrollView, Platform } from 'react-native'
+import { View, StyleSheet, Platform } from 'react-native'
 import { UserInformation } from './user-information'
 import { NavbarMobile } from '../../../../../../components/navbar-mobile'
 
@@ -11,13 +11,9 @@ import { NavbarMobile } from '../../../../../../components/navbar-mobile'
 export function UserProfileLayout() {
   return (
     <View style={styles.container}>
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.content}>
         <UserInformation />
-      </ScrollView>
+      </View>
 
       {/* NavbarMobile */}
       {Platform.OS !== 'web' && <NavbarMobile />}
@@ -31,11 +27,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F0DD',
     position: 'relative',
   },
-  scrollView: {
+  content: {
     flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 100, // Padding for navbar
+    paddingBottom: 100, // space for navbar
+    overflow: 'hidden',
   },
 })
 

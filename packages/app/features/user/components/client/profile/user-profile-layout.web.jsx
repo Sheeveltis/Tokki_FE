@@ -1,5 +1,5 @@
 import React from 'react'
-import { ImageBackground, ScrollView, StyleSheet, View } from 'react-native'
+import { ImageBackground, StyleSheet, View } from 'react-native'
 import { Navbar } from '../../../../../../components/navbar'
 import { UserDashboard } from '../../admin/user-management/user-dashboard'
 import { UserInformation } from './user-information'

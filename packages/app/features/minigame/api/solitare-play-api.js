@@ -235,3 +235,56 @@ export const getSolitareLayout = async (level = 'easy') => {
     return Promise.resolve(getMockSolitareLayout(7))
   }
 }
+
+const mapLevelToDifficulty = (level) => {
+  const levelKey = String(level || '').toLowerCase()
+  if (levelKey === 'hard' || levelKey === '3') return 3
+  if (levelKey === 'medium' || levelKey === '2') return 2
+  return 1
+}
+
+/**
+ * Lưu điểm solitaire sau khi kết thúc game
+ * @param {{ gameId?: string, score: number, level: string | number }} params
+ */
+export const saveSolitareResult = async ({ gameId = 'GAME002', score = 0, level = 'easy' }) => {
+  try {
+    const gameDifficulty = mapLevelToDifficulty(level)
+    const safeScore = Number(score) || 0
+
+    const response = await apiClient.post(ENDPOINTS.GAMES.SOLITAIRE_SAVE_RESULT, {
+      gameId,
+      score: safeScore,
+      gameDifficulty,
+    })
+
+    return response?.data
+  } catch (error) {
+    console.error('[saveSolitareResult] Error:', error)
+    throw error
+  }
+}
+
+/**
+ * Lấy bảng xếp hạng solitaire
+ * @param {{ gameId?: string, level: string | number, pageNumber?: number, pageSize?: number }} params
+ */
+export const getSolitareLeaderboard = async ({ gameId = 'GAME002', level = 'easy', pageNumber = 1, pageSize = 10 }) => {
+  try {
+    const gameDifficulty = mapLevelToDifficulty(level)
+
+    const response = await apiClient.get(ENDPOINTS.GAMES.SOLITAIRE_GET_ALL_USER_RESULTS, {
+      params: {
+        gameId,
+        gameDifficulty,
+        pageNumber,
+        pageSize,
+      },
+    })
+
+    return response?.data
+  } catch (error) {
+    console.error('[getSolitareLeaderboard] Error:', error)
+    throw error
+  }
+}

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react'
-import { Animated, StyleSheet, Text, View } from 'react-native'
+import { useEffect, useRef } from 'react'
+import { Animated, Image, StyleSheet, Text, View } from 'react-native'
 
 /**
  * Component hiển thị danh hiệu (Title/Badge) của người dùng
@@ -12,12 +12,14 @@ import { Animated, StyleSheet, Text, View } from 'react-native'
 export function UserTitle({ 
   title = null, 
   icon = '🏆', 
+  colorHex = '',
   label = 'Danh hiệu',
   description = ''
 }) {
   // Nếu title là null hoặc rỗng, hiển thị "Chưa có danh hiệu"
   const displayTitle = title || 'Chưa có danh hiệu'
   const displayIcon = title ? icon : '📭'
+  const isIconUrl = typeof displayIcon === 'string' && displayIcon.startsWith('http')
   const iconAnim = useRef(new Animated.Value(1)).current
 
   useEffect(() => {
@@ -58,6 +60,7 @@ export function UserTitle({
   }
 
   const titleStyle = getTitleStyle(displayTitle)
+  const effectiveTitleColor = colorHex || titleStyle.iconColor
 
   return (
     <View style={styles.card}>
@@ -71,10 +74,14 @@ export function UserTitle({
             transform: [{ scale: iconAnim }],
           }}
         >
-          <Text style={styles.titleIcon}>{displayIcon}</Text>
+          {isIconUrl ? (
+            <Image source={{ uri: displayIcon }} style={styles.titleIconImage} resizeMode="contain" />
+          ) : (
+            <Text style={styles.titleIcon}>{displayIcon}</Text>
+          )}
         </Animated.View>
         <View style={styles.titleContent}>
-          <Text style={[styles.titleText, { color: titleStyle.iconColor }]}>{displayTitle}</Text>
+          <Text style={[styles.titleText, { color: effectiveTitleColor }]}>{displayTitle}</Text>
           {description && (
             <Text style={styles.titleDescription}>{description}</Text>
           )}
@@ -96,9 +103,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    paddingVertical: 18,
+    paddingVertical: 15,
     paddingHorizontal: 16,
-    gap: 14,
+    gap: 5,
     shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -133,6 +140,11 @@ const styles = StyleSheet.create({
   titleIcon: {
     fontSize: 40,
     textAlign: 'center',
+  },
+  titleIconImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 22,
   },
   titleContent: {
     flex: 1,

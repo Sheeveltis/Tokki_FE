@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, ImageBackground, Platform, Pressable } from 'react-native'
+import { View, Text, StyleSheet, ImageBackground, Platform, Pressable, Image } from 'react-native'
 import { useSearchParams, useRouter } from 'solito/navigation'
 
 import { WordleBoardContent } from './component/WordleBoardContent'
-import BackgroundImage from '../../../../../../assets/BackgroundSolite.png'
+import BackgroundImage from '../../../../../../assets/BackgroundSolite.jpg'
+import BannerSolitare from '../../../../../../assets/BannerSolitare.png'
+import BoardBackgroundImage from '../../../../../../assets/wordle-board.png'
 import { getWordleTopSentences, toggleWordleSentenceLike } from '../../../api/wordle-level-api'
 
 export function WordleBoardWeb({ dailyWordleId: propDailyWordleId }) {
@@ -53,10 +55,10 @@ export function WordleBoardWeb({ dailyWordleId: propDailyWordleId }) {
         prev.map(item =>
           item.submissionId === submissionId
             ? {
-                ...item,
-                isLiked: true,
-                likeCount: (item.likeCount || 0) + 1,
-              }
+              ...item,
+              isLiked: true,
+              likeCount: (item.likeCount || 0) + 1,
+            }
             : item
         )
       )
@@ -67,10 +69,9 @@ export function WordleBoardWeb({ dailyWordleId: propDailyWordleId }) {
 
   return (
     <ImageBackground source={BackgroundImage} style={styles.container} resizeMode="cover">
-      <View style={styles.content}>
+      <View style={styles.overlay}>
         <View style={styles.header}>
-          <View style={styles.headerTopRow}>
-            <View style={{ flex: 1 }} />
+          <View style={styles.headerLeft}>
             <Pressable
               style={({ pressed }) => [
                 styles.homeButton,
@@ -81,16 +82,27 @@ export function WordleBoardWeb({ dailyWordleId: propDailyWordleId }) {
               <Text style={styles.homeButtonText}>Trang chủ</Text>
             </Pressable>
           </View>
-          <Text style={styles.title}>Bảng xếp hạng câu văn</Text>
-          <Text style={styles.subtitle}>Top những câu văn hay nhất</Text>
+
+          <View style={styles.titleWrapper}>
+            <Image source={BannerSolitare} style={styles.bannerImage} />
+            <Text style={styles.titleText}>Bảng xếp hạng</Text>
+          </View>
+
+          <View style={styles.headerRight} />
         </View>
 
-        <View style={styles.boardContainer}>
-          <WordleBoardContent
-            sentences={sentences}
-            onLike={handleLike}
-            loading={loading}
-          />
+        <View style={styles.content}>
+          <ImageBackground
+            source={BoardBackgroundImage}
+            style={styles.boardContainer}
+            imageStyle={{ resizeMode: 'stretch' }}
+          >
+            <WordleBoardContent
+              sentences={sentences}
+              onLike={handleLike}
+              loading={loading}
+            />
+          </ImageBackground>
         </View>
       </View>
     </ImageBackground>
@@ -101,47 +113,63 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: '100%',
-    minHeight: '100vh',
-    ...Platform.select({
-      web: {
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      },
-    }),
+    height: '100%',
+    overflow: 'hidden',
   },
-  content: {
+  overlay: {
     flex: 1,
-    width: '100%',
-    paddingTop: 40,
-    paddingBottom: 40,
-    paddingHorizontal: 20,
-    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
   },
   header: {
-    width: '100%',
-    maxWidth: 900,
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  headerTopRow: {
-    width: '100%',
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 8,
+    width: '100%',
+    zIndex: 10,
+  },
+  headerLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  titleWrapper: {
+    flex: 2,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -60,
+  },
+  bannerImage: {
+    width: 270,
+    height: 150,
+    resizeMode: 'contain',
+  },
+  titleText: {
+    position: 'absolute',
+    top: '58%',
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 3, height: 3 },
+    textShadowRadius: 2,
+    fontFamily: Platform.OS === 'web' ? 'Epilogue, sans-serif' : undefined,
+  },
+  headerRight: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'flex-end',
-    marginBottom: 8,
   },
   homeButton: {
+    backgroundColor: '#8B4513',
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 3,
+    paddingVertical: 10,
+    borderRadius: 10,
+    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
     ...Platform.select({
       web: {
         cursor: 'pointer',
@@ -156,41 +184,26 @@ const styles = StyleSheet.create({
   homeButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1C1C1C',
+    color: '#FFFFFF',
   },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#1C1C1C',
-    marginBottom: 8,
-    textAlign: 'center',
-    fontFamily: Platform.select({
-      web: 'Epilogue, sans-serif',
-      default: undefined,
-    }),
-  },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#666',
-    textAlign: 'center',
-    fontFamily: Platform.select({
-      web: 'Epilogue, sans-serif',
-      default: undefined,
-    }),
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   boardContainer: {
+    flex: 1,
     width: '100%',
-    maxWidth: 900,
-    backgroundColor: '#FFF5E6',
-    borderRadius: 24,
-    padding: 20,
+    maxWidth: 1200,
+    padding: 32, // More padding to account for the image border
     shadowColor: '#000',
-    shadowOpacity: 0.15,
+    shadowOpacity: 0,
     shadowOffset: { width: 0, height: 8 },
     shadowRadius: 16,
     elevation: 8,
-    minHeight: 400,
+    minHeight: 450,
   },
 })
 

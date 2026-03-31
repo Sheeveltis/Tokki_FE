@@ -182,6 +182,8 @@ export const ENDPOINTS = {
     SAVE_RESULT: '/Games/user/save-result', // POST: Lưu điểm game mới
     UPDATE_RESULT: '/Games/user/result', // PUT: Cập nhật điểm game đã có
     GET_ALL_USER_RESULTS: '/Games/user/get-all-user-results', // GET: Lấy bảng xếp hạng user results (query: gameId, topicId, gameDifficulty, pageNumber, pageSize)
+    SOLITAIRE_SAVE_RESULT: '/Games/solitaire/save-result', // POST: Lưu điểm solitaire (body: { gameId, score, gameDifficulty })
+    SOLITAIRE_GET_ALL_USER_RESULTS: '/Games/solitaire/get-all-user-results', // GET: BXH solitaire (query: gameId, gameDifficulty, pageNumber, pageSize)
   },
   REPORT: {
     CREATE: '/Report',
@@ -205,6 +207,7 @@ export const ENDPOINTS = {
   GAMIFICATION: {
     HEARTBEAT: '/Gamification/heartbeat',  // POST: Heartbeat để track thời gian học tập
     PROGRESS: (userId) => `/Gamification/progress/${userId}`,  // GET: Lấy thông tin progress (level, XP, streak, title)
+    GAME_XP: '/Gamification/game-xp', // POST: Cộng XP theo amount cho account hiện tại
   },
   TITLE: {
     GET_ALL: '/Title/admin',  // GET: Lấy danh sách danh hiệu (admin)

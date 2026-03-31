@@ -1,29 +1,77 @@
-import React, { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 
 const DEFAULT_INFO = {
-  lastName: 'Quý',
+  username: 'Quý',
+  email: 'example@gmail.com',
+  phone: '',
+  dateOfBirth: '',
 }
 
 export function BasicInfo({ initialInfo = DEFAULT_INFO, onSubmit }) {
-  const [lastName, setLastName] = useState(initialInfo.lastName)
+  const [username, setUsername] = useState(initialInfo.username || '')
+  const [phone, setPhone] = useState(initialInfo.phone || '')
+  const [dateOfBirth, setDateOfBirth] = useState(initialInfo.dateOfBirth || '')
+
+  useEffect(() => {
+    setUsername(initialInfo.username || '')
+    setPhone(initialInfo.phone || '')
+    setDateOfBirth(initialInfo.dateOfBirth || '')
+  }, [initialInfo])
 
   const handleSubmit = () => {
-    if (onSubmit) onSubmit({ firstName: '', lastName })
+    if (onSubmit) onSubmit({ username, phone, dateOfBirth })
   }
 
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Thông tin cơ bản</Text>
 
-      <View style={styles.singleField}>
-        <TextInput
-          value={lastName}
-          onChangeText={setLastName}
-          style={styles.input}
-          placeholder="Tên"
-          placeholderTextColor="#8F8F8F"
-        />
+      <View style={styles.rowFields}>
+        <View style={styles.field}>
+          <TextInput
+            value={username}
+            onChangeText={setUsername}
+            style={styles.input}
+            placeholder="Username"
+            placeholderTextColor="#8F8F8F"
+          />
+        </View>
+
+        <View style={styles.field}>
+          <TextInput
+            value={phone}
+            onChangeText={setPhone}
+            style={styles.input}
+            placeholder="Phone Number"
+            placeholderTextColor="#8F8F8F"
+            keyboardType="phone-pad"
+          />
+        </View>
+      </View>
+
+      <View style={styles.rowFields}>
+        <View style={styles.field}>
+          <TextInput
+            value={initialInfo.email || ''}
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#8F8F8F"
+            keyboardType="email-address"
+            editable={false}
+            selectTextOnFocus={false}
+          />
+        </View>
+
+        <View style={styles.field}>
+          <TextInput
+            value={dateOfBirth}
+            onChangeText={setDateOfBirth}
+            style={styles.input}
+            placeholder="YYYY-MM-DD"
+            placeholderTextColor="#8F8F8F"
+          />
+        </View>
       </View>
 
       <Pressable onPress={handleSubmit} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
@@ -39,7 +87,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingVertical: 18,
     paddingHorizontal: 16,
-    gap: 22,
+    gap: 14,
     shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -53,6 +101,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1C1C1C',
     fontFamily: 'Epilogue, sans-serif',
+  },
+  rowFields: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  field: {
+    flex: 1,
   },
   singleField: {
     width: '100%',
@@ -80,7 +135,6 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 2,
-    top: -2,
   },
   buttonPressed: {
     transform: [{ scale: 0.98 }],
