@@ -222,7 +222,14 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
         // Web: chuyển đến homepage (dùng solito router)
         setTimeout(() => {
           if (Platform.OS === 'web') {
-            router.push('/menu-study?level=1')
+            // Kiểm tra redirect query param
+            const searchParams = new URLSearchParams(window.location.search);
+            const redirectPath = searchParams.get('redirect');
+            if (redirectPath) {
+              router.push(redirectPath);
+            } else {
+              router.push('/menu-study?level=1');
+            }
           } else {
             // Trên native, dùng React Navigation
             if (navigation) {
@@ -350,7 +357,13 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
               heartbeatService.start()
 
               setTimeout(() => {
-                router.push('/menu-study?level=1')
+                const searchParams = new URLSearchParams(window.location.search);
+                const redirectPath = searchParams.get('redirect');
+                if (redirectPath) {
+                  router.push(redirectPath);
+                } else {
+                  router.push('/menu-study?level=1');
+                }
               }, 500)
             } else {
               await clearAuthToken()
