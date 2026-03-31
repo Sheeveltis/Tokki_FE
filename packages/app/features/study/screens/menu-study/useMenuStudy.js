@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { getMenuStudyRoute, isLoginRequiredModule } from './menuStudyRoutes'
+import { getAccountAimLevel } from '@tokki/app/features/authentication/api'
 
 /**
  * Hook xử lý logic cho MenuStudyScreen
@@ -8,8 +9,20 @@ import { getMenuStudyRoute, isLoginRequiredModule } from './menuStudyRoutes'
  */
 export function useMenuStudy(router, levelId) {
   const [showLoginRequest, setShowLoginRequest] = useState(false)
+  const [aimLevel, setAimLevel] = useState(null)
 
-  const handleModulePress = (moduleId, itemLabel) => {
+  useEffect(() => {
+    const fetchAimLevel = async () => {
+      const result = await getAccountAimLevel()
+      if (result.isSuccess) {
+        setAimLevel(result.data)
+      }
+    }
+    fetchAimLevel()
+  }, [])
+
+  const handleModulePress = (moduleId, itemLabel, overrideLevel) => {
+    const finalLevel = overrideLevel || levelId
     // Tạm thời bỏ chặn đăng nhập cho speaking để vào màn pronunciation theo yêu cầu
     const shouldRequireLogin = isLoginRequiredModule(moduleId) && moduleId !== 'speaking'
     if (shouldRequireLogin) {
@@ -18,7 +31,7 @@ export function useMenuStudy(router, levelId) {
     }
 
     // Lấy route tương ứng và điều hướng nếu có
-    const route = getMenuStudyRoute({ moduleId, itemLabel, levelId })
+    const route = getMenuStudyRoute({ moduleId, itemLabel, levelId: finalLevel })
     if (route) {
       router.push(route)
     }
@@ -28,12 +41,13 @@ export function useMenuStudy(router, levelId) {
     router.push('/alphabet')
   }
 
-  const handleTopikRoadmapPress = () => {
-    if (!levelId) {
+  const handleTopikRoadmapPress = (overrideLevel) => {
+    const finalLevel = overrideLevel || levelId
+    if (!finalLevel) {
       router.push('/roadmap/info')
       return
     }
-    router.push(`/roadmap/learning?level=${levelId}`)
+    router.push(`/roadmap/learning?level=${finalLevel}`)
   }
 
   return {
@@ -42,6 +56,7 @@ export function useMenuStudy(router, levelId) {
     handleModulePress,
     handleAlphabetPress,
     handleTopikRoadmapPress,
+    aimLevel,
   }
 }
 

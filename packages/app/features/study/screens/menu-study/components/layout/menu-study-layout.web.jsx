@@ -15,8 +15,10 @@ export function MenuStudyLayout({
   onQuickTestPress,
   lessonsLearned,
   streakDays,
+  aimLevel,
 }) {
   const router = useRouter()
+  const isTarget = levelId && aimLevel && Number(levelId) === Number(aimLevel)
 
   return (
     <View style={styles.wrapper}>
@@ -39,9 +41,13 @@ export function MenuStudyLayout({
                   <View style={styles.phaseBadge}>
                     <Text style={styles.phaseBadgeText}>HỆ THỐNG HỌC TẬP</Text>
                   </View>
-                  <View style={[styles.levelBadge, { backgroundColor: '#FF6B6B' }]}>
-                    <Text style={styles.levelBadgeText}>Level {levelId}</Text>
-                  </View>
+                  {levelId && (
+                    <View style={[styles.levelBadge, { backgroundColor: isTarget ? '#2E7D32' : '#FF6B6B' }]}>
+                      <Text style={styles.levelBadgeText}>
+                        Level {levelId} {isTarget ? '• MỤC TIÊU' : ''}
+                      </Text>
+                    </View>
+                  )}
                 </View>
                 <View style={styles.heroTitleRow}>
                   <Text style={styles.mainTitle}>Chương trình học TOPIK</Text>

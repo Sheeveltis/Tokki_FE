@@ -278,8 +278,15 @@ export function FlashcardFirstLearnMain({
 
   return (
     <>
-      <View style={styles.progressBar}>
-        <View style={[styles.progressFill, { width: `${progress}%` }]} />
+      <View style={styles.statsRow}>
+        <View style={styles.progressSection}>
+          <View style={styles.progressBar}>
+            <View style={[styles.progressFill, { width: `${progress}%` }]} />
+          </View>
+          <Text style={styles.progressText}>
+            Tiến độ hoàn thành: <Text style={{ color: '#1A1A1A', fontWeight: '800' }}>{progress}%</Text>
+          </Text>
+        </View>
       </View>
 
       <View style={styles.stepContainer}>
@@ -343,45 +350,36 @@ export function FlashcardFirstLearnMain({
 }
 
 const styles = StyleSheet.create({
-  headerTop: {
+  statsRow: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 24,
+    marginBottom: 10,
+    paddingHorizontal: 4,
   },
-  titleRow: {
-    width: '100%',
-    alignItems: 'center',
-    gap: 8,
-  },
-  title: {
-    ...studyStyles.pageTitle,
-    textAlign: 'center',
-  },
-  stepContainer: {
-    width: '100%',
+  progressSection: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  progressText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    gap: 10,
   },
   progressBar: {
     width: '100%',
-    height: 20,
-    borderRadius: 999,
-    backgroundColor: '#E0E0E0',
+    height: 10,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 100,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#833ab4',
-    backgroundImage: 'linear-gradient(to right, #833ab4, #fd1d1d, #fcb045)',
-    borderRadius: 999,
+    backgroundColor: '#F1BE4B',
+    borderRadius: 100,
+  },
+  progressText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#999',
+    fontFamily: 'Epilogue, sans-serif',
   },
   flipCardWrapper: {
     width: '100%',

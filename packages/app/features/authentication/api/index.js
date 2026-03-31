@@ -10,6 +10,8 @@
 
 import { apiClient } from '../../../provider/api/client'
 import { ENDPOINTS, API_BASE_URL } from '../../../provider/api/endpoints'
+import axios from 'axios'
+import { apiErrors } from '../../../string.js'
 
 /**
  * Xác thực OTP cho email (đăng ký / xác thực email)
@@ -191,6 +193,28 @@ export const login = async ({ email, password, rememberMe = false }) => {
 }
 
 /**
+ * Lấy level mục tiêu của người dùng
+ * @returns {Promise<Object>} Response từ API với format:
+ *  - Success: { isSuccess: true, data: number, message, statusCode: 200 }
+ */
+export const getAccountAimLevel = async () => {
+  try {
+    const response = await apiClient.get(ENDPOINTS.ACCOUNT.AIM_LEVEL)
+    return response.data
+  } catch (error) {
+    if (error.response?.data) {
+      return error.response.data
+    }
+    return {
+      isSuccess: false,
+      data: null,
+      message: error.message || 'Không thể lấy level người dùng',
+      statusCode: error.response?.status || 500,
+    }
+  }
+}
+
+/**
  * Đăng nhập bằng Google
  * @param {{ idToken: string; isComfirmToMergeAcc?: boolean }} payload
  */
@@ -345,8 +369,6 @@ export const sendHeartbeat = async (userId, durationInSeconds = 300) => {
  * ============================================
  */
 
-import axios from 'axios'
-import { apiErrors } from '../../../string.js'
 
 /**
  * Helper function để xử lý lỗi API và throw error với message từ apiErrors

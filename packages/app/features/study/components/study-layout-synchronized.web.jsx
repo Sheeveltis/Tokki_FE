@@ -104,10 +104,10 @@ const styles = StyleSheet.create({
   },
   mainWrapper: {
     width: '100%',
-    maxWidth: 1600,
+    maxWidth: 1400,
     flex: 1,
     paddingTop: 24,
-    paddingHorizontal: 32,
+    paddingHorizontal: 4,
     gap: 20,
     alignSelf: 'center',
   },

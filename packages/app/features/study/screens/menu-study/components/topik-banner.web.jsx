@@ -13,15 +13,34 @@ export function TopikBanner({
   title,
   levelId,
   bunnyImage = BunnyWithCarrot,
-  backgroundColor = '#F4A950',
-  borderColor = '#F0F0F0',
   backgroundPattern = BackgroundPattern,
   onPress,
+  aimLevel,
 }) {
   const [isHovered, setIsHovered] = useState(false)
   const translateX = useRef(new Animated.Value(0)).current
 
+  const isUserTargetLevel = levelId && aimLevel && Number(levelId) === Number(aimLevel)
   const displayTitle = title || (levelId ? `LỘ TRÌNH HỌC TOPIK - LEVEL ${levelId}` : 'LỘ TRÌNH HỌC TẬP')
+
+  // Xử lý tiêu đề để nhấn mạnh chữ LỘ TRÌNH
+  const renderTitle = () => {
+    const baseColor = '#1A1A1A'
+    const highlightColor = '#C2185B' // Màu đỏ hồng thanh lịch của streak
+
+    if (title === 'HỌC CHỮ CÁI' || !displayTitle.includes('LỘ TRÌNH')) {
+      return <Text style={[styles.title, { color: baseColor }]}>{displayTitle}</Text>
+    }
+
+    const parts = displayTitle.split('LỘ TRÌNH')
+    return (
+      <Text style={[styles.title, { color: baseColor }]}>
+        <Text style={{ color: highlightColor, fontWeight: '950' }}>LỘ TRÌNH</Text>
+        {parts[1]}
+      </Text>
+    )
+  }
+
   const subtitle = levelId ? `Cấp độ ${levelId} • Kế hoạch học tập tối ưu` : 'Khám phá kiến thức mới mỗi ngày'
 
   useEffect(() => {
@@ -48,15 +67,15 @@ export function TopikBanner({
       onHoverIn={() => Platform.OS === 'web' && setIsHovered(true)}
       onHoverOut={() => Platform.OS === 'web' && setIsHovered(false)}
     >
-      <View style={[styles.bgContainer, { backgroundColor: isHovered ? backgroundColor : '#FFFFFF' }]}>
+      <View style={styles.bgContainer}>
         {backgroundPattern && (
           <Animated.Image
             source={normalizeImageSource(backgroundPattern)}
             style={[
               styles.pattern,
               {
-                opacity: isHovered ? 0.05 : 0.03,
-                transform: [{ translateX }, { scale: 2 }],
+                opacity: isHovered ? 0.08 : 0.02,
+                transform: [{ translateX }, { scale: 1.5 }],
               },
             ]}
           />
@@ -67,22 +86,29 @@ export function TopikBanner({
         <View style={styles.leftSection}>
           <Image
             source={normalizeImageSource(bunnyImage)}
-            style={styles.bunny}
+            style={[styles.bunny, isHovered && { transform: [{ scale: 1.05 }] }]}
             resizeMode="contain"
           />
           <View style={styles.textContainer}>
-            <Text style={[styles.title, { color: isHovered ? '#FFFFFF' : '#1A1A1A' }]}>{displayTitle}</Text>
-            <Text style={[styles.subtitle, { color: isHovered ? 'rgba(255,255,255,0.6)' : '#999' }]}>{subtitle}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              {renderTitle()}
+              {isUserTargetLevel && (
+                <View style={styles.targetBadge}>
+                  <Text style={styles.targetBadgeText}>MỤC TIÊU</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.subtitle}>{subtitle}</Text>
           </View>
         </View>
 
         <View style={[styles.actionBadge, isHovered && styles.actionBadgeActive]}>
           <Text style={[styles.actionText, isHovered && styles.actionTextActive]}>HỌC NGAY</Text>
           <View style={styles.arrowWrapper}>
-            <ArrowIcon 
-              width={14} 
-              height={14} 
-              fill={isHovered ? '#FFFFFF' : '#999'} 
+            <ArrowIcon
+              width={14}
+              height={14}
+              fill={isHovered ? '#C2185B' : '#999'}
             />
           </View>
         </View>
@@ -96,72 +122,78 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 160,
     borderRadius: 32,
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
+    borderWidth: 1.5,
+    borderColor: '#F5F5F5',
     backgroundColor: '#FFFFFF',
     overflow: 'hidden',
+    position: 'relative',
     ...(Platform.OS === 'web' && {
-      boxShadow: '0 10px 40px rgba(0,0,0,0.03)',
+      boxShadow: '0 8px 30px rgba(0,0,0,0.03)',
       cursor: 'pointer',
       transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
     }),
   },
   bannerActive: {
-    borderColor: '#F4A950',
+    borderColor: '#FCE4EC',
     transform: [{ scale: 0.995 }],
     ...(Platform.OS === 'web' && {
-      boxShadow: '0 25px 60px rgba(0,0,0,0.08)',
+      boxShadow: '0 15px 40px rgba(194, 24, 91, 0.08)',
     }),
   },
   bgContainer: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 0,
-    ...(Platform.OS === 'web' && { transition: 'background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }),
+    backgroundColor: '#FFFFFF',
   },
   pattern: {
     ...StyleSheet.absoluteFillObject,
-    width: '200%',
-    height: '200%',
+    width: '100%',
+    height: '100%',
+    opacity: 0.02,
   },
   content: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 32,
+    paddingHorizontal: 48,
     zIndex: 1,
   },
   leftSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 24,
+    gap: 32,
   },
   bunny: {
-    width: 80,
-    height: 80,
+    width: 64,
+    height: 64,
+    ...(Platform.OS === 'web' && { transition: 'transform 0.3s ease' }),
   },
   textContainer: {
-    gap: 4,
+    gap: 10,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '900',
+    fontSize: 26,
+    fontWeight: '950',
     fontFamily: 'Epilogue, sans-serif',
-    letterSpacing: -0.5,
+    letterSpacing: -1,
+    textTransform: 'uppercase',
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '500',
+    color: '#666',
     fontFamily: 'Epilogue, sans-serif',
+    opacity: 0.8,
   },
   actionBadge: {
-    backgroundColor: '#F7F7F7',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    backgroundColor: '#F8F8F8',
+    paddingVertical: 14,
+    paddingHorizontal: 28,
     borderRadius: 100,
     borderWidth: 1,
     borderColor: '#F0F0F0',
-    minWidth: 120,
+    minWidth: 150,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -169,20 +201,34 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' && { transition: 'all 0.3s ease' }),
   },
   actionBadgeActive: {
-    backgroundColor: '#F4A950',
-    borderColor: '#F4A950',
-    ...(Platform.OS === 'web' && { boxShadow: '0 8px 20px rgba(244,169,80,0.2)' }),
+    backgroundColor: '#FFF1F5',
+    borderColor: '#FCE4EC',
+    ...(Platform.OS === 'web' && { boxShadow: '0 4px 15px rgba(194, 24, 91, 0.05)' }),
   },
   actionText: {
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 13,
+    fontWeight: '900',
     color: '#999',
-    letterSpacing: 1,
+    letterSpacing: 1.2,
   },
   actionTextActive: {
-    color: '#FFFFFF',
+    color: '#C2185B',
   },
   arrowWrapper: {
-    marginLeft: 2,
+    marginLeft: 4,
+  },
+  targetBadge: {
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#C8E6C9',
+  },
+  targetBadgeText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#2E7D32',
+    letterSpacing: 0.5,
   },
 })

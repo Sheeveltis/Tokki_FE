@@ -89,7 +89,10 @@ export function LearnedVocabularyListScreen({
   if (mode === 'practice') {
     const PracticeLayout = Platform.OS === 'web' ? PracticeWebLayout : PracticeMobileLayout
     return (
-      <PracticeLayout>
+      <PracticeLayout
+        levelId={route?.params?.levelId || 1}
+        onBackPress={() => setMode('list')}
+      >
         <LearnedVocabularyPracticeMode
           vocabularies={getPracticeVocabularies()}
           onBack={() => setMode('list')}

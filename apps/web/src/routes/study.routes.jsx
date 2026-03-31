@@ -54,7 +54,7 @@ function StudyRoute() {
 
         const progress = await getProgress(userId)
         if (progress && progress.level && progress.level > 0) {
-          navigate(`/menu-study?level=${progress.level}`, { replace: true })
+          navigate('/menu-study', { replace: true })
         } else {
           // Chưa có level -> Chuyển sang lộ trình và yêu cầu test
           navigate('/roadmap/info?needsTest=1', { replace: true })
@@ -108,12 +108,10 @@ function RoadmapRoute() {
 }
 
 function MenuStudyRoute() {
-  const { navigate, getIntQueryParam } = useRouteNavigation()
-  const levelId = getIntQueryParam('level', 1)
+  const { navigate } = useRouteNavigation()
 
   return (
     <MenuStudy
-      levelId={levelId}
       onBackPress={() => navigate('/')}
       onQuickTestPress={() => navigate('/test')}
       lessonsLearned={30}
@@ -246,7 +244,7 @@ function FlashcardRoute() {
         // Ngược lại, điều hướng đến học lần đầu (FlashcardFirstLearnScreen)
         navigate(`/flashcard/learn?topic=${topicId}`)
       }}
-      onBackPress={() => navigate(`/menu-study?level=${levelId}`)}
+      onBackPress={() => navigate('/menu-study')}
       onFavoritesPress={() => navigate('/flashcard/favorites')}
       onLearnedPress={() => navigate('/flashcard/learned')}
       title={STUDY_PAGE_TITLES.FLASHCARD_LIST}

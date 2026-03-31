@@ -13,7 +13,10 @@ export function MenuStudyLayout({
   onQuickTestPress,
   lessonsLearned,
   streakDays,
+  aimLevel,
 }) {
+  const isTarget = levelId && aimLevel && Number(levelId) === Number(aimLevel)
+
   return (
     <View style={styles.root}>
       <NavbarMobile />
@@ -26,9 +29,13 @@ export function MenuStudyLayout({
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <View style={styles.badgeRow}>
-              <View style={styles.levelBadge}>
-                <Text style={styles.levelBadgeText}>LEVEL {levelId}</Text>
+            {levelId && (
+              <View style={[styles.levelBadge, isTarget && { backgroundColor: '#E8F5E9' }]}>
+                <Text style={[styles.levelBadgeText, isTarget && { color: '#2E7D32' }]}>
+                  LEVEL {levelId} {isTarget ? '• MỤC TIÊU' : ''}
+                </Text>
               </View>
+            )}
             </View>
             <Text style={styles.mainTitle}>Chương trình học TOPIK</Text>
           </View>

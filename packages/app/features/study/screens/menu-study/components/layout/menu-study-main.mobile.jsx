@@ -14,6 +14,7 @@ export function MenuStudyMain({
   onCloseLoginRequest,
   onAlphabetPress,
   onTopikRoadmapPress,
+  aimLevel,
 }) {
 
   return (
@@ -23,11 +24,12 @@ export function MenuStudyMain({
         <TopikBanner
           title="HỌC CHỮ CÁI"
           onPress={onAlphabetPress}
+          aimLevel={aimLevel}
         />
       )}
 
       {/* Banner TOPIK Learning Path */}
-      <TopikBanner levelId={levelId} onPress={onTopikRoadmapPress} />
+      <TopikBanner levelId={levelId} onPress={onTopikRoadmapPress} aimLevel={aimLevel} />
       
 
       {/* Grid các skill modules */}

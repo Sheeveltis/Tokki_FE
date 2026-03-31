@@ -17,6 +17,7 @@ export function MenuStudyMain({
   onCloseLoginRequest,
   onAlphabetPress,
   onTopikRoadmapPress,
+  aimLevel,
 }) {
 
   return (
@@ -25,7 +26,11 @@ export function MenuStudyMain({
       <View style={styles.headerDashboard}>
         <View style={styles.bannerContainer}>
           {/* Banner TOPIK Learning Path */}
-          <TopikBanner levelId={levelId} onPress={onTopikRoadmapPress} />
+          <TopikBanner 
+            levelId={levelId} 
+            onPress={onTopikRoadmapPress} 
+            aimLevel={aimLevel} 
+          />
           
           {/* Banner Học chữ cái - chỉ hiển thị cho level 1 */}
           {levelId === 1 && (
