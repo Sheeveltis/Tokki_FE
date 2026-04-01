@@ -1,11 +1,13 @@
 import React from 'react'
-import { View, Text, Image, StyleSheet } from 'react-native'
+import { View, Text, Image, StyleSheet, Platform } from 'react-native'
 import { HtmlViewer } from './html-viewer'
 import { BlogAuthor } from './blog-author'
 import { BlogTags } from './blog-tags'
 import { BlogComments } from './blog-comments'
 
 export function BlogMainContent({ data }) {
+  if (!data) return null
+
   return (
     <View>
       {/* Category Badge */}
@@ -18,26 +20,26 @@ export function BlogMainContent({ data }) {
 
       {/* Thumbnail */}
       {data.thumbnailUrl && (
-        <Image 
-          source={{ uri: data.thumbnailUrl }} 
-          style={styles.image} 
+        <Image
+          source={{ uri: data.thumbnailUrl }}
+          style={styles.image}
           resizeMode="cover"
         />
       )}
 
       {/* Content */}
-      <HtmlViewer html={data.content} />
+      <HtmlViewer html={data.content || ''} />
 
       {/* Tags */}
-      {data.tags && data.tags.length > 0 && (
+      {Array.isArray(data.tags) && data.tags.length > 0 && (
         <BlogTags tags={data.tags} />
       )}
 
       {/* Author Info - Đặt dưới content, trên comments */}
-      <BlogAuthor 
-        author={data.author}
+      <BlogAuthor
+        author={data.author || null}
         createdAt={data.createdAt}
-        viewCount={data.viewCount}
+        viewCount={data.viewCount || 0}
       />
 
       {/* Comments */}
@@ -61,17 +63,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   title: {
-    fontSize: 32,
+    fontSize: Platform.OS === 'web' ? 32 : 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    lineHeight: 42,
+    lineHeight: Platform.OS === 'web' ? 42 : 32,
     color: '#1a1a1a',
     letterSpacing: -0.5,
-    textShadow: '0px 1px 2px rgba(0, 0, 0, 0.1)',
   },
   image: {
     width: '100%',
-    height: 400,
+    height: Platform.OS === 'web' ? 400 : 250,
     borderRadius: 12,
     marginBottom: 24,
     backgroundColor: '#f0f0f0',
