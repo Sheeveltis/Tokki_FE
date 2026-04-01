@@ -66,9 +66,9 @@ export const SKILL_MODULES = [
   {
     id: 'vocabulary',
     title: 'HÀNH TRÌNH TỪ VỰNG',
-    backgroundColor: '#FFF9EB',
-    primaryColor: '#F4A950', // Màu cam thương hiệu
-    borderColor: '#FFE0B2',
+    backgroundColor: '#FFF5EB',
+    primaryColor: '#FF9F43', // Cam đào
+    borderColor: '#FFE8D1',
     icon: FolderIcon,
     items: [
       { label: 'Học từ vựng theo chủ đề', icon: AppFolderIcon, route: 'topics' },
@@ -79,9 +79,9 @@ export const SKILL_MODULES = [
   {
     id: 'skills',
     title: 'RÈN LUYỆN KỸ NĂNG',
-    backgroundColor: '#EEF6FF',
-    primaryColor: '#2196F3', // Màu xanh dương
-    borderColor: '#BBDEFB',
+    backgroundColor: '#F0EFFF',
+    primaryColor: '#4834D4', // Xanh tím nhẹ
+    borderColor: '#E1DFFF',
     icon: ChatboxIcon,
     items: [
       { label: 'Luyện phát âm với AI', icon: Mic2Icon, route: 'pronunciation' },
@@ -92,9 +92,9 @@ export const SKILL_MODULES = [
   {
     id: 'topik',
     title: 'LUYỆN THI TOPIK',
-    backgroundColor: '#F7F2FF',
-    primaryColor: '#9C27B0', // Màu tím
-    borderColor: '#E1BEE7',
+    backgroundColor: '#EBFAEF',
+    primaryColor: '#20BF6B', // Xanh lá ngọc
+    borderColor: '#D4F5DE',
     icon: BookIcon,
     items: [
       { label: 'Học TOPIK theo dạng', icon: ReadOutlined, route: 'topik-type' },

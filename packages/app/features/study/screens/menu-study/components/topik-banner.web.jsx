@@ -89,17 +89,30 @@ export function TopikBanner({
             style={[styles.bunny, isHovered && { transform: [{ scale: 1.05 }] }]}
             resizeMode="contain"
           />
-          <View style={styles.textContainer}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              {renderTitle()}
+            <View style={styles.textContainer}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                {renderTitle()}
+                {isUserTargetLevel && (
+                  <View style={styles.targetBadge}>
+                    <Text style={styles.targetBadgeText}>MỤC TIÊU</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.subtitle}>{subtitle}</Text>
+              
+              {/* Progress Bar */}
               {isUserTargetLevel && (
-                <View style={styles.targetBadge}>
-                  <Text style={styles.targetBadgeText}>MỤC TIÊU</Text>
+                <View style={styles.progressContainer}>
+                  <View style={styles.progressBarBg}>
+                    <View style={[styles.progressBarFill, { width: '65%' }]} />
+                  </View>
+                  <View style={styles.progressInfo}>
+                    <Text style={styles.progressText}>Tiến độ: 65%</Text>
+                    <Text style={styles.progressText}>Mục tiêu: Level 3</Text>
+                  </View>
                 </View>
               )}
             </View>
-            <Text style={styles.subtitle}>{subtitle}</Text>
-          </View>
         </View>
 
         <View style={[styles.actionBadge, isHovered && styles.actionBadgeActive]}>
@@ -171,6 +184,7 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     gap: 8,
+    flex: 1, // Để chiếm không gian và cho phép progress bar giãn ra
   },
   title: {
     fontSize: 24,
@@ -185,6 +199,33 @@ const styles = StyleSheet.create({
     color: '#666',
     fontFamily: 'Epilogue, sans-serif',
     opacity: 0.8,
+  },
+  progressContainer: {
+    marginTop: 12,
+    width: '100%',
+    maxWidth: 300,
+  },
+  progressBarBg: {
+    height: 8,
+    backgroundColor: '#F0F0F5',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#C2185B', // Màu đỏ hồng đồng bộ với action badge
+    borderRadius: 4,
+  },
+  progressInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 6,
+  },
+  progressText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#888',
+    fontFamily: 'Epilogue, sans-serif',
   },
   actionBadge: {
     backgroundColor: '#1A1A1A',
@@ -219,17 +260,17 @@ const styles = StyleSheet.create({
     marginLeft: 0,
   },
   targetBadge: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#2E7D32', // Nền xanh đậm
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#C8E6C9',
+    borderColor: '#1B5E20',
   },
   targetBadgeText: {
     fontSize: 10,
     fontWeight: '900',
-    color: '#2E7D32',
+    color: '#FFFFFF', // Chữ trắng trên nền xanh đậm cho độ tương phản cao
     letterSpacing: 0.5,
   },
-})
+});

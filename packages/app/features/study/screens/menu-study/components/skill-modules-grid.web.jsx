@@ -113,7 +113,10 @@ export function SkillModulesGrid({ levelId, onModulePress }) {
                     >
                       {({ pressed }) => (
                         <>
-                          <View style={styles.itemIconWrapper}>
+                          <View style={[
+                            styles.itemIconWrapper, 
+                            { backgroundColor: (pressed || isItemHovered) ? 'rgba(255,255,255,0.2)' : `${module.primaryColor}15` }
+                          ]}>
                             {renderIcon(
                               item.icon,
                               [styles.itemIcon, { tintColor: (pressed || isItemHovered) ? '#FFFFFF' : module.primaryColor }],
@@ -125,7 +128,7 @@ export function SkillModulesGrid({ levelId, onModulePress }) {
                           </Text>
                           {renderIcon(ArrowIcon, [
                             styles.arrowIconStyle,
-                            { tintColor: (pressed || isItemHovered) ? '#FFFFFF' : '#999', opacity: isItemHovered ? 1 : 0.6 }
+                            { tintColor: (pressed || isItemHovered) ? '#FFFFFF' : module.primaryColor, opacity: isItemHovered ? 1 : 0.4 }
                           ])}
                         </>
                       )}
@@ -162,7 +165,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(230, 230, 230, 0.5)',
     position: 'relative',
     overflow: 'hidden',
-    gap: 24,
+    gap: 32, // Tăng gap để thoáng hơn
     ...(Platform.OS === 'web' && {
       boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
       transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -187,6 +190,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+    paddingBottom: 4, // Thêm padding bottom nhẹ
   },
   iconContainer: {
     width: 32,
@@ -262,14 +266,16 @@ const styles = StyleSheet.create({
     }),
   },
   itemIconWrapper: {
-    width: 24,
-    height: 24,
+    width: 28, // Tăng nhẹ kích thước wrapper
+    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 8,
+    // backgroundColor: 'rgba(0,0,0,0.03)', // Thêm background nhẹ để icon nổi bật hơn
   },
   itemIcon: {
-    width: 20,
-    height: 20,
+    width: 22, // Tăng nhẹ kích thước icon
+    height: 22,
   },
   itemLabel: {
     fontSize: 15,
@@ -285,4 +291,4 @@ const styles = StyleSheet.create({
   emptyContent: {
     minHeight: 100,
   },
-})
+});
