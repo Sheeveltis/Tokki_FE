@@ -1,5 +1,5 @@
 import { View } from 'react-native'
-import { HomeLayout } from '../components/homepage/home-layout.web'
+import { HomeLayout } from '../components/homepage/home-layout'
 import { HomeMain } from '../components/homepage/home-main'
 import { useSidebarData } from '../api/get-homepage'
 import { LoadingWithContainer } from '../../../../components/Loading'
