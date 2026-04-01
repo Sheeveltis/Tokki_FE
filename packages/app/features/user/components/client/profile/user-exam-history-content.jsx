@@ -81,8 +81,8 @@ export function UserExamHistoryContent({ exams, loading, error }) {
           {exams.map((exam) => {
             const statusInfo = getStatusInfo(exam.status)
             return (
-              <Pressable 
-                key={exam.userExamId} 
+              <Pressable
+                key={exam.userExamId}
                 style={({ pressed, hovered }) => [
                   styles.itemCard,
                   hovered && styles.itemCardHovered,
@@ -94,13 +94,13 @@ export function UserExamHistoryContent({ exams, loading, error }) {
                   <Text style={styles.examTitle} numberOfLines={1}>{exam.examTitle}</Text>
                   <Text style={styles.attemptTime}>Lần cuối: {formatDate(exam.lastAttempt)}</Text>
                 </View>
-                
+
                 <View style={[styles.statusBadge, { backgroundColor: statusInfo.bgColor }]}>
                   <Text style={[styles.statusText, { color: statusInfo.color }]}>
                     {statusInfo.label}
                   </Text>
                 </View>
-                
+
                 <View style={styles.arrowContainer}>
                   <StudyIcon source={ArrowIcon} width={16} height={16} tintColor="#CCC" />
                 </View>
@@ -121,12 +121,10 @@ const styles = StyleSheet.create({
   },
   carrot: {
     position: 'absolute',
-    top: -55,
-    right: 0,
-    width: 140,
-    height: 140,
-    zIndex: 10,
-    pointerEvents: 'none',
+    top: -40,
+    right: 100,
+    width: 120,
+    height: 80,
     transform: [{ rotate: '15deg' }],
   },
   header: {

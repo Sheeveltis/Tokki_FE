@@ -3,7 +3,6 @@ import { Image, StyleSheet, Text, View, Platform, ScrollView, Pressable } from '
 import { Spin } from 'antd'
 
 import Carrot from '../../../../../../assets/carrot.png'
-import UserIcon from '../../../../../../assets/user.png'
 import { getCurrentUser, updateBasicInfo, uploadAvatar, uploadAvatarToCloudinary, getTitleById, getProgress } from '../../../api/profile'
 import { getPaymentHistory } from '../../../api/get-payment-history'
 import { getCurrentUserId } from '../../../../../provider/api/client'
@@ -29,11 +28,11 @@ const normalizeImageSource = (src) => {
  * UserDashboardContent: Nội dung chính thống nhất cho Dashboard người dùng (Web)
  * Bao gồm tất cả các phần: Thông tin, Lộ trình (placeholder), Lịch sử thanh toán.
  */
-export function UserDashboardContent({ 
-  scrollRef, 
-  user, 
-  onlyProfile = false, 
-  onlyHistory = false, 
+export function UserDashboardContent({
+  scrollRef,
+  user,
+  onlyProfile = false,
+  onlyHistory = false,
   onUserUpdate,
   exams,
   examsLoading,
@@ -131,7 +130,7 @@ export function UserDashboardContent({
       setUserData(updatedData)
       setIsEditModalVisible(false)
       showAdminSuccess('Cập nhật thông tin thành công')
-      
+
       if (onUserUpdate) onUserUpdate()
     } catch (err) {
       console.error('Error updating info:', err)
@@ -154,7 +153,7 @@ export function UserDashboardContent({
       const refreshedUser = await getCurrentUser()
       setUserData(refreshedUser)
       showAdminSuccess('Cập nhật avatar thành công')
-      
+
       if (onUserUpdate) onUserUpdate()
     } catch (err) {
       console.error('Error uploading avatar:', err)
@@ -230,16 +229,16 @@ export function UserDashboardContent({
 
           {showAll && <View style={styles.divider} />}
 
-      {/* SECTION: EXAM HISTORY */}
-      {showAll && (
-        <View style={styles.section}>
-          <UserExamHistoryContent 
-            exams={exams} 
-            loading={examsLoading} 
-            error={examsError} 
-          />
-        </View>
-      )}
+          {/* SECTION: EXAM HISTORY */}
+          {showAll && (
+            <View style={styles.section}>
+              <UserExamHistoryContent
+                exams={exams}
+                loading={examsLoading}
+                error={examsError}
+              />
+            </View>
+          )}
 
           {showAll && <View style={styles.divider} />}
 
@@ -297,11 +296,10 @@ const styles = StyleSheet.create({
   },
   carrot: {
     position: 'absolute',
-    top: -20,
-    right: -20,
+    top: -40,
+    right: 100,
     width: 120,
     height: 80,
-    opacity: 0.8,
     transform: [{ rotate: '15deg' }],
   },
   sectionTitle: {

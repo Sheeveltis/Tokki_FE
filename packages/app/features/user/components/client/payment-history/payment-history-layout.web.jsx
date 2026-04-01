@@ -1,6 +1,5 @@
 import React from 'react'
 import { ImageBackground, ScrollView, StyleSheet, View } from 'react-native'
-import { Navbar } from '../../../../../../components/navbar'
 import { UserDashboard } from '../../admin/user-management/user-dashboard'
 import { PaymentHistoryContent } from './payment-history-content'
 import BgPattern from '../../../../../../assets/background2.png'
@@ -16,8 +15,6 @@ const normalizeImageSource = (src) => {
 export function PaymentHistoryLayout({ payments, loading, error, onActionPress }) {
   return (
     <View style={styles.root}>
-      {/* <Navbar /> */}
-
       <ImageBackground
         source={normalizeImageSource(BgPattern)}
         style={styles.bg}

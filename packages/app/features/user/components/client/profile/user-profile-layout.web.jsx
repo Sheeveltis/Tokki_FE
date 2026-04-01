@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { ImageBackground, StyleSheet, View, Platform } from 'react-native'
 import { UserDashboard } from '../../admin/user-management/user-dashboard'
 import { UserDashboardContent } from './user-dashboard-content.web'
-import BgPattern from '../../../../../../assets/background2.png'
 import { getCurrentUser, uploadAvatar, uploadAvatarToCloudinary, getExamHistory } from '../../../api/profile'
 import { showAdminSuccess } from '../../../../../../components/HelperAdmin'
 import { UserExamHistoryContent } from './user-exam-history-content'
@@ -98,10 +97,10 @@ export function UserProfileLayout() {
               {activeTab === 'profile' && <UserDashboardContent user={user} onlyProfile={true} onUserUpdate={fetchUser} exams={exams} examsLoading={examsLoading} examsError={examsError} />}
               {activeTab === 'roadmap' && (
                 <View style={{ flex: 1, padding: 32 }}>
-                  <UserExamHistoryContent 
-                    exams={exams} 
-                    loading={examsLoading} 
-                    error={examsError} 
+                  <UserExamHistoryContent
+                    exams={exams}
+                    loading={examsLoading}
+                    error={examsError}
                   />
                 </View>
               )}

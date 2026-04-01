@@ -42,7 +42,7 @@ const formatPrice = (price) => {
 
 export function PaymentHistoryContent({ payments, loading, error }) {
   const isWeb = Platform.OS === 'web'
-  
+
   return (
     <View style={styles.container}>
       {isWeb && (
@@ -54,7 +54,7 @@ export function PaymentHistoryContent({ payments, loading, error }) {
           <Text style={styles.title}>Lịch sử giao dịch</Text>
           <Text style={styles.subtitle}>Ghi lại toàn bộ hành trình nâng cấp của bạn</Text>
         </View>
-        
+
         {isWeb && payments.length > 0 && (
           <View style={styles.recordCount}>
             <Text style={styles.countText}>{payments.length} Giao dịch</Text>
@@ -74,14 +74,14 @@ export function PaymentHistoryContent({ payments, loading, error }) {
       ) : payments.length === 0 ? (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconContainer}>
-             <Text style={styles.emptyIcon}>💳</Text>
+            <Text style={styles.emptyIcon}>💳</Text>
           </View>
           <Text style={styles.emptyText}>Bạn chưa thực hiện giao dịch nào</Text>
           <Text style={styles.emptySubtext}>Các gói VIP đã mua sẽ xuất hiện tại đây</Text>
         </View>
       ) : (
-        <ScrollView 
-          style={styles.scrollView} 
+        <ScrollView
+          style={styles.scrollView}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
         >
@@ -107,12 +107,10 @@ const styles = StyleSheet.create({
   },
   carrot: {
     position: 'absolute',
-    top: -55,
-    right: 0,
-    width: 140,
-    height: 140,
-    zIndex: 10,
-    pointerEvents: 'none',
+    top: -40,
+    right: 100,
+    width: 120,
+    height: 80,
     transform: [{ rotate: '15deg' }],
   },
   header: {
