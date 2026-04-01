@@ -25,7 +25,7 @@ if (Platform.OS !== 'web') {
 }
 import { TextInput } from '../../../../../components/textInput'
 import { Button } from '../../../../../components/button'
-import { login, loginWithGoogle } from '../../api'
+import { loginUser, loginWithGoogle, checkDailyTitles } from '../../api'
 import { setAuthToken, clearAuthToken } from '../../../../provider/api/client'
 import { heartbeatService } from '../shared/heartbeat-service'
 import { showApiNotification } from '../../utils/notification'
@@ -164,7 +164,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
 
     try {
       // Gọi API login (toàn bộ xử lý lỗi network / format response nằm trong tầng API)
-      const response = await login({ email, password, rememberMe })
+      const response = await loginUser({ email, password, rememberMe })
 
       // Lưu response để hiển thị HelperAdmin
       setApiResponse(response)
@@ -193,6 +193,9 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
         // Lưu token để dùng cho các request authorize
         // setAuthToken đã tự động mã hóa và lưu vào storage, không cần gọi setToken nữa
         await setAuthToken(token)
+
+        // Kiểm tra danh hiệu hàng ngày sau khi đăng nhập thành công
+        checkDailyTitles()
 
         // Lưu hoặc xóa thông tin ghi nhớ đăng nhập
         if (rememberMe) {
@@ -354,6 +357,9 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
               }
 
               await setAuthToken(token)
+              
+              // Kiểm tra danh hiệu hàng ngày sau khi đăng nhập thành công
+              checkDailyTitles()
               heartbeatService.start()
 
               setTimeout(() => {

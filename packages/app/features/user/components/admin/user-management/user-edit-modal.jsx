@@ -23,9 +23,6 @@ export function UserEditModal({ open, userId, onOk, onCancel }) {
   useEffect(() => {
     if (open && userId) {
       loadUserDetail()
-    } else {
-      form.resetFields()
-      setUserData(null)
     }
   }, [open, userId])
 
@@ -85,7 +82,7 @@ export function UserEditModal({ open, userId, onOk, onCancel }) {
       okText="Lưu thay đổi"
       cancelText="Hủy"
       confirmLoading={submitting}
-      destroyOnClose
+      destroyOnHidden
       width={600}
     >
       <Spin spinning={loading}>

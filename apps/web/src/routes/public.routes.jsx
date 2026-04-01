@@ -356,7 +356,8 @@ export function PublicLayout() {
   const isRoadmapRoute = location.pathname.startsWith('/roadmap')
   const isMenuStudyRoute = location.pathname.startsWith('/menu-study')
   const isFlashcardRoute = location.pathname.startsWith('/flashcard')
-  const shouldHideFooter = isRoadmapRoute || isMenuStudyRoute || isFlashcardRoute
+  const isProfileRoute = location.pathname.startsWith('/user-profile') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/users')
+  const shouldHideFooter = isRoadmapRoute || isMenuStudyRoute || isFlashcardRoute || isProfileRoute
 
   return (
     <View style={{ flex: 1, height: shouldHideFooter ? '100vh' : undefined, minHeight: '100vh', backgroundColor: '#fff', overflow: shouldHideFooter ? 'hidden' : 'visible' }}>
@@ -367,7 +368,7 @@ export function PublicLayout() {
       {!shouldHideFooter && <Footer />}
 
       {/* Widgets only for Web */}
-      {Platform.OS === 'web' && (
+      {Platform.OS === 'web' && !shouldHideFooter && (
         <>
           <AppShow
             style={{

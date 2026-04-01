@@ -1,4 +1,4 @@
-import { apiClient } from '../../../provider/api/client'
+import { apiClient, getCurrentUserId } from '../../../provider/api/client'
 import { ENDPOINTS } from '../../../provider/api/endpoints'
 
 /**
@@ -101,39 +101,57 @@ export const getTitleById = async (titleId) => {
 }
 
 /**
- * Lấy thông tin progress (level, XP, streak, title) của người dùng
- * @param {string} userId - ID của người dùng
+ * Lấy thông tin progress (level, XP, streak, title) của người dùng hiện tại
  * @returns {Promise<Object>} Progress data (level, totalXP, xpInCurrentLevel, maxXPOfLevel, progressPercentage, streak, title)
  */
-export const getProgress = async (userId) => {
-  if (!userId) {
-    throw new Error('UserId không được để trống')
-  }
-
-  console.log('[getProgress] Gọi API với userId:', userId)
-  console.log('[getProgress] Endpoint:', ENDPOINTS.GAMIFICATION.PROGRESS(userId))
-  
-  const res = await apiClient.get(ENDPOINTS.GAMIFICATION.PROGRESS(userId))
-  console.log('[getProgress] Raw response:', res)
-  console.log('[getProgress] Response data:', res.data)
-  
+export const getProgress = async () => {
+  const res = await apiClient.get(ENDPOINTS.GAMIFICATION.PROGRESS)
   const response = res.data
   
-  // API có thể trả về 2 format:
-  // 1. Wrapped: { isSuccess: true, data: {...} }
-  // 2. Direct: { level: 2, totalXP: 200, ... }
   if (response?.isSuccess && response?.data) {
-    console.log('[getProgress] Format: Wrapped, returning response.data')
     return response.data
   }
   
-  // Nếu không có wrapper, trả về trực tiếp response
   if (response && typeof response === 'object' && 'level' in response) {
-    console.log('[getProgress] Format: Direct, returning response directly')
     return response
   }
   
-  console.error('[getProgress] Unknown response format:', response)
   throw new Error(response?.message || 'Không thể lấy thông tin progress')
 }
 
+/**
+ * Lấy danh sách danh hiệu của người dùng hiện tại
+ * @param {number} pageNumber - Trang hiện tại
+ * @param {number} pageSize - Số danh hiệu mỗi trang
+ * @returns {Promise<Object>} Response từ API chứa danh sách danh hiệu
+ */
+export const getMyTitles = async (pageNumber = 1, pageSize = 10) => {
+  const res = await apiClient.get(ENDPOINTS.TITLE.MY_TITLES, {
+    params: {
+      pageNumber,
+      pageSize,
+    },
+  })
+  const response = res.data
+  if (response?.isSuccess && response?.data) {
+    return response.data
+  }
+  throw new Error(response?.message || 'Không thể lấy danh sách danh hiệu')
+}
+
+/**
+ * Cập nhật danh hiệu hiện tại của người dùng
+ * @param {string} titleId - ID của danh hiệu muốn sử dụng
+ * @returns {Promise<Object>} Updated user data
+ */
+export const updateCurrentTitle = async (titleId) => {
+  const userId = getCurrentUserId()
+  if (!userId) throw new Error('Không tìm thấy thông tin người dùng')
+  
+  const res = await apiClient.put(ENDPOINTS.TITLE.EQUIP, { titleId, userId })
+  const response = res.data
+  if (response?.isSuccess) {
+    return response.data
+  }
+  throw new Error(response?.message || 'Không thể cập nhật danh hiệu')
+}

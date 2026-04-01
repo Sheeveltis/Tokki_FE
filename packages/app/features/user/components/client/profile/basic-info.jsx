@@ -25,26 +25,28 @@ export function BasicInfo({ initialInfo = DEFAULT_INFO, onSubmit }) {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>Thông tin cơ bản</Text>
+      <Text style={styles.title}>Thông tin cá nhân</Text>
 
       <View style={styles.rowFields}>
         <View style={styles.field}>
+          <Text style={styles.label}>Họ và tên</Text>
           <TextInput
             value={username}
             onChangeText={setUsername}
             style={styles.input}
-            placeholder="Username"
-            placeholderTextColor="#8F8F8F"
+            placeholder="Nhập họ và tên"
+            placeholderTextColor="#A0A0A0"
           />
         </View>
 
         <View style={styles.field}>
+          <Text style={styles.label}>Số điện thoại</Text>
           <TextInput
             value={phone}
             onChangeText={setPhone}
             style={styles.input}
-            placeholder="Phone Number"
-            placeholderTextColor="#8F8F8F"
+            placeholder="Nhập số điện thoại"
+            placeholderTextColor="#A0A0A0"
             keyboardType="phone-pad"
           />
         </View>
@@ -52,11 +54,12 @@ export function BasicInfo({ initialInfo = DEFAULT_INFO, onSubmit }) {
 
       <View style={styles.rowFields}>
         <View style={styles.field}>
+          <Text style={styles.label}>Email (Cố định)</Text>
           <TextInput
             value={initialInfo.email || ''}
-            style={styles.input}
+            style={[styles.input, styles.inputDisabled]}
             placeholder="Email"
-            placeholderTextColor="#8F8F8F"
+            placeholderTextColor="#A0A0A0"
             keyboardType="email-address"
             editable={false}
             selectTextOnFocus={false}
@@ -64,19 +67,29 @@ export function BasicInfo({ initialInfo = DEFAULT_INFO, onSubmit }) {
         </View>
 
         <View style={styles.field}>
+          <Text style={styles.label}>Ngày sinh</Text>
           <TextInput
             value={dateOfBirth}
             onChangeText={setDateOfBirth}
             style={styles.input}
             placeholder="YYYY-MM-DD"
-            placeholderTextColor="#8F8F8F"
+            placeholderTextColor="#A0A0A0"
           />
         </View>
       </View>
 
-      <Pressable onPress={handleSubmit} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
-        <Text style={styles.buttonText}>Cập Nhật</Text>
-      </Pressable>
+      <View style={styles.footer}>
+        <Pressable 
+          onPress={handleSubmit} 
+          style={({ pressed, hovered }) => [
+            styles.button, 
+            pressed && styles.buttonPressed,
+            hovered && styles.buttonHovered
+          ]}
+        >
+          <Text style={styles.buttonText}>Cập nhật thông tin</Text>
+        </Pressable>
+      </View>
     </View>
   )
 }
@@ -84,65 +97,78 @@ export function BasicInfo({ initialInfo = DEFAULT_INFO, onSubmit }) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-    gap: 14,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 3,
+    borderRadius: 24,
+    padding: 24,
+    gap: 20,
+    height: '100%',
     borderWidth: 1,
-    borderColor: '#E5E3DC',
+    borderColor: '#F0F0F0',
   },
   title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1C1C1C',
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#20130A',
     fontFamily: 'Epilogue, sans-serif',
+    marginBottom: 4,
   },
   rowFields: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 20,
   },
   field: {
     flex: 1,
+    gap: 8,
   },
-  singleField: {
-    width: '100%',
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
+    marginLeft: 4,
   },
   input: {
-    backgroundColor: '#F2F2F2',
-    borderRadius: 10,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#D9D9D9',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    borderColor: '#EEEEEE',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     fontSize: 15,
-    color: '#1C1C1C',
+    color: '#20130A',
     fontFamily: 'Epilogue, sans-serif',
   },
+  inputDisabled: {
+    backgroundColor: '#F5F5F5',
+    color: '#999',
+    borderColor: '#E8E8E8',
+  },
+  footer: {
+    marginTop: 8,
+    alignItems: 'flex-end',
+  },
   button: {
-    marginTop: 6,
-    alignSelf: 'flex-start',
-    backgroundColor: '#FFDCAA',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
+    backgroundColor: '#F1BE4B',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 14,
+    shadowColor: '#F1BE4B',
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  buttonHovered: {
+    backgroundColor: '#E5AF30',
+    transform: [{ translateY: -1 }],
   },
   buttonPressed: {
     transform: [{ scale: 0.98 }],
+    opacity: 0.9,
   },
   buttonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1C1C1C',
+    color: '#FFFFFF',
     fontFamily: 'Epilogue, sans-serif',
   },
 })

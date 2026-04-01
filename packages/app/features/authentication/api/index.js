@@ -124,11 +124,32 @@ export const sendEmailVerificationOtp = async (email) => {
  * @param {Object} credentials - Thông tin đăng nhập
  * @param {string} credentials.email - Email người dùng
  * @param {string} credentials.password - Mật khẩu
+ * @param {boolean} credentials.rememberMe - Ghi nhớ đăng nhập
  * @returns {Promise<Object>} Response từ API với format:
  *   - Success: { isSuccess: true, data: { token, fullName, role, avatarUrl }, message, statusCode: 200 }
  *   - Error: { isSuccess: false, data: null, errors: [...], message, statusCode: 400 }
  */
-export const login = async ({ email, password, rememberMe = false }) => {
+export const loginUser = async ({ email, password, rememberMe = false }) => {
+  return loginInternal({ email, password, rememberMe, endpoint: ENDPOINTS.ACCOUNT.LOGIN_USER })
+}
+
+/**
+ * Đăng nhập Admin/Staff/Moderator
+ * 
+ * @param {Object} credentials - Thông tin đăng nhập
+ * @param {string} credentials.email - Email
+ * @param {string} credentials.password - Mật khẩu
+ * @param {boolean} credentials.rememberMe - Ghi nhớ đăng nhập
+ * @returns {Promise<Object>} Response từ API
+ */
+export const loginAdmin = async ({ email, password, rememberMe = false }) => {
+  return loginInternal({ email, password, rememberMe, endpoint: ENDPOINTS.ACCOUNT.LOGIN_ADMIN })
+}
+
+/**
+ * Hàm login nội bộ dùng chung
+ */
+const loginInternal = async ({ email, password, rememberMe = false, endpoint }) => {
   try {
     // Validate input
     if (!email || !password) {
@@ -147,9 +168,9 @@ export const login = async ({ email, password, rememberMe = false }) => {
     }
 
     // Gọi API
-    console.log('[Login API] Calling:', ENDPOINTS.ACCOUNT.LOGIN)
+    console.log('[Login API] Calling:', endpoint)
     console.log('[Login API] Payload:', { email, password: '***', rememberMe })
-    const response = await apiClient.post(ENDPOINTS.ACCOUNT.LOGIN, {
+    const response = await apiClient.post(endpoint, {
       email,
       password,
       rememberMe,
@@ -357,6 +378,29 @@ export const sendHeartbeat = async (userId, durationInSeconds = 300) => {
     return {
       isSuccess: false,
       message: error.response?.data?.message || error.message || 'Không thể gửi heartbeat',
+    }
+  }
+}
+
+/**
+ * Kiểm tra và mở khóa danh hiệu hàng ngày của người dùng
+ * @returns {Promise<Object>} Response từ API
+ */
+export const checkDailyTitles = async () => {
+  try {
+    console.log('[Title API] Đang kiểm tra danh hiệu hàng ngày:', { endpoint: ENDPOINTS.TITLE.CHECK_DAILY_TITLES })
+    const response = await apiClient.post(ENDPOINTS.TITLE.CHECK_DAILY_TITLES, {})
+    console.log('[Title API] Kết quả kiểm tra danh hiệu:', response.data)
+    return response.data
+  } catch (error) {
+    console.error('Error checking daily titles:', error)
+    if (error.response?.data) {
+      return error.response.data
+    }
+    return {
+      isSuccess: false,
+      message: error.message || 'Không thể kiểm tra danh hiệu hàng ngày',
+      statusCode: error.response?.status || 500,
     }
   }
 }

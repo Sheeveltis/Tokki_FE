@@ -13,15 +13,10 @@ const normalizeImageSource = (src) => {
   return src
 }
 
-/**
- * Payment History Layout (Web)
- * - Two-column layout with dashboard on left and payment history on right
- * - Includes Navbar and background
- */
 export function PaymentHistoryLayout({ payments, loading, error, onActionPress }) {
   return (
     <View style={styles.root}>
-      <Navbar />
+      {/* <Navbar /> */}
 
       <ImageBackground
         source={normalizeImageSource(BgPattern)}
@@ -32,7 +27,6 @@ export function PaymentHistoryLayout({ payments, loading, error, onActionPress }
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.row}>
             <UserDashboard onActionPress={onActionPress} initialActive="history" />
-            <View style={styles.spacer} />
             <PaymentHistoryContent payments={payments} loading={loading} error={error} />
           </View>
         </ScrollView>
@@ -50,22 +44,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bgImage: {
-    opacity: 0.3,
+    opacity: 0.1, // Even subtler background
   },
   content: {
-    paddingVertical: 48,
+    paddingVertical: 60,
     paddingHorizontal: 40,
     alignItems: 'center',
   },
   row: {
     width: '100%',
-    maxWidth: 1280,
+    maxWidth: 1400, // Matching study and profile layout width
     flexDirection: 'row',
-    gap: 24,
+    gap: 32,
     alignItems: 'flex-start',
-  },
-  spacer: {
-    width: 12,
   },
 })
 

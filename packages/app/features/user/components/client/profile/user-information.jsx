@@ -10,6 +10,7 @@ import { UserAvatarCard } from './user-avt'
 import { UserExp } from './user-exp'
 import { UserStreak } from './user-streak'
 import { UserTitle } from './user-title'
+import { UserTitlesModal } from './user-titles-modal'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -24,6 +25,7 @@ export function UserInformation() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [titleData, setTitleData] = useState(null)
+  const [isTitlesModalVisible, setIsTitlesModalVisible] = useState(false)
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -137,42 +139,55 @@ export function UserInformation() {
 
   return (
     <View style={styles.container}>
-      <Image source={normalizeImageSource(Carrot)} style={styles.carrot} resizeMode="contain" />
+      <View style={styles.contentCard}>
+        <Image source={normalizeImageSource(Carrot)} style={styles.carrot} resizeMode="contain" />
 
-      <View style={styles.header}>
-        <Text style={styles.title}>Thông tin người dùng</Text>
-        <Text style={styles.subtitle}>Quản lí thông tin tài khoản của bạn và cập nhật thông tin cơ bản.</Text>
-      </View>
-
-      <View style={styles.topRow}>
-        <View style={styles.avatarWrap}>
-          <UserAvatarCard user={userAvatarData} onAvatarPress={handleAvatarUpload} />
-        </View>
-        <View style={styles.basicWrap}>
-          <BasicInfo initialInfo={basicInfoData} onSubmit={handleBasicInfoSubmit} />
-        </View>
-      </View>
-
-      <View style={styles.expStreakRow}>
-        <View style={styles.leftColumn}>
-          <View style={styles.titleWrap}>
-            <UserTitle
-              title={titleData?.name || userData.currentTitle || null}
-              icon={titleData?.iconUrl || userData.titleIcon || '🏆'}
-              colorHex={titleData?.colorHex || ''}
-            />
-          </View>
-          <View style={styles.expWrap}>
-            <UserExp />
+        <View style={styles.header}>
+          <View style={styles.headerPattern} />
+          <View style={styles.headerInfo}>
+            <Text style={styles.title}>Thông tin người dùng</Text>
+            <Text style={styles.subtitle}>Quản lí thông tin tài khoản của bạn và cập nhật thông tin cơ bản.</Text>
           </View>
         </View>
-        <View style={styles.streakWrap}>
-          <UserStreak
-            currentStreak={userData.currentStreak || 0}
-            maxStreak={userData.maxStreak || 0}
-          />
+
+        <View style={styles.mainContent}>
+          <View style={styles.topRow}>
+            <View style={styles.avatarWrap}>
+              <UserAvatarCard user={userAvatarData} onAvatarPress={handleAvatarUpload} />
+            </View>
+            <View style={styles.basicWrap}>
+              <BasicInfo initialInfo={basicInfoData} onSubmit={handleBasicInfoSubmit} />
+            </View>
+          </View>
+
+          <View style={styles.expStreakRow}>
+            <View style={styles.leftColumn}>
+              <View style={styles.titleWrap}>
+                <UserTitle
+                  title={titleData?.name || userData.currentTitle || null}
+                  icon={titleData?.iconUrl || userData.titleIcon || '🏆'}
+                  colorHex={titleData?.colorHex || ''}
+                  onPress={() => setIsTitlesModalVisible(true)}
+                />
+              </View>
+              <View style={styles.expWrap}>
+                <UserExp />
+              </View>
+            </View>
+            <View style={styles.streakWrap}>
+              <UserStreak
+                currentStreak={userData.currentStreak || 0}
+                maxStreak={userData.maxStreak || 0}
+              />
+            </View>
+          </View>
         </View>
       </View>
+
+      <UserTitlesModal 
+        visible={isTitlesModalVisible} 
+        onClose={() => setIsTitlesModalVisible(false)} 
+      />
     </View>
   )
 }
@@ -182,171 +197,113 @@ const getStyles = () => {
 
   return StyleSheet.create({
     container: {
-      backgroundColor: '#F5F0DD',
-      borderRadius: 30,
-      paddingVertical: 20,
-      paddingHorizontal: 20,
-      gap: 14,
-      position: 'relative',
-      height: '100%',
-      overflow: isWeb ? 'visible' : 'hidden',
+      flex: 1,
+      minHeight: '100%',
     },
-    // Web carrot
+    contentCard: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 32,
+      overflow: 'hidden',
+      position: 'relative',
+      shadowColor: '#000',
+      shadowOpacity: 0.04,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 5,
+      borderWidth: 1,
+      borderColor: '#F0F0F0',
+    },
     carrot: {
       position: 'absolute',
-      top: -62,
-      right: -72,
-      width: 190,
-      height: 110,
-      zIndex: 30,
-      pointerEvents: 'none',
-    },
-    // Native carrot
-    carrotNative: {
-      position: 'absolute',
-      top: 10,
-      right: 40,
-      width: 200,
+      top: -20,
+      right: -30,
+      width: 160,
       height: 100,
-      zIndex: 2,
+      zIndex: 10,
+      opacity: 0.8,
+      transform: [{ rotate: '15deg' }],
       pointerEvents: 'none',
-    },
-    // Native scroll content
-    scrollContent: {
-      paddingHorizontal: isWeb ? 16 : 0, // Less padding on native for wider cards
-      paddingTop: 20,
-      paddingBottom: 20,
-    },
-    // Native header
-    headerNative: {
-      marginBottom: 24,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    headerTextContainer: {
-      alignItems: 'center',
-      width: '100%',
-    },
-    titleNative: {
-      fontSize: 24,
-      fontWeight: '800',
-      color: '#1C1C1C',
-      fontFamily: 'Epilogue, sans-serif',
-      marginBottom: 8,
-      textAlign: 'center',
-    },
-    subtitleNative: {
-      fontSize: 14,
-      color: '#2C2C2C',
-      fontFamily: 'Epilogue, sans-serif',
-      lineHeight: 20,
-      textAlign: 'center',
-    },
-    // Native sections
-    section: {
-      marginBottom: 20,
-      width: '100%', // Ensure full width on native
-    },
-    cardsContainer: {
-      flexDirection: 'column', // Stack vertically on mobile
-      gap: 16,
-      marginBottom: 20,
-      width: '100%', // Ensure full width
-    },
-    leftColumn: {
-      flex: 1,
-      gap: 16,
-      width: '100%', // Full width on native
-    },
-    rightColumn: {
-      flex: 1,
-      width: '100%', // Full width on native
-    },
-    card: {
-      backgroundColor: '#FFFFFF',
-      borderRadius: 16,
-      padding: isWeb ? 16 : 20, // More padding on native
-      shadowColor: '#000',
-      shadowOpacity: 0.05,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 2 },
-      elevation: 2,
-      width: '100%', // Ensure full width
-      minWidth: isWeb ? 280 : '100%', // No minWidth constraint on native
     },
     header: {
-      gap: 4,
-      paddingRight: 100,
+      paddingHorizontal: 32,
+      paddingTop: 40,
+      paddingBottom: 24,
+      position: 'relative',
+      backgroundColor: '#FFF9F0',
+    },
+    headerPattern: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      opacity: 0.05,
+      backgroundColor: '#F1BE4B',
+    },
+    headerInfo: {
+      position: 'relative',
+      zIndex: 1,
     },
     title: {
-      fontSize: 22,
-      fontWeight: '800',
+      fontSize: 28,
+      fontWeight: '900',
       fontFamily: 'Epilogue, sans-serif',
-      color: '#1C1C1C',
+      color: '#20130A',
+      marginBottom: 8,
     },
     subtitle: {
-      fontSize: 14,
-      color: '#2C2C2C',
+      fontSize: 15,
+      color: '#666',
       fontFamily: 'Epilogue, sans-serif',
-      lineHeight: 20,
+      lineHeight: 22,
+      maxWidth: '80%',
+    },
+    mainContent: {
+      padding: 32,
+      gap: 24,
     },
     topRow: {
       flexDirection: 'row',
-      gap: 16,
+      gap: 24,
       alignItems: 'stretch',
-      minHeight: 230,
+    },
+    avatarWrap: {
+      width: 260,
     },
     basicWrap: {
       flex: 1,
-      minHeight: 230,
-    },
-    avatarWrap: {
-      width: 220,
-      minHeight: 230,
-      height: '100%',
     },
     expStreakRow: {
       flexDirection: 'row',
-      gap: 16,
+      gap: 24,
       width: '100%',
       alignItems: 'stretch',
-      flex: 1,
-      minHeight: 0,
     },
     leftColumn: {
-      flex: 1,
-      gap: 16,
-      minHeight: 0,
-    },
-    expWrap: {
-      width: '100%',
-      flex: 1,
-      minHeight: 0,
+      flex: 1.2,
+      gap: 24,
     },
     titleWrap: {
       width: '100%',
-      flex: 1,
-      minHeight: 0,
+    },
+    expWrap: {
+      width: '100%',
     },
     streakWrap: {
       flex: 1,
-      minHeight: 0,
-    },
-    securityWrap: {
-      width: '100%',
     },
     loadingText: {
       fontSize: 16,
       color: '#666',
       textAlign: 'center',
-      paddingVertical: 40,
+      paddingVertical: 80,
       fontFamily: 'Epilogue, sans-serif',
     },
     errorText: {
       fontSize: 16,
       color: '#E74C3C',
       textAlign: 'center',
-      paddingVertical: 40,
+      paddingVertical: 80,
       fontFamily: 'Epilogue, sans-serif',
     },
   })

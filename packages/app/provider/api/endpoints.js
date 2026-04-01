@@ -94,7 +94,8 @@ export const ENDPOINTS = {
     GET_ALL: '/VipPackage',
   },
   ACCOUNT: {
-    LOGIN: '/Account/login',
+    LOGIN_USER: '/Account/login/user',
+    LOGIN_ADMIN: '/Account/login/admin',
     REFRESH: '/Account/refresh',
     GOOGLE_LOGIN: '/Account/google-login',
     REGISTER: '/Account/register',
@@ -207,7 +208,7 @@ export const ENDPOINTS = {
   },
   GAMIFICATION: {
     HEARTBEAT: '/Gamification/heartbeat',  // POST: Heartbeat để track thời gian học tập
-    PROGRESS: (userId) => `/Gamification/progress/${userId}`,  // GET: Lấy thông tin progress (level, XP, streak, title)
+    PROGRESS: '/Gamification/progress',  // GET: Lấy thông tin progress (level, XP, streak, title) cho user hiện tại
     GAME_XP: '/Gamification/game-xp', // POST: Cộng XP theo amount cho account hiện tại
   },
   TITLE: {
@@ -216,6 +217,9 @@ export const ENDPOINTS = {
     CREATE: '/Title',  // POST: Tạo mới danh hiệu
     UPDATE: (id) => `/Title/${id}`,  // PUT: Cập nhật danh hiệu
     DELETE: (id) => `/Title/${id}`,  // DELETE: Xóa danh hiệu
+    CHECK_DAILY_TITLES: '/Title/user/check-daily-titles', // POST: Kiểm tra và mở khóa danh hiệu hàng ngày
+    MY_TITLES: '/Title/my-titles', // GET: Lấy danh sách danh hiệu của tôi (query: pageNumber, pageSize)
+    EQUIP: '/Title/equip', // PUT: Trang bị danh hiệu
   },
   LEADERBOARD: {
     GET_ALL: '/Leaderboard',  // GET: Lấy danh sách leaderboard (query: timeFrame, top)
