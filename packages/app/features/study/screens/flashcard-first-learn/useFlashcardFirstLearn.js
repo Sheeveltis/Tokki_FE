@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Platform } from 'react-native'
 import { completeTopic, getFlashcardsForStudy, submitSpacedRepetitionWithCorrect } from '@tokki/app/features/study/api'
+import { awardXP } from '@tokki/app/features/minigame/api/api'
 
 // Import expo-av cho mobile (nếu có)
 let ExpoAudio = null
@@ -438,6 +439,12 @@ export function useFlashcardFirstLearn(topicId) {
     const hasCompletedCurrentBatch = completedInBatchRef.current >= batchSize
     
     if (hasCompletedCurrentBatch) {
+      // Cộng XP cho section vừa hoàn thành (3XP/từ)
+      const xpAmount = batchSize * 3
+      awardXP(xpAmount).catch((err) => {
+        console.error('[awardXP] Failed to award XP for section:', err)
+      })
+
       // Đã học xong batch hiện tại -> prefetch batch tiếp theo trước khi hỏi người dùng
       if (!prefetchInFlightRef.current) {
         prefetchInFlightRef.current = true
