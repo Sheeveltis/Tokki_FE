@@ -154,3 +154,23 @@ export const updateCurrentTitle = async (titleId) => {
   }
   throw new Error(response?.message || 'Không thể cập nhật danh hiệu')
 }
+
+/**
+ * Lấy lịch sử làm bài thi của người dùng hiện tại
+ * @param {number} pageNumber - Trang hiện tại
+ * @param {number} pageSize - Số bản ghi mỗi trang
+ * @returns {Promise<Object>} Response chứa danh sách lịch sử thi
+ */
+export const getExamHistory = async (pageNumber = 1, pageSize = 10) => {
+  const res = await apiClient.get(ENDPOINTS.USER_EXAM.HISTORY, {
+    params: {
+      pageNumber,
+      pageSize,
+    },
+  })
+  const response = res.data
+  if (response?.isSuccess && response?.data) {
+    return response.data
+  }
+  throw new Error(response?.message || 'Không thể lấy lịch sử làm bài')
+}

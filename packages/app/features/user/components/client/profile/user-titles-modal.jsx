@@ -21,7 +21,7 @@ import { showAdminSuccess } from '../../../../../../components/HelperAdmin'
  * @param {boolean} props.visible - Trạng thái hiển thị modal
  * @param {() => void} props.onClose - Callback khi đóng modal
  */
-export const UserTitlesModal = ({ visible, onClose }) => {
+export const UserTitlesModal = ({ visible, onClose, onUserUpdate }) => {
   const [titles, setTitles] = useState([])
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
@@ -65,11 +65,8 @@ export const UserTitlesModal = ({ visible, onClose }) => {
       setLoading(true)
       await updateCurrentTitle(titleId)
       showAdminSuccess('Đã đổi danh hiệu thành công!')
-      // Tải lại để phản ánh thay đổi (hoặc đóng modal và thông báo cho cha)
       onClose()
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.location.reload() // Đơn giản nhất là reload để cập nhật hết state
-      }
+      if (onUserUpdate) onUserUpdate()
     } catch (error) {
       console.error('Error updating title:', error)
       alert(error.message || 'Không thể đổi danh hiệu')
@@ -204,7 +201,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: '#20130A',
-    fontFamily: 'Lexend, sans-serif',
+    fontFamily: 'Epilogue, sans-serif',
   },
   headerSubtitle: {
     fontSize: 14,
@@ -263,7 +260,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     color: '#20130A',
-    fontFamily: 'Lexend, sans-serif',
+    fontFamily: 'Epilogue, sans-serif',
   },
   titleDescription: {
     fontSize: 13,

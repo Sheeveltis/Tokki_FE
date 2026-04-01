@@ -15,6 +15,7 @@ import { UserStreak } from './user-streak'
 import { UserTitle } from './user-title'
 import { UserTitlesModal } from './user-titles-modal'
 import { PaymentHistoryContent } from '../payment-history/payment-history-content'
+import { UserExamHistoryContent } from './user-exam-history-content'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -28,7 +29,16 @@ const normalizeImageSource = (src) => {
  * UserDashboardContent: Nội dung chính thống nhất cho Dashboard người dùng (Web)
  * Bao gồm tất cả các phần: Thông tin, Lộ trình (placeholder), Lịch sử thanh toán.
  */
-export function UserDashboardContent({ scrollRef, user, onlyProfile = false, onlyHistory = false }) {
+export function UserDashboardContent({ 
+  scrollRef, 
+  user, 
+  onlyProfile = false, 
+  onlyHistory = false, 
+  onUserUpdate,
+  exams,
+  examsLoading,
+  examsError
+}) {
   const [userData, setUserData] = useState(user || null)
   const [loading, setLoading] = useState(!user)
   const [error, setError] = useState(null)
@@ -121,11 +131,8 @@ export function UserDashboardContent({ scrollRef, user, onlyProfile = false, onl
       setUserData(updatedData)
       setIsEditModalVisible(false)
       showAdminSuccess('Cập nhật thông tin thành công')
-
-      // Reload on web to sync all components if needed
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        setTimeout(() => window.location.reload(), 800)
-      }
+      
+      if (onUserUpdate) onUserUpdate()
     } catch (err) {
       console.error('Error updating info:', err)
       alert(err.message || 'Không thể cập nhật')
@@ -147,10 +154,8 @@ export function UserDashboardContent({ scrollRef, user, onlyProfile = false, onl
       const refreshedUser = await getCurrentUser()
       setUserData(refreshedUser)
       showAdminSuccess('Cập nhật avatar thành công')
-
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        setTimeout(() => window.location.reload(), 800)
-      }
+      
+      if (onUserUpdate) onUserUpdate()
     } catch (err) {
       console.error('Error uploading avatar:', err)
       alert(err.message || 'Không thể upload avatar')
@@ -225,18 +230,16 @@ export function UserDashboardContent({ scrollRef, user, onlyProfile = false, onl
 
           {showAll && <View style={styles.divider} />}
 
-          {/* SECTION: ROADMAP (Placeholder for now) - Only show if showing all (it's handled in layout too) */}
-          {showAll && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Lộ trình học tập</Text>
-                <Text style={styles.sectionSubtitle}>Theo dõi tiến độ học tiếng Hàn cá nhân hóa của bạn.</Text>
-              </View>
-              <View style={styles.placeholderCard}>
-                <Text style={styles.placeholderText}>Tính năng lộ trình đang được tích hợp vào bảng điều khiển này.</Text>
-              </View>
-            </View>
-          )}
+      {/* SECTION: EXAM HISTORY */}
+      {showAll && (
+        <View style={styles.section}>
+          <UserExamHistoryContent 
+            exams={exams} 
+            loading={examsLoading} 
+            error={examsError} 
+          />
+        </View>
+      )}
 
           {showAll && <View style={styles.divider} />}
 
@@ -262,6 +265,7 @@ export function UserDashboardContent({ scrollRef, user, onlyProfile = false, onl
           <UserTitlesModal
             visible={isTitlesModalVisible}
             onClose={() => setIsTitlesModalVisible(false)}
+            onUserUpdate={onUserUpdate}
           />
 
           <ProfileEditModal

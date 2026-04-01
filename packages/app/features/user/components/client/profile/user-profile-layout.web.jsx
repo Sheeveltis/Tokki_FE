@@ -3,8 +3,9 @@ import { ImageBackground, StyleSheet, View, Platform } from 'react-native'
 import { UserDashboard } from '../../admin/user-management/user-dashboard'
 import { UserDashboardContent } from './user-dashboard-content.web'
 import BgPattern from '../../../../../../assets/background2.png'
-import { getCurrentUser, uploadAvatar, uploadAvatarToCloudinary } from '../../../api/profile'
+import { getCurrentUser, uploadAvatar, uploadAvatarToCloudinary, getExamHistory } from '../../../api/profile'
 import { showAdminSuccess } from '../../../../../../components/HelperAdmin'
+import { UserExamHistoryContent } from './user-exam-history-content'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -17,6 +18,9 @@ const normalizeImageSource = (src) => {
 export function UserProfileLayout() {
   const [user, setUser] = useState(null)
   const [activeTab, setActiveTab] = useState('profile')
+  const [exams, setExams] = useState([])
+  const [examsLoading, setExamsLoading] = useState(false)
+  const [examsError, setExamsError] = useState(null)
 
   const fetchUser = async () => {
     try {
@@ -27,8 +31,22 @@ export function UserProfileLayout() {
     }
   }
 
+  const fetchExams = async () => {
+    try {
+      setExamsLoading(true)
+      const data = await getExamHistory(1, 10)
+      setExams(data?.items || [])
+    } catch (err) {
+      console.error('Error fetching exam history:', err)
+      setExamsError('Không thể tải lịch sử làm bài')
+    } finally {
+      setExamsLoading(false)
+    }
+  }
+
   useEffect(() => {
     fetchUser()
+    fetchExams()
   }, [])
 
   const handleAvatarUpload = async (fileOrUrl) => {
@@ -45,10 +63,6 @@ export function UserProfileLayout() {
       await uploadAvatar(payload)
       await fetchUser() // Refresh local user state
       showAdminSuccess('Cập nhật avatar thành công')
-
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        setTimeout(() => window.location.reload(), 800)
-      }
     } catch (err) {
       console.error('Error uploading avatar:', err)
       alert(err.message || 'Không thể upload avatar')
@@ -81,16 +95,17 @@ export function UserProfileLayout() {
             </View>
             <View style={styles.divider} />
             <View style={styles.mainSection}>
-              {activeTab === 'profile' && <UserDashboardContent user={user} onlyProfile={true} />}
+              {activeTab === 'profile' && <UserDashboardContent user={user} onlyProfile={true} onUserUpdate={fetchUser} exams={exams} examsLoading={examsLoading} examsError={examsError} />}
               {activeTab === 'roadmap' && (
-                <View style={{ padding: 40 }}>
-                  <Text style={{ fontSize: 24, fontWeight: '900', marginBottom: 20 }}>Lộ trình học tập</Text>
-                  <View style={{ padding: 60, borderRadius: 32, borderStyle: 'dashed', borderWidth: 1, borderColor: '#F1BE4B', backgroundColor: '#FFF9F0', alignItems: 'center' }}>
-                    <Text style={{ color: '#8A6D3B', fontStyle: 'italic' }}>Tính năng lộ trình đang được tích hợp.</Text>
-                  </View>
+                <View style={{ flex: 1, padding: 32 }}>
+                  <UserExamHistoryContent 
+                    exams={exams} 
+                    loading={examsLoading} 
+                    error={examsError} 
+                  />
                 </View>
               )}
-              {activeTab === 'history' && <UserDashboardContent user={user} onlyHistory={true} />}
+              {activeTab === 'history' && <UserDashboardContent user={user} onlyHistory={true} onUserUpdate={fetchUser} />}
             </View>
           </View>
         </View>

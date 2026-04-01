@@ -19,7 +19,7 @@ const normalizeImageSource = (src) => {
 
 const DASHBOARD_ACTIONS = [
   { key: 'profile', label: 'Thông tin người dùng', icon: InfoIcon },
-  { key: 'roadmap', label: 'Lộ trình học', icon: RoadmapIcon },
+  { key: 'roadmap', label: 'Lịch sử làm bài', icon: RoadmapIcon },
   { key: 'history', label: 'Lịch sử thanh toán', icon: PaymentIcon },
   { key: 'logout', label: 'Đăng xuất', icon: LogoutIcon },
 ]

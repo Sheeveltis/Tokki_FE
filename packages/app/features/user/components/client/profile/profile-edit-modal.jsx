@@ -37,7 +37,7 @@ export function ProfileEditModal({ open, initialValues, onOk, onCancel }) {
 
   return (
     <Modal
-      title={<span style={{ fontWeight: 800, fontSize: 20, fontFamily: 'Lexend, sans-serif' }}>Chỉnh sửa thông tin cá nhân</span>}
+      title={<span style={{ fontWeight: 800, fontSize: 20, fontFamily: 'Epilogue, sans-serif' }}>Chỉnh sửa thông tin cá nhân</span>}
       open={open}
       onOk={handleSubmit}
       onCancel={onCancel}
