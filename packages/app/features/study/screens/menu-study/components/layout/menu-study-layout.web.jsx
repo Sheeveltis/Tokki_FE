@@ -24,40 +24,6 @@ export function MenuStudyLayout({
     <View style={styles.wrapper}>
       <View style={styles.mainContainer}>
         <View style={styles.mainWrapper}>
-          {/* Top Bar Navigation - Synchronized with Roadmap */}
-          <View style={styles.topNavigation}>
-            <View style={styles.breadcrumb}>
-              <Pressable onPress={onBackPress} style={styles.breadcrumbItem}>
-                <Text style={[styles.breadcrumbText, styles.breadcrumbActive]}>Học tập</Text>
-              </Pressable>
-            </View>
-          </View>
-
-          {/* Hero Header Section - Synchronized with Roadmap */}
-          <View style={styles.heroSection}>
-            <View style={styles.headerTop}>
-              <View style={styles.headerText}>
-                <View style={styles.badgeRow}>
-                  <View style={styles.phaseBadge}>
-                    <Text style={styles.phaseBadgeText}>HỆ THỐNG HỌC TẬP</Text>
-                  </View>
-                  {levelId && (
-                    <View style={[styles.levelBadge, { backgroundColor: isTarget ? '#2E7D32' : '#FF6B6B' }]}>
-                      <Text style={styles.levelBadgeText}>
-                        Level {levelId} {isTarget ? '• MỤC TIÊU' : ''}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                <View style={styles.heroTitleRow}>
-                  <Text style={styles.mainTitle}>Chương trình học TOPIK</Text>
-                </View>
-                <Text style={styles.subtitle}>Bắt đầu hành trình chinh phục tiếng Hàn với chương trình học tập tối ưu dành riêng cho bạn.</Text>
-              </View>
-
-
-            </View>
-          </View>
 
           {/* Main Dashboard - Single Column Layout */}
           <View style={styles.dashboardContainer}>

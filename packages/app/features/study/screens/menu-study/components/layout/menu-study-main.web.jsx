@@ -98,20 +98,23 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
     paddingHorizontal: 4,
+    marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#999',
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#1A1A1A',
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
+    letterSpacing: 2,
+    opacity: 0.7,
   },
   sectionDivider: {
     flex: 1,
     height: 1,
     backgroundColor: '#F0F0F0',
+    opacity: 0.8,
   },
   modalOverlay: {
     position: 'absolute',

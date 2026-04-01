@@ -18,9 +18,14 @@ const renderIcon = (icon, style, resizeMode = 'contain') => {
   if (isReactComponent) {
     // Render SVG component
     const IconComponent = typeof icon === 'function' ? icon : (icon.default || icon)
+    const flattenedStyle = StyleSheet.flatten(style)
     return (
       <View style={[style, { alignItems: 'center', justifyContent: 'center' }]}>
-        <IconComponent width={style.width || 28} height={style.height || 28} />
+        <IconComponent
+          width={flattenedStyle?.width || 28}
+          height={flattenedStyle?.height || 28}
+          fill={flattenedStyle?.tintColor}
+        />
       </View>
     )
   }
@@ -41,6 +46,7 @@ const renderIcon = (icon, style, resizeMode = 'contain') => {
 }
 
 export function SkillModulesGrid({ levelId, onModulePress }) {
+  const [hoveredCard, setHoveredCard] = useState(null)
   const [hoveredItem, setHoveredItem] = useState(null)
 
   return (
@@ -48,78 +54,88 @@ export function SkillModulesGrid({ levelId, onModulePress }) {
       {SKILL_MODULES.map((module) => (
         <View
           key={module.id}
+          onPointerEnter={() => setHoveredCard(module.id)}
+          onPointerLeave={() => setHoveredCard(null)}
           style={[
             styles.moduleCard,
-            {
-              backgroundColor: module.backgroundColor || '#FFFFFF',
-              borderColor: module.borderColor || '#F0F0F0',
-              borderWidth: 2,
-            },
+            hoveredCard === module.id && styles.moduleCardHovered
           ]}
         >
+          {/* Top accent bar */}
+          <View style={[styles.topAccentBar, { backgroundColor: module.primaryColor }]} />
+
           {/* Header */}
           <View style={styles.moduleHeader}>
-            <View style={[styles.iconContainer, { backgroundColor: '#FFFFFF', borderColor: module.borderColor }]}>
+            <View style={styles.iconContainer}>
               {renderIcon(module.icon, [styles.moduleIcon, { tintColor: module.primaryColor }], module.isImageModule ? 'cover' : 'contain')}
             </View>
-            <Text style={[styles.moduleTitle, { color: module.primaryColor }]}>{module.title}</Text>
+            <View>
+              <Text style={[styles.moduleTitle, { color: module.primaryColor }]}>{module.title}</Text>
+            </View>
           </View>
 
           {/* Content */}
           {module.isImageModule ? (
-            <View style={styles.imageContentContainer}>
+            <Pressable
+              onPress={() => onModulePress?.(module.id, 'Main')}
+              style={({ pressed }) => [
+                styles.imageContentContainer,
+                pressed && { transform: [{ scale: 0.98 }] }
+              ]}
+            >
               {renderIcon(module.icon, styles.moduleImage, 'cover')}
               <View style={styles.imageOverlay}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <Text style={styles.exploreText}>Khám phá ngay</Text>
-                  <ArrowIcon width={12} height={12} fill="#FFFFFF" />
+                  {renderIcon(ArrowIcon, { width: 12, height: 12, tintColor: '#FFFFFF' })}
                 </View>
               </View>
-            </View>
+            </Pressable>
           ) : (
-            <>
+            <View style={styles.itemsContainer}>
               {module.items.length > 0 ? (
-                <View style={styles.itemsContainer}>
-                  {module.items.map((item, index) => {
-                    const isActive = hoveredItem === `${module.id}-${index}`
-                    return (
-                      <Pressable
-                        key={index}
-                        onPress={() => onModulePress?.(module.id, item.label)}
-                        onHoverIn={() => Platform.OS === 'web' && setHoveredItem(`${module.id}-${index}`)}
-                        onHoverOut={() => Platform.OS === 'web' && setHoveredItem(null)}
-                        style={({ pressed }) => [
-                          styles.itemButton,
-                          (pressed || isActive) && { backgroundColor: module.primaryColor, borderColor: module.primaryColor },
-                        ]}
-                      >
-                        {({ pressed }) => (
-                          <>
-                            <View style={[
-                              styles.itemIconWrapper,
-                              { borderColor: module.borderColor + '40', borderWidth: 1 },
-                              (pressed || isActive) && styles.itemIconWrapperActive
-                            ]}>
-                              {renderIcon(
-                                item.icon,
-                                [styles.itemIcon, { tintColor: (pressed || isActive) ? '#FFFFFF' : module.primaryColor }],
-                                'contain'
-                              )}
-                            </View>
-                            <Text style={[styles.itemLabel, (pressed || isActive) && { color: '#FFFFFF' }]}>
-                              {item.label}
-                            </Text>
-                            {renderIcon(ArrowIcon, [styles.arrowIconStyle, (pressed || isActive) ? { tintColor: '#FFFFFF', opacity: 1 } : { tintColor: module.primaryColor }])}
-                          </>
-                        )}
-                      </Pressable>
-                    )
-                  })}
-                </View>
+                module.items.map((item, index) => {
+                  const isItemHovered = hoveredItem === `${module.id}-${index}`
+                  return (
+                    <Pressable
+                      key={index}
+                      onPress={() => onModulePress?.(module.id, item.label)}
+                      onHoverIn={() => Platform.OS === 'web' && setHoveredItem(`${module.id}-${index}`)}
+                      onHoverOut={() => Platform.OS === 'web' && setHoveredItem(null)}
+                      style={({ pressed }) => [
+                        styles.itemButton,
+                        (pressed || isItemHovered) && {
+                          backgroundColor: module.primaryColor,
+                          boxShadow: `0 8px 16px ${module.primaryColor}20`,
+                          transform: [{ translateX: 8 }]
+                        },
+                      ]}
+                    >
+                      {({ pressed }) => (
+                        <>
+                          <View style={styles.itemIconWrapper}>
+                            {renderIcon(
+                              item.icon,
+                              [styles.itemIcon, { tintColor: (pressed || isItemHovered) ? '#FFFFFF' : module.primaryColor }],
+                              'contain'
+                            )}
+                          </View>
+                          <Text style={[styles.itemLabel, (pressed || isItemHovered) && { color: '#FFFFFF' }]}>
+                            {item.label}
+                          </Text>
+                          {renderIcon(ArrowIcon, [
+                            styles.arrowIconStyle,
+                            { tintColor: (pressed || isItemHovered) ? '#FFFFFF' : '#999', opacity: isItemHovered ? 1 : 0.6 }
+                          ])}
+                        </>
+                      )}
+                    </Pressable>
+                  )
+                })
               ) : (
                 <View style={styles.emptyContent} />
               )}
-            </>
+            </View>
           )}
         </View>
       ))}
@@ -134,62 +150,76 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 24,
     justifyContent: 'flex-start',
-    paddingBottom: 20,
+    // paddingBottom: 20,
+    // marginTop: 10,
   },
   moduleCard: {
     width: Platform.OS === 'web' ? 'calc(33.33% - 16px)' : '100%',
     borderRadius: 24,
-    padding: 24,
+    padding: 28,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#F0F0F0',
-    ...(Platform.OS === 'web' && {
-      boxShadow: '0 10px 30px rgba(0,0,0,0.02)',
-      cursor: 'pointer',
-      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    }),
-    gap: 20,
+    borderColor: 'rgba(230, 230, 230, 0.5)',
+    position: 'relative',
     overflow: 'hidden',
-  },
-  imageModulePressed: {
-    transform: [{ scale: 0.99 }],
-    borderColor: '#FFCF6C',
+    gap: 24,
     ...(Platform.OS === 'web' && {
-      boxShadow: '0 15px 40px rgba(255, 207, 108, 0.15)',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+      transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
     }),
+  },
+  moduleCardHovered: {
+    transform: [{ translateY: -12 }],
+    borderColor: 'rgba(0,0,0,0.02)',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 30px 60px -12px rgba(0, 0, 0, 0.12), 0 18px 36px -18px rgba(0, 0, 0, 0.15)',
+    }),
+  },
+  topAccentBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 6,
+    opacity: 0.9,
   },
   moduleHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
-    paddingBottom: 4,
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: '#F9F9F9',
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
   },
   moduleIcon: {
-    width: 28,
-    height: 28,
+    width: 30,
+    height: 30,
   },
   moduleTitle: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: '900',
     color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
     letterSpacing: -0.5,
   },
+  moduleSubtitle: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 2,
+    fontWeight: '500',
+  },
   imageContentContainer: {
     width: '100%',
     height: 180,
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: 'hidden',
     position: 'relative',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 15px 30px rgba(0,0,0,0.08)',
+    }),
   },
   moduleImage: {
     width: '100%',
@@ -200,12 +230,12 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: '40%',
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    height: '45%',
+    backgroundColor: 'rgba(0,0,0,0.35)',
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     ...(Platform.OS === 'web' && {
-      backdropFilter: 'blur(4px)',
+      backdropFilter: 'blur(10px)',
     }),
   },
   exploreText: {
@@ -221,48 +251,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F7F7F9',
     borderWidth: 1,
-    borderColor: '#EFEFEF',
+    borderColor: 'transparent',
     ...(Platform.OS === 'web' && {
-      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+      transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
     }),
   },
-  itemButtonActive: {
-    backgroundColor: '#F4A950',
-    borderColor: '#F4A950',
-  },
   itemIconWrapper: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    width: 24,
+    height: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    ...(Platform.OS === 'web' && { boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }),
-  },
-  itemIconWrapperActive: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
   },
   itemIcon: {
-    width: 18,
-    height: 18,
+    width: 20,
+    height: 20,
   },
   itemLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#333',
+    color: '#444',
     fontFamily: 'Epilogue, sans-serif',
     flex: 1,
   },
   arrowIconStyle: {
     width: 16,
     height: 16,
-    opacity: 0.6,
   },
   emptyContent: {
     minHeight: 100,

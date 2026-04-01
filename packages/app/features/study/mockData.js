@@ -9,6 +9,13 @@ import GrammarIcon from 'assets/icon/icon-mainflow/grammar.svg'
 import WriteIcon from 'assets/icon/icon-mainflow/write.svg'
 import LocateIcon from 'assets/icon/icon-mainflow/locate.svg'
 import StarIcon from 'assets/icon/icon-mainflow/star.svg'
+import AppFolderIcon from 'assets/icon/navigate-app/folder.svg'
+import GameCardIcon from 'assets/icon/icon-mainflow/game-card.svg'
+import NotebookIcon from 'assets/icon/icon-roadmap/notebook-1-svgrepo-com.svg'
+import Mic2Icon from 'assets/icon/icon-mainflow/microphone-2-svgrepo-com.svg'
+import LightbulbIcon from 'assets/icon/icon-roadmap/lightbulb-minimalistic-svgrepo-com.svg'
+import RoadmapIcon from 'assets/icon/navigate-app/roadmap.svg'
+import { ReadOutlined, FormOutlined } from '@ant-design/icons'
 
 export { FLASHCARD_TOPICS, FLASHCARDS } from '../vocabulary/mockData'
 
@@ -64,9 +71,9 @@ export const SKILL_MODULES = [
     borderColor: '#FFE0B2',
     icon: FolderIcon,
     items: [
-      { label: 'Học từ vựng theo chủ đề', icon: BookIcon, route: 'topics' },
-      { label: 'Minigame từ vựng', icon: GameIcon, route: 'minigame' },
-      { label: 'Ôn tập từ vựng đã học', icon: StarIcon, route: 'learned' },
+      { label: 'Học từ vựng theo chủ đề', icon: AppFolderIcon, route: 'topics' },
+      { label: 'Minigame từ vựng', icon: GameCardIcon, route: 'minigame' },
+      { label: 'Ôn tập từ vựng đã học', icon: NotebookIcon, route: 'learned' },
     ],
   },
   {
@@ -77,9 +84,9 @@ export const SKILL_MODULES = [
     borderColor: '#BBDEFB',
     icon: ChatboxIcon,
     items: [
-      { label: 'Luyện phát âm với AI', icon: MicroIcon, route: 'pronunciation' },
-      { label: 'Học bảng chữ cái cho người mới', icon: BulbIcon, route: 'alphabet' },
-      { label: 'Học lộ trình (Roadmap)', icon: LocateIcon, route: 'roadmap' },
+      { label: 'Luyện phát âm với AI', icon: Mic2Icon, route: 'pronunciation' },
+      { label: 'Học bảng chữ cái cho người mới', icon: LightbulbIcon, route: 'alphabet' },
+      { label: 'Học lộ trình (Roadmap)', icon: RoadmapIcon, route: 'roadmap' },
     ],
   },
   {
@@ -90,8 +97,8 @@ export const SKILL_MODULES = [
     borderColor: '#E1BEE7',
     icon: BookIcon,
     items: [
-      { label: 'Học TOPIK theo dạng', icon: GrammarIcon, route: 'topik-type' },
-      { label: 'Giải đề TOPIK', icon: WriteIcon, route: 'topik-exam' },
+      { label: 'Học TOPIK theo dạng', icon: ReadOutlined, route: 'topik-type' },
+      { label: 'Giải đề TOPIK', icon: FormOutlined, route: 'topik-exam' },
     ],
   }
 ]
