@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
+import React, { useState, useRef } from 'react'
+import { Image, Pressable, StyleSheet, Text, View, Platform } from 'react-native'
+import { CameraFilled } from '@ant-design/icons'
 
 import BunnyIcon from '../../../../../../assets/user.png'
 import InfoIcon from '../../../../../../assets/icon/navigate-app/user-svgrepo-com.svg'
@@ -25,6 +26,25 @@ const DASHBOARD_ACTIONS = [
 
 export function UserDashboard({ onActionPress, initialActive = 'profile', noContainer = false, user, onAvatarPress }) {
   const [active, setActive] = useState(initialActive || 'profile')
+  const fileInputRef = useRef(null)
+
+  const handleAvatarPress = () => {
+    if (!onAvatarPress) return
+    if (Platform.OS === 'web') {
+      if (fileInputRef.current) fileInputRef.current.click()
+    } else {
+      onAvatarPress()
+    }
+  }
+
+  const handleFileChange = (event) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const file = event.target.files[0]
+      if (onAvatarPress) onAvatarPress(file)
+      // Reset input
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
 
   const handlePress = (key) => {
     setActive(key)
@@ -39,11 +59,11 @@ export function UserDashboard({ onActionPress, initialActive = 'profile', noCont
     <View style={noContainer ? styles.containerEmpty : styles.container}>
       <View style={styles.avatarSection}>
         <View style={styles.avatarOuterRing}>
-          <Pressable 
-            onPress={onAvatarPress} 
+          <Pressable
+            onPress={handleAvatarPress}
             style={({ hovered }) => [
-                styles.avatarInnerRing,
-                onAvatarPress && hovered && styles.avatarInnerRingHovered
+              styles.avatarInnerRing,
+              onAvatarPress && hovered && styles.avatarInnerRingHovered
             ]}
           >
             <Image
@@ -54,8 +74,22 @@ export function UserDashboard({ onActionPress, initialActive = 'profile', noCont
             />
             {onAvatarPress && (
               <View style={styles.editBadge}>
-                <Text style={styles.editIcon}>📷</Text>
+                {Platform.OS === 'web' ? (
+                  <CameraFilled style={{ fontSize: 14, color: '#666' }} />
+                ) : (
+                  <Text style={styles.editIcon}>📷</Text>
+                )}
               </View>
+            )}
+
+            {Platform.OS === 'web' && (
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                accept="image/*"
+                onChange={handleFileChange}
+              />
             )}
           </Pressable>
         </View>
@@ -86,11 +120,11 @@ export function UserDashboard({ onActionPress, initialActive = 'profile', noCont
               {({ hovered }) => (
                 <>
                   <View style={styles.menuIconContainer}>
-                    <StudyIcon 
-                      source={action.icon} 
-                      width={28} 
-                      height={28} 
-                      tintColor={isActive ? '#FFFFFF' : (hovered ? '#F1BE4B' : '#666')} 
+                    <StudyIcon
+                      source={action.icon}
+                      width={28}
+                      height={28}
+                      tintColor={isActive ? '#FFFFFF' : (hovered ? '#F1BE4B' : '#666')}
                     />
                   </View>
                   <Text style={[styles.menuText, isActive && styles.menuTextActive]}>{action.label}</Text>
@@ -113,11 +147,18 @@ const styles = StyleSheet.create({
     width: 320,
     alignItems: 'center',
     gap: 40,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 5,
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.04)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOpacity: 0.04,
+        shadowRadius: 20,
+        shadowOffset: { width: 0, height: 10 },
+        elevation: 5,
+      },
+    }),
     borderWidth: 1,
     borderColor: '#F0F0F0',
   },
@@ -137,7 +178,7 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 70,
-    backgroundColor: '#FFF9F0',
+    // backgroundColor: '#FFF9F0',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -150,10 +191,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#F1BE4B',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 2,
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 5px 10px rgba(241, 190, 75, 0.1)',
+      },
+      default: {
+        shadowColor: '#F1BE4B',
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 2,
+      },
+    }),
   },
   avatarInnerRingHovered: {
     transform: [{ scale: 1.02 }],
@@ -223,11 +271,18 @@ const styles = StyleSheet.create({
   },
   menuItemActive: {
     backgroundColor: '#F1BE4B',
-    shadowColor: '#F1BE4B',
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 8,
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 6px 15px rgba(241, 190, 75, 0.3)',
+      },
+      default: {
+        shadowColor: '#F1BE4B',
+        shadowOpacity: 0.3,
+        shadowRadius: 15,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 8,
+      },
+    }),
   },
   menuIconContainer: {
     width: 44,

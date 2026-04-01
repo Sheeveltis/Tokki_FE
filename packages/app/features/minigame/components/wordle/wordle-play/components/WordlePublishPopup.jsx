@@ -109,9 +109,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '900',
     fontSize: 16,
-    textShadowColor: 'rgba(0,0,0,0.1)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 1,
+    ...Platform.select({
+      web: {
+        textShadow: '1px 1px 1px rgba(0,0,0,0.1)',
+      },
+      default: {
+        textShadowColor: 'rgba(0,0,0,0.1)',
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 1,
+      }
+    })
   },
   cancelButtonText: {
     color: '#37474F',

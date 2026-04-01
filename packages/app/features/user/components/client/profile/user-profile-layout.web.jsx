@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { ImageBackground, StyleSheet, View } from 'react-native'
+import { ImageBackground, StyleSheet, View, Platform } from 'react-native'
 import { UserDashboard } from '../../admin/user-management/user-dashboard'
 import { UserDashboardContent } from './user-dashboard-content.web'
 import BgPattern from '../../../../../../assets/background2.png'
@@ -34,9 +34,21 @@ export function UserProfileLayout() {
   const handleAvatarUpload = async (fileOrUrl) => {
     try {
       const cloudinaryUrl = await uploadAvatarToCloudinary(fileOrUrl)
-      await uploadAvatar(cloudinaryUrl)
+
+      const payload = {
+        fullName: user?.fullName || '',
+        phoneNumber: user?.phoneNumber || null,
+        dateOfBirth: user?.dateOfBirth ? String(user.dateOfBirth).split('T')[0] : null,
+        avatarUrl: cloudinaryUrl
+      }
+
+      await uploadAvatar(payload)
       await fetchUser() // Refresh local user state
       showAdminSuccess('Cập nhật avatar thành công')
+
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        setTimeout(() => window.location.reload(), 800)
+      }
     } catch (err) {
       console.error('Error uploading avatar:', err)
       alert(err.message || 'Không thể upload avatar')
@@ -50,14 +62,14 @@ export function UserProfileLayout() {
       }
       return
     }
-    
+
     setActiveTab(actionKey)
   }
 
   return (
     <View style={styles.root}>
       <ImageBackground
-        source={normalizeImageSource(BgPattern)}
+        // source={normalizeImageSource(BgPattern)}
         style={styles.bg}
         resizeMode="cover"
         imageStyle={styles.bgImage}
@@ -69,16 +81,16 @@ export function UserProfileLayout() {
             </View>
             <View style={styles.divider} />
             <View style={styles.mainSection}>
-               {activeTab === 'profile' && <UserDashboardContent user={user} onlyProfile={true} />}
-               {activeTab === 'roadmap' && (
-                  <View style={{ padding: 40 }}>
-                     <Text style={{ fontSize: 24, fontWeight: '900', marginBottom: 20 }}>Lộ trình học tập</Text>
-                     <View style={{ padding: 60, borderRadius: 32, borderStyle: 'dashed', borderWidth: 1, borderColor: '#F1BE4B', backgroundColor: '#FFF9F0', alignItems: 'center' }}>
-                        <Text style={{ color: '#8A6D3B', fontStyle: 'italic' }}>Tính năng lộ trình đang được tích hợp.</Text>
-                     </View>
+              {activeTab === 'profile' && <UserDashboardContent user={user} onlyProfile={true} />}
+              {activeTab === 'roadmap' && (
+                <View style={{ padding: 40 }}>
+                  <Text style={{ fontSize: 24, fontWeight: '900', marginBottom: 20 }}>Lộ trình học tập</Text>
+                  <View style={{ padding: 60, borderRadius: 32, borderStyle: 'dashed', borderWidth: 1, borderColor: '#F1BE4B', backgroundColor: '#FFF9F0', alignItems: 'center' }}>
+                    <Text style={{ color: '#8A6D3B', fontStyle: 'italic' }}>Tính năng lộ trình đang được tích hợp.</Text>
                   </View>
-               )}
-               {activeTab === 'history' && <UserDashboardContent user={user} onlyHistory={true} />}
+                </View>
+              )}
+              {activeTab === 'history' && <UserDashboardContent user={user} onlyHistory={true} />}
             </View>
           </View>
         </View>

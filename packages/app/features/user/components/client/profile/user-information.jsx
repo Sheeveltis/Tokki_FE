@@ -6,6 +6,7 @@ import UserIcon from '../../../../../../assets/user.png'
 import { getCurrentUser, updateBasicInfo, uploadAvatar, uploadAvatarToCloudinary, getTitleById } from '../../../api/profile'
 import { showAdminSuccess } from '../../../../../../components/HelperAdmin'
 import { BasicInfo } from './basic-info'
+import { ProfileEditModal } from './profile-edit-modal'
 import { UserAvatarCard } from './user-avt'
 import { UserExp } from './user-exp'
 import { UserStreak } from './user-streak'
@@ -26,6 +27,7 @@ export function UserInformation() {
   const [error, setError] = useState(null)
   const [titleData, setTitleData] = useState(null)
   const [isTitlesModalVisible, setIsTitlesModalVisible] = useState(false)
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false)
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -56,24 +58,24 @@ export function UserInformation() {
     fetchUserData()
   }, [])
 
-  const handleBasicInfoSubmit = async ({ username, phone, dateOfBirth }) => {
+  const handleProfileUpdate = async (values) => {
     try {
       const updatedData = await updateBasicInfo({
-        fullName: (username || '').trim(),
-        phoneNumber: phone,
-        dateOfBirth: dateOfBirth || userData?.dateOfBirth || '',
+        fullName: (values.fullName || '').trim(),
+        phoneNumber: values.phoneNumber || null,
+        dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : (userData?.dateOfBirth ? String(userData.dateOfBirth).split('T')[0] : null),
       })
 
       setUserData(updatedData)
-      showAdminSuccess('Cập nhật thông tin cơ bản thành công')
+      setIsEditModalVisible(false)
+      showAdminSuccess('Cập nhật thông tin thành công')
+      
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        setTimeout(() => {
-          window.location.reload()
-        }, 1000)
+        setTimeout(() => window.location.reload(), 800)
       }
     } catch (err) {
-      console.error('Error updating basic info:', err)
-      alert(err.message || 'Không thể cập nhật thông tin')
+      console.error('Error updating info:', err)
+      alert(err.message || 'Không thể cập nhật')
     }
   }
 
@@ -86,8 +88,14 @@ export function UserInformation() {
       // 1) Upload file lên Cloudinary endpoint để nhận URL
       const cloudinaryUrl = await uploadAvatarToCloudinary(fileOrUrl)
 
-      // 2) Gửi URL đó vào PUT /Account/profile (avatarUrl)
-      await uploadAvatar(cloudinaryUrl)
+      // 2) Gửi URL đó vào PUT /Account/profile (avatarUrl) kèm theo các info hiện có
+      const payload = {
+        fullName: userData.fullName || '',
+        phoneNumber: userData.phoneNumber || null,
+        dateOfBirth: userData.dateOfBirth ? String(userData.dateOfBirth).split('T')[0] : null,
+        avatarUrl: cloudinaryUrl
+      }
+      await uploadAvatar(payload)
 
       // 3) Lấy lại account/me để luôn đồng bộ avatarUrl mới nhất từ server
       const refreshedUser = await getCurrentUser()
@@ -97,7 +105,7 @@ export function UserInformation() {
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         setTimeout(() => {
           window.location.reload()
-        }, 1000)
+        }, 800)
       }
     } catch (err) {
       console.error('Error uploading avatar:', err)
@@ -156,7 +164,10 @@ export function UserInformation() {
               <UserAvatarCard user={userAvatarData} onAvatarPress={handleAvatarUpload} />
             </View>
             <View style={styles.basicWrap}>
-              <BasicInfo initialInfo={basicInfoData} onSubmit={handleBasicInfoSubmit} />
+              <BasicInfo 
+                initialInfo={basicInfoData} 
+                onEditPress={() => setIsEditModalVisible(true)} 
+              />
             </View>
           </View>
 
@@ -187,6 +198,13 @@ export function UserInformation() {
       <UserTitlesModal 
         visible={isTitlesModalVisible} 
         onClose={() => setIsTitlesModalVisible(false)} 
+      />
+
+      <ProfileEditModal
+        open={isEditModalVisible}
+        initialValues={basicInfoData}
+        onOk={handleProfileUpdate}
+        onCancel={() => setIsEditModalVisible(false)}
       />
     </View>
   )

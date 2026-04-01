@@ -49,15 +49,14 @@ export const updateSecurityInfo = async (payload) => {
  */
 export const uploadAvatarToCloudinary = async (file) => {
   if (!file) throw new Error('Không có file ảnh')
+  
+  console.log('Finalizing upload for file:', file.name, 'Size:', file.size, 'Type:', file.type)
 
   const formData = new FormData()
-  formData.append('file', file)
+  // Sử dụng 'File' viết hoa để khớp chính xác với property trong backend RuleFor(x => x.File)
+  formData.append('File', file, file.name)
 
-  const res = await apiClient.post(ENDPOINTS.CLOUDINARY.UPLOAD_AVATAR, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  })
+  const res = await apiClient.post(ENDPOINTS.CLOUDINARY.UPLOAD_AVATAR, formData)
 
   const response = res.data
   if (response?.isSuccess && response?.data) {
@@ -68,13 +67,13 @@ export const uploadAvatarToCloudinary = async (file) => {
 
 /**
  * Cập nhật avatarUrl vào profile account hiện tại
- * @param {string} avatarUrl - URL ảnh đã upload lên Cloudinary
+ * @param {Object} payload - Payload chứa avatarUrl và các thông tin cá nhân hiện có
  * @returns {Promise<Object>} Updated user data
  */
-export const uploadAvatar = async (avatarUrl) => {
-  if (!avatarUrl) throw new Error('Không có avatarUrl')
+export const uploadAvatar = async (payload) => {
+  if (!payload?.avatarUrl) throw new Error('Không có avatarUrl')
 
-  const res = await apiClient.put(ENDPOINTS.ACCOUNT.PROFILE, { avatarUrl })
+  const res = await apiClient.put(ENDPOINTS.ACCOUNT.PROFILE, payload)
   const response = res.data
   if (response?.isSuccess && response?.data) {
     return response.data

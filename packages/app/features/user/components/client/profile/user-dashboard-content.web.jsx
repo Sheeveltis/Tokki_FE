@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import { Image, StyleSheet, Text, View, Platform, ScrollView, ActivityIndicator } from 'react-native'
+import React, { useEffect, useState, useRef } from 'react'
+import { Image, StyleSheet, Text, View, Platform, ScrollView, Pressable } from 'react-native'
+import { Spin } from 'antd'
 
 import Carrot from '../../../../../../assets/carrot.png'
 import UserIcon from '../../../../../../assets/user.png'
@@ -8,6 +9,7 @@ import { getPaymentHistory } from '../../../api/get-payment-history'
 import { getCurrentUserId } from '../../../../../provider/api/client'
 import { showAdminSuccess } from '../../../../../../components/HelperAdmin'
 import { BasicInfo } from './basic-info'
+import { ProfileEditModal } from './profile-edit-modal'
 import { UserExp } from './user-exp'
 import { UserStreak } from './user-streak'
 import { UserTitle } from './user-title'
@@ -32,12 +34,13 @@ export function UserDashboardContent({ scrollRef, user, onlyProfile = false, onl
   const [error, setError] = useState(null)
   const [titleData, setTitleData] = useState(null)
   const [progressData, setProgressData] = useState(null)
-  
+
   // State for payments
   const [payments, setPayments] = useState([])
   const [paymentsLoading, setPaymentsLoading] = useState(false)
   const [paymentsError, setPaymentsError] = useState(null)
   const [isTitlesModalVisible, setIsTitlesModalVisible] = useState(false)
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false)
 
   const showAll = !onlyProfile && !onlyHistory
 
@@ -56,14 +59,14 @@ export function UserDashboardContent({ scrollRef, user, onlyProfile = false, onl
           const data = await getCurrentUser()
           setUserData(data)
         }
-        
+
         try {
           const prog = await getProgress()
           setProgressData(prog)
         } catch (progErr) {
           console.warn('Error fetching progress:', progErr)
         }
-        
+
         const currentUserData = userData || user
         if (currentUserData?.currentTitle) {
           try {
@@ -102,16 +105,27 @@ export function UserDashboardContent({ scrollRef, user, onlyProfile = false, onl
     fetchData()
   }, [userData, user, onlyHistory, showAll])
 
-  const handleBasicInfoSubmit = async ({ username, phone, dateOfBirth }) => {
+  const handleProfileUpdate = async (values) => {
     try {
+      const formattedDate = (values.dateOfBirth && typeof values.dateOfBirth.format === 'function')
+        ? values.dateOfBirth.format('YYYY-MM-DD')
+        : (typeof values.dateOfBirth === 'string' ? values.dateOfBirth : (userData?.dateOfBirth ? String(userData.dateOfBirth).split('T')[0] : null))
+
       const updatedData = await updateBasicInfo({
-        fullName: (username || '').trim(),
-        phoneNumber: phone,
-        dateOfBirth: dateOfBirth || userData?.dateOfBirth || '',
+        fullName: (values.fullName || '').trim(),
+        phoneNumber: values.phoneNumber || null,
+        dateOfBirth: formattedDate,
+        avatarUrl: userData?.avatarUrl || user?.avatarUrl || null
       })
 
       setUserData(updatedData)
+      setIsEditModalVisible(false)
       showAdminSuccess('Cập nhật thông tin thành công')
+
+      // Reload on web to sync all components if needed
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        setTimeout(() => window.location.reload(), 800)
+      }
     } catch (err) {
       console.error('Error updating info:', err)
       alert(err.message || 'Không thể cập nhật')
@@ -121,24 +135,30 @@ export function UserDashboardContent({ scrollRef, user, onlyProfile = false, onl
   const handleAvatarUpload = async (fileOrUrl) => {
     try {
       const cloudinaryUrl = await uploadAvatarToCloudinary(fileOrUrl)
-      await uploadAvatar(cloudinaryUrl)
+
+      const payload = {
+        fullName: userData?.fullName || '',
+        phoneNumber: userData?.phoneNumber || null,
+        dateOfBirth: userData?.dateOfBirth ? String(userData.dateOfBirth).split('T')[0] : null,
+        avatarUrl: cloudinaryUrl
+      }
+
+      await uploadAvatar(payload)
       const refreshedUser = await getCurrentUser()
       setUserData(refreshedUser)
       showAdminSuccess('Cập nhật avatar thành công')
+
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        setTimeout(() => window.location.reload(), 800)
+      }
     } catch (err) {
       console.error('Error uploading avatar:', err)
       alert(err.message || 'Không thể upload avatar')
     }
   }
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#F1BE4B" />
-        <Text style={styles.loadingText}>Đang chuẩn bị bảng điều khiển...</Text>
-      </View>
-    )
-  }
+  // Remove the block return if (loading) { ... }
+  // We will handle loading inside the main return below.
 
   const basicInfoData = {
     username: userData?.fullName || '',
@@ -148,91 +168,110 @@ export function UserDashboardContent({ scrollRef, user, onlyProfile = false, onl
   }
 
   return (
-    <ScrollView 
-        ref={scrollRef}
-        style={styles.container} 
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+    <ScrollView
+      ref={scrollRef}
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
     >
-      {/* SECTION: PROFILE */}
-      {(onlyProfile || showAll) && (
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Image source={normalizeImageSource(Carrot)} style={styles.carrot} resizeMode="contain" />
-            <Text style={styles.sectionTitle}>Thông tin người dùng</Text>
-            <Text style={styles.sectionSubtitle}>Quản lí thông tin tài khoản và thuộc tính cá nhân của bạn.</Text>
-          </View>
+      {loading ? (
+        <View style={styles.loadingWrapper}>
+          <Spin size="large" />
+          <Text style={styles.loadingText}>Đang chuẩn bị nội dung...</Text>
+        </View>
+      ) : (
+        <>
+          {/* SECTION: PROFILE */}
+          {(onlyProfile || showAll) && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Image source={normalizeImageSource(Carrot)} style={styles.carrot} resizeMode="contain" />
+                <Text style={styles.sectionTitle}>Thông tin người dùng</Text>
+                <Text style={styles.sectionSubtitle}>Quản lí thông tin tài khoản và thuộc tính cá nhân của bạn.</Text>
+              </View>
 
-          <View style={styles.mainContent}>
-            <View style={styles.basicWrap}>
-              <BasicInfo initialInfo={basicInfoData} onSubmit={handleBasicInfoSubmit} />
-            </View>
-
-            <View style={styles.expStreakRow}>
-              <View style={styles.leftColumn}>
-                <View style={styles.titleWrap}>
-                  <UserTitle
-                    title={titleData?.name || userData?.currentTitle || null}
-                    icon={titleData?.iconUrl || userData?.titleIcon || '🏆'}
-                    colorHex={titleData?.colorHex || ''}
-                    onPress={() => setIsTitlesModalVisible(true)}
+              <View style={styles.mainContent}>
+                <View style={styles.basicWrap}>
+                  <BasicInfo
+                    initialInfo={basicInfoData}
+                    onEditPress={() => setIsEditModalVisible(true)}
                   />
                 </View>
-                <View style={styles.expWrap}>
-                  <UserExp progress={progressData} />
+
+                <View style={styles.expStreakRow}>
+                  <View style={styles.leftColumn}>
+                    <View style={styles.titleWrap}>
+                      <UserTitle
+                        title={titleData?.name || userData?.currentTitle || null}
+                        icon={titleData?.iconUrl || userData?.titleIcon || '🏆'}
+                        colorHex={titleData?.colorHex || ''}
+                        onPress={() => setIsTitlesModalVisible(true)}
+                      />
+                    </View>
+                    <View style={styles.expWrap}>
+                      <UserExp progress={progressData} />
+                    </View>
+                  </View>
+                  <View style={styles.streakWrap}>
+                    <UserStreak
+                      currentStreak={progressData?.streak || 0}
+                      maxStreak={userData?.maxStreak || 0}
+                    />
+                  </View>
                 </View>
               </View>
-              <View style={styles.streakWrap}>
-                <UserStreak
-                  currentStreak={progressData?.streak || 0}
-                  maxStreak={userData?.maxStreak || 0}
-                />
-              </View>
-            </View>
-          </View>
-        </View>
-      )}
-
-      {showAll && <View style={styles.divider} />}
-
-      {/* SECTION: ROADMAP (Placeholder for now) - Only show if showing all (it's handled in layout too) */}
-      {showAll && (
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Lộ trình học tập</Text>
-            <Text style={styles.sectionSubtitle}>Theo dõi tiến độ học tiếng Hàn cá nhân hóa của bạn.</Text>
-          </View>
-          <View style={styles.placeholderCard}>
-            <Text style={styles.placeholderText}>Tính năng lộ trình đang được tích hợp vào bảng điều khiển này.</Text>
-          </View>
-        </View>
-      )}
-
-      {showAll && <View style={styles.divider} />}
-
-      {/* SECTION: HISTORY */}
-      {(onlyHistory || showAll) && (
-        <View style={styles.section}>
-          {!onlyHistory && (
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Lịch sử thanh toán</Text>
-              <Text style={styles.sectionSubtitle}>Xem lại các giao dịch thanh toán của bạn.</Text>
             </View>
           )}
-          <PaymentHistoryContent 
-            payments={payments} 
-            loading={paymentsLoading} 
-            error={paymentsError} 
+
+          {showAll && <View style={styles.divider} />}
+
+          {/* SECTION: ROADMAP (Placeholder for now) - Only show if showing all (it's handled in layout too) */}
+          {showAll && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Lộ trình học tập</Text>
+                <Text style={styles.sectionSubtitle}>Theo dõi tiến độ học tiếng Hàn cá nhân hóa của bạn.</Text>
+              </View>
+              <View style={styles.placeholderCard}>
+                <Text style={styles.placeholderText}>Tính năng lộ trình đang được tích hợp vào bảng điều khiển này.</Text>
+              </View>
+            </View>
+          )}
+
+          {showAll && <View style={styles.divider} />}
+
+          {/* SECTION: HISTORY */}
+          {(onlyHistory || showAll) && (
+            <View style={styles.section}>
+              {!onlyHistory && (
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Lịch sử thanh toán</Text>
+                  <Text style={styles.sectionSubtitle}>Xem lại các giao dịch thanh toán của bạn.</Text>
+                </View>
+              )}
+              <PaymentHistoryContent
+                payments={payments}
+                loading={paymentsLoading}
+                error={paymentsError}
+              />
+            </View>
+          )}
+
+          <View style={{ height: 40 }} />
+
+          <UserTitlesModal
+            visible={isTitlesModalVisible}
+            onClose={() => setIsTitlesModalVisible(false)}
           />
-        </View>
+
+          <ProfileEditModal
+            open={isEditModalVisible}
+            initialValues={basicInfoData}
+            onOk={handleProfileUpdate}
+            onCancel={() => setIsEditModalVisible(false)}
+          />
+        </>
       )}
-      
-      <View style={{ height: 40 }} />
-      
-      <UserTitlesModal 
-        visible={isTitlesModalVisible} 
-        onClose={() => setIsTitlesModalVisible(false)} 
-      />
     </ScrollView>
   )
 }
@@ -244,18 +283,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 32,
     gap: 32,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: 600,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666',
-    fontFamily: 'Epilogue, sans-serif',
   },
   section: {
     width: '100%',
@@ -338,5 +365,17 @@ const styles = StyleSheet.create({
     color: '#8A6D3B',
     fontFamily: 'Epilogue, sans-serif',
     fontStyle: 'italic',
+  },
+  loadingWrapper: {
+    padding: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 400,
+  },
+  loadingText: {
+    marginTop: 16,
+    color: '#999',
+    fontSize: 14,
+    fontFamily: 'Epilogue, sans-serif',
   },
 })

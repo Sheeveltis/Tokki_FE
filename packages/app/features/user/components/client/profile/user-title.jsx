@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Animated, Image, StyleSheet, Text, View, Platform, TouchableOpacity } from 'react-native'
+import { TrophyFilled } from '@ant-design/icons'
 
 /**
  * Component hiển thị danh hiệu (Title/Badge) của người dùng
@@ -28,12 +29,12 @@ export function UserTitle({
         Animated.timing(iconAnim, {
           toValue: 1.1,
           duration: 1000,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(iconAnim, {
           toValue: 1,
           duration: 1000,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       ])
     ).start()
@@ -57,7 +58,9 @@ export function UserTitle({
           transform: [{ scale: iconAnim }]
         }]}>
           {typeof icon === 'string' && icon.startsWith('http') ? (
-            <Image source={{ uri: icon }} style={styles.iconImage} />
+            <Image source={{ uri: icon }} style={styles.iconImage} resizeMode="contain" />
+          ) : Platform.OS === 'web' && (icon === '🏆' || !icon) ? (
+            <TrophyFilled style={{ fontSize: 24, color: colorHex || '#F1BE4B' }} />
           ) : (
             <Text style={styles.badgeIcon}>{icon}</Text>
           )}
@@ -131,7 +134,6 @@ const styles = StyleSheet.create({
   iconImage: {
     width: 24,
     height: 24,
-    resizeMode: 'contain',
   },
   badgeText: {
     fontSize: 16,

@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react'
 import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { CameraFilled } from '@ant-design/icons'
 
 import UserIcon from '../../../../../../assets/user.png'
 
@@ -59,7 +60,11 @@ export function UserAvatarCard({ user = MOCK_USER, onAvatarPress, style }) {
           <Image source={normalizeImageSource(user.avatar)} style={styles.avatar} resizeMode="cover" />
 
           <View style={[styles.hoverOverlay, isHovered && styles.hoverOverlayVisible]}>
-            <Text style={styles.editIcon}>📷</Text>
+            {Platform.OS === 'web' ? (
+              <CameraFilled style={{ fontSize: 24, color: '#FFFFFF' }} />
+            ) : (
+              <Text style={styles.editIcon}>📷</Text>
+            )}
             <Text style={styles.editText}>Thay đổi</Text>
           </View>
 

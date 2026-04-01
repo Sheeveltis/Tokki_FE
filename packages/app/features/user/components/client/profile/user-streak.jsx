@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react'
-import { Animated, StyleSheet, Text, View } from 'react-native'
+import { Animated, StyleSheet, Text, View, Platform } from 'react-native'
+import { FireFilled } from '@ant-design/icons'
 
 /**
  * Component hiển thị chuỗi ngày học (Streak) của người dùng
@@ -47,7 +48,11 @@ export function UserStreak({ currentStreak = 0, maxStreak = 0, label = 'Chuỗi 
             { transform: [{ scale: fireAnim }] }
           ]}
         >
-          <Text style={styles.fireIcon}>🔥</Text>
+          {Platform.OS === 'web' ? (
+            <FireFilled style={{ fontSize: 32, color: '#F1BE4B' }} />
+          ) : (
+            <Text style={styles.fireIcon}>🔥</Text>
+          )}
         </Animated.View>
       </View>
     </View>

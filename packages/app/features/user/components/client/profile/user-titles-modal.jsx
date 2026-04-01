@@ -11,6 +11,7 @@ import {
   Platform,
   Dimensions
 } from 'react-native'
+import { TrophyFilled, CloseOutlined } from '@ant-design/icons'
 import { getMyTitles, updateCurrentTitle } from '../../../api/profile'
 import { showAdminSuccess } from '../../../../../../components/HelperAdmin'
 
@@ -82,6 +83,8 @@ export const UserTitlesModal = ({ visible, onClose }) => {
       <View style={[styles.iconWrapper, { backgroundColor: `${item.colorHex}20` || '#FDF2F2' }]}>
         {item.iconUrl ? (
           <Image source={{ uri: item.iconUrl }} style={styles.titleIcon} />
+        ) : Platform.OS === 'web' ? (
+          <TrophyFilled style={{ fontSize: 32, color: item.colorHex || '#F1BE4B' }} />
         ) : (
           <Text style={styles.emojiIcon}>🏆</Text>
         )}
@@ -120,7 +123,11 @@ export const UserTitlesModal = ({ visible, onClose }) => {
               <Text style={styles.headerSubtitle}>Bạn đã đạt được {totalCount} danh hiệu</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Text style={styles.closeBtnText}>✕</Text>
+              {Platform.OS === 'web' ? (
+                <CloseOutlined style={{ fontSize: 16, color: '#666' }} />
+              ) : (
+                <Text style={styles.closeBtnText}>✕</Text>
+              )}
             </TouchableOpacity>
           </View>
 

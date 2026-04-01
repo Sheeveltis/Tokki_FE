@@ -76,7 +76,7 @@ export function HelperAdmin({
 
     // Hiển thị notification (chỉ trên web)
     notification[notificationType]({
-      message: statusCode ? `[${statusCode}] ${message}` : message,
+      title: statusCode ? `[${statusCode}] ${message}` : message,
       description: description || undefined,
       placement,
       duration,
@@ -111,7 +111,7 @@ export function showAdminSuccess(message, options = {}) {
     return
   }
   notification.success({
-    message: 'Thành công',
+    title: 'Thành công',
     description: message,
     placement: options.placement || 'topRight',
     duration: options.duration || 3,
@@ -132,7 +132,7 @@ export function showAdminError(message, statusCode, options = {}) {
     return
   }
   notification.error({
-    message: statusCode ? `[${statusCode}] ${message}` : message,
+    title: statusCode ? `[${statusCode}] ${message}` : message,
     placement: options.placement || 'topRight',
     duration: options.duration || 4.5,
   })
