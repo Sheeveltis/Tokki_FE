@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Platform } from 'react-native'
 import { SafeArea } from 'app/provider/safe-area'
 import { NavigationProvider } from './navigation'
+import { QueryProvider } from './query/query-client'
 
 // Import expo-navigation-bar cho Android
 let setBackgroundColorAsync: ((color: string) => Promise<void>) | null = null
@@ -32,8 +33,10 @@ export function Provider({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <SafeArea>
-      <NavigationProvider>{children}</NavigationProvider>
-    </SafeArea>
+    <QueryProvider>
+      <SafeArea>
+        <NavigationProvider>{children}</NavigationProvider>
+      </SafeArea>
+    </QueryProvider>
   )
 }

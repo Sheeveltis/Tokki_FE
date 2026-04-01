@@ -78,7 +78,13 @@ const renderIcon = (Icon, style, isActive = false) => {
  * - Bottom navigation bar for mobile
  * - Icons from left to right: Home - Flashcard - Menu - Blog - Profile
  */
-export function NavbarMobile() {
+export function NavbarMobile({ 
+  onHomePress, 
+  onFlashcardPress, 
+  onBlogPress, 
+  onProfilePress,
+  onMenuPress 
+}) {
   // Chỉ sử dụng navigation hook trên mobile
   let navigation = null
   if (Platform.OS !== 'web') {
@@ -125,6 +131,10 @@ export function NavbarMobile() {
 
 
   const handleHomePress = () => {
+    if (onHomePress) {
+      onHomePress()
+      return
+    }
     if (!navigation) return
     try {
       navigation.navigate('home')
@@ -134,6 +144,10 @@ export function NavbarMobile() {
   }
 
   const handleFlashcardPress = () => {
+    if (onFlashcardPress) {
+      onFlashcardPress()
+      return
+    }
     if (!navigation) return
     try {
       navigation.navigate('flashcard-list')
@@ -143,21 +157,33 @@ export function NavbarMobile() {
   }
 
   const handleMenuPress = () => {
+    if (onMenuPress) {
+      onMenuPress()
+      return
+    }
     // Menu button - can be used for minigame or other features
     // For now, just a placeholder
     console.log('Menu pressed')
   }
 
   const handleBlogPress = () => {
+    if (onBlogPress) {
+      onBlogPress()
+      return
+    }
     if (!navigation) return
     try {
-      navigation.navigate('blog')
+      navigation.navigate('blog-list')
     } catch (error) {
       console.error('Navigation error:', error)
     }
   }
 
   const handleProfilePress = () => {
+    if (onProfilePress) {
+      onProfilePress()
+      return
+    }
     if (!navigation) return
     try {
       navigation.navigate('menu-mobile')
@@ -185,7 +211,7 @@ export function NavbarMobile() {
 
         {/* Blog - Second from right */}
         <TouchableOpacity style={styles.iconButton} onPress={handleBlogPress} activeOpacity={0.7}>
-          {renderIcon(BlogIcon, styles.icon, currentRouteName === 'blog')}
+          {renderIcon(BlogIcon, styles.icon, currentRouteName === 'blog-list')}
         </TouchableOpacity>
 
         {/* Profile - Rightmost */}
