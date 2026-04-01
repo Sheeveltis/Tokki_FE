@@ -24,56 +24,56 @@ function useSafeFocusEffect(callback) {
 /**
  * Hook xử lý logic cho FlashcardListScreen
  */
-export function useFlashcardList(levelId) {
+export function useFlashcardList(initialLevelId) {
   const [topics, setTopics] = useState([])
   const [loading, setLoading] = useState(true)
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
-  const [isLevelResolved] = useState(true)
+  const [selectedLevel, setSelectedLevel] = useState(initialLevelId ?? null)
 
   const [pageNumber, setPageNumber] = useState(1)
-  const pageSize = 5
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const pageSize = 10 // Đã chỉnh sửa thành 10 theo yêu cầu người dùng
 
   const debounceTimerRef = useRef(null)
 
-
-
-  const effectiveLevelId = levelId ?? null
-
   const fetchTopics = useCallback(async () => {
-    if (!isLevelResolved) return
     try {
       setLoading(true)
       setError(null)
-      const data = await getFlashcardTopics(effectiveLevelId, {
+      const data = await getFlashcardTopics(selectedLevel, {
         pageNumber,
         pageSize,
         searchTerm: debouncedSearchTerm || undefined,
       })
-      setTopics(Array.isArray(data) ? data : [])
+      
+      setTopics(data.items || [])
+      setTotalPages(data.totalPages || 1)
+      setTotalCount(data.totalCount || 0)
       setIsInitialLoading(false)
     } catch (err) {
       console.error('Error fetching flashcard topics:', err)
       setError(err.message || 'Không thể tải danh sách chủ đề flashcard')
       setTopics([])
+      setTotalPages(1)
       setIsInitialLoading(false)
     } finally {
       setLoading(false)
     }
-  }, [debouncedSearchTerm, effectiveLevelId, isLevelResolved, pageNumber])
+  }, [debouncedSearchTerm, selectedLevel, pageNumber, pageSize])
 
   useEffect(() => {
-    if (!isLevelResolved) return
     fetchTopics()
-  }, [fetchTopics, isLevelResolved])
+  }, [fetchTopics])
 
   const refreshOnFocus = useCallback(() => {
-    if (isLevelResolved && !isInitialLoading) {
+    if (!isInitialLoading) {
       fetchTopics()
     }
-  }, [fetchTopics, isInitialLoading, isLevelResolved])
+  }, [fetchTopics, isInitialLoading])
 
   useSafeFocusEffect(refreshOnFocus)
 
@@ -83,7 +83,10 @@ export function useFlashcardList(levelId) {
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
+      if (searchTerm !== debouncedSearchTerm) {
+        setPageNumber(1)
+        setDebouncedSearchTerm(searchTerm)
+      }
     }, 500)
 
     return () => {
@@ -91,7 +94,7 @@ export function useFlashcardList(levelId) {
         clearTimeout(debounceTimerRef.current)
       }
     }
-  }, [searchTerm])
+  }, [searchTerm, debouncedSearchTerm])
 
   const handleSearchChange = (value) => {
     setSearchTerm(value)
@@ -105,7 +108,12 @@ export function useFlashcardList(levelId) {
     setDebouncedSearchTerm(searchTerm)
   }
 
-  const canNextPage = topics.length === pageSize
+  const handleLevelChange = (level) => {
+    setSelectedLevel(level)
+    setPageNumber(1)
+  }
+
+  const canNextPage = pageNumber < totalPages
 
   const handlePrevPage = () => {
     setPageNumber((p) => Math.max(1, p - 1))
@@ -114,6 +122,10 @@ export function useFlashcardList(levelId) {
   const handleNextPage = () => {
     if (!canNextPage) return
     setPageNumber((p) => p + 1)
+  }
+
+  const handlePageChange = (page) => {
+    setPageNumber(page)
   }
 
   return {
@@ -125,11 +137,15 @@ export function useFlashcardList(levelId) {
     searchTerm,
     handleSearchChange,
     handleSearchSubmit,
-
+    selectedLevel,
+    handleLevelChange,
     pageNumber,
+    totalPages,
+    totalCount,
     pageSize,
     canNextPage,
     handlePrevPage,
     handleNextPage,
+    handlePageChange,
   }
 }

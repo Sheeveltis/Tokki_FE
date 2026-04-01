@@ -355,7 +355,8 @@ export function PublicLayout() {
   const location = useLocation()
   const isRoadmapRoute = location.pathname.startsWith('/roadmap')
   const isMenuStudyRoute = location.pathname.startsWith('/menu-study')
-  const shouldHideFooter = isRoadmapRoute || isMenuStudyRoute
+  const isFlashcardRoute = location.pathname.startsWith('/flashcard')
+  const shouldHideFooter = isRoadmapRoute || isMenuStudyRoute || isFlashcardRoute
 
   return (
     <View style={{ flex: 1, height: shouldHideFooter ? '100vh' : undefined, minHeight: '100vh', backgroundColor: '#fff', overflow: shouldHideFooter ? 'hidden' : 'visible' }}>

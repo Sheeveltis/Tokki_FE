@@ -79,7 +79,7 @@ export function StudyLayoutSynchronized({
             <View style={[styles.contentCard, (!showSidebar || !sidebarActions) && { flex: 1 }]}>
               <ScrollView
                 style={styles.contentCardScroll}
-                showsVerticalScrollIndicator={false}
+                showsVerticalScrollIndicator={true}
                 contentContainerStyle={styles.contentCardInner}
               >
                 {children}
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 24,
     paddingHorizontal: 4,
-    gap: 20,
+    gap: 12,
     alignSelf: 'center',
   },
   topNavigation: {
@@ -140,9 +140,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   heroSection: {
-    gap: 20,
+    gap: 12,
     paddingHorizontal: 4,
-    marginBottom: 10,
+    marginBottom: 0,
   },
   headerTop: {
     flexDirection: 'row',
@@ -257,6 +257,7 @@ const styles = StyleSheet.create({
   },
   contentCardInner: {
     padding: 32,
+    paddingBottom: 100, // Bổ sung padding dưới để không bị đè mất phân trang
     gap: 24,
   },
 })
