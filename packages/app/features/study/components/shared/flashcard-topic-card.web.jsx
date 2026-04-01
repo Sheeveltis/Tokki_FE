@@ -48,8 +48,8 @@ export function FlashcardTopicCard({
               </View>
             )}
           </View>
-          
-          <Text 
+
+          <Text
             style={styles.subtitle}
             numberOfLines={2}
           >
@@ -62,12 +62,12 @@ export function FlashcardTopicCard({
               <Text style={styles.progressPercent}>{Math.round(progress)}%</Text>
             </View>
             <View style={styles.progressBarBg}>
-              <View 
+              <View
                 style={[
-                  styles.progressBarFill, 
+                  styles.progressBarFill,
                   { width: `${Math.min(100, Math.max(0, progress))}%` },
                   isComplete && styles.progressBarComplete
-                ]} 
+                ]}
               />
             </View>
           </View>
@@ -205,8 +205,8 @@ const styles = StyleSheet.create({
   },
   completeOverlay: {
     position: 'absolute',
-    right: 12,
-    top: -10,
+    right: 600,
+    top: 0,
     width: 60,
     height: 60,
     opacity: 0.8,
