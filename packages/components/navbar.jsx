@@ -16,6 +16,7 @@ import { MessageModal } from './MessageModal'
 
 import BackgroundImage from '../assets/background1.png'
 import LogoImage from '../assets/logo-text.png'
+import LogoIcon from '../assets/logo.png'
 import HomeIcon from '../assets/icon/navigate-app/home.svg'
 import StudyIcon from '../assets/icon/navigate-app/book.svg'
 import FlashcardIcon from '../assets/icon/navigate-app/folder.svg'
@@ -25,6 +26,7 @@ import RoadmapIcon from '../assets/icon/navigate-app/roadmap.svg'
 import DictionaryIcon from '../assets/icon/navigate-app/dictionary.svg'
 import UserIcon from '../assets/user.png'
 import LogoutIcon from '../assets/icon/icon-mainflow/logout.svg'
+import StarIcon from '../assets/icon/icon-mainflow/star.svg'
 
 const HEADER_HEIGHT = 72
 
@@ -69,7 +71,7 @@ const NavItem = ({ icon, label, tint, path, compact = false }) => {
         <IconRenderer icon={icon} size={compact ? 24 : 34} tint={tint} />
       </Pressable>
 
-      {!compact ? <Text style={styles.navLabel}>{label}</Text> : null}
+      {!compact ? <Text style={[styles.navLabel, isHovered && Platform.OS === 'web' && styles.navLabelActive]}>{label}</Text> : null}
 
       {compact && isHovered && Platform.OS === 'web' && (
         <View style={styles.tooltip}>
@@ -89,6 +91,7 @@ export const Navbar = ({ position = 'fixed' }) => {
   const [authChecked, setAuthChecked] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isPremiumHovered, setIsPremiumHovered] = useState(false)
 
   useEffect(() => {
     const check = () => {
@@ -124,8 +127,8 @@ export const Navbar = ({ position = 'fixed' }) => {
     position === 'relative'
       ? { position: 'relative', width: '100%' }
       : Platform.OS === 'web'
-      ? { position: position || 'fixed', top: 0, left: 0, right: 0, zIndex: 999 }
-      : { position: position || 'absolute', top: 0, left: 0, right: 0, zIndex: 999 }
+        ? { position: position || 'fixed', top: 0, left: 0, right: 0, zIndex: 999 }
+        : { position: position || 'absolute', top: 0, left: 0, right: 0, zIndex: 999 }
 
   const handleLogout = () => {
     clearAuthToken()
@@ -142,7 +145,12 @@ export const Navbar = ({ position = 'fixed' }) => {
 
         <View style={[styles.headerInner, isMobile && styles.headerInnerMobile]}>
           <TouchableOpacity style={styles.logoButton} onPress={() => router.push('/homepage')}>
-            <Image source={LogoImage} style={[styles.logo, isMobile && styles.logoMobile]} resizeMode="contain" />
+            <Image
+              source={LogoImage}
+              style={[styles.logoIcon, isMobile && styles.logoIconMobile]}
+              resizeMode="contain"
+            />
+            <Text style={[styles.logoText, isMobile && styles.logoTextMobile]}>Tokki</Text>
           </TouchableOpacity>
 
           {!isMobile ? (
@@ -157,15 +165,50 @@ export const Navbar = ({ position = 'fixed' }) => {
             {authChecked ? (
               hasToken ? (
                 <>
-                  {!isMobile ? (
+                  <View style={styles.premiumWrapper}>
                     <Pressable
                       onPress={() => router.push('/payment-package')}
-                      style={({ pressed }) => [styles.premiumBtn, pressed && styles.premiumBtnPressed]}
+                      onHoverIn={() => setIsPremiumHovered(true)}
+                      onHoverOut={() => setIsPremiumHovered(false)}
+                      style={({ pressed }) => [
+                        styles.premiumBtn,
+                        pressed && styles.premiumBtnPressed,
+                        isPremiumHovered && Platform.OS === 'web' && styles.premiumBtnHovered
+                      ]}
                     >
-                      <Text style={styles.premiumEmoji}>★</Text>
+                      {Platform.OS === 'web' && (
+                        <style dangerouslySetInnerHTML={{
+                          __html: `
+                          @keyframes premium-shine {
+                            0% { left: -150%; opacity: 0; }
+                            20% { opacity: 0.8; }
+                            50% { left: 150%; opacity: 0; }
+                            100% { left: 150%; opacity: 0; }
+                          }
+                          .premium-shine-element {
+                            position: absolute !important;
+                            top: 0;
+                            width: 60px;
+                            height: 100%;
+                            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent) !important;
+                            transform: skewX(-25deg);
+                            animation: premium-shine 2s infinite ease-in-out;
+                            pointer-events: none;
+                            z-index: 1;
+                          }
+                        ` }} />
+                      )}
+                      {Platform.OS === 'web' && isPremiumHovered && (
+                        <View
+                          style={styles.shineInner}
+                          //@ts-ignore
+                          dataSet={{ className: 'premium-shine-element' }}
+                        />
+                      )}
+                      <IconRenderer icon={StarIcon} size={18} tint="#FFC107" />
                       <Text style={styles.premiumText}>Premium</Text>
                     </Pressable>
-                  ) : null}
+                  </View>
 
                   {!isMobile ? (
                     <Pressable
@@ -223,7 +266,7 @@ export const Navbar = ({ position = 'fixed' }) => {
                     setMobileMenuOpen(false)
                   }}
                 >
-                  <Text style={styles.premiumEmoji}>★</Text>
+                  <IconRenderer icon={StarIcon} size={16} tint="#FFC107" />
                   <Text style={[styles.mobileMenuText, styles.mobilePremiumText]}>Premium</Text>
                 </TouchableOpacity>
 
@@ -266,18 +309,22 @@ const styles = StyleSheet.create({
   headerBase: {
     width: '100%',
     height: HEADER_HEIGHT,
-    backgroundColor: '#FFF8E7',
+    backgroundColor: 'rgba(255, 248, 231, 0.75)',
     overflow: 'visible',
     borderBottomWidth: 1,
-    borderBottomColor: '#EFE8D2',
-    ...(Platform.OS === 'web' 
-      ? { boxShadow: '0 4px 10px rgba(141, 122, 75, 0.08)' } 
+    borderBottomColor: 'rgba(239, 232, 210, 0.5)',
+    ...(Platform.OS === 'web'
+      ? {
+        boxShadow: '0 4px 10px rgba(141, 122, 75, 0.08)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+      }
       : {
-          shadowColor: '#8D7A4B',
-          shadowOpacity: 0.08,
-          shadowRadius: 10,
-          shadowOffset: { width: 0, height: 4 },
-        }),
+        shadowColor: '#8D7A4B',
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+      }),
     elevation: 3,
   },
   bgImage: {
@@ -305,17 +352,32 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   logoButton: {
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    minWidth: 110,
+    paddingHorizontal: 8,
+    gap: 10,
   },
-  logo: {
-    width: 124,
-    height: 200,
+  logoIcon: {
+    width: 120,
+    height: 48,
   },
-  logoMobile: {
-    width: 100,
+  logoIconMobile: {
+    width: 80,
     height: 36,
+  },
+  logoText: {
+    fontSize: 40,
+    fontWeight: '900',
+    color: '#D4A232',
+    fontFamily: 'Epilogue, sans-serif',
+    letterSpacing: -2,
+    ...(Platform.OS === 'web' && {
+      textShadow: '0 2px 4px rgba(212, 162, 50, 0.12)',
+    }),
+  },
+  logoTextMobile: {
+    fontSize: 22,
   },
   navWrapper: {
     flexDirection: 'row',
@@ -345,9 +407,12 @@ const styles = StyleSheet.create({
     }),
   },
   navIconWrapActive: {
-    opacity: 0.9,
-    transform: [{ translateY: -2 }],
-    backgroundColor: 'rgba(255,255,255,0.45)',
+    opacity: 1,
+    transform: [{ translateY: -4 }],
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 6px 16px rgba(141, 122, 75, 0.12)',
+    }),
   },
   navIconWrapCompact: {
     width: 34,
@@ -355,10 +420,16 @@ const styles = StyleSheet.create({
   },
   navLabel: {
     fontSize: 11,
-    color: '#5A4A32',
+    color: '#6A5634',
     fontWeight: '600',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
+    ...(Platform.OS === 'web' && {
+      transition: 'color 180ms ease-out',
+    }),
+  },
+  navLabelActive: {
+    color: '#2A1F0D',
   },
   rightSection: {
     flexDirection: 'row',
@@ -366,55 +437,79 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   iconActionBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+    width: 42,
+    height: 42,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.5)',
+    backgroundColor: 'rgba(255,255,255,0.7)',
     borderWidth: 1,
-    borderColor: '#E9DFC3',
+    borderColor: 'rgba(233, 223, 195, 0.6)',
     ...(Platform.OS === 'web' && {
-      transitionProperty: 'transform, opacity, background-color',
-      transitionDuration: '180ms',
+      transitionProperty: 'transform, opacity, background-color, box-shadow',
+      transitionDuration: '200ms',
       transitionTimingFunction: 'ease-out',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
     }),
   },
   iconActionPressed: {
-    opacity: 0.88,
-    transform: [{ scale: 0.97 }],
-    backgroundColor: 'rgba(255,255,255,0.75)',
+    opacity: 1,
+    transform: [{ scale: 0.95 }],
+    backgroundColor: '#FFFFFF',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+    }),
+  },
+  premiumWrapper: {
+    padding: 2,
+    position: 'relative',
+    overflow: 'hidden',
   },
   premiumBtn: {
-    height: 38,
-    borderRadius: 12,
-    borderWidth: 1,
+    height: 42,
+    borderRadius: 16,
+    borderWidth: 1.5,
     borderColor: '#F3CD6A',
-    backgroundColor: '#FFE9A8',
-    paddingHorizontal: 12,
+    backgroundColor: '#FFF8E1',
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 8,
+    position: 'relative',
+    overflow: 'hidden',
     ...(Platform.OS === 'web' && {
-      transitionProperty: 'transform, opacity, background-color',
-      transitionDuration: '180ms',
+      transitionProperty: 'transform, opacity, backgroundColor, boxShadow, borderColor',
+      transitionDuration: '240ms',
       transitionTimingFunction: 'ease-out',
+      boxShadow: '0 4px 15px rgba(243, 205, 106, 0.2)',
+    }),
+  },
+  premiumBtnHovered: {
+    backgroundColor: '#FFE9A8',
+    borderColor: '#E6B942',
+    transform: [{ translateY: -2 }],
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 6px 20px rgba(243, 205, 106, 0.4)',
     }),
   },
   premiumBtnPressed: {
-    transform: [{ scale: 0.97 }],
-    backgroundColor: '#FFE195',
+    transform: [{ scale: 0.96 }],
+    backgroundColor: '#FFD54F',
   },
-  premiumEmoji: {
-    fontSize: 14,
-    color: '#9A6D00',
+  shineInner: {
+    ...StyleSheet.absoluteFillObject,
+    ...(Platform.OS === 'web' && {
+      className: 'premium-shine',
+    }),
   },
   premiumText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#7A5200',
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#8A6200',
     fontFamily: 'Epilogue, sans-serif',
+    letterSpacing: 0.3,
+    zIndex: 2,
   },
   avatar: {
     width: 30,
@@ -474,11 +569,11 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web'
       ? { boxShadow: '0 6px 14px rgba(79, 59, 29, 0.15)' }
       : {
-          shadowColor: '#4F3B1D',
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.15,
-          shadowRadius: 14,
-        }),
+        shadowColor: '#4F3B1D',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.15,
+        shadowRadius: 14,
+      }),
     elevation: 8,
     zIndex: 1500,
     borderWidth: 1,
