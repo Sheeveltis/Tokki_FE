@@ -1,33 +1,79 @@
 import React, { useEffect, useRef } from 'react'
-import { Animated, StyleSheet, Text, View } from 'react-native'
+import { Animated, StyleSheet, Text, View, Platform } from 'react-native'
 
 /**
  * Component hiển thị chuỗi ngày học (Streak) của người dùng
- * @param {Object} props
- * @param {number} props.currentStreak - Số ngày streak hiện tại
- * @param {number} props.maxStreak - Số ngày streak tối đa đã đạt được
- * @param {string} props.label - Label hiển thị (mặc định "Chuỗi ngày học")
+ * Hỗ trợ đa nền tảng (Web & Mobile) với phong cách Cozy Garden cho Mobile
  */
 export function UserStreak({ currentStreak = 0, maxStreak = 0, label = 'Chuỗi ngày học' }) {
+  const isMobile = Platform.OS !== 'web'
   const fireAnim = useRef(new Animated.Value(1)).current
 
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(fireAnim, {
-          toValue: 1.2,
-          duration: 600,
+          toValue: isMobile ? 1.15 : 1.2,
+          duration: isMobile ? 800 : 600,
           useNativeDriver: true,
         }),
         Animated.timing(fireAnim, {
           toValue: 1,
-          duration: 600,
+          duration: isMobile ? 800 : 600,
           useNativeDriver: true,
         }),
       ])
     ).start()
-  }, [fireAnim])
+  }, [fireAnim, isMobile])
 
+  if (isMobile) {
+    // Layout tối ưu cho Mobile (Cozy Garden)
+    return (
+      <View style={styles.cardMobile}>
+        <View style={styles.headerMobile}>
+          <Text style={styles.labelMobile}>{label}</Text>
+        </View>
+
+        <View style={styles.mainContentMobile}>
+          <View style={styles.streakDisplayMobile}>
+            <Animated.View
+              style={{
+                transform: [{ scale: fireAnim }],
+              }}
+            >
+              <Text style={styles.fireEmojiMobile}>🔥</Text>
+            </Animated.View>
+            <View style={styles.numberContainerMobile}>
+              <Text style={styles.currentStreakNumberMobile}>{currentStreak}</Text>
+              <Text style={styles.streakUnitMobile}>ngày</Text>
+            </View>
+          </View>
+
+          <View style={styles.statsRowMobile}>
+            <View style={styles.statBoxMobile}>
+              <Text style={styles.statLabelMobile}>Kỷ lục hiện tại</Text>
+              <View style={styles.statValueRowMobile}>
+                <Text style={styles.statValueMobile}>{maxStreak}</Text>
+                <Text style={styles.statUnitSmallMobile}>ngày</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.footerMobile}>
+          <View style={styles.motivationBannerMobile}>
+            <Text style={styles.motivationTextMobile}>
+              {currentStreak > 0
+                ? `🌟 Tuyệt vời! Bạn đã duy trì được ${currentStreak} ngày liên tiếp.`
+                : '🌱 Hãy bắt đầu bài học của ngày hôm nay!'}
+            </Text>
+          </View>
+        </View>
+      </View>
+    )
+  }
+
+  // Layout mặc định cho Web
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -81,6 +127,7 @@ export function UserStreak({ currentStreak = 0, maxStreak = 0, label = 'Chuỗi 
 }
 
 const styles = StyleSheet.create({
+  // Styles cho Web (giữ nguyên hoặc tinh chỉnh nhẹ)
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
@@ -95,16 +142,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E3DC',
     minWidth: 280,
-    width: '100%', // Ensure full width on native
+    width: '100%',
     height: '100%',
   },
   header: {
-    gap: 8,
-  },
-  titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 8,
   },
   label: {
     fontSize: 16,
@@ -194,6 +239,120 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
     marginTop: 4,
+  },
+
+  // Styles cho Mobile (Cozy Garden)
+  cardMobile: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E5E3DC',
+    width: '100%',
+  },
+  headerMobile: {
+    marginBottom: 16,
+  },
+  labelMobile: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#3D3D3D',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  mainContentMobile: {
+    alignItems: 'center',
+    gap: 20,
+    paddingVertical: 10,
+  },
+  streakDisplayMobile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    backgroundColor: '#FFF9F2',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#FFE8D1',
+  },
+  fireEmojiMobile: {
+    fontSize: 44,
+  },
+  numberContainerMobile: {
+    alignItems: 'flex-start',
+  },
+  currentStreakNumberMobile: {
+    fontSize: 36,
+    fontWeight: '900',
+    color: '#FF6B35',
+    fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 40,
+  },
+  streakUnitMobile: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FF8A5B',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  statsRowMobile: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  statBoxMobile: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  statLabelMobile: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#8F8F8F',
+    fontFamily: 'Epilogue, sans-serif',
+    marginBottom: 4,
+  },
+  statValueRowMobile: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
+  },
+  statValueMobile: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#5C5C5C',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  statUnitSmallMobile: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#8F8F8F',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  footerMobile: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F5F5F0',
+  },
+  motivationBannerMobile: {
+    backgroundColor: '#F8FBF8',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#EEF5EE',
+  },
+  motivationTextMobile: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#4A6B4A',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+    lineHeight: 18,
   },
 })
 

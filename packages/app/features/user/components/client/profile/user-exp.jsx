@@ -7,8 +7,9 @@ import { getCurrentUserId } from '../../../../../provider/api/client'
  * Component hiển thị thanh kinh nghiệm (EXP) của người dùng
  * @param {Object} props
  * @param {string} props.label - Label hiển thị (mặc định "Kinh nghiệm")
+ * @param {string} props.variant - Biến thể hiển thị ('default' hoặc 'mobile')
  */
-export function UserExp({ label = 'Kinh nghiệm' }) {
+export function UserExp({ label = 'Kinh nghiệm', variant = 'default' }) {
   const [loading, setLoading] = useState(true)
   const [progressData, setProgressData] = useState(null)
 
@@ -43,8 +44,8 @@ export function UserExp({ label = 'Kinh nghiệm' }) {
 
   // Set width trực tiếp từ progressPercentage, không dùng animation
   // Ví dụ: progressPercentage = 54.95 -> width: '54.95%'
-  const progressWidth = progressData?.progressPercentage !== undefined 
-    ? `${progressData.progressPercentage}%` 
+  const progressWidth = progressData?.progressPercentage !== undefined
+    ? `${progressData.progressPercentage}%`
     : '0%'
 
   if (loading) {
@@ -70,15 +71,24 @@ export function UserExp({ label = 'Kinh nghiệm' }) {
   // Tính XP còn thiếu để lên cấp: maxXPOfLevel - xpInCurrentLevel
   // Ví dụ: 182 - 100 = 82 XP
   const xpNeeded = progressData.maxXPOfLevel - progressData.xpInCurrentLevel
+  const isMobile = variant === 'mobile'
 
   return (
     <View style={styles.card}>
-      <View style={styles.header}>
+      <View style={[styles.header, isMobile && { justifyContent: 'flex-start', gap: 12 }]}>
+        {isMobile && (
+          <View style={styles.levelBadge}>
+            <Text style={styles.levelLabel}>Cấp</Text>
+            <Text style={styles.levelValue}>{progressData.level}</Text>
+          </View>
+        )}
         <Text style={styles.label}>{label}</Text>
-        <View style={styles.levelBadge}>
-          <Text style={styles.levelLabel}>Cấp</Text>
-          <Text style={styles.levelValue}>{progressData.level}</Text>
-        </View>
+        {!isMobile && (
+          <View style={styles.levelBadge}>
+            <Text style={styles.levelLabel}>Cấp</Text>
+            <Text style={styles.levelValue}>{progressData.level}</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.progressContainer}>
