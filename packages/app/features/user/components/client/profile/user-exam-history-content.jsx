@@ -115,32 +115,19 @@ export function UserExamHistoryContent({ exams, loading, error }) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 30,
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-    gap: 20,
     flex: 1,
     minHeight: 500,
     position: 'relative',
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
-    ...Platform.select({
-      web: {
-        boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
-      }
-    })
   },
   carrot: {
     position: 'absolute',
-    top: -40,
-    right: -60,
+    top: -55,
+    right: 0,
     width: 140,
-    height: 80,
-    zIndex: 2,
-    opacity: 0.6,
-    transform: [{ rotate: '15deg' }],
+    height: 140,
+    zIndex: 10,
     pointerEvents: 'none',
+    transform: [{ rotate: '15deg' }],
   },
   header: {
     gap: 4,
