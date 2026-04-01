@@ -44,7 +44,6 @@ export function FlashcardListMain({
     { id: 6, label: 'TOPIK 6' },
   ]
 
-  // Render loading state chỉ khi là lần load đầu tiên
   if (isInitialLoading && loading) {
     return (
       <LoadingWithContainer
@@ -58,12 +57,10 @@ export function FlashcardListMain({
   }
 
   const renderPagination = () => {
-    // Ẩn footer (phân trang) nếu đang ở chế độ bảng theo yêu cầu
-    if (totalPages <= 1 || viewMode === 'table') return null
+    if (totalPages <= 1) return null
 
     const pages = []
-    
-    // Logic hiển thị tối đa 5 trang xung quanh trang hiện tại
+
     let startPage = Math.max(1, pageNumber - 2)
     let endPage = Math.min(totalPages, startPage + 4)
     if (endPage - startPage < 4) {
@@ -71,7 +68,7 @@ export function FlashcardListMain({
     }
 
     for (let i = startPage; i <= endPage; i++) {
-        pages.push(i)
+      pages.push(i)
     }
 
     return (
@@ -127,7 +124,7 @@ export function FlashcardListMain({
   }
 
   const renderGridView = () => (
-    <View 
+    <View
       style={[
         styles.gridContainer,
         loading && !isInitialLoading && styles.gridLoading
@@ -149,72 +146,57 @@ export function FlashcardListMain({
   )
 
   const renderTableView = () => (
-    <View style={styles.tableWrapper}>
-      <View style={styles.tableHeader}>
-        <Text style={[styles.tableHeaderText, { flex: 2 }]}>Chủ đề</Text>
-        <Text style={[styles.tableHeaderText, { flex: 3 }]}>Mô tả</Text>
-        <Text style={[styles.tableHeaderText, { width: 100, textAlign: 'center' }]}>Từ vựng</Text>
-        <Text style={[styles.tableHeaderText, { width: 150, textAlign: 'center' }]}>Tiến độ</Text>
-        <View style={{ width: 120 }} />
-      </View>
-      
-      <ScrollView 
-        style={styles.tableBodyScroll}
-        contentContainerStyle={styles.tableBodyContent}
-        showsVerticalScrollIndicator={true}
-      >
-        {topics.map((topic, index) => (
-          <Pressable 
-            key={topic.id}
-            onPress={() => onTopicPress?.(topic)}
-            style={({ hovered, pressed }) => [
-              styles.tableRow,
-              index % 2 === 1 && styles.tableRowAlt,
-              hovered && styles.tableRowHover,
-              pressed && styles.tableRowActive,
-            ]}
-          >
-            <View style={[styles.tableCell, { flex: 2, flexDirection: 'row', alignItems: 'center', gap: 12 }]}>
-              <View style={styles.tableIconContainer}>
-                <StudyIcon source={topic.icon} width={32} height={32} />
-              </View>
-              <Text style={styles.tableCellTitle} numberOfLines={1}>{topic.title}</Text>
+    <View style={styles.listBodyContent}>
+      {topics.map((topic) => (
+        <Pressable
+          key={topic.id}
+          onPress={() => onTopicPress?.(topic)}
+          style={({ hovered, pressed }) => [
+            styles.listItem,
+            hovered && styles.listItemHover,
+            pressed && styles.listItemActive,
+          ]}
+        >
+          <View style={[styles.tableCell, { flex: 2, flexDirection: 'row', alignItems: 'center', gap: 12 }]}>
+            <View style={styles.tableIconContainer}>
+              <StudyIcon source={topic.icon} width={32} height={32} />
             </View>
+            <Text style={styles.tableCellTitle} numberOfLines={1}>{topic.title}</Text>
+          </View>
 
-            <View style={[styles.tableCell, { flex: 3 }]}>
-              <Text style={styles.tableCellSubtitle} numberOfLines={1}>{topic.subtitle}</Text>
-            </View>
+          <View style={[styles.tableCell, { flex: 3, paddingHorizontal: 12 }]}>
+            <Text style={styles.tableCellSubtitle} numberOfLines={1}>{topic.subtitle}</Text>
+          </View>
 
-            <View style={[styles.tableCell, { width: 100, alignItems: 'center' }]}>
-              <View style={styles.tableVocabBadge}>
-                <Text style={styles.tableVocabText}>{topic.vocabularyCount || 0}</Text>
-              </View>
+          <View style={[styles.tableCell, { width: 100, alignItems: 'center' }]}>
+            <View style={styles.tableVocabBadge}>
+              <Text style={styles.tableVocabText}>{topic.vocabularyCount || 0}</Text>
             </View>
+          </View>
 
-            <View style={[styles.tableCell, { width: 150, alignItems: 'center' }]}>
-              <View style={styles.tableProgressBarBg}>
-                <View 
-                  style={[
-                    styles.tableProgressBarFill, 
-                    { width: `${topic.progress ?? 0}%` },
-                    topic.progress >= 100 && styles.tableProgressBarComplete
-                  ]} 
-                />
-              </View>
-              <Text style={styles.tableProgressText}>{Math.round(topic.progress ?? 0)}%</Text>
+          <View style={[styles.tableCell, { width: 150, alignItems: 'center' }]}>
+            <View style={styles.tableProgressBarBg}>
+              <View
+                style={[
+                  styles.tableProgressBarFill,
+                  { width: `${topic.progress ?? 0}%` },
+                  topic.progress >= 100 && styles.tableProgressBarComplete
+                ]}
+              />
             </View>
+            <Text style={styles.tableProgressText}>{Math.round(topic.progress ?? 0)}%</Text>
+          </View>
 
-            <View style={[styles.tableCell, { width: 120, alignItems: 'center' }]}>
-              <TouchableOpacity 
-                style={styles.tableActionBtn}
-                onPress={() => onTopicPress?.(topic)}
-              >
-                <Text style={styles.tableActionBtnText}>Học ngay</Text>
-              </TouchableOpacity>
-            </View>
-          </Pressable>
-        ))}
-      </ScrollView>
+          <View style={[styles.tableCell, { width: 120, alignItems: 'center' }]}>
+            <TouchableOpacity
+              style={styles.tableActionBtn}
+              onPress={() => onTopicPress?.(topic)}
+            >
+              <Text style={styles.tableActionBtnText}>Học ngay</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      ))}
     </View>
   )
 
@@ -231,7 +213,7 @@ export function FlashcardListMain({
                 selectedLevel === level.id && styles.levelButtonActive
               ]}
             >
-              <Text 
+              <Text
                 style={[
                   styles.levelButtonText,
                   selectedLevel === level.id && styles.levelButtonTextActive
@@ -245,13 +227,13 @@ export function FlashcardListMain({
 
         <View style={styles.rightActions}>
           <View style={styles.viewModeToggle}>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => setViewMode('card')}
               style={[styles.toggleBtn, viewMode === 'card' && styles.toggleBtnActive]}
             >
               <Text style={[styles.toggleBtnText, viewMode === 'card' && styles.toggleBtnTextActive]}>Thẻ</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => setViewMode('table')}
               style={[styles.toggleBtn, viewMode === 'table' && styles.toggleBtnActive]}
             >
@@ -261,8 +243,8 @@ export function FlashcardListMain({
 
           <View style={styles.searchContainer}>
             <View style={styles.searchInputWrapper}>
-               <StudyIcon source={SearchIcon} width={18} height={18} tintColor="#999" />
-               <TextInput
+              <StudyIcon source={SearchIcon} width={18} height={18} tintColor="#999" />
+              <TextInput
                 value={searchTerm}
                 placeholder="Tìm kiếm..."
                 onChangeText={onSearchChange}
@@ -349,9 +331,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#F0F0F0',
-    ...(Platform.OS === 'web' && { 
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
     }),
   },
   levelButtonActive: {
@@ -432,9 +414,9 @@ const styles = StyleSheet.create({
   },
   gridContainer: {
     ...(Platform.OS === 'web' && {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: '24px',
+      display: 'grid',
+      gridTemplateColumns: 'repeat(2, 1fr)',
+      gap: '24px',
     }),
   },
   gridLoading: {
@@ -498,47 +480,83 @@ const styles = StyleSheet.create({
   tableRowActive: {
     backgroundColor: '#FEF7E680',
   },
+  // List View Styles (Horizontal Cards)
+  listBodyScroll: {
+    maxHeight: 750,
+  },
+  listBodyContent: {
+    width: '100%',
+    paddingRight: 4,
+  },
+  listItem: {
+    flexDirection: 'row',
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#F5F5F5',
+    marginBottom: 16,
+    alignItems: 'center',
+    ...(Platform.OS === 'web' && { 
+        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)', 
+        cursor: 'pointer' 
+    }),
+  },
+  listItemHover: {
+    borderColor: '#F1BE4B40',
+    backgroundColor: '#FAFAFA',
+    ...(Platform.OS === 'web' && { 
+        boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
+        transform: 'translateX(6px)'
+    }),
+  },
+  listItemActive: {
+    backgroundColor: '#FEF7E6',
+    transform: [{ scale: 0.99 }],
+  },
   tableCell: {
-    // Center content vertically via parent if needed, 
-    // but don't force horizontal center if row
+    //
   },
   tableIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     backgroundColor: '#FEF7E6',
     alignItems: 'center',
     justifyContent: 'center',
   },
   tableCellTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
     color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
+    marginBottom: 4,
   },
   tableCellSubtitle: {
-    fontSize: 13,
+    fontSize: 15,
     color: '#666',
+    lineHeight: 22,
     fontFamily: 'Epilogue, sans-serif',
   },
   tableVocabBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
     backgroundColor: '#F1BE4B15',
-    borderRadius: 8,
+    borderRadius: 10,
   },
   tableVocabText: {
-    fontSize: 13,
-    fontWeight: '800',
+    fontSize: 15,
+    fontWeight: '900',
     color: '#D9A635',
   },
   tableProgressBarBg: {
-    width: 100,
-    height: 6,
+    width: 120,
+    height: 8,
     backgroundColor: '#F0F0F0',
-    borderRadius: 3,
+    borderRadius: 4,
     overflow: 'hidden',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   tableProgressBarFill: {
     height: '100%',
@@ -548,21 +566,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
   },
   tableProgressText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
     color: '#999',
   },
   tableActionBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: '#0F172A',
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#F1BE4B',
     ...(Platform.OS === 'web' && { cursor: 'pointer' }),
   },
   tableActionBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1A1A1A',
   },
   paginationSection: {
     alignItems: 'center',
@@ -588,9 +606,9 @@ const styles = StyleSheet.create({
     borderColor: '#F0F0F0',
     justifyContent: 'center',
     alignItems: 'center',
-    ...(Platform.OS === 'web' && { 
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
     }),
   },
   pageButtonActive: {

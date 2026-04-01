@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Platform } from 'react-native'
 import { getFlashcardTopics } from '@tokki/app/features/study/api'
+import { getCurrentUserId } from '@tokki/app/provider/api/client'
+import { getProgress } from '@tokki/app/features/user/api/profile'
 
 // Import useFocusEffect chỉ trên mobile (React Navigation)
 let useFocusEffect = null
@@ -31,7 +33,9 @@ export function useFlashcardList(initialLevelId) {
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+  // Nếu có initialLevelId (từ URL/params), ưu tiên nó. Nếu không, để null và load aimLevel.
   const [selectedLevel, setSelectedLevel] = useState(initialLevelId ?? null)
+  const [isLevelAutoLoaded, setIsLevelAutoLoaded] = useState(false)
 
   const [pageNumber, setPageNumber] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
@@ -40,7 +44,38 @@ export function useFlashcardList(initialLevelId) {
 
   const debounceTimerRef = useRef(null)
 
+  // 1. Effect để tự động lấy aimLevel nếu chưa có levelId ban đầu
+  useEffect(() => {
+    const loadAimLevel = async () => {
+      // Nếu đã có levelId từ props/URL, không tự động ghi đè
+      if (initialLevelId) {
+        setIsLevelAutoLoaded(true)
+        return
+      }
+
+      try {
+        const userId = getCurrentUserId()
+        if (userId) {
+          const progress = await getProgress(userId)
+          // Ưu tiên aimLevel từ bảng gamification/profile
+          if (progress?.level) {
+            setSelectedLevel(progress.level)
+          }
+        }
+      } catch (err) {
+        console.error('[useFlashcardList] Error loading user aimLevel:', err)
+      } finally {
+        setIsLevelAutoLoaded(true)
+      }
+    }
+
+    loadAimLevel()
+  }, [initialLevelId])
+
   const fetchTopics = useCallback(async () => {
+    // Chỉ fetch khi đã xác định xong level (dù là aimLevel hay mặc định)
+    if (!isLevelAutoLoaded) return
+
     try {
       setLoading(true)
       setError(null)
@@ -63,7 +98,7 @@ export function useFlashcardList(initialLevelId) {
     } finally {
       setLoading(false)
     }
-  }, [debouncedSearchTerm, selectedLevel, pageNumber, pageSize])
+  }, [debouncedSearchTerm, selectedLevel, pageNumber, pageSize, isLevelAutoLoaded])
 
   useEffect(() => {
     fetchTopics()

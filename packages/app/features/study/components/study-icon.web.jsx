@@ -17,7 +17,7 @@ export function StudyIcon({ source, style, tintColor, width = 20, height = 20 })
   if (isReactComponent) {
     const IconComponent = typeof source === 'function' ? source : (source.default || source)
     return (
-      <View style={[styles.iconContainer, { width, height }, style]}>
+      <View style={[styles.iconContainer, { width, height, color: tintColor }, style]}>
         <IconComponent width={width} height={height} fill={tintColor} stroke={tintColor} />
       </View>
     )

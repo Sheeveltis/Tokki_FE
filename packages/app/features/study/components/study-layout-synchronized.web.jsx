@@ -96,7 +96,6 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     backgroundColor: '#FAFAFA',
-    minHeight: '100vh',
   },
   mainContainer: {
     flex: 1,
@@ -216,7 +215,7 @@ const styles = StyleSheet.create({
     gap: 24,
     flex: 1,
     overflow: 'hidden',
-    paddingBottom: 10,
+    paddingBottom: 24,
   },
   sidebar: {
     width: 280,
@@ -256,8 +255,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentCardInner: {
-    padding: 32,
-    paddingBottom: 100, // Bổ sung padding dưới để không bị đè mất phân trang
-    gap: 24,
+    padding: 24,
+    // paddingBottom: 40,
+    gap: 16,
   },
 })
