@@ -252,21 +252,21 @@ export const LandingPage = ({
             </Button>
           </motion.div>
 
-          <motion.div
+          {/* <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
             className="hero-image-wrap floating"
           >
             <img src="/Logo.png" alt="Tokki Mascot" className="hero-image" style={{ width: '200px', height: 'auto', objectFit: 'contain' }} />
-          </motion.div>
+          </motion.div> */}
 
           {/* Floating Mascot */}
           <div className="mascot-wrap" style={{ right: '-50px', top: '30%', display: window.innerWidth > 1200 ? 'block' : 'none' }}>
             <motion.img
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.8, type: 'spring' }}
+              transition={{ delay: 0.6, type: 'spring' }}
               src="/homepage_hero.png"
               style={{ width: '280px', height: '280px', objectFit: 'contain' }}
             // className="floating"
