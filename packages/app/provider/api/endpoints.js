@@ -37,7 +37,7 @@ export const ENDPOINTS = {
     INCREASE_VIEW_COUNT: (blogId) => `/Blog/increase-view/${blogId}`,
   },
   QUESTION_TYPE: {
-    GET_ALL: '/QuestionType',
+    GET_ALL: '/QuestionType/admin',
     GET_BY_ID: (id) => `/QuestionType/${id}`,
     CREATE: '/QuestionType',
     UPDATE: (id) => `/QuestionType/${id}`,
@@ -270,6 +270,7 @@ export const ENDPOINTS = {
   },
   EXAMS: {
     ADMIN_LIST: '/Exams/admin',              // GET: Lấy danh sách exams cho admin (query: PageNumber, PageSize, Status, Type)
+    ADMIN_STATS_LIST: '/Exams/admin/stats',   // GET: Lấy danh sách exams với thống kê (admin)
     ADMIN_DETAIL: '/Exams/admin/detail',     // GET: Lấy chi tiết exam cho admin (query: examId)
     ADMIN_STATS: (id) => `/Exams/admin/stats/${id}`, // GET: Lấy thống kê exam
     ADMIN_PARTICIPANTS: (id) => `/Exams/admin/stats/${id}/participants`, // GET: Danh sách người làm bài

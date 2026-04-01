@@ -2,17 +2,43 @@ import { apiClient } from '../../../provider/api/client.js'
 import { ENDPOINTS } from '../../../provider/api/endpoints'
 
 /**
- * Lấy danh sách exams cho admin với phân trang và filter
+ * Lấy danh sách exams với thống kê cho admin với phân trang và filter
  * @param {Object} params - Query parameters
  * @param {number} params.PageNumber - Số trang (mặc định: 1)
  * @param {number} params.PageSize - Số items mỗi trang (mặc định: 20)
  * @param {string} params.SearchTerm - Tìm kiếm theo từ khóa
- * @param {number} params.Status - Filter theo status (0=Draft, 1=Published, 2=Deleted)
- * @param {number} params.Type - Filter theo type (1=TopikI, 2=TopikII, 3=EntranceTest)
+ * @param {number} params.Status - Filter theo status
+ * @param {number} params.Type - Filter theo type
+ * @param {number} params.CreatorFilter - Filter theo người tạo (0=All, 1=AI, 2=Human)
+ * @param {number} params.SortBy - Sắp xếp theo (0=CreatedAt, 1=Participants, 2=PdfDownload, 3=AverageScore)
+ * @param {boolean} params.IsDescending - Sắp xếp giảm dần (mặc định: true)
  * @returns {Promise<Object>} - { items: [], pageNumber, pageSize, totalCount, totalPages, hasNextPage, hasPreviousPage }
  */
 export async function fetchExamsAdmin(params = {}) {
-  const res = await apiClient.get(ENDPOINTS.EXAMS.ADMIN_LIST, { params })
+  const {
+    PageNumber = 1,
+    PageSize = 20,
+    SearchTerm,
+    Status,
+    Type,
+    CreatorFilter,
+    SortBy = 0,
+    IsDescending = true
+  } = params
+
+  const res = await apiClient.get(ENDPOINTS.EXAMS.ADMIN_STATS_LIST, {
+    params: {
+      PageNumber,
+      PageSize,
+      SearchTerm,
+      Status,
+      Type,
+      CreatorFilter,
+      SortBy,
+      IsDescending
+    }
+  })
+  
   const data = res.data?.data || {}
   const items = data?.items || []
   const total = data?.totalCount || 0
@@ -20,8 +46,8 @@ export async function fetchExamsAdmin(params = {}) {
   return {
     items,
     total,
-    pageNumber: data?.pageNumber || params.PageNumber || 1,
-    pageSize: data?.pageSize || params.PageSize || 20,
+    pageNumber: data?.pageNumber || PageNumber,
+    pageSize: data?.pageSize || PageSize,
     totalPages: data?.totalPages || 1,
     hasNextPage: data?.hasNextPage || false,
     hasPreviousPage: data?.hasPreviousPage || false,

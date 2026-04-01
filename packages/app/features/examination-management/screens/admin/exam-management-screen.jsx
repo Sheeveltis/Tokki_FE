@@ -3,9 +3,11 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Space, Tag, Select, Tooltip, Card, Button } from 'antd'
-import { EyeOutlined, FilterOutlined, PlusOutlined } from '@ant-design/icons'
+import { EyeOutlined, FilterOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { message, Modal } from 'antd'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 import { useExamsAdmin } from '../../api/exam-hooks.js'
+import { deleteExam } from '../../api/exam-management.js'
 import CreateExamModal from '../../components/admin/create-exam-modal.jsx'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -26,14 +28,32 @@ const TYPE_MAP = {
   2: 'TOPIK II',
 }
 
+// Map creator filter enum
+const CREATOR_FILTER_MAP = {
+  0: 'Tất cả',
+  1: 'Hệ thống A.I',
+  2: 'Người tạo',
+}
+
+// Map sort by enum
+const SORT_BY_MAP = {
+  0: 'Ngày tạo',
+  1: 'Số người tham gia',
+  2: 'Lượt tải PDF',
+  3: 'Điểm trung bình',
+}
+
 export function ExamManagement({ initialData = null }) {
   const router = useRouter()
   const queryClient = useQueryClient()
-  
+
   const [filters, setFilters] = useManagementFilters({
     search: '',
     status: undefined,
     type: undefined,
+    creatorFilter: 0,
+    sortBy: 0,
+    isDescending: true,
     page: 1,
     size: 20,
   })
@@ -47,6 +67,9 @@ export function ExamManagement({ initialData = null }) {
     SearchTerm: filters.search || undefined,
     Status: filters.status,
     Type: filters.type,
+    CreatorFilter: filters.creatorFilter,
+    SortBy: filters.sortBy,
+    IsDescending: filters.isDescending,
   })
 
   const data = examsData?.items || initialData || []
@@ -83,38 +106,45 @@ export function ExamManagement({ initialData = null }) {
       width: 60,
       render: (_, __, index) => (filters.page - 1) * filters.size + index + 1
     },
-    { 
-      title: 'ID Đề thi', 
-      dataIndex: 'examId', 
-      key: 'examId',
-      width: 120,
-    },
-    { 
-      title: 'Tiêu đề', 
-      dataIndex: 'title', 
+    {
+      title: 'Tiêu đề',
+      dataIndex: 'title',
       key: 'title',
       ellipsis: true,
+      width: 180,
     },
-    { 
-      title: 'Cấu trúc đề', 
-      dataIndex: 'examTemplateName', 
+    {
+      title: 'Cấu trúc đề',
+      dataIndex: 'examTemplateName',
       key: 'examTemplateName',
       ellipsis: true,
+      width: 180,
     },
-    { 
-      title: 'Loại đề', 
-      dataIndex: 'type', 
+    // { 
+    //   title: 'Nguồn tạo', 
+    //   dataIndex: 'creatorType', 
+    //   key: 'creatorType',
+    //   width: 100,
+    //   render: (val) => {
+    //     if (val === 1) return <Tag color="purple">A.I</Tag>
+    //     if (val === 2) return <Tag color="orange">Người tạo</Tag>
+    //     return <Tag color="default">Hệ thống</Tag>
+    //   }
+    // },
+    {
+      title: 'Loại đề',
+      dataIndex: 'type',
       key: 'type',
-      width: 120,
+      width: 100,
       render: (type) => {
         return <Tag color="blue" style={{ fontSize: 12 }}>{TYPE_MAP[type] || type}</Tag>
       }
     },
-    { 
-      title: 'Trạng thái', 
-      dataIndex: 'status', 
+    {
+      title: 'Trạng thái',
+      dataIndex: 'status',
       key: 'status',
-      width: 120,
+      width: 80,
       align: 'center',
       render: (status) => {
         const statusInfo = STATUS_MAP[status] || { color: '#8c8c8c', text: `Status ${status}` }
@@ -139,20 +169,53 @@ export function ExamManagement({ initialData = null }) {
       title: 'Hành động',
       key: 'actions',
       align: 'center',
-      width: 90,
+      width: 120,
       render: (_, record) => (
-        <Tooltip title="Xem chi tiết">
-          <Button
-            type="text"
-            shape="circle"
-            icon={<EyeOutlined style={{ fontSize: 18, color: '#1890ff' }} />}
-            onClick={(e) => {
-              e?.stopPropagation?.()
-              router.push(`/admin/exams/${record.examId}`)
-            }}
-          />
-        </Tooltip>
-      ),
+        <Space size="large">
+          <Tooltip title="Xem chi tiết">
+            <EyeOutlined
+              style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
+              onClick={(e) => {
+                e?.stopPropagation?.()
+                router.push(`/admin/exams/${record.examId}`)
+              }}
+            />
+          </Tooltip>
+          <Tooltip title="Chỉnh sửa">
+            <EditOutlined
+              style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
+              onClick={(e) => {
+                e?.stopPropagation?.()
+                router.push(`/admin/exams/${record.examId}`)
+              }}
+            />
+          </Tooltip>
+          <Tooltip title="Xóa">
+            <DeleteOutlined
+              style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
+              onClick={(e) => {
+                e?.stopPropagation?.()
+                Modal.confirm({
+                  title: 'Xác nhận xóa',
+                  content: `Bạn có chắc chắn muốn xóa đề thi "${record.title}"?`,
+                  okText: 'Xóa',
+                  okType: 'danger',
+                  cancelText: 'Hủy',
+                  onOk: async () => {
+                    try {
+                      await deleteExam(record.examId)
+                      message.success('Xóa đề thi thành công')
+                      queryClient.invalidateQueries({ queryKey: ['exams', 'admin'] })
+                    } catch (error) {
+                      message.error('Lỗi khi xóa đề thi')
+                    }
+                  }
+                })
+              }}
+            />
+          </Tooltip>
+        </Space>
+      )
     },
   ], [filters, router])
 
@@ -205,11 +268,24 @@ export function ExamManagement({ initialData = null }) {
         </Tooltip>
 
         <div style={{ marginTop: 'auto' }}>
-          <div style={{ fontSize: 13, color: '#8c8c8c', marginBottom: 4 }}>
-            {record.examTemplateName}
+          <div style={{ marginBottom: 12, fontSize: 13, color: '#595959' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+              <span>Số người tham gia:</span>
+              <span style={{ fontWeight: 600, color: '#262626' }}>{record.totalParticipants || 0}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+              <span>Tổng số câu hỏi:</span>
+              <span style={{ fontWeight: 600, color: '#262626' }}>{record.totalQuestions || 0}</span>
+            </div>
+            {record.inProgressCount > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span>Đang làm bài:</span>
+                <span style={{ fontWeight: 600, color: '#1890ff' }}>{record.inProgressCount}</span>
+              </div>
+            )}
           </div>
-          <div style={{ fontSize: 12, color: '#bfbfbf' }}>
-            ID: {record.examId}
+          <div style={{ fontSize: 13, color: '#8c8c8c', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {record.examTemplateName}
           </div>
         </div>
       </Card>
@@ -219,27 +295,52 @@ export function ExamManagement({ initialData = null }) {
   const extraFilters = (
     <Space wrap>
       <Select
-        placeholder="Tất cả trạng thái"
         allowClear
-        style={{ width: 160 }}
+        placeholder="Tất cả nguồn"
+        suffixIcon={<FilterOutlined />}
+        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
+        value={filters.creatorFilter}
+        onChange={(val) => handleFilterChange('creatorFilter', val)}
+      >
+        {Object.entries(CREATOR_FILTER_MAP).map(([val, label]) => (
+          <Option key={val} value={Number(val)}>{label}</Option>
+        ))}
+      </Select>
+
+      <Select
+        allowClear
+        placeholder="Tất cả trạng thái"
+        suffixIcon={<FilterOutlined />}
+        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
         value={filters.status}
         onChange={(val) => handleFilterChange('status', val)}
-        suffixIcon={<FilterOutlined />}
       >
         <Option value={0}>Nháp</Option>
         <Option value={1}>Đã xuất bản</Option>
         <Option value={2}>Đã xóa</Option>
       </Select>
+
       <Select
-        placeholder="Loại đề"
         allowClear
-        style={{ width: 160 }}
+        placeholder="Tất cả loại đề"
+        suffixIcon={<FilterOutlined />}
+        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
         value={filters.type}
         onChange={(val) => handleFilterChange('type', val)}
-        suffixIcon={<FilterOutlined />}
       >
         <Option value={1}>TOPIK I</Option>
         <Option value={2}>TOPIK II</Option>
+      </Select>
+
+      <Select
+        placeholder="Sắp xếp theo"
+        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
+        value={filters.sortBy}
+        onChange={(val) => handleFilterChange('sortBy', val)}
+      >
+        {Object.entries(SORT_BY_MAP).map(([val, label]) => (
+          <Option key={val} value={Number(val)}>{label}</Option>
+        ))}
       </Select>
     </Space>
   )
