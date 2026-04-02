@@ -143,53 +143,55 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
 
   const columns = useMemo(() => [
     {
-      title: () => (
-        <Tooltip title="Số thứ tự">
-          <span>STT</span>
-        </Tooltip>
-      ),
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>STT</span>,
       key: 'stt',
       align: 'center',
-      width: 60,
-      render: (_, __, index) => (filters.page - 1) * filters.size + index + 1,
+      width: '5%',
+      render: (_, __, index) => (
+        <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>
+          {(filters.page - 1) * filters.size + index + 1}
+        </span>
+      ),
     },
     {
-      title: 'Code',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Code</span>,
       dataIndex: 'code',
       key: 'code',
-      width: 120,
+      width: '10%',
+      render: (text) => <Text style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>{text}</Text>
     },
     {
-      title: 'Tên loại câu hỏi',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Tên loại câu hỏi</span>,
       dataIndex: 'name',
       key: 'name',
-      width: 250,
+      width: '25%',
+      render: (text) => <Text strong style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>{text}</Text>
     },
     {
-      title: 'Kỹ năng',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Kỹ năng</span>,
       dataIndex: 'skill',
       key: 'skill',
-      width: 120,
+      width: '15%',
       render: (skill) => {
         const skillMap = { 1: 'Nghe', 2: 'Đọc', 3: 'Viết' }
-        return <span>{skillMap[skill] || skill}</span>
+        return <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>{skillMap[skill] || skill}</span>
       },
     },
     {
-      title: 'Mức độ',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Mức độ</span>,
       dataIndex: 'difficulty',
       key: 'difficulty',
-      width: 120,
+      width: '15%',
       render: (difficulty) => {
         const difficultyMap = { 1: 'Dễ', 2: 'Trung bình', 3: 'Khó', 4: 'Rất khó' }
-        return <span>{difficultyMap[difficulty] || difficulty}</span>
+        return <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>{difficultyMap[difficulty] || difficulty}</span>
       },
     },
     {
-      title: 'Trạng thái',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Trạng thái</span>,
       dataIndex: 'isActive',
       key: 'isActive',
-      width: 120,
+      width: '12%',
       align: 'center',
       render: (isActive) => {
         const color = isActive ? '#52c41a' : '#8c8c8c'
@@ -197,8 +199,8 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
           <Tooltip title={isActive ? 'Hoạt động' : 'Tạm ẩn'} color={color} placement="top">
             <div
               style={{
-                width: 14,
-                height: 14,
+                width: 'clamp(14px, 1.1vw, 18px)',
+                height: 'clamp(14px, 1.1vw, 18px)',
                 borderRadius: '50%',
                 backgroundColor: color,
                 margin: '0 auto',
@@ -211,15 +213,15 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
       },
     },
     {
-      title: 'Hành động',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Hành động</span>,
       key: 'actions',
       align: 'center',
-      width: 120,
+      width: '13%',
       render: (_, record) => (
         <Space size="large">
           <Tooltip title="Xem chi tiết">
             <EyeOutlined
-              style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
+              style={{ fontSize: 'clamp(18px, 1.4vw, 22px)', cursor: 'pointer', color: '#1890ff' }}
               onClick={(e) => {
                 e?.stopPropagation?.()
                 router.push(`${basePath}/question-type/${record.questionTypeId}`)
@@ -228,7 +230,7 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
           </Tooltip>
           <Tooltip title="Chỉnh sửa">
             <EditOutlined
-              style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
+              style={{ fontSize: 'clamp(18px, 1.4vw, 22px)', cursor: 'pointer', color: '#1890ff' }}
               onClick={(e) => {
                 e?.stopPropagation?.()
                 router.push(`${basePath}/question-type/${record.questionTypeId}`)
@@ -245,7 +247,7 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
       <Select
         placeholder="Tất cả kỹ năng"
         allowClear
-        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
+        style={{ width: 'clamp(140px, 12vw, 180px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
         value={filters.skill}
         onChange={(val) => handleFilterChange('skill', val)}
         suffixIcon={<FilterOutlined />}
@@ -258,7 +260,7 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
       <Select
         placeholder="Tất cả mức độ"
         allowClear
-        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
+        style={{ width: 'clamp(140px, 12vw, 180px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
         value={filters.difficulty}
         onChange={(val) => handleFilterChange('difficulty', val)}
         suffixIcon={<FilterOutlined />}
@@ -272,7 +274,7 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
       <Select
         placeholder="Tất cả loại đề"
         allowClear
-        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
+        style={{ width: 'clamp(140px, 12vw, 180px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
         value={filters.examType}
         onChange={(val) => handleFilterChange('examType', val)}
         suffixIcon={<FilterOutlined />}

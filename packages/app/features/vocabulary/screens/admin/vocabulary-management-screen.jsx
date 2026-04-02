@@ -241,15 +241,15 @@ export function VocabularyManagement({ initialData = null }) {
 
   const columns = useMemo(() => [
     {
-      title: () => (
-        <Tooltip title="Số thứ tự">
-          <span>STT</span>
-        </Tooltip>
-      ),
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>STT</span>,
       key: 'stt',
       align: 'center',
-      width: 70,
-      render: (_, __, index) => (filters.page - 1) * filters.size + index + 1,
+      width: '5%',
+      render: (_, __, index) => (
+        <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>
+          {(filters.page - 1) * filters.size + index + 1}
+        </span>
+      ),
     },
     // {
     //   title: () => (
@@ -263,35 +263,28 @@ export function VocabularyManagement({ initialData = null }) {
     //   render: (_, record) => record.vocabularyId || record.id || '-',
     // },
     {
-      title: () => (
-        <Tooltip title="Từ vựng tiếng Hàn">
-          <span>Từ vựng (Tiếng Hàn)</span>
-        </Tooltip>
-      ),
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Từ vựng (Tiếng Hàn)</span>,
       key: 'text',
-      width: 250,
+      width: '30%',
       render: (_, record) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <span style={{ fontWeight: 'bold', fontSize: 18, color: '#262626' }}>{record.text}</span>
-          <span style={{ color: '#8c8c8c', fontSize: 13, fontWeight: 'normal' }}>{record.pronunciation}</span>
+          <span style={{ fontWeight: 'bold', fontSize: 'clamp(16px, 1.25vw, 20px)', color: '#262626' }}>{record.text}</span>
+          <span style={{ color: '#8c8c8c', fontSize: 'clamp(12px, 0.9vw, 14px)', fontWeight: 'normal' }}>{record.pronunciation}</span>
         </div>
       ),
     },
     {
-      title: () => (
-        <Tooltip title="Nghĩa tiếng Việt">
-          <span>Ý nghĩa / Định nghĩa</span>
-        </Tooltip>
-      ),
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Ý nghĩa / Định nghĩa</span>,
       dataIndex: 'definition',
       key: 'definition',
-      width: 250,
+      width: '25%',
+      render: (text) => <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>{text}</span>
     },
     {
-      title: 'Trạng thái',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Trạng thái</span>,
       dataIndex: 'status',
       key: 'status',
-      width: 120,
+      width: '15%',
       align: 'center',
       render: (status) => {
         const statusMap = {
@@ -304,8 +297,8 @@ export function VocabularyManagement({ initialData = null }) {
           <Tooltip title={statusInfo.label} color={statusInfo.color} placement="top">
             <div
               style={{
-                width: 14,
-                height: 14,
+                width: 'clamp(14px, 1.1vw, 18px)',
+                height: 'clamp(14px, 1.1vw, 18px)',
                 borderRadius: '50%',
                 backgroundColor: statusInfo.color,
                 margin: '0 auto',
@@ -318,13 +311,13 @@ export function VocabularyManagement({ initialData = null }) {
       },
     },
     {
-      title: 'Hành động',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Hành động</span>,
       key: 'actions',
       align: 'center',
-      width: 160,
+      width: '25%',
       render: (_, record) => {
         const vocabId = record.vocabularyId || record.id
-        const iconStyle = { fontSize: 18, cursor: 'pointer', color: '#1890ff' }
+        const iconStyle = { fontSize: 'clamp(18px, 1.4vw, 22px)', cursor: 'pointer', color: '#1890ff' }
         return (
           <Space size="large">
             <Tooltip title="Xem chi tiết">
@@ -397,7 +390,7 @@ export function VocabularyManagement({ initialData = null }) {
         allowClear
         placeholder="Lọc theo trạng thái"
         suffixIcon={<FilterOutlined />}
-        style={{ width: 180 }}
+        style={{ width: 'clamp(160px, 14vw, 220px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
         value={filters.status}
         onChange={(val) => handleFilterChange('status', val)}
         options={STATUS_OPTIONS.map((option) => ({ value: option.value, label: option.label }))}

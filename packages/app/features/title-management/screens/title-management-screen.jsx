@@ -91,97 +91,116 @@ export function TitleManagementScreen() {
     const iconStyle = { fontSize: 18, cursor: 'pointer', color: '#1890ff' }
     return [
       {
-        title: 'STT',
+        title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>STT</span>,
         key: 'stt',
         align: 'center',
-        width: 60,
-        render: (_, __, index) => (filters.page - 1) * filters.size + index + 1
+        width: '5%',
+        render: (_, __, index) => (
+          <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>
+            {(filters.page - 1) * filters.size + index + 1}
+          </span>
+        )
       },
       {
-        title: 'Icon',
+        title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Icon</span>,
         dataIndex: 'iconUrl',
         key: 'iconUrl',
-        width: 80,
+        width: '10%',
         align: 'center',
         render: (val) =>
           val ? (
             <img
               src={val}
               alt="icon"
-              style={{ width: 40, height: 40, objectFit: 'contain', borderRadius: 4, border: '1px solid #f0f0f0' }}
+              style={{ 
+                width: 'clamp(40px, 4vw, 60px)', 
+                height: 'clamp(40px, 4vw, 60px)', 
+                objectFit: 'contain', 
+                borderRadius: 8, 
+                border: '1px solid #f0f0f0' 
+              }}
             />
           ) : (
-            <div style={{ width: 40, height: 40, backgroundColor: '#f5f5f5', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>-</div>
+            <div style={{ 
+              width: 'clamp(40px, 4vw, 60px)', 
+              height: 'clamp(40px, 4vw, 60px)', 
+              backgroundColor: '#f5f5f5', 
+              borderRadius: 8, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              margin: '0 auto' 
+            }}>-</div>
           ),
       },
       {
-        title: 'Tên danh hiệu',
+        title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Tên danh hiệu</span>,
         dataIndex: 'name',
         key: 'name',
-        width: 250,
-        render: (val, record) => <Text strong>{val ?? record?.titleName ?? record?.TitleName ?? '-'}</Text>,
+        width: '20%',
+        render: (val, record) => <Text strong style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>{val ?? record?.titleName ?? record?.TitleName ?? '-'}</Text>,
       },
       {
-        title: 'Mô tả',
+        title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Mô tả</span>,
         dataIndex: 'description',
         key: 'description',
-        render: (val) => <Text type="secondary">{val || '-'}</Text>,
+        render: (val) => <Text type="secondary" style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>{val || '-'}</Text>,
       },
       {
-        title: 'Điều kiện nhận',
+        title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Điều kiện nhận</span>,
         key: 'requirement',
-        width: 180,
+        width: '15%',
         render: (_, record) => {
           const type = record?.requirementType ?? 0
           const quant = record?.requirementQuantity ?? 0
           const cfg = REQUIREMENT_TYPE_CONFIG[type]
           return (
             <Space direction="vertical" size={0}>
-              <Text style={{ fontSize: 12, color: cfg?.color }}>{cfg?.label}</Text>
-              <Text strong>{quant?.toLocaleString()} {type === 0 ? 'Lv' : type === 1 ? 'XP' : 'Ngày'}</Text>
+              <Text style={{ fontSize: 'clamp(11px, 0.9vw, 13px)', color: cfg?.color }}>{cfg?.label}</Text>
+              <Text strong style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>{quant?.toLocaleString()} {type === 0 ? 'Lv' : type === 1 ? 'XP' : 'Ngày'}</Text>
             </Space>
           )
         },
       },
       {
-        title: 'Màu sắc',
+        title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Màu sắc</span>,
         dataIndex: 'colorHex',
         key: 'colorHex',
-        width: 120,
+        width: '12%',
         align: 'center',
         render: (val) =>
           val ? (
             <Space size={6}>
               <div
                 style={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: 4,
+                  width: 'clamp(16px, 1.2vw, 22px)',
+                  height: 'clamp(16px, 1.2vw, 22px)',
+                  borderRadius: 6,
                   backgroundColor: val,
                   border: '1px solid #d9d9d9',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
                 }}
               />
-              <Text code>{val.toUpperCase()}</Text>
+              <Text code style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>{val.toUpperCase()}</Text>
             </Space>
           ) : (
             '-'
           ),
       },
       {
-        title: 'Trạng thái',
+        title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Trạng thái</span>,
         dataIndex: 'status',
         key: 'status',
         align: 'center',
-        width: 100,
+        width: '12%',
         render: (val) => {
           const cfg = STATUS_CONFIG[Number(val)] || STATUS_CONFIG[0]
           return (
             <Tooltip title={cfg.label} color={cfg.color} placement="top">
               <div
                 style={{
-                  width: 14,
-                  height: 14,
+                  width: 'clamp(14px, 1.2vw, 18px)',
+                  height: 'clamp(14px, 1.2vw, 18px)',
                   borderRadius: '50%',
                   backgroundColor: cfg.color,
                   margin: '0 auto',
@@ -194,15 +213,15 @@ export function TitleManagementScreen() {
         },
       },
       {
-        title: 'Hành động',
+        title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Hành động</span>,
         key: 'action',
-        width: 120,
+        width: '15%',
         align: 'center',
         render: (_, record) => (
           <Space size="large">
             <Tooltip title="Chỉnh sửa">
               <EditOutlined
-                style={iconStyle}
+                style={{ ...iconStyle, fontSize: 'clamp(18px, 1.4vw, 22px)' }}
                 onClick={() => {
                   setSelectedTitle(record)
                   setUpdateOpen(true)
@@ -211,7 +230,7 @@ export function TitleManagementScreen() {
             </Tooltip>
             <Tooltip title="Xóa">
               <DeleteOutlined
-                style={{ ...iconStyle, color: '#ff4d4f' }}
+                style={{ ...iconStyle, color: '#ff4d4f', fontSize: 'clamp(18px, 1.4vw, 22px)' }}
                 loading={deletingId === (record?.titleId || record?.id || record?.TitleId)}
                 onClick={() => {
                   showDeleteTitleConfirm({
@@ -343,7 +362,7 @@ export function TitleManagementScreen() {
         allowClear
         placeholder="Lọc điều kiện"
         suffixIcon={<FilterOutlined />}
-        style={{ width: 180, height: 32, borderRadius: 16, fontSize: 13 }}
+        style={{ width: 'clamp(140px, 12vw, 200px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
         value={filters.requirementType}
         onChange={(val) => handleFilterChange('requirementType', val)}
         options={Object.entries(REQUIREMENT_TYPE_CONFIG).map(([val, cfg]) => ({
@@ -355,7 +374,7 @@ export function TitleManagementScreen() {
         allowClear
         placeholder="Lọc trạng thái"
         suffixIcon={<FilterOutlined />}
-        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
+        style={{ width: 'clamp(140px, 12vw, 180px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
         value={filters.status}
         onChange={(val) => handleFilterChange('status', val)}
         options={Object.entries(STATUS_CONFIG).map(([val, cfg]) => ({
