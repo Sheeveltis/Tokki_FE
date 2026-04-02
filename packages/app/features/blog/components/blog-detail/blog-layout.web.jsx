@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   scrollContent: { alignItems: 'center', paddingVertical: 20 },
   wrapper: { 
     width: '100%', 
-    maxWidth: 1200, 
+    maxWidth: 1400, 
     paddingHorizontal: 16, 
     flexDirection: 'row', 
     gap: 40,
