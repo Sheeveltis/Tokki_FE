@@ -16,7 +16,9 @@ export function StudyLayoutSynchronized({
   showSidebar = true,
   headerBadge = "HỆ THỐNG HỌC TẬP",
   headerActions,
-  sidebarActions
+  sidebarActions,
+  hideHero = false,
+  contentContainerStyle
 }) {
   return (
     <View style={styles.wrapper}>
@@ -34,32 +36,34 @@ export function StudyLayoutSynchronized({
           </View>
 
           {/* Hero Header Section */}
-          <View style={styles.heroSection}>
-            <View style={styles.headerTop}>
-              <View style={styles.headerText}>
-                <View style={styles.badgeRow}>
-                  {/* <View style={styles.phaseBadge}>
-                    <Text style={styles.phaseBadgeText}>{headerBadge}</Text>
-                  </View> */}
-                  {/* {levelId && (
-                    <View style={[styles.levelBadge, { backgroundColor: '#FF6B6B' }]}>
-                      <Text style={styles.levelBadgeText}>Level {levelId}</Text>
-                    </View>
-                  )} */}
+          {!hideHero && (
+            <View style={styles.heroSection}>
+              <View style={styles.headerTop}>
+                <View style={styles.headerText}>
+                  <View style={styles.badgeRow}>
+                    {/* <View style={styles.phaseBadge}>
+                      <Text style={styles.phaseBadgeText}>{headerBadge}</Text>
+                    </View> */}
+                    {/* {levelId && (
+                      <View style={[styles.levelBadge, { backgroundColor: '#FF6B6B' }]}>
+                        <Text style={styles.levelBadgeText}>Level {levelId}</Text>
+                      </View>
+                    )} */}
+                  </View>
+                  <View style={styles.heroTitleRow}>
+                    <Text style={styles.mainTitle}>{title}</Text>
+                  </View>
+                  <Text style={styles.subtitle}>{subtitle}</Text>
                 </View>
-                <View style={styles.heroTitleRow}>
-                  <Text style={styles.mainTitle}>{title}</Text>
-                </View>
-                <Text style={styles.subtitle}>{subtitle}</Text>
-              </View>
 
-              {headerActions && (
-                <View style={styles.headerActions}>
-                  {headerActions}
-                </View>
-              )}
+                {headerActions && (
+                  <View style={styles.headerActions}>
+                    {headerActions}
+                  </View>
+                )}
+              </View>
             </View>
-          </View>
+          )}
 
           {/* Main Dashboard - Sidebar Layout */}
           <View style={styles.dashboardContainer}>
@@ -80,7 +84,7 @@ export function StudyLayoutSynchronized({
               <ScrollView
                 style={styles.contentCardScroll}
                 showsVerticalScrollIndicator={true}
-                contentContainerStyle={styles.contentCardInner}
+                contentContainerStyle={[styles.contentCardInner, contentContainerStyle]}
               >
                 {children}
               </ScrollView>

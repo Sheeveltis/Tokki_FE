@@ -125,14 +125,14 @@ export function FlashcardFirstLearnMain({
                   <RNImage
                     source={normalizeImageSource(current.imageUrl)}
                     style={styles.flipImage}
-                    resizeMode="cover"
+                    resizeMode="contain"
                   />
                 ) : null}
                 <Text style={styles.flipMeaning}>{current.meaning || ''}</Text>
               </View>
             }
             width="100%"
-            height={500}
+            height={Platform.OS === 'web' ? '60vh' : 500}
             frontColor="#79964E"
             backColor="#79964E"
             borderWidth={12}
@@ -277,7 +277,7 @@ export function FlashcardFirstLearnMain({
   }
 
   return (
-    <>
+    <View style={styles.mainWrapper}>
       <View style={styles.statsRow}>
         <View style={styles.progressSection}>
           <View style={styles.progressBar}>
@@ -345,18 +345,25 @@ export function FlashcardFirstLearnMain({
           </View>
         </View>
       </Modal>
-    </>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  mainWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    paddingBottom: 20,
+  },
   statsRow: {
     width: '100%',
+    maxWidth: '80vh',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 24,
-    marginBottom: 10,
+    justifyContent: 'center',
+    marginBottom: 20,
     paddingHorizontal: 4,
   },
   progressSection: {
@@ -380,10 +387,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#999',
     fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
   },
   flipCardWrapper: {
     width: '100%',
-    maxWidth: 720,
+    maxWidth: '80vh',
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -398,7 +406,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   flipWord: {
-    fontSize: 34,
+    fontSize: 'min(5vw, 34px)',
     fontWeight: '900',
     color: '#FFFFFF',
     textAlign: 'center',
@@ -421,8 +429,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   flipImage: {
-    width: 400,
-    height: 300,
+    width: '100%',
+    height: '100%',
+    maxHeight: '40vh',
     borderRadius: 8,
   },
   flipMeaning: {
@@ -473,13 +482,15 @@ const styles = StyleSheet.create({
   practiceBox: {
     width: '100%',
     maxWidth: 720,
-    height: 500,
+    height: 'auto',
+    minHeight: '50vh',
+    maxHeight: '70vh',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
+    gap: 20,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 24,
+    padding: 32,
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
@@ -548,25 +559,28 @@ const styles = StyleSheet.create({
   resultBox: {
     width: '100%',
     maxWidth: 720,
-    height: 500,
-    gap: 12,
+    height: 'auto',
+    minHeight: '50vh',
+    maxHeight: '70vh',
+    gap: 16,
     alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 16,
-    padding: 24,
+    padding: 32,
   },
   resultBoxCorrect: {
-    backgroundColor: '#23ac38',
+    backgroundColor: '#2FB96B',
   },
   resultBoxWrong: {
-    backgroundColor: '#eb5757',
+    backgroundColor: '#CF4B4B',
   },
   resultBadge: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
   },
-  resultCorrect: { backgroundColor: '#23ac38' },
-  resultWrong: { backgroundColor: '#eb5757' },
+  resultCorrect: { backgroundColor: '#2FB96B' },
+  resultWrong: { backgroundColor: '#CF4B4B' },
   resultBadgeText: { fontSize: 15, fontWeight: '800', color: '#1F1F1F' },
   resultContent: { width: '100%', gap: 6, alignItems: 'center' },
   resultHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -581,6 +595,11 @@ const styles = StyleSheet.create({
   },
   wrongLabel: { fontSize: 13, fontWeight: '700', color: '#FFFFFF' },
   wrongText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  stepContainer: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   resultTextOnColor: {
     color: '#FFFFFF',
   },
