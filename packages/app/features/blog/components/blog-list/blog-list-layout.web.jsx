@@ -192,6 +192,33 @@ export function BlogListLayout({ blogs = [], loading = false, hasMore = false, o
           transform: translateY(-2px);
           box-shadow: 0 8px 24px rgba(241,190,75,0.35);
         }
+        .blg-hero-author {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 20px;
+        }
+        .blg-hero-avatar {
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 2px solid rgba(255,255,255,0.4);
+          flex-shrink: 0;
+        }
+        .blg-hero-author-name {
+          font-size: 14px;
+          font-weight: 700;
+          color: #fff;
+          display: block;
+          font-family: 'Epilogue', sans-serif;
+        }
+        .blg-hero-author-date {
+          font-size: 12px;
+          color: rgba(255,255,255,0.65);
+          font-weight: 500;
+          font-family: 'Epilogue', sans-serif;
+        }
 
         /* ── FILTER BAR ── */
         .blg-filter-bar {
@@ -425,6 +452,25 @@ export function BlogListLayout({ blogs = [], loading = false, hasMore = false, o
                 <p className="blg-hero-desc">
                   {featuredBlog.shortDescription.slice(0, 140)}{featuredBlog.shortDescription.length > 140 ? '...' : ''}
                 </p>
+              )}
+              {/* Author row */}
+              {featuredBlog.author && (
+                <div className="blg-hero-author">
+                  <img
+                    className="blg-hero-avatar"
+                    src={featuredBlog.author.avatarUrl || 'https://api.dicebear.com/7.x/thumbs/svg?seed=tokki'}
+                    alt={featuredBlog.author.fullName}
+                    onError={e => { e.currentTarget.src = 'https://api.dicebear.com/7.x/thumbs/svg?seed=tokki' }}
+                  />
+                  <div>
+                    <span className="blg-hero-author-name">{featuredBlog.author.fullName}</span>
+                    <span className="blg-hero-author-date">
+                      {featuredBlog.createdAt
+                        ? new Date(featuredBlog.createdAt).toLocaleDateString('vi-VN', { day: '2-digit', month: 'long', year: 'numeric' })
+                        : ''}
+                    </span>
+                  </div>
+                </div>
               )}
               <button className="blg-hero-read-btn">
                 Đọc ngay <ArrowRightOutlined />
