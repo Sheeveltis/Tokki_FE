@@ -66,7 +66,7 @@ export function BlogListLayout({ blogs = [], loading = false, hasMore = false, o
       <style dangerouslySetInnerHTML={{
         __html: `
         .blog-list-container {
-          font-family: 'Plus Jakarta Sans', sans-serif !important;
+          font-family: 'Epilogue', sans-serif;
           background: linear-gradient(180deg, #FEF7E6 0%, #FFFFFF 300px);
         }
         .section-tag {
@@ -91,15 +91,7 @@ export function BlogListLayout({ blogs = [], loading = false, hasMore = false, o
 
       {/* Hero Header - Roadmap Style */}
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 24px 32px' }}>
-        <style dangerouslySetInnerHTML={{
-          __html: `
-          @import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700;800;900&display=swap');
-          .roadmap-style-header {
-            font-family: 'Epilogue', sans-serif !important;
-          }
-          `
-        }} />
-        <div className="roadmap-style-header">
+        <div className="roadmap-style-header" style={{ fontFamily: 'Epilogue, sans-serif' }}>
           {/* Breadcrumb */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <Text style={{ fontSize: '13px', color: '#999', fontWeight: '500', fontFamily: 'inherit' }}>Học tập</Text>

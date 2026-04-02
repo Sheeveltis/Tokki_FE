@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 40,
     fontWeight: '900',
-    color: '#D4A232',
+    color: '#F1BE4B',
     fontFamily: 'Epilogue, sans-serif',
     letterSpacing: -2,
     ...(Platform.OS === 'web' && {
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
   navLabel: {
     fontSize: 11,
     color: '#6A5634',
-    fontWeight: '600',
+    fontWeight: '500',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
     ...(Platform.OS === 'web' && {
