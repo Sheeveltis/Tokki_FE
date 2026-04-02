@@ -135,7 +135,10 @@ export function LearnScreen({
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
 
   return (
-    <Layout>
+    <Layout
+      levelId={route?.params?.levelId || 1}
+      onBackPress={handleBackPress}
+    >
       <Main
         title={title}
         current={current}

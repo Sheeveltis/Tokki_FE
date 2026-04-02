@@ -6,6 +6,7 @@ import { Card, Space, Typography, Descriptions, Spin, Alert, message, Button } f
 import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
 import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web.jsx'
 import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
+import { ArrowLeftOutlined } from '@ant-design/icons'
 import {
   fetchUsers,
   fetchLessons,
@@ -131,8 +132,10 @@ export function LessonDetailScreen() {
         <div style={{ padding: 24 }}>
           <Alert type="error" message="Lỗi" description={error} />
           <Button
+            type="primary"
+            icon={<ArrowLeftOutlined />}
             onClick={() => router.back()}
-            style={{ marginTop: 10, height: 'auto', padding: '8px 24px' }}
+            style={{ marginTop: 10, borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
           >
             Quay lại
           </Button>
@@ -145,8 +148,10 @@ export function LessonDetailScreen() {
         <div style={{ padding: 24 }}>
           <Alert type="warning" message="Không tìm thấy bài học" />
           <Button
+            type="primary"
+            icon={<ArrowLeftOutlined />}
             onClick={() => router.back()}
-            style={{ marginTop: 12, height: 'auto', padding: '8px 24px' }}
+            style={{ marginTop: 12, borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
           >
             Quay lại danh sách
           </Button>
@@ -166,8 +171,10 @@ export function LessonDetailScreen() {
             </div>
             <Space>
               <Button
+                type="primary"
+                icon={<ArrowLeftOutlined />}
                 onClick={() => router.back()}
-                style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#BCD0CA', borderColor: '#BCD0CA', color: '#373039' }}
+                style={{ borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600, backgroundColor: '#BCD0CA', borderColor: '#BCD0CA', color: '#373039' }}
               >
                 Quay lại
               </Button>

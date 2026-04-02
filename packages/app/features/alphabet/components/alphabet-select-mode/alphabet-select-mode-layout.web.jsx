@@ -8,7 +8,6 @@ import { Navbar } from '../../../../../components/navbar'
 export function AlphabetSelectModeLayout({ children }) {
   return (
     <View style={styles.root}>
-      <Navbar />
       <View style={styles.contentWrapper}>
         {children}
       </View>

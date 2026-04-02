@@ -2,6 +2,20 @@ import ChatboxIcon from 'assets/icon/icon-mainflow/chatbox.svg'
 import AIIcon from 'assets/icon/icon-mainflow/ai.svg'
 import FolderIcon from 'assets/icon/icon-mainflow/folder.svg'
 import GameIcon from 'assets/icon/icon-mainflow/game.svg'
+import MicroIcon from 'assets/icon/icon-mainflow/micro.svg'
+import BulbIcon from 'assets/icon/icon-mainflow/bulb.svg'
+import BookIcon from 'assets/icon/icon-mainflow/bookandsky.svg'
+import GrammarIcon from 'assets/icon/icon-mainflow/grammar.svg'
+import WriteIcon from 'assets/icon/icon-mainflow/write.svg'
+import LocateIcon from 'assets/icon/icon-mainflow/locate.svg'
+import StarIcon from 'assets/icon/icon-mainflow/star.svg'
+import AppFolderIcon from 'assets/icon/navigate-app/folder.svg'
+import GameCardIcon from 'assets/icon/icon-mainflow/game-card.svg'
+import NotebookIcon from 'assets/icon/icon-roadmap/notebook-1-svgrepo-com.svg'
+import Mic2Icon from 'assets/icon/icon-mainflow/microphone-2-svgrepo-com.svg'
+import LightbulbIcon from 'assets/icon/icon-roadmap/lightbulb-minimalistic-svgrepo-com.svg'
+import RoadmapIcon from 'assets/icon/navigate-app/roadmap.svg'
+import { ReadOutlined, FormOutlined } from '@ant-design/icons'
 
 export { FLASHCARD_TOPICS, FLASHCARDS } from '../vocabulary/mockData'
 
@@ -45,23 +59,47 @@ export const ALPHABET_LETTERS = [
 /**
  * Mock data cho skill modules
  */
+/**
+ * Mock data cho skill modules
+ */
 export const SKILL_MODULES = [
   {
-    id: 'speaking',
-    title: 'NÓI',
-    icon: ChatboxIcon,
+    id: 'vocabulary',
+    title: 'HÀNH TRÌNH TỪ VỰNG',
+    backgroundColor: '#FFF5EB',
+    primaryColor: '#FF9F43', // Cam đào
+    borderColor: '#FFE8D1',
+    icon: FolderIcon,
     items: [
-      { label: 'Luyện nói với A.I', icon: AIIcon },
+      { label: 'Học từ vựng theo chủ đề', icon: AppFolderIcon, route: 'topics' },
+      { label: 'Minigame từ vựng', icon: GameCardIcon, route: 'minigame' },
+      { label: 'Ôn tập từ vựng đã học', icon: NotebookIcon, route: 'learned' },
     ],
   },
   {
-    id: 'vocabulary',
-    title: 'TỪ VỰNG',
-    icon: FolderIcon,
+    id: 'skills',
+    title: 'RÈN LUYỆN KỸ NĂNG',
+    backgroundColor: '#F0EFFF',
+    primaryColor: '#4834D4', // Xanh tím nhẹ
+    borderColor: '#E1DFFF',
+    icon: ChatboxIcon,
     items: [
-      { label: 'Chủ đề', icon: FolderIcon },
-      { label: 'Minigame', icon: GameIcon },
+      { label: 'Luyện phát âm với AI', icon: Mic2Icon, route: 'pronunciation' },
+      { label: 'Học bảng chữ cái cho người mới', icon: LightbulbIcon, route: 'alphabet' },
+      { label: 'Học lộ trình (Roadmap)', icon: RoadmapIcon, route: 'roadmap' },
     ],
   },
+  {
+    id: 'topik',
+    title: 'LUYỆN THI TOPIK',
+    backgroundColor: '#EBFAEF',
+    primaryColor: '#20BF6B', // Xanh lá ngọc
+    borderColor: '#D4F5DE',
+    icon: BookIcon,
+    items: [
+      { label: 'Học TOPIK theo dạng', icon: ReadOutlined, route: 'topik-type' },
+      { label: 'Giải đề TOPIK', icon: FormOutlined, route: 'topik-exam' },
+    ],
+  }
 ]
 

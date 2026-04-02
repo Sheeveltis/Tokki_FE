@@ -331,10 +331,17 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#D0D0D0',
     gap: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 2 },
+      }
+    })
   },
   keyboardRow: {
     flexDirection: 'row',
@@ -357,24 +364,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#D0D0D0',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
     shadowOffset: { width: 0, height: 1 },
     position: 'relative',
-    ...(Platform.OS === 'web' && {
-      cursor: 'pointer',
-      transition: 'all 0.15s',
-      userSelect: 'none',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+        cursor: 'pointer',
+        transition: 'all 0.15s',
+        userSelect: 'none',
+      },
     }),
   },
   keyButtonPressed: {
     backgroundColor: '#F1BE4B',
     borderColor: '#E5A93D',
     transform: [{ scale: 0.95 }],
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+      },
+      default: {
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 2 },
+      }
+    })
   },
   keyTextMain: {
     fontSize: 22,

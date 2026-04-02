@@ -25,7 +25,7 @@ if (Platform.OS !== 'web') {
 }
 import { TextInput } from '../../../../../components/textInput'
 import { Button } from '../../../../../components/button'
-import { login, loginWithGoogle } from '../../api'
+import { loginUser, loginWithGoogle, checkDailyTitles } from '../../api'
 import { setAuthToken, clearAuthToken } from '../../../../provider/api/client'
 import { heartbeatService } from '../shared/heartbeat-service'
 import { showApiNotification } from '../../utils/notification'
@@ -164,7 +164,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
 
     try {
       // Gọi API login (toàn bộ xử lý lỗi network / format response nằm trong tầng API)
-      const response = await login({ email, password, rememberMe })
+      const response = await loginUser({ email, password, rememberMe })
 
       // Lưu response để hiển thị HelperAdmin
       setApiResponse(response)
@@ -194,6 +194,9 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
         // setAuthToken đã tự động mã hóa và lưu vào storage, không cần gọi setToken nữa
         await setAuthToken(token)
 
+        // Kiểm tra danh hiệu hàng ngày sau khi đăng nhập thành công
+        checkDailyTitles()
+
         // Lưu hoặc xóa thông tin ghi nhớ đăng nhập
         if (rememberMe) {
           await setStorageItem('rememberedEmail', email)
@@ -222,7 +225,14 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
         // Web: chuyển đến homepage (dùng solito router)
         setTimeout(() => {
           if (Platform.OS === 'web') {
-            router.push('/menu-study?level=1')
+            // Kiểm tra redirect query param
+            const searchParams = new URLSearchParams(window.location.search);
+            const redirectPath = searchParams.get('redirect');
+            if (redirectPath) {
+              router.push(redirectPath);
+            } else {
+              router.push('/study');
+            }
           } else {
             // Trên native, dùng React Navigation
             if (navigation) {
@@ -347,10 +357,19 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
               }
 
               await setAuthToken(token)
+              
+              // Kiểm tra danh hiệu hàng ngày sau khi đăng nhập thành công
+              checkDailyTitles()
               heartbeatService.start()
 
               setTimeout(() => {
-                router.push('/menu-study?level=1')
+                const searchParams = new URLSearchParams(window.location.search);
+                const redirectPath = searchParams.get('redirect');
+                if (redirectPath) {
+                  router.push(redirectPath);
+                } else {
+                  router.push('/study');
+                }
               }, 500)
             } else {
               await clearAuthToken()

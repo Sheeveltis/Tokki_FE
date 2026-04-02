@@ -1,5 +1,6 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { CameraFilled } from '@ant-design/icons'
 
 import UserIcon from '../../../../../../assets/user.png'
 
@@ -12,13 +13,12 @@ const normalizeImageSource = (src) => {
 }
 
 const MOCK_USER = {
-  name: 'Phạm Quý',
-  phone: '0368182797',
   avatar: UserIcon,
 }
 
-export function UserAvatarCard({ user = MOCK_USER, onAvatarPress }) {
+export function UserAvatarCard({ user = MOCK_USER, onAvatarPress, style }) {
   const fileInputRef = useRef(null)
+  const [isHovered, setIsHovered] = useState(false)
 
   const handleAvatarPress = () => {
     if (!onAvatarPress) return
@@ -48,10 +48,26 @@ export function UserAvatarCard({ user = MOCK_USER, onAvatarPress }) {
   }
 
   return (
-    <View style={styles.card}>
-      <Pressable onPress={handleAvatarPress} style={styles.avatarPressable}>
+    <View style={[styles.card, style]}>
+      <Text style={styles.cardTitle}>Ảnh đại diện</Text>
+      <Pressable
+        onPress={handleAvatarPress}
+        onHoverIn={() => setIsHovered(true)}
+        onHoverOut={() => setIsHovered(false)}
+        style={styles.avatarPressable}
+      >
         <View style={styles.avatarWrap}>
           <Image source={normalizeImageSource(user.avatar)} style={styles.avatar} resizeMode="cover" />
+
+          <View style={[styles.hoverOverlay, isHovered && styles.hoverOverlayVisible]}>
+            {Platform.OS === 'web' ? (
+              <CameraFilled style={{ fontSize: 24, color: '#FFFFFF' }} />
+            ) : (
+              <Text style={styles.editIcon}>📷</Text>
+            )}
+            <Text style={styles.editText}>Thay đổi</Text>
+          </View>
+
           {Platform.OS === 'web' &&
             React.createElement('input', {
               ref: fileInputRef,
@@ -62,9 +78,7 @@ export function UserAvatarCard({ user = MOCK_USER, onAvatarPress }) {
             })}
         </View>
       </Pressable>
-
-      <Text style={styles.name}>{user.name}</Text>
-      <Text style={styles.phone}>{user.phone}</Text>
+      <Text style={styles.hintText}>Hỗ trợ JPG, PNG hoặc GIF. Tối đa 5MB.</Text>
     </View>
   )
 }
@@ -73,53 +87,68 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    paddingVertical: 18,
-    paddingHorizontal: 16,
+    padding: 24,
     alignItems: 'center',
-    gap: 10,
-    minWidth: 180,
-    minHeight: 180,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 3,
+    gap: 20,
+    height: '100%',
     borderWidth: 1,
-    borderColor: '#E5E3DC',
+    borderColor: '#F0F0F0',
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#20130A',
+    fontFamily: 'Epilogue, sans-serif',
+    alignSelf: 'flex-start',
   },
   avatarPressable: {
     cursor: 'pointer',
   },
   avatarWrap: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    backgroundColor: '#D9D9D9',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#F9F9F9',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+    position: 'relative',
+    borderWidth: 4,
+    borderColor: '#FFF9F0',
   },
   avatar: {
-    width: 60,
-    height: 60,
+    width: '100%',
+    height: '100%',
+  },
+  hoverOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0,
+    gap: 4,
+  },
+  hoverOverlayVisible: {
+    opacity: 1,
+  },
+  editIcon: {
+    fontSize: 24,
+  },
+  editText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  hintText: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'center',
+    fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 18,
   },
   hiddenInput: {
     display: 'none',
-  },
-  name: {
-    marginTop: 6,
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#1B1B1B',
-    fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
-  },
-  phone: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1B1B1B',
-    fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
   },
 })
 

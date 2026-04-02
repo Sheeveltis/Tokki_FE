@@ -25,3 +25,24 @@ export async function getUserGames(pageNumber = 1, pageSize = 10) {
   }
 }
 
+/**
+ * Cộng XP cho minigame theo độ khó
+ * @param {'easy'|'medium'|'hard'|number|string} level
+ * @returns {Promise<any>}
+ */
+export async function awardMinigameXP(level) {
+  const levelKey = String(level || '').toLowerCase()
+  const amount = levelKey === 'hard' || levelKey === '3'
+    ? 50
+    : levelKey === 'medium' || levelKey === '2'
+      ? 40
+      : 30
+
+  try {
+    const response = await apiClient.post(ENDPOINTS.GAMIFICATION.GAME_XP, { amount })
+    return response.data
+  } catch (error) {
+    console.error('[awardMinigameXP] Error:', error)
+    throw error
+  }
+}

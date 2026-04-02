@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigation } from '@react-navigation/native'
 import { getMenuStudyRoute, isLoginRequiredModule } from './menuStudyRoutes'
+import { getAccountAimLevel } from '@tokki/app/features/authentication/api'
 
 /**
  * Hook xử lý logic cho MenuStudyScreen (Native)
@@ -10,6 +11,17 @@ import { getMenuStudyRoute, isLoginRequiredModule } from './menuStudyRoutes'
  */
 export function useMenuStudy(navigation, levelId) {
   const [showLoginRequest, setShowLoginRequest] = useState(false)
+  const [aimLevel, setAimLevel] = useState(null)
+
+  useEffect(() => {
+    const fetchAimLevel = async () => {
+      const result = await getAccountAimLevel()
+      if (result.isSuccess) {
+        setAimLevel(result.data)
+      }
+    }
+    fetchAimLevel()
+  }, [])
 
   // Chuyển đổi route từ web sang React Navigation screen name
   const navigateToRoute = (route) => {
@@ -47,7 +59,8 @@ export function useMenuStudy(navigation, levelId) {
     }
   }
 
-  const handleModulePress = (moduleId, itemLabel) => {
+  const handleModulePress = (moduleId, itemLabel, overrideLevel) => {
+    const finalLevel = overrideLevel || levelId
     // Tạm thời bỏ chặn đăng nhập cho speaking để vào màn pronunciation theo yêu cầu
     const shouldRequireLogin = isLoginRequiredModule(moduleId) && moduleId !== 'speaking'
     if (shouldRequireLogin) {
@@ -56,7 +69,7 @@ export function useMenuStudy(navigation, levelId) {
     }
 
     // Lấy route tương ứng và điều hướng nếu có
-    const route = getMenuStudyRoute({ moduleId, itemLabel, levelId })
+    const route = getMenuStudyRoute({ moduleId, itemLabel, levelId: finalLevel })
     if (route) {
       navigateToRoute(route)
     }
@@ -66,12 +79,13 @@ export function useMenuStudy(navigation, levelId) {
     navigateToRoute('/alphabet')
   }
 
-  const handleTopikRoadmapPress = () => {
-    if (!levelId) {
+  const handleTopikRoadmapPress = (overrideLevel) => {
+    const finalLevel = overrideLevel || levelId
+    if (!finalLevel) {
       navigateToRoute('/roadmap/info')
       return
     }
-    navigateToRoute(`/roadmap/learning?level=${levelId}`)
+    navigateToRoute(`/roadmap/learning?level=${finalLevel}`)
   }
 
   return {
@@ -80,5 +94,6 @@ export function useMenuStudy(navigation, levelId) {
     handleModulePress,
     handleAlphabetPress,
     handleTopikRoadmapPress,
+    aimLevel,
   }
 }

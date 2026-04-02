@@ -24,7 +24,6 @@ export function PronunciationLayout({ children, onBackPress, title }) {
   if (Platform.OS === 'web') {
     return (
       <View style={styles.webRoot}>
-        <Navbar />
         <View style={styles.webContentWrapper}>{content}</View>
       </View>
     )

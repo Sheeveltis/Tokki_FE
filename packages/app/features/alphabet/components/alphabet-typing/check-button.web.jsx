@@ -25,10 +25,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#79964E',
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#79964E',
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 2px 4px rgba(121, 150, 78, 0.3)',
+      },
+      default: {
+        shadowColor: '#79964E',
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 2 },
+      },
+    }),
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
     }),

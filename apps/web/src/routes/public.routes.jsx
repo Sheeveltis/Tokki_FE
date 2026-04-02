@@ -1,5 +1,5 @@
 import React from 'react'
-import { Route } from 'react-router-dom'
+import { Route, Outlet, useLocation } from 'react-router-dom'
 import { useRouteNavigation } from './utils/navigation-helpers'
 
 import { HomeScreen } from '@tokki/app/features/general/screens/homepage-screen'
@@ -8,11 +8,11 @@ import { PremiumScreen } from '@tokki/app/features/payment/screens/premium-scree
 import { PaymentScreen } from '@tokki/app/features/payment/screens/payment-screen'
 import { PaymentFailedScreen } from '@tokki/app/features/payment/screens/payment-failed-screen'
 import { PaymentSuccessScreen } from '@tokki/app/features/payment/screens/payment-success-screen'
-import { ErrorScreen } from 'app/features/general/screens/error-screen'
+import { ErrorScreen } from '@tokki/app/features/general/screens/error-screen'
 import LeaderboardScreen from '@tokki/app/features/general/screens/leaderboard-screen'
 import { BlogListScreen } from '@tokki/app/features/blog/screens/client/blog-list-screen'
 import { BlogDetailScreen } from '@tokki/app/features/blog/screens/client/blog-detail-screen'
-import { UserScreen } from '@tokki/app/features/user/screens/client/user-profile-screen'
+import UserScreen from '@tokki/app/features/user/screens/client/user-profile-screen'
 import { MinigameScreen } from '@tokki/app/features/minigame/screens/minigame-screen'
 import MatchingCardLevelScreen from '@tokki/app/features/minigame/screens/matching-card/matching-card-level-screen'
 import MatchingCardTopicScreen from '@tokki/app/features/minigame/screens/matching-card/matching-card-topic-screen'
@@ -29,6 +29,12 @@ import { WordleBoardScreen } from '@tokki/app/features/minigame/screens/wordle/w
 import { DictionarySearchScreen } from '@tokki/app/features/vocabulary/screens/client/dictionary-search-screen'
 import { DictionaryVocabularyDetailScreen } from '@tokki/app/features/vocabulary/screens/client/dictionary-detail-screen'
 import { Navbar } from 'components/navbar'
+import { Footer } from 'components/footer'
+import { AppShow } from 'components/appShow'
+import BubbleChat from '@tokki/app/features/general/api/bubble-chat-index'
+import { View, Platform, ScrollView } from 'react-native'
+import { useParams } from 'react-router-dom'
+import { getCurrentUserId } from '@tokki/app/provider/api/client'
 
 /**
  * Public Routes - Container Components
@@ -36,18 +42,48 @@ import { Navbar } from 'components/navbar'
 function RootHomeRoute() {
   const { navigate } = useRouteNavigation()
 
+  const handleFlashcardPress = () => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard')
+    } else {
+      navigate('/flashcard')
+    }
+  }
+
+  const handleProfilePress = () => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/profile')
+    } else {
+      navigate('/profile')
+    }
+  }
+
   return (
     <HomeScreen
       onHomePress={() => navigate('/')}
-      onRoadmapPress={() => navigate('/menu-study?level=1')}
-      onFlashcardPress={() => navigate('/flashcard')}
+      onRoadmapPress={() => navigate('/roadmap/info')}
+      onFlashcardPress={handleFlashcardPress}
       onBlogPress={() => navigate('/blog')}
-      onProfilePress={() => navigate('/profile')}
+      onProfilePress={handleProfilePress}
     />
   )
 }
 
 function ProfileRoute() {
+  const { navigate } = useRouteNavigation()
+
+  React.useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/profile', { replace: true })
+    }
+  }, [navigate])
+
+  const userId = getCurrentUserId()
+  if (!userId) return null
+
   return <UserScreen />
 }
 
@@ -56,49 +92,46 @@ function LeaderboardRoute() {
 }
 
 function BlogListRoute() {
-  return <BlogListScreen />
+  const { navigate } = useRouteNavigation()
+
+  return (
+    <BlogListScreen
+      onBlogPress={(blog) => navigate(`/blog/${blog?.slug || blog?.id}`)}
+      onCategoryPress={(category) => console.log('Category press', category)}
+    />
+  )
 }
 
 function BlogDetailRoute() {
   return <BlogDetailScreen />
 }
 
-// Payment Routes
 function PaymentDetailRoute() {
-  return <PaymentScreen />
+  const { navigate } = useRouteNavigation()
+  return <PackageScreen onBackPress={() => navigate('/')} />
 }
 
 function PaymentPackageRoute() {
-  return <PackageScreen />
+  const { navigate } = useRouteNavigation()
+  return <PaymentScreen onBackPress={() => navigate('/')} onPaymentSuccess={() => navigate('/payment-success')} />
 }
 
 function PaymentPremiumRoute() {
-  return <PremiumScreen />
+  const { navigate } = useRouteNavigation()
+  return <PremiumScreen onBackPress={() => navigate('/')} />
 }
 
 function PaymentFailedRoute() {
-  return <PaymentFailedScreen />
+  const { navigate } = useRouteNavigation()
+  return <PaymentFailedScreen onHomePress={() => navigate('/')} />
 }
 
 function PaymentSuccessRoute() {
-  return <PaymentSuccessScreen />
+  const { navigate } = useRouteNavigation()
+  return <PaymentSuccessScreen onHomePress={() => navigate('/')} />
 }
 
 // Minigame Routes
-function MatchingCardLevelRoute() {
-  return <MatchingCardLevelScreen />
-}
-
-function MatchingCardTopicRoute() {
-  return <MatchingCardTopicScreen />
-}
-
-function MatchingCardRuleRoute() {
-  const { getQueryParam } = useRouteNavigation()
-  const levelId = getQueryParam('level')
-  return <MatchingCardRuleScreen levelId={levelId} />
-}
-
 function MatchingCardPlayRoute() {
   const { getQueryParam } = useRouteNavigation()
   const topicId = getQueryParam('topic')
@@ -109,9 +142,9 @@ function MatchingCardPlayRoute() {
 
   if (!topicId) {
     return (
-      <div style={{ padding: 20, textAlign: 'center' }}>
+      <View style={{ padding: 20, alignItems: 'center' }}>
         <p>Vui lòng chọn chủ đề trước khi chơi</p>
-      </div>
+      </View>
     )
   }
 
@@ -147,6 +180,22 @@ function MatchingCardResultRoute() {
       onBack={handleReplay}
     />
   )
+}
+
+function MatchingCardLevelRoute() {
+  const { getQueryParam } = useRouteNavigation()
+  const levelId = getQueryParam('level')
+  return <MatchingCardLevelScreen levelId={levelId} />
+}
+
+function MatchingCardTopicRoute() {
+  return <MatchingCardTopicScreen />
+}
+
+function MatchingCardRuleRoute() {
+  const { getQueryParam } = useRouteNavigation()
+  const levelId = getQueryParam('level')
+  return <MatchingCardRuleScreen levelId={levelId} />
 }
 
 // Solitare Routes
@@ -203,74 +252,47 @@ function WordleBoardRoute() {
 // Dictionary Routes
 function DictionaryRoute() {
   return (
-    <div
+    <View
       style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
+        flex: 1,
+        alignItems: 'center',
         backgroundColor: '#FFD7D0',
+        paddingVertical: 40,
       }}
     >
-      <Navbar />
-      <div
+      <View
         style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          width: '70%',
+          maxWidth: 1200,
         }}
       >
-        <div
-          style={{
-            width: '70%',
-            maxWidth: 1200,
-            minWidth: 0,
-          }}
-        >
-          <DictionarySearchScreen />
-        </div>
-      </div>
-    </div>
+        <DictionarySearchScreen />
+      </View>
+    </View>
   )
 }
 
 function DictionaryDetailRoute() {
-  const { params } = useRouteNavigation()
-  const id = params.id
-
-  if (!id) {
-    return <DictionaryRoute />
-  }
+  const { id } = useParams()
 
   return (
-    <div
+    <View
       style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
+        flex: 1,
+        alignItems: 'center',
         backgroundColor: '#FFD7D0',
+        paddingVertical: 40,
       }}
     >
-      <Navbar />
-      <div
+      <View
         style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          width: '70%',
+          maxWidth: 1200,
         }}
       >
-        <div
-          style={{
-            width: '70%',
-            maxWidth: 1200,
-            minWidth: 0,
-          }}
-        >
-          <DictionaryVocabularyDetailScreen vocabularyId={id} />
-        </div>
-      </div>
-    </div>
+        <DictionaryVocabularyDetailScreen vocabularyId={id} />
+      </View>
+    </View>
   )
 }
 
@@ -327,10 +349,58 @@ export const publicRoutes = [
 ]
 
 /**
- * Render Public Routes
+ * Public Layout Component
  */
-export function renderPublicRoutes() {
+export function PublicLayout() {
+  const location = useLocation()
+  const isRoadmapRoute = location.pathname.startsWith('/roadmap')
+  const isMenuStudyRoute = location.pathname.startsWith('/menu-study')
+  const isFlashcardRoute = location.pathname.startsWith('/flashcard')
+  const isProfileRoute = location.pathname.startsWith('/user-profile') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/users')
+  const shouldHideFooter = isRoadmapRoute || isMenuStudyRoute || isFlashcardRoute || isProfileRoute
+
+  return (
+    <View style={{ flex: 1, height: shouldHideFooter ? '100vh' : undefined, minHeight: '100vh', backgroundColor: '#fff', overflow: shouldHideFooter ? 'hidden' : 'visible' }}>
+      <Navbar />
+      <View style={{ flex: 1, overflow: shouldHideFooter ? 'hidden' : 'visible' }}>
+        <Outlet />
+      </View>
+      {!shouldHideFooter && <Footer />}
+
+      {/* Widgets only for Web */}
+      {Platform.OS === 'web' && !shouldHideFooter && (
+        <>
+          <AppShow
+            style={{
+              position: 'fixed',
+              right: 20,
+              bottom: 20,
+              zIndex: 1000,
+            }}
+          />
+          <BubbleChat />
+        </>
+      )}
+    </View>
+  )
+}
+
+/**
+ * Render Public Route Items (without layout wrapper)
+ */
+export function renderPublicRouteItems() {
   return publicRoutes.map((route) => (
     <Route key={route.path} path={route.path} element={route.element} />
   ))
+}
+
+/**
+ * Render Public Routes (deprecated, use renderPublicRouteItems with a wrapper)
+ */
+export function renderPublicRoutes() {
+  return (
+    <Route element={<PublicLayout />}>
+      {renderPublicRouteItems()}
+    </Route>
+  )
 }

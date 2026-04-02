@@ -6,7 +6,8 @@ import ThemeMusic from '../../../../../../../assets/sound-effect/solitare/theme.
 import TickSound from '../../../../../../../assets/sound-effect/solitare/tick.mp3'
 import WinSound from '../../../../../../../assets/sound-effect/solitare/win.mp3'
 import MenuBackground from '../../../../../../../assets/menu2.png'
-import { getSolitareLayout } from '../../../../api/solitare-play-api'
+import { getSolitareLayout, saveSolitareResult } from '../../../../api/solitare-play-api'
+import { awardMinigameXP } from '../../../../api/api'
 import { SolitarePlayWebHeader } from './solitare-play-web-header'
 import { SolitarePlayWebBody } from './solitare-play-web-body'
 import { SolitarePlayWebMovingCard } from './solitare-play-web-moving-card'
@@ -425,6 +426,30 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
             winSoundRef.current.pause()
           }
   
+          Promise.allSettled([
+            saveSolitareResult({
+              gameId: 'GAME002',
+              score: finalScore,
+              level,
+            }),
+            awardMinigameXP(level),
+          ])
+            .then((results) => {
+              const [saveResultState, xpResultState] = results
+
+              if (saveResultState?.status === 'fulfilled') {
+                console.log('[SolitarePlayWeb] ✅ Saved solitaire result')
+              } else {
+                console.error('[SolitarePlayWeb] ⚠️ Failed saving solitaire result:', saveResultState?.reason)
+              }
+
+              if (xpResultState?.status === 'fulfilled') {
+                console.log('[SolitarePlayWeb] ✅ Awarded XP for solitaire')
+              } else {
+                console.error('[SolitarePlayWeb] ⚠️ Failed awarding XP:', xpResultState?.reason)
+              }
+            })
+
           if (onFinish) {
             onFinish(finalScore, timeLeft)
           }

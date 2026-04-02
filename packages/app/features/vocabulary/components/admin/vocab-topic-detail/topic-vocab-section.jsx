@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import { Card, Space, Select, Table, Typography, List, Tag, Modal, Input, Button } from 'antd'
-import { UploadOutlined, DownloadOutlined } from '@ant-design/icons'
+import { UploadOutlined, DownloadOutlined, PlusOutlined, DeleteOutlined, CloseOutlined } from '@ant-design/icons'
 import { VocabularyGuideButton } from './vocabulary-guide-modal'
 
 export function TopicVocabSection({
@@ -134,11 +134,12 @@ export function TopicVocabSection({
                   onChange={onExcelUpload}
                 />
                 <Button
-                  type="primary"
+                  type="dashed"
                   icon={<UploadOutlined />}
                   onClick={() => fileInputRef?.current?.click()}
                   disabled={uploadingExcel}
                   loading={uploadingExcel}
+                  style={{ borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
                 >
                   {uploadingExcel ? 'Đang import...' : 'Import'}
                 </Button>
@@ -146,13 +147,14 @@ export function TopicVocabSection({
             )}
             {onExportExcel && !isModerator && (
               <Button
-                type="primary"
+                type="dashed"
                 icon={<DownloadOutlined />}
                 onClick={onExportExcel}
                 disabled={exportingExcel}
                 loading={exportingExcel}
+                style={{ borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
               >
-                {exportingExcel ? 'Đang xuất...' : 'Export'}
+                {exportingExcel ? 'Đang export...' : 'Export'}
               </Button>
             )}
           </Space>
@@ -166,12 +168,12 @@ export function TopicVocabSection({
               Đã chọn <Text strong>{selecting?.length || 0}</Text> từ vựng để thêm vào chủ đề
             </Text>
             <Space>
-              <Button type="primary" onClick={() => setAddVocabModalOpen(true)}>
-                Chọn từ vựng từ hệ thống
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddVocabModalOpen(true)} style={{ borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}>
+                Thêm (Hệ thống)
               </Button>
-              {onQuickAdd && <Button onClick={onQuickAdd}>Tạo từ vựng nhanh</Button>}
-              <Button type="primary" onClick={onAdd} disabled={!selecting?.length || adding} loading={adding}>
-                {adding ? 'Đang thêm...' : 'Thêm vào chủ đề'}
+              {onQuickAdd && <Button type="primary" icon={<PlusOutlined />} onClick={onQuickAdd} style={{ borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}>Thêm (Mới)</Button>}
+              <Button type="primary" icon={<PlusOutlined />} onClick={onAdd} disabled={!selecting?.length || adding} loading={adding} style={{ borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}>
+                {adding ? 'Đang lưu...' : 'Lưu'}
               </Button>
             </Space>
           </Space>
@@ -285,22 +287,25 @@ export function TopicVocabSection({
               {!isModerator && (
                 <>
                   <Button
+                    icon={removeMode ? <CloseOutlined /> : <DeleteOutlined />}
                     onClick={() => {
                       if (removeMode) onRemovingKeysChange([])
                       setRemoveMode(!removeMode)
                     }}
+                    style={{ borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
                   >
-                    {removeMode ? 'Hủy chọn xóa' : 'Chọn từ để gỡ'}
+                    {removeMode ? 'Hủy' : 'Chọn để xóa'}
                   </Button>
                   <Button
                     danger
+                    icon={<DeleteOutlined />}
                     onClick={() => {
                       if (!removeMode || !removingKeys?.length || removing) return
 
                       Modal.confirm({
-                        title: 'Xác nhận gỡ từ vựng',
-                        content: `Bạn có chắc muốn gỡ ${removingKeys?.length || 0} từ vựng khỏi chủ đề này?`,
-                        okText: 'Gỡ',
+                        title: 'Xác nhận xóa từ vựng',
+                        content: `Bạn có chắc muốn xóa ${removingKeys?.length || 0} từ vựng khỏi chủ đề này?`,
+                        okText: 'Xóa',
                         cancelText: 'Hủy',
                         okButtonProps: { danger: true },
                         onOk: onRemove,
@@ -308,8 +313,9 @@ export function TopicVocabSection({
                     }}
                     disabled={!removeMode || !removingKeys?.length || removing}
                     loading={removing}
+                    style={{ borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
                   >
-                    {removing ? 'Đang gỡ...' : 'Gỡ từ vựng đã chọn'}
+                    {removing ? 'Đang xóa...' : 'Xóa'}
                   </Button>
                 </>
               )}

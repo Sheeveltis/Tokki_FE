@@ -2,17 +2,43 @@ import { apiClient } from '../../../provider/api/client.js'
 import { ENDPOINTS } from '../../../provider/api/endpoints'
 
 /**
- * Lấy danh sách exams cho admin với phân trang và filter
+ * Lấy danh sách exams với thống kê cho admin với phân trang và filter
  * @param {Object} params - Query parameters
  * @param {number} params.PageNumber - Số trang (mặc định: 1)
  * @param {number} params.PageSize - Số items mỗi trang (mặc định: 20)
  * @param {string} params.SearchTerm - Tìm kiếm theo từ khóa
- * @param {number} params.Status - Filter theo status (0=Draft, 1=Published, 2=Deleted)
- * @param {number} params.Type - Filter theo type (1=TopikI, 2=TopikII, 3=EntranceTest)
+ * @param {number} params.Status - Filter theo status
+ * @param {number} params.Type - Filter theo type
+ * @param {number} params.CreatorFilter - Filter theo người tạo (0=All, 1=AI, 2=Human)
+ * @param {number} params.SortBy - Sắp xếp theo (0=CreatedAt, 1=Participants, 2=PdfDownload, 3=AverageScore)
+ * @param {boolean} params.IsDescending - Sắp xếp giảm dần (mặc định: true)
  * @returns {Promise<Object>} - { items: [], pageNumber, pageSize, totalCount, totalPages, hasNextPage, hasPreviousPage }
  */
 export async function fetchExamsAdmin(params = {}) {
-  const res = await apiClient.get(ENDPOINTS.EXAMS.ADMIN_LIST, { params })
+  const {
+    PageNumber = 1,
+    PageSize = 20,
+    SearchTerm,
+    Status,
+    Type,
+    CreatorFilter,
+    SortBy = 0,
+    IsDescending = true
+  } = params
+
+  const res = await apiClient.get(ENDPOINTS.EXAMS.ADMIN_STATS_LIST, {
+    params: {
+      PageNumber,
+      PageSize,
+      SearchTerm,
+      Status,
+      Type,
+      CreatorFilter,
+      SortBy,
+      IsDescending
+    }
+  })
+  
   const data = res.data?.data || {}
   const items = data?.items || []
   const total = data?.totalCount || 0
@@ -20,8 +46,8 @@ export async function fetchExamsAdmin(params = {}) {
   return {
     items,
     total,
-    pageNumber: data?.pageNumber || params.PageNumber || 1,
-    pageSize: data?.pageSize || params.PageSize || 20,
+    pageNumber: data?.pageNumber || PageNumber,
+    pageSize: data?.pageSize || PageSize,
     totalPages: data?.totalPages || 1,
     hasNextPage: data?.hasNextPage || false,
     hasPreviousPage: data?.hasPreviousPage || false,
@@ -35,6 +61,16 @@ export async function fetchExamsAdmin(params = {}) {
  */
 export async function fetchExamDetailAdmin(examId) {
   const res = await apiClient.get(ENDPOINTS.EXAMS.ADMIN_DETAIL, { params: { examId } })
+  return res.data?.data || null
+}
+
+/**
+ * Lấy dữ liệu thống kê của kì thi (admin)
+ * @param {string} examId - ID của exam
+ * @returns {Promise<Object|null>} - Thống kê exam hoặc null
+ */
+export async function fetchExamStatsAdmin(examId) {
+  const res = await apiClient.get(ENDPOINTS.EXAMS.ADMIN_STATS(examId))
   return res.data?.data || null
 }
 
@@ -82,6 +118,18 @@ export async function updateExamInfo({ examId, title, skillDurations, examTempla
     examTemplateId,
   })
 
+  return res.data
+}
+
+/**
+ * Xuất đề thi ra PDF
+ * @param {string} examId - ID của exam
+ * @returns {Promise<Blob>} - File PDF content
+ */
+export async function exportExamPdf(examId) {
+  const res = await apiClient.get(ENDPOINTS.EXAMS.EXPORT_PDF(examId), {
+    responseType: 'blob'
+  })
   return res.data
 }
 
@@ -170,4 +218,39 @@ export async function fetchQuestionsByPart(params = {}) {
 export async function regenerateExamPart(payload) {
   const res = await apiClient.post(ENDPOINTS.EXAMS.REGENERATE_PART, payload)
   return res.data
+}
+
+/**
+ * Lấy danh sách người tham gia thi
+ * @param {Object} params
+ * @param {string} params.examId
+ * @param {number} [params.PageNumber=1]
+ * @param {number} [params.PageSize=10]
+ * @param {number} [params.SortBy=0] - 0: SubmitTime, 1: Score
+ * @param {boolean} [params.IsDescending=true]
+ * @returns {Promise<Object>}
+ */
+export async function fetchExamParticipantsAdmin(params = {}) {
+  const { examId, PageNumber = 1, PageSize = 10, SortBy = 0, IsDescending = true } = params
+  
+  const res = await apiClient.get(ENDPOINTS.EXAMS.ADMIN_PARTICIPANTS(examId), {
+    params: {
+      pageNumber: PageNumber,
+      pageSize: PageSize,
+      sortBy: SortBy,
+      isDescending: IsDescending
+    }
+  })
+  
+  const data = res.data?.data || {}
+  
+  return {
+    items: data.items || [],
+    pageNumber: data.pageNumber || PageNumber,
+    pageSize: data.pageSize || PageSize,
+    totalCount: data.totalCount || 0,
+    totalPages: data.totalPages || 1,
+    hasNextPage: data.hasNextPage || false,
+    hasPreviousPage: data.hasPreviousPage || false,
+  }
 }

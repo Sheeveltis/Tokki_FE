@@ -23,7 +23,8 @@ import {
   DeleteOutlined,
   EditOutlined,
   InboxOutlined,
-  MenuOutlined
+  MenuOutlined,
+  SaveOutlined
 } from '@ant-design/icons'
 import { fetchQuestionTypes, updateExamTemplateParts, uploadTemplatePartImageToCloudinary, updateTemplatePart } from '../../../../back-office/api/admin-index.js'
 
@@ -683,20 +684,20 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                             size="middle"
                             icon={<DeleteOutlined />}
                             onClick={() => handleRemovePart(fields[validActiveIndex]?.name)}
-                            style={{ fontSize: 13 }}
+                            style={{ borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
                           >
-                            Xóa phần này
+                            Xóa
                           </Button>
                         )}
                         {canAddMore && !isActiveTemplate && (
                           <Button
                             type="primary"
-                            ghost
                             icon={<PlusOutlined />}
                             onClick={handleAddPart}
                             size="middle"
+                            style={{ borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
                           >
-                            Thêm phần
+                            Thêm
                           </Button>
                         )}
                       </Space>
@@ -721,7 +722,9 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                         <Title level={5}>Chưa có phần nào được thiết lập</Title>
                         <Text type="secondary">Vui lòng chọn kỹ năng để bắt đầu xây dựng cấu trúc đề thi</Text>
                       </div>
-                      <Button type="primary" onClick={handleAddPart}>Bắt đầu ngay</Button>
+                      <Button type="primary" icon={<PlusOutlined />} onClick={handleAddPart} style={{ borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}>
+                        Thêm
+                      </Button>
                     </Space>
                   </Card>
                 )}

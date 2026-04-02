@@ -167,6 +167,36 @@ export function FlashcardStudyMain({
 
   return (
     <>
+      <View style={styles.statsRow}>
+        <View style={styles.progressSection}>
+          <Text style={styles.progressText}>
+            Tiến độ: <Text style={{ color: '#1A1A1A', fontWeight: '800' }}>{currentIndex + 1} / {unlearnedCount}</Text> từ vựng
+          </Text>
+        </View>
+
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={[
+              styles.iconButton,
+              isFavoritesMode && styles.iconButtonActive
+            ]}
+            onPress={onFavoritesPress}
+          >
+            <StudyIcon
+              source={StarIcon}
+              width={18}
+              height={18}
+              tintColor={isFavoritesMode ? '#FFF' : '#1A1A1A'}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.testButton}
+            onPress={onTestPress}
+          >
+            <Text style={styles.testButtonText}>Kiểm tra</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
       {/* Flashcard */}
       <View style={styles.cardContainer}>
         {/* Navigation Arrows */}
@@ -232,174 +262,135 @@ export function FlashcardStudyMain({
 }
 
 const styles = StyleSheet.create({
-  header: {
+  statsRow: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 24,
+    marginBottom: 20,
+    paddingHorizontal: 4,
+  },
+  progressSection: {
+    flex: 1,
+  },
+  progressText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#999',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
   },
-  headerButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  favoritesButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+  iconButton: {
+    width: 40,
+    height: 40,
     borderRadius: 12,
-    backgroundColor: '#F1BE4B',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
+      transition: 'all 0.2s ease',
     }),
   },
-  favoritesIcon: {
-    width: 20,
-    height: 20,
-    tintColor: '#1F1F1F',
-  },
-  favoritesButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1F1F1F',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  reviewButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+  iconButtonActive: {
     backgroundColor: '#F1BE4B',
+    borderColor: '#F1BE4B',
+  },
+  testButton: {
+    paddingHorizontal: 20,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#1A1A1A',
+    justifyContent: 'center',
+    alignItems: 'center',
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
+      transition: 'all 0.2s ease',
     }),
   },
-  reviewIcon: {
-    width: 20,
-    height: 20,
-  },
-  reviewButtonText: {
+  testButtonText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#1F1F1F',
+    fontWeight: '800',
+    color: '#FFFFFF',
     fontFamily: 'Epilogue, sans-serif',
-  },
-  title: {
-    ...studyStyles.pageTitle,
-    flex: 1,
   },
   cardContainer: {
     width: '100%',
-    height: 524, // 500 + 12*2 (border)
+    height: 524,
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  pagination: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  navBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
-    backgroundColor: '#F1BE4B',
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: 30,
   },
   absNavBtn: {
     position: 'absolute',
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: '#F1BE4B',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
     top: '50%',
-    transform: [{ translateY: -26 }],
+    marginTop: -28,
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
       transition: 'all 0.2s ease',
     }),
   },
   absPrevBtn: {
-    left: -26,
+    left: -28,
   },
   absNextBtn: {
-    right: -26,
+    right: -28,
   },
-  navIcon: {
-    width: 20,
-    height: 20,
-    tintColor: '#1F1F1F',
-  },
-  pageText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1F1F1F',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  learnedButtonContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  learnedButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    backgroundColor: '#79964E',
-    ...(Platform.OS === 'web' && {
-      cursor: 'pointer',
-    }),
-  },
-  learnedButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    fontFamily: 'Epilogue, sans-serif',
+  pagination: {
+    display: 'none',
   },
   emptyContainer: {
     width: '100%',
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 48,
+    paddingVertical: 80,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 24,
+    borderStyle: 'dashed',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   emptyText: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#666',
+    fontWeight: '700',
+    color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 24,
   },
   resetButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    backgroundColor: '#79964E',
-    marginTop: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 14,
+    backgroundColor: '#F1BE4B',
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
+      boxShadow: '0 8px 20px rgba(241,190,75,0.2)',
     }),
   },
   resetButtonText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontWeight: '800',
+    color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
   },
 })

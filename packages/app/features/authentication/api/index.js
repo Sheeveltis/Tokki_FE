@@ -10,6 +10,8 @@
 
 import { apiClient } from '../../../provider/api/client'
 import { ENDPOINTS, API_BASE_URL } from '../../../provider/api/endpoints'
+import axios from 'axios'
+import { apiErrors } from '../../../string.js'
 
 /**
  * Xác thực OTP cho email (đăng ký / xác thực email)
@@ -122,11 +124,32 @@ export const sendEmailVerificationOtp = async (email) => {
  * @param {Object} credentials - Thông tin đăng nhập
  * @param {string} credentials.email - Email người dùng
  * @param {string} credentials.password - Mật khẩu
+ * @param {boolean} credentials.rememberMe - Ghi nhớ đăng nhập
  * @returns {Promise<Object>} Response từ API với format:
  *   - Success: { isSuccess: true, data: { token, fullName, role, avatarUrl }, message, statusCode: 200 }
  *   - Error: { isSuccess: false, data: null, errors: [...], message, statusCode: 400 }
  */
-export const login = async ({ email, password, rememberMe = false }) => {
+export const loginUser = async ({ email, password, rememberMe = false }) => {
+  return loginInternal({ email, password, rememberMe, endpoint: ENDPOINTS.ACCOUNT.LOGIN_USER })
+}
+
+/**
+ * Đăng nhập Admin/Staff/Moderator
+ * 
+ * @param {Object} credentials - Thông tin đăng nhập
+ * @param {string} credentials.email - Email
+ * @param {string} credentials.password - Mật khẩu
+ * @param {boolean} credentials.rememberMe - Ghi nhớ đăng nhập
+ * @returns {Promise<Object>} Response từ API
+ */
+export const loginAdmin = async ({ email, password, rememberMe = false }) => {
+  return loginInternal({ email, password, rememberMe, endpoint: ENDPOINTS.ACCOUNT.LOGIN_ADMIN })
+}
+
+/**
+ * Hàm login nội bộ dùng chung
+ */
+const loginInternal = async ({ email, password, rememberMe = false, endpoint }) => {
   try {
     // Validate input
     if (!email || !password) {
@@ -145,9 +168,9 @@ export const login = async ({ email, password, rememberMe = false }) => {
     }
 
     // Gọi API
-    console.log('[Login API] Calling:', ENDPOINTS.ACCOUNT.LOGIN)
+    console.log('[Login API] Calling:', endpoint)
     console.log('[Login API] Payload:', { email, password: '***', rememberMe })
-    const response = await apiClient.post(ENDPOINTS.ACCOUNT.LOGIN, {
+    const response = await apiClient.post(endpoint, {
       email,
       password,
       rememberMe,
@@ -185,6 +208,28 @@ export const login = async ({ email, password, rememberMe = false }) => {
         },
       ],
       message: finalMsg,
+      statusCode: error.response?.status || 500,
+    }
+  }
+}
+
+/**
+ * Lấy level mục tiêu của người dùng
+ * @returns {Promise<Object>} Response từ API với format:
+ *  - Success: { isSuccess: true, data: number, message, statusCode: 200 }
+ */
+export const getAccountAimLevel = async () => {
+  try {
+    const response = await apiClient.get(ENDPOINTS.ACCOUNT.AIM_LEVEL)
+    return response.data
+  } catch (error) {
+    if (error.response?.data) {
+      return error.response.data
+    }
+    return {
+      isSuccess: false,
+      data: null,
+      message: error.message || 'Không thể lấy level người dùng',
       statusCode: error.response?.status || 500,
     }
   }
@@ -337,6 +382,29 @@ export const sendHeartbeat = async (userId, durationInSeconds = 300) => {
   }
 }
 
+/**
+ * Kiểm tra và mở khóa danh hiệu hàng ngày của người dùng
+ * @returns {Promise<Object>} Response từ API
+ */
+export const checkDailyTitles = async () => {
+  try {
+    console.log('[Title API] Đang kiểm tra danh hiệu hàng ngày:', { endpoint: ENDPOINTS.TITLE.CHECK_DAILY_TITLES })
+    const response = await apiClient.post(ENDPOINTS.TITLE.CHECK_DAILY_TITLES, {})
+    console.log('[Title API] Kết quả kiểm tra danh hiệu:', response.data)
+    return response.data
+  } catch (error) {
+    console.error('Error checking daily titles:', error)
+    if (error.response?.data) {
+      return error.response.data
+    }
+    return {
+      isSuccess: false,
+      message: error.message || 'Không thể kiểm tra danh hiệu hàng ngày',
+      statusCode: error.response?.status || 500,
+    }
+  }
+}
+
 
 
 /**
@@ -345,8 +413,6 @@ export const sendHeartbeat = async (userId, durationInSeconds = 300) => {
  * ============================================
  */
 
-import axios from 'axios'
-import { apiErrors } from '../../../string.js'
 
 /**
  * Helper function để xử lý lỗi API và throw error với message từ apiErrors

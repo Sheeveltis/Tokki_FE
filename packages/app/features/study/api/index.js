@@ -68,18 +68,10 @@ export const getFlashcardTopics = async (
 
     const res = await apiClient.get(ENDPOINTS.TOPIC.USER_GET_ALL, { params })
     const pagingData = res?.data?.data
-    let items = Array.isArray(pagingData?.items) ? pagingData.items : []
-
-    // Nếu backend chưa filter theo level thì filter lại trên FE cho chắc
-    if (levelId !== undefined && levelId !== null && levelId !== '') {
-      const levelNumber = Number(levelId)
-      if (!Number.isNaN(levelNumber)) {
-        items = items.filter((x) => Number(x.level) === levelNumber)
-      }
-    }
+    let rawItems = Array.isArray(pagingData?.items) ? pagingData.items : []
 
     // Map về shape mà UI đang dùng (id, title, subtitle, icon, level, muted, vocabIds)
-    const topics = items.map((item) => ({
+    const items = rawItems.map((item) => ({
       id: item.topicId,
       title: item.topicName,
       subtitle:
@@ -97,23 +89,37 @@ export const getFlashcardTopics = async (
       _raw: item,
     }))
 
-    return topics
+    return {
+      items,
+      totalPages: pagingData?.totalPages || 1,
+      totalCount: pagingData?.totalCount || 0,
+      pageNumber: pagingData?.pageNumber || pageNumber,
+      pageSize: pagingData?.pageSize || pageSize,
+    }
   } catch (error) {
     console.error('Error fetching flashcard topics:', error)
     // Fallback về mock data khi có lỗi hoặc backend chưa sẵn sàng
     const { FLASHCARD_TOPICS } = await import('@tokki/app/features/vocabulary/mockData')
 
-    if (levelId === undefined || levelId === null || levelId === '') {
-      return FLASHCARD_TOPICS
+    let filteredMock = FLASHCARD_TOPICS
+    if (levelId !== undefined && levelId !== null && levelId !== '') {
+      const levelNumber = Number(levelId)
+      if (!Number.isNaN(levelNumber)) {
+        filteredMock = FLASHCARD_TOPICS.filter((x) => Number(x.level) === levelNumber)
+      }
     }
 
-    const levelNumber = Number(levelId)
-    if (Number.isNaN(levelNumber)) {
-      return FLASHCARD_TOPICS
-    }
+    // Manual paging for mock data
+    const startIndex = (pageNumber - 1) * pageSize
+    const paginatedItems = filteredMock.slice(startIndex, startIndex + pageSize)
 
-    // Filter mock theo level cho đồng nhất behaviour với API thật
-    return FLASHCARD_TOPICS.filter((x) => Number(x.level) === levelNumber)
+    return {
+      items: paginatedItems,
+      totalPages: Math.ceil(filteredMock.length / pageSize) || 1,
+      totalCount: filteredMock.length,
+      pageNumber,
+      pageSize,
+    }
   }
 }
 

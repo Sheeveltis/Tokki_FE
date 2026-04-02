@@ -92,53 +92,16 @@ export function FlashcardTestMain({
   return (
     <View style={styles.mainContainer}>
       {/* Header với progress và close button */}
-      <View style={styles.topHeader}>
-        <View style={styles.progressContainer}>
-          {/* Part Navigation - Hiển thị khi enableParts */}
-          {enableParts && totalParts > 1 && (
-            <View style={styles.partsContainer}>
-              {parts.map((_, index) => (
-                <Pressable
-                  key={index}
-                  style={[
-                    styles.partButton,
-                    currentPart === index && styles.partButtonActive,
-                  ]}
-                  onPress={() => onPartChange?.(index)}
-                >
-                  <Text style={[
-                    styles.partButtonText,
-                    currentPart === index && styles.partButtonTextActive,
-                  ]}>
-                    Part {index + 1}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          )}
-          
-          <View style={styles.progressHeader}>
-            <Text style={styles.progressNumber}>
-              {enableParts ? currentPartAnsweredCount : answeredCount || 0}
-            </Text>
-            <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: `${enableParts ? currentPartProgress : progress}%` }]} />
-            </View>
-            <Text style={styles.progressNumber}>
-              {enableParts ? currentQuestionIndex + 1 : currentQuestionIndex + 1} 
-              <Text style={{ fontSize: 13, color: '#999', fontWeight: '400' }}> / {enableParts ? currentPartQuestions.length : questions.length}</Text>
-            </Text>
+      <View style={styles.statsRow}>
+        <View style={styles.progressSection}>
+          <View style={styles.progressBar}>
+            <View style={[styles.progressFill, { width: `${enableParts ? currentPartProgress : progress}%` }]} />
           </View>
-          
-          {/* Tổng progress nếu có nhiều parts */}
-          {enableParts && totalParts > 1 && (
-            <View style={styles.totalProgressContainer}>
-              <Text style={styles.totalProgressText}>
-                Tổng: {answeredCount || 0} / {allQuestions.length} câu ({progress}%)
-              </Text>
-            </View>
-          )}
+          <Text style={styles.progressText}>
+            Tiến độ: <Text style={{ color: '#1A1A1A', fontWeight: '800' }}>{enableParts ? currentQuestionIndex + 1 : currentQuestionIndex + 1} / {enableParts ? currentPartQuestions.length : questions.length}</Text>
+          </Text>
         </View>
+
         <View style={styles.headerActions}>
           {onOpenSettings && (
             <TouchableOpacity
@@ -147,14 +110,36 @@ export function FlashcardTestMain({
             >
               <StudyIcon
                 source={SettingIcon}
-                width={20}
-                height={20}
-                tintColor="#F1BE4B"
+                width={18}
+                height={18}
+                tintColor="#1A1A1A"
               />
             </TouchableOpacity>
           )}
         </View>
       </View>
+
+      {enableParts && totalParts > 1 && (
+        <View style={styles.partsContainer}>
+          {parts.map((_, index) => (
+            <Pressable
+              key={index}
+              style={[
+                styles.partButton,
+                currentPart === index && styles.partButtonActive,
+              ]}
+              onPress={() => onPartChange?.(index)}
+            >
+              <Text style={[
+                styles.partButtonText,
+                currentPart === index && styles.partButtonTextActive,
+              ]}>
+                Phần {index + 1}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
 
       {/* Score Display - Hiển thị ở trên cùng khi đã nộp bài */}
       {isSubmitted && (
@@ -270,81 +255,70 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 16,
   },
-  topHeader: {
+  statsRow: {
     width: '100%',
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    gap: 24,
+    marginBottom: 10,
+    paddingHorizontal: 4,
   },
-  progressContainer: {
+  progressSection: {
     flex: 1,
-    gap: 12,
-  },
-  partsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 8,
-  },
-  partButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#FFFFFF',
-    ...(Platform.OS === 'web' && {
-      cursor: 'pointer',
-    }),
-  },
-  partButtonActive: {
-    borderColor: '#79964E',
-    backgroundColor: '#79964E20',
-  },
-  partButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  partButtonTextActive: {
-    color: '#79964E',
-    fontWeight: '700',
-  },
-  totalProgressContainer: {
-    marginTop: 4,
-  },
-  totalProgressText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#999',
-    fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  progressNumber: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1F1F1F',
-    fontFamily: 'Epilogue, sans-serif',
-    minWidth: 30,
-    textAlign: 'center',
+    gap: 10,
   },
   progressBar: {
-    flex: 1,
-    height: 8,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 4,
+    width: '100%',
+    height: 10,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 100,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
     backgroundColor: '#F1BE4B',
-    borderRadius: 4,
+    borderRadius: 100,
+  },
+  progressText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#999',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  partsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  partButton: {
+    height: 32,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+    }),
+  },
+  partButtonActive: {
+    borderColor: '#1A1A1A',
+    backgroundColor: '#1A1A1A',
+  },
+  partButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#999',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  partButtonTextActive: {
+    color: '#FFFFFF',
   },
   headerActions: {
     flexDirection: 'row',
@@ -352,40 +326,22 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   settingButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F1BE4B',
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
     justifyContent: 'center',
     alignItems: 'center',
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
+      transition: 'all 0.2s ease',
     }),
-  },
-  settingIcon: {
-    width: 20,
-    height: 20,
-    tintColor: '#1F1F1F',
-  },
-  closeButton: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 16,
-    backgroundColor: 'transparent',
-    ...(Platform.OS === 'web' && {
-      cursor: 'pointer',
-    }),
-  },
-  closeButtonText: {
-    fontSize: 24,
-    fontWeight: '400',
-    color: '#1F1F1F',
-    lineHeight: 24,
   },
   questionContainer: {
     width: '100%',
+    marginTop: 8,
   },
   finishButton: {
     paddingVertical: 12,

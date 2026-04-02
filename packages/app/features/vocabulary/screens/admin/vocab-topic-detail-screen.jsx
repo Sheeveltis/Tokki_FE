@@ -3,6 +3,12 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'solito/navigation'
 import { Card, Space, Typography, Spin, Alert, Modal, Button } from 'antd'
+import {
+  EditOutlined,
+  SendOutlined,
+  DeleteOutlined,
+  ArrowLeftOutlined
+} from '@ant-design/icons'
 import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
 import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web.jsx'
 import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
@@ -737,7 +743,8 @@ export function FlashcardTopicDetailScreen() {
           <Alert type="error" message="Lỗi" description={error} />
           <Button
             type="primary"
-            style={{ marginTop: 10, minWidth: 120 }}
+            icon={<ArrowLeftOutlined />}
+            style={{ marginTop: 10, minWidth: 120, borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
             onClick={() => router.back()}
           >
             Quay lại
@@ -752,7 +759,8 @@ export function FlashcardTopicDetailScreen() {
           <Alert type="warning" message="Không tìm thấy chủ đề" />
           <Button
             type="primary"
-            style={{ marginTop: 12, minWidth: 140 }}
+            icon={<ArrowLeftOutlined />}
+            style={{ marginTop: 12, minWidth: 140, borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
             onClick={() => router.back()}
           >
             Quay lại danh sách
@@ -829,23 +837,47 @@ export function FlashcardTopicDetailScreen() {
                     <>
                       <Button
                         type="primary"
+                        icon={<EditOutlined />}
                         onClick={() => setEditOpen(true)}
                         disabled={isDeleted || editLoading || cannotEditForStaffModerator}
+                        style={{
+                          borderRadius: 20,
+                          height: 40,
+                          padding: '0 20px',
+                          fontWeight: 600
+                        }}
                       >
                         Chỉnh sửa
                       </Button>
                       {canSubmitForApproval && (
-                        <Button onClick={handleSubmitForApproval} disabled={submittingForApproval}>
+                        <Button type="primary" icon={<SendOutlined />} onClick={handleSubmitForApproval} disabled={submittingForApproval} style={{
+                          borderRadius: 20,
+                          height: 40,
+                          padding: '0 20px',
+                          fontWeight: 600
+                        }}>
                           {submittingForApproval ? 'Đang gửi...' : 'Gửi chờ duyệt'}
                         </Button>
                       )}
                       {!isDeleted && !isModerator && (
-                        <Button danger onClick={handleDelete} disabled={deleteLoading}>
+                        <Button danger icon={<DeleteOutlined />} onClick={handleDelete} disabled={deleteLoading} style={{
+                          borderRadius: 20,
+                          height: 40,
+                          padding: '0 20px',
+                          fontWeight: 600
+                        }}>
                           {deleteLoading ? 'Đang xóa...' : 'Xóa'}
                         </Button>
                       )}
                       <Button
+                        icon={<ArrowLeftOutlined />}
                         onClick={() => router.back()}
+                        style={{
+                          borderRadius: 20,
+                          height: 40,
+                          padding: '0 20px',
+                          fontWeight: 600
+                        }}
                       >
                         Quay lại
                       </Button>

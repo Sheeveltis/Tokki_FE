@@ -176,6 +176,7 @@ export default function ManagementLayout({
                 xl: 4,
                 xxl: 4,
               }}
+              rowKey={(item) => item.id || item.userId || item.key || item.email}
               loading={tableProps?.loading}
               dataSource={tableProps?.dataSource || []}
               renderItem={(item) => (

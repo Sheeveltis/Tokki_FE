@@ -7,27 +7,17 @@ import { BlogSidebar } from './blog-detail-sidebar'
 export function BlogLayout({ children, relatedPosts }) {
   return (
     <View style={styles.root}>
-      {/* Navbar ở đầu trang */}
-      <Navbar />
-
       {/* Nội dung chính */}
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.wrapper}>
-          
-          <View style={styles.leftCol}>
-             {children}
-          </View>
-
-          <View style={styles.rightCol}>
-             {/* Truyền relatedPosts xuống Sidebar */}
-             <BlogSidebar relatedPosts={relatedPosts} />
-          </View>
-
+      <View style={styles.wrapper}>
+        <View style={styles.leftCol}>
+           {children}
         </View>
-      </ScrollView>
 
-      {/* Footer ở cuối trang */}
-      <Footer style={{}} />
+        <View style={styles.rightCol}>
+           {/* Truyền relatedPosts xuống Sidebar */}
+           <BlogSidebar relatedPosts={relatedPosts} />
+        </View>
+      </View>
     </View>
   )
 }

@@ -15,19 +15,17 @@ export function StudyLayout({ children, onQuickTestPress, lessonsLearned, streak
 
   return (
     <View style={styles.root}>
-      <Navbar />
-      
       {/* Bên trái: Nút kiểm tra level nhanh - nằm ngoài ScrollView */}
       <View style={styles.leftSide}>
         <QuickLevelTestButton onPress={onQuickTestPress} />
       </View>
 
-      {/* Giữa: Content chính trong ScrollView */}
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      {/* Giữa: Content chính */}
+      <View style={styles.centerContentWrapper}>
         <View style={styles.centerContent}>
           {children}
         </View>
-      </ScrollView>
+      </View>
 
       {/* Bên phải: Thống kê học tập - nằm ngoài ScrollView */}
       <View style={styles.rightSide}>
@@ -90,14 +88,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFD7D0',
     position: 'relative',
+    minHeight: '100vh',
+    alignItems: 'center',
   },
-  scrollContent: {
+  centerContentWrapper: {
     width: '100%',
     flex: 1,
     alignItems: 'center',
-    // Căn từ trên xuống để không tạo khoảng trống lớn phía dưới
     justifyContent: 'flex-start',
-    paddingTop: 0,
+    paddingTop: 40,
     paddingBottom: 32,
     paddingHorizontal: 16,
   },

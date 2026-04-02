@@ -41,8 +41,8 @@ const linkGroups = [
 ]
 
 const partners = [
-  'Viện Giáo dục Quốc tế Quốc gia (NIIED)', 
-  'Trung tâm Ngôn ngữ Tiếng Hàn TP.HCM', 
+  'Viện Giáo dục Quốc tế Quốc gia (NIIED)',
+  'Trung tâm Ngôn ngữ Tiếng Hàn TP.HCM',
 ];
 export const Footer = ({ style }) => {
   const { width } = useWindowDimensions()
@@ -57,17 +57,6 @@ export const Footer = ({ style }) => {
 
   return (
     <View style={[styles.wrapper, style]}>
-      {/* <View style={[styles.newsletterWrap, isMobile && styles.newsletterWrapMobile]}>
-        <TextInput
-          placeholder='Nhận tài liệu học tiếng Hàn miễn phí'
-          placeholderTextColor='#989898'
-          style={styles.input}
-        />
-        <TouchableOpacity style={styles.button} activeOpacity={0.85}>
-          <Text style={styles.buttonText}>NHẬN NGAY</Text>
-        </TouchableOpacity>
-      </View> */}
-
       <View style={styles.footer}>
         <View style={[styles.inner, isTablet && styles.innerTablet]}>
           <View style={[styles.topGrid, isMobile && styles.topGridMobile]}>
@@ -103,7 +92,7 @@ export const Footer = ({ style }) => {
               ))}
             </View>
           </View>
-
+          {/* 
           <View style={styles.divider} />
 
           <View style={[styles.partnerRow, isMobile && styles.partnerRowMobile]}>
@@ -116,17 +105,12 @@ export const Footer = ({ style }) => {
             <Text style={styles.seeAll}>Tất cả đối tác →</Text>
           </View>
 
-          <View style={styles.divider} />
+          <View style={styles.divider} /> */}
 
           <View style={[styles.bottomRow, isMobile && styles.bottomRowMobile]}>
             <Text style={styles.copyText}>
               Bản quyền ©2026. Phát triển bởi Tokki Team | Chúc bạn học tốt! (화이팅!)
             </Text>
-            <View style={styles.bottomLinks}>
-              <Text style={styles.bottomLink}>Điều khoản</Text>
-              <Text style={styles.bottomLink}>Riêng tư</Text>
-              <Text style={styles.bottomLink}>Hỗ trợ</Text>
-            </View>
           </View>
         </View>
       </View>
@@ -137,7 +121,6 @@ export const Footer = ({ style }) => {
 const styles = StyleSheet.create({
   wrapper: {
     width: '100%',
-    marginTop: 48,
   },
   newsletterWrap: {
     width: '56%',
@@ -187,7 +170,7 @@ const styles = StyleSheet.create({
   footer: {
     backgroundColor: '#38393B',
     // opacity: 0.7,
-    paddingTop: 92,
+    paddingTop: 50,
     paddingBottom: 40,
   },
   inner: {

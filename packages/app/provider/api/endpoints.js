@@ -39,7 +39,7 @@ export const ENDPOINTS = {
     INCREASE_VIEW_COUNT: (blogId) => `/Blog/increase-view/${blogId}`,
   },
   QUESTION_TYPE: {
-    GET_ALL: '/QuestionType',
+    GET_ALL: '/QuestionType/admin',
     GET_BY_ID: (id) => `/QuestionType/${id}`,
     CREATE: '/QuestionType',
     UPDATE: (id) => `/QuestionType/${id}`,
@@ -81,6 +81,10 @@ export const ENDPOINTS = {
   },
   CATEGORY: {
     GET_ALL: '/Category',
+    GET_PAGED: '/Category/paged',
+    CREATE: '/Category',
+    UPDATE: (id) => `/Category/${id}`,
+    DELETE: (id) => `/Category/${id}`,
   },
   PAYMENT: {
     CREATE: '/Payment',
@@ -92,13 +96,15 @@ export const ENDPOINTS = {
     GET_ALL: '/VipPackage',
   },
   ACCOUNT: {
-    LOGIN: '/Account/login',
+    LOGIN_USER: '/Account/login/user',
+    LOGIN_ADMIN: '/Account/login/admin',
     REFRESH: '/Account/refresh',
     GOOGLE_LOGIN: '/Account/google-login',
     REGISTER: '/Account/register',
     FORGOT_PASSWORD_RESET: '/Account/forgot-password/reset',
     PROFILE: '/Account/profile',
     ME: '/Account/me',
+    AIM_LEVEL: '/Account/me/aim-level',
     GET_ALL: '/Account/get-all',
     DETAIL: (id) => `/Account/detail/${id}`,
     CREATE_ACCOUNT: '/Account/create-account',
@@ -143,11 +149,11 @@ export const ENDPOINTS = {
   },
   PRONUNCIATION_EXAMPLE: {
     GET_BY_RULE_ID: (ruleId) => `/PronunciationExample/rules/${ruleId}/examples`, // GET: Lấy danh sách ví dụ theo rule
-    GET_BY_ID: (exampleId) => `/PronunciationExample/examples/${exampleId}`, // GET: Lấy chi tiết ví dụ
+    GET_BY_ID: (exampleId) => `/PronunciationExample/${exampleId}`, // GET: Lấy chi tiết ví dụ
   },
   PRONUNCIATION_RULES: {
     CREATE: '/PronunciationRules', // POST: Tạo pronunciation rule
-    GET_ALL: '/PronunciationRules/rules', // GET: Lấy danh sách pronunciation rules
+    GET_ALL: '/PronunciationRules', // GET: Lấy danh sách pronunciation rules
   },
   VOCABULARY: {
     ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
@@ -180,6 +186,8 @@ export const ENDPOINTS = {
     SAVE_RESULT: '/Games/user/save-result', // POST: Lưu điểm game mới
     UPDATE_RESULT: '/Games/user/result', // PUT: Cập nhật điểm game đã có
     GET_ALL_USER_RESULTS: '/Games/user/get-all-user-results', // GET: Lấy bảng xếp hạng user results (query: gameId, topicId, gameDifficulty, pageNumber, pageSize)
+    SOLITAIRE_SAVE_RESULT: '/Games/solitaire/save-result', // POST: Lưu điểm solitaire (body: { gameId, score, gameDifficulty })
+    SOLITAIRE_GET_ALL_USER_RESULTS: '/Games/solitaire/get-all-user-results', // GET: BXH solitaire (query: gameId, gameDifficulty, pageNumber, pageSize)
   },
   REPORT: {
     CREATE: '/Report',
@@ -202,14 +210,18 @@ export const ENDPOINTS = {
   },
   GAMIFICATION: {
     HEARTBEAT: '/Gamification/heartbeat',  // POST: Heartbeat để track thời gian học tập
-    PROGRESS: (userId) => `/Gamification/progress/${userId}`,  // GET: Lấy thông tin progress (level, XP, streak, title)
+    PROGRESS: '/Gamification/progress',  // GET: Lấy thông tin progress (level, XP, streak, title) cho user hiện tại
+    GAME_XP: '/Gamification/game-xp', // POST: Cộng XP theo amount cho account hiện tại
   },
   TITLE: {
-    GET_ALL: '/Title',  // GET: Lấy danh sách danh hiệu
+    GET_ALL: '/Title/admin',  // GET: Lấy danh sách danh hiệu (admin)
     GET_BY_ID: (id) => `/Title/${id}`,  // GET: Lấy thông tin title theo ID
     CREATE: '/Title',  // POST: Tạo mới danh hiệu
     UPDATE: (id) => `/Title/${id}`,  // PUT: Cập nhật danh hiệu
     DELETE: (id) => `/Title/${id}`,  // DELETE: Xóa danh hiệu
+    CHECK_DAILY_TITLES: '/Title/user/check-daily-titles', // POST: Kiểm tra và mở khóa danh hiệu hàng ngày
+    MY_TITLES: '/Title/my-titles', // GET: Lấy danh sách danh hiệu của tôi (query: pageNumber, pageSize)
+    EQUIP: '/Title/equip', // PUT: Trang bị danh hiệu
   },
   LEADERBOARD: {
     GET_ALL: '/Leaderboard',  // GET: Lấy danh sách leaderboard (query: timeFrame, top)
@@ -264,7 +276,10 @@ export const ENDPOINTS = {
   },
   EXAMS: {
     ADMIN_LIST: '/Exams/admin',              // GET: Lấy danh sách exams cho admin (query: PageNumber, PageSize, Status, Type)
+    ADMIN_STATS_LIST: '/Exams/admin/stats',   // GET: Lấy danh sách exams với thống kê (admin)
     ADMIN_DETAIL: '/Exams/admin/detail',     // GET: Lấy chi tiết exam cho admin (query: examId)
+    ADMIN_STATS: (id) => `/Exams/admin/stats/${id}`, // GET: Lấy thống kê exam
+    ADMIN_PARTICIPANTS: (id) => `/Exams/admin/stats/${id}/participants`, // GET: Danh sách người làm bài
     GET_BY_ID: (id) => `/Exams/${id}`,      // GET: Lấy chi tiết exam
     CREATE: '/Exams',                        // POST: Tạo exam mới
     UPDATE: (id) => `/Exams/${id}`,          // PUT: Cập nhật exam
@@ -273,6 +288,7 @@ export const ENDPOINTS = {
     GET_QUESTIONS_BY_PART: '/Exams/get-questions-by-part', // GET: Lấy danh sách câu hỏi theo templatePartId
     UPDATE_EXAM_QUESTION: '/Exams/update-exam-question', // PUT: Cập nhật 1 câu hỏi trong đề (body: { examId, questionBankId, questionNo })
     REGENERATE_PART: '/Exams/regenerate-part', // POST: Random/regenerate lại bộ câu hỏi của một phần (body: { examId, templatePartId })
+    EXPORT_PDF: (id) => `/Exams/${id}/export-pdf`, // GET: Xuất PDF
   },
   USER_EXAM: {
     TAKE_EXAM: (examId, isShuffle = true) =>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, Modal, Pressable, ScrollView, ActivityIndicator, Platform } from 'react-native'
+import { View, Text, StyleSheet, Modal, Pressable, ScrollView, ActivityIndicator, Platform, Image } from 'react-native'
 import { getAllUserResults } from '../../../api/matching-card-play-api'
 import { getCurrentUserId } from '../../../../../provider/api/client'
 
@@ -37,8 +37,8 @@ export function MatchingCardLeaderboardPopup({ visible, gameId, topicId, gameDif
         const response = await getAllUserResults(gameId, topicId, gameDifficulty, 1, 100)
         
         if (response.isSuccess && response.data?.items) {
-          // Sort by bestScore descending
-          const sorted = [...response.data.items].sort((a, b) => b.bestScore - a.bestScore)
+          // Sort theo bestScore (điểm cao nhất)
+          const sorted = [...response.data.items].sort((a, b) => (b.bestScore || 0) - (a.bestScore || 0))
           setLeaderboard(sorted)
         } else {
           setError('Không thể tải bảng xếp hạng')
@@ -66,6 +66,25 @@ export function MatchingCardLeaderboardPopup({ visible, gameId, topicId, gameDif
     if (rank === 2) return '#C0C0C0' // Silver
     if (rank === 3) return '#CD7F32' // Bronze
     return '#666'
+  }
+
+  const getContrastingTextColor = (backgroundHex) => {
+    if (!backgroundHex || typeof backgroundHex !== 'string') return '#1C1C1C'
+
+    let hex = backgroundHex.trim().replace('#', '')
+    if (hex.length === 3) {
+      hex = hex.split('').map((c) => c + c).join('')
+    }
+    if (hex.length !== 6) return '#1C1C1C'
+
+    const r = parseInt(hex.substring(0, 2), 16)
+    const g = parseInt(hex.substring(2, 4), 16)
+    const b = parseInt(hex.substring(4, 6), 16)
+
+    if ([r, g, b].some((x) => Number.isNaN(x))) return '#1C1C1C'
+
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    return luminance > 0.6 ? '#1C1C1C' : '#FFFFFF'
   }
 
   if (!visible) return null
@@ -109,7 +128,12 @@ export function MatchingCardLeaderboardPopup({ visible, gameId, topicId, gameDif
                   const isCurrentUser = item.userId === currentUserId
                   const rankIcon = getRankIcon(rank)
                   const rankColor = getRankColor(rank)
-                  const displayName = `User ${item.userId.slice(0, 8)}`
+                  const displayName = item.userName || `User ${item.userId?.slice(0, 8) || ''}`
+                  const displayScore = typeof item?.bestScore === 'number' ? item.bestScore : 0
+                  const titleName = item.titleName || 'Chưa có danh hiệu'
+                  const titleBg = item.titleColorHex || '#E9E9E9'
+                  const titleTextColor = getContrastingTextColor(titleBg)
+                  const titleIconUrl = item.titleIconUrl || ''
 
                   return (
                     <View
@@ -128,13 +152,15 @@ export function MatchingCardLeaderboardPopup({ visible, gameId, topicId, gameDif
                         )}
                       </View>
 
-                      {/* Avatar */}
+                      {/* Title Icon */}
                       <View style={styles.avatarContainer}>
-                        <View style={styles.avatarPlaceholder}>
-                          <Text style={styles.avatarText}>
-                            {displayName[5]?.toUpperCase() || 'U'}
-                          </Text>
-                        </View>
+                        {titleIconUrl ? (
+                          <Image source={{ uri: titleIconUrl }} style={styles.avatar} resizeMode="cover" />
+                        ) : (
+                          <View style={styles.avatarPlaceholder}>
+                            <Text style={styles.avatarText}>🏆</Text>
+                          </View>
+                        )}
                       </View>
 
                       {/* User Info */}
@@ -143,13 +169,17 @@ export function MatchingCardLeaderboardPopup({ visible, gameId, topicId, gameDif
                           {displayName}
                           {isCurrentUser && ' (Bạn)'}
                         </Text>
-                        <Text style={styles.userIdText}>ID: {item.userId}</Text>
+                        <View style={[styles.titleBadge, { backgroundColor: titleBg }]}>
+                          <Text style={[styles.titleBadgeText, { color: titleTextColor }]} numberOfLines={1}>
+                            {titleName}
+                          </Text>
+                        </View>
                       </View>
 
                       {/* Score */}
                       <View style={styles.scoreContainer}>
                         <Text style={[styles.scoreText, isCurrentUser && styles.scoreTextCurrent]}>
-                          {item.bestScore}
+                          {displayScore}
                         </Text>
                         <Text style={styles.scoreLabel}>điểm</Text>
                       </View>
@@ -309,7 +339,7 @@ const styles = StyleSheet.create({
   },
   userInfo: {
     flex: 1,
-    gap: 4,
+    gap: 6,
   },
   userName: {
     fontSize: 16,
@@ -320,9 +350,15 @@ const styles = StyleSheet.create({
   userNameCurrent: {
     color: '#D97706',
   },
-  userIdText: {
-    fontSize: 11,
-    color: '#999',
+  titleBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  titleBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
     fontFamily: 'Epilogue, sans-serif',
   },
   scoreContainer: {

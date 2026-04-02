@@ -56,13 +56,12 @@ export function WordleFeedbackModal({ visible, loading, data, onConfirm }) {
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Tổng điểm</Text>
-            {renderProgressBar({ label: 'Tổng điểm', score: totalScore, maxScore: 100 })}
+            {renderProgressBar({score: totalScore, maxScore: 100 })}
           </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Từ vựng</Text>
             {renderProgressBar({
-              label: 'Từ vựng',
               score: Number(meaning.score ?? 0),
               maxScore: Number(meaning.maxScore ?? 100),
             })}
@@ -72,7 +71,6 @@ export function WordleFeedbackModal({ visible, loading, data, onConfirm }) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ngữ pháp</Text>
             {renderProgressBar({
-              label: 'Ngữ pháp',
               score: Number(grammar.score ?? 0),
               maxScore: Number(grammar.maxScore ?? 100),
             })}
@@ -82,7 +80,6 @@ export function WordleFeedbackModal({ visible, loading, data, onConfirm }) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Độ tự nhiên</Text>
             {renderProgressBar({
-              label: 'Độ tự nhiên',
               score: Number(naturalness.score ?? 0),
               maxScore: Number(naturalness.maxScore ?? 100),
             })}
@@ -311,9 +308,16 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '900',
     color: '#FFFFFF',
-    textShadowColor: 'rgba(0,0,0,0.2)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 1,
+    ...Platform.select({
+      web: {
+        textShadow: '1px 1px 1px rgba(0,0,0,0.2)',
+      },
+      default: {
+        textShadowColor: 'rgba(0,0,0,0.2)',
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 1,
+      },
+    }),
   },
 })
 

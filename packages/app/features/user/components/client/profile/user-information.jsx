@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from 'react'
-import { Image, StyleSheet, Text, View, ScrollView, Platform } from 'react-native'
+import { useEffect, useState } from 'react'
+import { Image, StyleSheet, Text, View, Platform } from 'react-native'
 
 import Carrot from '../../../../../../assets/carrot.png'
 import UserIcon from '../../../../../../assets/user.png'
-import { getCurrentUser, updateBasicInfo, updateSecurityInfo, uploadAvatar, getTitleById } from '../../../api/profile'
+import { getCurrentUser, updateBasicInfo, uploadAvatar, uploadAvatarToCloudinary, getTitleById } from '../../../api/profile'
 import { showAdminSuccess } from '../../../../../../components/HelperAdmin'
 import { BasicInfo } from './basic-info'
-import { SecurityInfo } from './security-info'
+import { ProfileEditModal } from './profile-edit-modal'
 import { UserAvatarCard } from './user-avt'
 import { UserExp } from './user-exp'
 import { UserStreak } from './user-streak'
 import { UserTitle } from './user-title'
+import { UserTitlesModal } from './user-titles-modal'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -20,26 +21,13 @@ const normalizeImageSource = (src) => {
   return src
 }
 
-/**
- * Split fullName into firstName and lastName
- * If fullName has space, split by space; otherwise use fullName as lastName
- */
-const splitFullName = (fullName) => {
-  if (!fullName) return { firstName: '', lastName: '' }
-  const parts = fullName.trim().split(/\s+/)
-  if (parts.length === 1) {
-    return { firstName: '', lastName: parts[0] }
-  }
-  const lastName = parts.pop()
-  const firstName = parts.join(' ')
-  return { firstName, lastName }
-}
-
 export function UserInformation() {
   const [userData, setUserData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [titleData, setTitleData] = useState(null)
+  const [isTitlesModalVisible, setIsTitlesModalVisible] = useState(false)
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false)
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -70,81 +58,54 @@ export function UserInformation() {
     fetchUserData()
   }, [])
 
-  const handleBasicInfoSubmit = async ({ firstName, lastName }) => {
+  const handleProfileUpdate = async (values) => {
     try {
-      const fullName = `${firstName} ${lastName}`.trim()
-      const updatedData = await updateBasicInfo({ fullName })
+      const updatedData = await updateBasicInfo({
+        fullName: (values.fullName || '').trim(),
+        phoneNumber: values.phoneNumber || null,
+        dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : (userData?.dateOfBirth ? String(userData.dateOfBirth).split('T')[0] : null),
+      })
+
       setUserData(updatedData)
-      showAdminSuccess('Cập nhật thông tin cơ bản thành công')
+      setIsEditModalVisible(false)
+      showAdminSuccess('Cập nhật thông tin thành công')
+      
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        setTimeout(() => {
-          window.location.reload()
-        }, 1000)
+        setTimeout(() => window.location.reload(), 800)
       }
     } catch (err) {
-      console.error('Error updating basic info:', err)
-      alert(err.message || 'Không thể cập nhật thông tin')
-    }
-  }
-
-  const handleSecurityInfoUpdate = async ({ phone }) => {
-    try {
-      const updatedData = await updateSecurityInfo({ phoneNumber: phone })
-      setUserData(updatedData)
-      showAdminSuccess('Cập nhật số điện thoại thành công')
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        setTimeout(() => {
-          window.location.reload()
-        }, 1000)
-      }
-    } catch (err) {
-      console.error('Error updating security info:', err)
-      alert(err.message || 'Không thể cập nhật thông tin bảo mật')
-    }
-  }
-
-  const handleChangePassword = () => {
-    // TODO: Implement change password flow
-    alert('Chức năng đổi mật khẩu sẽ được triển khai sau')
-  }
-
-  const handleAvatarUpdate = async (avatarUrl) => {
-    try {
-      const updatedData = await uploadAvatar(avatarUrl)
-      setUserData(updatedData)
-      showAdminSuccess('Cập nhật avatar thành công')
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        setTimeout(() => {
-          window.location.reload()
-        }, 1000)
-      }
-    } catch (err) {
-      console.error('Error updating avatar:', err)
-      alert(err.message || 'Không thể cập nhật avatar')
+      console.error('Error updating info:', err)
+      alert(err.message || 'Không thể cập nhật')
     }
   }
 
   const handleAvatarUpload = async (fileOrUrl) => {
     try {
-      let avatarData = fileOrUrl
-
-      // Nếu là file trên web: convert to base64 data URL rồi gửi avatarUrl
-      if (Platform.OS === 'web' && typeof window !== 'undefined' && fileOrUrl instanceof File) {
-        avatarData = await new Promise((resolve, reject) => {
-          const reader = new FileReader()
-          reader.onload = () => resolve(reader.result)
-          reader.onerror = reject
-          reader.readAsDataURL(fileOrUrl)
-        })
+      if (!fileOrUrl) {
+        throw new Error('Không có file ảnh để upload')
       }
 
-      const updatedData = await uploadAvatar(avatarData)
-      setUserData(updatedData)
+      // 1) Upload file lên Cloudinary endpoint để nhận URL
+      const cloudinaryUrl = await uploadAvatarToCloudinary(fileOrUrl)
+
+      // 2) Gửi URL đó vào PUT /Account/profile (avatarUrl) kèm theo các info hiện có
+      const payload = {
+        fullName: userData.fullName || '',
+        phoneNumber: userData.phoneNumber || null,
+        dateOfBirth: userData.dateOfBirth ? String(userData.dateOfBirth).split('T')[0] : null,
+        avatarUrl: cloudinaryUrl
+      }
+      await uploadAvatar(payload)
+
+      // 3) Lấy lại account/me để luôn đồng bộ avatarUrl mới nhất từ server
+      const refreshedUser = await getCurrentUser()
+      setUserData(refreshedUser)
+
       showAdminSuccess('Cập nhật avatar thành công')
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         setTimeout(() => {
           window.location.reload()
-        }, 1000)
+        }, 800)
       }
     } catch (err) {
       console.error('Error uploading avatar:', err)
@@ -168,315 +129,199 @@ export function UserInformation() {
     )
   }
 
-  const { firstName, lastName } = splitFullName(userData.fullName || '')
+  const avatarSource =
+    userData.avatarUrl && userData.avatarUrl !== 'null' && userData.avatarUrl !== null
+      ? { uri: userData.avatarUrl }
+      : UserIcon
 
-  // Web layout: two-column with dashboard
-  if (Platform.OS === 'web') {
-    const avatarSource =
-      userData.avatarUrl && userData.avatarUrl !== 'null' && userData.avatarUrl !== null
-        ? { uri: userData.avatarUrl }
-        : UserIcon
+  const userAvatarData = {
+    avatar: avatarSource,
+  }
 
-    const userAvatarData = {
-      name: userData.fullName || '',
-      phone: userData.phoneNumber || '',
-      avatar: avatarSource,
-    }
+  const basicInfoData = {
+    username: userData.fullName || '',
+    email: userData.email || '',
+    phone: userData.phoneNumber || '',
+    dateOfBirth: userData.dateOfBirth ? String(userData.dateOfBirth).slice(0, 10) : '',
+  }
 
-    const basicInfoData = {
-      firstName: '',
-      lastName: userData.fullName || '',
-    }
-
-    const securityInfoData = {
-      email: userData.email || '',
-      password: '**********', 
-      phone: userData.phoneNumber || '',
-    }
-
-    return (
-      <View style={styles.container}>
+  return (
+    <View style={styles.container}>
+      <View style={styles.contentCard}>
         <Image source={normalizeImageSource(Carrot)} style={styles.carrot} resizeMode="contain" />
 
         <View style={styles.header}>
-          <Text style={styles.title}>Thông tin người dùng</Text>
-          <Text style={styles.subtitle}>
-            Quản lí thông tin tài khoản của bạn, bạn có thể xem trạng thái tài khoản và đổi mật khẩu.
-          </Text>
-        </View>
-
-        <View style={styles.topRow}>
-          <View style={styles.avatarWrap}>
-            <UserAvatarCard user={userAvatarData} onAvatarPress={handleAvatarUpload} />
-          </View>
-          <View style={styles.basicWrap}>
-            <BasicInfo initialInfo={basicInfoData} onSubmit={handleBasicInfoSubmit} />
+          <View style={styles.headerPattern} />
+          <View style={styles.headerInfo}>
+            <Text style={styles.title}>Thông tin người dùng</Text>
+            <Text style={styles.subtitle}>Quản lí thông tin tài khoản của bạn và cập nhật thông tin cơ bản.</Text>
           </View>
         </View>
 
-        <View style={styles.expStreakRow}>
-          <View style={styles.leftColumn}>
-            <View style={styles.expWrap}>
-              <UserExp />
+        <View style={styles.mainContent}>
+          <View style={styles.topRow}>
+            <View style={styles.avatarWrap}>
+              <UserAvatarCard user={userAvatarData} onAvatarPress={handleAvatarUpload} />
             </View>
-            <View style={styles.titleWrap}>
-              <UserTitle 
-                title={titleData?.name || userData.currentTitle || null}
-                icon={titleData?.iconUrl || userData.titleIcon || '🏆'}
+            <View style={styles.basicWrap}>
+              <BasicInfo 
+                initialInfo={basicInfoData} 
+                onEditPress={() => setIsEditModalVisible(true)} 
               />
             </View>
           </View>
-          <View style={styles.streakWrap}>
-            <UserStreak 
-              currentStreak={userData.currentStreak || 0} 
-              maxStreak={userData.maxStreak || 0} 
-            />
-          </View>
-        </View>
 
-        <View style={styles.securityWrap}>
-          <SecurityInfo
-            initialData={securityInfoData}
-            onUpdate={handleSecurityInfoUpdate}
-            onChangePassword={handleChangePassword}
-          />
-        </View>
-      </View>
-    )
-  }
-
-  // Native layout: vertical scrollable
-  return (
-    <ScrollView 
-      style={styles.container}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Header */}
-      <View style={styles.headerNative}>
-        <View style={styles.headerTextContainer}>
-          <Text style={styles.titleNative}>Thông tin người dùng</Text>
-          <Text style={styles.subtitleNative}>
-            Quản lí thông tin tài khoản của bạn, bạn có thể xem trạng thái tài khoản và đổi mật khẩu.
-          </Text>
-        </View>
-      </View>
-
-      {/* User Avatar Card */}
-      <View style={styles.section}>
-        <UserAvatarCard
-          avatarUrl={userData.avatarUrl}
-          onAvatarUpdate={handleAvatarUpdate}
-        />
-      </View>
-
-      {/* User Info Cards - Stacked vertically for mobile */}
-      <View style={styles.cardsContainer}>
-        {/* Left column - Experience and Title */}
-        <View style={styles.leftColumn}>
-          {/* Experience Card */}
-          <View style={styles.card}>
-            <UserExp />
-          </View>
-
-          {/* Title Card */}
-          <View style={styles.card}>
-            <UserTitle 
-              title={titleData?.name || userData.currentTitle || null}
-              icon={titleData?.iconUrl || '🏆'}
-            />
-          </View>
-        </View>
-
-        {/* Right column - Streak */}
-        <View style={styles.rightColumn}>
-          <View style={styles.card}>
-            <UserStreak 
-              currentStreak={userData.currentStreak || 0} 
-              maxStreak={userData.maxStreak || 0} 
-            />
+          <View style={styles.expStreakRow}>
+            <View style={styles.leftColumn}>
+              <View style={styles.titleWrap}>
+                <UserTitle
+                  title={titleData?.name || userData.currentTitle || null}
+                  icon={titleData?.iconUrl || userData.titleIcon || '🏆'}
+                  colorHex={titleData?.colorHex || ''}
+                  onPress={() => setIsTitlesModalVisible(true)}
+                />
+              </View>
+              <View style={styles.expWrap}>
+                <UserExp />
+              </View>
+            </View>
+            <View style={styles.streakWrap}>
+              <UserStreak
+                currentStreak={userData.currentStreak || 0}
+                maxStreak={userData.maxStreak || 0}
+              />
+            </View>
           </View>
         </View>
       </View>
 
-      {/* Basic Info */}
-      <View style={styles.section}>
-        <BasicInfo
-          firstName={firstName}
-          lastName={lastName}
-          onSubmit={handleBasicInfoSubmit}
-        />
-      </View>
+      <UserTitlesModal 
+        visible={isTitlesModalVisible} 
+        onClose={() => setIsTitlesModalVisible(false)} 
+      />
 
-      {/* Security Info */}
-      <View style={styles.section}>
-        <SecurityInfo
-          phone={userData.phoneNumber || ''}
-          onUpdate={handleSecurityInfoUpdate}
-        />
-      </View>
-    </ScrollView>
+      <ProfileEditModal
+        open={isEditModalVisible}
+        initialValues={basicInfoData}
+        onOk={handleProfileUpdate}
+        onCancel={() => setIsEditModalVisible(false)}
+      />
+    </View>
   )
 }
 
 const getStyles = () => {
   const isWeb = Platform.OS === 'web'
-  
+
   return StyleSheet.create({
     container: {
-      backgroundColor: '#F5F0DD',
-      borderRadius: 30,
-      paddingVertical: 24,
-      paddingHorizontal: 20,
-      gap: 18,
-      position: 'relative',
+      flex: 1,
+      minHeight: '100%',
     },
-    // Web carrot
+    contentCard: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 32,
+      overflow: 'hidden',
+      position: 'relative',
+      shadowColor: '#000',
+      shadowOpacity: 0.04,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 5,
+      borderWidth: 1,
+      borderColor: '#F0F0F0',
+    },
     carrot: {
       position: 'absolute',
-      top: -50,
-      right: -100,
-      width: 200,
+      top: -20,
+      right: -30,
+      width: 160,
       height: 100,
-      zIndex: 2,
+      zIndex: 10,
+      opacity: 0.8,
+      transform: [{ rotate: '15deg' }],
       pointerEvents: 'none',
     },
-    // Native carrot
-    carrotNative: {
+    header: {
+      paddingHorizontal: 32,
+      paddingTop: 40,
+      paddingBottom: 24,
+      position: 'relative',
+      backgroundColor: '#FFF9F0',
+    },
+    headerPattern: {
       position: 'absolute',
-      top: 10,
-      right: 40,
-      width: 200,
-      height: 100,
-      zIndex: 2,
-      pointerEvents: 'none',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      opacity: 0.05,
+      backgroundColor: '#F1BE4B',
     },
-    // Native scroll content
-    scrollContent: {
-      paddingHorizontal: isWeb ? 16 : 0, // Less padding on native for wider cards
-      paddingTop: 20,
-      paddingBottom: 20,
+    headerInfo: {
+      position: 'relative',
+      zIndex: 1,
     },
-  // Native header
-  headerNative: {
-    marginBottom: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTextContainer: {
-    alignItems: 'center',
-    width: '100%',
-  },
-  titleNative: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subtitleNative: {
-    fontSize: 14,
-    color: '#2C2C2C',
-    fontFamily: 'Epilogue, sans-serif',
-    lineHeight: 20,
-    textAlign: 'center',
-  },
-  // Native sections
-  section: {
-    marginBottom: 20,
-    width: '100%', // Ensure full width on native
-  },
-  cardsContainer: {
-    flexDirection: 'column', // Stack vertically on mobile
-    gap: 16,
-    marginBottom: 20,
-    width: '100%', // Ensure full width
-  },
-  leftColumn: {
-    flex: 1,
-    gap: 16,
-    width: '100%', // Full width on native
-  },
-  rightColumn: {
-    flex: 1,
-    width: '100%', // Full width on native
-  },
-    card: {
-      backgroundColor: '#FFFFFF',
-      borderRadius: 16,
-      padding: isWeb ? 16 : 20, // More padding on native
-      shadowColor: '#000',
-      shadowOpacity: 0.05,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 2 },
-      elevation: 2,
-      width: '100%', // Ensure full width
-      minWidth: isWeb ? 280 : '100%', // No minWidth constraint on native
+    title: {
+      fontSize: 28,
+      fontWeight: '900',
+      fontFamily: 'Epilogue, sans-serif',
+      color: '#20130A',
+      marginBottom: 8,
     },
-  header: {
-    gap: 6,
-    paddingRight: 100,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '800',
-    fontFamily: 'Epilogue, sans-serif',
-    color: '#1C1C1C',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#2C2C2C',
-    fontFamily: 'Epilogue, sans-serif',
-    lineHeight: 20,
-  },
-  topRow: {
-    flexDirection: 'row',
-    gap: 16,
-    alignItems: 'stretch',
-  },
-  basicWrap: {
-    flex: 1,
-    minHeight: 200,
-  },
-  avatarWrap: {
-    width: 220,
-    minHeight: 200,
-  },
-  expStreakRow: {
-    flexDirection: 'row',
-    gap: 16,
-    width: '100%',
-    alignItems: 'stretch',
-  },
-  leftColumn: {
-    flex: 1,
-    gap: 16,
-  },
-  expWrap: {
-    width: '100%',
-  },
-  titleWrap: {
-    width: '100%',
-  },
-  streakWrap: {
-    flex: 1,
-  },
-  securityWrap: {
-    width: '100%',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    paddingVertical: 40,
-    fontFamily: 'Epilogue, sans-serif',
-  },
+    subtitle: {
+      fontSize: 15,
+      color: '#666',
+      fontFamily: 'Epilogue, sans-serif',
+      lineHeight: 22,
+      maxWidth: '80%',
+    },
+    mainContent: {
+      padding: 32,
+      gap: 24,
+    },
+    topRow: {
+      flexDirection: 'row',
+      gap: 24,
+      alignItems: 'stretch',
+    },
+    avatarWrap: {
+      width: 260,
+    },
+    basicWrap: {
+      flex: 1,
+    },
+    expStreakRow: {
+      flexDirection: 'row',
+      gap: 24,
+      width: '100%',
+      alignItems: 'stretch',
+    },
+    leftColumn: {
+      flex: 1.2,
+      gap: 24,
+    },
+    titleWrap: {
+      width: '100%',
+    },
+    expWrap: {
+      width: '100%',
+    },
+    streakWrap: {
+      flex: 1,
+    },
+    loadingText: {
+      fontSize: 16,
+      color: '#666',
+      textAlign: 'center',
+      paddingVertical: 80,
+      fontFamily: 'Epilogue, sans-serif',
+    },
     errorText: {
       fontSize: 16,
       color: '#E74C3C',
       textAlign: 'center',
-      paddingVertical: 40,
+      paddingVertical: 80,
       fontFamily: 'Epilogue, sans-serif',
     },
   })

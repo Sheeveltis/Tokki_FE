@@ -1,34 +1,64 @@
-import React, { useState } from 'react'
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { EditOutlined, MailOutlined, PhoneOutlined, CalendarOutlined, UserOutlined } from '@ant-design/icons'
+import { Pressable, StyleSheet, Text, View, Platform, TouchableOpacity } from 'react-native'
 
-const DEFAULT_INFO = {
-  lastName: 'Quý',
-}
-
-export function BasicInfo({ initialInfo = DEFAULT_INFO, onSubmit }) {
-  const [lastName, setLastName] = useState(initialInfo.lastName)
-
-  const handleSubmit = () => {
-    if (onSubmit) onSubmit({ firstName: '', lastName })
-  }
+export function BasicInfo({ initialInfo, onEditPress }) {
+  const info = initialInfo || {}
 
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>Thông tin cơ bản</Text>
-
-      <View style={styles.singleField}>
-        <TextInput
-          value={lastName}
-          onChangeText={setLastName}
-          style={styles.input}
-          placeholder="Tên"
-          placeholderTextColor="#8F8F8F"
-        />
+      <View style={styles.header}>
+        <Text style={styles.title}>Thông tin cá nhân</Text>
+        <TouchableOpacity 
+          style={styles.editBtn} 
+          onPress={onEditPress}
+          activeOpacity={0.7}
+        >
+          <EditOutlined style={{ fontSize: 18, color: '#F1BE4B' }} />
+          <Text style={styles.editBtnText}>Chỉnh sửa</Text>
+        </TouchableOpacity>
       </View>
 
-      <Pressable onPress={handleSubmit} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
-        <Text style={styles.buttonText}>Cập Nhật</Text>
-      </Pressable>
+      <View style={styles.infoGrid}>
+        <View style={styles.infoItem}>
+          <View style={styles.iconCircle}>
+            <UserOutlined style={{ fontSize: 16, color: '#F1BE4B' }} />
+          </View>
+          <View style={styles.infoTextGroup}>
+            <Text style={styles.infoLabel}>Họ và tên</Text>
+            <Text style={styles.infoValue}>{info.username || 'Chưa cập nhật'}</Text>
+          </View>
+        </View>
+
+        <View style={styles.infoItem}>
+          <View style={styles.iconCircle}>
+            <PhoneOutlined style={{ fontSize: 16, color: '#F1BE4B' }} />
+          </View>
+          <View style={styles.infoTextGroup}>
+            <Text style={styles.infoLabel}>Số điện thoại</Text>
+            <Text style={styles.infoValue}>{info.phone || 'Chưa cập nhật'}</Text>
+          </View>
+        </View>
+
+        <View style={styles.infoItem}>
+          <View style={styles.iconCircle}>
+            <MailOutlined style={{ fontSize: 16, color: '#F1BE4B' }} />
+          </View>
+          <View style={styles.infoTextGroup}>
+            <Text style={styles.infoLabel}>Email</Text>
+            <Text style={styles.infoValue}>{info.email || 'Chưa cập nhật'}</Text>
+          </View>
+        </View>
+
+        <View style={styles.infoItem}>
+          <View style={styles.iconCircle}>
+            <CalendarOutlined style={{ fontSize: 16, color: '#F1BE4B' }} />
+          </View>
+          <View style={styles.infoTextGroup}>
+            <Text style={styles.infoLabel}>Ngày sinh</Text>
+            <Text style={styles.infoValue}>{info.dateOfBirth || 'Chưa cập nhật'}</Text>
+          </View>
+        </View>
+      </View>
     </View>
   )
 }
@@ -36,59 +66,74 @@ export function BasicInfo({ initialInfo = DEFAULT_INFO, onSubmit }) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-    gap: 22,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 3,
+    borderRadius: 24,
+    padding: 24,
+    height: '100%',
     borderWidth: 1,
-    borderColor: '#E5E3DC',
+    borderColor: '#F0F0F0',
+    gap: 24,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1C1C1C',
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#20130A',
     fontFamily: 'Epilogue, sans-serif',
   },
-  singleField: {
-    width: '100%',
-  },
-  input: {
-    backgroundColor: '#F2F2F2',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#D9D9D9',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  button: {
-    marginTop: 6,
-    alignSelf: 'flex-start',
-    backgroundColor: '#FFDCAA',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
+  editBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FFF9F0',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
-    top: -2,
+    borderWidth: 1,
+    borderColor: 'rgba(241, 190, 75, 0.3)',
   },
-  buttonPressed: {
-    transform: [{ scale: 0.98 }],
-  },
-  buttonText: {
-    fontSize: 15,
+  editBtnText: {
+    fontSize: 13,
     fontWeight: '700',
-    color: '#1C1C1C',
+    color: '#F1BE4B',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  infoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 24,
+  },
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    width: '45%',
+    minWidth: 200,
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFF9F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  infoTextGroup: {
+    gap: 2,
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: '#999',
+    fontWeight: '600',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  infoValue: {
+    fontSize: 15,
+    color: '#20130A',
+    fontWeight: '700',
     fontFamily: 'Epilogue, sans-serif',
   },
 })

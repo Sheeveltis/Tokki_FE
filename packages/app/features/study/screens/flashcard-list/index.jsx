@@ -39,11 +39,16 @@ export function FlashcardListScreen({
     searchTerm,
     handleSearchChange,
     handleSearchSubmit,
+    selectedLevel,
+    handleLevelChange,
     pageNumber,
     pageSize,
+    totalPages,
+    totalCount,
     canNextPage,
     handlePrevPage,
     handleNextPage,
+    handlePageChange,
   } = useFlashcardList(routeLevelId)
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
@@ -130,7 +135,7 @@ export function FlashcardListScreen({
 
   return (
     <Layout
-      levelId={routeLevelId}
+      levelId={selectedLevel}
       onBackPress={handleBackPress}
       onQuickTestPress={otherProps.onQuickTestPress}
       lessonsLearned={otherProps.lessonsLearned}
@@ -147,6 +152,8 @@ export function FlashcardListScreen({
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
         onSearchSubmit={handleSearchSubmit}
+        selectedLevel={selectedLevel}
+        onLevelChange={handleLevelChange}
         onBackPress={handleBackPress}
         onTopicPress={handleTopicPress}
         onRetry={fetchTopics}
@@ -154,9 +161,12 @@ export function FlashcardListScreen({
         onLearnedPress={handleLearnedPress}
         pageNumber={pageNumber}
         pageSize={pageSize}
+        totalPages={totalPages}
+        totalCount={totalCount}
         canNextPage={canNextPage}
         onPrevPage={handlePrevPage}
         onNextPage={handleNextPage}
+        onPageChange={handlePageChange}
       />
     </Layout>
   )

@@ -8,7 +8,6 @@ import { Navbar } from '../../../../../components/navbar'
 export function AlphabetStudyLayout({ children }) {
   return (
     <View style={styles.root}>
-      <Navbar />
       <View style={styles.contentWrapper}>
         {children}
       </View>

@@ -1,7 +1,6 @@
-'use client'
-
-import { useState } from 'react'
-import { useRouter } from 'solito/navigation'
+import { useState, useEffect } from 'react'
+import { Platform } from 'react-native'
+import { useRouter, useSearchParams } from 'solito/navigation'
 import { RoadmapInfoLayout } from '../components/roadmap-info/roadmap-info-layout.web'
 
 // Định nghĩa mapping giữa level và key bài thi
@@ -16,7 +15,23 @@ const ENTRANCE_EXAM_KEYS = {
 
 export function RoadmapInfoScreen() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const needsTest = searchParams?.get('needsTest')
   const [isChecking, setIsChecking] = useState(false)
+
+  useEffect(() => {
+    if (Platform.OS === 'web' && needsTest === '1') {
+      // Hiển thị thông báo yêu cầu test trên web
+      import('antd').then(({ notification }) => {
+        notification.info({
+          message: 'Thông báo',
+          description: 'Bạn cần phải test để tụi mình tạo lộ trình phù hợp cho bạn',
+          placement: 'top',
+          duration: 5,
+        })
+      })
+    }
+  }, [needsTest])
 
   const handleStart = (level, selfDeclaredLevel) => {
     // Lấy exam key dựa trên level người dùng chọn

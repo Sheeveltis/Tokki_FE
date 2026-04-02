@@ -6,7 +6,7 @@ import { useRouter } from 'solito/navigation'
 import { CheckOutlined } from '@ant-design/icons'
 import { TextInput } from '../../../../../components/textInput'
 import { Button } from '../../../../../components/button'
-import { login } from '../../api'
+import { loginAdmin } from '../../api'
 import { setAuthToken, clearAuthToken } from '../../../../provider/api/client'
 import { encryptToken, decryptToken } from '../../../../helpers/token-encryption'
 import { setStorageItem, getStorageItem, removeStorageItem } from '../../../../helpers/storage'
@@ -105,8 +105,7 @@ export function AdminLoginForm() {
     setNotifyResponse(null)
 
     try {
-      // Gọi API login
-      const response = await login({ email, password, rememberMe })
+      const response = await loginAdmin({ email, password, rememberMe })
 
       // Lưu response để hiển thị HelperAdmin
       setApiResponse(response)

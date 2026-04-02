@@ -16,12 +16,12 @@ export function StudyLayoutSynchronized({
   showSidebar = true,
   headerBadge = "HỆ THỐNG HỌC TẬP",
   headerActions,
-  sidebarActions
+  sidebarActions,
+  hideHero = false,
+  contentContainerStyle
 }) {
   return (
     <View style={styles.wrapper}>
-      <Navbar />
-
       <View style={styles.mainContainer}>
         <View style={styles.mainWrapper}>
           {/* Top Bar Navigation */}
@@ -36,32 +36,34 @@ export function StudyLayoutSynchronized({
           </View>
 
           {/* Hero Header Section */}
-          <View style={styles.heroSection}>
-            <View style={styles.headerTop}>
-              <View style={styles.headerText}>
-                <View style={styles.badgeRow}>
-                  {/* <View style={styles.phaseBadge}>
-                    <Text style={styles.phaseBadgeText}>{headerBadge}</Text>
-                  </View> */}
-                  {/* {levelId && (
-                    <View style={[styles.levelBadge, { backgroundColor: '#FF6B6B' }]}>
-                      <Text style={styles.levelBadgeText}>Level {levelId}</Text>
-                    </View>
-                  )} */}
+          {!hideHero && (
+            <View style={styles.heroSection}>
+              <View style={styles.headerTop}>
+                <View style={styles.headerText}>
+                  <View style={styles.badgeRow}>
+                    {/* <View style={styles.phaseBadge}>
+                      <Text style={styles.phaseBadgeText}>{headerBadge}</Text>
+                    </View> */}
+                    {/* {levelId && (
+                      <View style={[styles.levelBadge, { backgroundColor: '#FF6B6B' }]}>
+                        <Text style={styles.levelBadgeText}>Level {levelId}</Text>
+                      </View>
+                    )} */}
+                  </View>
+                  <View style={styles.heroTitleRow}>
+                    <Text style={styles.mainTitle}>{title}</Text>
+                  </View>
+                  <Text style={styles.subtitle}>{subtitle}</Text>
                 </View>
-                <View style={styles.heroTitleRow}>
-                  <Text style={styles.mainTitle}>{title}</Text>
-                </View>
-                <Text style={styles.subtitle}>{subtitle}</Text>
-              </View>
 
-              {headerActions && (
-                <View style={styles.headerActions}>
-                  {headerActions}
-                </View>
-              )}
+                {headerActions && (
+                  <View style={styles.headerActions}>
+                    {headerActions}
+                  </View>
+                )}
+              </View>
             </View>
-          </View>
+          )}
 
           {/* Main Dashboard - Sidebar Layout */}
           <View style={styles.dashboardContainer}>
@@ -81,8 +83,8 @@ export function StudyLayoutSynchronized({
             <View style={[styles.contentCard, (!showSidebar || !sidebarActions) && { flex: 1 }]}>
               <ScrollView
                 style={styles.contentCardScroll}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.contentCardInner}
+                showsVerticalScrollIndicator={true}
+                contentContainerStyle={[styles.contentCardInner, contentContainerStyle]}
               >
                 {children}
               </ScrollView>
@@ -97,9 +99,7 @@ export function StudyLayoutSynchronized({
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    height: '100vh',
     backgroundColor: '#FAFAFA',
-    overflow: 'hidden',
   },
   mainContainer: {
     flex: 1,
@@ -107,12 +107,12 @@ const styles = StyleSheet.create({
   },
   mainWrapper: {
     width: '100%',
-    maxWidth: 1600,
+    maxWidth: 1400,
     flex: 1,
     paddingTop: 24,
-    paddingHorizontal: 32,
-    gap: 20,
-    overflow: 'hidden',
+    paddingHorizontal: 4,
+    gap: 12,
+    alignSelf: 'center',
   },
   topNavigation: {
     flexDirection: 'row',
@@ -143,9 +143,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   heroSection: {
-    gap: 20,
+    gap: 12,
     paddingHorizontal: 4,
-    marginBottom: 10,
+    marginBottom: 0,
   },
   headerTop: {
     flexDirection: 'row',
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     gap: 24,
     flex: 1,
     overflow: 'hidden',
-    paddingBottom: 10,
+    paddingBottom: 24,
   },
   sidebar: {
     width: 280,
@@ -259,7 +259,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentCardInner: {
-    padding: 32,
-    gap: 24,
+    padding: 24,
+    // paddingBottom: 40,
+    gap: 16,
   },
 })

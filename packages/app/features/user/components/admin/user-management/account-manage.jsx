@@ -20,8 +20,7 @@ const ROLE_OPTIONS = [
   { value: 0, label: 'Người dùng' },
   { value: 1, label: 'Quản trị viên' },
   { value: 2, label: 'Nhân viên' },
-  { value: 3, label: 'Thành viên VIP' },
-  { value: 4, label: 'Kiểm duyệt viên' }
+  { value: 3, label: 'Thành viên VIP' }
 ]
 
 const STATUS_CONFIG = {
@@ -31,6 +30,11 @@ const STATUS_CONFIG = {
 }
 
 const getRoleLabel = (val) => ROLE_OPTIONS.find(opt => opt.value === Number(val))?.label || val
+
+const VIP_STATUS_OPTIONS = [
+  { value: 1, label: 'Thành viên VIP' },
+  { value: 0, label: 'Người dùng thường' }
+]
 
 // ==========================================
 // 2. MAIN COMPONENT
@@ -46,11 +50,10 @@ export default function AccountManage({ basePath = '/admin' }) {
   const [userToDelete, setUserToDelete] = useState(null)
 
   const [filters, setFilters] = useManagementFilters({
-    search: '',
-    searchEmail: '',
-    searchPhone: '',
+    searchText: '',
     status: null,
     role: null,
+    vipStatus: null,
     page: 1,
     size: 20
   })
@@ -65,11 +68,10 @@ export default function AccountManage({ basePath = '/admin' }) {
       const res = await fetchUsers({
         pageNumber: currentFilters.page,
         pageSize: currentFilters.size,
-        searchName: currentFilters.search,
-        searchEmail: currentFilters.searchEmail,
-        searchPhone: currentFilters.searchPhone,
+        searchText: currentFilters.searchText,
         status: currentFilters.status,
-        role: currentFilters.role
+        role: currentFilters.role,
+        vipStatus: currentFilters.vipStatus
       })
       setData({ items: res.items || [], total: res.total || 0 })
     } catch (error) {
@@ -81,7 +83,7 @@ export default function AccountManage({ basePath = '/admin' }) {
 
   useEffect(() => {
     loadData(filters)
-  }, [filters.page, filters.size, filters.status, filters.role, filters.search, filters.searchEmail, filters.searchPhone])
+  }, [filters.page, filters.size, filters.status, filters.role, filters.vipStatus, filters.searchText])
 
   // Hàm xử lý khi LỌC (Search, Status, Role) -> Luôn về trang 1
   const handleFilterChange = (key, value) => {
@@ -294,23 +296,11 @@ export default function AccountManage({ basePath = '/admin' }) {
 
   const extraFilters = (
     <Space wrap>
-      <Input
-        allowClear
-        prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-        placeholder="Tìm theo email..."
-        style={{ width: 220, height: 32, borderRadius: 16, fontSize: 13 }}
-        value={filters.searchEmail}
-        onChange={e => setFilters(prev => ({ ...prev, searchEmail: e.target.value }))}
-        onPressEnter={() => handleFilterChange('searchEmail', filters.searchEmail)}
-      />
-      <Input
-        allowClear
-        prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-        placeholder="Tìm theo SĐT..."
-        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
-        value={filters.searchPhone}
-        onChange={e => setFilters(prev => ({ ...prev, searchPhone: e.target.value }))}
-        onPressEnter={() => handleFilterChange('searchPhone', filters.searchPhone)}
+      <Select
+        allowClear placeholder="Lọc VIP" suffixIcon={<FilterOutlined />}
+        style={{ width: 140, height: 32, borderRadius: 16, fontSize: 13 }} value={filters.vipStatus}
+        onChange={val => handleFilterChange('vipStatus', val)}
+        options={VIP_STATUS_OPTIONS}
       />
       <Select
         allowClear placeholder="Lọc trạng thái" suffixIcon={<FilterOutlined />}
@@ -347,10 +337,10 @@ export default function AccountManage({ basePath = '/admin' }) {
   return (
     <>
       <ManagementLayout
-        searchPlaceholder="Tìm theo tên..."
-        searchValue={filters.search}
-        onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
-        onSearchSubmit={() => handleFilterChange('search', filters.search)}
+        searchPlaceholder="Tìm ID, họ tên, email, SĐT..."
+        searchValue={filters.searchText}
+        onSearchChange={val => setFilters(prev => ({ ...prev, searchText: val }))}
+        onSearchSubmit={() => handleFilterChange('searchText', filters.searchText)}
         extraFilters={extraFilters}
         actions={actions}
         tableProps={{
