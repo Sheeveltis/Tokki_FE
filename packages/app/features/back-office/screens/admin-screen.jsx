@@ -10,6 +10,7 @@ const LazyLessonManagement = lazy(() => import('../../examination-management/scr
 const LazyVocabularyManagement = lazy(() => import('../../vocabulary/screens/admin/vocabulary-management-screen'))
 const LazyFlashcardTopicManagement = lazy(() => import('../../vocabulary/screens/admin/vocab-topic-management-screen'))
 const LazyBlogManagement = lazy(() => import('../../blog/screens/admin/blog-management-screen'))
+const LazyCategoryManagement = lazy(() => import('../../blog/screens/admin/category-management-screen'))
 const LazyChatSupport = lazy(() => import('../../customer-service-management/screens/chat-support-screen'))
 const LazyAutoEmail = lazy(() => import('../../customer-service-management/screens/auto-email-screen'))
 const LazyFeedbackInbox = lazy(() => import('../../customer-service-management/screens/feedback-inbox-screen'))
@@ -137,6 +138,11 @@ export function AdminScreen() {
       blog: (
         <Suspense fallback={<LoadingFallback />}>
           <LazyBlogManagement />
+        </Suspense>
+      ),
+      'blog-category': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyCategoryManagement />
         </Suspense>
       ),
       'chat-support': (

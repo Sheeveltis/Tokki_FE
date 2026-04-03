@@ -30,7 +30,7 @@ export const ENDPOINTS = {
     CREATE: '/Blog',                // POST: Tạo mới
     UPDATE: (id) => `/Blog/${id}`,
     DELETE: (id) => `/Blog/admin/delete/${id}`,
-    ADMIN_LIST: '/Blog', // same endpoint, nhưng dùng kèm query pageNumber/pageSize
+    ADMIN_LIST: '/Blog/admin',
     STAFF_SUBMIT_FOR_APPROVAL: (blogId) => `/Blog/staff/submit-for-approval/${blogId}`,
     MODERATOR_APPROVE: (blogId) => `/Blog/moderator/approve/${blogId}`,
     MODERATOR_REJECT: '/Blog/moderator/reject',

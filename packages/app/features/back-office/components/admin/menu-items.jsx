@@ -30,15 +30,6 @@ export const adminMenuItems = [
       { key: 'title-management', icon: <TrophyOutlined />, label: 'Danh hiệu' },
     ],
   },
-  // {
-  //   key: 'content',
-  //   icon: <BookOutlined />,
-  //   label: 'Quản lý Nội dung',
-  //   children: [
-  //     { key: 'lessons', icon: <BookOutlined />, label: 'Bài học' },
-  //     { key: 'blog', icon: <FileTextOutlined />, label: 'Bài viết' },
-  //   ],
-  // },
   {
     key: 'vocabulary',
     icon: <DatabaseOutlined />,
@@ -57,6 +48,15 @@ export const adminMenuItems = [
       { key: 'exam-template', icon: <FormOutlined />, label: 'Cấu trúc đề' },
       // { key: 'passage-management', icon: <FileTextOutlined />, label: 'Passage' },
       { key: 'exam-management', icon: <FileDoneOutlined />, label: 'Đề' },
+    ],
+  },
+  {
+    key: 'blog-parent',
+    icon: <FileTextOutlined />,
+    label: 'Quản lý Bài viết',
+    children: [
+      { key: 'blog', icon: <FileTextOutlined />, label: 'Bài viết' },
+      { key: 'blog-category', icon: <BookOutlined />, label: 'Danh mục' },
     ],
   },
   {
