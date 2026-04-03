@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Space, Select, message, Modal, Tooltip, Button } from 'antd'
-import { EyeOutlined, CopyOutlined, FilterOutlined, PlusOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons'
+import { EyeOutlined, CopyOutlined, FilterOutlined, PlusOutlined, EditOutlined, SearchOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import CreateExamTemplateModal from '../../components/admin/create-exam-template/CreateExamTemplateModal.jsx'
 import { useExamTemplatesQuery } from '../../../back-office/api/useAdminQueries.js'
-import { duplicateExamTemplate } from '../../../back-office/api/admin-index.js'
+import { duplicateExamTemplate, importExamTemplates, exportExamTemplates } from '../../../back-office/api/admin-index.js'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -33,6 +33,9 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
   })
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const fileInputRef = React.useRef(null)
 
   // Gọi API với các filter
   const { data: examTemplatesData, isLoading, refetch } = useExamTemplatesQuery(
@@ -225,7 +228,70 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
     </Space>
   )
 
+  const handleImport = async (file) => {
+    try {
+      setImporting(true)
+      const res = await importExamTemplates(file)
+      if (res?.isSuccess) {
+        message.success(res.message || 'Import mẫu đề thi thành công')
+        refetch()
+      } else if (res?.message) {
+        Modal.error({
+          title: 'Lỗi Import Excel',
+          content: <div style={{ whiteSpace: 'pre-line' }}>{res.message}</div>,
+          width: 600,
+        })
+      }
+    } catch (e) {
+      const apiData = e?.response?.data
+      if (apiData?.message) {
+        Modal.error({
+          title: 'Lỗi Import Excel',
+          content: <div style={{ whiteSpace: 'pre-line' }}>{apiData.message}</div>,
+          width: 600,
+        })
+      } else {
+        message.error('Không thể import mẫu đề thi')
+      }
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  const handleExport = async () => {
+    try {
+      setExporting(true)
+      const blob = await exportExamTemplates()
+      const url = window.URL.createObjectURL(new Blob([blob]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `DS_MauDeThi_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '')}.xlsx`)
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode.removeChild(link)
+      message.success('Xuất file Excel thành công')
+    } catch (e) {
+      message.error('Không thể xuất file Excel')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const actions = [
+    {
+      label: 'Import',
+      icon: <UploadOutlined />,
+      type: 'dashed',
+      loading: importing,
+      onPress: () => fileInputRef.current?.click()
+    },
+    {
+      label: 'Export',
+      icon: <DownloadOutlined />,
+      type: 'dashed',
+      loading: exporting,
+      onPress: handleExport
+    },
     {
       label: 'Thêm mới',
       icon: <PlusOutlined />,
@@ -268,6 +334,20 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
           }}
         />
       )}
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        accept=".xlsx, .xls"
+        onChange={(e) => {
+          const file = e.target.files[0]
+          if (file) {
+            handleImport(file)
+            e.target.value = ''
+          }
+        }}
+      />
     </>
   )
 }

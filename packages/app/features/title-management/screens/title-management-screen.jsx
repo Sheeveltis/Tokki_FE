@@ -1,9 +1,9 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Alert, Card, Spin, Table, Typography, Space, Button, Input, Select, Tooltip, message } from 'antd'
-import { PlusOutlined, FilterOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
-import { fetchTitles, createTitle, updateTitle, deleteTitle } from '../api/title'
+import { Alert, Card, Spin, Table, Typography, Space, Button, Input, Select, Tooltip, message, Modal } from 'antd'
+import { PlusOutlined, FilterOutlined, EditOutlined, DeleteOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
+import { fetchTitles, createTitle, updateTitle, deleteTitle, importTitles, exportTitles } from '../api/title'
 import { uploadTitleImageToCloudinary } from '../../back-office/api/cloudinary'
 import CreateTitleModal from '../components/CreateTitleModal'
 import UpdateTitleModal from '../components/UpdateTitleModal'
@@ -36,6 +36,10 @@ export function TitleManagementScreen() {
   const [deletingId, setDeletingId] = useState(null)
   const [selectedTitle, setSelectedTitle] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
+  const [importing, setImporting] = useState(false)
+  const [exporting, setExporting] = useState(false)
+
+  const fileInputRef = React.useRef(null)
 
   const getApiErrorMessage = (err, fallback) => {
     const apiMessage = err?.response?.data?.message
@@ -347,7 +351,80 @@ export function TitleManagementScreen() {
     }
   }
 
+  const handleImport = async (file) => {
+    try {
+      setImporting(true)
+      const res = await importTitles(file)
+      // Nếu API trả về trực tiếp data mà không bắn exception (status 200)
+      if (res?.isSuccess) {
+        message.success(res.message || 'Import danh hiệu thành công')
+        await loadData()
+      } else if (res?.message) {
+        Modal.error({
+          title: 'Lỗi Import Excel',
+          content: (
+            <div style={{ whiteSpace: 'pre-line' }}>
+              {res.message}
+            </div>
+          ),
+          width: 600,
+        })
+      }
+    } catch (e) {
+      // Xử lý lỗi từ catch (thường là 400, 500...)
+      const apiData = e?.response?.data
+      if (apiData?.message) {
+        Modal.error({
+          title: 'Lỗi Import Excel',
+          content: (
+            <div style={{ whiteSpace: 'pre-line' }}>
+              {apiData.message}
+            </div>
+          ),
+          width: 600,
+        })
+      } else {
+        message.error(getApiErrorMessage(e, 'Không thể import danh hiệu'))
+      }
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  const handleExport = async () => {
+    try {
+      setExporting(true)
+      const blob = await exportTitles()
+      const url = window.URL.createObjectURL(new Blob([blob]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `DS_DanhHieu_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '')}.xlsx`)
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode.removeChild(link)
+      message.success('Xuất file Excel thành công')
+    } catch (e) {
+      message.error(getApiErrorMessage(e, 'Không thể xuất file Excel'))
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const actions = [
+    {
+      label: 'Import',
+      icon: <UploadOutlined />,
+      type: 'dashed',
+      loading: importing,
+      onPress: () => fileInputRef.current?.click()
+    },
+    {
+      label: 'Export',
+      icon: <DownloadOutlined />,
+      type: 'dashed',
+      loading: exporting,
+      onPress: handleExport
+    },
     {
       label: 'Thêm mới',
       icon: <PlusOutlined />,
@@ -426,6 +503,20 @@ export function TitleManagementScreen() {
         onSubmit={handleUpdate}
         loading={updating}
         initialData={selectedTitle}
+      />
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        accept=".xlsx, .xls"
+        onChange={(e) => {
+          const file = e.target.files[0]
+          if (file) {
+            handleImport(file)
+            e.target.value = ''
+          }
+        }}
       />
     </>
   )

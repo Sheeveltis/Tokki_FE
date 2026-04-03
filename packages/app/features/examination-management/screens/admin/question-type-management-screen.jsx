@@ -292,21 +292,21 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
       {
         label: 'Tải Template',
         icon: <DownloadOutlined />,
-        type: 'default',
+        type: 'dashed',
         loading: templateLoading,
         onPress: handleDownloadTemplate
       },
       {
-        label: 'Nhập Excel',
+        label: 'Import',
         icon: <UploadOutlined />,
-        type: 'default',
+        type: 'dashed',
         loading: importing,
         onPress: () => document.getElementById('import-excel-input').click()
       },
       {
-        label: 'Xuất Excel',
-        icon: <FileExcelOutlined />,
-        type: 'default',
+        label: 'Export',
+        icon: <DownloadOutlined />,
+        type: 'dashed',
         loading: exporting,
         onPress: handleExport
       },
