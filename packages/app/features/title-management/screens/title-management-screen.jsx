@@ -112,24 +112,24 @@ export function TitleManagementScreen() {
             <img
               src={val}
               alt="icon"
-              style={{ 
-                width: 'clamp(40px, 4vw, 60px)', 
-                height: 'clamp(40px, 4vw, 60px)', 
-                objectFit: 'contain', 
-                borderRadius: 8, 
-                border: '1px solid #f0f0f0' 
+              style={{
+                width: 'clamp(40px, 4vw, 60px)',
+                height: 'clamp(40px, 4vw, 60px)',
+                objectFit: 'contain',
+                borderRadius: 8,
+                border: '1px solid #f0f0f0'
               }}
             />
           ) : (
-            <div style={{ 
-              width: 'clamp(40px, 4vw, 60px)', 
-              height: 'clamp(40px, 4vw, 60px)', 
-              backgroundColor: '#f5f5f5', 
-              borderRadius: 8, 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              margin: '0 auto' 
+            <div style={{
+              width: 'clamp(40px, 4vw, 60px)',
+              height: 'clamp(40px, 4vw, 60px)',
+              backgroundColor: '#f5f5f5',
+              borderRadius: 8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto'
             }}>-</div>
           ),
       },
@@ -230,7 +230,7 @@ export function TitleManagementScreen() {
             </Tooltip>
             <Tooltip title="Xóa">
               <DeleteOutlined
-                style={{ ...iconStyle, color: '#ff4d4f', fontSize: 'clamp(18px, 1.4vw, 22px)' }}
+                style={{ ...iconStyle, fontSize: 'clamp(18px, 1.4vw, 22px)' }}
                 loading={deletingId === (record?.titleId || record?.id || record?.TitleId)}
                 onClick={() => {
                   showDeleteTitleConfirm({
