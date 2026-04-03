@@ -1,11 +1,10 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { Space, Modal, Button } from 'antd'
+import { Space, Modal, Button, message } from 'antd'
 import { ArrowLeftOutlined, EditOutlined, DeleteOutlined, PlusOutlined, FileExcelOutlined } from '@ant-design/icons'
 
 import { importQuestionsExcel } from '../../../api/question-bank-management.js'
-import { showAdminSuccess, showAdminError } from '../../../../../../components/HelperAdmin.jsx'
 
 export function QuestionTypeHeaderActions({
   questionTypeId,
@@ -15,6 +14,7 @@ export function QuestionTypeHeaderActions({
   deleting,
   onAddQuestion,
   onImported,
+  hideMainButtons = false,
 }) {
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false)
   const [importingExcel, setImportingExcel] = useState(false)
@@ -43,7 +43,7 @@ export function QuestionTypeHeaderActions({
     const isValidExtension = validExtensions.some((ext) => fileName.endsWith(ext))
 
     if (!isValidExtension) {
-      showAdminError('Vui lòng chọn file Excel (.xlsx hoặc .xls)')
+      message.error('Vui lòng chọn file Excel (.xlsx hoặc .xls)')
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
@@ -59,17 +59,17 @@ export function QuestionTypeHeaderActions({
         const hasZeroSuccess = /Thành công:\s*0\b/i.test(msg) || /Thanh cong:\s*0\b/i.test(msg)
 
         if (hasZeroSuccess) {
-          showAdminError(msg || 'Import thất bại: 0 câu hỏi thành công')
+          message.error(msg || 'Import thất bại: 0 câu hỏi thành công')
         } else {
-          showAdminSuccess(msg || 'Import câu hỏi từ Excel thành công')
+          message.success(msg || 'Import câu hỏi từ Excel thành công')
         }
 
         if (onImported) onImported()
       } else {
-        showAdminError(response?.message || 'Import câu hỏi thất bại')
+        message.error(response?.message || 'Import câu hỏi thất bại')
       }
     } catch (error) {
-      showAdminError(error.message || 'Có lỗi xảy ra khi import Excel')
+      message.error(error.message || 'Có lỗi xảy ra khi import Excel')
     } finally {
       setImportingExcel(false)
       if (fileInputRef.current) {
@@ -79,10 +79,16 @@ export function QuestionTypeHeaderActions({
   }
 
   return (
-    <Space style={{ marginBottom: 16, width: '100%', justifyContent: 'space-between' }}>
-      <Button icon={<ArrowLeftOutlined />} onClick={onBack} style={{ minWidth: 100 }}>
-        Quay lại
-      </Button>
+    <Space align="center" style={{ justifyContent: 'flex-end' }}>
+      {!hideMainButtons && (
+        <Button 
+          icon={<ArrowLeftOutlined />} 
+          onClick={onBack} 
+          style={{ minWidth: 100, borderRadius: 20, height: 40, fontWeight: 600 }}
+        >
+          Quay lại
+        </Button>
+      )}
 
       <Space>
         <input
@@ -97,25 +103,40 @@ export function QuestionTypeHeaderActions({
           onClick={() => fileInputRef.current?.click()}
           loading={importingExcel}
           disabled={importingExcel}
+          style={{ borderRadius: 20, height: 40, fontWeight: 600 }}
         >
           {importingExcel ? 'Đang import...' : 'Import Excel'}
         </Button>
 
-        <Button  icon={<EditOutlined />} onClick={onEdit}>
-          Sửa bộ câu hỏi
-        </Button>
+        {!hideMainButtons && (
+          <>
+            <Button  
+              icon={<EditOutlined />} 
+              onClick={onEdit}
+              style={{ borderRadius: 20, height: 40, fontWeight: 600 }}
+            >
+              Sửa bộ câu hỏi
+            </Button>
 
-        <Button
-          danger
-          icon={<DeleteOutlined />}
-          onClick={handleDelete}
-          loading={deleting}
-          disabled={deleting}
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              onClick={handleDelete}
+              loading={deleting}
+              disabled={deleting}
+              style={{ borderRadius: 20, height: 40, fontWeight: 600 }}
+            >
+              {deleting ? 'Đang xóa...' : 'Xóa bộ câu hỏi'}
+            </Button>
+          </>
+        )}
+
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />} 
+          onClick={onAddQuestion}
+          style={{ borderRadius: 20, height: 40, fontWeight: 600 }}
         >
-          {deleting ? 'Đang xóa...' : 'Xóa bộ câu hỏi'}
-        </Button>
-
-        <Button type="primary" icon={<PlusOutlined />} onClick={onAddQuestion}>
           Thêm câu hỏi
         </Button>
       </Space>

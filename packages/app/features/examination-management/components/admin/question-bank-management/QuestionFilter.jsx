@@ -20,6 +20,7 @@ export function QuestionFilter({
   submitting = false,
   hideStatusFilter = false,
   hidePendingOption = false,
+  extraActions = null,
 }) {
   const { search, status } = filters
   const role = getCurrentUserRole()
@@ -35,13 +36,13 @@ export function QuestionFilter({
   ].filter((opt) => !(hidePendingOption && opt.value === 3))
 
   return (
-    <Space wrap size="middle" style={{ width: '100%', marginBottom: 16, justifyContent: 'space-between' }}>
-      <Space wrap size="middle">
+    <Space wrap size="middle" align="center" style={{ width: '100%', marginBottom: 16, justifyContent: 'space-between' }}>
+      <Space wrap size="middle" align="center">
         <Input
           placeholder="Tìm kiếm theo nội dung..."
           allowClear
           prefix={<SearchOutlined />}
-          style={{ width: 300 }}
+          style={{ width: 300, height: 40, borderRadius: 20 }}
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
         />
@@ -50,7 +51,8 @@ export function QuestionFilter({
           <Select
             placeholder="Trạng thái"
             allowClear
-            style={{ width: 180 }}
+            variant="outlined"
+            style={{ width: 180, height: 40, borderRadius: 20 }}
             value={status}
             onChange={(value) => onFilterChange({ ...filters, status: value })}
             options={statusOptions}
@@ -58,7 +60,8 @@ export function QuestionFilter({
         )}
       </Space>
 
-      <Space>
+      <Space align="center">
+        {extraActions}
         {/* Staff: Nút gửi duyệt */}
         {isStaff && onSubmitSelectedForApproval && (
           <Button
@@ -67,6 +70,7 @@ export function QuestionFilter({
             onClick={onSubmitSelectedForApproval}
             disabled={selectedCount === 0 || submitting}
             loading={submitting}
+            style={{ borderRadius: 20, height: 40, fontWeight: 600 }}
           >
             Gửi duyệt {selectedCount > 0 ? `(${selectedCount})` : ''}
           </Button>
@@ -80,6 +84,7 @@ export function QuestionFilter({
             onClick={onConfirmApproval}
             disabled={approvalCount === 0 || submitting}
             loading={submitting}
+            style={{ borderRadius: 20, height: 40, fontWeight: 600 }}
           >
             Xác nhận {approvalCount > 0 ? `(${approvalCount})` : ''}
           </Button>
