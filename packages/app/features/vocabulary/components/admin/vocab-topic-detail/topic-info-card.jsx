@@ -90,204 +90,225 @@ export function TopicInfoCard({ topic, isAdmin, onApprove, onReject, approvalLoa
     <Card
       title={<Text strong style={{ fontSize: 18 }}>Thông tin cơ bản</Text>}
       variant="outlined"
+      style={{ width: '100%' }}
+      styles={{ body: { padding: 24 } }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {topicImage && (
-          <div
-            style={{
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              backgroundColor: '#fdfdfd',
-              padding: 8,
-              borderRadius: 12,
-              border: '1px solid #f0f0f0',
-              marginBottom: 0,
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <Image
-                src={topicImage}
-                alt="topic"
-                style={{
-                  width: '100%',
-                  maxHeight: 200,
-                  borderRadius: 8,
-                  objectFit: 'contain',
-                }}
-                preview={{ mask: 'Xem lớn' }}
-              />
-            </div>
-          </div>
-        )}
-
-        <div style={{ flex: 1 }}>
-          <Descriptions
-            column={1}
-            bordered
-            size="small"
-            labelStyle={{
-              width: 100,
-              fontWeight: 600,
-              backgroundColor: '#fafafa',
-              fontSize: 13,
-            }}
-            contentStyle={{
-              fontSize: 13,
-            }}
-          >
-            <Descriptions.Item label="Chủ đề">
-              <Space size={8} align="center" wrap>
-                <Text strong style={{ fontSize: 16, color: '#1890ff' }}>
-                  {topicName}
-                </Text>
-
-                <Tooltip title={statusInfo.label}>
-                  <span
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: '50%',
-                      display: 'inline-block',
-                      backgroundColor:
-                        topicStatus === 1
-                          ? '#52c41a'
-                          : topicStatus === 2
-                            ? '#ff4d4f'
-                            : topicStatus === 3
-                              ? '#faad14'
-                              : topicStatus === 4
-                                ? '#ff4d4f'
-                                : '#bfbfbf',
-                      boxShadow: '0 0 2px rgba(0,0,0,0.2)',
-                    }}
-                  />
-                </Tooltip>
-
-                {topicStatus === 3 && isAdmin && (
-                  <Space size={4}>
-                    <div
-                      onClick={(e) => {
-                        e?.stopPropagation?.()
-                        onApprove?.()
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: approvalLoading ? 'not-allowed' : 'pointer',
-                        padding: '2px 4px',
-                        borderRadius: 4,
-                        transition: 'all 0.2s ease',
-                        opacity: approvalLoading ? 0.5 : 1,
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!approvalLoading) {
-                          e.currentTarget.style.backgroundColor = '#f6ffed'
-                          e.currentTarget.style.transform = 'scale(1.2)'
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!approvalLoading) {
-                          e.currentTarget.style.backgroundColor = 'transparent'
-                          e.currentTarget.style.transform = 'scale(1)'
-                        }
-                      }}
-                      title="Phê duyệt"
-                    >
-                      <CheckCircleOutlined
-                        style={{ fontSize: 16, color: '#52c41a', transition: 'color 0.2s ease' }}
-                      />
-                    </div>
-
-                    <div
-                      onClick={(e) => {
-                        e?.stopPropagation?.()
-                        onReject?.()
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: approvalLoading ? 'not-allowed' : 'pointer',
-                        padding: '2px 4px',
-                        borderRadius: 4,
-                        transition: 'all 0.2s ease',
-                        opacity: approvalLoading ? 0.5 : 1,
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!approvalLoading) {
-                          e.currentTarget.style.backgroundColor = '#fff1f0'
-                          e.currentTarget.style.transform = 'scale(1.2)'
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!approvalLoading) {
-                          e.currentTarget.style.backgroundColor = 'transparent'
-                          e.currentTarget.style.transform = 'scale(1)'
-                        }
-                      }}
-                      title="Từ chối"
-                    >
-                      <CloseCircleOutlined
-                        style={{ fontSize: 16, color: '#ff4d4f', transition: 'color 0.2s ease' }}
-                      />
-                    </div>
-                  </Space>
-                )}
-              </Space>
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Level">
-              <Text>{topicLevel}</Text>
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Mô tả">
-              <div style={{ fontSize: 13, lineHeight: 1.5 }}>
-                {topicDescription}
+      <div style={{ width: '100%' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: 32,
+            width: '100%',
+            flexWrap: 'wrap'
+          }}
+        >
+          {/* Phần ảnh minh họa */}
+          {topicImage && (
+            <div
+              style={{
+                flex: '0 0 300px',
+                maxWidth: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                backgroundColor: '#fdfdfd',
+                padding: 12,
+                borderRadius: 12,
+                border: '1px solid #f0f0f0',
+                height: 'fit-content'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <Image
+                  src={topicImage}
+                  alt="topic"
+                  style={{
+                    width: '100%',
+                    maxHeight: 250,
+                    borderRadius: 8,
+                    objectFit: 'contain',
+                  }}
+                  preview={{ mask: 'Xem lớn' }}
+                />
               </div>
-            </Descriptions.Item>
+            </div>
+          )}
 
-            <Descriptions.Item label="Người tạo">
-              {creatorId ? (
-                <a
-                  href={`/admin/users/${creatorId}?tab=users-admin`}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    window.open(`/admin/users/${creatorId}?tab=users-admin`, '_blank', 'noopener,noreferrer')
-                  }}
-                >
-                  {creatorName || creatorId}
-                </a>
-              ) : (
-                '-'
-              )}
-            </Descriptions.Item>
+          {/* Phần thông tin chi tiết */}
+          <div style={{ flex: '1 1 400px', minWidth: 0 }}>
+            <Descriptions
+              column={1}
+              bordered
+              size="middle"
+              labelStyle={{
+                width: 140,
+                fontWeight: 600,
+                backgroundColor: '#fafafa',
+                fontSize: 14,
+              }}
+              contentStyle={{
+                fontSize: 14,
+                backgroundColor: '#fff',
+              }}
+              style={{ width: '100%' }}
+            >
+              <Descriptions.Item label="Chủ đề">
+                <Space size={8} align="center" wrap>
+                  <Text strong style={{ fontSize: 18, color: '#1890ff' }}>
+                    {topicName}
+                  </Text>
 
-            <Descriptions.Item label="Ngày tạo">
-              <Text style={{ fontSize: 13, lineHeight: 1.5 }}>{formatDate(topic._raw?.createDate || topic.createDate)}</Text>
-            </Descriptions.Item>
+                  <Tooltip title={statusInfo.label}>
+                    <span
+                      style={{
+                        width: 12,
+                        height: 12,
+                        borderRadius: '50%',
+                        display: 'inline-block',
+                        backgroundColor:
+                          topicStatus === 1
+                            ? '#52c41a'
+                            : topicStatus === 2
+                              ? '#ff4d4f'
+                              : topicStatus === 3
+                                ? '#faad14'
+                                : topicStatus === 4
+                                  ? '#ff4d4f'
+                                  : '#bfbfbf',
+                        boxShadow: '0 0 2px rgba(0,0,0,0.2)',
+                      }}
+                    />
+                  </Tooltip>
 
-            <Descriptions.Item label="Người cập nhật">
-              {updaterId ? (
-                <a
-                  href={`/admin/users/${updaterId}?tab=users-admin`}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    window.open(`/admin/users/${updaterId}?tab=users-admin`, '_blank', 'noopener noreferrer')
-                  }}
-                >
-                  {updaterName || updaterId}
-                </a>
-              ) : (
-                '-'
-              )}
-            </Descriptions.Item>
+                  {topicStatus === 3 && isAdmin && (
+                    <Space size={8} style={{ marginLeft: 8 }}>
+                      <Tooltip title="Phê duyệt">
+                        <div
+                          onClick={(e) => {
+                            e?.stopPropagation?.()
+                            onApprove?.()
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: approvalLoading ? 'not-allowed' : 'pointer',
+                            padding: '4px 8px',
+                            borderRadius: 6,
+                            backgroundColor: '#f6ffed',
+                            border: '1px solid #b7eb8f',
+                            transition: 'all 0.2s ease',
+                            opacity: approvalLoading ? 0.5 : 1,
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!approvalLoading) {
+                              e.currentTarget.style.transform = 'scale(1.05)'
+                              e.currentTarget.style.boxShadow = '0 2px 8px rgba(82, 196, 26, 0.2)'
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!approvalLoading) {
+                              e.currentTarget.style.transform = 'scale(1)'
+                              e.currentTarget.style.boxShadow = 'none'
+                            }
+                          }}
+                        >
+                          <CheckCircleOutlined style={{ fontSize: 16, color: '#52c41a' }} />
+                          <Text style={{ marginLeft: 6, color: '#52c41a', fontSize: 14, fontWeight: 500 }}>Phê duyệt</Text>
+                        </div>
+                      </Tooltip>
 
-            <Descriptions.Item label="Ngày cập nhật">
-              <Text style={{ fontSize: 13, lineHeight: 1.5 }}>{formatDate(topic._raw?.updateDate || topic.updateDate)}</Text>
-            </Descriptions.Item>
-          </Descriptions>
+                      <Tooltip title="Từ chối">
+                        <div
+                          onClick={(e) => {
+                            e?.stopPropagation?.()
+                            onReject?.()
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: approvalLoading ? 'not-allowed' : 'pointer',
+                            padding: '4px 8px',
+                            borderRadius: 6,
+                            backgroundColor: '#fff1f0',
+                            border: '1px solid #ffa39e',
+                            transition: 'all 0.2s ease',
+                            opacity: approvalLoading ? 0.5 : 1,
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!approvalLoading) {
+                              e.currentTarget.style.transform = 'scale(1.05)'
+                              e.currentTarget.style.boxShadow = '0 2px 8px rgba(255, 77, 79, 0.2)'
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!approvalLoading) {
+                              e.currentTarget.style.transform = 'scale(1)'
+                              e.currentTarget.style.boxShadow = 'none'
+                            }
+                          }}
+                        >
+                          <CloseCircleOutlined style={{ fontSize: 16, color: '#ff4d4f' }} />
+                          <Text style={{ marginLeft: 6, color: '#ff4d4f', fontSize: 14, fontWeight: 500 }}>Từ chối</Text>
+                        </div>
+                      </Tooltip>
+                    </Space>
+                  )}
+                </Space>
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Level">
+                <Text strong>{topicLevel}</Text>
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Mô tả">
+                <div style={{ fontSize: 14, lineHeight: 1.6, color: '#434343' }}>
+                  {topicDescription}
+                </div>
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Người tạo">
+                {creatorId ? (
+                  <Space>
+                    <a
+                      href={`/admin/users/${creatorId}?tab=users-admin`}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        window.open(`/admin/users/${creatorId}?tab=users-admin`, '_blank', 'noopener,noreferrer')
+                      }}
+                      style={{ fontWeight: 500 }}
+                    >
+                      {creatorName || creatorId}
+                    </a>
+                    <Text type="secondary" style={{ fontSize: 12 }}>({formatDate(topic._raw?.createDate || topic.createDate)})</Text>
+                  </Space>
+                ) : (
+                  '-'
+                )}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Người cập nhật">
+                {updaterId ? (
+                  <Space>
+                    <a
+                      href={`/admin/users/${updaterId}?tab=users-admin`}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        window.open(`/admin/users/${updaterId}?tab=users-admin`, '_blank', 'noopener noreferrer')
+                      }}
+                      style={{ fontWeight: 500 }}
+                    >
+                      {updaterName || updaterId}
+                    </a>
+                    <Text type="secondary" style={{ fontSize: 12 }}>({formatDate(topic._raw?.updateDate || topic.updateDate)})</Text>
+                  </Space>
+                ) : (
+                  '-'
+                )}
+              </Descriptions.Item>
+            </Descriptions>
+          </div>
         </div>
       </div>
     </Card>

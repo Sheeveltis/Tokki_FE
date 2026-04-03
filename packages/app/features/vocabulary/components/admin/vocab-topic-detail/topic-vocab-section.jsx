@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
-import { Card, Space, Select, Table, Typography, List, Tag, Modal, Input, Button } from 'antd'
+import { Card, Space, Select, Table, Typography, List, Tag, Modal, Input, Button, Pagination } from 'antd'
 import { UploadOutlined, DownloadOutlined, PlusOutlined, DeleteOutlined, CloseOutlined } from '@ant-design/icons'
 import { VocabularyGuideButton } from './vocabulary-guide-modal'
 
@@ -338,18 +338,37 @@ export function TopicVocabSection({
         bordered
         tableLayout="fixed"
         scroll={{ x: '100%', y: 400 }}
-        pagination={{
-          current: currentPage,
-          pageSize: pageSize,
-          total: totalItems,
-          showSizeChanger: false,
-          showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} từ vựng`,
-          onChange: (page) => setCurrentPage(page),
-          pageSizeOptions: ['5', '10', '20', '50', '100'],
-        }}
+        pagination={false}
         locale={{ emptyText: 'Chưa có từ vựng trong chủ đề' }}
         rowKey={(record) => record.vocabularyId || record.id}
       />
+
+      {/* Pagination Section styled like ManagementLayout */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          padding: '16px 0 0 0',
+          borderTop: '1px solid #f0f0f0',
+          marginTop: 16,
+        }}
+      >
+        <Pagination
+          current={currentPage}
+          pageSize={pageSize}
+          total={totalItems}
+          showSizeChanger
+          showTotal={(total) => <span style={{ fontSize: 13, fontWeight: 500 }}>Tổng {total} mục</span>}
+          onChange={(page, size) => {
+            setCurrentPage(page)
+            setPageSize(size)
+          }}
+          pageSizeOptions={['10', '20', '50', '100']}
+          size="middle"
+        />
+      </div>
+
       {excelImportResult && (
         <Card
           size="large"

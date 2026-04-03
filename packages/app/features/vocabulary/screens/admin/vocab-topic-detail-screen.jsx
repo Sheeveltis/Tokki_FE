@@ -2,16 +2,15 @@
 
 import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'solito/navigation'
-import { Card, Space, Typography, Spin, Alert, Modal, Button } from 'antd'
+import { Card, Space, Typography, Spin, Alert, Modal, Button, Tabs, Divider } from 'antd'
 import {
   EditOutlined,
   SendOutlined,
   DeleteOutlined,
-  ArrowLeftOutlined
+  ArrowLeftOutlined,
+  InfoCircleOutlined,
+  UnorderedListOutlined
 } from '@ant-design/icons'
-import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
-import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web.jsx'
-import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
 import {
   fetchFlashcardTopicDetail,
   searchVocabulariesForTopic,
@@ -55,7 +54,7 @@ export function FlashcardTopicDetailScreen() {
     if (pathname === '/moderator' || pathname.startsWith('/moderator/')) return 'moderator'
     return 'admin'
   }
-  
+
   const currentPortal = getCurrentPortal()
 
   const [loading, setLoading] = useState(true)
@@ -203,7 +202,7 @@ export function FlashcardTopicDetailScreen() {
     // Sử dụng topicVocabularies (danh sách từ vựng đã có trong chủ đề) thay vì searchVocabList
     const safeTopicVocabularies = Array.isArray(topicVocabularies) ? topicVocabularies : []
     const safeTopicVocabIds = Array.isArray(topicVocabIds) ? topicVocabIds : []
-    
+
     // Lọc và map các từ vựng theo topicVocabIds
     return safeTopicVocabIds
       .map((id) => safeTopicVocabularies.find((v) => v.vocabularyId === id || v.id === id))
@@ -213,21 +212,21 @@ export function FlashcardTopicDetailScreen() {
 
   const handleAddVocab = async () => {
     if (!selecting?.length || !topicId) return
-    
+
     setAdding(true)
     setApiResponse(null)
-    
+
     try {
       // Sử dụng function API đã được tách ra với logic reload
       const { response, topicDetail } = await addVocabulariesToTopicAndReload(topicId, selecting)
       setApiResponse(response)
-      
+
       // Nếu thành công và có topicDetail, cập nhật state
       if (response?.isSuccess && topicDetail?.topic) {
         setDetailTopic(topicDetail.topic)
         setTopicVocabIds(topicDetail.topic.vocabIds || [])
         setTopicVocabularies(topicDetail.vocabularies || [])
-        
+
         // Reset selection và danh sách search
         setSelecting([])
         setSearchVocabList([])
@@ -385,10 +384,10 @@ export function FlashcardTopicDetailScreen() {
       (typeof detailTopic?.vocabularyCount === 'number'
         ? detailTopic.vocabularyCount
         : Array.isArray(topicVocabIds)
-        ? topicVocabIds.length
-        : Array.isArray(topicVocabData)
-        ? topicVocabData.length
-        : 0) > 0
+          ? topicVocabIds.length
+          : Array.isArray(topicVocabData)
+            ? topicVocabData.length
+            : 0) > 0
 
     // Cho phép gửi lại khi status = 0 (Draft) hoặc 4 (Rejected)
     if (!isDraft && !isRejected) {
@@ -691,16 +690,16 @@ export function FlashcardTopicDetailScreen() {
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      
+
       // Lấy tên file từ topic hoặc dùng tên mặc định
       const topicName = detailTopic?.title || detailTopic?._raw?.topicName || 'topic'
       const fileName = `${topicName}_${topicId}.xlsx`
       link.download = fileName
-      
+
       // Trigger download
       document.body.appendChild(link)
       link.click()
-      
+
       // Cleanup
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
@@ -772,9 +771,9 @@ export function FlashcardTopicDetailScreen() {
     return (
       <div
         style={{
+          width: '100%',
           height: '100%',
           padding: 12,
-          margin: '0 auto',
           display: 'flex',
           flexDirection: 'column',
           minHeight: 0,
@@ -791,24 +790,38 @@ export function FlashcardTopicDetailScreen() {
             paddingRight: 4,
           }}
         >
-          <Card style={{ borderRadius: 10 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
             <div
               style={{
                 display: 'flex',
-                alignItems: 'flex-start',
+                alignItems: 'center',
                 justifyContent: 'space-between',
-                gap: 12,
                 flexWrap: 'wrap',
-                padding: 4,
+                gap: 12,
               }}
             >
               <div>
-                <Title level={3} style={{ marginBottom: 2, marginTop: 0 }}>
+                <Title level={3} style={{ marginBottom: 4, marginTop: 0 }}>
                   Chi tiết chủ đề flashcard
                 </Title>
-                <Text type="secondary">ID: {detailTopic.id}</Text>
+                <Text type="secondary" style={{ fontSize: 14 }}>ID: {detailTopic.id}</Text>
               </div>
-              <Space wrap size={[8, 8]}>
+              <Space size="small" wrap>
+                <Button
+                  icon={<ArrowLeftOutlined />}
+                  onClick={() => router.back()}
+                  style={{
+                    borderRadius: 20,
+                    height: 40,
+                    padding: '0 20px',
+                    fontWeight: 600
+                  }}
+                >
+                  Quay lại
+                </Button>
+
+                <Divider orientation="vertical" style={{ height: 24, margin: '0 12px', borderLeft: '2px solid #e8e8e8ff' }} />
+
                 {(() => {
                   const topicStatus = detailTopic?._raw?.status ?? detailTopic?.status
                   const isDraft = topicStatus === 0
@@ -816,20 +829,18 @@ export function FlashcardTopicDetailScreen() {
                   const isDeleted = topicStatus === 2
                   const isRejected = topicStatus === 4
                   const userRole = getCurrentUserRole()
-                  const isAdmin = userRole === 'Admin'
                   const isStaff = userRole === 'Staff'
                   const isModerator = userRole === 'Moderator'
 
                   const cannotEditForStaffModerator = (isStaff || isModerator) && (isActive || isDeleted)
-
                   const hasVocab =
                     (typeof detailTopic?.vocabularyCount === 'number'
                       ? detailTopic.vocabularyCount
                       : Array.isArray(topicVocabIds)
-                      ? topicVocabIds.length
-                      : Array.isArray(topicVocabData)
-                      ? topicVocabData.length
-                      : 0) > 0
+                        ? topicVocabIds.length
+                        : Array.isArray(topicVocabData)
+                          ? topicVocabData.length
+                          : 0) > 0
 
                   const canSubmitForApproval = isStaff && (isDraft || isRejected) && hasVocab && !isDeleted
 
@@ -849,153 +860,182 @@ export function FlashcardTopicDetailScreen() {
                       >
                         Chỉnh sửa
                       </Button>
+
                       {canSubmitForApproval && (
-                        <Button type="primary" icon={<SendOutlined />} onClick={handleSubmitForApproval} disabled={submittingForApproval} style={{
-                          borderRadius: 20,
-                          height: 40,
-                          padding: '0 20px',
-                          fontWeight: 600
-                        }}>
+                        <Button
+                          type="primary"
+                          icon={<SendOutlined />}
+                          onClick={handleSubmitForApproval}
+                          disabled={submittingForApproval}
+                          style={{
+                            borderRadius: 20,
+                            height: 40,
+                            padding: '0 20px',
+                            fontWeight: 600
+                          }}
+                        >
                           {submittingForApproval ? 'Đang gửi...' : 'Gửi chờ duyệt'}
                         </Button>
                       )}
+
                       {!isDeleted && !isModerator && (
-                        <Button danger icon={<DeleteOutlined />} onClick={handleDelete} disabled={deleteLoading} style={{
-                          borderRadius: 20,
-                          height: 40,
-                          padding: '0 20px',
-                          fontWeight: 600
-                        }}>
+                        <Button
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={handleDelete}
+                          disabled={deleteLoading}
+                          style={{
+                            borderRadius: 20,
+                            height: 40,
+                            padding: '0 20px',
+                            fontWeight: 600
+                          }}
+                        >
                           {deleteLoading ? 'Đang xóa...' : 'Xóa'}
                         </Button>
                       )}
-                      <Button
-                        icon={<ArrowLeftOutlined />}
-                        onClick={() => router.back()}
-                        style={{
-                          borderRadius: 20,
-                          height: 40,
-                          padding: '0 20px',
-                          fontWeight: 600
-                        }}
-                      >
-                        Quay lại
-                      </Button>
                     </>
                   )
                 })()}
               </Space>
             </div>
-          </Card>
 
-          <HelperAdmin response={apiResponse} />
-          
-          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: 600 }}>
-              <TopicVocabSection
-                selecting={selecting}
-                onSelectingChange={setSelecting}
-                removingKeys={removingKeys}
-                onRemovingKeysChange={setRemovingKeys}
-                availableOptions={availableOptions}
-                onSearch={handleSearchVocab}
-                onFocus={handleSelectFocus}
-                searching={searching}
-                onAdd={handleAddVocab}
-                adding={adding}
-                onRemove={handleRemoveVocab}
-                removing={removing}
-                dataSource={topicVocabData}
-                onQuickAdd={currentPortal !== 'moderator' ? () => setQuickAddModalOpen(true) : undefined}
-                onExcelUpload={currentPortal !== 'moderator' ? handleExcelFileSelect : undefined}
-                uploadingExcel={uploadingExcel}
-                fileInputRef={fileInputRef}
-                onExportExcel={currentPortal !== 'moderator' ? handleExportExcel : undefined}
-                exportingExcel={exportingExcel}
-                onOpenGuide={() => setGuideModalOpen(true)}
-                isModerator={currentPortal === 'moderator'}
-                excelImportResult={excelImportResult}
+            <HelperAdmin response={apiResponse} />
+
+            <div style={{ backgroundColor: '#fff', borderRadius: 8, boxShadow: '0 1px 2px rgba(0,0,0,0.05)', border: '1px solid #f0f0f0', overflow: 'hidden' }}>
+              <Tabs
+                defaultActiveKey="vocabulary-list"
+                tabBarStyle={{ padding: '4px 24px 0', borderBottom: '1px solid #f0f0f0', background: '#ffffff', margin: 0 }}
+                items={[
+                  {
+                    key: 'basic-info',
+                    label: (
+                      <Space>
+                        <InfoCircleOutlined />
+                        <span style={{ fontWeight: 500 }}>Thông tin cơ bản</span>
+                      </Space>
+                    ),
+                    children: (
+                      <div style={{ padding: 24 }}>
+                        <TopicInfoCard
+                          topic={detailTopic}
+                          isAdmin={(() => {
+                            const userRole = getCurrentUserRole()
+                            return userRole === 'Admin'
+                          })()}
+                          onApprove={() => handleOpenApprovalModal('approve')}
+                          onReject={() => handleOpenApprovalModal('reject')}
+                          approvalLoading={approvalLoading}
+                        />
+                      </div>
+                    )
+                  },
+                  {
+                    key: 'vocabulary-list',
+                    label: (
+                      <Space>
+                        <UnorderedListOutlined />
+                        <span style={{ fontWeight: 500 }}>Danh sách từ vựng</span>
+                      </Space>
+                    ),
+                    children: (
+                      <div style={{ padding: 24 }}>
+                        <TopicVocabSection
+                          selecting={selecting}
+                          onSelectingChange={setSelecting}
+                          removingKeys={removingKeys}
+                          onRemovingKeysChange={setRemovingKeys}
+                          availableOptions={availableOptions}
+                          onSearch={handleSearchVocab}
+                          onFocus={handleSelectFocus}
+                          searching={searching}
+                          onAdd={handleAddVocab}
+                          adding={adding}
+                          onRemove={handleRemoveVocab}
+                          removing={removing}
+                          dataSource={topicVocabData}
+                          onQuickAdd={currentPortal !== 'moderator' ? () => setQuickAddModalOpen(true) : undefined}
+                          onExcelUpload={currentPortal !== 'moderator' ? handleExcelFileSelect : undefined}
+                          uploadingExcel={uploadingExcel}
+                          fileInputRef={fileInputRef}
+                          onExportExcel={currentPortal !== 'moderator' ? handleExportExcel : undefined}
+                          exportingExcel={exportingExcel}
+                          onOpenGuide={() => setGuideModalOpen(true)}
+                          isModerator={currentPortal === 'moderator'}
+                          excelImportResult={excelImportResult}
+                        />
+                      </div>
+                    )
+                  }
+                ]}
               />
             </div>
-            
-            <div style={{ width: 450, flexShrink: 0, position: 'sticky', top: 0 }}>
-              <TopicInfoCard
-                topic={detailTopic}
-                isAdmin={(() => {
-                  const userRole = getCurrentUserRole()
-                  return userRole === 'Admin'
-                })()}
-                onApprove={() => handleOpenApprovalModal('approve')}
-                onReject={() => handleOpenApprovalModal('reject')}
-                approvalLoading={approvalLoading}
-              />
-            </div>
-          </div>
-          <FlashcardTopicEditModal
-            open={editOpen}
-            loading={editLoading}
-            initialValues={{
-              topicName: detailTopic?.title || detailTopic?._raw?.topicName || '',
-              description: detailTopic?.subtitle || detailTopic?._raw?.description || '',
-              level: detailTopic?.level ?? detailTopic?._raw?.level ?? 1,
-              status: detailTopic?._raw?.status ?? detailTopic?.status ?? 1,
-              imgUrl: detailTopic?.imgUrl || detailTopic?._raw?.imgUrl || '',
-            }}
-            onCancel={() => setEditOpen(false)}
-            onSubmit={handleUpdate}
-            isModerator={currentPortal === 'moderator'}
-            isStaff={currentPortal === 'staff'}
-          />
-          <QuickAddVocabularyModal
-            open={quickAddModalOpen}
-            onCancel={() => setQuickAddModalOpen(false)}
-            topicId={topicId}
-            onAddToTopic={async (vocabIds) => {
-              try {
-                setApiResponse(null)
-                // Gọi API thêm vào topic
-                const { response, topicDetail } = await addVocabulariesToTopicAndReload(topicId, vocabIds)
-                setApiResponse(response)
-                
-                if (response?.isSuccess && topicDetail?.topic) {
-                  setDetailTopic(topicDetail.topic)
-                  setTopicVocabIds(topicDetail.topic.vocabIds || [])
-                  setTopicVocabularies(topicDetail.vocabularies || [])
-                  setSelecting([])
+            <FlashcardTopicEditModal
+              open={editOpen}
+              loading={editLoading}
+              initialValues={{
+                topicName: detailTopic?.title || detailTopic?._raw?.topicName || '',
+                description: detailTopic?.subtitle || detailTopic?._raw?.description || '',
+                level: detailTopic?.level ?? detailTopic?._raw?.level ?? 1,
+                status: detailTopic?._raw?.status ?? detailTopic?.status ?? 1,
+                imgUrl: detailTopic?.imgUrl || detailTopic?._raw?.imgUrl || '',
+              }}
+              onCancel={() => setEditOpen(false)}
+              onSubmit={handleUpdate}
+              isModerator={currentPortal === 'moderator'}
+              isStaff={currentPortal === 'staff'}
+            />
+            <QuickAddVocabularyModal
+              open={quickAddModalOpen}
+              onCancel={() => setQuickAddModalOpen(false)}
+              topicId={topicId}
+              onAddToTopic={async (vocabIds) => {
+                try {
+                  setApiResponse(null)
+                  // Gọi API thêm vào topic
+                  const { response, topicDetail } = await addVocabulariesToTopicAndReload(topicId, vocabIds)
+                  setApiResponse(response)
+
+                  if (response?.isSuccess && topicDetail?.topic) {
+                    setDetailTopic(topicDetail.topic)
+                    setTopicVocabIds(topicDetail.topic.vocabIds || [])
+                    setTopicVocabularies(topicDetail.vocabularies || [])
+                    setSelecting([])
+                  }
+                  return { success: response?.isSuccess, response }
+                } catch (err) {
+                  console.error('Error adding vocab to topic:', err)
+                  return { success: false, error: err }
                 }
-                return { success: response?.isSuccess, response }
-              } catch (err) {
-                console.error('Error adding vocab to topic:', err)
-                return { success: false, error: err }
-              }
-            }}
-            onSuccess={(createdVocab) => {
-              // Reload lại danh sách từ vựng để hiển thị từ vựng mới
-              if (createdVocab?.vocabularyId) {
-                // Từ vựng đã được thêm vào topic trong onAddToTopic
-                // Không cần làm gì thêm
-              }
-            }}
-          />
-          <VocabularyGuideModal open={guideModalOpen} onCancel={() => setGuideModalOpen(false)} />
-          <TopicApprovalModal
-            open={approvalModalOpen}
-            loading={approvalLoading}
-            initialApprovalType={approvalType}
-            onCancel={() => {
-              setApprovalModalOpen(false)
-              setTopicIdForApproval(null)
-              setApprovalType('approve')
-            }}
-            onSubmit={handleApproval}
-          />
-          <TopicStatusChangeModal
-            open={statusChangeModalOpen}
-            loading={statusChangeLoading}
-            currentStatus={detailTopic?._raw?.status ?? detailTopic?.status}
-            onCancel={() => setStatusChangeModalOpen(false)}
-            onSubmit={handleStatusChange}
-          />
+              }}
+              onSuccess={(createdVocab) => {
+                // Reload lại danh sách từ vựng để hiển thị từ vựng mới
+                if (createdVocab?.vocabularyId) {
+                  // Từ vựng đã được thêm vào topic trong onAddToTopic
+                  // Không cần làm gì thêm
+                }
+              }}
+            />
+            <VocabularyGuideModal open={guideModalOpen} onCancel={() => setGuideModalOpen(false)} />
+            <TopicApprovalModal
+              open={approvalModalOpen}
+              loading={approvalLoading}
+              initialApprovalType={approvalType}
+              onCancel={() => {
+                setApprovalModalOpen(false)
+                setTopicIdForApproval(null)
+                setApprovalType('approve')
+              }}
+              onSubmit={handleApproval}
+            />
+            <TopicStatusChangeModal
+              open={statusChangeModalOpen}
+              loading={statusChangeLoading}
+              currentStatus={detailTopic?._raw?.status ?? detailTopic?.status}
+              onCancel={() => setStatusChangeModalOpen(false)}
+              onSubmit={handleStatusChange}
+            />
+          </div>
         </div>
       </div>
     )
