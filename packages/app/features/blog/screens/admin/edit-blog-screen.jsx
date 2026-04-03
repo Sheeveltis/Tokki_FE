@@ -44,7 +44,7 @@ export function EditBlogScreen() {
         // Set form values
         form.setFieldsValue({
           title: data.title || '',
-          thumbnailUrl: data.thumbnailUrl || '', // Back-end should use thumbnailUrl
+          thumbnailUrl: data.thumbnailUrl || '',
           content: data.content || '',
           shortDescription: data.shortDescription || '',
           categoryId: data.categoryId || '',
@@ -86,15 +86,24 @@ export function EditBlogScreen() {
         tags: values.tags || [],
       }
       
-      await updateBlog(blogId, payload)
-      message.success('Đã cập nhật bài viết thành công')
-      router.back()
+      const response = await updateBlog(blogId, payload)
+      if (response?.isSuccess || response?.statusCode === 200 || response?.statusCode === 201) {
+        message.success('Đã cập nhật bài viết thành công')
+        router.back()
+      } else {
+        throw new Error(response?.message || 'Có lỗi xảy ra khi cập nhật bài viết')
+      }
     } catch (error) {
-      console.error(error)
-      message.error('Cập nhật bài viết thất bại')
+      console.error('Submit error:', error)
+      message.error(error.message || 'Cập nhật bài viết thất bại')
     } finally {
       setSaving(false)
     }
+  }
+
+  const onFinishFailed = (errorInfo) => {
+    console.warn('Form validation failed:', errorInfo)
+    message.error('Vui lòng hoàn thành các thông tin bắt buộc còn thiếu')
   }
 
   if (loading) {
@@ -158,13 +167,15 @@ export function EditBlogScreen() {
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
+          onFinishFailed={onFinishFailed}
+          scrollToFirstError
         >
           <BlogGeneralInfo />
           
           <BlogEditor 
             name="content" 
             label="Nội dung chi tiết"
-            rules={[{ required: true, message: 'Vui lòng nhập nội dung' }]}
+            rules={[{ required: true, message: 'Vui lòng nhập nội dung bài viết' }]}
           />
 
           <BlogMetaInfo />

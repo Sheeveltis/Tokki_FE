@@ -40,6 +40,8 @@ export function BlogGeneralInfo() {
       const url = await uploadBlogImageToCloudinary(rawFile)
       if (url) {
         form.setFieldsValue({ thumbnailUrl: url })
+        // Trigger validation for this field specifically
+        form.validateFields(['thumbnailUrl'])
         setThumbnailPreview(url)
         message.success('Upload ảnh bìa thành công')
       }

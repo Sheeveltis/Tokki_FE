@@ -44,7 +44,7 @@ export function CreateBlogScreen() {
       setLoading(true)
       const payload = {
         title: values.title,
-        thumbnailUrl: values.thumbnailUrl, // Back-end expects thumbnailUrl
+        thumbnailUrl: values.thumbnailUrl,
         content: values.content,
         shortDescription: values.shortDescription,
         status: values.isPublished ? 1 : 0,
@@ -52,15 +52,26 @@ export function CreateBlogScreen() {
         tags: values.tags || [],
       }
       
-      await createBlog(payload)
-      message.success('Đã tạo bài bài viết mới thành công')
-      router.push('/admin?tab=blog')
+      const response = await createBlog(payload)
+      if (response?.isSuccess || response?.statusCode === 201) {
+        message.success('Đã tạo bài viết mới thành công')
+        router.push('/admin?tab=blog')
+      } else {
+        throw new Error(response?.message || 'Có lỗi xảy ra khi tạo bài viết')
+      }
     } catch (error) {
-      console.error(error)
-      message.error('Tạo bài viết thất bại')
+      console.error('Submit error:', error)
+      message.error(error.message || 'Tạo bài viết thất bại')
     } finally {
       setLoading(false)
     }
+  }
+
+  const onFinishFailed = (errorInfo) => {
+    console.warn('Form validation failed:', errorInfo)
+    message.error('Vui lòng hoàn thành các thông tin bắt buộc còn thiếu')
+    
+    // Cuộn đến lỗi đầu tiên (Ant Design tự động cuộn nếu scrollToFirstError=true)
   }
 
   return (
@@ -115,19 +126,19 @@ export function CreateBlogScreen() {
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
-          initialValues={{ isPublished: false, tags: [] }}
+          onFinishFailed={onFinishFailed}
+          scrollToFirstError
+          initialValues={{ isPublished: false, tags: [], content: '' }}
         >
           <BlogGeneralInfo />
           
           <BlogEditor 
             name="content" 
             label="Nội dung chi tiết"
-            rules={[{ required: true, message: 'Vui lòng nhập nội dung' }]}
+            rules={[{ required: true, message: 'Vui lòng nhập nội dung bài viết' }]}
           />
 
           <BlogMetaInfo />
-          
-          {/* We keep the actions in the header, but could also keep a copy at the bottom if the form is long */}
         </Form>
       </Card>
 
