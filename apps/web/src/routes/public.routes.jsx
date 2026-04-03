@@ -359,9 +359,14 @@ export function PublicLayout() {
   const isProfileRoute = location.pathname.startsWith('/user-profile') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/users')
   const shouldHideFooter = isRoadmapRoute || isMenuStudyRoute || isFlashcardRoute || isProfileRoute
 
+  // Hide Navbar for specific distraction-free screens
+  const isPracticePage = location.pathname.includes('/roadmap/learning/practice') || location.pathname.includes('/roadmap/practice-test')
+  const isTestPage = location.pathname === '/roadmap/test'
+  const shouldHideNavbar = isPracticePage || isTestPage
+
   return (
     <View style={{ flex: 1, height: shouldHideFooter ? '100vh' : undefined, minHeight: '100vh', backgroundColor: '#fff', overflow: shouldHideFooter ? 'hidden' : 'visible' }}>
-      <Navbar />
+      {!shouldHideNavbar && <Navbar />}
       <View style={{ flex: 1, overflow: shouldHideFooter ? 'hidden' : 'visible' }}>
         <Outlet />
       </View>

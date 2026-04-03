@@ -20,7 +20,7 @@ import { register, sendEmailVerificationOtp, verifyEmailOtp } from '../../api'
 import { showApiNotification } from '../../utils/notification'
 import { HelperAdmin } from '../../../../../components/HelperAdmin'
 import LogoImage from '../../../../../assets/logo-text.png'
-import HomeIcon from '../../../../../assets/icon/icon-mainflow/home.svg'
+import { NavigationPill } from '../../../../../components/navigation-pill'
 import { InputOTP } from '../shared/input-otp'
 import { 
   scaleWidth, 
@@ -309,7 +309,6 @@ export function RegisterPanel({ onPressLogin }) {
   }
 
   const logoSource = normalizeImageSource(LogoImage)
-  const homeIconSource = normalizeImageSource(HomeIcon)
 
   const handleOpenOtpModal = async () => {
     if (otpSending) return
@@ -321,6 +320,7 @@ export function RegisterPanel({ onPressLogin }) {
         isSuccess: false,
         message: msg,
         statusCode: 400,
+        _timestamp: Date.now(),
       })
       return
     }
@@ -333,6 +333,7 @@ export function RegisterPanel({ onPressLogin }) {
         isSuccess: false,
         message: msg,
         statusCode: 400,
+        _timestamp: Date.now(),
       })
       return
     }
@@ -342,6 +343,9 @@ export function RegisterPanel({ onPressLogin }) {
 
     try {
       setOtpSending(true)
+      setError(null)
+      setApiResponse(null)
+      setNotifyResponse(null)
       // Gửi OTP xác thực email
       const resp = await sendEmailVerificationOtp(email.trim())
 
@@ -359,7 +363,8 @@ export function RegisterPanel({ onPressLogin }) {
         setShowOtpModal(true)
       } else {
         // Lưu để HelperAdmin hiển thị lỗi
-        setNotifyResponse(resp)
+        const errorResp = { ...resp, _timestamp: Date.now() }
+        setNotifyResponse(errorResp)
         setApiResponse(null)
         const msg =
           (resp && resp.message) ||
@@ -389,7 +394,8 @@ export function RegisterPanel({ onPressLogin }) {
     } else if (resp) {
       setIsEmailVerified(false)
       setApiResponse(null)
-      setNotifyResponse(resp)
+      const errorResp = { ...resp, _timestamp: Date.now() }
+      setNotifyResponse(errorResp)
       const msg =
         resp.message ||
         (resp.errors && resp.errors[0]?.description) ||
@@ -413,6 +419,7 @@ export function RegisterPanel({ onPressLogin }) {
         isSuccess: false,
         message: msg,
         statusCode: 400,
+        _timestamp: Date.now(),
       })
       return
     }
@@ -423,6 +430,7 @@ export function RegisterPanel({ onPressLogin }) {
         isSuccess: false,
         message: msg,
         statusCode: 400,
+        _timestamp: Date.now(),
       })
       return
     }
@@ -433,6 +441,7 @@ export function RegisterPanel({ onPressLogin }) {
         isSuccess: false,
         message: msg,
         statusCode: 400,
+        _timestamp: Date.now(),
       })
       return
     }
@@ -451,6 +460,7 @@ export function RegisterPanel({ onPressLogin }) {
           isSuccess: false,
           message: msg,
           statusCode: 400,
+          _timestamp: Date.now(),
         })
         setLoading(false)
         return
@@ -466,7 +476,7 @@ export function RegisterPanel({ onPressLogin }) {
       })
       
       // Lưu response để hiển thị HelperAdmin
-      setApiResponse(response)
+      setApiResponse({ ...response, _timestamp: Date.now() })
       
       // Xử lý khi đăng ký thành công
       if (response.isSuccess && response.data) {
@@ -513,8 +523,8 @@ export function RegisterPanel({ onPressLogin }) {
         message: finalMsg,
         statusCode: 500,
       }
-      setApiResponse(errorResponse)
-      setNotifyResponse(errorResponse)
+      setApiResponse({ ...errorResponse, _timestamp: Date.now() })
+      setNotifyResponse({ ...errorResponse, _timestamp: Date.now() })
       // Chỉ hiển thị Alert trên mobile, web dùng HelperAdmin
       if (Platform.OS !== 'web') {
         showApiNotification(errorResponse)
@@ -529,14 +539,7 @@ export function RegisterPanel({ onPressLogin }) {
     <View style={containerStyle}>
       {/* Ẩn button Trang chủ trên native */}
       {Platform.OS === 'web' && (
-      <TouchableOpacity
-        style={styles.backHome}
-        onPress={() => router.push('/homepage')}
-        activeOpacity={0.8}
-      >
-        {homeIconSource ? <Image source={homeIconSource} style={styles.backIcon} /> : null}
-        <Text style={styles.backText}>Trang chủ</Text>
-      </TouchableOpacity>
+      <NavigationPill style={styles.backHome} label="Trang chủ" to="/homepage" />
       )}
       {/* HelperAdmin để hiển thị thông báo từ API (chỉ hiển thị khi thành công) - Chỉ trên web */}
       {Platform.OS === 'web' && notifyResponse && (
