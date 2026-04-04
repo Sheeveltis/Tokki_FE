@@ -45,21 +45,18 @@ function XpNotificationWeb({ xp, visible, isLevelUp, newLevel }) {
     borderRadius: 20,
     padding: '10px 20px 10px 10px',
     minWidth: 260,
-    boxShadow: '0 8px 24px rgba(137, 164, 85, 0.25), 0 2px 8px rgba(0,0,0,0.08)',
-    border: '1px solid #E8F1D5',
-    gap: 12,
+    boxShadow: '0 12px 32px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(137, 164, 85, 0.15)',
+    border: '1px solid rgba(232, 241, 213, 0.6)',
+    gap: 8,
     position: 'relative',
   }
 
   const badgeStyle = {
-    backgroundColor: '#FFD700',
-    borderRadius: 14,
-    padding: '8px 14px',
-    border: '2px solid #C6A700',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
+    marginRight: 4,
   }
 
   return createPortal(
@@ -67,17 +64,20 @@ function XpNotificationWeb({ xp, visible, isLevelUp, newLevel }) {
       <div style={bubbleStyle}>
         {/* XP Badge */}
         <div style={badgeStyle}>
-          <span style={{ fontSize: 16, fontWeight: 800, color: '#5C430D' }}>
-            +{xp || 10} XP
+          <span style={{ fontSize: 24, fontWeight: 900, color: '#F59E0B', filter: 'drop-shadow(0 2px 4px rgba(245, 158, 11, 0.2))' }}>
+            +{xp || 10}
+          </span>
+          <span style={{ fontSize: 13, fontWeight: 800, color: '#F59E0B', marginLeft: 4, marginTop: 4 }}>
+            XP
           </span>
         </div>
 
         {/* Text */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <span style={{ fontSize: 15, fontWeight: 700, color: '#1a1a1a', lineHeight: 1.3 }}>
-            Chúc mừng! 🎉
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          <span style={{ fontSize: 16, fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>
+            Chúc mừng!
           </span>
-          <span style={{ fontSize: 12, color: '#666', lineHeight: 1.3 }}>
+          <span style={{ fontSize: 13, color: '#6B7280', fontWeight: 500 }}>
             Bạn đã nhận được kinh nghiệm
           </span>
         </div>
@@ -178,16 +178,14 @@ function XpNotificationMobile({ xp, visible, isLevelUp, newLevel }) {
       minWidth: 240,
     },
     badge: {
-      backgroundColor: '#FFD700',
-      borderRadius: 14,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderWidth: 2,
-      borderColor: '#C6A700',
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginRight: 4,
     },
-    badgeText: { fontSize: 16, fontWeight: '800', color: '#5C430D' },
-    title: { fontSize: 15, fontWeight: '700', color: '#1a1a1a' },
-    sub: { fontSize: 12, color: '#666' },
+    badgeText: { fontSize: 24, fontWeight: '900', color: '#F59E0B' },
+    xpText: { fontSize: 13, fontWeight: '800', color: '#F59E0B', marginLeft: 4, marginTop: 6 },
+    title: { fontSize: 16, fontWeight: '700', color: '#111827' },
+    sub: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
     levelUpBadge: {
       position: 'absolute',
       top: -12,
@@ -213,9 +211,10 @@ function XpNotificationMobile({ xp, visible, isLevelUp, newLevel }) {
     >
       <View style={styles.bubble}>
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>+{xp || 10} XP</Text>
+          <Text style={styles.badgeText}>+{xp || 10}</Text>
+          <Text style={styles.xpText}>XP</Text>
         </View>
-        <View>
+        <View style={{ gap: 0 }}>
           <Text style={styles.title}>Chúc mừng! 🎉</Text>
           <Text style={styles.sub}>Bạn đã nhận được kinh nghiệm</Text>
         </View>
