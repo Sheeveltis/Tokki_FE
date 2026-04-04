@@ -8,6 +8,7 @@ import { getBlogDetail, getAllBlogs, increaseViewCount, getCommentsByBlog } from
 import { Loading } from '../../../../../components/Loading'
 import { BlogMainContent } from '../../components/blog-detail/blog-main'
 import { getCurrentUser } from '../../../user/api/profile'
+import { getAuthToken } from '../../../../provider/api/client'
 
 export function BlogDetailScreen() {
   const params = useParams()
@@ -80,8 +81,9 @@ export function BlogDetailScreen() {
           }
           setRelatedBlogs(related.slice(0, 3))
 
-          // 5. Fetch current user for avatars
-          if (!userProfile) {
+          // 5. Fetch current user for avatars (chỉ khi đã đăng nhập)
+          const token = getAuthToken()
+          if (!userProfile && token) {
             getCurrentUser().then(setUserProfile).catch(console.warn)
           }
         }
