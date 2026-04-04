@@ -5,6 +5,7 @@ import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
 import { studyStyles } from '@tokki/app/features/study/styles'
 import { LoadingWithContainer } from 'components/Loading'
 import { normalizeImageSource } from '@tokki/app/features/study/api'
+import RabbitWaitingImage from 'assets/bunny/2.png'
 
 /**
  * LearnedVocabularyListMain (Mobile): Nội dung chính của trang danh sách từ vựng đã học trên mobile
@@ -144,7 +145,13 @@ export function LearnedVocabularyListMain({
         </View>
       ) : (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Chưa có từ vựng đã học nào</Text>
+          <Image 
+            source={RabbitWaitingImage} 
+            style={styles.emptyImage}
+            resizeMode="contain"
+          />
+          <Text style={styles.emptyTitle}>Hiện chưa có từ vựng đã học</Text>
+          <Text style={styles.emptySubtitle}>Bạn vui lòng quay lại ngày mai nhé</Text>
         </View>
       )}
     </>
@@ -299,15 +306,35 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
   },
   emptyContainer: {
-    padding: 40,
+    padding: 32,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    marginTop: 20,
+    marginHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
   },
-  emptyText: {
-    fontSize: 16,
+  emptyImage: {
+    width: 150,
+    height: 150,
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1F1F1F',
+    textAlign: 'center',
+    fontFamily: 'Epilogue, sans-serif',
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 15,
     color: '#666',
     textAlign: 'center',
     fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 22,
   },
   practiceBanner: {
     width: '100%',

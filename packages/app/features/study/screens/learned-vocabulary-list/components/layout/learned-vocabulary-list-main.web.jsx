@@ -5,6 +5,7 @@ import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
 import { studyStyles } from '@tokki/app/features/study/styles'
 import { LoadingWithContainer } from 'components/Loading'
 import { normalizeImageSource } from '@tokki/app/features/study/api'
+import RabbitWaitingImage from 'assets/bunny/2.png'
 
 /**
  * LearnedVocabularyListMain (Web): Nội dung chính của trang danh sách từ vựng đã học trên web
@@ -92,7 +93,7 @@ export function LearnedVocabularyListMain({
           <View style={styles.practiceBannerContent}>
             <View style={styles.practiceBannerLeft}>
               <Text style={styles.practiceBannerText}>
-                {reviewCount > 0 
+                {reviewCount > 0
                   ? `Bạn có ${reviewCount} từ vựng cần ôn tập`
                   : 'Bắt đầu học từ vựng'}
               </Text>
@@ -121,7 +122,7 @@ export function LearnedVocabularyListMain({
                 </View>
               </View>
             </View>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.practiceButton}
               onPress={onStartPractice}
             >
@@ -133,7 +134,13 @@ export function LearnedVocabularyListMain({
         </View>
       ) : (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Chưa có từ vựng đã học nào</Text>
+          <Image
+            source={RabbitWaitingImage}
+            style={styles.emptyImage}
+            resizeMode="contain"
+          />
+          <Text style={styles.emptyTitle}>Hiện chưa có từ vựng đã học</Text>
+          <Text style={styles.emptySubtitle}>Bạn vui lòng quay lại ngày mai nhé</Text>
         </View>
       )}
     </>
@@ -325,15 +332,35 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
   },
   emptyContainer: {
-    padding: 40,
+    padding: 60,
     alignItems: 'center',
     justifyContent: 'center',
+    // backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    marginTop: 40,
+    width: '90%',
+    maxWidth: 600,
+    alignSelf: 'center',
   },
-  emptyText: {
+  emptyImage: {
+    width: 200,
+    height: 200,
+    marginBottom: 24,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F1F1F',
+    textAlign: 'center',
+    fontFamily: 'Epilogue, sans-serif',
+    marginBottom: 8,
+  },
+  emptySubtitle: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
     fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 24,
   },
   practiceBanner: {
     width: '90%',

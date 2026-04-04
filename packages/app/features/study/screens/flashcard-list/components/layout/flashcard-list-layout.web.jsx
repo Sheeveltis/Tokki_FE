@@ -2,6 +2,7 @@ import React from 'react'
 import { Pressable, Text, StyleSheet, Platform } from 'react-native'
 import { StudyLayoutSynchronized } from '@tokki/app/features/study/components/study-layout-synchronized.web'
 import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
+import { LearnedSuperButton } from '@tokki/app/features/study/components/learned-super-button.web'
 import StarIcon from 'assets/icon/icon-mainflow/star.svg'
 import BookIcon from 'assets/icon/navigate-app/book.svg'
 
@@ -18,11 +19,11 @@ export function FlashcardListLayout({
   const headerActions = (
     <>
       {onFavoritesPress && (
-        <Pressable 
+        <Pressable
           style={({ hovered }) => [
             styles.actionButton,
             hovered && styles.actionButtonHover
-          ]} 
+          ]}
           onPress={onFavoritesPress}
         >
           <StudyIcon
@@ -35,21 +36,7 @@ export function FlashcardListLayout({
         </Pressable>
       )}
       {onLearnedPress && (
-        <Pressable 
-          style={({ hovered }) => [
-            styles.actionButton,
-            hovered && styles.actionButtonHover
-          ]} 
-          onPress={onLearnedPress}
-        >
-          <StudyIcon
-            source={BookIcon}
-            width={20}
-            height={20}
-            tintColor="#F1BE4B"
-          />
-          <Text style={styles.actionText}>Ôn tập từ vựng</Text>
-        </Pressable>
+        <LearnedSuperButton onPress={onLearnedPress} />
       )}
     </>
   )
