@@ -1,10 +1,16 @@
 // Wrapper cho solito/navigation trên web: dùng react-router-dom thay vì Next.js router
-import { useNavigate as useNavigateRR, useSearchParams as useSearchParamsRR, useParams as useParamsRR } from 'react-router-dom'
+import {
+  useNavigate as useNavigateRR,
+  useSearchParams as useSearchParamsRR,
+  useParams as useParamsRR,
+  useLocation as useLocationRR,
+} from 'react-router-dom'
 
-// Tạo router object tương thích với solito API
+// Tạo useRouter hook tương thích với solito
 export function useRouter() {
   const navigate = useNavigateRR()
   const [searchParams] = useSearchParamsRR()
+  const location = useLocationRR()
 
   return {
     push: (path: string) => {
@@ -16,10 +22,16 @@ export function useRouter() {
     back: () => {
       navigate(-1)
     },
-    pathname: window.location.pathname,
+    pathname: location.pathname,
     query: Object.fromEntries(searchParams.entries()),
-    asPath: window.location.pathname + window.location.search,
+    asPath: location.pathname + location.search,
   }
+}
+
+// usePathname hook
+export function usePathname() {
+  const location = useLocationRR()
+  return location.pathname
 }
 
 // useSearchParams: trả về URLSearchParams object (có method .get()) giống Next.js

@@ -354,10 +354,10 @@ export const publicRoutes = [
 export function PublicLayout() {
   const location = useLocation()
   const isRoadmapRoute = location.pathname.startsWith('/roadmap')
-  const isMenuStudyRoute = location.pathname.startsWith('/menu-study')
+  const isStudyRoute = location.pathname.startsWith('/study')
   const isFlashcardRoute = location.pathname.startsWith('/flashcard')
   const isProfileRoute = location.pathname.startsWith('/user-profile') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/users')
-  const shouldHideFooter = isRoadmapRoute || isMenuStudyRoute || isFlashcardRoute || isProfileRoute
+  const shouldHideFooter = isRoadmapRoute || isStudyRoute || isFlashcardRoute || isProfileRoute
 
   // Hide Navbar for specific distraction-free screens
   const isPracticePage = location.pathname.includes('/roadmap/learning/practice') || location.pathname.includes('/roadmap/practice-test')

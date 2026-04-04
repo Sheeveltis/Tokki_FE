@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter, usePathname } from 'solito/navigation'
 import {
   View,
   Image,
@@ -9,7 +10,6 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from 'react-native'
-import { useRouter } from 'solito/navigation'
 import { colors } from '../app/color'
 import { getAuthToken, clearAuthToken, getCurrentUserId } from '../app/provider/api/client'
 import { MessageModal } from './MessageModal'
@@ -51,7 +51,15 @@ const IconRenderer = ({ icon, size = 24, tint }) => {
 
 const NavItem = ({ icon, label, tint, path, compact = false }) => {
   const router = useRouter()
+  const pathname = usePathname()
   const [isHovered, setIsHovered] = useState(false)
+
+  // Xác định xem item có đang ở trang hiện tại hay không
+  const isOnPage = pathname === path || (path !== '/' && path !== '/homepage' && pathname?.startsWith(path))
+
+  const activeColor = tint || '#78905E'
+  const isWeb = Platform.OS === 'web'
+  const isHighlighted = (isHovered && isWeb) || isOnPage
 
   return (
     <View style={styles.navItemContainer}>
@@ -60,20 +68,38 @@ const NavItem = ({ icon, label, tint, path, compact = false }) => {
         onHoverIn={() => setIsHovered(true)}
         onHoverOut={() => setIsHovered(false)}
         style={({ pressed }) => {
-          const active = pressed || (isHovered && Platform.OS === 'web')
+          const isPressed = pressed
           return [
             styles.navIconWrap,
-            active && styles.navIconWrapActive,
             compact && styles.navIconWrapCompact,
+            isHighlighted && { 
+               backgroundColor: activeColor + '15', // ~8% opacity
+               transform: [{ scale: 1.05 }]
+            },
+            isPressed && { transform: [{ scale: 0.95 }] },
           ]
         }}
       >
-        <IconRenderer icon={icon} size={compact ? 24 : 34} tint={tint} />
+        <IconRenderer 
+          icon={icon} 
+          size={compact ? 24 : 32} 
+          tint={isHighlighted ? activeColor : '#6A5634'} 
+        />
+        {isOnPage && !compact && <View style={[styles.activeIndicator, { backgroundColor: activeColor }]} />}
       </Pressable>
 
-      {!compact ? <Text style={[styles.navLabel, isHovered && Platform.OS === 'web' && styles.navLabelActive]}>{label}</Text> : null}
+      {!compact ? (
+        <Text
+          style={[
+            styles.navLabel,
+            isHighlighted && { color: activeColor, fontWeight: '700' },
+          ]}
+        >
+          {label}
+        </Text>
+      ) : null}
 
-      {compact && isHovered && Platform.OS === 'web' && (
+      {compact && isHovered && isWeb && (
         <View style={styles.tooltip}>
           <Text style={styles.tooltipText}>{label}</Text>
         </View>
@@ -92,6 +118,7 @@ export const Navbar = ({ position = 'fixed' }) => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isPremiumHovered, setIsPremiumHovered] = useState(false)
+  const pathname = usePathname()
 
   useEffect(() => {
     const check = () => {
@@ -243,18 +270,26 @@ export const Navbar = ({ position = 'fixed' }) => {
 
         {isMobile && mobileMenuOpen ? (
           <View style={styles.mobileDropdown}>
-            {navMenu.map((item) => (
-              <TouchableOpacity
-                key={item.path}
-                style={styles.mobileMenuItem}
-                onPress={() => {
-                  router.push(item.path)
-                  setMobileMenuOpen(false)
-                }}
-              >
-                <NavItem {...item} compact />
-              </TouchableOpacity>
-            ))}
+            {navMenu.map((item) => {
+              const isOnPage = pathname === item.path || (item.path !== '/' && item.path !== '/homepage' && pathname?.startsWith(item.path))
+              const activeColor = item.tint || '#78905E'
+              
+              return (
+                <TouchableOpacity
+                  key={item.path}
+                  style={[
+                    styles.mobileMenuItem, 
+                    isOnPage && { backgroundColor: activeColor + '10', borderLeftColor: activeColor, borderLeftWidth: 4 }
+                  ]}
+                  onPress={() => {
+                    router.push(item.path)
+                    setMobileMenuOpen(false)
+                  }}
+                >
+                  <NavItem {...item} compact />
+                </TouchableOpacity>
+              )
+            })}
 
             {authChecked && hasToken ? (
               <>
@@ -395,24 +430,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   navIconWrap: {
-    width: 100,
-    height: 34,
-    borderRadius: 12,
+    width: 80,
+    height: 48,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
     ...(Platform.OS === 'web' && {
-      transitionProperty: 'transform, opacity, background-color',
-      transitionDuration: '180ms',
-      transitionTimingFunction: 'ease-out',
+      transition: 'all 240ms ease-out',
     }),
   },
   navIconWrapActive: {
     opacity: 1,
-    transform: [{ translateY: -4 }],
-    backgroundColor: 'rgba(255,255,255,0.85)',
-    ...(Platform.OS === 'web' && {
-      boxShadow: '0 6px 16px rgba(141, 122, 75, 0.12)',
-    }),
   },
   navIconWrapCompact: {
     width: 34,
@@ -430,6 +459,13 @@ const styles = StyleSheet.create({
   },
   navLabelActive: {
     color: '#2A1F0D',
+  },
+  activeIndicator: {
+    position: 'absolute',
+    bottom: -2,
+    width: 24,
+    height: 3,
+    borderRadius: 2,
   },
   rightSection: {
     flexDirection: 'row',
@@ -581,6 +617,10 @@ const styles = StyleSheet.create({
   },
   mobileMenuItem: {
     borderRadius: 10,
+    marginVertical: 2,
+  },
+  mobileMenuItemActive: {
+    backgroundColor: '#F5F5F5',
   },
   mobileMenuItemInline: {
     flexDirection: 'row',

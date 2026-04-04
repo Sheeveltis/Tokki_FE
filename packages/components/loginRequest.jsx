@@ -1,6 +1,7 @@
 import React from 'react'
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, Image, TouchableOpacity, StyleSheet, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
+import { colors } from '../app/color'
 import BunnyImage from '../assets/bunny/14.png'
 import SmallFoot from '../assets/smallfoot.png'
 
@@ -18,6 +19,7 @@ const normalizeImageSource = (src) => {
 
 /**
  * LoginRequest: modal/section yêu cầu đăng nhập
+ * Được thiết kế lại theo phong cách "One Board" cao cấp, đồng bộ với theme hệ thống.
  */
 export const LoginRequest = ({ onClose }) => {
   const router = useRouter()
@@ -33,126 +35,179 @@ export const LoginRequest = ({ onClose }) => {
   }
 
   return (
-    <View
-      style={{
-        backgroundColor: '#F5F0DD',
-        borderRadius: 30,
-        paddingVertical: 32,
-        paddingHorizontal: 28,
-        minWidth: 520,
-        minHeight: 360,
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
+    <View style={styles.container}>
+      {/* Background decoration */}
+      <Image
+        source={normalizeImageSource(SmallFoot)}
+        style={styles.footprintDecor}
+      />
+
       {/* Close button */}
       <TouchableOpacity
         onPress={handleClose}
-        style={{
-          position: 'absolute',
-          top: 12,
-          right: 12,
-          width: 40,
-          height: 40,
-          borderRadius: 16,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        activeOpacity={0.7}
+        style={styles.closeButton}
+        activeOpacity={0.6}
       >
-        <Text
-          style={{
-            fontSize: 30,
-            fontWeight: '700',
-            color: '#333',
-            fontFamily: 'Epilogue, sans-serif',
-          }}
-        >
-          ×
-        </Text>
+        <Text style={styles.closeText}>×</Text>
       </TouchableOpacity>
 
-      {/* Footprint decoration */}
-      <Image
-        source={normalizeImageSource(SmallFoot)}
-        style={{
-          position: 'absolute',
-          bottom: -30,
-          right: -60,
-          width: 300,
-          height: 250,
-          resizeMode: 'contain',
-          opacity: 0.1,
-          transform: [{ rotate: '-60deg' }],
-        }}
-      />
-
       {/* Bunny illustration */}
-      <Image
-        source={normalizeImageSource(BunnyImage)}
-        style={{
-          width: 200,
-          height: 200,
-          resizeMode: 'contain',
-          marginBottom: 12,
-        }}
-      />
+      <View style={styles.imageWrapper}>
+        <Image
+          source={normalizeImageSource(BunnyImage)}
+          style={styles.bunnyImage}
+        />
+        {/* Subtle glow effect behind bunny */}
+        <View style={styles.bunnyGlow} />
+      </View>
 
-      {/* Title */}
-      <Text
-        style={{
-          fontSize: 22,
-          fontWeight: '800',
-          color: '#222',
-          fontFamily: 'Epilogue, sans-serif',
-          textAlign: 'center',
-          marginBottom: 8,
-        }}
-      >
-        Đăng nhập để sử dụng tính năng này
-      </Text>
+      {/* Content */}
+      <View style={styles.content}>
+        <Text style={styles.title}>BẠN CHƯA ĐĂNG NHẬP</Text>
+        <Text style={styles.subtitle}>
+          Vui lòng đăng nhập để có thể sử dụng đầy đủ các tính năng học tập và lưu lại tiến độ của mình nhé!
+        </Text>
+      </View>
 
-      {/* Subtitle */}
-      <Text
-        style={{
-          fontSize: 15,
-          color: '#555',
-          fontFamily: 'Epilogue, sans-serif',
-          textAlign: 'center',
-          marginBottom: 20,
-        }}
-      >
-        Bạn cần đăng nhập để sử dụng tính năng này
-      </Text>
-
-      {/* Login button */}
+      {/* Action button */}
       <TouchableOpacity
         onPress={handleLogin}
-        style={{
-          backgroundColor: '#89A455',
-          paddingVertical: 14,
-          paddingHorizontal: 32,
-          borderRadius: 22,
-          minWidth: 180,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        activeOpacity={0.85}
+        style={styles.loginButton}
+        activeOpacity={0.8}
       >
-        <Text
-          style={{
-            fontSize: 16,
-            fontWeight: '700',
-            color: '#FFFFFF',
-            fontFamily: 'Epilogue, sans-serif',
-          }}
-        >
-          Đăng nhập
-        </Text>
+        <Text style={styles.loginButtonText}>Đăng nhập ngay</Text>
       </TouchableOpacity>
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#F7F2E2', // Giữ tông màu cũ nhưng làm sạch hơn (gần với floatingBg)
+    borderRadius: 32,
+    paddingVertical: 48,
+    paddingHorizontal: 32,
+    width: Platform.OS === 'web' ? 520 : '90%',
+    maxWidth: 520,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+    // Shadow & Border cho cảm giác cao cấp
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
+    ...(Platform.OS === 'web'
+      ? {
+          boxShadow: '0 12px 30px rgba(121, 108, 73, 0.15)',
+        }
+      : {
+          shadowColor: '#796C49',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.15,
+          shadowRadius: 20,
+          elevation: 10,
+        }),
+  },
+  footprintDecor: {
+    position: 'absolute',
+    bottom: -50,
+    right: -70,
+    width: 320,
+    height: 280,
+    resizeMode: 'contain',
+    opacity: 0.08,
+    transform: [{ rotate: '-65deg' }],
+    zIndex: 0,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  closeText: {
+    fontSize: 28,
+    fontWeight: '300',
+    color: '#333',
+    marginTop: -4,
+  },
+  imageWrapper: {
+    marginBottom: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    zIndex: 1,
+  },
+  bunnyImage: {
+    width: 180,
+    height: 180,
+    resizeMode: 'contain',
+    zIndex: 2,
+  },
+  bunnyGlow: {
+    position: 'absolute',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: 'rgba(137, 164, 85, 0.12)',
+    zIndex: 1,
+  },
+  content: {
+    alignItems: 'center',
+    marginBottom: 32,
+    zIndex: 1,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#2A2A2A',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+    marginBottom: 12,
+    letterSpacing: 0.5,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#5A5A5A',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+    lineHeight: 24,
+    maxWidth: 380,
+    fontWeight: '500',
+  },
+  loginButton: {
+    backgroundColor: '#89A455', // Giữ màu xanh lá chủ đạo
+    paddingVertical: 16,
+    paddingHorizontal: 40,
+    borderRadius: 24,
+    minWidth: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+    ...(Platform.OS === 'web'
+      ? {
+          boxShadow: '0 6px 15px rgba(137, 164, 85, 0.3)',
+        }
+      : {
+          shadowColor: '#89A455',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.3,
+          shadowRadius: 10,
+          elevation: 5,
+        }),
+  },
+  loginButtonText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    fontFamily: 'Epilogue, sans-serif',
+    letterSpacing: 0.2,
+  },
+})
 
