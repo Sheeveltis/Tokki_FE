@@ -396,7 +396,7 @@ const restoreAnswersFromSections = (sections) => {
   return restoredAnswers
 }
 
-export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, isEntrance = false }) {
+export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, isEntrance = false, taskId = null }) {
   const router = useRouter()
   const [userExamId, setUserExamId] = useState(null)
   const [sections, setSections] = useState([])
@@ -873,7 +873,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         router.push(
           `/roadmap/test/result?userExamId=${encodeURIComponent(
             submittedUserExamId
-          )}&level=${encodeURIComponent(String(level))}&isEntrance=${isEntrance ? '1' : '0'}`
+          )}&level=${encodeURIComponent(String(level))}&isEntrance=${isEntrance ? '1' : '0'}&taskId=${taskId || ''}`
         )
 
         startExamOncePromise = null

@@ -343,7 +343,7 @@ export function RoadmapTestResultLayout({
               />
               <RoadmapTestButton
                 title="Quay lại trang lộ trình"
-                onPress={() => router.push('/roadmap/info')}
+                onPress={() => router.push('/roadmap/learning')}
                 style={[styles.actionButtonMinor, styles.actionButtonSecondary]}
                 hoverStyle={styles.actionButtonSecondaryHover}
                 textStyle={styles.actionButtonSecondaryText}

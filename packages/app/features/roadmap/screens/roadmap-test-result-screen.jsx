@@ -34,6 +34,10 @@ export function RoadmapTestResultScreen() {
     Platform.OS === 'web'
       ? String(searchParams?.get?.('isEntrance') || '') === '1'
       : String(route?.params?.isEntrance || searchParams?.get?.('isEntrance') || '') === '1'
+  const taskId =
+    Platform.OS === 'web'
+      ? searchParams?.get?.('taskId')
+      : route?.params?.taskId || searchParams?.get?.('taskId')
   const [resultData, setResultData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -177,6 +181,16 @@ export function RoadmapTestResultScreen() {
           if (isEntrance) {
             await fetchFeedback()
             setIsDurationModalOpen(true)
+          } else if (taskId) {
+            // Hoàn thành task cho roadmap (Day 7 Weekly Exam)
+            try {
+              await apiClient.post(ENDPOINTS.ROADMAP.COMPLETE, {
+                taskId,
+                performance: `Score: ${resultData?.totalScore || 0}`,
+              })
+            } catch (err) {
+              console.error('Failed to mark roadmap task as complete:', err)
+            }
           }
         }
       } else {
@@ -192,6 +206,16 @@ export function RoadmapTestResultScreen() {
           if (isEntrance) {
             await fetchFeedback()
             setIsDurationModalOpen(true)
+          } else if (taskId) {
+            // Hoàn thành task cho roadmap (Day 7 Weekly Exam)
+            try {
+              await apiClient.post(ENDPOINTS.ROADMAP.COMPLETE, {
+                taskId,
+                performance: `Score: ${resultData?.totalScore || 0}`,
+              })
+            } catch (err) {
+              console.error('Failed to mark roadmap task as complete:', err)
+            }
           }
         }
       }
@@ -199,7 +223,7 @@ export function RoadmapTestResultScreen() {
       console.error('Failed to check if exam is graded:', err)
       // Không set error để không làm gián đoạn UI
     }
-  }, [userExamId, isEntrance, fetchResult, fetchFeedback])
+  }, [userExamId, isEntrance, taskId, fetchResult, fetchFeedback])
 
   useEffect(() => {
     if (!userExamId) {
@@ -248,7 +272,7 @@ export function RoadmapTestResultScreen() {
         router.push(`/roadmap/test/result/generate?${query}`)
       }}
       onRetake={() => {
-        router.push('/roadmap/info')
+        router.push('/roadmap/learning')
       }}
     />
   )

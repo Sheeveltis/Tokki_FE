@@ -320,6 +320,7 @@ export const ENDPOINTS = {
     CURRENT: '/Roadmap/current',
     TASK_DETAIL: (taskId) => `/Roadmap/task/${encodeURIComponent(taskId)}/detail`,
     COMPLETE: '/Roadmap/complete',
+    NEXT_WEEK: '/Roadmap/next-week',
   },
   SYSTEM_CONFIGS: {
     GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,
