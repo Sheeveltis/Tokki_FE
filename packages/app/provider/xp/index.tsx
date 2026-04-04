@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react'
-import { View } from 'react-native'
+import { View, Platform } from 'react-native'
 import { apiClient } from '../api/client'
 import { ENDPOINTS } from '../api/endpoints'
 import { XpNotification } from '../../../components/xp-notification'
@@ -114,17 +114,25 @@ export const XpProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [])
 
+  const content = (
+    <XpContext.Provider value={{ addXp, ...notification }}>
+      {children}
+      <XpNotification 
+        xp={notification.xpValue} 
+        visible={notification.visible} 
+        isLevelUp={notification.isLevelUp}
+        newLevel={notification.newLevel}
+      />
+    </XpContext.Provider>
+  )
+
+  if (Platform.OS === 'web') {
+    return content
+  }
+
   return (
     <View style={{ flex: 1 }}>
-      <XpContext.Provider value={{ addXp, ...notification }}>
-        {children}
-        <XpNotification 
-          xp={notification.xpValue} 
-          visible={notification.visible} 
-          isLevelUp={notification.isLevelUp}
-          newLevel={notification.newLevel}
-        />
-      </XpContext.Provider>
+      {content}
     </View>
   )
 }
