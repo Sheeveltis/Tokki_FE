@@ -309,6 +309,7 @@ export const ENDPOINTS = {
     ANALYSIS: (userExamId) => `/UserExam/${encodeURIComponent(userExamId)}/analysis`,
     HISTORY: '/UserExam/user/history',
     PRACTICE_QUESTIONS: (questionTypeId, quantity = 10) => `/UserExam/${encodeURIComponent(questionTypeId)}?quantity=${quantity}`,
+    GRADING_PROGRESS: (userExamId) => `/UserExam/${encodeURIComponent(userExamId)}/grading-progress`,
     NEXT_SKILL: (userExamId) => `/UserExam/user/${encodeURIComponent(userExamId)}/next-skill`,
   },
   ROADMAP: {

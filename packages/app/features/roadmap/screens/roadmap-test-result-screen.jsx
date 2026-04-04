@@ -44,6 +44,7 @@ export function RoadmapTestResultScreen() {
   const [isDurationModalOpen, setIsDurationModalOpen] = useState(false)
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false)
   const [generateError, setGenerateError] = useState(null)
+  const [gradingProgress, setGradingProgress] = useState(null)
   const isGradedRef = useRef(false)
   const hasFetchedInitialRef = useRef(false)
   const feedbackRequestKeyRef = useRef(null)
@@ -160,18 +161,38 @@ export function RoadmapTestResultScreen() {
     if (!userExamId || isGradedRef.current) return
 
     try {
-      const url = ENDPOINTS.USER_EXAM.IS_GRADED(userExamId)
-      const response = await apiClient.get(url)
-      const graded = response?.data === true || response?.data?.data === true
-      
-      if (graded) {
-        isGradedRef.current = true
-        setIsGraded(true)
-        // Refresh result data when writing is graded
-        await fetchResult()
-        if (isEntrance) {
-          await fetchFeedback()
-          setIsDurationModalOpen(true)
+      // First check grading progress
+      const progressUrl = ENDPOINTS.USER_EXAM.GRADING_PROGRESS(userExamId)
+      const progressResponse = await apiClient.get(progressUrl)
+      const progressData = progressResponse?.data?.data
+
+      if (progressData) {
+        setGradingProgress(progressData)
+        
+        if (progressData.isCompleted) {
+          isGradedRef.current = true
+          setIsGraded(true)
+          // Refresh result data when writing is graded
+          await fetchResult()
+          if (isEntrance) {
+            await fetchFeedback()
+            setIsDurationModalOpen(true)
+          }
+        }
+      } else {
+        // Fallback to old behavior if progress API doesn't return data
+        const url = ENDPOINTS.USER_EXAM.IS_GRADED(userExamId)
+        const response = await apiClient.get(url)
+        const graded = response?.data === true || response?.data?.data === true
+        
+        if (graded) {
+          isGradedRef.current = true
+          setIsGraded(true)
+          await fetchResult()
+          if (isEntrance) {
+            await fetchFeedback()
+            setIsDurationModalOpen(true)
+          }
         }
       }
     } catch (err) {
@@ -203,10 +224,10 @@ export function RoadmapTestResultScreen() {
     // Check immediately
     checkIsGraded()
 
-    // Then check every 10 seconds
+    // Then check every 3 seconds
     const interval = setInterval(() => {
       checkIsGraded()
-    }, 10000) // 10 seconds
+    }, 3000) // 3 seconds
 
     return () => {
       clearInterval(interval)
@@ -220,6 +241,7 @@ export function RoadmapTestResultScreen() {
       isLoading={isLoading}
       error={error}
       isGraded={isGraded}
+      gradingProgress={gradingProgress}
       isEntrance={isEntrance}
       onNavigateToGenerate={() => {
         const query = `userExamId=${encodeURIComponent(userExamId)}&level=${targetAim}&selfDeclaredLevel=${selfDeclaredLevel}&isEntrance=1`

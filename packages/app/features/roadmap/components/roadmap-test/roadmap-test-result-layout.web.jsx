@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { StyleSheet, View, Text, ScrollView, Pressable, Platform, Modal } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { Navbar } from '../../../../../components/navbar'
@@ -14,6 +14,7 @@ import {
 import { Modal as RNModal } from 'react-native'
 import { RoadmapTestResultDetailView } from './roadmap-test-result-detail-view'
 import { apiClient } from '../../../../provider/api/client'
+import { KOREA_TRIVIA } from '../../constants/waiting-trivia'
 
 const SectionScoreCard = ({
   label,
@@ -24,17 +25,28 @@ const SectionScoreCard = ({
   totalQuestions,
   onViewDetail,
   isGraded = true,
+  gradingProgress = null,
 }) => {
   const isWriting = label === 'Viết'
+  const isGradingWriting = isWriting && !isGraded && gradingProgress
   const showPendingMessage = isWriting && !isGraded
 
   return (
     <View style={styles.sectionCard}>
       {/* Row 1: label (left) + correct (right) */}
       <View style={styles.sectionTopRow}>
-        <Text style={styles.sectionLabel}>{label}</Text>
+        <View>
+          <Text style={styles.sectionLabel}>{label}</Text>
+          {isGradingWriting && (
+            <Text style={styles.gradingProgressPercent}>
+              {Math.round(gradingProgress.progressPercentage)}% hoàn thành
+            </Text>
+          )}
+        </View>
         {showPendingMessage ? (
-          <Text style={styles.pendingText}>Đang chấm điểm...</Text>
+          <Text style={styles.pendingText}>
+            {isGradingWriting ? 'Đang chấm...' : 'Đang chấm điểm...'}
+          </Text>
         ) : (
           <Text style={styles.sectionDetailText}>
             {correctAnswers} / {totalQuestions} câu đúng
@@ -45,7 +57,19 @@ const SectionScoreCard = ({
       {/* Row 2: score (left) + view detail (right) */}
       <View style={styles.sectionBottomRow}>
         {showPendingMessage ? (
-          <Text style={styles.pendingScoreText}>Chưa có điểm</Text>
+          <View style={styles.pendingScoreContainer}>
+            <Text style={styles.pendingScoreText}>Chưa có điểm</Text>
+            {isGradingWriting && (
+              <View style={styles.progressBarContainer}>
+                <View 
+                  style={[
+                    styles.progressBarFill, 
+                    { width: `${gradingProgress.progressPercentage}%` }
+                  ]} 
+                />
+              </View>
+            )}
+          </View>
         ) : (
           <Text style={styles.sectionScoreText}>
             {score} / {maxScore} điểm
@@ -77,17 +101,98 @@ const SectionScoreCard = ({
   )
 }
 
+const WaitingModal = ({
+  visible,
+  gradingProgress,
+  trivia,
+}) => {
+  return (
+    <RNModal
+      visible={visible}
+      transparent
+      animationType="fade"
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.waitingModalBody}>
+          <View style={styles.waitingHeader}>
+            <ClockCircleOutlined style={{ color: '#F1BE4B', fontSize: 24 }} />
+            <Text style={styles.waitingTitle}>Đang chấm điểm</Text>
+            <Text style={styles.waitingSubtitle}>
+              Vui lòng đợi trong giây lát, AI đang phân tích bài làm của bạn...
+            </Text>
+          </View>
+
+          <View style={styles.waitingProgressSection}>
+            <View style={styles.mainProgressContainerLarge}>
+              <View 
+                style={[
+                  styles.mainProgressFill, 
+                  { width: `${gradingProgress?.progressPercentage || 0}%` }
+                ]} 
+              />
+            </View>
+            <View style={styles.progressDetailRow}>
+              <Text style={styles.progressStatusText}>
+                {gradingProgress?.message || 'Đang chuẩn bị...'}
+              </Text>
+              <Text style={styles.progressPercentageTextLarge}>
+                {Math.round(gradingProgress?.progressPercentage || 0)}%
+              </Text>
+            </View>
+          </View>
+
+          {trivia && (
+            <View style={styles.waitingTriviaBox}>
+              <View style={styles.triviaHeader}>
+                <View style={styles.triviaBadge}>
+                  <Text style={styles.triviaBadgeText}>BẠN CÓ BIẾT?</Text>
+                </View>
+                <Text style={styles.triviaTopicText}>{trivia.topic}</Text>
+              </View>
+              <Text style={styles.triviaContentTextLarge}>{trivia.content}</Text>
+            </View>
+          )}
+
+          <View style={styles.waitingFooter}>
+            <Text style={styles.waitingFooterText}>
+              Kết quả sẽ tự động hiển thị sau khi hoàn thành.
+            </Text>
+          </View>
+        </View>
+      </View>
+    </RNModal>
+  )
+}
+
 export function RoadmapTestResultLayout({
   userExamId,
   resultData,
   isLoading,
   error,
   isGraded = false,
+  gradingProgress = null,
   isEntrance = false,
   onNavigateToGenerate,
   onRetake,
 }) {
   const router = useRouter()
+
+  const [currentTriviaIndex, setCurrentTriviaIndex] = useState(0)
+
+  useEffect(() => {
+    if (isGraded) return
+
+    // Pick a random starting index
+    setCurrentTriviaIndex(Math.floor(Math.random() * KOREA_TRIVIA.length))
+
+    const interval = setInterval(() => {
+      setCurrentTriviaIndex((prev) => (prev + 1) % KOREA_TRIVIA.length)
+    }, 6000)
+
+    return () => clearInterval(interval)
+  }, [isGraded])
+
+  const trivia = KOREA_TRIVIA[currentTriviaIndex]
 
   const [detailModalVisible, setDetailModalVisible] = useState(false)
   const [detailSection, setDetailSection] = useState(null)
@@ -208,18 +313,10 @@ export function RoadmapTestResultLayout({
                 totalQuestions={card.totalQuestions}
                 onViewDetail={() => fetchDetail(card.key)}
                 isGraded={card.isGraded}
+                gradingProgress={gradingProgress}
               />
             ))}
           </View>
-
-          {!isGraded && (
-            <View style={styles.waitingNotice}>
-              <InfoCircleOutlined style={{ color: '#F1BE4B', fontSize: 16 }} />
-              <Text style={styles.waitingNoticeText}>
-                Đang chấm bài Viết bằng AI. Kết quả sẽ tự động cập nhật sau ít giây...
-              </Text>
-            </View>
-          )}
 
           <View style={styles.actionsColumn}>
             {isEntrance && (
@@ -274,6 +371,12 @@ export function RoadmapTestResultLayout({
           </View>
         </View>
       </RNModal>
+
+      <WaitingModal
+        visible={!isGraded}
+        gradingProgress={gradingProgress}
+        trivia={trivia}
+      />
     </View>
   )
 }
@@ -333,26 +436,178 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
     letterSpacing: -1,
   },
-  waitingNotice: {
-    backgroundColor: '#FFFBE6',
-    borderWidth: 1,
-    borderColor: '#FFE58F',
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginTop: 8,
+  waitingNoticeContainer: {
+    gap: 16,
     alignSelf: 'center',
     maxWidth: 600,
     width: '100%',
+    marginTop: 8,
+  },
+  waitingModalBody: {
+    width: '100%',
+    maxWidth: 550,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 40,
+    padding: 40,
+    alignItems: 'center',
+    gap: 32,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 25px 80px rgba(0,0,0,0.15)',
+    }),
+  },
+  waitingHeader: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  waitingTitle: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  waitingSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+    fontFamily: 'Epilogue, sans-serif',
+    fontWeight: '500',
+  },
+  waitingProgressSection: {
+    width: '100%',
+    gap: 12,
+  },
+  mainProgressContainerLarge: {
+    width: '100%',
+    height: 12,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  progressDetailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  progressStatusText: {
+    fontSize: 14,
+    color: '#F1BE4B',
+    fontWeight: '800',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  progressPercentageTextLarge: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  waitingTriviaBox: {
+    width: '100%',
+    backgroundColor: '#FAF9F6',
+    borderRadius: 24,
+    padding: 24,
+    gap: 16,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  triviaHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  triviaBadge: {
+    backgroundColor: '#F1BE4B',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  triviaBadgeText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 1,
+  },
+  triviaTopicText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#999',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  triviaContentTextLarge: {
+    fontSize: 16,
+    color: '#333',
+    lineHeight: 24,
+    fontWeight: '600',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  waitingFooter: {
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    width: '100%',
+    alignItems: 'center',
+  },
+  waitingFooterText: {
+    fontSize: 12,
+    color: '#999',
+    fontWeight: '600',
+    fontFamily: 'Epilogue, sans-serif',
   },
   waitingNoticeText: {
     fontSize: 14,
     color: '#856404',
     fontFamily: 'Epilogue, sans-serif',
-    fontWeight: '600',
+    fontWeight: '700',
     flex: 1,
+    marginBottom: 8,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  mainProgressContainer: {
+    flex: 1,
+    height: 8,
+    backgroundColor: 'rgba(241, 190, 75, 0.2)',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  mainProgressFill: {
+    height: '100%',
+    backgroundColor: '#F1BE4B',
+    borderRadius: 4,
+  },
+  progressPercentText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#F1BE4B',
+    fontFamily: 'Epilogue, sans-serif',
+    width: 40,
+  },
+  gradingProgressPercent: {
+    fontSize: 12,
+    color: '#F1BE4B',
+    fontWeight: '700',
+    fontFamily: 'Epilogue, sans-serif',
+    marginTop: 2,
+  },
+  pendingScoreContainer: {
+    flex: 1,
+    gap: 8,
+  },
+  progressBarContainer: {
+    height: 6,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 3,
+    overflow: 'hidden',
+    width: '100%',
+    maxWidth: 150,
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#F1BE4B',
+    borderRadius: 3,
   },
   subtitle: {
     fontSize: 15,
