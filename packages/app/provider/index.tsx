@@ -18,6 +18,8 @@ if (Platform.OS === 'android') {
   }
 }
 
+import { XpProvider } from './xp'
+
 export function Provider({ children }: { children: React.ReactNode }) {
   // Set navigation bar color thành đen khi app load
   useEffect(() => {
@@ -33,7 +35,9 @@ export function Provider({ children }: { children: React.ReactNode }) {
 
   return (
     <SafeArea>
-      <NavigationProvider>{children}</NavigationProvider>
+      <NavigationProvider>
+        <XpProvider>{children}</XpProvider>
+      </NavigationProvider>
     </SafeArea>
   )
 }

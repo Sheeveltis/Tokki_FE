@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image, Modal, Dimensions, Platform } from 'react-native'
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image, Modal, Dimensions, Platform, Animated } from 'react-native'
 import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
 import { normalizeImageSource } from '@tokki/app/features/study/api'
@@ -7,6 +7,8 @@ import { studyStyles } from '@tokki/app/features/study/styles'
 import { LoadingWithContainer } from 'components/Loading'
 import { FlipCardMobile } from 'components/FlipCardMobile'
 import SoundIcon from 'assets/icon/icon-mainflow/sound.svg'
+import CorrectIcon from 'assets/icon/icon-mainflow/correct.svg'
+import WarnIcon from 'assets/icon/icon-mainflow/warn.svg'
 // Import sound effects - sử dụng require() cho React Native
 // Trong React Native, require() trả về một số (module ID) hoặc object
 let CorrectSfx = null
@@ -326,6 +328,19 @@ export function FlashcardFirstLearnMain({
     playSoundEffect()
   }, [showResult, currentStepKey, isCorrect, current?.id])
 
+  const iconScale = useRef(new Animated.Value(0)).current
+  useEffect(() => {
+    if (showResult) {
+      iconScale.setValue(0)
+      Animated.spring(iconScale, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 40,
+        friction: 4,
+      }).start()
+    }
+  }, [showResult])
+
   // Helper function để kiểm tra xem icon có phải là React component không (SVG component)
   const isReactComponent = (icon) => {
     if (!icon) return false
@@ -338,57 +353,24 @@ export function FlashcardFirstLearnMain({
 
   // Helper function để render SoundIcon - hỗ trợ cả React component (SVG) và Image source
   // Tương tự như cách navbar-mobile.jsx xử lý SVG icons
-  const renderSoundIcon = (size = 32) => {
-    if (!SoundIcon) {
-      return null
-    }
-    
-    // Thử render trực tiếp như component trước (SVG thường được transform thành component)
+  // Helper function để render icon kết quả
+  const renderResultIcon = (iconSource, size = 64, color) => {
+    if (!iconSource) return null
     try {
-      // Trường hợp 1: SoundIcon là function (React component từ @svgr/react-native-svg-transformer)
-      if (typeof SoundIcon === 'function') {
-        const IconComponent = SoundIcon
-        return <IconComponent width={size} height={size} fill="#1F1F1F" />
+      if (typeof iconSource === 'function') {
+        const IconComponent = iconSource
+        return <IconComponent width={size} height={size} fill={color} />
       }
-      
-      // Trường hợp 2: SoundIcon có default property là function
-      if (SoundIcon && typeof SoundIcon === 'object' && SoundIcon.default) {
-        if (typeof SoundIcon.default === 'function') {
-          const IconComponent = SoundIcon.default
-          return <IconComponent width={size} height={size} fill="#1F1F1F" />
+      if (iconSource && typeof iconSource === 'object' && iconSource.default) {
+        if (typeof iconSource.default === 'function') {
+          const IconComponent = iconSource.default
+          return <IconComponent width={size} height={size} fill={color} />
         }
       }
-      
-      // Trường hợp 3: Kiểm tra với isReactComponent helper
-      const isComponent = isReactComponent(SoundIcon)
-      if (isComponent) {
-        const IconComponent = typeof SoundIcon === 'function' ? SoundIcon : (SoundIcon.default || SoundIcon)
-        return <IconComponent width={size} height={size} fill="#1F1F1F" />
-      }
-    } catch (error) {
-      // Error rendering SoundIcon as component
-    }
-    
-    // Fallback: Nếu không phải component, thử dùng Image với normalizeImageSource
-    try {
-      const iconSource = normalizeImageSource(SoundIcon)
-      if (iconSource) {
-        return (
-          <Image
-            source={iconSource}
-            style={{ width: size, height: size }}
-            resizeMode="contain"
-          />
-        )
-      }
-    } catch (error) {
-      // Error rendering SoundIcon as Image
-    }
-    
-    // Nếu tất cả đều fail, render một View trống với background để debug
-    return (
-      <View style={{ width: size, height: size, backgroundColor: '#FF0000', borderRadius: size / 2 }} />
-    )
+    } catch (e) {}
+
+    const source = normalizeImageSource(iconSource)
+    return <Image source={source} style={{ width: size, height: size }} tintColor={color} />
   }
 
   const renderStep = () => {
@@ -476,7 +458,10 @@ export function FlashcardFirstLearnMain({
           isCorrect ? styles.resultBoxCorrect : styles.resultBoxWrong,
         ]}
       >
-        <View style={[styles.resultBadge, isCorrect ? styles.resultCorrect : styles.resultWrong]} />
+        <Animated.View style={[styles.resultIconWrapper, { transform: [{ scale: iconScale }] }]}>
+          {renderResultIcon(isCorrect ? CorrectIcon : WarnIcon, 64, isCorrect ? '#23ac38' : '#eb5757')}
+        </Animated.View>
+
         {current.imageUrl ? (
           <Image source={normalizeImageSource(current.imageUrl)} style={styles.cardImage} resizeMode="cover" />
         ) : null}
@@ -491,19 +476,19 @@ export function FlashcardFirstLearnMain({
                   }
                 }}
               >
-                {renderSoundIcon(24)}
+                {renderResultIcon(SoundIcon, 24, '#1F1F1F')}
               </TouchableOpacity>
             ) : null}
-            <Text style={[styles.cardWord, styles.resultTextOnColor]}>
+            <Text style={styles.cardWord}>
               {current.word}
             </Text>
           </View>
           {current.pronunciation ? (
-            <Text style={[styles.cardPronun, styles.resultTextOnColor]}>
+            <Text style={styles.cardPronun}>
               {current.pronunciation}
             </Text>
           ) : null}
-          <Text style={[styles.cardMeaning, styles.resultTextOnColor]}>
+          <Text style={styles.cardMeaning}>
             {current.meaning}
           </Text>
           {!isCorrect ? (
@@ -846,14 +831,20 @@ const styles = StyleSheet.create({
   submitText: { fontSize: 15, fontWeight: '800', color: '#1F1F1F' },
   resultBox: {
     width: '100%',
-    height: 360,
+    height: 480, // Tăng chiều cao một chút để icon không bị chen chúc
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 10,
     borderRadius: 12,
     padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 4,
   },
-  resultBoxCorrect: { backgroundColor: '#23ac38' },
-  resultBoxWrong: { backgroundColor: '#eb5757' },
+  resultBoxCorrect: { borderColor: '#23ac38' },
+  resultBoxWrong: { borderColor: '#eb5757' },
+  resultIconWrapper: {
+    marginBottom: 6,
+  },
   resultBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
   resultCorrect: { backgroundColor: '#23ac38' },
   resultWrong: { backgroundColor: '#eb5757' },
@@ -864,13 +855,13 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 6,
     padding: 10,
-    backgroundColor: '#ffffff33',
+    backgroundColor: '#FDECEA',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ffffff66',
+    borderColor: '#eb5757',
   },
-  wrongLabel: { fontSize: 12, fontWeight: '700', color: '#FFFFFF' },
-  wrongText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+  wrongLabel: { fontSize: 12, fontWeight: '700', color: '#eb5757' },
+  wrongText: { fontSize: 15, fontWeight: '700', color: '#eb5757' },
   nextButton: {
     marginTop: 8,
     marginBottom: 16,

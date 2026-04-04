@@ -210,6 +210,7 @@ export const ENDPOINTS = {
     HEARTBEAT: '/Gamification/heartbeat',  // POST: Heartbeat để track thời gian học tập
     PROGRESS: '/Gamification/progress',  // GET: Lấy thông tin progress (level, XP, streak, title) cho user hiện tại
     GAME_XP: '/Gamification/game-xp', // POST: Cộng XP theo amount cho account hiện tại
+    ADD_XP: '/Gamification/add-xp', // POST: Cộng XP với amount và source (body: { amount, source })
   },
     TITLE: {
     GET_ALL: '/Title/admin',  // GET: Lấy danh sách danh hiệu (admin)
@@ -322,6 +323,7 @@ export const ENDPOINTS = {
   SYSTEM_CONFIGS: {
     GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,
     GET_ALL: '/system-configs',
+    CREATE: '/system-configs',
     UPDATE: '/system-configs',
   },
 }

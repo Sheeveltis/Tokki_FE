@@ -100,8 +100,6 @@ export function useFlashcardFirstLearn(topicId) {
       return
     }
     
-    console.log('[Audio] Attempting to play:', current.audioUrl)
-    
     if (Platform.OS === 'web') {
       // Web: sử dụng HTML5 Audio
       await cleanupAudio()
@@ -115,11 +113,6 @@ export function useFlashcardFirstLearn(topicId) {
       audio.play().catch((err) => {
         console.error('[Audio] Error playing audio on web:', err)
       })
-      audio.addEventListener('ended', () => {
-        console.log('[Audio] Audio finished playing')
-        audioRef.current = null
-      })
-      console.log('[Audio] Audio started playing on web')
     } else {
       // Mobile: sử dụng expo-av
       if (!ExpoAudio) {
@@ -128,7 +121,6 @@ export function useFlashcardFirstLearn(topicId) {
       }
       try {
         await cleanupAudio()
-        console.log('[Audio] Creating sound with URI:', current.audioUrl)
         const { sound } = await ExpoAudio.Sound.createAsync(
           { uri: current.audioUrl },
           { 
@@ -138,16 +130,7 @@ export function useFlashcardFirstLearn(topicId) {
           }
         )
         soundRef.current = sound
-        console.log('[Audio] Sound created, setting up status listener')
-        
-        // Kiểm tra status ngay sau khi tạo
         const initialStatus = await sound.getStatusAsync()
-        console.log('[Audio] Initial status:', {
-          isLoaded: initialStatus.isLoaded,
-          isPlaying: initialStatus.isPlaying,
-          error: initialStatus.error,
-          durationMillis: initialStatus.durationMillis,
-        })
         
         if (initialStatus.error) {
           console.error('[Audio] Error in initial status:', initialStatus.error)
@@ -159,12 +142,9 @@ export function useFlashcardFirstLearn(topicId) {
         sound.setOnPlaybackStatusUpdate((status) => {
           if (status.isLoaded) {
             if (status.didJustFinish) {
-              console.log('[Audio] Audio finished playing')
               soundRef.current = null
             } else if (status.error) {
               console.error('[Audio] Playback error:', status.error)
-            } else if (status.isPlaying) {
-              console.log('[Audio] Audio is playing')
             }
           } else if (status.error) {
             console.error('[Audio] Sound load error:', status.error)
@@ -173,23 +153,7 @@ export function useFlashcardFirstLearn(topicId) {
         
         // Đảm bảo sound được play
         setTimeout(async () => {
-          try {
-            const status = await sound.getStatusAsync()
-            console.log('[Audio] Status after delay:', {
-              isLoaded: status.isLoaded,
-              isPlaying: status.isPlaying,
-              error: status.error,
-            })
-            if (status.isLoaded && !status.isPlaying && !status.error) {
-              console.log('[Audio] Audio not playing, attempting to play...')
-              await sound.playAsync()
-            }
-          } catch (playErr) {
-            console.error('[Audio] Error ensuring audio plays:', playErr)
-          }
         }, 100)
-        
-        console.log('[Audio] Audio started playing on mobile')
       } catch (err) {
         console.error('[Audio] Error playing audio on mobile:', err)
       }

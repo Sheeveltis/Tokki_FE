@@ -26,10 +26,10 @@ export function LoginHero({ imageSource, backgroundSource, overlaySource }) {
 
   return (
     <View style={styles.container}>
-      {bg ? <Image source={bg} style={styles.background} /> : null}
+      {bg ? <Image source={bg} style={styles.background} resizeMode="cover" /> : null}
       {overlay ? (
         <View style={styles.overlayWrapper}>
-          <Image source={overlay} style={styles.overlayImage} />
+          <Image source={overlay} style={styles.overlayImage} resizeMode="contain" />
         </View>
       ) : null}
     </View>
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     left: 0,
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
+
   },
   overlayWrapper: {
     flex: 1,
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   overlayImage: {
     width: '120%',
     height: '120%',
-    resizeMode: 'contain',
+
     // Shadow / glow
     ...(Platform.OS === 'web'
       ? {

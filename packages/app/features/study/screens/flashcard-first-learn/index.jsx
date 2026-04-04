@@ -7,6 +7,7 @@ import {
   FlashcardFirstLearnLayoutMobile as MobileLayout,
   FlashcardFirstLearnMainMobile as MobileMain,
 } from './components'
+import { useXp, XpConfigKeys, XpSourceList } from 'app/provider/xp'
 
 // Conditional import để tránh lỗi trên web
 let useRoute, useNavigation
@@ -43,6 +44,8 @@ export function FlashcardFirstLearnScreen({
 
   // Lấy topicId từ route params hoặc props
   const topicId = route?.params?.topicId || topicIdProp
+
+  const { addXp } = useXp()
 
   // Handler cho nút back
   const handleBackPress = () => {
@@ -82,6 +85,13 @@ export function FlashcardFirstLearnScreen({
     completedInBatch,
     batchSize,
   } = useFlashcardFirstLearn(topicId)
+
+  // Cộng XP khi hoàn thành 1 tour 5 từ (hiện dialog hỏi tiếp tục)
+  React.useEffect(() => {
+    if (showContinueDialog) {
+      addXp(XpConfigKeys.COMPLETED_FLASHCARD_TOPIC, XpSourceList.VOCABULARY)
+    }
+  }, [showContinueDialog, addXp])
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
