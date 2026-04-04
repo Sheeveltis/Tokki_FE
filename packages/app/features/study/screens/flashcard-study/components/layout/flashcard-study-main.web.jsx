@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { View, Text, StyleSheet, Pressable, Platform } from 'react-native'
+import { View, Text, StyleSheet, Pressable, Platform, TouchableOpacity } from 'react-native'
 import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
 import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
 import StarIcon from 'assets/icon/icon-mainflow/star.svg'
