@@ -1,18 +1,38 @@
-import React from 'react'
-import { View, StyleSheet, Text, TouchableOpacity, TextInput, Pressable, Platform, Image } from 'react-native'
+import React, { useState } from 'react'
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Platform, Image, ScrollView, ActivityIndicator } from 'react-native'
 import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
 import { studyStyles } from '@tokki/app/features/study/styles'
 import { LoadingWithContainer } from 'components/Loading'
-import { normalizeImageSource } from '@tokki/app/features/study/api'
 import RabbitWaitingImage from 'assets/bunny/2.png'
+
+// Icon components for mobile
+
+const MasteryLevel = ({ level = 1 }) => {
+  return (
+    <View style={styles.masteryContainer}>
+      <View style={styles.masteryBar}>
+        {[...Array(5)].map((_, i) => (
+          <View 
+            key={i} 
+            style={[
+              styles.masterySegment, 
+              i < level ? styles.masteryActive : styles.masteryInactive
+            ]} 
+          />
+        ))}
+      </View>
+      <Text style={styles.masteryText}>Cấp {level}</Text>
+    </View>
+  )
+}
 
 /**
  * LearnedVocabularyListMain (Mobile): Nội dung chính của trang danh sách từ vựng đã học trên mobile
  */
 export function LearnedVocabularyListMain({
   title = 'Từ vựng đã học',
-  vocabularies,
+  vocabularies = [],
   loading,
   error,
   searchTerm,
@@ -32,434 +52,327 @@ export function LearnedVocabularyListMain({
   maxPracticeCount = 0,
   onStartPractice,
 }) {
-  // Render loading state
-  if (loading) {
+  if (loading && vocabularies.length === 0) {
     return (
       <View style={styles.loadingContainer}>
         <LoadingWithContainer
           size={48}
           color="#F1BE4B"
-          shadowColor="#F1BE4B50"
-          text="Đang tải danh sách từ vựng..."
+          text="Đang tải danh sách..."
         />
       </View>
     )
   }
 
-  // Render error state
-  if (error && vocabularies.length === 0) {
-    return (
-      <>
-        <View style={styles.header}>
-          <View style={styles.backBtn}>
-            <NavigationPill
-              label="Quay lại"
-              icon={ArrowIcon}
-              iconStyle={{ transform: [{ scaleX: -1 }] }}
-              onPress={onBackPress}
-              textStyle={{ fontWeight: '700' }}
-            />
-          </View>
-          {title ? <Text style={styles.title}>{title}</Text> : null}
-        </View>
-        <View style={styles.errorContainer}>
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-          <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
-            <Text style={styles.retryButtonText}>Thử lại</Text>
-          </TouchableOpacity>
-        </View>
-      </>
-    )
-  }
-
   return (
-    <>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.header}>
-        <View style={styles.backBtn}>
-          <NavigationPill
-            label="Quay lại"
-            icon={ArrowIcon}
-            iconStyle={{ transform: [{ scaleX: -1 }] }}
-            onPress={onBackPress}
-            textStyle={{ fontWeight: '700' }}
-          />
-        </View>
-        {title ? <Text style={styles.title}>{title}</Text> : null}
+        <TouchableOpacity onPress={onBackPress} style={styles.backBtn}>
+          <ArrowIcon width={24} height={24} style={{ transform: [{ scaleX: -1 }] }} />
+        </TouchableOpacity>
+        <Text style={styles.title}>{title}</Text>
+        <View style={{ width: 24 }} />
       </View>
 
-      {/* Instructions Box */}
+      {/* Practice Hero Card */}
       {vocabularies.length > 0 && (
-        <View style={styles.instructionsBox}>
-          <Text style={styles.instructionsTitle}>Hướng dẫn về chế độ học này</Text>
-          <View style={styles.instructionsContent}>
-            <Text style={styles.instructionsText}>
-              Đây là nơi để bạn ôn lại từ vựng đã học, giúp bạn ghi nhớ từ vựng một cách bền vững theo thời gian thông qua phương pháp nhắc lại có chủ đích.{'\n\n'}
-              Mỗi ngày hệ thống sẽ tự động tạo danh sách từ vựng cần ôn tập dựa trên lịch sử học của bạn. Hãy nhớ vào học thường xuyên để đạt hiệu quả tốt nhất nhé!
-            </Text>
-          </View>
-        </View>
-      )}
-
-      {/* Practice Banner */}
-      {vocabularies.length > 0 ? (
-        <View style={styles.practiceBanner}>
-          <View style={styles.practiceBannerContent}>
-            <Text style={styles.practiceBannerText}>
-              {reviewCount > 0 
-                ? `Bạn có ${reviewCount} từ vựng cần ôn tập`
-                : 'Bắt đầu học từ vựng'}
-            </Text>
-            <View style={styles.practiceCountSelector}>
-              <Text style={styles.practiceCountLabel}>Số lượng từ muốn học:</Text>
-              <View style={styles.practiceCountInputWrapper}>
-                <TextInput
-                  style={styles.practiceCountInput}
-                  value={practiceCount.toString()}
-                  onChangeText={(text) => {
-                    if (text === '') {
-                      onPracticeCountChange(1)
-                      return
-                    }
-                    const num = parseInt(text, 10)
-                    if (!isNaN(num) && num > 0) {
-                      // Giới hạn tối đa là maxPracticeCount
-                      const finalNum = Math.min(num, maxPracticeCount)
-                      onPracticeCountChange(finalNum)
-                    }
-                  }}
-                  keyboardType="number-pad"
-                  maxLength={4}
-                />
-                <Text style={styles.practiceCountMax}>/ {maxPracticeCount}</Text>
-              </View>
+        <View style={styles.practiceHero}>
+          <Text style={styles.heroTitle}>
+            {reviewCount > 0 ? `Bạn có ${reviewCount} từ cần ôn` : 'Hôm nay bạn học rất tốt!'}
+          </Text>
+          <Text style={styles.heroSubtitle}>Luyện tập thường xuyên để ghi nhớ lâu hơn</Text>
+          
+          <View style={styles.practiceControls}>
+            <View style={styles.countPicker}>
+              <TextInput
+                style={styles.countInput}
+                value={practiceCount.toString()}
+                onChangeText={(text) => {
+                  if (text === '') return onPracticeCountChange(1)
+                  const num = parseInt(text)
+                  if (!isNaN(num)) onPracticeCountChange(Math.min(num, maxPracticeCount))
+                }}
+                keyboardType="numeric"
+              />
+              <Text style={styles.maxText}>/ {maxPracticeCount}</Text>
             </View>
-            <TouchableOpacity 
-              style={styles.practiceButton}
-              onPress={onStartPractice}
-            >
-              <Text style={styles.practiceButtonText}>
-                {reviewCount > 0 ? 'Bắt đầu ôn tập' : 'Bắt đầu học'}
-              </Text>
+            
+            <TouchableOpacity style={styles.startBtn} onPress={onStartPractice}>
+              <Text style={styles.startBtnText}>Ôn tập ngay</Text>
             </TouchableOpacity>
           </View>
         </View>
-      ) : (
-        <View style={styles.emptyContainer}>
-          <Image 
-            source={RabbitWaitingImage} 
-            style={styles.emptyImage}
-            resizeMode="contain"
-          />
-          <Text style={styles.emptyTitle}>Hiện chưa có từ vựng đã học</Text>
-          <Text style={styles.emptySubtitle}>Bạn vui lòng quay lại ngày mai nhé</Text>
-        </View>
       )}
-    </>
+
+
+      {vocabularies.length > 0 ? (
+        <View style={styles.listContainer}>
+          {vocabularies.map((vocab) => (
+            <View key={vocab.id} style={styles.vocabCard}>
+              <Image 
+                source={vocab.imageUrl ? { uri: vocab.imageUrl } : RabbitWaitingImage} 
+                style={styles.vocabImage} 
+                resizeMode="cover"
+              />
+              <View style={styles.vocabInfo}>
+                <View style={styles.vocabHeader}>
+                  <Text style={styles.vocabWord}>{vocab.word}</Text>
+                  {vocab.streak > 0 && <Text style={styles.streakText}>🔥 {vocab.streak}</Text>}
+                </View>
+                <Text style={styles.vocabMeaning} numberOfLines={2}>{vocab.meaning}</Text>
+                <MasteryLevel level={vocab.boxLevel} />
+              </View>
+            </View>
+          ))}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <View style={styles.pagination}>
+              <TouchableOpacity 
+                disabled={!canPrevPage}
+                onPress={onPrevPage}
+                style={[styles.pageBtn, !canPrevPage && styles.pageBtnDisabled]}
+              >
+                <Text style={styles.pageBtnText}>Trước</Text>
+              </TouchableOpacity>
+              <Text style={styles.pageInfo}>{pageNumber} / {totalPages}</Text>
+              <TouchableOpacity 
+                disabled={!canNextPage}
+                onPress={onNextPage}
+                style={[styles.pageBtn, !canNextPage && styles.pageBtnDisabled]}
+              >
+                <Text style={styles.pageBtnText}>Tiếp</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      ) : (
+        !loading && (
+          <View style={styles.emptyContainer}>
+            <Image source={RabbitWaitingImage} style={styles.emptyImage} resizeMode="contain" />
+            <Text style={styles.emptyTitle}>Chưa có từ vựng đã học</Text>
+            <Text style={styles.emptySubtitle}>Quay lại trang học và bắt đầu bài mới nhé!</Text>
+          </View>
+        )
+      )}
+    </ScrollView>
   )
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+  },
+  contentContainer: {
+    padding: 16,
+    gap: 20,
+  },
   loadingContainer: {
     flex: 1,
-    width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    minHeight: 400,
   },
   header: {
-    width: '100%',
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    justifyContent: 'space-between',
+    marginBottom: 8,
   },
   backBtn: {
-    alignSelf: 'flex-start',
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: '#FFF',
   },
   title: {
-    ...studyStyles.pageTitle,
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1F1F1F',
   },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    width: '100%',
-    marginTop: 8,
+  practiceHero: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  heroTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1F1F1F',
+    marginBottom: 4,
+  },
+  heroSubtitle: {
+    fontSize: 13,
+    color: '#666',
     marginBottom: 16,
-    paddingHorizontal: 16,
   },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    paddingHorizontal: 12,
-    borderRadius: 100,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    fontSize: 14,
-  },
-  searchButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: '#F1BE4B',
-  },
-  searchButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1F1F1F',
-  },
-  paginationContainer: {
-    width: '100%',
+  practiceControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     gap: 12,
-    paddingHorizontal: 16,
-    marginTop: 8,
   },
-  paginationButton: {
-    paddingHorizontal: 16,
+  countPicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    gap: 6,
   },
-  paginationButtonPressed: {
-    opacity: 0.85,
+  countInput: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#F1BE4B',
+    minWidth: 30,
+    textAlign: 'center',
   },
-  paginationButtonDisabled: {
-    opacity: 0.5,
-  },
-  paginationButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1F1F1F',
-  },
-  paginationText: {
-    fontSize: 14,
+  maxText: {
+    fontSize: 13,
+    color: '#999',
     fontWeight: '600',
+  },
+  startBtn: {
+    flex: 1,
+    backgroundColor: '#F1BE4B',
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  startBtnText: {
     color: '#1F1F1F',
+    fontWeight: '800',
+    fontSize: 15,
   },
   listContainer: {
-    width: '100%',
     gap: 12,
-    paddingHorizontal: 16,
   },
   vocabCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: 12,
+    gap: 12,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    gap: 16,
-    alignItems: 'center',
+    borderColor: '#F0F0F0',
   },
   vocabImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    backgroundColor: '#F0F0F0',
+    width: 70,
+    height: 70,
+    borderRadius: 12,
+    backgroundColor: '#F8F9FA',
   },
-  vocabContent: {
+  vocabInfo: {
     flex: 1,
-    gap: 6,
+    justifyContent: 'space-between',
+  },
+  vocabHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   vocabWord: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
     color: '#1F1F1F',
+  },
+  streakText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FF4D2D',
   },
   vocabMeaning: {
     fontSize: 14,
+    color: '#666',
     fontWeight: '500',
+    marginVertical: 2,
+  },
+  masteryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  masteryBar: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 3,
+    maxWidth: 100,
+  },
+  masterySegment: {
+    flex: 1,
+    height: 4,
+    borderRadius: 2,
+  },
+  masteryActive: {
+    backgroundColor: '#4CAF50',
+  },
+  masteryInactive: {
+    backgroundColor: '#E9ECEF',
+  },
+  masteryText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#4CAF50',
+  },
+  pagination: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 12,
+    marginBottom: 20,
+  },
+  pageBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#FFF',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+  },
+  pageBtnDisabled: {
+    opacity: 0.5,
+  },
+  pageBtnText: {
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  pageInfo: {
+    fontSize: 13,
+    fontWeight: '600',
     color: '#666',
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-    minHeight: 200,
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#ff4d4f',
-    textAlign: 'center',
-    marginBottom: 16,
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  retryButton: {
-    backgroundColor: '#F1BE4B',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-    shadowColor: '#F1BE4B',
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  retryButtonText: {
-    color: '#1F1F1F',
-    fontSize: 14,
-    fontWeight: '700',
-    fontFamily: 'Epilogue, sans-serif',
-  },
   emptyContainer: {
-    padding: 32,
+    padding: 60,
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    marginTop: 20,
-    marginHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
+    gap: 8,
   },
   emptyImage: {
     width: 150,
     height: 150,
-    marginBottom: 20,
+    opacity: 0.6,
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#1F1F1F',
-    textAlign: 'center',
-    fontFamily: 'Epilogue, sans-serif',
-    marginBottom: 8,
+    marginTop: 12,
   },
   emptySubtitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#666',
     textAlign: 'center',
-    fontFamily: 'Epilogue, sans-serif',
-    lineHeight: 22,
-  },
-  practiceBanner: {
-    width: '100%',
-    backgroundColor: '#FFF4E6',
-    borderRadius: 16,
-    padding: 20,
-    marginTop: 12,
-    marginBottom: 16,
-    marginHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#F1BE4B',
-    shadowColor: '#F1BE4B',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  practiceBannerContent: {
-    flexDirection: 'column',
-    alignItems: 'stretch',
-    gap: 16,
-  },
-  practiceBannerText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1F1F1F',
-    fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  practiceCountSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    flexWrap: 'wrap',
-  },
-  practiceCountLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1F1F1F',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  practiceCountInputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  practiceCountInput: {
-    width: 70,
-    height: 40,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#F1BE4B',
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1F1F1F',
-    fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
-    shadowColor: '#F1BE4B',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  practiceCountMax: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  practiceButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#F1BE4B',
-    alignItems: 'center',
-    shadowColor: '#F1BE4B',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  practiceButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1F1F1F',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  instructionsBox: {
-    width: '100%',
-    backgroundColor: '#E8F4FD',
-    borderRadius: 16,
-    padding: 20,
-    marginTop: 12,
-    marginBottom: 12,
-    marginHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#B3D9F2',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  instructionsTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1F1F1F',
-    fontFamily: 'Epilogue, sans-serif',
-    marginBottom: 12,
-    marginTop: 4,
-  },
-  instructionsContent: {
-    gap: 6,
-    marginBottom: 12,
-  },
-  instructionsText: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: '#333',
-    fontFamily: 'Epilogue, sans-serif',
-    lineHeight: 22,
   },
 })
-

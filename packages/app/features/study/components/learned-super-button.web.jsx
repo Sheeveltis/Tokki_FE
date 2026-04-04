@@ -54,22 +54,22 @@ export function LearnedSuperButton({ onPress }) {
 
           {/* Stars */}
           <View style={[styles.star, styles.star1, hovered ? styles.star1Hover : styles.starNormal]}>
-            <StarSVG size={25} fill={hovered ? "#FFD700" : "#2563EB"} />
+            <StarSVG size={25} fill={hovered ? "#FFFFFF" : "#FF8E53"} />
           </View>
           <View style={[styles.star, styles.star2, hovered ? styles.star2Hover : styles.starNormal]}>
-            <StarSVG size={15} fill={hovered ? "#FFD700" : "#2563EB"} />
+            <StarSVG size={15} fill={hovered ? "#FFFFFF" : "#FF8E53"} />
           </View>
           <View style={[styles.star, styles.star3, hovered ? styles.star3Hover : styles.starNormal]}>
-            <StarSVG size={5} fill={hovered ? "#FFD700" : "#2563EB"} />
+            <StarSVG size={5} fill={hovered ? "#FFFFFF" : "#FF8E53"} />
           </View>
           <View style={[styles.star, styles.star4, hovered ? styles.star4Hover : styles.starNormal]}>
-            <StarSVG size={8} fill={hovered ? "#FFD700" : "#2563EB"} />
+            <StarSVG size={8} fill={hovered ? "#FFFFFF" : "#FF8E53"} />
           </View>
           <View style={[styles.star, styles.star5, hovered ? styles.star5Hover : styles.starNormal]}>
-            <StarSVG size={15} fill={hovered ? "#FFD700" : "#2563EB"} />
+            <StarSVG size={15} fill={hovered ? "#FFFFFF" : "#FF8E53"} />
           </View>
           <View style={[styles.star, styles.star6, hovered ? styles.star6Hover : styles.starNormal]}>
-            <StarSVG size={5} fill={hovered ? "#FFD700" : "#2563EB"} />
+            <StarSVG size={5} fill={hovered ? "#FFFFFF" : "#FF8E53"} />
           </View>
         </>
       )}
@@ -86,23 +86,23 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 25,
     minWidth: 175,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF8E53',
     borderRadius: 14,
-    borderWidth: 3,
-    borderColor: '#2563EB',
+    borderWidth: 0,
     marginLeft: 12,
     overflow: 'visible',
     ...(Platform.OS === 'web' && {
+      backgroundImage: 'linear-gradient(90deg, #FF8E53 30%, #FE6B8B 90%)',
       cursor: 'pointer',
-      boxShadow: '0 4px 15px rgba(37, 99, 235, 0.3)',
+      boxShadow: '0 4px 15px rgba(254, 107, 139, 0.4)',
       transition: 'all 0.3s ease-in-out',
     }),
   },
   buttonHover: {
-    backgroundColor: '#1E40AF',
-    borderColor: '#2563EB',
     ...(Platform.OS === 'web' && {
-      boxShadow: '0 0 30px rgba(37, 99, 235, 0.6)',
+      backgroundImage: 'linear-gradient(90deg, #FE6B8B 30%, #FF8E53 90%)',
+      boxShadow: '0 0 30px rgba(254, 107, 139, 0.8)',
+      transform: 'translateY(-2px)',
     }),
   },
   content: {
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     left: '-30%',
     zIndex: 2,
     ...(Platform.OS === 'web' && {
-      filter: 'drop-shadow(0 0 10px #FFD700)',
+      filter: 'drop-shadow(0 0 10px #FFFFFF)',
     }),
   },
   star2: {
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     left: '10%',
     zIndex: 2,
     ...(Platform.OS === 'web' && {
-      filter: 'drop-shadow(0 0 10px #FFD700)',
+      filter: 'drop-shadow(0 0 10px #FFFFFF)',
     }),
   },
   star3: {
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     left: '25%',
     zIndex: 2,
     ...(Platform.OS === 'web' && {
-      filter: 'drop-shadow(0 0 10px #FFD700)',
+      filter: 'drop-shadow(0 0 10px #FFFFFF)',
     }),
   },
   star4: {
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     left: '80%',
     zIndex: 2,
     ...(Platform.OS === 'web' && {
-      filter: 'drop-shadow(0 0 10px #FFD700)',
+      filter: 'drop-shadow(0 0 10px #FFFFFF)',
     }),
   },
   star5: {
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     left: '115%',
     zIndex: 2,
     ...(Platform.OS === 'web' && {
-      filter: 'drop-shadow(0 0 10px #FFD700)',
+      filter: 'drop-shadow(0 0 10px #FFFFFF)',
     }),
   },
   star6: {
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     left: '60%',
     zIndex: 2,
     ...(Platform.OS === 'web' && {
-      filter: 'drop-shadow(0 0 10px #FFD700)',
+      filter: 'drop-shadow(0 0 10px #FFFFFF)',
     }),
   },
 })
