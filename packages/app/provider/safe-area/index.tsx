@@ -7,6 +7,6 @@
 
 // for more, see the `./use-safe-area.web.ts` file
 
-export const SafeArea = ({ children }: { children: React.ReactElement }) => (
+export const SafeArea = ({ children }: { children: React.ReactNode }) => (
   <>{children}</>
 )

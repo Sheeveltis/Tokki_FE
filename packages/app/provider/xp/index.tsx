@@ -114,7 +114,7 @@ export const XpProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [])
 
-  const content = (
+  return (
     <XpContext.Provider value={{ addXp, ...notification }}>
       {children}
       <XpNotification 
@@ -124,15 +124,5 @@ export const XpProvider = ({ children }: { children: React.ReactNode }) => {
         newLevel={notification.newLevel}
       />
     </XpContext.Provider>
-  )
-
-  if (Platform.OS === 'web') {
-    return content
-  }
-
-  return (
-    <View style={{ flex: 1 }}>
-      {content}
-    </View>
   )
 }

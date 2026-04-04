@@ -35,9 +35,9 @@ export function Provider({ children }: { children: React.ReactNode }) {
 
   return (
     <SafeArea>
-      <NavigationProvider>
-        <XpProvider>{children}</XpProvider>
-      </NavigationProvider>
+      <XpProvider>
+        <NavigationProvider>{children}</NavigationProvider>
+      </XpProvider>
     </SafeArea>
   )
 }
