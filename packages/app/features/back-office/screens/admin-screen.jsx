@@ -27,6 +27,7 @@ const LazyQuestionTypeManagement = lazy(() => import('../../examination-manageme
 const LazyPassageManagement = lazy(() => import('../../examination-management/screens/admin/passage-management-screen'))
 const LazyTitleManagement = lazy(() => import('../../title-management/screens/title-management-screen'))
 const LazySystemConfigManagement = lazy(() => import('../../system/screens/system-config-management-screen'))
+const LazyPronunciationManagement = lazy(() => import('../../pronunciation/screens/admin/pronunciation-management-screen'))
 
 const LoadingFallback = () => <Spin />
 
@@ -218,6 +219,11 @@ export function AdminScreen() {
       'system-config': (
         <Suspense fallback={<LoadingFallback />}>
           <LazySystemConfigManagement />
+        </Suspense>
+      ),
+      'pronunciation-management': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyPronunciationManagement basePath="/admin" />
         </Suspense>
       ),
     }),

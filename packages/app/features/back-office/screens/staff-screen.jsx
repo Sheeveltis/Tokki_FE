@@ -16,6 +16,7 @@ const LazyFeedbackInbox = lazy(() => import('../../customer-service-management/s
 const LazySettings = lazy(() => import('../../user/screens/staff/setting-screen'))
 const LazyQuestionTypeManagement = lazy(() => import('../../examination-management/screens/admin/question-type-management-screen'))
 const LazyExamTemplateManagement = lazy(() => import('../../examination-management/screens/admin/exam-template-management-screen'))
+const LazyPronunciationManagement = lazy(() => import('../../pronunciation/screens/admin/pronunciation-management-screen'))
 
 // Cache dữ liệu để khi quay lại từ trang chi tiết không phải load lại toàn bộ
 let cachedInitialData = null
@@ -224,6 +225,11 @@ export function StaffScreen() {
       'feedback-inbox': (
         <Suspense fallback={<LoadingFallback />}>
           <LazyFeedbackInbox />
+        </Suspense>
+      ),
+      'pronunciation-management': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyPronunciationManagement basePath="/staff" />
         </Suspense>
       ),
       settings: (

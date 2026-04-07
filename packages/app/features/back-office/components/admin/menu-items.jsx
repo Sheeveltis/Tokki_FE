@@ -40,6 +40,14 @@ export const adminMenuItems = [
     ],
   },
   {
+    key: 'pronunciation-parent',
+    icon: <CustomerServiceOutlined />,
+    label: 'Quản lý Phát âm',
+    children: [
+      { key: 'pronunciation-management', icon: <MessageOutlined />, label: 'Quy tắc phát âm' },
+    ],
+  },
+  {
     key: 'exam',
     icon: <FileDoneOutlined />,
     label: 'Quản lý Đề',
