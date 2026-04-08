@@ -40,8 +40,8 @@ export function BlogListScreen() {
     return (
       <LoadingWithContainer
         size={48}
-        color="#5E794C"
-        shadowColor="#5E794C50"
+        color="#F1BE4B"
+        shadowColor="#F1BE4B50"
         text="Đang tải danh sách blog..."
         style={{
           flex: 1,

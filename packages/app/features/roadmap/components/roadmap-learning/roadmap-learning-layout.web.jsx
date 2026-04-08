@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { StyleSheet, Text, View, Pressable, Modal, ActivityIndicator, Platform, ScrollView } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { Navbar } from '../../../../../components/navbar'
@@ -8,6 +8,9 @@ import { RoadmapLearningDayList } from './roadmap-learning-day-list'
 import { RoadmapExamHistoryModal } from './roadmap-exam-history-modal.web'
 import HistoryIcon from '../../../../../assets/icon/icon-roadmap/history.svg'
 import { RoadmapTestButton } from '../roadmap-test/roadmap-test-button'
+import { apiClient } from '../../../../provider/api/client'
+import { ENDPOINTS } from '../../../../provider/api/endpoints'
+import { Alert } from 'react-native'
 
 const getTopikPhaseByLevel = (level) => {
   if (level === 1 || level === 2) return 'TOPIK I'
@@ -26,6 +29,42 @@ export function RoadmapLearningLayout({
   const router = useRouter()
   const [isHistoryModalVisible, setIsHistoryModalVisible] = useState(false)
   const [isInfoModalVisible, setIsInfoModalVisible] = useState(false)
+  const [isGeneratingNextWeek, setIsGeneratingNextWeek] = useState(false)
+  const [progressData, setProgressData] = useState(null)
+
+  const handleGenerateNextWeek = async () => {
+    // 1. Tìm roadmapWeekId của tuần trước
+    const prevWeek = weeks.find(w => w.weekIndex === (activeWeekIndex - 1))
+    
+    if (!prevWeek?.roadmapWeekId) {
+       Alert.alert('Thông báo', 'Không tìm thấy thông tin tuần trước để tạo lộ trình tiếp theo.')
+       return
+    }
+
+    setIsGeneratingNextWeek(true)
+    setProgressData({ percent: 50, step: 'Đang phân tích kết quả và thiết kế tuần học mới...', isCompleted: false })
+    
+    try {
+      // 2. Gọi API tạo tuần tiếp theo với finishedWeekId
+      const response = await apiClient.post(ENDPOINTS.ROADMAP.NEXT_WEEK, {
+        finishedWeekId: prevWeek.roadmapWeekId
+      })
+
+      if (response?.data) {
+        setProgressData({ percent: 100, step: 'Tạo tuần mới thành công!', isCompleted: true })
+        setTimeout(() => {
+          setIsGeneratingNextWeek(false)
+          onRetry?.() // Refresh roadmap data
+        }, 1500)
+      } else {
+        setIsGeneratingNextWeek(false)
+      }
+    } catch (err) {
+      console.error('Failed to generate next week:', err)
+      Alert.alert('Lỗi', err.response?.data?.message || 'Không thể tạo tuần tiếp theo. Vui lòng thử lại.')
+      setIsGeneratingNextWeek(false)
+    }
+  }
 
   // ĐỔI MỚI: Quản lý tuần hiện tại
   const [activeWeekIndex, setActiveWeekIndex] = useState(null)
@@ -253,17 +292,28 @@ export function RoadmapLearningLayout({
                   <View style={styles.cardDivider} />
 
                   <View style={styles.listWrapper}>
-                    {activeWeek ? (
+                    {activeWeek?.tasks?.length > 0 ? (
                       <RoadmapLearningDayList
                         hasWriting={hasWriting}
                         targetAim={targetAim}
                         weeks={weeks}
                         activeWeek={activeWeek}
                         initialDayIndex={initialDayIndex}
+                        onGenerateNextWeek={handleGenerateNextWeek}
+                        isNextWeekEmpty={weeks.find(w => w.weekIndex === activeWeekIndex + 1)?.tasks?.length === 0}
                       />
                     ) : (
-                      <View style={styles.centerContent}>
-                        <ActivityIndicator color="#FF6B6B" />
+                      <View style={styles.emptyWeekContainer}>
+                        <Text style={styles.emptyWeekTitle}>Tuần {activeWeekIndex} chưa có nội dung</Text>
+                        <Text style={styles.emptyWeekSubtitle}>
+                          Hãy nhấn nút bên dưới để hệ thống thiết kế chương trình học cho tuần này dựa trên kết quả thi tuần trước của bạn nhé!
+                        </Text>
+                        <RoadmapTestButton 
+                          title="Tạo tuần tiếp theo" 
+                          onPress={handleGenerateNextWeek}
+                          disabled={isGeneratingNextWeek}
+                          style={styles.generateButton}
+                        />
                       </View>
                     )}
                   </View>
@@ -318,6 +368,34 @@ export function RoadmapLearningLayout({
             </ScrollView>
           </Pressable>
         </Pressable>
+      </Modal>
+
+      {/* Progress generating modal */}
+      <Modal
+        visible={isGeneratingNextWeek && !!progressData}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.progressCard}>
+            <Text style={styles.progressTitle}>Đang tạo tuần mới của bạn</Text>
+            <Text style={styles.progressStep}>{progressData?.step || 'Đang chuẩn bị...'}</Text>
+
+            <View style={styles.progressBarWrapper}>
+              <View
+                style={[
+                  styles.progressBar,
+                  { width: `${progressData?.percent || 0}%` },
+                ]}
+              />
+            </View>
+
+            <View style={styles.progressFooter}>
+              <Text style={styles.progressPercent}>{progressData?.percent || 0}%</Text>
+              <Text style={styles.progressNote}>Quá trình này có thể mất khoảng 1 phút. Vui lòng không đóng trang.</Text>
+            </View>
+          </View>
+        </View>
       </Modal>
     </View>
   )
@@ -845,5 +923,87 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: '#666',
     fontFamily: 'Epilogue, sans-serif'
+  },
+  emptyWeekContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: '#F0F0F0',
+    borderStyle: 'dashed',
+    gap: 16,
+  },
+  emptyWeekTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  emptyWeekSubtitle: {
+    fontSize: 15,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
+    maxWidth: 450,
+    marginBottom: 10,
+  },
+  generateButton: {
+    minWidth: 200,
+  },
+  progressCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 32,
+    padding: 32,
+    width: '100%',
+    maxWidth: 480,
+    alignItems: 'center',
+    gap: 20,
+    ...(Platform.OS === 'web' && { boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }),
+  },
+  progressTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+  },
+  progressStep: {
+    fontSize: 15,
+    color: '#666',
+    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 22,
+    minHeight: 44,
+  },
+  progressBarWrapper: {
+    width: '100%',
+    height: 12,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#F4A950',
+    borderRadius: 6,
+  },
+  progressFooter: {
+    width: '100%',
+    alignItems: 'center',
+    gap: 12,
+  },
+  progressPercent: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#F4A950',
+  },
+  progressNote: {
+    fontSize: 13,
+    color: '#999',
+    textAlign: 'center',
+    fontWeight: '500',
+    fontStyle: 'italic',
   },
 })

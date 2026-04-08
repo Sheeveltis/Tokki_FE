@@ -39,7 +39,9 @@ export function BlogGeneralInfo() {
       setUploading(true)
       const url = await uploadBlogImageToCloudinary(rawFile)
       if (url) {
-        form.setFieldsValue({ thumbnail: url })
+        form.setFieldsValue({ thumbnailUrl: url })
+        // Trigger validation for this field specifically
+        form.validateFields(['thumbnailUrl'])
         setThumbnailPreview(url)
         message.success('Upload ảnh bìa thành công')
       }
@@ -88,7 +90,7 @@ export function BlogGeneralInfo() {
       {/* Hàng 2: Ảnh bìa - upload lên Cloudinary */}
       <Form.Item
         label="Ảnh bìa (Thumbnail)"
-        name="thumbnail"
+        name="thumbnailUrl"
         rules={[{ required: true, message: 'Vui lòng upload ảnh bìa' }]}
       >
         <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>

@@ -28,6 +28,7 @@ import SoundIcon from '../assets/icon/icon-mainflow/sound.svg'
  *   isFavorite?: boolean; - Trạng thái yêu thích
  *   onToggleFavorite?: () => void; - Callback khi click vào star
  *   onPlaySound?: () => void; - Callback khi click vào icon sound
+ *   footer?: React.ReactNode; - Nội dung hiển thị ở cuối thẻ (cho cả 2 mặt)
  *   className?: string; - Custom className
  *   style?: React.CSSProperties; - Custom styles
  * }} props
@@ -52,6 +53,7 @@ export function FlipCard({
   isFavorite = false,
   onToggleFavorite,
   onPlaySound,
+  footer,
   className = '',
   style,
 }) {
@@ -163,9 +165,10 @@ export function FlipCard({
               flexDirection: 'column', 
               alignItems: 'center', 
               justifyContent: 'center',
-              padding: '20px',
+              padding: '40px 20px 80px 20px',
               width: '100%',
               height: '100%',
+              boxSizing: 'border-box',
             }}>
               {word && (
                 <p style={{ 
@@ -178,6 +181,11 @@ export function FlipCard({
                   {word}
                 </p>
               )}
+              {footer && (
+                <div style={{ position: 'absolute', bottom: '20px', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 5 }}>
+                  {footer}
+                </div>
+              )}
             </div>
           ),
           // Mặt sau: hình + nghĩa
@@ -187,27 +195,29 @@ export function FlipCard({
               flexDirection: 'column',
               alignItems: 'center', 
               justifyContent: 'center',
-              padding: '20px',
+              padding: '40px 20px 100px 20px',
               width: '100%',
               height: '100%',
+              boxSizing: 'border-box',
             }}>
               {image && (
                 <div style={{ 
-                  marginBottom: meaning ? '16px' : '0',
-                  maxWidth: '80%',
-                  maxHeight: '60%',
+                  marginBottom: meaning ? '24px' : '0',
+                  width: '100%',
+                  flex: 1,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  minHeight: 0,
                 }}>
                   {typeof image === 'string' || (image && image.uri) ? (
                     <img 
                       src={imageSrc} 
                       alt={word || 'Flashcard'} 
                       style={{ 
-                        width: '400px', 
-                        height: '300px', 
-                        objectFit: 'fill',
+                        maxWidth: '100%', 
+                        maxHeight: '100%', 
+                        objectFit: 'contain',
                         borderRadius: '8px',
                       }} 
                     />
@@ -226,6 +236,11 @@ export function FlipCard({
                 }}>
                   {meaning}
                 </p>
+              )}
+              {footer && (
+                <div style={{ position: 'absolute', bottom: '20px', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 5 }}>
+                  {footer}
+                </div>
               )}
             </div>
           ),

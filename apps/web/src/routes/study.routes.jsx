@@ -42,6 +42,8 @@ import { ENDPOINTS } from '@tokki/app/provider/api/endpoints'
  */
 function StudyRoute() {
   const { navigate } = useRouteNavigation()
+  const [authorized, setAuthorized] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const checkLevel = async () => {
@@ -54,7 +56,8 @@ function StudyRoute() {
 
         const progress = await getProgress(userId)
         if (progress && progress.level && progress.level > 0) {
-          navigate('/menu-study', { replace: true })
+          // Đã có level -> Cho phép render MenuStudy tại đây (/study)
+          setAuthorized(true)
         } else {
           // Chưa có level -> Chuyển sang lộ trình và yêu cầu test
           navigate('/roadmap/info?needsTest=1', { replace: true })
@@ -62,11 +65,26 @@ function StudyRoute() {
       } catch (error) {
         console.error('[StudyRoute] Error checking level:', error)
         navigate('/roadmap/info?needsTest=1', { replace: true })
+      } finally {
+        setLoading(false)
       }
     }
 
     checkLevel()
   }, [navigate])
+
+  if (loading) return null // Hoặc render loading state
+
+  if (authorized) {
+    return (
+      <MenuStudy
+        onBackPress={() => navigate('/')}
+        onQuickTestPress={() => navigate('/test')}
+        lessonsLearned={30}
+        streakDays={30}
+      />
+    )
+  }
 
   return null
 }
@@ -105,19 +123,6 @@ function RoadmapRoute() {
   }, [navigate])
 
   return null
-}
-
-function MenuStudyRoute() {
-  const { navigate } = useRouteNavigation()
-
-  return (
-    <MenuStudy
-      onBackPress={() => navigate('/')}
-      onQuickTestPress={() => navigate('/test')}
-      lessonsLearned={30}
-      streakDays={30}
-    />
-  )
 }
 
 // Alphabet Routes
@@ -535,7 +540,6 @@ function AlphabetSyllablesDrawingRoute() {
 export const studyRoutes = [
   // Study & Menu
   { path: '/study', element: <StudyRoute /> },
-  { path: '/menu-study', element: <MenuStudyRoute /> },
 
   // Alphabet
   { path: '/alphabet', element: <AlphabetRoute /> },

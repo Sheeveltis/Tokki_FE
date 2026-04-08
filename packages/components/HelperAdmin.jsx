@@ -41,6 +41,7 @@ export function HelperAdmin({
 
     // Nếu không có response, không hiển thị gì
     if (!response) {
+      lastShownRef.current = null
       return
     }
 
@@ -50,6 +51,7 @@ export function HelperAdmin({
       message: response.message,
       statusCode: response.statusCode,
       errors: response.errors?.map((e) => `${e.code}-${e.description}`),
+      _timestamp: response._timestamp, // Thêm timestamp để nhận diện click mới
     })
 
     // Nếu key trùng với lần trước => bỏ qua để tránh hiện 2 lần

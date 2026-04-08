@@ -1,17 +1,23 @@
+'use client'
+
 import React, { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'solito/navigation'
-import { Card, Form, Typography, message, Space, Spin } from 'antd'
-import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web'
-import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web'
+import { Card, Form, Typography, message, Space, Spin, Button } from 'antd'
+import { ArrowLeftOutlined, EyeOutlined, SaveOutlined } from '@ant-design/icons'
 import { getBlogById, updateBlog } from '../../api'
-import { getCurrentUserId, getCurrentUserRole } from '../../../../provider/api/client.js'
 import { BlogEditor } from '../../components/create-blog/blog-editor'
 import { BlogGeneralInfo } from '../../components/create-blog/blog-general-info'
 import { BlogMetaInfo } from '../../components/create-blog/blog-meta-info'
-import { BlogFormActions } from '../../components/create-blog/blog-form-actions'
 import { BlogPreviewModal } from '../../components/create-blog/blog-preview-modal'
 
-const { Title } = Typography
+const { Title, Text } = Typography
+
+const BUTTON_STYLE = {
+  borderRadius: 20,
+  height: 40,
+  padding: '0 20px',
+  fontWeight: 600
+}
 
 export function EditBlogScreen() {
   const router = useRouter()
@@ -25,18 +31,6 @@ export function EditBlogScreen() {
   // State quản lý Preview
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewData, setPreviewData] = useState(null)
-
-  // Xác định cổng hiện tại
-  const getCurrentPortal = () => {
-    if (typeof window === 'undefined') return 'admin'
-    const pathname = window.location.pathname
-    if (pathname.startsWith('/staff/')) return 'staff'
-    return 'admin'
-  }
-  
-  const currentPortal = getCurrentPortal()
-  const portalPrefix = currentPortal === 'staff' ? '/staff' : '/admin'
-  const Layout = currentPortal === 'staff' ? StaffLayout : AdminLayout
 
   // Load blog data
   useEffect(() => {
@@ -60,23 +54,21 @@ export function EditBlogScreen() {
       } catch (error) {
         console.error('Failed to load blog:', error)
         message.error('Không thể tải bài viết')
-        router.push(`${portalPrefix}?tab=blog`)
+        router.back()
       } finally {
         setLoading(false)
       }
     }
     loadBlog()
-  }, [blogId, form, router, portalPrefix])
+  }, [blogId, form])
 
   // Hàm xử lý khi ấn nút "Xem trước"
   const handlePreview = () => {
     const values = form.getFieldsValue()
-    
     if (!values.title && !values.content) {
       message.warning('Vui lòng nhập ít nhất Tiêu đề hoặc Nội dung để xem trước')
       return
     }
-
     setPreviewData(values)
     setPreviewOpen(true)
   }
@@ -94,66 +86,109 @@ export function EditBlogScreen() {
         tags: values.tags || [],
       }
       
-      await updateBlog(blogId, payload)
-      message.success('Đã cập nhật bài viết thành công')
-      router.push(`${portalPrefix}?tab=blog`)
+      const response = await updateBlog(blogId, payload)
+      if (response?.isSuccess || response?.statusCode === 200 || response?.statusCode === 201) {
+        message.success('Đã cập nhật bài viết thành công')
+        router.back()
+      } else {
+        throw new Error(response?.message || 'Có lỗi xảy ra khi cập nhật bài viết')
+      }
     } catch (error) {
-      console.error(error)
-      message.error('Cập nhật bài viết thất bại')
+      console.error('Submit error:', error)
+      message.error(error.message || 'Cập nhật bài viết thất bại')
     } finally {
       setSaving(false)
     }
   }
 
+  const onFinishFailed = (errorInfo) => {
+    console.warn('Form validation failed:', errorInfo)
+    message.error('Vui lòng hoàn thành các thông tin bắt buộc còn thiếu')
+  }
+
   if (loading) {
     return (
-      <div style={{ padding: 24, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <Form form={form} component={false} />
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', flexDirection: 'column', gap: 16 }}>
         <Spin size="large" />
+        <Text type="secondary">Đang tải dữ liệu bài viết...</Text>
       </div>
     )
   }
 
   return (
-    <div style={{ padding: 24 }}>
-      <Card>
-          <Space orientation="vertical" size="large" style={{ width: '100%' }}>
-            <Title level={3} style={{ marginBottom: 4 }}>
-              Chỉnh sửa bài viết
-            </Title>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {/* Header Section */}
+      <div 
+        style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          flexWrap: 'wrap', 
+          gap: 12, 
+          marginBottom: 24 
+        }}
+      >
+        <div>
+          <Title level={3} style={{ marginBottom: 4, marginTop: 0 }}>
+            Chỉnh sửa bài viết
+          </Title>
+          <Text type="secondary">Sửa đổi thông tin và cập nhật nội dung bài viết</Text>
+        </div>
 
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={handleSubmit}
-            >
-              <BlogGeneralInfo />
-              
-              <BlogEditor 
-                name="content" 
-                label="Nội dung chi tiết"
-                rules={[{ required: true, message: 'Vui lòng nhập nội dung' }]}
-              />
-
-              <BlogMetaInfo />
-
-              <BlogFormActions 
-                loading={saving} 
-                onCancel={() => router.push(`${portalPrefix}?tab=blog`)}
-                onPreview={handlePreview}
-                onSubmit={() => form.submit()}
-              />
-            </Form>
-          </Space>
-        </Card>
-
-        {/* Render Modal Preview */}
-        <BlogPreviewModal 
-          open={previewOpen}
-          onCancel={() => setPreviewOpen(false)}
-          data={previewData}
-        />
+        <Space size="small" wrap>
+          <Button 
+            icon={<EyeOutlined />} 
+            onClick={handlePreview}
+            style={BUTTON_STYLE}
+          >
+            Xem trước
+          </Button>
+          <Button 
+            type="primary" 
+            icon={<SaveOutlined />} 
+            loading={saving}
+            onClick={() => form.submit()}
+            style={BUTTON_STYLE}
+          >
+            Lưu thay đổi
+          </Button>
+          <Button 
+            icon={<ArrowLeftOutlined />} 
+            onClick={() => router.back()}
+            style={BUTTON_STYLE}
+          >
+            Quay lại
+          </Button>
+        </Space>
       </div>
+
+      <Card bordered={false} style={{ borderRadius: 16, boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          onFinishFailed={onFinishFailed}
+          scrollToFirstError
+        >
+          <BlogGeneralInfo />
+          
+          <BlogEditor 
+            name="content" 
+            label="Nội dung chi tiết"
+            rules={[{ required: true, message: 'Vui lòng nhập nội dung bài viết' }]}
+          />
+
+          <BlogMetaInfo />
+        </Form>
+      </Card>
+
+      {/* Render Modal Preview */}
+      <BlogPreviewModal 
+        open={previewOpen}
+        onCancel={() => setPreviewOpen(false)}
+        data={previewData}
+      />
+    </div>
   )
 }
 

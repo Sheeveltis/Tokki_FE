@@ -9,7 +9,7 @@ const { Text } = Typography
 const ActionGroup = ({ actions = [] }) => {
   if (!actions || actions.length === 0) return null
   return (
-    <Space size="middle">
+    <Space size="middle" style={{ flexWrap: 'wrap' }}>
       {actions.map((action, index) => {
         if (action.hidden) return null
         return (
@@ -20,10 +20,15 @@ const ActionGroup = ({ actions = [] }) => {
             loading={action.loading}
             type={action.type || 'primary'}
             style={{
-              borderRadius: 20,
-              height: 40,
-              padding: '0 20px',
+              borderRadius: '2rem',
+              height: 'clamp(36px, 40px, 44px)',
+              padding: '0 1.25rem',
               fontWeight: 600,
+              fontSize: 'clamp(13px, 1.2vw, 15px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              whiteSpace: 'nowrap',
               ...action.style
             }}
           >
@@ -44,11 +49,10 @@ const SearchBar = ({ placeholder, value, onChange, onSearch }) => {
       prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
       placeholder={placeholder || 'Tìm kiếm...'}
       style={{
-        maxWidth: 300,
-        minWidth: 200,
-        borderRadius: 16,
-        height: 32,
-        fontSize: 13
+        width: 'min(320px, 100%)',
+        borderRadius: '1rem',
+        height: 'clamp(32px, 36px, 40px)',
+        fontSize: 'clamp(13px, 1.1vw, 14px)'
       }}
       value={value}
       onChange={(e) => onChange?.(e.target.value)}
@@ -113,10 +117,10 @@ export default function ManagementLayout({
         justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
-        gap: 16,
-        paddingBottom: 4
+        gap: '1rem',
+        paddingBottom: '0.5rem'
       }}>
-        <Space size="middle" style={{ flex: 1, flexWrap: 'wrap' }}>
+        <Space size="middle" style={{ flex: '1 1 auto', flexWrap: 'wrap', gap: '0.75rem' }}>
           {(onSearchChange || onSearchSubmit) && (
             <SearchBar
               placeholder={searchPlaceholder}
@@ -128,14 +132,15 @@ export default function ManagementLayout({
           {extraFilters}
           {renderCard && (
             <Segmented
+              style={{ borderRadius: '0.75rem', padding: '2px' }}
               options={[
                 {
                   value: 'table',
-                  icon: <Tooltip title="Xem dạng bảng"><TableOutlined /></Tooltip>
+                  icon: <Tooltip title="Xem dạng bảng"><TableOutlined style={{ fontSize: 'clamp(14px, 1.2vw, 18px)' }} /></Tooltip>
                 },
                 {
                   value: 'card',
-                  icon: <Tooltip title="Xem dạng lưới"><AppstoreOutlined /></Tooltip>
+                  icon: <Tooltip title="Xem dạng lưới"><AppstoreOutlined style={{ fontSize: 'clamp(14px, 1.2vw, 18px)' }} /></Tooltip>
                 },
               ]}
               value={viewMode}
@@ -152,7 +157,7 @@ export default function ManagementLayout({
         style={{
           flex: 1,
           overflowY: viewMode === 'table' ? 'hidden' : 'auto',
-          overflowX: 'hidden',
+          overflowX: 'auto',
           width: '100%',
           borderRadius: 8,
         }}
@@ -199,17 +204,19 @@ export default function ManagementLayout({
           display: 'flex',
           justifyContent: 'flex-end',
           alignItems: 'center',
-          padding: '12px 16px',
+          padding: 'clamp(12px, 1.5vh, 20px) clamp(16px, 2vw, 32px)',
           backgroundColor: '#fff',
-          borderRadius: '0 0 8px 8px',
+          borderRadius: '0 0 1rem 1rem',
           borderTop: '1px solid #f0f0f0',
           position: 'sticky',
           bottom: 0,
           zIndex: 10,
-          boxShadow: '0 -2px 8px rgba(0,0,0,0.05)'
+          boxShadow: '0 -4px 12px rgba(0,0,0,0.04)'
         }}>
           <Pagination
             {...paginationProps}
+            showSizeChanger
+            showTotal={(total) => <span style={{ fontSize: 'clamp(12px, 1vw, 14px)', fontWeight: 500 }}>Tổng {total} mục</span>}
             onChange={paginationProps.onChange}
           />
         </div>

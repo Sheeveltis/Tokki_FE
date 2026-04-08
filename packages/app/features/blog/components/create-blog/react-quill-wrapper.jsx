@@ -1,68 +1,62 @@
 'use client'
-import React, { forwardRef, useImperativeHandle, useRef, useEffect } from 'react'
+
+import React, { forwardRef, useImperativeHandle, useRef } from 'react'
 import ReactQuill from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
 
 /**
- * ReactQuillWrapper: Wrapper component để tương thích với Ant Design Form và tránh lỗi findDOMNode
- * Sử dụng forwardRef và useRef để tránh findDOMNode
+ * ReactQuillWrapper: Optimized wrapper for Ant Design Form
  */
 export const ReactQuillWrapper = forwardRef((props, ref) => {
   const quillRef = useRef(null)
-  const wrapperRef = useRef(null)
 
-  // Expose methods cho Form.Item
+  // Ant Design expects focus/blur methods to be exposed
   useImperativeHandle(ref, () => ({
-    getValue: () => {
-      return quillRef.current?.value || ''
-    },
-    setValue: (value) => {
-      if (quillRef.current) {
-        quillRef.current.value = value || ''
-      }
-    },
     focus: () => {
-      if (quillRef.current) {
-        const editor = quillRef.current.getEditor()
-        editor.focus()
-      }
+      quillRef.current?.getEditor().focus()
     },
     blur: () => {
-      if (quillRef.current) {
-        const editor = quillRef.current.getEditor()
-        editor.blur()
-      }
+      quillRef.current?.getEditor().blur()
     },
+    getEditor: () => quillRef.current?.getEditor()
   }))
 
-  // Handle value changes
-  const handleChange = (value) => {
+  const handleChange = (content, delta, source, editor) => {
     if (props.onChange) {
-      props.onChange(value)
+      // Get the raw text to check if it's truly empty
+      const text = editor.getText();
+      // Quill adds a \n by default. If it's just \n or truly empty, and no media, it's blank.
+      const isBlank = (text === '\n' || text === '') && !content.includes('<img') && !content.includes('<video');
+      const value = isBlank ? '' : content;
+      
+      // Avoid circular updates if unnecessary, but ensure the first change is reported
+      if (value !== props.value) {
+        props.onChange(value);
+      }
     }
   }
 
-  // Sync value prop với editor
-  useEffect(() => {
-    if (quillRef.current && props.value !== undefined) {
-      const editor = quillRef.current.getEditor()
-      const currentContent = editor.root.innerHTML
-      if (currentContent !== props.value) {
-        editor.clipboard.dangerouslyPasteHTML(props.value || '')
-      }
+  const handleBlur = (previousSelection, source, editor) => {
+    if (props.onBlur) {
+      props.onBlur()
     }
-  }, [props.value])
+  }
 
   return (
-    <div ref={wrapperRef} style={props.style}>
+    <div style={props.style}>
       <ReactQuill
         ref={quillRef}
-        theme={props.theme || 'snow'}
-        modules={props.modules}
+        {...props}
         value={props.value || ''}
         onChange={handleChange}
-        placeholder={props.placeholder}
-        style={{ height: props.style?.height || 400 }}
+        onBlur={handleBlur}
+        style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          flex: 1, 
+          height: '100%', 
+          border: 'none' 
+        }}
       />
     </div>
   )

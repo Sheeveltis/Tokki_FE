@@ -239,7 +239,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
               navigation.navigate('menu-study')
             } else {
               // Fallback nếu navigation không có
-              router.push('/menu-study')
+              router.push('/study')
             }
           }
         }, 500) // Delay nhỏ để user thấy thông báo

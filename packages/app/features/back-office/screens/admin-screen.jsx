@@ -10,6 +10,7 @@ const LazyLessonManagement = lazy(() => import('../../examination-management/scr
 const LazyVocabularyManagement = lazy(() => import('../../vocabulary/screens/admin/vocabulary-management-screen'))
 const LazyFlashcardTopicManagement = lazy(() => import('../../vocabulary/screens/admin/vocab-topic-management-screen'))
 const LazyBlogManagement = lazy(() => import('../../blog/screens/admin/blog-management-screen'))
+const LazyCategoryManagement = lazy(() => import('../../blog/screens/admin/category-management-screen'))
 const LazyChatSupport = lazy(() => import('../../customer-service-management/screens/chat-support-screen'))
 const LazyAutoEmail = lazy(() => import('../../customer-service-management/screens/auto-email-screen'))
 const LazyFeedbackInbox = lazy(() => import('../../customer-service-management/screens/feedback-inbox-screen'))
@@ -26,6 +27,7 @@ const LazyQuestionTypeManagement = lazy(() => import('../../examination-manageme
 const LazyPassageManagement = lazy(() => import('../../examination-management/screens/admin/passage-management-screen'))
 const LazyTitleManagement = lazy(() => import('../../title-management/screens/title-management-screen'))
 const LazySystemConfigManagement = lazy(() => import('../../system/screens/system-config-management-screen'))
+const LazyPronunciationManagement = lazy(() => import('../../pronunciation/screens/admin/pronunciation-management-screen'))
 
 const LoadingFallback = () => <Spin />
 
@@ -139,6 +141,11 @@ export function AdminScreen() {
           <LazyBlogManagement />
         </Suspense>
       ),
+      'blog-category': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyCategoryManagement />
+        </Suspense>
+      ),
       'chat-support': (
         <Suspense fallback={<LoadingFallback />}>
           <LazyChatSupport />
@@ -212,6 +219,11 @@ export function AdminScreen() {
       'system-config': (
         <Suspense fallback={<LoadingFallback />}>
           <LazySystemConfigManagement />
+        </Suspense>
+      ),
+      'pronunciation-management': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyPronunciationManagement basePath="/admin" />
         </Suspense>
       ),
     }),

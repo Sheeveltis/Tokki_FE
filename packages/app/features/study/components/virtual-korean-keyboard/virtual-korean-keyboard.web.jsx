@@ -364,7 +364,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#D0D0D0',
-    shadowOffset: { width: 0, height: 1 },
     position: 'relative',
     ...Platform.select({
       web: {
@@ -373,6 +372,12 @@ const styles = StyleSheet.create({
         transition: 'all 0.15s',
         userSelect: 'none',
       },
+      default: {
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        shadowOffset: { width: 0, height: 1 },
+      }
     }),
   },
   keyButtonPressed: {
@@ -384,6 +389,7 @@ const styles = StyleSheet.create({
         boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
       },
       default: {
+        shadowColor: '#000',
         shadowOpacity: 0.2,
         shadowRadius: 4,
         shadowOffset: { width: 0, height: 2 },

@@ -140,22 +140,28 @@ export const getTopAuthors = async (count = 5) => {
 /**
  * Danh sách blog cho admin với pagination
  */
-export const getBlogsAdmin = async ({ pageNumber = 1, pageSize = 10, status } = {}) => {
-  const params = { PageNumber: pageNumber, PageSize: pageSize }
-  if (status !== undefined && status !== null && status !== '') {
-    params.Status = status
+export const getBlogsAdmin = async ({ pageNumber = 1, pageSize = 10, categoryId, keyword, status } = {}) => {
+  const params = { 
+    PageNumber: pageNumber, 
+    PageSize: pageSize,
+    CategoryId: categoryId || undefined,
+    Keyword: keyword || undefined,
+    Status: status !== undefined ? status : undefined
   }
+  
   const res = await apiClient.get(ENDPOINTS.BLOG.ADMIN_LIST, { params })
   const data = res?.data?.data || {}
+  
   const items = Array.isArray(data.items) ? data.items.map((item) => ({
     ...item,
-    // Chuẩn hóa để bảng hiển thị
-      authorName: item.authorName || item.authorId,
-    })) : []
-    return {
+    authorName: item.author?.fullName || item.authorName || item.authorId,
+    categoryName: item.categoryName || '',
+  })) : []
+  
+  return {
     items,
     totalPages: data.totalPages || 1,
-    totalCount: data.totalCount || (data.items?.length || 0),
+    totalCount: data.totalCount || 0,
     pageNumber: data.pageNumber || pageNumber,
     pageSize: data.pageSize || pageSize,
   }
@@ -169,6 +175,64 @@ export const getAllCategories = async () => {
   const res = await apiClient.get(ENDPOINTS.CATEGORY.GET_ALL)
   const data = res?.data?.data
   return Array.isArray(data) ? data : []
+}
+
+/**
+ * Lấy danh sách danh mục có phân trang
+ */
+export const getCategoriesPaged = async ({ pageNumber = 1, pageSize = 10, searchTerm = '' } = {}) => {
+  const params = { pageNumber, pageSize, searchTerm }
+  const res = await apiClient.get(ENDPOINTS.CATEGORY.GET_PAGED, { params })
+  const data = res?.data?.data || {}
+  return {
+    items: data.items || [],
+    totalCount: data.totalCount || 0,
+    totalPages: data.totalPages || 1,
+  }
+}
+
+/**
+ * Tạo danh mục mới
+ */
+export const createCategory = async (payload) => {
+  const res = await apiClient.post(ENDPOINTS.CATEGORY.CREATE, payload)
+  return res.data
+}
+
+/**
+ * Cập nhật danh mục
+ */
+export const updateCategory = async (id, payload) => {
+  const res = await apiClient.put(ENDPOINTS.CATEGORY.UPDATE(id), payload)
+  return res.data
+}
+
+/**
+ * Xóa danh mục
+ */
+export const deleteCategory = async (id) => {
+  const res = await apiClient.delete(ENDPOINTS.CATEGORY.DELETE(id))
+  return res.data
+}
+
+/**
+ * Import danh mục từ Excel
+ */
+export const importCategories = async (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await apiClient.post('/Category/import', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+  return res.data
+}
+
+/**
+ * Export danh mục ra Excel
+ */
+export const exportCategories = async () => {
+  const res = await apiClient.get('/Category/export', { responseType: 'blob' })
+  return res.data
 }
 
 /**

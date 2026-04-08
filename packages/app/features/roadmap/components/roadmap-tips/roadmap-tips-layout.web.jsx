@@ -161,8 +161,8 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                             onPress={() => {
                               if (taskType === 'WeeklyExam') {
                                 router.push(taskDetail?.examId
-                                  ? `/roadmap/test?examId=${taskDetail.examId}&level=${level}`
-                                  : `/roadmap/test?level=${level}`);
+                                  ? `/roadmap/test?examId=${taskDetail.examId}&level=${level}&taskId=${tipId}`
+                                  : `/roadmap/test?level=${level}&taskId=${tipId}`);
                               } else {
                                 const qTypeId = taskDetail?.questionTypeId
                                 if (qTypeId) {

@@ -254,3 +254,31 @@ export async function fetchExamParticipantsAdmin(params = {}) {
     hasPreviousPage: data.hasPreviousPage || false,
   }
 }
+
+/**
+ * Import đề thi từ file Excel
+ * @param {File} file - Tệp Excel
+ * @returns {Promise<any>}
+ */
+export async function importExams(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await apiClient.post(ENDPOINTS.EXAMS.IMPORT, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+  return res.data
+}
+
+/**
+ * Xuất đề thi ra file Excel
+ * @returns {Promise<Blob>}
+ */
+export async function exportExams() {
+  const res = await apiClient.get(ENDPOINTS.EXAMS.EXPORT, {
+    responseType: 'blob'
+  })
+  return res.data
+}
+

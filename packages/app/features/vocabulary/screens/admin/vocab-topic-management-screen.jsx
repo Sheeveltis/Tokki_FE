@@ -573,7 +573,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
               placeholder="Chọn level"
               value={level}
               onChange={(value) => setFilters(prev => ({ ...prev, level: value || 1, page: 1 }))}
-              style={{ width: 150 }}
+              style={{ width: 'clamp(120px, 10vw, 160px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
             >
               {[1, 2, 3, 4, 5, 6].map((lvl) => (
                 <Option key={lvl} value={lvl}>
@@ -585,7 +585,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
               placeholder="Chọn trạng thái"
               value={status}
               onChange={(val) => setFilters(prev => ({ ...prev, status: val, page: 1 }))}
-              style={{ width: 150 }}
+              style={{ width: 'clamp(140px, 12vw, 200px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
             >
               {STATUS_OPTIONS.map((option) => (
                 <Option key={option.value} value={option.value}>

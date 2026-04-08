@@ -1,28 +1,68 @@
-import React, { useState, useEffect } from 'react'
+'use client'
+
+import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter, useParams } from 'solito/navigation'
-import { View, Text, StyleSheet, Image } from 'react-native'
-import { Button, Space, Tag, Popconfirm, message, Dropdown, Spin } from 'antd'
-import { EditOutlined, ArrowLeftOutlined, DeleteOutlined, MoreOutlined } from '@ant-design/icons'
+import { 
+  Button, 
+  Space, 
+  Tag, 
+  Popconfirm, 
+  message, 
+  Dropdown, 
+  Spin, 
+  Typography, 
+  Row, 
+  Col, 
+  Card, 
+  Tabs, 
+  Descriptions, 
+  Avatar, 
+  Divider,
+  Alert,
+  Statistic
+} from 'antd'
+import { 
+  EditOutlined, 
+  ArrowLeftOutlined, 
+  DeleteOutlined, 
+  MoreOutlined, 
+  EyeOutlined, 
+  CalendarOutlined, 
+  UserOutlined, 
+  FileTextOutlined,
+  CommentOutlined,
+  GlobalOutlined,
+  InfoCircleOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  SwapOutlined
+} from '@ant-design/icons'
 import { getBlogById, deleteBlog, updateBlog } from '../../api'
 import { getCurrentUserId, getCurrentUserRole } from '../../../../provider/api/client.js'
 import { BlogComments } from '../../components/blog-detail/blog-comments'
 import { HtmlViewer } from '../../components/blog-detail/html-viewer'
 import { BlogTags } from '../../components/blog-detail/blog-tags'
-import { BlogAuthor } from '../../components/blog-detail/blog-author'
-import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web'
-import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web'
-import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
-import { Row, Col } from 'antd'
+
+const { Title, Text } = Typography
 
 // BlogStatus enum mapping
 const BLOG_STATUS = {
-  0: { label: 'Nháp', color: 'orange' },
-  1: { label: 'Đã đăng', color: 'green' },
-  2: { label: 'Đã ẩn', color: 'default' },
-  3: { label: 'Lưu trữ', color: 'blue' },
-  4: { label: 'Chờ phê duyệt', color: 'gold' },
-  5: { label: 'Đã từ chối', color: 'red' },
+  0: { label: 'Nháp', color: 'orange', icon: <ClockCircleOutlined /> },
+  1: { label: 'Đã xuất bản', color: 'success', icon: <CheckCircleOutlined /> },
+  2: { label: 'Đã ẩn', color: 'default', icon: <EyeOutlined /> },
+  3: { label: 'Lưu trữ', color: 'blue', icon: <FileTextOutlined /> },
+  4: { label: 'Chờ phê duyệt', color: 'gold', icon: <ClockCircleOutlined /> },
+  5: { label: 'Đã từ chối', color: 'error', icon: <InfoCircleOutlined /> },
 }
+
+const BUTTON_STYLE = {
+  borderRadius: 20,
+  height: 40,
+  padding: '0 20px',
+  fontWeight: 600
+}
+
+const ICON_THEME_COLOR = '#1890ff' // Standard color for all icons as requested
 
 export function ViewBlogScreen() {
   const router = useRouter()
@@ -32,8 +72,9 @@ export function ViewBlogScreen() {
   const [error, setError] = useState(null)
   const [blogData, setBlogData] = useState(null)
   const [updating, setUpdating] = useState(false)
+  const [activeTab, setActiveTab] = useState('content')
 
-  // Xác định cổng hiện tại
+  // Xác định portal hiện tại
   const getCurrentPortal = () => {
     if (typeof window === 'undefined') return 'admin'
     const pathname = window.location.pathname
@@ -44,7 +85,6 @@ export function ViewBlogScreen() {
   
   const currentPortal = getCurrentPortal()
   const portalPrefix = currentPortal === 'staff' ? '/staff' : currentPortal === 'moderator' ? '/moderator' : '/admin'
-  const Layout = currentPortal === 'staff' ? StaffLayout : currentPortal === 'moderator' ? ModeratorLayout : AdminLayout
 
   // Load blog data
   useEffect(() => {
@@ -65,36 +105,26 @@ export function ViewBlogScreen() {
     loadBlog()
   }, [blogId])
 
-  // Kiểm tra quyền chỉnh sửa (chỉ khi status là Draft)
   const canEdit = () => {
     if (!blogData) return false
     const currentUserId = getCurrentUserId()
     const currentUserRole = getCurrentUserRole()
     const isAdmin = currentUserRole === 'Admin'
     const isAuthor = blogData.author?.id === currentUserId
-    
-    // Chỉ cho phép edit nếu là admin hoặc là tác giả, và status là draft (0)
     return (isAdmin || isAuthor) && blogData.status === 0
   }
 
-  // Kiểm tra quyền xóa
   const canDelete = () => {
     if (!blogData) return false
     const currentUserRole = getCurrentUserRole()
     const currentUserId = getCurrentUserId()
     const isAdmin = currentUserRole === 'Admin'
     const isAuthor = blogData.author?.id === currentUserId
-    
-    // Admin hoặc tác giả có thể xóa
     return isAdmin || isAuthor
   }
 
   const handleEdit = () => {
     router.push(`${portalPrefix}/blog/${blogId}/edit`)
-  }
-
-  const handleBack = () => {
-    router.back()
   }
 
   const handleDelete = async () => {
@@ -118,281 +148,278 @@ export function ViewBlogScreen() {
         status: newStatus,
       })
       message.success(`Đã cập nhật trạng thái thành "${BLOG_STATUS[newStatus]?.label}"`)
-      
-      // Reload blog data
       const data = await getBlogById(blogId)
       setBlogData(data)
     } catch (error) {
-      console.error('Failed to update status:', error)
       message.error('Cập nhật trạng thái thất bại')
     } finally {
       setUpdating(false)
     }
   }
 
-  // Status menu items
-  const getStatusMenuItems = () => {
+  const statusMenuItems = useMemo(() => {
     if (!blogData) return []
-    
-    const currentStatus = blogData.status
-    const items = []
-    
-    // Chỉ hiển thị các status có thể chuyển đổi
-    Object.entries(BLOG_STATUS).forEach(([status, info]) => {
-      const statusNum = parseInt(status)
-      // Không hiển thị status hiện tại
-      if (statusNum !== currentStatus) {
-        items.push({
-          key: status,
-          label: (
-            <span onClick={() => handleStatusChange(statusNum)}>
-              {info.label}
-            </span>
-          ),
-        })
-      }
-    })
-    
-    return items
-  }
+    return Object.entries(BLOG_STATUS)
+      .filter(([status]) => parseInt(status) !== blogData.status)
+      .map(([status, info]) => ({
+        key: status,
+        label: info.label,
+        icon: info.icon,
+        onClick: () => handleStatusChange(parseInt(status))
+      }))
+  }, [blogData])
 
-  const handleNavigate = (key) => {
-    if (currentPortal === 'staff') {
-      router.push(`/staff?tab=${key}`)
-    } else if (currentPortal === 'moderator') {
-      router.push(`/moderator?tab=${key}`)
-    } else {
-      router.push(`/admin?tab=${key}`)
-    }
-  }
-
-  const renderContent = () => {
-    if (loading) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Spin size="large" />
-          <Text style={styles.loadingText}>Đang tải...</Text>
-        </View>
-      )
-    }
-
-    if (error || !blogData) {
-      return (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error || 'Không tìm thấy bài viết'}</Text>
-          <Button
-            icon={<ArrowLeftOutlined />}
-            onClick={() => router.back()}
-            style={{ marginTop: 16 }}
-          >
-            Quay lại
-          </Button>
-        </View>
-      )
-    }
-
-    const currentStatus = blogData.status || 0
-    const statusInfo = BLOG_STATUS[currentStatus] || BLOG_STATUS[0]
-
+  if (loading) {
     return (
-      <View style={styles.contentWrapper}>
-        {/* Header với action buttons */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Button
-              icon={<ArrowLeftOutlined />}
-              onClick={() => router.back()}
-              style={styles.backButton}
-            >
-              Quay lại
-            </Button>
-            <Tag color={statusInfo.color} style={styles.statusTag}>
-              {statusInfo.label}
-            </Tag>
-          </View>
-          <Space>
-            {canEdit() && (
-              <Button
-                type="primary"
-                icon={<EditOutlined />}
-                onClick={handleEdit}
-                loading={updating}
-              >
-                Chỉnh sửa
-              </Button>
-            )}
-            
-            <Dropdown
-              menu={{ items: getStatusMenuItems() }}
-              trigger={['click']}
-              disabled={updating}
-            >
-              <Button icon={<MoreOutlined />} loading={updating}>
-                Cập nhật trạng thái
-              </Button>
-            </Dropdown>
-            
-            {canDelete() && (
-              <Popconfirm
-                title="Xác nhận xóa"
-                description="Bạn có chắc chắn muốn xóa bài viết này?"
-                onConfirm={handleDelete}
-                okText="Xóa"
-                cancelText="Hủy"
-                okButtonProps={{ danger: true }}
-              >
-                <Button
-                  danger
-                  icon={<DeleteOutlined />}
-                  loading={updating}
-                >
-                  Xóa
-                </Button>
-              </Popconfirm>
-            )}
-          </Space>
-        </View>
-
-        {/* Blog Content với Comments sidebar bên phải */}
-        <Row gutter={24}>
-          <Col xs={24} lg={16}>
-            <View style={styles.blogContent}>
-              {/* Chỉ hiển thị nội dung chính, không có comments */}
-              <View>
-                {/* Category Badge */}
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{blogData.categoryName || blogData.category}</Text>
-                </View>
-
-                {/* Title */}
-                <Text style={styles.title}>{blogData.title}</Text>
-
-                {/* Thumbnail */}
-                {blogData.thumbnailUrl && (
-                  <Image 
-                    source={{ uri: blogData.thumbnailUrl }} 
-                    style={styles.image} 
-                    resizeMode="cover"
-                  />
-                )}
-
-                {/* Content */}
-                <HtmlViewer html={blogData.content} />
-
-                {/* Tags */}
-                {blogData.tags && blogData.tags.length > 0 && (
-                  <BlogTags tags={blogData.tags} />
-                )}
-
-                {/* Author Info */}
-                <BlogAuthor 
-                  author={blogData.author}
-                  createdAt={blogData.createdAt}
-                  viewCount={blogData.viewCount}
-                />
-              </View>
-            </View>
-          </Col>
-          <Col xs={24} lg={8}>
-            <View style={styles.commentsSidebar}>
-              <BlogComments blogId={blogData.id} />
-            </View>
-          </Col>
-        </Row>
-      </View>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', flexDirection: 'column', gap: 16 }}>
+        <Spin size="large" />
+        <Text type="secondary">Đang tải dữ liệu bài viết...</Text>
+      </div>
     )
   }
 
-  return renderContent()
-}
+  if (error || !blogData) {
+    return (
+      <div style={{ padding: 24, display: 'flex', justifyContent: 'center' }}>
+        <Alert
+          message={error || 'Không tìm thấy bài viết'}
+          type="error"
+          showIcon
+          action={<Button onClick={() => router.back()}>Quay lại</Button>}
+          style={{ maxWidth: 600, width: '100%' }}
+        />
+      </div>
+    )
+  }
 
-const styles = StyleSheet.create({
-  contentWrapper: {
-    flex: 1,
-    width: '100%',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-    marginBottom: 24,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  backButton: {
-    marginRight: 8,
-  },
-  statusTag: {
-    fontSize: 14,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '60vh',
-    gap: 16,
-    padding: 24,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#666',
-  },
-  errorContainer: {
-    padding: 24,
-    alignItems: 'center',
-  },
-  errorText: {
-    color: '#ff4d4f',
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  blogContent: {
-    width: '100%',
-  },
-  commentsSidebar: {
-    position: 'sticky',
-    top: 100,
-    maxHeight: 'calc(100vh - 120px)',
-    overflowY: 'auto',
-  },
-  badge: {
-    backgroundColor: '#ff4d4f',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 4,
-    marginBottom: 16,
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    lineHeight: 42,
-    color: '#1a1a1a',
-    letterSpacing: -0.5,
-  },
-  image: {
-    width: '100%',
-    height: 400,
-    borderRadius: 12,
-    marginBottom: 24,
-    backgroundColor: '#f0f0f0',
-  },
-})
+  const statusInfo = BLOG_STATUS[blogData.status] || BLOG_STATUS[0]
+
+  const tabItems = [
+    {
+      key: 'content',
+      label: <Space><FileTextOutlined />Nội dung bài viết</Space>,
+      children: (
+        <div style={{ padding: '0 12px' }}>
+          {blogData.thumbnailUrl && (
+            <div style={{ marginBottom: 24, textAlign: 'center' }}>
+              <img 
+                src={blogData.thumbnailUrl} 
+                alt="Thumbnail" 
+                style={{ maxWidth: '100%', maxHeight: 400, borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} 
+              />
+            </div>
+          )}
+          <HtmlViewer html={blogData.content} />
+          {blogData.tags && blogData.tags.length > 0 && (
+            <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid #f0f0f0' }}>
+              <BlogTags tags={blogData.tags} />
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'info',
+      label: <Space><InfoCircleOutlined />Thông tin cơ bản</Space>,
+      children: (
+        <Descriptions bordered column={1} size="middle">
+          <Descriptions.Item label="Tiêu đề">{blogData.title}</Descriptions.Item>
+          <Descriptions.Item label="Slug">{blogData.slug}</Descriptions.Item>
+          <Descriptions.Item label="Danh mục">{blogData.categoryName}</Descriptions.Item>
+          <Descriptions.Item label="Mô tả ngắn">{blogData.shortDescription}</Descriptions.Item>
+          <Descriptions.Item label="Ngày tạo">{new Date(blogData.createdAt).toLocaleString('vi-VN')}</Descriptions.Item>
+          <Descriptions.Item label="Lượt xem">{blogData.viewCount} lượt</Descriptions.Item>
+        </Descriptions>
+      )
+    },
+    {
+      key: 'comments',
+      label: <Space><CommentOutlined />Bình luận</Space>,
+      children: <BlogComments blogId={blogData.id} />
+    }
+  ]
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {/* Header Section */}
+      <div 
+        style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          flexWrap: 'wrap', 
+          gap: 12, 
+          marginBottom: 24 
+        }}
+      >
+        <div>
+          <Title level={3} style={{ marginBottom: 4, marginTop: 0 }}>
+            Chi tiết bài viết
+          </Title>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Text type="secondary">ID: {blogData.id}</Text>
+            <Tag color={statusInfo.color} style={{ borderRadius: 4, margin: 0 }}>
+              {statusInfo.label}
+            </Tag>
+          </div>
+        </div>
+
+        <Space size="small" wrap>
+          {canEdit() && (
+            <Button 
+              type="primary" 
+              icon={<EditOutlined />} 
+              onClick={handleEdit}
+              style={BUTTON_STYLE}
+            >
+              Chỉnh sửa
+            </Button>
+          )}
+          <Dropdown menu={{ items: statusMenuItems }} trigger={['click']}>
+            <Button icon={<SwapOutlined />} style={BUTTON_STYLE}>
+              Trạng thái
+            </Button>
+          </Dropdown>
+          {canDelete() && (
+            <Popconfirm
+              title="Xác nhận xóa bài viết?"
+              onConfirm={handleDelete}
+              okText="Xóa"
+              cancelText="Hủy"
+              okButtonProps={{ danger: true }}
+            >
+              <Button danger icon={<DeleteOutlined />} style={BUTTON_STYLE}>
+                Xóa
+              </Button>
+            </Popconfirm>
+          )}
+          <Button 
+            icon={<ArrowLeftOutlined />} 
+            onClick={() => router.back()}
+            style={BUTTON_STYLE}
+          >
+            Quay lại
+          </Button>
+        </Space>
+      </div>
+
+      {/* Stats Bar */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+          {[
+            { label: 'Lượt xem', value: blogData.viewCount, suffix: 'lượt', icon: <EyeOutlined style={{ color: ICON_THEME_COLOR }} />, border: '#91d5ff', bgColor: '#e6f7ff' },
+            { label: 'Bình luận', value: '-', suffix: 'lượt', icon: <CommentOutlined style={{ color: ICON_THEME_COLOR }} />, border: '#ffe58f', bgColor: '#fffbe6' },
+            { label: 'Danh mục', value: blogData.categoryName, suffix: '', icon: <GlobalOutlined style={{ color: ICON_THEME_COLOR }} />, border: '#ffadd2', bgColor: '#fff0f6' },
+            { label: 'Ngày đăng', value: new Date(blogData.createdAt).toLocaleDateString('vi-VN'), suffix: '', icon: <CalendarOutlined style={{ color: ICON_THEME_COLOR }} />, border: '#b7eb8f', bgColor: '#f6ffed' },
+          ].map((item, idx) => (
+            <div key={idx} style={{ flex: '1 1 200px' }}>
+              <Card
+                style={{
+                  borderRadius: 8,
+                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                  borderBottom: `2px solid ${item.border}`,
+                  height: '100%'
+                }}
+                bodyStyle={{ padding: 16 }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div
+                    style={{
+                      width: 48, height: 48, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 20, flexShrink: 0,
+                      backgroundColor: item.bgColor,
+                    }}
+                  >
+                    {item.icon}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <Text
+                      type="secondary"
+                      style={{
+                        display: 'block', marginBottom: 4, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {item.label}
+                    </Text>
+                    <Statistic
+                      value={item.value}
+                      suffix={<span style={{ fontSize: 13, marginLeft: 4 }}>{item.suffix}</span>}
+                      valueStyle={{ fontSize: 20, fontWeight: 'bold', color: '#262626' }}
+                    />
+                  </div>
+                </div>
+              </Card>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <Row gutter={24}>
+        <Col xs={24} lg={17}>
+          <Card bordered={false} style={{ borderRadius: 16, minHeight: 600, boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
+            <Tabs 
+              activeKey={activeTab} 
+              onChange={setActiveTab} 
+              items={tabItems}
+              tabBarStyle={{ marginBottom: 24 }}
+            />
+          </Card>
+        </Col>
+
+        <Col xs={24} lg={7}>
+          <Space direction="vertical" style={{ width: '100%' }} size={24}>
+            {/* Author Card */}
+            <Card 
+              title={<span style={{ fontWeight: 600 }}>Tác giả</span>} 
+              bordered={false} 
+              style={{ borderRadius: 16, boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}
+            >
+              <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                <Avatar 
+                  size={80} 
+                  src={blogData.author?.avatarUrl} 
+                  icon={<UserOutlined />} 
+                  style={{ marginBottom: 16, border: '4px solid #f0f2f5' }}
+                />
+                <Title level={5} style={{ margin: 0 }}>{blogData.author?.fullName || 'Ẩn danh'}</Title>
+                <Text type="secondary" style={{ fontSize: 13 }}>ID: {blogData.author?.id}</Text>
+              </div>
+              <Divider style={{ margin: '16px 0' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <Text type="secondary">Vai trò:</Text>
+                <Tag color="cyan">Tác giả</Tag>
+              </div>
+            </Card>
+
+            {/* Attributes Card */}
+            <Card 
+              title={<span style={{ fontWeight: 600 }}>Thuộc tính</span>} 
+              bordered={false} 
+              style={{ borderRadius: 16, boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}
+            >
+              <Space direction="vertical" style={{ width: '100%' }} size={12}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Text type="secondary">Ngày tạo:</Text>
+                  <Text strong>{new Date(blogData.createdAt).toLocaleDateString('vi-VN')}</Text>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Text type="secondary">Độ dài tóm tắt:</Text>
+                  <Text strong>{blogData.shortDescription?.length || 0} ký tự</Text>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Text type="secondary">Chế độ:</Text>
+                  <Tag color={blogData.status === 1 ? 'green' : 'gold'}>
+                    {blogData.status === 1 ? 'Công khai' : 'Bản nháp'}
+                  </Tag>
+                </div>
+              </Space>
+            </Card>
+          </Space>
+        </Col>
+      </Row>
+    </div>
+  )
+}
 
 export default ViewBlogScreen

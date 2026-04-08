@@ -102,12 +102,12 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
     }))
   }
 
-  const markAsComplete = async () => {
+  const markAsComplete = async (performanceValue) => {
     if (!taskId) return
     try {
       await apiClient.post(ENDPOINTS.ROADMAP.COMPLETE, {
         taskId: taskId,
-        performance: 'string',
+        performance: performanceValue || 'Completed',
       })
     } catch (err) {
       console.error('Failed to mark practice task as complete:', err)
@@ -117,17 +117,20 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
   const handleNext = () => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex((p) => p + 1)
-    } else {
+    } else if (!isFinished) {
       const total = questions.length
       const correct = questions.reduce((acc, q, idx) => {
         return acc + (answers[idx] === q.correctOptionId ? 1 : 0)
       }, 0)
 
-      const passPercent = (correct / total) * 100
-      if (passPercent >= 50) {
-        markAsComplete()
+      const passPercentValue = total > 0 ? (correct / total) * 100 : 0
+      if (passPercentValue >= 50) {
+        markAsComplete(`Achieved ${Math.floor(passPercentValue)}%`)
       }
       setIsFinished(true)
+      setConfirmVisible(true)
+    } else {
+      // Đã xong rồi thì chỉ hiện lại modal kết quả
       setConfirmVisible(true)
     }
   }

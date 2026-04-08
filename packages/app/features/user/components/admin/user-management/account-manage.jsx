@@ -163,70 +163,66 @@ export default function AccountManage({ basePath = '/admin' }) {
   // ==========================================
   const columns = [
     {
-      // Thay vì title: 'STT'
-      title: () => (
-        <Tooltip title="Số thứ tự">
-          <span>STT</span>
-        </Tooltip>
-      ),
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>STT</span>,
       key: 'stt',
       align: 'center',
-      width: 60,
-      render: (_, __, index) => (filters.page - 1) * filters.size + index + 1
+      width: '5%',
+      render: (_, __, index) => (
+        <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>
+          {(filters.page - 1) * filters.size + index + 1}
+        </span>
+      )
     },
     {
       title: 'Avatar',
       key: 'avatar',
       align: 'center',
-      width: 80,
+      width: '8%',
       render: (_, record) => (
         <Avatar
+          size={{ xs: 32, sm: 40, md: 44, lg: 48, xl: 52, xxl: 60 }}
           src={record.avatarUrl || undefined}
-          style={{ backgroundColor: record.avatarUrl ? 'transparent' : '#1890ff', border: '1px solid #f0f0f0' }}
+          style={{ 
+            backgroundColor: record.avatarUrl ? 'transparent' : '#1890ff', 
+            border: '1px solid #f0f0f0',
+            fontSize: 'clamp(16px, 1.2vw, 20px)'
+          }}
         >
           {!record.avatarUrl && (record.fullName?.[0]?.toUpperCase() || record.name?.[0]?.toUpperCase() || 'U')}
         </Avatar>
       )
     },
     {
-      title: () => (
-        <Tooltip title="Họ và tên đầy đủ của người dùng">
-          <span>Họ tên</span>
-        </Tooltip>
-      ),
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Họ tên</span>,
       dataIndex: 'fullName',
-      render: (_, r) => r.fullName || r.name || '',
-      width: 300,
+      render: (_, r) => <span style={{ fontSize: 'clamp(13px, 1vw, 15px)', fontWeight: 500 }}>{r.fullName || r.name || ''}</span>,
+      width: '20%',
     },
     {
-      title: () => (
-        <Tooltip title="Địa chỉ email đăng ký">
-          <span>Email</span>
-        </Tooltip>
-      ),
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Email</span>,
       dataIndex: 'email',
-      width: 500,
+      render: (text) => <span style={{ fontSize: 'clamp(13px, 1vw, 15px)', color: '#595959', wordBreak: 'break-all' }}>{text}</span>,
+      width: '25%',
     },
     {
-      title: () => (
-        <Tooltip title="Phân quyền hệ thống">
-          <span>Vai trò</span>
-        </Tooltip>
-      ),
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Vai trò</span>,
       dataIndex: 'role',
       align: 'center',
-      width: 200,
-      render: val => getRoleLabel(val)
+      width: '15%',
+      render: val => <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>{getRoleLabel(val)}</span>
     },
     {
-      title: 'Trạng thái', dataIndex: 'status', align: 'center',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Trạng thái</span>,
+      dataIndex: 'status',
+      align: 'center',
+      width: '12%',
       render: val => {
         const cfg = STATUS_CONFIG[Number(val)] || STATUS_CONFIG[0]
         return (
           <Tooltip title={cfg.label} color={cfg.color} placement="top">
             <div style={{
-              width: 14,
-              height: 14,
+              width: 'clamp(14px, 1.2vw, 18px)',
+              height: 'clamp(14px, 1.2vw, 18px)',
               borderRadius: '50%',
               backgroundColor: cfg.color,
               margin: '0 auto',
@@ -238,9 +234,11 @@ export default function AccountManage({ basePath = '/admin' }) {
       }
     },
     {
-      title: 'Hành động', align: 'center',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Hành động</span>,
+      align: 'center',
+      width: '15%',
       render: (_, record) => {
-        const iconStyle = { fontSize: 18, cursor: 'pointer', color: '#1890ff' }
+        const iconStyle = { fontSize: 'clamp(18px, 1.4vw, 22px)', cursor: 'pointer', color: '#1890ff' }
         return (
           <Space size="large">
             <Tooltip title="Xem chi tiết">
@@ -298,19 +296,19 @@ export default function AccountManage({ basePath = '/admin' }) {
     <Space wrap>
       <Select
         allowClear placeholder="Lọc VIP" suffixIcon={<FilterOutlined />}
-        style={{ width: 140, height: 32, borderRadius: 16, fontSize: 13 }} value={filters.vipStatus}
+        style={{ minWidth: 120, width: 'min(160px, 100%)', height: 'clamp(32px, 36px, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }} value={filters.vipStatus}
         onChange={val => handleFilterChange('vipStatus', val)}
         options={VIP_STATUS_OPTIONS}
       />
       <Select
         allowClear placeholder="Lọc trạng thái" suffixIcon={<FilterOutlined />}
-        style={{ width: 140, height: 32, borderRadius: 16, fontSize: 13 }} value={filters.status}
+        style={{ minWidth: 120, width: 'min(160px, 100%)', height: 'clamp(32px, 36px, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }} value={filters.status}
         onChange={val => handleFilterChange('status', val)}
         options={Object.entries(STATUS_CONFIG).map(([val, cfg]) => ({ value: Number(val), label: cfg.label }))}
       />
       <Select
         allowClear placeholder="Lọc vai trò" suffixIcon={<FilterOutlined />}
-        style={{ width: 140, height: 32, borderRadius: 16, fontSize: 13 }} value={filters.role}
+        style={{ minWidth: 120, width: 'min(160px, 100%)', height: 'clamp(32px, 36px, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }} value={filters.role}
         onChange={val => handleFilterChange('role', val)}
         options={ROLE_OPTIONS}
       />

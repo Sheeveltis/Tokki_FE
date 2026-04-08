@@ -785,6 +785,34 @@ export async function rejectExamTemplate(examTemplateId, reason) {
   }
 }
 
+/**
+ * Import mẫu đề thi từ file Excel
+ * @param {File} file - Tệp Excel
+ * @returns {Promise<any>}
+ */
+export async function importExamTemplates(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await apiClient.post(ENDPOINTS.EXAM_TEMPLATES.IMPORT, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+  return res.data
+}
+
+/**
+ * Xuất mẫu đề thi ra file Excel
+ * @returns {Promise<Blob>}
+ */
+export async function exportExamTemplates() {
+  const res = await apiClient.get(ENDPOINTS.EXAM_TEMPLATES.EXPORT, {
+    responseType: 'blob'
+  })
+  return res.data
+}
+
+
 // Question Type APIs
 export async function fetchQuestionTypes(params = {}) {
   try {

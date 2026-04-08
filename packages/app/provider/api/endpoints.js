@@ -27,12 +27,12 @@ export const API_BASE_URL = `${DOMAIN}${PREFIX}`
 
 export const ENDPOINTS = {
   BLOG: {
-    GET_ALL: '/Blog',
+    GET_ALL: '/Blog/user',
     GET_BY_ID: (id) => `/Blog/${id}`,
     CREATE: '/Blog',                // POST: Tạo mới
     UPDATE: (id) => `/Blog/${id}`,
     DELETE: (id) => `/Blog/admin/delete/${id}`,
-    ADMIN_LIST: '/Blog', // same endpoint, nhưng dùng kèm query pageNumber/pageSize
+    ADMIN_LIST: '/Blog/admin',
     STAFF_SUBMIT_FOR_APPROVAL: (blogId) => `/Blog/staff/submit-for-approval/${blogId}`,
     MODERATOR_APPROVE: (blogId) => `/Blog/moderator/approve/${blogId}`,
     MODERATOR_REJECT: '/Blog/moderator/reject',
@@ -212,8 +212,9 @@ export const ENDPOINTS = {
     HEARTBEAT: '/Gamification/heartbeat',  // POST: Heartbeat để track thời gian học tập
     PROGRESS: '/Gamification/progress',  // GET: Lấy thông tin progress (level, XP, streak, title) cho user hiện tại
     GAME_XP: '/Gamification/game-xp', // POST: Cộng XP theo amount cho account hiện tại
+    ADD_XP: '/Gamification/add-xp', // POST: Cộng XP với amount và source (body: { amount, source })
   },
-  TITLE: {
+    TITLE: {
     GET_ALL: '/Title/admin',  // GET: Lấy danh sách danh hiệu (admin)
     GET_BY_ID: (id) => `/Title/${id}`,  // GET: Lấy thông tin title theo ID
     CREATE: '/Title',  // POST: Tạo mới danh hiệu
@@ -222,6 +223,8 @@ export const ENDPOINTS = {
     CHECK_DAILY_TITLES: '/Title/user/check-daily-titles', // POST: Kiểm tra và mở khóa danh hiệu hàng ngày
     MY_TITLES: '/Title/my-titles', // GET: Lấy danh sách danh hiệu của tôi (query: pageNumber, pageSize)
     EQUIP: '/Title/equip', // PUT: Trang bị danh hiệu
+    IMPORT: '/Title/import',
+    EXPORT: '/Title/export',
   },
   LEADERBOARD: {
     GET_ALL: '/Leaderboard',  // GET: Lấy danh sách leaderboard (query: timeFrame, top)
@@ -273,6 +276,8 @@ export const ENDPOINTS = {
     TEMPLATE_PARTS: '/ExamTemplates/TemplateParts',  // POST: Thêm/cập nhật template parts
     UPDATE_TEMPLATE_PART: (templatePartId) => `/ExamTemplates/TemplateParts/${templatePartId}`,  // PUT: Cập nhật một template part (templatePartId trong URL)
     DUPLICATE: (id) => `/ExamTemplates/${id}/duplicate`,  // POST: Sao chép exam template
+    IMPORT: '/ExamTemplates/import',
+    EXPORT: '/ExamTemplates/export',
   },
   EXAMS: {
     ADMIN_LIST: '/Exams/admin',              // GET: Lấy danh sách exams cho admin (query: PageNumber, PageSize, Status, Type)
@@ -289,6 +294,8 @@ export const ENDPOINTS = {
     UPDATE_EXAM_QUESTION: '/Exams/update-exam-question', // PUT: Cập nhật 1 câu hỏi trong đề (body: { examId, questionBankId, questionNo })
     REGENERATE_PART: '/Exams/regenerate-part', // POST: Random/regenerate lại bộ câu hỏi của một phần (body: { examId, templatePartId })
     EXPORT_PDF: (id) => `/Exams/${id}/export-pdf`, // GET: Xuất PDF
+    IMPORT: '/Exams/import',
+    EXPORT: '/Exams/export',
   },
   USER_EXAM: {
     TAKE_EXAM: (examId, isShuffle = true) =>
@@ -304,6 +311,7 @@ export const ENDPOINTS = {
     ANALYSIS: (userExamId) => `/UserExam/${encodeURIComponent(userExamId)}/analysis`,
     HISTORY: '/UserExam/user/history',
     PRACTICE_QUESTIONS: (questionTypeId, quantity = 10) => `/UserExam/${encodeURIComponent(questionTypeId)}?quantity=${quantity}`,
+    GRADING_PROGRESS: (userExamId) => `/UserExam/${encodeURIComponent(userExamId)}/grading-progress`,
     NEXT_SKILL: (userExamId) => `/UserExam/user/${encodeURIComponent(userExamId)}/next-skill`,
   },
   ROADMAP: {
@@ -314,10 +322,12 @@ export const ENDPOINTS = {
     CURRENT: '/Roadmap/current',
     TASK_DETAIL: (taskId) => `/Roadmap/task/${encodeURIComponent(taskId)}/detail`,
     COMPLETE: '/Roadmap/complete',
+    NEXT_WEEK: '/Roadmap/next-week',
   },
   SYSTEM_CONFIGS: {
     GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,
     GET_ALL: '/system-configs',
+    CREATE: '/system-configs',
     UPDATE: '/system-configs',
   },
 }

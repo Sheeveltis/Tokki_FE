@@ -34,6 +34,10 @@ export function RoadmapTestResultScreen() {
     Platform.OS === 'web'
       ? String(searchParams?.get?.('isEntrance') || '') === '1'
       : String(route?.params?.isEntrance || searchParams?.get?.('isEntrance') || '') === '1'
+  const taskId =
+    Platform.OS === 'web'
+      ? searchParams?.get?.('taskId')
+      : route?.params?.taskId || searchParams?.get?.('taskId')
   const [resultData, setResultData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -44,6 +48,7 @@ export function RoadmapTestResultScreen() {
   const [isDurationModalOpen, setIsDurationModalOpen] = useState(false)
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false)
   const [generateError, setGenerateError] = useState(null)
+  const [gradingProgress, setGradingProgress] = useState(null)
   const isGradedRef = useRef(false)
   const hasFetchedInitialRef = useRef(false)
   const feedbackRequestKeyRef = useRef(null)
@@ -160,25 +165,65 @@ export function RoadmapTestResultScreen() {
     if (!userExamId || isGradedRef.current) return
 
     try {
-      const url = ENDPOINTS.USER_EXAM.IS_GRADED(userExamId)
-      const response = await apiClient.get(url)
-      const graded = response?.data === true || response?.data?.data === true
-      
-      if (graded) {
-        isGradedRef.current = true
-        setIsGraded(true)
-        // Refresh result data when writing is graded
-        await fetchResult()
-        if (isEntrance) {
-          await fetchFeedback()
-          setIsDurationModalOpen(true)
+      // First check grading progress
+      const progressUrl = ENDPOINTS.USER_EXAM.GRADING_PROGRESS(userExamId)
+      const progressResponse = await apiClient.get(progressUrl)
+      const progressData = progressResponse?.data?.data
+
+      if (progressData) {
+        setGradingProgress(progressData)
+        
+        if (progressData.isCompleted) {
+          isGradedRef.current = true
+          setIsGraded(true)
+          // Refresh result data when writing is graded
+          await fetchResult()
+          if (isEntrance) {
+            await fetchFeedback()
+            setIsDurationModalOpen(true)
+          } else if (taskId) {
+            // Hoàn thành task cho roadmap (Day 7 Weekly Exam)
+            try {
+              await apiClient.post(ENDPOINTS.ROADMAP.COMPLETE, {
+                taskId,
+                performance: `Score: ${resultData?.totalScore || 0}`,
+              })
+            } catch (err) {
+              console.error('Failed to mark roadmap task as complete:', err)
+            }
+          }
+        }
+      } else {
+        // Fallback to old behavior if progress API doesn't return data
+        const url = ENDPOINTS.USER_EXAM.IS_GRADED(userExamId)
+        const response = await apiClient.get(url)
+        const graded = response?.data === true || response?.data?.data === true
+        
+        if (graded) {
+          isGradedRef.current = true
+          setIsGraded(true)
+          await fetchResult()
+          if (isEntrance) {
+            await fetchFeedback()
+            setIsDurationModalOpen(true)
+          } else if (taskId) {
+            // Hoàn thành task cho roadmap (Day 7 Weekly Exam)
+            try {
+              await apiClient.post(ENDPOINTS.ROADMAP.COMPLETE, {
+                taskId,
+                performance: `Score: ${resultData?.totalScore || 0}`,
+              })
+            } catch (err) {
+              console.error('Failed to mark roadmap task as complete:', err)
+            }
+          }
         }
       }
     } catch (err) {
       console.error('Failed to check if exam is graded:', err)
       // Không set error để không làm gián đoạn UI
     }
-  }, [userExamId, isEntrance, fetchResult, fetchFeedback])
+  }, [userExamId, isEntrance, taskId, fetchResult, fetchFeedback])
 
   useEffect(() => {
     if (!userExamId) {
@@ -203,10 +248,10 @@ export function RoadmapTestResultScreen() {
     // Check immediately
     checkIsGraded()
 
-    // Then check every 10 seconds
+    // Then check every 3 seconds
     const interval = setInterval(() => {
       checkIsGraded()
-    }, 10000) // 10 seconds
+    }, 3000) // 3 seconds
 
     return () => {
       clearInterval(interval)
@@ -220,13 +265,14 @@ export function RoadmapTestResultScreen() {
       isLoading={isLoading}
       error={error}
       isGraded={isGraded}
+      gradingProgress={gradingProgress}
       isEntrance={isEntrance}
       onNavigateToGenerate={() => {
         const query = `userExamId=${encodeURIComponent(userExamId)}&level=${targetAim}&selfDeclaredLevel=${selfDeclaredLevel}&isEntrance=1`
         router.push(`/roadmap/test/result/generate?${query}`)
       }}
       onRetake={() => {
-        router.push('/roadmap/info')
+        router.push('/roadmap/learning')
       }}
     />
   )

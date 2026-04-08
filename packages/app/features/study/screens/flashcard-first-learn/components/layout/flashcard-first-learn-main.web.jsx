@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from 'react'
-import { View, StyleSheet, Text, TouchableOpacity, TextInput, Platform, Modal, Image as RNImage } from 'react-native'
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Platform, Modal, Image as RNImage, Animated } from 'react-native'
 import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
 import { normalizeImageSource } from '@tokki/app/features/study/api'
 import SoundIcon from 'assets/icon/icon-mainflow/sound.svg'
+import CorrectIcon from 'assets/icon/icon-mainflow/correct.svg'
+import WarnIcon from 'assets/icon/icon-mainflow/warn.svg'
 import { studyStyles } from '@tokki/app/features/study/styles'
 import { LoadingWithContainer } from 'components/Loading'
 import { FlipCard } from 'components/FlipCard'
@@ -82,7 +84,7 @@ export function FlashcardFirstLearnMain({
       const src = isCorrect ? CorrectSfx : WrongSfx
       const audio = new Audio(src)
       audio.volume = 1
-      audio.play().catch(() => {})
+      audio.play().catch(() => { })
     } catch (e) {
       // ignore
     }
@@ -99,11 +101,24 @@ export function FlashcardFirstLearnMain({
     try {
       const audio = new Audio(DoneSfx)
       audio.volume = 1
-      audio.play().catch(() => {})
+      audio.play().catch(() => { })
     } catch (e) {
       // ignore
     }
   }, [isTopicCompleted])
+  
+  const iconScale = useRef(new Animated.Value(0)).current
+  useEffect(() => {
+    if (showResult) {
+      iconScale.setValue(0)
+      Animated.spring(iconScale, {
+        toValue: 1,
+        useNativeDriver: false,
+        friction: 4,
+        tension: 40,
+      }).start()
+    }
+  }, [showResult])
 
   const renderStep = () => {
     if (!current) return null
@@ -197,7 +212,14 @@ export function FlashcardFirstLearnMain({
           isCorrect ? styles.resultBoxCorrect : styles.resultBoxWrong,
         ]}
       >
-        <View style={[styles.resultBadge, isCorrect ? styles.resultCorrect : styles.resultWrong]} />
+        <Animated.View style={[styles.resultIconWrapper, { transform: [{ scale: iconScale }] }]}>
+          <StudyIcon
+            source={isCorrect ? CorrectIcon : WarnIcon}
+            width={64}
+            height={64}
+            tintColor={isCorrect ? '#2FB96B' : '#CF4B4B'}
+          />
+        </Animated.View>
 
         {current.imageUrl ? (
           <RNImage source={normalizeImageSource(current.imageUrl)} style={styles.cardImage} resizeMode="cover" />
@@ -212,16 +234,16 @@ export function FlashcardFirstLearnMain({
                 tintColor="#FFFFFF"
               />
             </TouchableOpacity>
-            <Text style={[styles.cardWord, styles.resultTextOnColor]}>
+            <Text style={styles.cardWord}>
               {current.word}
             </Text>
           </View>
           {current.pronunciation ? (
-            <Text style={[styles.cardPronun, styles.resultTextOnColor]}>
+            <Text style={styles.cardPronun}>
               {current.pronunciation}
             </Text>
           ) : null}
-          <Text style={[styles.cardMeaning, styles.resultTextOnColor]}>
+          <Text style={styles.cardMeaning}>
             {current.meaning}
           </Text>
           {!isCorrect ? (
@@ -268,7 +290,7 @@ export function FlashcardFirstLearnMain({
         </View>
       )
     }
-    
+
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>Chưa có từ vựng nào</Text>
@@ -306,17 +328,12 @@ export function FlashcardFirstLearnMain({
       )}
 
       {/* Dialog tiếp tục học */}
-      <Modal
-        visible={showContinueDialog}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={onStopLearning}
-      >
+      {showContinueDialog && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {hasMoreFlashcards 
-                ? `Bạn đã học xong ${completedInBatch} từ!` 
+              {hasMoreFlashcards
+                ? `Bạn đã học xong ${completedInBatch} từ!`
                 : 'Bạn đã học hết từ vựng!'}
             </Text>
             <Text style={styles.modalMessage}>
@@ -344,7 +361,7 @@ export function FlashcardFirstLearnMain({
             </View>
           </View>
         </View>
-      </Modal>
+      )}
     </View>
   )
 }
@@ -356,6 +373,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
     paddingBottom: 20,
+    paddingTop: 20,
   },
   statsRow: {
     width: '100%',
@@ -372,8 +390,8 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     width: '100%',
-    height: 10,
-    backgroundColor: '#F0F0F0',
+    height: 15,
+    backgroundColor: '#afafafff',
     borderRadius: 100,
     overflow: 'hidden',
   },
@@ -567,12 +585,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 16,
     padding: 32,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 4,
   },
   resultBoxCorrect: {
-    backgroundColor: '#2FB96B',
+    borderColor: '#2FB96B',
   },
   resultBoxWrong: {
-    backgroundColor: '#CF4B4B',
+    borderColor: '#CF4B4B',
+  },
+  resultIconWrapper: {
+    marginBottom: 10,
   },
   resultBadge: {
     paddingHorizontal: 14,
@@ -588,13 +611,13 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 8,
     padding: 12,
-    backgroundColor: '#ffffff33',
+    backgroundColor: '#FDECEA',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#ffffff66',
+    borderColor: '#CF4B4B',
   },
-  wrongLabel: { fontSize: 13, fontWeight: '700', color: '#FFFFFF' },
-  wrongText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  wrongLabel: { fontSize: 13, fontWeight: '700', color: '#CF4B4B' },
+  wrongText: { fontSize: 16, fontWeight: '700', color: '#CF4B4B' },
   stepContainer: {
     width: '100%',
     alignItems: 'center',
@@ -650,7 +673,12 @@ const styles = StyleSheet.create({
   completedText: { fontSize: 24, fontWeight: '800', color: '#4CAF50', marginBottom: 12 },
   completedSubtext: { fontSize: 16, color: '#666' },
   modalOverlay: {
-    flex: 1,
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     alignItems: 'center',
     justifyContent: 'center',

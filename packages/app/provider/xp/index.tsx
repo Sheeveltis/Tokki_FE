@@ -1,0 +1,128 @@
+import React, { createContext, useContext, useState, useCallback, useRef } from 'react'
+import { View, Platform } from 'react-native'
+import { apiClient } from '../api/client'
+import { ENDPOINTS } from '../api/endpoints'
+import { XpNotification } from '../../../components/xp-notification'
+
+/**
+ * Nguồn cộng XP (Enum mapping từ backend)
+ */
+export const XpSourceList = {
+  MINIGAME: 1,
+  VOCABULARY: 2,
+  DAILY_STREAK: 3,
+  EXAM: 4,
+}
+
+/**
+ * Danh sách System Config Keys liên quan đến XP
+ */
+export const XpConfigKeys = {
+  COMPLETED_FLASHCARD_TOPIC: "COMPLETED_FLASHCARD_TOPIC",
+  MINI_EXAM_TOPIK_I_REWARD: "MINI_EXAM_TOPIK_I_REWARD",
+  MINI_EXAM_TOPIK_II_REWARD: "MINI_EXAM_TOPIK_II_REWARD",
+  SRS_ON_TIME_REWARD: "SRS_ON_TIME_REWARD",
+  DAILY_GOAL_REWARD: "DAILY_GOAL_REWARD",
+  STREAK_RESET_CONDITION: "STREAK_RESET_CONDITION",
+  INACTIVE_PENALTY_TITLE: "INACTIVE_PENALTY_TITLE",
+  MINIGAME_WIN_LV1: "MINIGAME_WIN_LV1",
+  MINIGAME_WIN_LV2: "MINIGAME_WIN_LV2",
+  MINIGAME_WIN_LV3: "MINIGAME_WIN_LV3",
+  MINIGAME_LOSS_LV1: "MINIGAME_LOSS_LV1",
+  MINIGAME_LOSS_LV2: "MINIGAME_LOSS_LV2",
+  MINIGAME_LOSS_LV3: "MINIGAME_LOSS_LV3",
+  MINIGAME_BONUS_PB_LV1: "MINIGAME_BONUS_PB_LV1",
+  MINIGAME_BONUS_PB_LV2: "MINIGAME_BONUS_PB_LV2",
+  MINIGAME_BONUS_PB_LV3: "MINIGAME_BONUS_PB_LV3",
+  MINIGAME_DAILY_LIMIT: "MINIGAME_DAILY_LIMIT",
+}
+
+const XpContext = createContext({
+  addXp: async (configKey: string, source: number) => {},
+  visible: false,
+  xpValue: 0,
+  isLevelUp: false,
+  newLevel: 0,
+})
+
+export const useXp = () => useContext(XpContext)
+
+export const XpProvider = ({ children }: { children: React.ReactNode }) => {
+  const [notification, setNotification] = useState({
+    visible: false,
+    xpValue: 0,
+    isLevelUp: false,
+    newLevel: 0,
+  })
+  
+  const timerRef = useRef<any>(null)
+
+  /**
+   * Cộng XP dựa trên config key và source
+   * 1. Lấy giá trị XP từ system config
+   * 2. Gọi API cộng XP
+   * 3. Hiển thị thông báo
+   */
+  const addXp = useCallback(async (configKey: string, source: number) => {
+    // 0. OPTIMISTIC UI: HIỂN THỊ THÔNG BÁO LÊN NGAY LẬP TỨC TRƯỚC KHI CHỜ FETCH API
+    // Điều này đảm bảo XP bay ra ngay khi người dùng hoàn thành
+    if (timerRef.current) clearTimeout(timerRef.current)
+    setNotification({
+      visible: true,
+      xpValue: 10, // Hiển thị tạm 10XP ngay lập tức (nếu API có kết quả khác sẽ cập nhật sau)
+      isLevelUp: false,
+      newLevel: 0,
+    })
+
+    timerRef.current = setTimeout(() => {
+      setNotification(prev => ({ ...prev, visible: false }))
+    }, 4500)
+
+    try {
+      // 1. Lấy giá trị cấu hình (XP amount) ngầm
+      let xpAmount = 10; 
+      try {
+        const configRes = await apiClient.get(ENDPOINTS.SYSTEM_CONFIGS.GET_BY_KEY(configKey))
+        if (configRes.data && configRes.data.isSuccess) {
+          xpAmount = parseInt(configRes.data.data.value, 10)
+        } else if (configRes.data && configRes.data.value) {
+          xpAmount = parseInt(configRes.data.value, 10)
+        }
+      } catch (e) {
+        // Bỏ qua lỗi ngầm
+      }
+
+      if (isNaN(xpAmount) || xpAmount <= 0) xpAmount = 10
+
+      // 2. Gọi API cộng XP thực tế
+      const res = await apiClient.post(ENDPOINTS.GAMIFICATION.ADD_XP, {
+        amount: xpAmount,
+        source: source,
+      })
+
+      if (res.data && res.data.isSuccess) {
+        // Cập nhật lại số XP nếu thành công, lúc này Notification ĐÃ VÀ ĐANG hiển thị rồi 
+        setNotification(prev => ({
+          ...prev, // giữ nguyên trạng thái visible: true đang có
+          xpValue: res.data.data.xpAdded,
+          isLevelUp: res.data.data.isLevelUp,
+          newLevel: res.data.data.newLevel,
+        }))
+      }
+    } catch (err) {
+      console.error('[XP Error Handling]:', err)
+    }
+  }, [])
+
+  return (
+    <XpContext.Provider value={{ addXp, ...notification }}>
+      {children}
+      <XpNotification 
+        xp={notification.xpValue} 
+        visible={notification.visible} 
+        isLevelUp={notification.isLevelUp}
+        newLevel={notification.newLevel}
+      />
+    </XpContext.Provider>
+  )
+}

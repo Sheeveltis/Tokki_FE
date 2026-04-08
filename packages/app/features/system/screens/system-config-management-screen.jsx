@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Modal, Form, Space, Input, InputNumber, Switch, Tooltip, Typography, Tag, Button, Select } from 'antd'
-import { EditOutlined, EyeOutlined, SearchOutlined, SaveOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons'
+import { EditOutlined, EyeOutlined, SearchOutlined, SaveOutlined, FilterOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons'
 import { showAdminSuccess, showAdminError } from '../../../../components/HelperAdmin'
-import { fetchSystemConfigs, updateSystemConfig } from '../api/system-config'
+import { fetchSystemConfigs, updateSystemConfig, createSystemConfig } from '../api/system-config'
 import ManagementLayout from '../../../../components/layout/management-layout'
 import { useManagementFilters } from '../../back-office/hooks/use-management-filters'
 
@@ -20,8 +20,9 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
 
   const [data, setData] = useState({ items: [], total: 0 })
   const [loading, setLoading] = useState(false)
-  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [isEdit, setIsEdit] = useState(false)
   const [editingConfig, setEditingConfig] = useState(null)
 
   const [form] = Form.useForm()
@@ -64,12 +65,24 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
   }, [setFilters])
 
   const handleEdit = useCallback((record) => {
+    setIsEdit(true)
     setEditingConfig(record)
     form.setFieldsValue({
       ...record,
       value: record.dataType === 'int' ? Number(record.value) : record.value
     })
-    setEditModalOpen(true)
+    setModalOpen(true)
+  }, [form])
+
+  const handleCreate = useCallback(() => {
+    setIsEdit(false)
+    setEditingConfig(null)
+    form.resetFields()
+    form.setFieldsValue({
+      dataType: 'string',
+      isActive: true
+    })
+    setModalOpen(true)
   }, [form])
 
   const columns = useMemo(() => [
@@ -185,10 +198,10 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
 
   const actions = [
     {
-      label: 'Làm mới',
-      icon: <ReloadOutlined />,
-      type: 'dashed',
-      onPress: () => loadData(filters),
+      label: 'Thêm mới',
+      icon: <PlusOutlined />,
+      type: 'primary',
+      onPress: handleCreate,
     }
   ]
 
@@ -221,16 +234,16 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
       <Modal
         title={
           <Space>
-            <EditOutlined style={{ color: '#1890ff' }} />
-            <Text strong>Chỉnh sửa cấu hình hệ thống</Text>
+            {isEdit ? <EditOutlined style={{ color: '#1890ff' }} /> : <PlusOutlined style={{ color: '#52c41a' }} />}
+            <Text strong>{isEdit ? 'Chỉnh sửa cấu hình hệ thống' : 'Thêm mới cấu hình hệ thống'}</Text>
           </Space>
         }
-        open={editModalOpen}
-        onCancel={() => !saving && setEditModalOpen(false)}
+        open={modalOpen}
+        onCancel={() => !saving && setModalOpen(false)}
         destroyOnClose
         centered
         footer={[
-          <Button key="cancel" onClick={() => setEditModalOpen(false)} disabled={saving}>
+          <Button key="cancel" onClick={() => setModalOpen(false)} disabled={saving}>
             Hủy
           </Button>,
           <Button
@@ -240,7 +253,7 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
             loading={saving}
             onClick={() => form.submit()}
           >
-            Lưu thay đổi
+            {isEdit ? 'Lưu thay đổi' : 'Tạo mới cấu hình'}
           </Button>
         ]}
       >
@@ -255,42 +268,78 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
                 ...values,
                 value: String(values.value)
               }
-              await updateSystemConfig(payload)
-              showAdminSuccess('Đã cập nhật cấu hình hệ thống thành công')
-              setEditModalOpen(false)
+              if (isEdit) {
+                await updateSystemConfig(payload)
+                showAdminSuccess('Đã cập nhật cấu hình hệ thống thành công')
+              } else {
+                await createSystemConfig(payload)
+                showAdminSuccess('Đã tạo mới cấu hình hệ thống thành công')
+              }
+              setModalOpen(false)
               loadData(filters)
             } catch (err) {
-              showAdminError(err?.message || 'Cập nhật cấu hình thất bại')
+              showAdminError(err?.message || (isEdit ? 'Cập nhật cấu hình thất bại' : 'Tạo mới cấu hình thất bại'))
             } finally {
               setSaving(false)
             }
           }}
         >
-          <Form.Item label="Khóa (Key)" name="key">
-            <Input disabled placeholder="Mã cấu hình" />
+          <Form.Item
+            label="Khóa (Key)"
+            name="key"
+            rules={[{ required: true, message: 'Vui lòng nhập khóa (key)' }]}
+          >
+            <Input disabled={isEdit} placeholder="Ví dụ: TOKEN_EXPIRATION_TIME" />
           </Form.Item>
 
-          <Form.Item label="Loại dữ liệu" name="dataType">
-            <Input disabled placeholder="Kiểu dữ liệu" />
+          <Form.Item
+            label="Loại dữ liệu"
+            name="dataType"
+            rules={[{ required: true, message: 'Vui lòng chọn loại dữ liệu' }]}
+          >
+            <Select placeholder="Chọn kiểu dữ liệu">
+              <Select.Option value="string">String</Select.Option>
+              <Select.Option value="int">Integer</Select.Option>
+              <Select.Option value="boolean">Boolean</Select.Option>
+            </Select>
           </Form.Item>
 
-          {editingConfig?.dataType === 'int' ? (
-            <Form.Item
-              label="Giá trị"
-              name="value"
-              rules={[{ required: true, message: 'Vui lòng nhập giá trị số' }]}
-            >
-              <InputNumber style={{ width: '100%' }} placeholder="Nhập số..." />
-            </Form.Item>
-          ) : (
-            <Form.Item
-              label="Giá trị"
-              name="value"
-              rules={[{ required: true, message: 'Vui lòng nhập giá trị' }]}
-            >
-              <Input.TextArea autoSize={{ minRows: 2, maxRows: 6 }} placeholder="Nhập nội dung cấu hình..." />
-            </Form.Item>
-          )}
+          <Form.Item dependencies={['dataType']} noStyle>
+            {({ getFieldValue }) => {
+              const dataType = getFieldValue('dataType')
+              if (dataType === 'int') {
+                return (
+                  <Form.Item
+                    label="Giá trị"
+                    name="value"
+                    rules={[{ required: true, message: 'Vui lòng nhập giá trị số' }]}
+                  >
+                    <InputNumber style={{ width: '100%' }} placeholder="Nhập số..." />
+                  </Form.Item>
+                )
+              }
+              if (dataType === 'boolean') {
+                return (
+                  <Form.Item
+                    label="Giá trị"
+                    name="value"
+                    valuePropName="checked"
+                  >
+                    <Switch checkedChildren="ON" unCheckedChildren="OFF" />
+                  </Form.Item>
+                )
+              }
+              return (
+                <Form.Item
+                  label="Giá trị"
+                  name="value"
+                  rules={[{ required: true, message: 'Vui lòng nhập giá trị' }]}
+                >
+                  <Input.TextArea autoSize={{ minRows: 2, maxRows: 6 }} placeholder="Nhập nội dung cấu hình..." />
+                </Form.Item>
+              )
+            }}
+          </Form.Item>
 
           <Form.Item label="Mô tả" name="description">
             <Input.TextArea rows={3} placeholder="Mô tả chi tiết tác dụng của cấu hình này..." />

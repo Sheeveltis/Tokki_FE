@@ -74,5 +74,24 @@ export async function deleteTitle(id) {
   return { data: resData, message: resData?.message }
 }
 
+export async function importTitles(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await apiClient.post(ENDPOINTS.TITLE.IMPORT, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+  return res.data
+}
+
+export async function exportTitles() {
+  const res = await apiClient.get(ENDPOINTS.TITLE.EXPORT, {
+    responseType: 'blob',
+  })
+  return res.data
+}
+
+
 
 

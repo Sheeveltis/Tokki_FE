@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Space, Tag, Select, Tooltip, Card, Button } from 'antd'
-import { EyeOutlined, FilterOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { EyeOutlined, FilterOutlined, PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { message, Modal } from 'antd'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 import { useExamsAdmin } from '../../api/exam-hooks.js'
-import { deleteExam } from '../../api/exam-management.js'
+import { deleteExam, importExams, exportExams } from '../../api/exam-management.js'
 import CreateExamModal from '../../components/admin/create-exam-modal.jsx'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -59,6 +59,9 @@ export function ExamManagement({ initialData = null }) {
   })
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const fileInputRef = React.useRef(null)
 
   // Fetch exams from API
   const { data: examsData, isLoading } = useExamsAdmin({
@@ -96,55 +99,46 @@ export function ExamManagement({ initialData = null }) {
 
   const columns = useMemo(() => [
     {
-      title: () => (
-        <Tooltip title="Số thứ tự">
-          <span>STT</span>
-        </Tooltip>
-      ),
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>STT</span>,
       key: 'stt',
       align: 'center',
-      width: 60,
-      render: (_, __, index) => (filters.page - 1) * filters.size + index + 1
+      width: '5%',
+      render: (_, __, index) => (
+        <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>
+          {(filters.page - 1) * filters.size + index + 1}
+        </span>
+      )
     },
     {
-      title: 'Tiêu đề',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Tiêu đề</span>,
       dataIndex: 'title',
       key: 'title',
       ellipsis: true,
-      width: 180,
+      width: '25%',
+      render: (text) => <span style={{ fontWeight: 600, fontSize: 'clamp(13px, 1vw, 15px)' }}>{text}</span>
     },
     {
-      title: 'Cấu trúc đề',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Cấu trúc đề</span>,
       dataIndex: 'examTemplateName',
       key: 'examTemplateName',
       ellipsis: true,
-      width: 180,
+      width: '25%',
+      render: (text) => <span style={{ color: '#595959', fontSize: 'clamp(12px, 0.9vw, 14px)' }}>{text}</span>
     },
-    // { 
-    //   title: 'Nguồn tạo', 
-    //   dataIndex: 'creatorType', 
-    //   key: 'creatorType',
-    //   width: 100,
-    //   render: (val) => {
-    //     if (val === 1) return <Tag color="purple">A.I</Tag>
-    //     if (val === 2) return <Tag color="orange">Người tạo</Tag>
-    //     return <Tag color="default">Hệ thống</Tag>
-    //   }
-    // },
     {
-      title: 'Loại đề',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Loại đề</span>,
       dataIndex: 'type',
       key: 'type',
-      width: 100,
+      width: '12%',
       render: (type) => {
-        return <Tag color="blue" style={{ fontSize: 12 }}>{TYPE_MAP[type] || type}</Tag>
+        return <Tag color="blue" style={{ fontSize: 'clamp(11px, 0.8vw, 13px)', borderRadius: 4 }}>{TYPE_MAP[type] || type}</Tag>
       }
     },
     {
-      title: 'Trạng thái',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Trạng thái</span>,
       dataIndex: 'status',
       key: 'status',
-      width: 80,
+      width: '11%',
       align: 'center',
       render: (status) => {
         const statusInfo = STATUS_MAP[status] || { color: '#8c8c8c', text: `Status ${status}` }
@@ -152,8 +146,8 @@ export function ExamManagement({ initialData = null }) {
           <Tooltip title={statusInfo.text}>
             <div
               style={{
-                width: 14,
-                height: 14,
+                width: 'clamp(14px, 1.1vw, 18px)',
+                height: 'clamp(14px, 1.1vw, 18px)',
                 borderRadius: '50%',
                 backgroundColor: statusInfo.color,
                 margin: '0 auto',
@@ -166,58 +160,61 @@ export function ExamManagement({ initialData = null }) {
       }
     },
     {
-      title: 'Hành động',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Hành động</span>,
       key: 'actions',
       align: 'center',
-      width: 120,
-      render: (_, record) => (
-        <Space size="large">
-          <Tooltip title="Xem chi tiết">
-            <EyeOutlined
-              style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
-              onClick={(e) => {
-                e?.stopPropagation?.()
-                router.push(`/admin/exams/${record.examId}`)
-              }}
-            />
-          </Tooltip>
-          <Tooltip title="Chỉnh sửa">
-            <EditOutlined
-              style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
-              onClick={(e) => {
-                e?.stopPropagation?.()
-                router.push(`/admin/exams/${record.examId}`)
-              }}
-            />
-          </Tooltip>
-          <Tooltip title="Xóa">
-            <DeleteOutlined
-              style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
-              onClick={(e) => {
-                e?.stopPropagation?.()
-                Modal.confirm({
-                  title: 'Xác nhận xóa',
-                  content: `Bạn có chắc chắn muốn xóa đề thi "${record.title}"?`,
-                  okText: 'Xóa',
-                  okType: 'danger',
-                  cancelText: 'Hủy',
-                  onOk: async () => {
-                    try {
-                      await deleteExam(record.examId)
-                      message.success('Xóa đề thi thành công')
-                      queryClient.invalidateQueries({ queryKey: ['exams', 'admin'] })
-                    } catch (error) {
-                      message.error('Lỗi khi xóa đề thi')
+      width: '17%',
+      render: (_, record) => {
+        const iconStyle = { fontSize: 'clamp(18px, 1.4vw, 22px)', cursor: 'pointer', color: '#1890ff' }
+        return (
+          <Space size="large">
+            <Tooltip title="Xem chi tiết">
+              <EyeOutlined
+                style={iconStyle}
+                onClick={(e) => {
+                  e?.stopPropagation?.()
+                  router.push(`/admin/exams/${record.examId}`)
+                }}
+              />
+            </Tooltip>
+            <Tooltip title="Chỉnh sửa">
+              <EditOutlined
+                style={iconStyle}
+                onClick={(e) => {
+                  e?.stopPropagation?.()
+                  router.push(`/admin/exams/${record.examId}`)
+                }}
+              />
+            </Tooltip>
+            <Tooltip title="Xóa">
+              <DeleteOutlined
+                style={iconStyle}
+                onClick={(e) => {
+                  e?.stopPropagation?.()
+                  Modal.confirm({
+                    title: 'Xác nhận xóa',
+                    content: `Bạn có chắc chắn muốn xóa đề thi "${record.title}"?`,
+                    okText: 'Xóa',
+                    okType: 'danger',
+                    cancelText: 'Hủy',
+                    onOk: async () => {
+                      try {
+                        await deleteExam(record.examId)
+                        message.success('Xóa đề thi thành công')
+                        queryClient.invalidateQueries({ queryKey: ['exams', 'admin'] })
+                      } catch (error) {
+                        message.error('Lỗi khi xóa đề thi')
+                      }
                     }
-                  }
-                })
-              }}
-            />
-          </Tooltip>
-        </Space>
-      )
+                  })
+                }}
+              />
+            </Tooltip>
+          </Space>
+        )
+      }
     },
-  ], [filters, router])
+  ], [filters, router, queryClient])
 
   const renderCard = (record) => {
     const statusInfo = STATUS_MAP[record.status] || { color: '#8c8c8c', text: `Status ${record.status}` }
@@ -298,7 +295,7 @@ export function ExamManagement({ initialData = null }) {
         allowClear
         placeholder="Tất cả nguồn"
         suffixIcon={<FilterOutlined />}
-        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
+        style={{ width: 'clamp(140px, 12vw, 180px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
         value={filters.creatorFilter}
         onChange={(val) => handleFilterChange('creatorFilter', val)}
       >
@@ -311,7 +308,7 @@ export function ExamManagement({ initialData = null }) {
         allowClear
         placeholder="Tất cả trạng thái"
         suffixIcon={<FilterOutlined />}
-        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
+        style={{ width: 'clamp(140px, 12vw, 180px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
         value={filters.status}
         onChange={(val) => handleFilterChange('status', val)}
       >
@@ -324,7 +321,7 @@ export function ExamManagement({ initialData = null }) {
         allowClear
         placeholder="Tất cả loại đề"
         suffixIcon={<FilterOutlined />}
-        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
+        style={{ width: 'clamp(140px, 12vw, 180px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
         value={filters.type}
         onChange={(val) => handleFilterChange('type', val)}
       >
@@ -334,7 +331,7 @@ export function ExamManagement({ initialData = null }) {
 
       <Select
         placeholder="Sắp xếp theo"
-        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
+        style={{ width: 'clamp(140px, 12vw, 180px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
         value={filters.sortBy}
         onChange={(val) => handleFilterChange('sortBy', val)}
       >
@@ -345,7 +342,70 @@ export function ExamManagement({ initialData = null }) {
     </Space>
   )
 
+  const handleImport = async (file) => {
+    try {
+      setImporting(true)
+      const res = await importExams(file)
+      if (res?.isSuccess) {
+        message.success(res.message || 'Import đề thi thành công')
+        queryClient.invalidateQueries({ queryKey: ['exams', 'admin'] })
+      } else if (res?.message) {
+        Modal.error({
+          title: 'Lỗi Import Excel',
+          content: <div style={{ whiteSpace: 'pre-line' }}>{res.message}</div>,
+          width: 600,
+        })
+      }
+    } catch (e) {
+      const apiData = e?.response?.data
+      if (apiData?.message) {
+        Modal.error({
+          title: 'Lỗi Import Excel',
+          content: <div style={{ whiteSpace: 'pre-line' }}>{apiData.message}</div>,
+          width: 600,
+        })
+      } else {
+        message.error('Không thể import đề thi')
+      }
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  const handleExport = async () => {
+    try {
+      setExporting(true)
+      const blob = await exportExams()
+      const url = window.URL.createObjectURL(new Blob([blob]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `DS_DeThi_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '')}.xlsx`)
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode.removeChild(link)
+      message.success('Xuất file Excel thành công')
+    } catch (e) {
+      message.error('Không thể xuất file Excel')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const actions = [
+    {
+      label: 'Import',
+      icon: <UploadOutlined />,
+      type: 'dashed',
+      loading: importing,
+      onPress: () => fileInputRef.current?.click()
+    },
+    {
+      label: 'Export',
+      icon: <DownloadOutlined />,
+      type: 'dashed',
+      loading: exporting,
+      onPress: handleExport
+    },
     {
       label: 'Thêm mới',
       icon: <PlusOutlined />,
@@ -384,6 +444,20 @@ export function ExamManagement({ initialData = null }) {
         onSuccess={async (examId) => {
           await queryClient.invalidateQueries({ queryKey: ['exams', 'admin'] })
           router.push(`/admin/exams/${examId}`)
+        }}
+      />
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        accept=".xlsx, .xls"
+        onChange={(e) => {
+          const file = e.target.files[0]
+          if (file) {
+            handleImport(file)
+            e.target.value = ''
+          }
         }}
       />
     </>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter, usePathname } from 'solito/navigation'
 import {
   View,
   Image,
@@ -9,7 +10,6 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from 'react-native'
-import { useRouter } from 'solito/navigation'
 import { colors } from '../app/color'
 import { getAuthToken, clearAuthToken, getCurrentUserId } from '../app/provider/api/client'
 import { MessageModal } from './MessageModal'
@@ -27,6 +27,7 @@ import DictionaryIcon from '../assets/icon/navigate-app/dictionary.svg'
 import UserIcon from '../assets/user.png'
 import LogoutIcon from '../assets/icon/icon-mainflow/logout.svg'
 import StarIcon from '../assets/icon/icon-mainflow/star.svg'
+import PremiumButton from './PremiumButton'
 
 const HEADER_HEIGHT = 72
 
@@ -51,7 +52,15 @@ const IconRenderer = ({ icon, size = 24, tint }) => {
 
 const NavItem = ({ icon, label, tint, path, compact = false }) => {
   const router = useRouter()
+  const pathname = usePathname()
   const [isHovered, setIsHovered] = useState(false)
+
+  // Xác định xem item có đang ở trang hiện tại hay không
+  const isOnPage = pathname === path || (path !== '/' && path !== '/homepage' && pathname?.startsWith(path))
+
+  const activeColor = tint || '#78905E'
+  const isWeb = Platform.OS === 'web'
+  const isHighlighted = (isHovered && isWeb) || isOnPage
 
   return (
     <View style={styles.navItemContainer}>
@@ -60,20 +69,38 @@ const NavItem = ({ icon, label, tint, path, compact = false }) => {
         onHoverIn={() => setIsHovered(true)}
         onHoverOut={() => setIsHovered(false)}
         style={({ pressed }) => {
-          const active = pressed || (isHovered && Platform.OS === 'web')
+          const isPressed = pressed
           return [
             styles.navIconWrap,
-            active && styles.navIconWrapActive,
             compact && styles.navIconWrapCompact,
+            isHighlighted && { 
+               backgroundColor: activeColor + '15', // ~8% opacity
+               transform: [{ scale: 1.05 }]
+            },
+            isPressed && { transform: [{ scale: 0.95 }] },
           ]
         }}
       >
-        <IconRenderer icon={icon} size={compact ? 24 : 34} tint={tint} />
+        <IconRenderer 
+          icon={icon} 
+          size={compact ? 24 : 32} 
+          tint={isHighlighted ? activeColor : '#6A5634'} 
+        />
+        {isOnPage && !compact && <View style={[styles.activeIndicator, { backgroundColor: activeColor }]} />}
       </Pressable>
 
-      {!compact ? <Text style={[styles.navLabel, isHovered && Platform.OS === 'web' && styles.navLabelActive]}>{label}</Text> : null}
+      {!compact ? (
+        <Text
+          style={[
+            styles.navLabel,
+            isHighlighted && { color: activeColor, fontWeight: '700' },
+          ]}
+        >
+          {label}
+        </Text>
+      ) : null}
 
-      {compact && isHovered && Platform.OS === 'web' && (
+      {compact && isHovered && isWeb && (
         <View style={styles.tooltip}>
           <Text style={styles.tooltipText}>{label}</Text>
         </View>
@@ -91,7 +118,7 @@ export const Navbar = ({ position = 'fixed' }) => {
   const [authChecked, setAuthChecked] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [isPremiumHovered, setIsPremiumHovered] = useState(false)
+  const pathname = usePathname()
 
   useEffect(() => {
     const check = () => {
@@ -166,48 +193,9 @@ export const Navbar = ({ position = 'fixed' }) => {
               hasToken ? (
                 <>
                   <View style={styles.premiumWrapper}>
-                    <Pressable
+                    <PremiumButton
                       onPress={() => router.push('/payment-package')}
-                      onHoverIn={() => setIsPremiumHovered(true)}
-                      onHoverOut={() => setIsPremiumHovered(false)}
-                      style={({ pressed }) => [
-                        styles.premiumBtn,
-                        pressed && styles.premiumBtnPressed,
-                        isPremiumHovered && Platform.OS === 'web' && styles.premiumBtnHovered
-                      ]}
-                    >
-                      {Platform.OS === 'web' && (
-                        <style dangerouslySetInnerHTML={{
-                          __html: `
-                          @keyframes premium-shine {
-                            0% { left: -150%; opacity: 0; }
-                            20% { opacity: 0.8; }
-                            50% { left: 150%; opacity: 0; }
-                            100% { left: 150%; opacity: 0; }
-                          }
-                          .premium-shine-element {
-                            position: absolute !important;
-                            top: 0;
-                            width: 60px;
-                            height: 100%;
-                            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent) !important;
-                            transform: skewX(-25deg);
-                            animation: premium-shine 2s infinite ease-in-out;
-                            pointer-events: none;
-                            z-index: 1;
-                          }
-                        ` }} />
-                      )}
-                      {Platform.OS === 'web' && isPremiumHovered && (
-                        <View
-                          style={styles.shineInner}
-                          //@ts-ignore
-                          dataSet={{ className: 'premium-shine-element' }}
-                        />
-                      )}
-                      <IconRenderer icon={StarIcon} size={18} tint="#FFC107" />
-                      <Text style={styles.premiumText}>Premium</Text>
-                    </Pressable>
+                    />
                   </View>
 
                   {!isMobile ? (
@@ -243,32 +231,38 @@ export const Navbar = ({ position = 'fixed' }) => {
 
         {isMobile && mobileMenuOpen ? (
           <View style={styles.mobileDropdown}>
-            {navMenu.map((item) => (
-              <TouchableOpacity
-                key={item.path}
-                style={styles.mobileMenuItem}
-                onPress={() => {
-                  router.push(item.path)
-                  setMobileMenuOpen(false)
-                }}
-              >
-                <NavItem {...item} compact />
-              </TouchableOpacity>
-            ))}
+            {navMenu.map((item) => {
+              const isOnPage = pathname === item.path || (item.path !== '/' && item.path !== '/homepage' && pathname?.startsWith(item.path))
+              const activeColor = item.tint || '#78905E'
+              
+              return (
+                <TouchableOpacity
+                  key={item.path}
+                  style={[
+                    styles.mobileMenuItem, 
+                    isOnPage && { backgroundColor: activeColor + '10', borderLeftColor: activeColor, borderLeftWidth: 4 }
+                  ]}
+                  onPress={() => {
+                    router.push(item.path)
+                    setMobileMenuOpen(false)
+                  }}
+                >
+                  <NavItem {...item} compact />
+                </TouchableOpacity>
+              )
+            })}
 
             {authChecked && hasToken ? (
               <>
                 <View style={styles.mobileSeparator} />
-                <TouchableOpacity
-                  style={styles.mobileMenuItemInline}
-                  onPress={() => {
-                    router.push('/payment-package')
-                    setMobileMenuOpen(false)
-                  }}
-                >
-                  <IconRenderer icon={StarIcon} size={16} tint="#FFC107" />
-                  <Text style={[styles.mobileMenuText, styles.mobilePremiumText]}>Premium</Text>
-                </TouchableOpacity>
+                <View style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+                  <PremiumButton
+                    onPress={() => {
+                      router.push('/payment-package')
+                      setMobileMenuOpen(false)
+                    }}
+                  />
+                </View>
 
                 <TouchableOpacity
                   style={styles.mobileMenuItemInline}
@@ -369,7 +363,7 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 40,
     fontWeight: '900',
-    color: '#D4A232',
+    color: '#F1BE4B',
     fontFamily: 'Epilogue, sans-serif',
     letterSpacing: -2,
     ...(Platform.OS === 'web' && {
@@ -395,24 +389,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   navIconWrap: {
-    width: 100,
-    height: 34,
-    borderRadius: 12,
+    width: 80,
+    height: 48,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
     ...(Platform.OS === 'web' && {
-      transitionProperty: 'transform, opacity, background-color',
-      transitionDuration: '180ms',
-      transitionTimingFunction: 'ease-out',
+      transition: 'all 240ms ease-out',
     }),
   },
   navIconWrapActive: {
     opacity: 1,
-    transform: [{ translateY: -4 }],
-    backgroundColor: 'rgba(255,255,255,0.85)',
-    ...(Platform.OS === 'web' && {
-      boxShadow: '0 6px 16px rgba(141, 122, 75, 0.12)',
-    }),
   },
   navIconWrapCompact: {
     width: 34,
@@ -421,7 +409,7 @@ const styles = StyleSheet.create({
   navLabel: {
     fontSize: 11,
     color: '#6A5634',
-    fontWeight: '600',
+    fontWeight: '500',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
     ...(Platform.OS === 'web' && {
@@ -430,6 +418,13 @@ const styles = StyleSheet.create({
   },
   navLabelActive: {
     color: '#2A1F0D',
+  },
+  activeIndicator: {
+    position: 'absolute',
+    bottom: -2,
+    width: 24,
+    height: 3,
+    borderRadius: 2,
   },
   rightSection: {
     flexDirection: 'row',
@@ -463,53 +458,6 @@ const styles = StyleSheet.create({
   premiumWrapper: {
     padding: 2,
     position: 'relative',
-    overflow: 'hidden',
-  },
-  premiumBtn: {
-    height: 42,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: '#F3CD6A',
-    backgroundColor: '#FFF8E1',
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    position: 'relative',
-    overflow: 'hidden',
-    ...(Platform.OS === 'web' && {
-      transitionProperty: 'transform, opacity, backgroundColor, boxShadow, borderColor',
-      transitionDuration: '240ms',
-      transitionTimingFunction: 'ease-out',
-      boxShadow: '0 4px 15px rgba(243, 205, 106, 0.2)',
-    }),
-  },
-  premiumBtnHovered: {
-    backgroundColor: '#FFE9A8',
-    borderColor: '#E6B942',
-    transform: [{ translateY: -2 }],
-    ...(Platform.OS === 'web' && {
-      boxShadow: '0 6px 20px rgba(243, 205, 106, 0.4)',
-    }),
-  },
-  premiumBtnPressed: {
-    transform: [{ scale: 0.96 }],
-    backgroundColor: '#FFD54F',
-  },
-  shineInner: {
-    ...StyleSheet.absoluteFillObject,
-    ...(Platform.OS === 'web' && {
-      className: 'premium-shine',
-    }),
-  },
-  premiumText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#8A6200',
-    fontFamily: 'Epilogue, sans-serif',
-    letterSpacing: 0.3,
-    zIndex: 2,
   },
   avatar: {
     width: 30,
@@ -581,6 +529,10 @@ const styles = StyleSheet.create({
   },
   mobileMenuItem: {
     borderRadius: 10,
+    marginVertical: 2,
+  },
+  mobileMenuItemActive: {
+    backgroundColor: '#F5F5F5',
   },
   mobileMenuItemInline: {
     flexDirection: 'row',

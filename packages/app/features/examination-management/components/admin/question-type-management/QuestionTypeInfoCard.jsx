@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Card, Divider, Space, Tag, Typography, Input, Select, Button, Form, Descriptions, Tooltip } from 'antd'
+import { Card, Divider, Space, Tag, Typography, Input, Select, Button, Form, Descriptions, Tooltip, message } from 'antd'
 import { updateQuestionType } from '../../../api/question-type-management'
-import { showAdminSuccess, showAdminError } from '../../../../../../components/HelperAdmin.jsx'
 
 const { Title, Text, Paragraph } = Typography
 const { TextArea } = Input
@@ -66,7 +65,7 @@ export function QuestionTypeInfoCard({ questionType, isEditing: isEditingProp, o
       }
 
       await updateQuestionType(questionType.questionTypeId, payload)
-      showAdminSuccess('Đã cập nhật loại câu hỏi thành công')
+      message.success('Đã cập nhật loại câu hỏi thành công')
       
       // Call onUpdate callback to refresh data
       if (onUpdate) {
@@ -77,7 +76,7 @@ export function QuestionTypeInfoCard({ questionType, isEditing: isEditingProp, o
         // Form validation error
         return
       }
-      showAdminError(error?.message || 'Cập nhật loại câu hỏi thất bại')
+      message.error(error?.message || 'Cập nhật loại câu hỏi thất bại')
     } finally {
       setLoading(false)
     }
@@ -263,10 +262,20 @@ export function QuestionTypeInfoCard({ questionType, isEditing: isEditingProp, o
             <>
               <Divider style={{ margin: '16px 0' }} />
               <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-                <Button onClick={handleCancel} size="large">
+                <Button 
+                  onClick={handleCancel} 
+                  size="large"
+                  style={{ borderRadius: 20, height: 40, minWidth: 100, fontWeight: 600 }}
+                >
                   Hủy
                 </Button>
-                <Button type="primary" onClick={handleSave} loading={loading} size="large">
+                <Button 
+                  type="primary" 
+                  onClick={handleSave} 
+                  loading={loading} 
+                  size="large"
+                  style={{ borderRadius: 20, height: 40, minWidth: 100, fontWeight: 600 }}
+                >
                   Xác nhận
                 </Button>
               </Space>
