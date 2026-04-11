@@ -135,6 +135,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
+    boxShadow: '0 4px 6px rgba(136, 0, 136, 0.3)',
     elevation: 8,
   },
   text: {

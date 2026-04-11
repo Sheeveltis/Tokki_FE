@@ -165,7 +165,7 @@ export function QuestionListSection({
   const approvalCount = Object.values(approvalStatuses).filter((s) => s === 'approve' || s === 'reject').length
 
   return (
-    <Card styles={{ body: { padding: 0 } }} bordered={false}>
+    <Card styles={{ body: { padding: 0 } }} variant="borderless">
       <QuestionFilter 
         filters={filters} 
         onFilterChange={onFilterChange} 
