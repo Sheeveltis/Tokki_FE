@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, Typography, Space, Button, Popconfirm, Tag, Checkbox, Input } from 'antd'
+import { Card, Typography, Space, Button, Tag, Checkbox, Input } from 'antd'
 import { EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, SendOutlined, CheckOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import { QuestionEditForm } from './QuestionEditForm'
 import { OptionsEditor } from './OptionsEditor'
@@ -155,9 +155,7 @@ export function QuestionCard({
             )}
             {canEdit && <Button type="text" icon={<EditOutlined />} onClick={() => onEdit(key)}>Sửa</Button>}
             {canDelete && (
-              <Popconfirm title="Xóa câu hỏi?" onConfirm={() => onDeleteQuestion(key)}>
-                <Button type="text" danger icon={<DeleteOutlined />} loading={deletingId === key} />
-              </Popconfirm>
+              <Button type="text" danger icon={<DeleteOutlined />} loading={deletingId === key} onClick={() => onDeleteQuestion(key)} />
             )}
             {canResubmit && onSubmitForApproval && (
               <Button type="primary" ghost icon={<SendOutlined />} onClick={() => onSubmitForApproval(key)}>Gửi duyệt</Button>

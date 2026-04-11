@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Typography, Spin, Pagination } from 'antd'
+import { Typography, Spin, Pagination, Modal } from 'antd'
 import { fetchPassageById, fetchPassages, fetchQuestionTypes, updateQuestionBank, activateQuestionBanks, deleteQuestionBank } from '../../../api/question-bank-management.js'
 import { submitQuestionBanksForApproval } from '../../../api/create-question.js'
+import { ExclamationCircleOutlined } from '@ant-design/icons'
 import { uploadOptionImageToCloudinary, uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary } from '../../../../back-office/api/cloudinary.js'
 import { showAdminSuccess, showAdminError } from '../../../../../../components/HelperAdmin.jsx'
 import { QuestionCard } from './QuestionCard'
@@ -97,27 +98,38 @@ export function QuestionCardList({
     const questionBankId = question.questionBankId || question.id
     const status = question.status ?? QUESTION_BANK_STATUS.DRAFT
 
-    try {
-      setDeletingId(questionId)
-      if (status === QUESTION_BANK_STATUS.ASSIGNED) {
-        // Assigned: chỉ chuyển status -> Deleted, giữ nguyên options
-        await updateQuestionBank({ questionBankId, status: QUESTION_BANK_STATUS.DELETED })
-        showAdminSuccess('Đã chuyển câu hỏi sang trạng thái Đã xóa')
-      } else if (status === QUESTION_BANK_STATUS.DRAFT || status === QUESTION_BANK_STATUS.ACTIVE) {
-        // Draft/Active: xóa hẳn (backend sẽ xóa luôn options)
-        await deleteQuestionBank(questionBankId)
-        showAdminSuccess('Đã xóa câu hỏi thành công')
-      } else {
-        showAdminError('Chỉ có thể xóa câu hỏi ở trạng thái Nháp, Hoạt động hoặc Đã gán (Assigned)')
+    Modal.confirm({
+      title: 'Xác nhận xóa câu hỏi',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Bạn có chắc chắn muốn xóa câu hỏi này không? Thao tác này có thể không hoàn tác được.',
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      centered: true,
+      onOk: async () => {
+        try {
+          setDeletingId(questionId)
+          if (status === QUESTION_BANK_STATUS.ASSIGNED) {
+            // Assigned: chỉ chuyển status -> Deleted, giữ nguyên options
+            await updateQuestionBank({ questionBankId, status: QUESTION_BANK_STATUS.DELETED })
+            showAdminSuccess('Đã chuyển câu hỏi sang trạng thái Đã xóa')
+          } else if (status === QUESTION_BANK_STATUS.DRAFT || status === QUESTION_BANK_STATUS.ACTIVE) {
+            // Draft/Active: xóa hẳn (backend sẽ xóa luôn options)
+            await deleteQuestionBank(questionBankId)
+            showAdminSuccess('Đã xóa câu hỏi thành công')
+          } else {
+            showAdminError('Chỉ có thể xóa câu hỏi ở trạng thái Nháp, Hoạt động hoặc Đã gán (Assigned)')
+          }
+          if (onDeleted) {
+            onRefresh ? onRefresh() : onDeleted?.(questionId)
+          }
+        } catch (error) {
+          showAdminError(error?.message || 'Xóa câu hỏi thất bại')
+        } finally {
+          setDeletingId(null)
+        }
       }
-      if (onDeleted) {
-        onRefresh ? onRefresh() : onDeleted?.(questionId)
-      }
-    } catch (error) {
-      showAdminError(error?.message || 'Xóa câu hỏi thất bại')
-    } finally {
-      setDeletingId(null)
-    }
+    })
   }
 
   const handleResubmitForApproval = async (questionId) => {
