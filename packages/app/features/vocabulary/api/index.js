@@ -1516,3 +1516,48 @@ export async function exportTopicToExcel(topicId) {
   }
 }
 
+/**
+ * Thêm từ vựng vào danh sách yêu thích
+ * @param {string} vocabularyId 
+ */
+export async function addFavoriteVocabulary(vocabularyId) {
+  try {
+    const res = await apiClient.post(ENDPOINTS.FAVORITES.ADD, { vocabularyId })
+    return res?.data
+  } catch (error) {
+    console.error('Error adding to favorites:', error)
+    throw error
+  }
+}
+
+/**
+ * Xóa từ vựng khỏi danh sách yêu thích
+ * @param {string} vocabularyId 
+ */
+export async function removeFavoriteVocabulary(vocabularyId) {
+  try {
+    // API REMOVE thường dùng DELETE với body hoặc query
+    const res = await apiClient.delete(ENDPOINTS.FAVORITES.REMOVE, {
+      data: { vocabularyId }
+    })
+    return res?.data
+  } catch (error) {
+    console.error('Error removing from favorites:', error)
+    throw error
+  }
+}
+
+/**
+ * Lấy danh sách yêu thích để kiểm tra status
+ * (Có thể tối ưu bằng một API check riêng nếu backend hỗ trợ)
+ */
+export async function fetchFavorites(params = {}) {
+  try {
+    const res = await apiClient.get(ENDPOINTS.FAVORITES.GET_ALL, { params })
+    return res?.data?.data?.items || []
+  } catch (error) {
+    console.error('Error fetching favorites:', error)
+    return []
+  }
+}
+
