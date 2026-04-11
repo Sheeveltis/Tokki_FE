@@ -263,10 +263,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.05,
-    shadowRadius: 20,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 10px 20px rgba(0, 0, 0, 0.05)',
+    } : {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.05,
+      shadowRadius: 20,
+    }),
     minHeight: 600,
   },
   headerSection: {
@@ -322,10 +326,14 @@ const styles = StyleSheet.create({
   searchInputContainerFocused: {
     borderColor: '#F1BE4B',
     backgroundColor: '#FFFFFF',
-    shadowColor: '#F1BE4B',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 4px 12px rgba(241, 190, 75, 0.08)',
+    } : {
+      shadowColor: '#F1BE4B',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 12,
+    }),
   },
   searchInput: {
     flex: 1,
@@ -342,10 +350,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#F1BE4B',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 4px 8px rgba(241, 190, 75, 0.2)',
+    } : {
+      shadowColor: '#F1BE4B',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+    }),
   },
   searchIconBtnDisabled: {
     backgroundColor: '#E5E7EB',
@@ -473,10 +485,14 @@ const styles = StyleSheet.create({
   vocabCardHover: {
     borderColor: '#F1BE4B',
     transform: [{ scale: 1.02 }],
-    shadowColor: '#F1BE4B',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.05,
-    shadowRadius: 16,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 8px 16px rgba(241, 190, 75, 0.05)',
+    } : {
+      shadowColor: '#F1BE4B',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.05,
+      shadowRadius: 16,
+    }),
   },
   vocabInfo: {
     gap: 10,
