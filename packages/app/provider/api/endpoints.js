@@ -246,6 +246,7 @@ export const ENDPOINTS = {
     UPLOAD_TITLE_IMAGE: '/Cloudinary/image/title',  // POST: Upload ảnh title lên Cloudinary
   },
   EXCEL: {
+    IMPORT_VOCAB: '/Excel/import/vocab',
     ADD_VOCAB_TO_TOPIC: (topicId) => `/Excel/import/vocab?topicId=${topicId}`,  // POST: Import từ vựng từ Excel vào chủ đề
     EXPORT_BY_TOPIC: (topicId) => `/Excel/export/topic/${topicId}`,  // GET: Export từ vựng của chủ đề ra Excel
     IMPORT_QUESTIONS: '/Excel/import/questions', // POST: Import câu hỏi từ Excel theo QuestionTypeId

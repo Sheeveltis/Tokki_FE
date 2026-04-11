@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'solito/navigation'
 import { EyeOutlined, PlusOutlined, GlobalOutlined, FilterOutlined, UploadOutlined, DownloadOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
-import { Modal, Select, Space, Tooltip, message } from 'antd'
-import { fetchVocabularies, updateVocabulary, deleteVocabulary, uploadVocabularyImageToCloudinary, fetchVocabularyDetail } from '../../api/index.js'
+import { Modal, Select, Space, Tooltip, message, Badge, Button as AntButton, Table } from 'antd'
+import { fetchVocabularies, updateVocabulary, deleteVocabulary, uploadVocabularyImageToCloudinary, fetchVocabularyDetail, importVocabulariesFromExcel } from '../../api/index.js'
 import VocabularyEditModal from '../../components/admin/vocabulary-detail/vocabulary-edit-modal.jsx'
 import VocabularyCreateModal from '../../components/admin/vocabulary-detail/vocabulary-create-modal.jsx'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
@@ -49,6 +49,9 @@ export function VocabularyManagement({ initialData = null }) {
   const [editLoading, setEditLoading] = useState(false)
   const [editingVocab, setEditingVocab] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState(null)
+  const fileInputRef = useRef(null)
 
   // Xác định cổng hiện tại dựa vào URL
   const getCurrentPortal = () => {
@@ -254,6 +257,41 @@ export function VocabularyManagement({ initialData = null }) {
     })
   }
 
+  // ==========================================
+  // EXCEL HANDLERS
+  // ==========================================
+  const handleImportClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Reset input để có thể chọn lại cùng 1 file
+    e.target.value = ''
+
+    setImporting(true)
+    const hide = message.loading('Đang xử lý file Excel...', 0)
+    try {
+      const res = await importVocabulariesFromExcel(file)
+      if (res?.isSuccess) {
+        setImportResult(res.data)
+        message.success(res.message || 'Import hoàn tất')
+        // Load lại trang đầu tiên
+        loadData(1, filters.size, filters.status, filters.search)
+      } else {
+        message.error(res?.message || 'Import thất bại')
+      }
+    } catch (err) {
+      console.error('Import error:', err)
+      message.error(getApiErrorMessage(err, 'Lỗi hệ thống khi import file'))
+    } finally {
+      setImporting(false)
+      hide()
+    }
+  }
+
   const columns = useMemo(() => [
     {
       title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>STT</span>,
@@ -375,7 +413,8 @@ export function VocabularyManagement({ initialData = null }) {
       icon: <UploadOutlined />,
       // color: '#107c41',
       type: 'dashed',
-      onPress: () => console.info('Import vocabularies'),
+      onPress: handleImportClick,
+      loading: importing,
     },
     {
       label: 'Export',
@@ -457,6 +496,84 @@ export function VocabularyManagement({ initialData = null }) {
           loadData(1, filters.size, filters.status, filters.search)
         }}
       />
+
+      {/* Hidden File Input for Import */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        accept=".xlsx, .xls"
+        onChange={handleFileChange}
+      />
+
+      {/* Import Result Modal */}
+      <Modal
+        title={<span style={{ fontWeight: 700, fontSize: 'clamp(16px, 1.2vw, 20px)' }}>Kết quả Import Excel</span>}
+        open={!!importResult}
+        onOk={() => setImportResult(null)}
+        onCancel={() => setImportResult(null)}
+        width={800}
+        centered
+        footer={[
+          <AntButton 
+            key="close" 
+            type="primary" 
+            onClick={() => setImportResult(null)}
+            style={{ borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 }}
+          >
+            Đóng
+          </AntButton>
+        ]}
+      >
+        {importResult && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', gap: 24 }}>
+              <Badge count={importResult.successList?.length || 0} showZero color="#52c41a">
+                <span style={{ marginRight: 8, fontWeight: 500, fontSize: 'clamp(13px, 1vw, 15px)' }}>Thành công</span>
+              </Badge>
+              <Badge count={importResult.failureList?.length || 0} showZero color="#f5222d">
+                <span style={{ marginRight: 8, fontWeight: 500, fontSize: 'clamp(13px, 1vw, 15px)' }}>Thất bại</span>
+              </Badge>
+            </div>
+
+            {importResult.failureList?.length > 0 && (
+              <>
+                <div style={{ fontWeight: 600, color: '#f5222d', marginTop: 8, fontSize: 'clamp(13px, 1vw, 15px)' }}>
+                  Danh sách lỗi chi tiết:
+                </div>
+                <Table
+                  dataSource={importResult.failureList}
+                  rowKey={(record, index) => index}
+                  pagination={{ pageSize: 5 }}
+                  size="small"
+                  columns={[
+                    { 
+                      title: <span style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>Từ vựng</span>, 
+                      dataIndex: 'text', 
+                      key: 'text', 
+                      width: 150,
+                      render: (text) => <span style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>{text}</span>
+                    },
+                    { 
+                      title: <span style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>Định nghĩa</span>, 
+                      dataIndex: 'definition', 
+                      key: 'definition', 
+                      width: 250,
+                      render: (text) => <span style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>{text}</span>
+                    },
+                    {
+                      title: <span style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>Lý do lỗi</span>,
+                      dataIndex: 'reason',
+                      key: 'reason',
+                      render: (text) => <span style={{ color: '#ff4d4f', fontSize: 'clamp(12px, 0.9vw, 14px)' }}>{text}</span>
+                    },
+                  ]}
+                />
+              </>
+            )}
+          </div>
+        )}
+      </Modal>
     </>
   )
 }

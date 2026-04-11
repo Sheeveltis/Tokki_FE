@@ -1418,6 +1418,48 @@ export async function uploadExcelToTopic(topicId, file) {
 }
 
 /**
+ * Import từ vựng từ file Excel (chung)
+ * @param {File} file - File Excel cần import
+ * @returns {Promise<Object>} - Response từ API với successList và failureList
+ */
+export async function importVocabulariesFromExcel(file) {
+  try {
+    if (!file) {
+      throw new Error('File Excel là bắt buộc')
+    }
+
+    // Tạo FormData để gửi file
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const res = await apiClient.post(ENDPOINTS.EXCEL.IMPORT_VOCAB, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 0, // Không giới hạn thời gian cho import Excel vì backend xử lý lâu
+    })
+
+    const payload = res?.data
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể import từ vựng từ Excel'
+      throw { status: payload?.statusCode || 400, message, errors: payload?.errors, response: payload }
+    }
+
+    return payload
+  } catch (error) {
+    console.error('Error importing vocabularies from Excel:', error)
+    // Ném error để component có thể xử lý và hiển thị thông báo
+    if (error?.response) {
+      throw error.response
+    }
+    throw error
+  }
+}
+
+/**
  * Export từ vựng theo chủ đề ra file Excel
  * @param {string} topicId - ID của chủ đề
  * @returns {Promise<Blob>} - File Excel dưới dạng Blob
