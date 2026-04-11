@@ -159,12 +159,12 @@ export const ExamContentTab = ({
                   <div key={group.key} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     {group.passage && (
                       <Card
-                        bordered={false}
+                        variant="borderless"
                         style={{
                           backgroundColor: '#fafafa', border: '1px solid #f0f0f0',
                           borderRadius: 8, overflow: 'hidden'
                         }}
-                        bodyStyle={{ padding: 0 }}
+                        styles={{ body: { padding: 0 } }}
                       >
                         <Row gutter={0}>
                           {group.passage.imageUrl && (

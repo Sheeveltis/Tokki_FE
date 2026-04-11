@@ -116,7 +116,7 @@ export function ExamTemplateApprovalModal({ open, loading, onCancel, onSubmit, i
                 transform: isApprove ? 'scale(1.02)' : 'scale(1)',
                 position: 'relative',
               }}
-              bodyStyle={{ padding: 0 }}
+              styles={{ body: { padding: 0 } }}
             >
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
                 <div
@@ -191,7 +191,7 @@ export function ExamTemplateApprovalModal({ open, loading, onCancel, onSubmit, i
                 transform: isReject ? 'scale(1.02)' : 'scale(1)',
                 position: 'relative',
               }}
-              bodyStyle={{ padding: 0 }}
+              styles={{ body: { padding: 0 } }}
             >
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
                 <div

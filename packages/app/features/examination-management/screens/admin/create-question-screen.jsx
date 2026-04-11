@@ -145,7 +145,7 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
   return (
     <div style={{ padding: 24 }}>
       <Card>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Space orientation="vertical" size="large" style={{ width: '100%' }}>
           <div>
             <Title level={3} style={{ marginBottom: 4 }}>
               Tạo câu hỏi mới
@@ -187,7 +187,6 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
               <Space>
                 <Button
                   onClick={handleCancel}
-                  style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#373039', color: '#fff', border: 'none' }}
                 >
                   Hủy
                 </Button>
@@ -195,7 +194,6 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
                   type="primary"
                   onClick={() => form.submit()}
                   loading={loading}
-                  style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#F87218', borderColor: '#F87218' }}
                 >
                   Tạo mới
                 </Button>

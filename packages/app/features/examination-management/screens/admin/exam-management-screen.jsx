@@ -236,7 +236,7 @@ export function ExamManagement({ initialData = null }) {
           display: 'flex',
           flexDirection: 'column'
         }}
-        bodyStyle={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}
+        styles={{ body: { padding: 16, flex: 1, display: 'flex', flexDirection: 'column' } }}
         onClick={() => router.push(`/admin/exams/${record.examId}`)}
       >
         <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

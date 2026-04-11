@@ -82,7 +82,7 @@ export default function ExamTemplateDetailDrawer({ open, onClose, examTemplateId
       ) : !examTemplate ? (
         <Alert message="Không tìm thấy mẫu đề" type="warning" showIcon />
       ) : (
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Space orientation="vertical" size="large" style={{ width: '100%' }}>
           {/* Thông tin cơ bản */}
           <div>
             <Title level={4} style={{ marginBottom: 16 }}>

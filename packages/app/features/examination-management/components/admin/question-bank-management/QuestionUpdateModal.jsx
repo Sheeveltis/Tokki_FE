@@ -89,8 +89,8 @@ export function QuestionUpdateModal({ open, question, onCancel, onUpdated }) {
 
   const validatePassageSkillCompatibility = (passageId, questionTypeId) => {
     if (!passageId || !questionTypeId) return true
-    const passage = allPassages.find(p => p.passageId === passageId)
-    const questionType = questionTypes.find(t => t.questionTypeId === questionTypeId)
+    const passage = Array.isArray(allPassages) ? allPassages.find(p => p.passageId === passageId) : null
+    const questionType = Array.isArray(questionTypes) ? questionTypes.find(t => t.questionTypeId === questionTypeId) : null
     if (!passage || !questionType) return true
     const skill = questionType.skill
     const mediaType = passage.mediaType
@@ -178,8 +178,8 @@ export function QuestionUpdateModal({ open, question, onCancel, onUpdated }) {
             setMediaObjectUrl={setMediaObjectUrl}
             allPassages={allPassages}
             loadingPassages={loadingPassages}
-            currentPassage={editForm.passageId ? allPassages.find(p => p.passageId === editForm.passageId) : null}
-            currentQuestionType={editForm.questionTypeId ? questionTypes.find(t => t.questionTypeId === editForm.questionTypeId) : null}
+            currentPassage={editForm.passageId && Array.isArray(allPassages) ? allPassages.find(p => p.passageId === editForm.passageId) : null}
+            currentQuestionType={editForm.questionTypeId && Array.isArray(questionTypes) ? questionTypes.find(t => t.questionTypeId === editForm.questionTypeId) : null}
             validatePassageSkillCompatibility={validatePassageSkillCompatibility}
             onOpenTypeSelector={() => setShowTypeSelector(true)}
           />

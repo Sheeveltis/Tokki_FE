@@ -75,7 +75,7 @@ export function QuestionCard({
   return (
     <Card
       key={key}
-      bordered
+      variant="outlined"
       style={{
         marginBottom: 24,
         borderRadius: 12,
@@ -85,10 +85,10 @@ export function QuestionCard({
         boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
         transition: 'all 0.3s ease'
       }}
-      bodyStyle={{ padding: 24 }}
+      styles={{ body: { padding: 24 } }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-        <Space direction="vertical" size={4}>
+        <Space orientation="vertical" size={4}>
           <Space size={12}>
             {canSelect && (
               <Checkbox
@@ -112,7 +112,7 @@ export function QuestionCard({
             }}>
               {index + 1}
             </div>
-            <Tag color="blue" bordered={false} style={{ margin: 0, fontWeight: 600, borderRadius: 4, padding: '0 8px' }}>
+            <Tag color="blue" variant="filled" style={{ margin: 0, fontWeight: 600, borderRadius: 4, padding: '0 8px' }}>
               CÂU HỎI {index + 1}
             </Tag>
             {question.status !== undefined && (() => {
