@@ -83,6 +83,8 @@ export function VocabularyEditModal({ open, loading, initialValues = {}, onCance
       okText="Lưu"
       cancelText="Hủy"
       confirmLoading={loading}
+      okButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
+      cancelButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
       destroyOnClose
       centered
       styles={{

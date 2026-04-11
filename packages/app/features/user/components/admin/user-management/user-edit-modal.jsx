@@ -82,6 +82,8 @@ export function UserEditModal({ open, userId, onOk, onCancel }) {
       okText="Lưu thay đổi"
       cancelText="Hủy"
       confirmLoading={submitting}
+      okButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
+      cancelButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
       destroyOnHidden
       width={600}
     >

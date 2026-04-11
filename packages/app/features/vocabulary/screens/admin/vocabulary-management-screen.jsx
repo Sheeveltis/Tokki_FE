@@ -27,6 +27,23 @@ export function VocabularyManagement({ initialData = null }) {
   })
   const [filters, setFilters] = useManagementFilters({ search: '', status: 1, page: 1, size: 20 })
 
+  const [localSearchText, setLocalSearchText] = useState(filters.search)
+
+  // Sync local search text with filters.search
+  useEffect(() => {
+    setLocalSearchText(filters.search)
+  }, [filters.search])
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearchText !== filters.search) {
+        handleFilterChange('search', localSearchText)
+      }
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [localSearchText])
+
   const [editOpen, setEditOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
   const [editLoading, setEditLoading] = useState(false)
@@ -126,16 +143,7 @@ export function VocabularyManagement({ initialData = null }) {
   useEffect(() => {
     loadData(filters.page, filters.size, filters.status, filters.search)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.page, filters.size, filters.status])
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      loadData(1, filters.size, filters.status, filters.search)
-    }, 500)
-
-    return () => clearTimeout(timer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.search])
+  }, [filters.page, filters.size, filters.status, filters.search])
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value, page: 1 }))
@@ -220,10 +228,17 @@ export function VocabularyManagement({ initialData = null }) {
 
     Modal.confirm({
       title: 'Xác nhận xóa từ vựng',
+      centered: true,
       content: `Bạn chắc chắn muốn xóa từ vựng "${record?.text || vocabularyId}"?`,
       okText: 'Xóa',
       cancelText: 'Hủy',
-      okButtonProps: { danger: true },
+      okButtonProps: { 
+        danger: true,
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
+      cancelButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
       onOk: async () => {
         try {
           setDeleteLoading(true)
@@ -402,9 +417,9 @@ export function VocabularyManagement({ initialData = null }) {
     <>
       <ManagementLayout
         searchPlaceholder="Tìm theo ID hoặc tiếng Hàn"
-        searchValue={filters.search}
-        onSearchChange={(val) => setFilters((prev) => ({ ...prev, search: val }))}
-        onSearchSubmit={() => handleFilterChange('search', filters.search)}
+        searchValue={localSearchText}
+        onSearchChange={setLocalSearchText}
+        onSearchSubmit={() => handleFilterChange('search', localSearchText)}
         extraFilters={extraFilters}
         actions={actions}
         tableProps={{

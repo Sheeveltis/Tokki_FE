@@ -103,10 +103,17 @@ export function CategoryManagement() {
   const handleDelete = (item) => {
     Modal.confirm({
       title: 'Xác nhận xóa',
+      centered: true,
       content: `Bạn có chắc chắn muốn xóa danh mục "${item.name}"?`,
       okText: 'Xóa',
       okType: 'danger',
       cancelText: 'Hủy',
+      okButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
+      cancelButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
       onOk: async () => {
         try {
           await deleteCategory(item.id)
@@ -252,11 +259,18 @@ export function CategoryManagement() {
       <Modal
         title={editingItem ? 'Chỉnh sửa danh mục' : 'Thêm danh mục mới'}
         open={modalOpen}
+        centered
         onCancel={handleCloseModal}
         onOk={() => form.submit()}
         confirmLoading={submitting}
         okText={editingItem ? 'Cập nhật' : 'Thêm mới'}
         cancelText="Hủy"
+        okButtonProps={{ 
+          style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+        }}
+        cancelButtonProps={{ 
+          style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+        }}
       >
         <Form
           form={form}

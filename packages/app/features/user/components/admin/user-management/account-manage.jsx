@@ -62,6 +62,24 @@ export default function AccountManage({ basePath = '/admin' }) {
   const [importing, setImporting] = useState(false)
   const fileInputRef = useRef(null)
 
+  // Local state for search text to avoid lag (debounce)
+  const [localSearchText, setLocalSearchText] = useState(filters.searchText)
+
+  // Sync local search text with filters.searchText (for example when URL changes)
+  useEffect(() => {
+    setLocalSearchText(filters.searchText)
+  }, [filters.searchText])
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearchText !== filters.searchText) {
+        handleFilterChange('searchText', localSearchText)
+      }
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [localSearchText])
+
   const loadData = async (currentFilters) => {
     setLoading(true)
     try {
@@ -246,7 +264,6 @@ export default function AccountManage({ basePath = '/admin' }) {
                 style={iconStyle}
                 onClick={() => {
                   setSelectedUserId(record.id || record.userId)
-                  setInitialEdit(false)
                 }}
               />
             </Tooltip>
@@ -336,9 +353,9 @@ export default function AccountManage({ basePath = '/admin' }) {
     <>
       <ManagementLayout
         searchPlaceholder="Tìm ID, họ tên, email, SĐT..."
-        searchValue={filters.searchText}
-        onSearchChange={val => setFilters(prev => ({ ...prev, searchText: val }))}
-        onSearchSubmit={() => handleFilterChange('searchText', filters.searchText)}
+        searchValue={localSearchText}
+        onSearchChange={setLocalSearchText}
+        onSearchSubmit={() => handleFilterChange('searchText', localSearchText)}
         extraFilters={extraFilters}
         actions={actions}
         tableProps={{

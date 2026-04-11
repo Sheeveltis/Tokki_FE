@@ -264,8 +264,16 @@ export function ExamDetailScreen() {
 
     Modal.confirm({
       title: 'Lưu thay đổi câu hỏi',
+      centered: true,
       content: `Xác nhận áp dụng thay đổi mới cho câu hỏi số ${payload?.questionNo}?`,
       okText: 'Áp dụng',
+      cancelText: 'Hủy',
+      okButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
+      cancelButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
       onOk: async () => {
         try {
           setSavingUpdateKey(key)
@@ -296,8 +304,16 @@ export function ExamDetailScreen() {
 
     Modal.confirm({
       title: 'Lưu thay đổi hàng loạt',
+      centered: true,
       content: `Hệ thống sẽ cập nhật ${entries.length} câu hỏi mới vào đề thi này. Bạn có chắc chắn?`,
       okText: 'Lưu toàn bộ',
+      cancelText: 'Hủy',
+      okButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
+      cancelButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
       onOk: async () => {
         try {
           setBulkSaving(true)
@@ -644,9 +660,16 @@ export function ExamDetailScreen() {
         onOk={handleConfirmSelectedQuestion}
         onCancel={() => { setConfirmQuestionModalOpen(false); setPendingSelectedQuestion(null); }}
         width={750}
+        centered
         destroyOnClose
         okText="Chọn câu hỏi này"
         cancelText="Hủy bỏ"
+        okButtonProps={{ 
+          style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+        }}
+        cancelButtonProps={{ 
+          style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+        }}
         style={{ borderRadius: 8 }}
       >
         {pendingSelectedQuestion && (
