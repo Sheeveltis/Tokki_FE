@@ -1,15 +1,20 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, ScrollView } from 'react-native'
+import { NavbarMobile } from '../../../../../components/navbar-mobile'
 
-/**
- * AlphabetLearnLayout (Mobile): Layout cho trang học chữ cái Hàn Quốc trên mobile
- */
 export function AlphabetLearnLayout({ children }) {
   return (
     <View style={styles.root}>
-      <View style={styles.contentWrapper}>
-        {children}
-      </View>
+      <NavbarMobile />
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.contentWrapper}>
+          {children}
+        </View>
+      </ScrollView>
     </View>
   )
 }
@@ -17,18 +22,18 @@ export function AlphabetLearnLayout({ children }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FFD7D0',
-    alignItems: 'center',
-    paddingVertical: 16,
+    backgroundColor: '#FAFAFA',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 40,
   },
   contentWrapper: {
-    width: '100%',
-    paddingHorizontal: 16,
-    gap: 20,
-    alignItems: 'center',
-    backgroundColor: '#F5F0DD',
-    paddingVertical: 24,
-    borderRadius: 16,
+    padding: 20,
+    gap: 24,
   },
 })
 

@@ -1,10 +1,52 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
 import { NavigationPill } from '../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
 import { normalizeImageSource } from '../../../study/api'
-import { studyStyles } from '../../../study/styles'
 import BunnyStudy from '../../../../../assets/bunny/14.png'
+import LightbulbIcon from '../../../../../assets/icon/icon-roadmap/lightbulb-minimalistic-svgrepo-com.svg'
+import FolderIcon from '../../../../../assets/icon/icon-mainflow/folder.svg'
+
+// Helper function để render icon - hỗ trợ cả SVG component và Image source
+const renderIcon = (icon, style, resizeMode = 'contain') => {
+  if (!icon) return null
+
+  // Kiểm tra xem có phải là React component không (SVG component)
+  const isReactComponent = icon && (
+    (typeof icon === 'function') ||
+    (typeof icon === 'object' && icon.$$typeof) ||
+    (typeof icon === 'object' && icon.default && (typeof icon.default === 'function' || icon.default.$$typeof))
+  )
+
+  if (isReactComponent) {
+    // Render SVG component
+    const IconComponent = typeof icon === 'function' ? icon : (icon.default || icon)
+    const flattenedStyle = StyleSheet.flatten(style)
+    return (
+      <View style={[style, { alignItems: 'center', justifyContent: 'center' }]}>
+        <IconComponent
+          width={flattenedStyle?.width || 28}
+          height={flattenedStyle?.height || 28}
+          fill={flattenedStyle?.tintColor || flattenedStyle?.color || '#111'}
+        />
+      </View>
+    )
+  }
+
+  // Render Image với normalizeImageSource
+  const iconSource = normalizeImageSource(icon)
+  if (iconSource) {
+    return (
+      <Image
+        source={iconSource}
+        style={style}
+        resizeMode={resizeMode}
+      />
+    )
+  }
+
+  return null
+}
 
 /**
  * AlphabetSelectModeMain (Web): Nội dung chính của trang chọn học phần chữ cái Hàn Quốc trên web
@@ -14,159 +56,262 @@ export function AlphabetSelectModeMain({
   onLettersPress,
   onSyllablesPress,
 }) {
+  const [hoveredCard, setHoveredCard] = useState(null)
+
+  const modes = [
+    {
+      id: 'letters',
+      title: 'Học Chữ Cái',
+      description: 'Khám phá bảng chữ cái Hangul cơ bản, cách viết và phát âm từng ký tự đơn lẻ.',
+      primaryColor: '#79964E',
+      icon: LightbulbIcon,
+      badge: 'Cơ bản',
+      onPress: onLettersPress
+    },
+    {
+      id: 'syllables',
+      title: 'Học Ghép Âm',
+      description: 'Học cách kết hợp phụ âm và nguyên âm để tạo thành các âm tiết và từ hoàn chỉnh.',
+      primaryColor: '#F1BE4B',
+      icon: FolderIcon,
+      badge: 'Nâng cao',
+      onPress: onSyllablesPress
+    }
+  ]
+
   return (
-    <>
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <NavigationPill
           label="Trở lại"
           to={undefined}
           icon={ArrowIcon}
-          iconStyle={{ transform: [{ scaleX: -1 }] }}
+          iconStyle={{ transform: [{ scaleX: -1 }], tintColor: '#1A1A1A' }}
           onPress={onBackPress}
           textStyle={{ fontWeight: '700' }}
         />
       </View>
 
-      <Text style={styles.title}>Học Chữ Cái Hàn Quốc</Text>
-      <Text style={styles.subtitle}>Chọn phần bạn muốn học</Text>
+      <View style={styles.titleSection}>
+        <Text style={styles.title}>Bảng Chữ Cái Hàn Quốc</Text>
+        <Text style={styles.subtitle}>Bắt đầu hành trình chinh phục tiếng Hàn từ những bước căn bản nhất</Text>
+      </View>
 
       {/* Mode Selection Cards */}
-      <View style={styles.modesContainer}>
-        <Pressable
-          style={styles.modeCard}
-          onPress={onLettersPress}
-        >
-          <View style={styles.modeIconContainer}>
-            <Image
-              source={normalizeImageSource(BunnyStudy)}
-              style={styles.modeIcon}
-              resizeMode="contain"
-            />
-          </View>
-          <Text style={styles.modeTitle}>Học Chữ Cái</Text>
-          <Text style={styles.modeDescription}>
-            Học các chữ cái đơn lẻ trong bảng chữ cái Hàn Quốc
-          </Text>
-          <View style={styles.modeBadge}>
-            <Text style={styles.modeBadgeText}>Cơ bản</Text>
-          </View>
-        </Pressable>
+      <View style={styles.grid}>
+        {modes.map((mode) => (
+          <View
+            key={mode.id}
+            onPointerEnter={() => setHoveredCard(mode.id)}
+            onPointerLeave={() => setHoveredCard(null)}
+            style={[
+              styles.moduleCard,
+              hoveredCard === mode.id && styles.moduleCardHovered
+            ]}
+          >
+            {/* Top accent bar */}
+            <View style={[styles.topAccentBar, { backgroundColor: mode.primaryColor }]} />
+            
+            {/* Header */}
+            <View style={styles.moduleHeader}>
+              <View style={styles.iconContainer}>
+                {renderIcon(mode.icon, [styles.moduleIcon, { tintColor: mode.primaryColor }])}
+              </View>
+              <View>
+                <Text style={[styles.moduleTitle, { color: mode.primaryColor }]}>{mode.title}</Text>
+              </View>
+            </View>
 
-        <Pressable
-          style={styles.modeCard}
-          onPress={onSyllablesPress}
-        >
-          <View style={styles.modeIconContainer}>
-            <Image
-              source={normalizeImageSource(BunnyStudy)}
-              style={styles.modeIcon}
-              resizeMode="contain"
-            />
+            {/* Image Content Container */}
+            <View style={styles.imageContentContainer}>
+              <Image
+                source={normalizeImageSource(BunnyStudy)}
+                style={styles.moduleImage}
+                resizeMode="cover"
+              />
+              <View style={styles.imageOverlay}>
+                <Text style={styles.modeDescription}>{mode.description}</Text>
+              </View>
+            </View>
+
+            {/* Action Button */}
+            <Pressable
+              onPress={mode.onPress}
+              style={({ pressed }) => [
+                styles.itemButton,
+                { backgroundColor: mode.primaryColor },
+                pressed && { transform: [{ scale: 0.98 }] },
+                hoveredCard === mode.id && {
+                  boxShadow: `0 8px 16px ${mode.primaryColor}40`,
+                }
+              ]}
+            >
+              <Text style={styles.itemLabel}>Bắt đầu học ngay</Text>
+              {renderIcon(ArrowIcon, { width: 16, height: 16, tintColor: '#FFFFFF' })}
+            </Pressable>
+
+            {/* Badge */}
+            <View style={[styles.badge, { backgroundColor: mode.primaryColor + '15' }]}>
+              <Text style={[styles.badgeText, { color: mode.primaryColor }]}>{mode.badge}</Text>
+            </View>
           </View>
-          <Text style={styles.modeTitle}>Học Ghép Âm</Text>
-          <Text style={styles.modeDescription}>
-            Học cách ghép các chữ cái thành âm tiết hoàn chỉnh
-          </Text>
-          <View style={styles.modeBadge}>
-            <Text style={styles.modeBadgeText}>Nâng cao</Text>
-          </View>
-        </Pressable>
+        ))}
       </View>
-    </>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+    gap: 40,
+  },
   header: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
+  },
+  titleSection: {
     gap: 12,
   },
   title: {
-    ...studyStyles.pageTitle,
-    textAlign: 'center',
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+    letterSpacing: -1,
   },
   subtitle: {
     fontSize: 18,
     fontWeight: '500',
     color: '#666',
     fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
-    marginTop: -8,
+    maxWidth: 600,
   },
-  modesContainer: {
+  grid: {
     width: '100%',
     flexDirection: 'row',
-    gap: 24,
-    justifyContent: 'center',
     flexWrap: 'wrap',
+    gap: 32,
+    justifyContent: 'flex-start',
   },
-  modeCard: {
+  moduleCard: {
     flex: 1,
-    minWidth: 300,
-    maxWidth: 400,
-    padding: 24,
+    minWidth: 380,
+    borderRadius: 24,
+    padding: 32,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    alignItems: 'center',
-    gap: 16,
-    borderWidth: 3,
-    borderColor: '#79964E',
-    ...(Platform.OS === 'web' ? {
-      boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-      cursor: 'pointer',
-      transition: 'all 0.2s',
-    } : {
-      shadowColor: '#000',
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 4 },
+    borderWidth: 1,
+    borderColor: 'rgba(230, 230, 230, 0.5)',
+    position: 'relative',
+    overflow: 'hidden',
+    gap: 32,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+      transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
     }),
   },
-  modeIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#F5F0DD',
+  moduleCardHovered: {
+    transform: [{ translateY: -12 }],
+    borderColor: 'rgba(0,0,0,0.02)',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 30px 60px -12px rgba(0, 0, 0, 0.12), 0 18px 36px -18px rgba(0, 0, 0, 0.15)',
+    }),
+  },
+  topAccentBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 8,
+    opacity: 0.9,
+  },
+  moduleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: '#F1BE4B',
   },
-  modeIcon: {
-    width: 80,
-    height: 80,
+  moduleIcon: {
+    width: 32,
+    height: 32,
   },
-  modeTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1F1F1F',
+  moduleTitle: {
+    fontSize: 22,
+    fontWeight: '900',
     fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
+    letterSpacing: -0.5,
+  },
+  imageContentContainer: {
+    width: '100%',
+    height: 180,
+    borderRadius: 20,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: '#F7F7F9',
+  },
+  moduleImage: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.9,
+  },
+  imageOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '40%',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    ...(Platform.OS === 'web' && {
+      backdropFilter: 'blur(8px)',
+    }),
   },
   modeDescription: {
+    color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '500',
-    color: '#666',
+    fontWeight: '600',
     fontFamily: 'Epilogue, sans-serif',
-    textAlign: 'center',
     lineHeight: 20,
   },
-  modeBadge: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    backgroundColor: '#F1BE4B',
+  itemButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingVertical: 16,
     borderRadius: 20,
-    marginTop: 4,
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.3s ease',
+    }),
   },
-  modeBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#1F1F1F',
+  itemLabel: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
     fontFamily: 'Epilogue, sans-serif',
+  },
+  badge: {
+    position: 'absolute',
+    top: 28,
+    right: 28,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 })
 
