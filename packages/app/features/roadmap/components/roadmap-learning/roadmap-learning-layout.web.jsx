@@ -33,35 +33,71 @@ export function RoadmapLearningLayout({
   const [progressData, setProgressData] = useState(null)
 
   const handleGenerateNextWeek = async () => {
-    // 1. Tìm roadmapWeekId của tuần trước
-    const prevWeek = weeks.find(w => w.weekIndex === (activeWeekIndex - 1))
+    // 1. Xác định tuần mốc (tuần đã hoàn thành)
+    // Nếu tuần hiện tại đã có bài học (đang ở Day 7 chẳng hạn), thì dùng tuần này làm mốc để tạo tuần TIẾP THEO.
+    // Nếu tuần hiện tại đang trống (VD tuần 2 chưa có bài), thì dùng tuần TRƯỚC ĐÓ làm mốc để tạo nội dung cho chính tuần này.
+    const currentWeekInfo = weeks.find(w => w.weekIndex === activeWeekIndex)
+    const hasContent = Array.isArray(currentWeekInfo?.tasks) && currentWeekInfo.tasks.length > 0
     
-    if (!prevWeek?.roadmapWeekId) {
-       Alert.alert('Thông báo', 'Không tìm thấy thông tin tuần trước để tạo lộ trình tiếp theo.')
+    const referenceWeek = hasContent 
+      ? currentWeekInfo 
+      : weeks.find(w => w.weekIndex === (activeWeekIndex - 1))
+    
+    if (!referenceWeek?.roadmapWeekId) {
+       Alert.alert('Thông báo', 'Không tìm thấy thông tin tuần học tham chiếu để khởi tạo lộ trình.')
        return
     }
 
     setIsGeneratingNextWeek(true)
-    setProgressData({ percent: 50, step: 'Đang phân tích kết quả và thiết kế tuần học mới...', isCompleted: false })
+    setProgressData({ percent: 10, step: 'Đang bắt đầu phân tích lộ trình...', isCompleted: false })
     
     try {
+      // Tăng tiến trình giả lập để user cảm thấy app đang chạy
+      const progressInterval = setInterval(() => {
+        setProgressData(prev => {
+          if (prev && prev.percent < 85) return { ...prev, percent: prev.percent + 5 }
+          return prev
+        })
+      }, 2000)
+
       // 2. Gọi API tạo tuần tiếp theo với finishedWeekId
       const response = await apiClient.post(ENDPOINTS.ROADMAP.NEXT_WEEK, {
-        finishedWeekId: prevWeek.roadmapWeekId
+        finishedWeekId: referenceWeek.roadmapWeekId
       })
+
+      clearInterval(progressInterval)
 
       if (response?.data) {
         setProgressData({ percent: 100, step: 'Tạo tuần mới thành công!', isCompleted: true })
         setTimeout(() => {
           setIsGeneratingNextWeek(false)
           onRetry?.() // Refresh roadmap data
+
+          // Nếu vừa xong một tuần có học (VD tuần 1), tự động nhảy sang tuần tiếp theo (tuần 2) vừa tạo
+          if (hasContent) {
+            handleWeekChange(activeWeekIndex + 1)
+          }
         }, 1500)
       } else {
         setIsGeneratingNextWeek(false)
       }
     } catch (err) {
       console.error('Failed to generate next week:', err)
-      Alert.alert('Lỗi', err.response?.data?.message || 'Không thể tạo tuần tiếp theo. Vui lòng thử lại.')
+      const status = err.response?.status
+      const backendMessage = err.response?.data?.message
+      
+      if (status === 403) {
+        Alert.alert(
+          'Yêu cầu nâng cấp VIP',
+          'Tính năng tự động thiết kế lộ trình học tập nâng cao chỉ dành cho thành viên VIP. Bạn có muốn nâng cấp ngay không?',
+          [
+            { text: 'Để sau', style: 'cancel' },
+            { text: 'Nâng cấp ngay', onPress: () => router.push('/payment-package'), style: 'default' }
+          ]
+        )
+      } else {
+        Alert.alert('Thông báo', backendMessage || 'Không thể tạo tuần tiếp theo. Vui lòng thử lại.')
+      }
       setIsGeneratingNextWeek(false)
     }
   }
@@ -300,7 +336,7 @@ export function RoadmapLearningLayout({
                         activeWeek={activeWeek}
                         initialDayIndex={initialDayIndex}
                         onGenerateNextWeek={handleGenerateNextWeek}
-                        isNextWeekEmpty={weeks.find(w => w.weekIndex === activeWeekIndex + 1)?.tasks?.length === 0}
+                        isNextWeekEmpty={!weeks.find(w => w.weekIndex === activeWeekIndex + 1) || (weeks.find(w => w.weekIndex === activeWeekIndex + 1)?.tasks?.length || 0) === 0}
                       />
                     ) : (
                       <View style={styles.emptyWeekContainer}>
