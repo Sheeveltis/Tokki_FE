@@ -22,6 +22,8 @@ import ManagementLayout from '../../../../../components/layout/management-layout
 import { getMyBlogs, deleteBlog } from '../../api/index'
 import { LoadingWithContainer } from '../../../../../components/Loading'
 
+const { Meta } = Card
+
 /**
  * BlogManagementScreen: Trang quản lý blog dành cho người dùng
  * Cho phép xem danh sách bài viết đã đăng và bản nháp
@@ -67,6 +69,10 @@ export function BlogManagementScreen() {
 
   const handlePaginationChange = (page, pageSize) => {
     loadData(page, pageSize, activeTab)
+  }
+
+  const handleViewDetail = (record) => {
+    router.push(`/blog/management/preview/${record.id || record.blogId}`)
   }
 
   const handleDelete = (record) => {
@@ -148,14 +154,14 @@ export function BlogManagementScreen() {
           <Tooltip title="Xem bài viết">
             <Button
               type="text"
-              icon={<EyeOutlined style={{ color: '#1890ff' }} />}
-              onClick={() => router.push(`/blog/${record.slug || record.id}`)}
+              icon={<EyeOutlined style={{ color: '#8D6E63', fontSize: 20 }} />}
+              onClick={() => handleViewDetail(record)}
             />
           </Tooltip>
           <Tooltip title="Chỉnh sửa">
             <Button
               type="text"
-              icon={<EditOutlined style={{ color: '#faad14' }} />}
+              icon={<EditOutlined style={{ color: '#8D6E63', fontSize: 20 }} />}
               onClick={() => router.push(`/blog/edit/${record.id || record.blogId}`)}
             />
           </Tooltip>
@@ -163,7 +169,7 @@ export function BlogManagementScreen() {
             <Button
               type="text"
               danger
-              icon={<DeleteOutlined />}
+              icon={<DeleteOutlined style={{ color: '#8D6E63', fontSize: 20 }} />}
               onClick={() => handleDelete(record)}
             />
           </Tooltip>
@@ -229,23 +235,23 @@ export function BlogManagementScreen() {
       }
       actions={[
         <Tooltip title="Xem">
-          <EyeOutlined key="view" onClick={() => router.push(`/blog/${record.slug || record.id}`)} />
+          <EyeOutlined key="view" style={{ fontSize: 20, color: '#8D6E63' }} onClick={() => handleViewDetail(record)} />
         </Tooltip>,
         <Tooltip title="Sửa">
-          <EditOutlined key="edit" onClick={() => router.push(`/blog/edit/${record.id || record.blogId}`)} />
+          <EditOutlined key="edit" style={{ fontSize: 20, color: '#8D6E63' }} onClick={() => router.push(`/blog/edit/${record.id || record.blogId}`)} />
         </Tooltip>,
         <Tooltip title="Xóa">
-          <DeleteOutlined key="delete" onClick={() => handleDelete(record)} />
+          <DeleteOutlined key="delete" style={{ fontSize: 20, color: '#8D6E63' }} onClick={() => handleDelete(record)} />
         </Tooltip>,
       ]}
       style={{ borderRadius: 16, overflow: 'hidden' }}
     >
       <Card.Meta
-        title={<span style={{ fontWeight: 700, color: '#5D4037' }}>{record.title}</span>}
+        title={<span style={{ fontWeight: 800, color: '#5D4037', fontSize: 18 }}>{record.title}</span>}
         description={
           <div style={{ marginTop: 8 }}>
-            <div style={{ fontSize: 13, color: '#8D6E63', marginBottom: 4 }}>{record.categoryName || 'Chưa phân loại'}</div>
-            <div style={{ fontSize: 12, color: '#BDBDBD' }}>{new Date(record.createdAt).toLocaleDateString('vi-VN')}</div>
+            <div style={{ fontSize: 14, color: '#8D6E63', marginBottom: 4, fontWeight: 500 }}>{record.categoryName || 'Chưa phân loại'}</div>
+            <div style={{ fontSize: 13, color: '#BDBDBD' }}>{new Date(record.createdAt).toLocaleDateString('vi-VN')}</div>
           </div>
         }
       />
@@ -263,13 +269,14 @@ export function BlogManagementScreen() {
         components: {
           Button: {
             borderRadius: 24,
-            fontWeight: 600,
-            controlHeight: 40,
+            fontWeight: 700,
+            controlHeight: 44,
+            fontSize: 15,
           },
           Tabs: {
             itemSelectedColor: '#F1BE4B',
             inkBarColor: '#F1BE4B',
-            titleFontSize: 16,
+            titleFontSize: 17,
           },
           Card: {
             borderRadiusLG: 20,
@@ -284,38 +291,6 @@ export function BlogManagementScreen() {
           margin: '0 auto',
           padding: '40px 0 80px 0'
         }}>
-          {/* Dashboard Header */}
-          <div style={{
-            marginBottom: 40,
-            padding: '48px',
-            borderRadius: 32,
-            background: 'linear-gradient(135deg, #F1BE4B 0%, #FFD700 100%)',
-            boxShadow: '0 20px 40px rgba(241, 190, 75, 0.15)',
-            position: 'relative',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center'
-          }}>
-            {/* Decorative Orbs */}
-            <div style={{ position: 'absolute', right: '-40px', top: '-40px', width: 240, height: 240, borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />
-            <div style={{ position: 'absolute', left: '5%', bottom: '-50px', width: 150, height: 150, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
-
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                <div style={{ backgroundColor: 'rgba(255,255,255,0.9)', padding: '8px 16px', borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#F1BE4B', textTransform: 'uppercase', letterSpacing: 1 }}>
-                  Dành cho người dùng
-                </div>
-              </div>
-              <h1 style={{ fontSize: 'clamp(28px, 5vw, 42px)', fontWeight: 900, color: '#5D4037', marginBottom: 12, letterSpacing: '-1px', lineHeight: 1.1 }}>
-                Blog Studio
-              </h1>
-              <p style={{ color: '#5D4037', fontSize: 'clamp(16px, 1.5vw, 19px)', opacity: 0.85, maxWidth: 650, lineHeight: 1.6, fontWeight: 500 }}>
-                Nơi nuôi dưỡng tâm hồn và chia sẻ kiến thức cộng đồng. Quản lý những câu chuyện truyền cảm hứng của bạn tại đây.
-              </p>
-            </div>
-          </div>
-
           <ManagementLayout
             searchPlaceholder="Tìm kiếm ý tưởng của bạn..."
             actions={actions}
@@ -359,6 +334,7 @@ export function BlogManagementScreen() {
           </Tooltip>
         </FloatButton.Group>
       </div>
+
     </ConfigProvider>
   )
 }

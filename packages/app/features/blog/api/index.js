@@ -100,6 +100,15 @@ export const getBlogById = async (id) => {
 }
 
 /**
+ * Lấy chi tiết blog cho quản lý người dùng (xem trước bài viết của mình)
+ */
+export const getBlogUserDetail = async (id) => {
+  const res = await apiClient.get(ENDPOINTS.BLOG.GET_USER_DETAIL(id))
+  const response = res.data
+  return parseBlogDetailResponse(response)
+}
+
+/**
  * Lấy blog theo slug
  * Tự động extract ID từ slug (phần cuối cùng) và gọi getBlogById
  * @param {string} slug - Slug của blog (ví dụ: "10-quy-tac-bat-di-bat-dich-abc123")

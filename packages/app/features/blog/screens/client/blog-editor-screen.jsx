@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'solito/navigation'
-import { Card, Form, Typography, message, Space, Spin, Button, ConfigProvider } from 'antd'
+import { Card, Form, Typography, message, Space, Spin, Button, ConfigProvider, Modal } from 'antd'
 import { ArrowLeftOutlined, EyeOutlined, SaveOutlined } from '@ant-design/icons'
-import { getBlogById, saveBlog } from '../../api'
+import { getBlogUserDetail, saveBlog } from '../../api'
 import { BlogEditor } from '../../components/create-blog/blog-editor'
 import { BlogGeneralInfo } from '../../components/create-blog/blog-general-info'
 import { BlogMetaInfo } from '../../components/create-blog/blog-meta-info'
@@ -36,13 +36,38 @@ export function BlogEditorScreen() {
 
   // Load blog data if editing
   useEffect(() => {
-    if (!isEdit) return
+    // If not editing, ensure loading is false
+    if (!isEdit || !blogId) {
+      console.log('[BlogEditorScreen] Create mode - skipping fetch')
+      setLoading(false)
+      return
+    }
+
+    let isMounted = true
+    
+    // Safety timeout to prevent infinite loading (e.g. if API hangs)
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn('[BlogEditorScreen] Loading timed out. Forcing content display.')
+        setLoading(false)
+      }
+    }, 15000) // 15 seconds safety window
 
     const loadBlog = async () => {
       try {
+        console.log(`[BlogEditorScreen] Starting fetch for ID: ${blogId}`)
         setLoading(true)
-        const data = await getBlogById(blogId)
         
+        const data = await getBlogUserDetail(blogId)
+        
+        if (!isMounted) return
+        
+        console.log('[BlogEditorScreen] Data received:', data)
+
+        if (!data) {
+          throw new Error('Không tìm thấy dữ liệu bài viết')
+        }
+
         // Set form values
         form.setFieldsValue({
           id: data.id || blogId,
@@ -55,15 +80,28 @@ export function BlogEditorScreen() {
           isPublished: data.status === 1,
         })
       } catch (error) {
-        console.error('Failed to load blog for edit:', error)
-        message.error('Không thể tải bài viết để chỉnh sửa')
-        router.push('/blog/management')
+        console.error('[BlogEditorScreen] Error loading blog:', error)
+        if (isMounted) {
+          message.error('Không thể tải bài viết để chỉnh sửa. Vui lòng thử lại.')
+          // On error, we still want to stop loading so the UI doesn't hang
+          // but we might want to redirect back
+          router.push('/blog/management')
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false)
+          clearTimeout(safetyTimeout)
+        }
       }
     }
+
     loadBlog()
-  }, [blogId, isEdit, form, router])
+
+    return () => {
+      isMounted = false
+      clearTimeout(safetyTimeout)
+    }
+  }, [blogId, isEdit]) // Stabilized dependencies
 
   const handlePreview = () => {
     const values = form.getFieldsValue()
@@ -179,7 +217,7 @@ export function BlogEditorScreen() {
             </Space>
           </div>
 
-          <Card bordered={false} style={{ borderRadius: 24, boxShadow: '0 8px 24px rgba(0,0,0,0.04)' }}>
+          <Card variant="borderless" style={{ borderRadius: 24, boxShadow: '0 8px 24px rgba(0,0,0,0.04)' }}>
             <Form
               form={form}
               layout="vertical"

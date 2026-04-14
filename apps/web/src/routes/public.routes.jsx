@@ -14,6 +14,7 @@ import { BlogListScreen } from '@tokki/app/features/blog/screens/client/blog-lis
 import { BlogDetailScreen } from '@tokki/app/features/blog/screens/client/blog-detail-screen'
 import { BlogManagementScreen } from '@tokki/app/features/blog/screens/client/blog-management-screen'
 import { BlogEditorScreen } from '@tokki/app/features/blog/screens/client/blog-editor-screen'
+import { BlogPreviewScreen } from '@tokki/app/features/blog/screens/client/blog-preview-screen'
 import UserScreen from '@tokki/app/features/user/screens/client/user-profile-screen'
 import { MinigameScreen } from '@tokki/app/features/minigame/screens/minigame-screen'
 import MatchingCardLevelScreen from '@tokki/app/features/minigame/screens/matching-card/matching-card-level-screen'
@@ -133,6 +134,10 @@ function BlogEditorRoute() {
   }, [navigate])
 
   return <BlogEditorScreen />
+}
+
+function BlogPreviewRoute() {
+  return <BlogPreviewScreen />
 }
 
 function PaymentDetailRoute() {
@@ -342,6 +347,7 @@ export const publicRoutes = [
   // Blog
   { path: '/blog', element: <BlogListRoute /> },
   { path: '/blog/management', element: <BlogManagementRoute /> },
+  { path: '/blog/management/preview/:id', element: <BlogPreviewRoute /> },
   { path: '/blog/create', element: <BlogEditorRoute /> },
   { path: '/blog/edit/:id', element: <BlogEditorRoute /> },
   { path: '/blog/:slug', element: <BlogDetailRoute /> },
@@ -389,7 +395,8 @@ export function PublicLayout() {
   const isStudyRoute = location.pathname.startsWith('/study')
   const isFlashcardRoute = location.pathname.startsWith('/flashcard')
   const isProfileRoute = location.pathname.startsWith('/user-profile') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/users')
-  const shouldHideFooter = isRoadmapRoute || isStudyRoute || isFlashcardRoute || isProfileRoute
+  const isBlogManagementRoute = location.pathname.startsWith('/blog/management') || location.pathname.startsWith('/blog/create') || location.pathname.startsWith('/blog/edit')
+  const shouldHideFooter = isRoadmapRoute || isStudyRoute || isFlashcardRoute || isProfileRoute || isBlogManagementRoute
 
   // Hide Navbar for specific distraction-free screens
   const isPracticePage = location.pathname.includes('/roadmap/learning/practice') || location.pathname.includes('/roadmap/practice-test')
@@ -397,9 +404,9 @@ export function PublicLayout() {
   const shouldHideNavbar = isPracticePage || isTestPage
 
   return (
-    <View style={{ flex: 1, height: shouldHideFooter ? '100vh' : undefined, minHeight: '100vh', backgroundColor: '#fff', overflow: shouldHideFooter ? 'hidden' : 'visible' }}>
+    <View style={{ flex: 1, height: shouldHideFooter ? '100vh' : undefined, minHeight: '100vh', backgroundColor: '#fff', overflow: shouldHideFooter ? 'auto' : 'visible' }}>
       {!shouldHideNavbar && <Navbar />}
-      <View style={{ flex: 1, overflow: shouldHideFooter ? 'hidden' : 'visible' }}>
+      <View style={{ flex: 1, overflow: shouldHideFooter ? 'auto' : 'visible' }}>
         <Outlet />
       </View>
       {!shouldHideFooter && <Footer />}

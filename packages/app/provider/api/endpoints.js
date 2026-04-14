@@ -26,6 +26,7 @@ export const API_BASE_URL = `${DOMAIN}${PREFIX}`
 export const ENDPOINTS = {
   BLOG: {
     GET_ALL: '/Blog/user',
+    GET_USER_DETAIL: (id) => `/Blog/user/${id}`,
     GET_BY_ID: (id) => `/Blog/${id}`,
     CREATE: '/Blog',                // POST: Tạo mới
     UPDATE: (id) => `/Blog/${id}`,
