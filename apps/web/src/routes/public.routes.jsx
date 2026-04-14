@@ -286,22 +286,8 @@ function WordleBoardRoute() {
 // Dictionary Routes
 function DictionaryRoute() {
   return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: 'center',
-        backgroundColor: '#FFD7D0',
-        paddingVertical: 40,
-      }}
-    >
-      <View
-        style={{
-          width: '70%',
-          maxWidth: 1200,
-        }}
-      >
-        <DictionarySearchScreen />
-      </View>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <DictionarySearchScreen />
     </View>
   )
 }
@@ -310,22 +296,8 @@ function DictionaryDetailRoute() {
   const { id } = useParams()
 
   return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: 'center',
-        backgroundColor: '#FFD7D0',
-        paddingVertical: 40,
-      }}
-    >
-      <View
-        style={{
-          width: '70%',
-          maxWidth: 1200,
-        }}
-      >
-        <DictionaryVocabularyDetailScreen vocabularyId={id} />
-      </View>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <DictionaryVocabularyDetailScreen vocabularyId={id} />
     </View>
   )
 }

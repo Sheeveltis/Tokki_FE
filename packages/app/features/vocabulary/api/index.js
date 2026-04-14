@@ -66,9 +66,9 @@ export async function fetchVocabularies(params = {}) {
     // Map data để tương thích với component
     const mappedItems = Array.isArray(items)
       ? items.map((item) => ({
-          ...item,
-          id: item.vocabularyId, // giữ key tương thích bảng/route cũ
-        }))
+        ...item,
+        id: item.vocabularyId, // giữ key tương thích bảng/route cũ
+      }))
       : []
 
     return {
@@ -107,7 +107,7 @@ export async function searchVocabulariesForUser(params = {}) {
     const {
       searchTerm = '',
       pageNumber = 1,
-      pageSize = 20,
+      pageSize = 10,
     } = params
 
     const queryParams = {
@@ -841,18 +841,18 @@ export async function searchVocabulariesForTopic(keyword = '', options = {}) {
   try {
     const { pageSize = 10 } = options
     const trimmedKeyword = keyword?.trim() || ''
-    
+
     const params = {
       pageNumber: 1,
       pageSize,
       status: 1,
     }
-    
+
     // Chỉ thêm searchText nếu có từ khóa
     if (trimmedKeyword) {
       params.searchText = trimmedKeyword
     }
-    
+
     const res = await fetchVocabularies(params)
     // Trả về items từ kết quả
     return Array.isArray(res?.items) ? res.items : []
@@ -914,7 +914,7 @@ export async function addVocabulariesToTopicAndReload(topicId, vocabularyIds) {
   try {
     // Thêm từ vựng vào chủ đề
     const response = await addVocabulariesToTopic(topicId, vocabularyIds)
-    
+
     // Nếu thành công, reload lại chi tiết chủ đề
     let topicDetail = null
     if (response?.isSuccess) {
@@ -925,7 +925,7 @@ export async function addVocabulariesToTopicAndReload(topicId, vocabularyIds) {
         // Không throw error, vì việc thêm đã thành công
       }
     }
-    
+
     return {
       response,
       topicDetail,
@@ -1486,7 +1486,7 @@ export async function exportTopicToExcel(topicId) {
     throw new Error('Không thể tải file Excel')
   } catch (error) {
     console.error('Error exporting topic to Excel:', error)
-    
+
     // Nếu có response data từ error, có thể là error message từ server
     if (error?.response?.data) {
       // Nếu response là blob (có thể là error message từ server), thử đọc text
@@ -1507,7 +1507,7 @@ export async function exportTopicToExcel(topicId) {
         }
       }
     }
-    
+
     throw {
       status: error?.status || 500,
       message: error?.message || 'Không thể export file Excel',

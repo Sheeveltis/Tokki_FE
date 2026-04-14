@@ -18,8 +18,8 @@ import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
 import SoundIcon from 'assets/icon/icon-mainflow/sound.svg'
 import RabbitWaitingImage from 'assets/bunny/2.png'
-import { 
-  fetchVocabularyDetailForUser, 
+import {
+  fetchVocabularyDetailForUser,
   fetchUserVocabularyExamples,
   addFavoriteVocabulary,
   removeFavoriteVocabulary,
@@ -32,10 +32,10 @@ import {
 const HeartIcon = ({ filled = false, size = 22, color = '#FF4D4F' }) => (
   <View style={{ width: size, height: size }}>
     <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : 'none'} xmlns="http://www.w3.org/2000/svg">
-      <path 
-        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" 
-        stroke={color} 
-        strokeWidth="2" 
+      <path
+        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+        stroke={color}
+        strokeWidth="2"
       />
     </svg>
   </View>
@@ -86,10 +86,10 @@ const PulseSoundButton = ({ onPlay, isPlaying }) => {
         { transform: [{ scale: scaleAnim }] }
       ]}>
         <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-          <Image
-            source={normalizeImageSource(SoundIcon)}
-            style={[styles.soundIcon, { tintColor: isPlaying ? '#FFF' : '#F1BE4B' }]}
-            resizeMode="contain"
+          <SoundIcon
+            width={24}
+            height={24}
+            style={{ tintColor: isPlaying ? '#FFF' : '#F1BE4B' }}
           />
         </Animated.View>
       </Animated.View>
@@ -127,9 +127,9 @@ export function DictionaryVocabularyDetailScreen({ vocabularyId }) {
         if (isMounted) {
           setVocabulary(data)
           setExamples(Array.isArray(exList) ? exList : [])
-          
+
           // Check if current vocab is in favorites
-          const exists = favList.some(item => 
+          const exists = favList.some(item =>
             (item.vocabularyId === vocabularyId) || (item.id === vocabularyId)
           )
           setIsFavorite(exists)
@@ -148,7 +148,7 @@ export function DictionaryVocabularyDetailScreen({ vocabularyId }) {
 
   const toggleFavorite = async () => {
     if (!vocabulary || loadingFav) return
-    
+
     setLoadingFav(true)
     try {
       if (isFavorite) {
@@ -203,15 +203,11 @@ export function DictionaryVocabularyDetailScreen({ vocabularyId }) {
         {/* Navigation Area */}
         <View style={styles.navHeader}>
           <TouchableOpacity style={styles.backBtn} onPress={() => router.push('/dictionary')}>
-            <ArrowIcon width={18} height={18} style={{ transform: [{ rotate: '180deg' }], tintColor: '#999' }} />
+            <View style={{ transform: [{ rotate: '180deg' }] }}>
+              <ArrowIcon width={18} height={18} style={{ tintColor: '#999' }} />
+            </View>
             <Text style={styles.backBtnLabel}>Quay lại</Text>
           </TouchableOpacity>
-          <NavigationPill
-            items={[
-              { label: 'Từ điển', onPress: () => router.push('/dictionary') },
-              { label: vocabulary.text || 'Chi tiết' },
-            ]}
-          />
         </View>
 
         {/* Word Hero Section */}
@@ -224,8 +220,8 @@ export function DictionaryVocabularyDetailScreen({ vocabularyId }) {
                   <Text style={styles.pronunciation}>/{vocabulary.pronunciation}/</Text>
                 )}
               </View>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[styles.favBtn, isFavorite && styles.favBtnActive]}
                 onPress={toggleFavorite}
                 disabled={loadingFav}
@@ -238,9 +234,9 @@ export function DictionaryVocabularyDetailScreen({ vocabularyId }) {
               </TouchableOpacity>
             </View>
 
-            <PulseSoundButton 
-              isPlaying={isPlaying} 
-              onPlay={() => playAudio(vocabulary.audioURL)} 
+            <PulseSoundButton
+              isPlaying={isPlaying}
+              onPlay={() => playAudio(vocabulary.audioURL)}
             />
           </View>
 
@@ -291,10 +287,6 @@ export function DictionaryVocabularyDetailScreen({ vocabularyId }) {
           </View>
         </View>
 
-        {/* Subtle Decoration */}
-        <View style={styles.rabbitDecor}>
-          <Image source={RabbitWaitingImage} style={styles.decorImage} />
-        </View>
       </View>
     </ScrollView>
   )
@@ -303,6 +295,9 @@ export function DictionaryVocabularyDetailScreen({ vocabularyId }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    width: Platform.OS === 'web' ? '70%' : '100%',
+    alignSelf: 'center',
+    backgroundColor: '#FFFFFF',
   },
   scrollContent: {
     paddingBottom: 40,
@@ -337,19 +332,15 @@ const styles = StyleSheet.create({
   },
   unifiedCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 32,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: '#F0F0F0',
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.04,
-    shadowRadius: 24,
   },
   navHeader: {
-    paddingtop: 32,
-    paddingHorizontal: 32,
-    paddingBottom: 24,
+    paddingTop: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -371,8 +362,8 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   heroSection: {
-    padding: 32,
-    gap: 24,
+    padding: 24,
+    gap: 16,
   },
   wordHeader: {
     flexDirection: 'row',
@@ -404,10 +395,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
   },
   mainWord: {
-    fontSize: 52,
+    fontSize: 42,
     fontWeight: '900',
     color: '#1A1A1A',
-    letterSpacing: -1.5,
+    letterSpacing: -1,
   },
   pronunciation: {
     fontSize: 20,
@@ -433,9 +424,12 @@ const styles = StyleSheet.create({
     height: 24,
   },
   meaningBox: {
-    backgroundColor: '#F9FAFB',
-    padding: 24,
-    borderRadius: 24,
+    backgroundColor: '#FFF9EB',
+    paddingHorizontal: 28,
+    paddingVertical: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#F1BE4B20',
     borderLeftWidth: 6,
     borderLeftColor: '#F1BE4B',
   },
@@ -459,25 +453,26 @@ const styles = StyleSheet.create({
     marginHorizontal: 32,
   },
   contentBody: {
-    padding: 32,
+    padding: 24,
   },
   bodyRow: {
     flexDirection: Platform.OS === 'web' ? 'row' : 'column',
     gap: 32,
   },
   bodyColLeft: {
-    flex: 1,
+    width: 400, // Giảm kích thước ảnh để tiết kiệm diện tích
   },
   bodyColRight: {
-    flex: 1.5,
+    flex: 1,
   },
   imageContainer: {
-    borderRadius: 24,
+    borderRadius: 16,
     overflow: 'hidden',
     aspectRatio: 1,
     backgroundColor: '#F9FAFB',
     borderWidth: 1,
     borderColor: '#F0F0F0',
+    width: '100%',
   },
   illustration: {
     width: '100%',
@@ -487,11 +482,11 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   exampleItem: {
-    backgroundColor: '#FCFCFC',
-    padding: 16,
-    borderRadius: 18,
+    backgroundColor: '#F9FAFB',
+    padding: 20,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#F5F5F5',
+    borderColor: '#F0F0F0',
   },
   exampleHeader: {
     flexDirection: 'row',
