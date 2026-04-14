@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'solito/navigation'
-import { Card, Form, Typography, message, Space, Spin, Button, ConfigProvider, Modal } from 'antd'
+import { Card, Form, Typography, message, Space, Spin, Button, ConfigProvider } from 'antd'
 import { ArrowLeftOutlined, EyeOutlined, SaveOutlined } from '@ant-design/icons'
 import { getBlogUserDetail, saveBlog } from '../../api'
 import { BlogEditor } from '../../components/create-blog/blog-editor'
@@ -29,44 +29,19 @@ export function BlogEditorScreen() {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
-  
+
   // State quản lý Preview
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewData, setPreviewData] = useState(null)
 
   // Load blog data if editing
   useEffect(() => {
-    // If not editing, ensure loading is false
-    if (!isEdit || !blogId) {
-      console.log('[BlogEditorScreen] Create mode - skipping fetch')
-      setLoading(false)
-      return
-    }
-
-    let isMounted = true
-    
-    // Safety timeout to prevent infinite loading (e.g. if API hangs)
-    const safetyTimeout = setTimeout(() => {
-      if (isMounted && loading) {
-        console.warn('[BlogEditorScreen] Loading timed out. Forcing content display.')
-        setLoading(false)
-      }
-    }, 15000) // 15 seconds safety window
+    if (!isEdit) return
 
     const loadBlog = async () => {
       try {
-        console.log(`[BlogEditorScreen] Starting fetch for ID: ${blogId}`)
         setLoading(true)
-        
         const data = await getBlogUserDetail(blogId)
-        
-        if (!isMounted) return
-        
-        console.log('[BlogEditorScreen] Data received:', data)
-
-        if (!data) {
-          throw new Error('Không tìm thấy dữ liệu bài viết')
-        }
 
         // Set form values
         form.setFieldsValue({
@@ -80,28 +55,15 @@ export function BlogEditorScreen() {
           isPublished: data.status === 1,
         })
       } catch (error) {
-        console.error('[BlogEditorScreen] Error loading blog:', error)
-        if (isMounted) {
-          message.error('Không thể tải bài viết để chỉnh sửa. Vui lòng thử lại.')
-          // On error, we still want to stop loading so the UI doesn't hang
-          // but we might want to redirect back
-          router.push('/blog/management')
-        }
+        console.error('Failed to load blog for edit:', error)
+        message.error('Không thể tải bài viết để chỉnh sửa')
+        router.push('/blog/management')
       } finally {
-        if (isMounted) {
-          setLoading(false)
-          clearTimeout(safetyTimeout)
-        }
+        setLoading(false)
       }
     }
-
     loadBlog()
-
-    return () => {
-      isMounted = false
-      clearTimeout(safetyTimeout)
-    }
-  }, [blogId, isEdit]) // Stabilized dependencies
+  }, [blogId, isEdit, form, router])
 
   const handlePreview = () => {
     const values = form.getFieldsValue()
@@ -132,7 +94,7 @@ export function BlogEditorScreen() {
             categoryId: values.categoryId,
             tags: values.tags || [],
           }
-          
+
           const response = await saveBlog(payload)
           if (response?.isSuccess) {
             message.success(isEdit ? 'Đã cập nhật bài viết thành công' : 'Đã gửi bài viết thành công. Vui lòng chờ kiểm duyệt!')
@@ -172,19 +134,19 @@ export function BlogEditorScreen() {
       <div style={{ backgroundColor: '#FDFBF4', minHeight: '100vh', padding: '40px 24px' }}>
         <div style={{ width: '92%', maxWidth: 1200, margin: '0 auto' }}>
           {/* Header */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            flexWrap: 'wrap', 
-            gap: 20, 
-            marginBottom: 32 
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 20,
+            marginBottom: 32
           }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                <Button 
-                  type="text" 
-                  icon={<ArrowLeftOutlined />} 
+                <Button
+                  type="text"
+                  icon={<ArrowLeftOutlined />}
                   onClick={() => router.push('/blog/management')}
                   style={{ borderRadius: '50%', width: 40, height: 40 }}
                 />
@@ -198,16 +160,16 @@ export function BlogEditorScreen() {
             </div>
 
             <Space size="middle" wrap>
-              <Button 
-                icon={<EyeOutlined />} 
+              <Button
+                icon={<EyeOutlined />}
                 onClick={handlePreview}
                 style={BUTTON_STYLE}
               >
                 Xem trước
               </Button>
-              <Button 
-                type="primary" 
-                icon={<SaveOutlined />} 
+              <Button
+                type="primary"
+                icon={<SaveOutlined />}
                 loading={saving}
                 onClick={() => form.submit()}
                 style={BUTTON_STYLE}
@@ -226,9 +188,9 @@ export function BlogEditorScreen() {
               initialValues={{ tags: [], content: '' }}
             >
               <BlogGeneralInfo />
-              
-              <BlogEditor 
-                name="content" 
+
+              <BlogEditor
+                name="content"
                 label="Nội dung truyền cảm hứng"
                 rules={[{ required: true, message: 'Vui lòng nhập nội dung bài viết' }]}
               />
@@ -239,7 +201,7 @@ export function BlogEditorScreen() {
         </div>
 
         {/* Preview Modal */}
-        <BlogPreviewModal 
+        <BlogPreviewModal
           open={previewOpen}
           onCancel={() => setPreviewOpen(false)}
           data={previewData}

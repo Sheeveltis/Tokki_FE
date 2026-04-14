@@ -33,19 +33,21 @@ export function BlogManagementScreen() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('all') // 'all', '1': Published, '0': Draft, etc.
+  const [keyword, setKeyword] = useState('')
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
     total: 0,
   })
 
-  const loadData = useCallback(async (page = 1, pageSize = 10, status = 'all') => {
+  const loadData = useCallback(async (page = 1, pageSize = 10, status = 'all', searchKeyword = '') => {
     try {
       setLoading(true)
       const res = await getMyBlogs({
         pageNumber: page,
         pageSize,
         status: status === 'all' ? undefined : parseInt(status),
+        keyword: searchKeyword || undefined,
       })
 
       setData(res?.items || [])
@@ -64,11 +66,14 @@ export function BlogManagementScreen() {
   }, [])
 
   useEffect(() => {
-    loadData(1, pagination.pageSize, activeTab)
-  }, [activeTab, loadData, pagination.pageSize])
+    const timer = setTimeout(() => {
+      loadData(1, pagination.pageSize, activeTab, keyword)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [activeTab, keyword, loadData, pagination.pageSize])
 
   const handlePaginationChange = (page, pageSize) => {
-    loadData(page, pageSize, activeTab)
+    loadData(page, pageSize, activeTab, keyword)
   }
 
   const handleViewDetail = (record) => {
@@ -87,7 +92,7 @@ export function BlogManagementScreen() {
         try {
           await deleteBlog(record.id || record.blogId)
           message.success('Đã xóa bài viết thành công')
-          loadData(pagination.current, pagination.pageSize, activeTab)
+          loadData(pagination.current, pagination.pageSize, activeTab, keyword)
         } catch (error) {
           message.error('Xóa bài viết thất bại')
         }
@@ -183,7 +188,13 @@ export function BlogManagementScreen() {
       label: 'Viết bài mới',
       icon: <PlusOutlined />,
       onPress: () => router.push('/blog/create'),
-      type: 'primary'
+      type: 'primary',
+      style: {
+        background: 'linear-gradient(135deg, #F1BE4B 0%, #E6A817 100%)',
+        border: 'none',
+        boxShadow: '0 4px 12px rgba(241, 190, 75, 0.4)',
+        color: '#fff',
+      }
     }
   ]
 
@@ -264,7 +275,6 @@ export function BlogManagementScreen() {
         token: {
           colorPrimary: '#F1BE4B',
           borderRadius: 16,
-          fontFamily: "'Plus Jakarta Sans', 'Epilogue', sans-serif",
         },
         components: {
           Button: {
@@ -284,15 +294,46 @@ export function BlogManagementScreen() {
         }
       }}
     >
-      <div style={{ width: '100%', minHeight: '100vh', backgroundColor: '#FDFBF4' }}>
+      <div style={{ width: '100%', height: 'calc(100vh - 64px)', backgroundColor: '#FDFBF4', overflow: 'hidden' }}>
+        {/* Style override for ManagementLayout without modifying the file directly */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          /* Ensure ManagementLayout content area is responsive and fits in one screen */
+          .management-content-wrapper {
+            height: calc(100vh - 280px) !important;
+            display: flex;
+            flex-direction: column;
+          }
+          /* Make AntD Table fill the container height */
+          .ant-table-wrapper, .ant-spin-nested-loading, .ant-spin-container, .ant-table, .ant-table-container {
+            height: 100% !important;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+          }
+          .ant-table-body {
+            flex: 1 !important;
+            max-height: none !important;
+          }
+          /* Remove page scrollbar and fix redundant space */
+          body {
+            overflow: hidden !important;
+          }
+        `}} />
         <div style={{
-          width: '92%',
-          maxWidth: 1400,
+          width: '96%',
+          maxWidth: 1600,
           margin: '0 auto',
-          padding: '40px 0 80px 0'
+          padding: '16px 0',
+          height: 'calc(100vh - 100px)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
         }}>
           <ManagementLayout
             searchPlaceholder="Tìm kiếm ý tưởng của bạn..."
+            searchValue={keyword}
+            onSearchChange={setKeyword}
+            onSearchSubmit={setKeyword}
             actions={actions}
             extraFilters={extraFilters}
             renderCard={renderCard}
@@ -306,7 +347,7 @@ export function BlogManagementScreen() {
                 total: pagination.total,
                 onChange: handlePaginationChange,
                 showSizeChanger: true,
-                style: { marginTop: 32 }
+                style: { margin: 0 }
               }
             }}
           />
@@ -323,7 +364,7 @@ export function BlogManagementScreen() {
           <Tooltip title="Làm mới" placement="right">
             <FloatButton
               icon={<LoadingOutlined style={{ fontSize: 22 }} />}
-              onClick={() => loadData(1, pagination.pageSize, activeTab)}
+              onClick={() => loadData(1, pagination.pageSize, activeTab, keyword)}
             />
           </Tooltip>
           <Tooltip title="Viết bài mới" placement="right">

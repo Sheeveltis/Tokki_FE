@@ -149,6 +149,7 @@ export default function ManagementLayout({
         {/* CONTENT SECTION */}
         <div
           ref={tableWrapperRef}
+          className="management-content-wrapper"
           style={{
             height: tableScrollY,
             overflowY: viewMode === 'table' ? 'hidden' : 'auto',
