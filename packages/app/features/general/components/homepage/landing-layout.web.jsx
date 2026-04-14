@@ -14,9 +14,14 @@ export function LandingLayout({
 }) {
   return (
     <View style={styles.root}>
-      <View style={styles.wrapper}>
+      <ScrollView
+        style={styles.wrapper}
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
         {children}
-      </View>
+      </ScrollView>
+      <BubbleChat />
     </View>
   )
 }
@@ -24,7 +29,7 @@ export function LandingLayout({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#FDFBF4',
   },
   wrapper: {
     width: '100%',
