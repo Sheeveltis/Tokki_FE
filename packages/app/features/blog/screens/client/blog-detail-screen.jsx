@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useParams } from 'solito/navigation'
 import { ConfigProvider, FloatButton, Tooltip, message } from 'antd'
-import { SettingOutlined, BookOutlined, ShareAltOutlined } from '@ant-design/icons'
+import { SettingOutlined, BookOutlined, ShareAltOutlined, FileTextOutlined, PlusOutlined } from '@ant-design/icons'
 
 import { BlogLayout } from '../../components/blog-detail/blog-layout'
 import { getBlogDetail, getAllBlogs, increaseViewCount, getCommentsByBlog } from '../../api'
@@ -167,14 +167,20 @@ export function BlogDetailScreen() {
         <FloatButton.Group
           trigger="hover"
           type="primary"
-          style={{ right: 24, bottom: 84 }}
+          style={{ left: 24, bottom: 175 }}
           icon={<SettingOutlined />}
         >
-          <Tooltip title="Lưu bài viết" placement="left">
+          <Tooltip title="Quản lý bài viết" placement="right">
+            <FloatButton icon={<FileTextOutlined />} onClick={() => router.push('/blog/management')} />
+          </Tooltip>
+          <Tooltip title="Lưu bài viết" placement="right">
             <FloatButton icon={<BookOutlined />} onClick={() => message.info('Đã lưu vào bộ sưu tập')} />
           </Tooltip>
-          <Tooltip title="Chia sẻ" placement="left">
+          <Tooltip title="Chia sẻ" placement="right">
             <FloatButton icon={<ShareAltOutlined />} onClick={() => message.success('Link đã được sao chép')} />
+          </Tooltip>
+          <Tooltip title="Viết bài mới" placement="right">
+            <FloatButton icon={<PlusOutlined />} onClick={() => router.push('/blog/create')} />
           </Tooltip>
         </FloatButton.Group>
       </BlogLayout>

@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useCallback } from 'react'
-import { Typography, Button, Input } from 'antd'
+import { Typography, Button, Input, FloatButton, Tooltip, message, ConfigProvider } from 'antd'
 import { BlogSidebar } from './blog-list-sidebar'
 import { CategoryFilter } from './category-filter'
 import { BlogCard } from '../shared/blog-card.web'
 import { useRouter } from 'solito/navigation'
 import { Loading } from '../../../../../components/Loading'
-import { ArrowRightOutlined, SearchOutlined } from '@ant-design/icons'
+import { ArrowRightOutlined, SearchOutlined, SettingOutlined, FileTextOutlined, PlusOutlined } from '@ant-design/icons'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -565,6 +565,29 @@ export function BlogListLayout({ blogs = [], loading = false, hasMore = false, o
           <BlogSidebar latestBlogs={latestBlogs} />
         </div>
       </div>
+      {/* Floating Actions */}
+      <ConfigProvider
+        theme={{
+          token: {
+            colorPrimary: '#F1BE4B',
+          }
+        }}
+      >
+        <FloatButton.BackTop visibilityHeight={400} style={{ right: 24, bottom: 24 }} />
+        <FloatButton.Group
+          trigger="hover"
+          type="primary"
+          style={{ left: 24, bottom: 175 }}
+          icon={<SettingOutlined />}
+        >
+          <Tooltip title="Quản lý bài viết" placement="right">
+            <FloatButton icon={<FileTextOutlined />} onClick={() => router.push('/blog/management')} />
+          </Tooltip>
+          <Tooltip title="Viết bài mới" placement="right">
+            <FloatButton icon={<PlusOutlined />} onClick={() => router.push('/blog/create')} />
+          </Tooltip>
+        </FloatButton.Group>
+      </ConfigProvider>
     </div>
   )
 }

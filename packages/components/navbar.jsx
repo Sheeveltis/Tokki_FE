@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter, usePathname } from 'solito/navigation'
 import {
   View,
@@ -9,10 +9,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
+  ScrollView,
 } from 'react-native'
 import { colors } from '../app/color'
 import { getAuthToken, clearAuthToken, getCurrentUserId } from '../app/provider/api/client'
-import { useNotifications } from '../app/provider/notification'
+import { useNotifications, NotificationReadFilter } from '../app/provider/notification'
 import { MessageModal } from './MessageModal'
 
 import BackgroundImage from '../assets/background1.png'
@@ -29,7 +30,19 @@ import DictionaryIcon from '../assets/icon/navigate-app/dictionary.svg'
 import UserIcon from '../assets/user.png'
 import LogoutIcon from '../assets/icon/icon-mainflow/logout.svg'
 import StarIcon from '../assets/icon/icon-mainflow/star.svg'
-import { BellOutlined, UserOutlined, LogoutOutlined, InfoCircleOutlined } from '@ant-design/icons'
+import { 
+  BellOutlined, 
+  UserOutlined, 
+  LogoutOutlined, 
+  InfoCircleOutlined, 
+  FileTextOutlined,
+  CheckCircleOutlined,
+  MessageOutlined,
+  StarOutlined,
+  TrophyOutlined,
+  ExclamationCircleOutlined,
+  ClockCircleOutlined
+} from '@ant-design/icons'
 import { Dropdown, Menu } from 'antd'
 import PremiumButton from './PremiumButton'
 
@@ -109,7 +122,7 @@ const NavItem = ({ icon, label, tint, path, compact = false }) => {
 
 export const Navbar = ({ position = 'fixed' }) => {
   const router = useRouter()
-  const { unreadCount } = useNotifications()
+  const { unreadCount, notifications, markAsRead, markAllAsRead, fetchNotifications } = useNotifications()
   const { width } = useWindowDimensions()
   const isMobile = width < 920
 
@@ -117,6 +130,7 @@ export const Navbar = ({ position = 'fixed' }) => {
   const [authChecked, setAuthChecked] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [notiFilter, setNotiFilter] = useState(NotificationReadFilter.All)
   const pathname = usePathname()
 
   useEffect(() => {
@@ -172,6 +186,12 @@ export const Navbar = ({ position = 'fixed' }) => {
       onClick: () => router.push(`/users/${getCurrentUserId() || 'me'}`)
     },
     {
+      key: 'blog-management',
+      label: 'Quản lý bài viết blog',
+      icon: <FileTextOutlined />,
+      onClick: () => router.push('/blog/management')
+    },
+    {
       key: 'logout',
       label: 'Đăng xuất',
       danger: true,
@@ -219,24 +239,156 @@ export const Navbar = ({ position = 'fixed' }) => {
                     />
                   </View>
 
-                  <Pressable
-                    onPress={() => router.push('/notifications')}
-                    style={({ pressed }) => [styles.iconActionBtn, pressed && styles.iconActionPressed]}
-                  >
-                    <BellOutlined style={{ fontSize: 22, color: '#8D6E63' }} />
-                    {unreadCount > 0 && (
-                      <View style={styles.badge}>
-                        <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-                      </View>
-                    )}
-                  </Pressable>
+                  {Platform.OS === 'web' ? (
+                    <Dropdown
+                      popupRender={() => (
+                        <View style={styles.notiDropdown}>
+                          <View style={styles.notiHeader}>
+                            <View>
+                              <Text style={styles.notiTitle}>Thông báo</Text>
+                              {unreadCount > 0 && (
+                                <Text style={styles.notiSubtitle}>Bạn có {unreadCount} thông báo chưa đọc</Text>
+                              )}
+                            </View>
+                            <TouchableOpacity onPress={markAllAsRead}>
+                              <Text style={styles.notiReadAll}>Đọc tất cả</Text>
+                            </TouchableOpacity>
+                          </View>
+
+                          <View style={styles.tabContainer}>
+                            {[
+                              { label: 'Tất cả', value: NotificationReadFilter.All },
+                              { label: 'Chưa đọc', value: NotificationReadFilter.Unread },
+                              { label: 'Đã đọc', value: NotificationReadFilter.Read }
+                            ].map(tab => (
+                              <TouchableOpacity 
+                                key={tab.value}
+                                onPress={() => {
+                                  setNotiFilter(tab.value)
+                                  fetchNotifications(tab.value)
+                                }}
+                                style={[styles.tabItem, notiFilter === tab.value && styles.tabItemActive]}
+                              >
+                                <Text style={[styles.tabLabel, notiFilter === tab.value && styles.tabLabelActive]}>
+                                  {tab.label}
+                                </Text>
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                          
+                          <ScrollView style={styles.notiList} showsVerticalScrollIndicator={true}>
+                            {notifications.length > 0 ? (
+                              notifications.map((noti) => {
+                                const config = (() => {
+                                  switch (noti.type) {
+                                    case 1: return { icon: <CheckCircleOutlined />, color: '#52C41A', bg: '#F6FFED' }
+                                    case 2: return { icon: <MessageOutlined />, color: '#1890FF', bg: '#E6F7FF' }
+                                    case 3: return { icon: <FileTextOutlined />, color: '#722ED1', bg: '#F9F0FF' }
+                                    case 4: return { icon: <StarOutlined />, color: '#FAAD14', bg: '#FFFBE6' }
+                                    case 5: return { icon: <TrophyOutlined />, color: '#FF7A45', bg: '#FFF2E8' }
+                                    case 6: return { icon: <ExclamationCircleOutlined />, color: '#FF4D4F', bg: '#FFF1F0' }
+                                    default: return { icon: <InfoCircleOutlined />, color: '#8D6E63', bg: '#F5F5F5' }
+                                  }
+                                })()
+
+                                return (
+                                  <TouchableOpacity 
+                                    key={noti.id} 
+                                    onPress={() => {
+                                      markAsRead(noti.id)
+                                    }}
+                                    style={[styles.notiItem, !noti.isRead && styles.notiItemUnread]}
+                                  >
+                                    <View style={[styles.notiIconWrap, { backgroundColor: config.bg }]}>
+                                      {React.cloneElement(config.icon, { style: { fontSize: 18, color: config.color } })}
+                                    </View>
+                                    <View style={styles.notiItemContent}>
+                                      <View style={styles.notiItemHeader}>
+                                        <Text style={[styles.notiItemTitle, !noti.isRead && styles.notiItemTitleUnread]} numberOfLines={1}>
+                                          {noti.title}
+                                        </Text>
+                                        {!noti.isRead && <View style={styles.unreadDot} />}
+                                      </View>
+                                      <Text style={styles.notiItemText} numberOfLines={3}>
+                                        {noti.content}
+                                      </Text>
+                                      <View style={styles.notiItemFooter}>
+                                        <ClockCircleOutlined style={{ fontSize: 10, color: '#BDBDBD', marginRight: 4 }} />
+                                        <Text style={styles.notiItemTime}>
+                                          {new Date(noti.createdAt).toLocaleString('vi-VN', { 
+                                            hour: '2-digit', 
+                                            minute: '2-digit',
+                                            day: '2-digit',
+                                            month: '2-digit'
+                                          })}
+                                        </Text>
+                                      </View>
+                                    </View>
+                                  </TouchableOpacity>
+                                )
+                              })
+                            ) : (
+                              <View style={styles.emptyNoti}>
+                                <View style={{ 
+                                  width: 64, 
+                                  height: 64, 
+                                  borderRadius: 32, 
+                                  backgroundColor: '#FAF9F6', 
+                                  alignItems: 'center', 
+                                  justifyContent: 'center',
+                                  marginBottom: 16
+                                }}>
+                                  <BellOutlined style={{ fontSize: 32, color: '#EEDCC5' }} />
+                                </View>
+                                <Text style={styles.emptyNotiText}>Chưa có thông báo nào mới</Text>
+                                <Text style={{ fontSize: 12, color: '#BDBDBD', marginTop: 4 }}>Chúng tôi sẽ báo cho bạn khi có tin mới!</Text>
+                              </View>
+                            )}
+                          </ScrollView>
+                          
+                          <TouchableOpacity 
+                            onPress={() => router.push('/notifications')}
+                            style={styles.notiFooter}
+                          >
+                            <Text style={styles.notiFooterText}>Xem tất cả thông báo</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                      trigger={['hover']}
+                      placement="bottomRight"
+                      styles={{ root: { paddingTop: 10 } }}
+                    >
+                      <Pressable
+                        style={({ pressed }) => [styles.iconActionBtn, pressed && styles.iconActionPressed]}
+                      >
+                        <BellOutlined style={{ fontSize: 22, color: '#8D6E63' }} />
+                        {unreadCount > 0 && (
+                          <View style={styles.badge}>
+                            <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                          </View>
+                        )}
+                      </Pressable>
+                    </Dropdown>
+                  ) : (
+                    <Pressable
+                      onPress={() => router.push('/notifications')}
+                      style={({ pressed }) => [styles.iconActionBtn, pressed && styles.iconActionPressed]}
+                    >
+                      <BellOutlined style={{ fontSize: 22, color: '#8D6E63' }} />
+                      {unreadCount > 0 && (
+                        <View style={styles.badge}>
+                          <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                        </View>
+                      )}
+                    </Pressable>
+                  )}
 
                   {Platform.OS === 'web' ? (
                     <Dropdown
                       menu={{ items: userMenuItems }}
                       placement="bottomRight"
                       trigger={['hover']}
-                      overlayStyle={{ paddingTop: 10 }}
+                      styles={{ root: { paddingTop: 10 } }}
                     >
                       <Pressable style={({ pressed }) => [styles.userIconBtn, pressed && styles.iconActionPressed]}>
                         <UserOutlined style={{ fontSize: 20, color: '#FFFFFF' }} />
@@ -551,5 +703,159 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2000,
+  },
+  notiDropdown: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    width: 360,
+    maxHeight: 520,
+    overflow: 'hidden',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 8px 32px rgba(93, 64, 55, 0.15)',
+    }),
+    borderWidth: 1,
+    borderColor: '#EEDCC5',
+  },
+  notiHeader: {
+    padding: 20,
+    paddingBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+    backgroundColor: '#FAF9F6',
+  },
+  notiTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#5D4037',
+    letterSpacing: -0.5,
+  },
+  notiSubtitle: {
+    fontSize: 12,
+    color: '#8D6E63',
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  notiReadAll: {
+    fontSize: 13,
+    color: '#FFB300',
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  notiList: {
+    maxHeight: 420,
+  },
+  notiItem: {
+    padding: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+    flexDirection: 'row',
+    gap: 14,
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.2s ease',
+    }),
+  },
+  notiItemUnread: {
+    backgroundColor: '#FFF9F0',
+  },
+  notiIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notiItemContent: {
+    flex: 1,
+  },
+  notiItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  notiItemTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333333',
+    flex: 1,
+  },
+  notiItemTitleUnread: {
+    fontWeight: '800',
+    color: '#5D4037',
+  },
+  unreadDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FFB300',
+    marginLeft: 8,
+  },
+  notiItemText: {
+    fontSize: 13,
+    color: '#666666',
+    lineHeight: 18,
+  },
+  notiItemFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  notiItemTime: {
+    fontSize: 11,
+    color: '#999999',
+    fontWeight: '500',
+  },
+  emptyNoti: {
+    padding: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyNotiText: {
+    fontSize: 15,
+    color: '#5D4037',
+    fontWeight: '700',
+  },
+  notiFooter: {
+    padding: 16,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    backgroundColor: '#FAF9F6',
+  },
+  notiFooterText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#5D4037',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    backgroundColor: '#FAF9F6',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+    gap: 16,
+  },
+  tabItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabItemActive: {
+    borderBottomColor: '#FFB300',
+  },
+  tabLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#8D6E63',
+  },
+  tabLabelActive: {
+    color: '#FFB300',
+    fontWeight: '800',
   },
 })

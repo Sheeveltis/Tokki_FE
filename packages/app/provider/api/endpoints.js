@@ -329,4 +329,9 @@ export const ENDPOINTS = {
     CREATE: '/system-configs',
     UPDATE: '/system-configs',
   },
+  NOTIFICATION: {
+    MY_NOTIFICATIONS: (pageNumber = 1, pageSize = 20, filter = 0) => `/Notification/my-notifications?pageNumber=${pageNumber}&pageSize=${pageSize}&filter=${filter}`,
+    MARK_AS_READ: (id) => `/Notification/mark-as-read/${id}`,
+    MARK_ALL_AS_READ: '/Notification/mark-all-as-read',
+  },
 }
