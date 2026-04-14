@@ -12,6 +12,7 @@ import {
 } from 'react-native'
 import { colors } from '../app/color'
 import { getAuthToken, clearAuthToken, getCurrentUserId } from '../app/provider/api/client'
+import { useNotifications } from '../app/provider/notification'
 import { MessageModal } from './MessageModal'
 
 import BackgroundImage from '../assets/background1.png'
@@ -27,6 +28,7 @@ import DictionaryIcon from '../assets/icon/navigate-app/dictionary.svg'
 import UserIcon from '../assets/user.png'
 import LogoutIcon from '../assets/icon/icon-mainflow/logout.svg'
 import StarIcon from '../assets/icon/icon-mainflow/star.svg'
+import { BellOutlined } from '@ant-design/icons'
 import PremiumButton from './PremiumButton'
 
 const HEADER_HEIGHT = 72
@@ -42,9 +44,10 @@ const IconRenderer = ({ icon, size = 24, tint }) => {
         height={size}
         fill={tint}
         color={tint}
-        style={{ color: tint }}
+        style={{ color: tint, fontSize: size }}
       />
     )
+
   }
 
   return <Image source={icon} style={{ width: size, height: size, tintColor: tint }} resizeMode="contain" />
@@ -111,6 +114,7 @@ const NavItem = ({ icon, label, tint, path, compact = false }) => {
 
 export const Navbar = ({ position = 'fixed' }) => {
   const router = useRouter()
+  const { unreadCount } = useNotifications()
   const { width } = useWindowDimensions()
   const isMobile = width < 920
 
@@ -197,6 +201,18 @@ export const Navbar = ({ position = 'fixed' }) => {
                       onPress={() => router.push('/payment-package')}
                     />
                   </View>
+
+                  <Pressable
+                    onPress={() => router.push('/notifications')}
+                    style={({ pressed }) => [styles.iconActionBtn, pressed && styles.iconActionPressed]}
+                  >
+                    <IconRenderer icon={BellOutlined} size={24} tint="#6A5634" />
+                    {unreadCount > 0 && (
+                      <View style={styles.badge}>
+                        <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                      </View>
+                    )}
+                  </Pressable>
 
                   {!isMobile ? (
                     <Pressable
@@ -454,6 +470,27 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' && {
       boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
     }),
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#FF4D4F',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFDF6',
+  },
+  badgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '700',
+    textAlign: 'center',
+    lineHeight: 14,
   },
   premiumWrapper: {
     padding: 2,
