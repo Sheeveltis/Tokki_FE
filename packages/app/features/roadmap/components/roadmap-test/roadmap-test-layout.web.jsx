@@ -490,7 +490,19 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         const restoredAnswers = restoreAnswersFromSections(mappedSections)
 
         setSections(mappedSections)
-        setActiveSectionKey(mappedSections[0]?.key || null)
+        
+        // Respect currentSkill from backend if available, or find first section with time remaining
+        const skillRemaining = examData.skillTimeRemaining || {}
+        const backendCurrentSkill = (examData.currentSkill || '').toLowerCase()
+        let initialSection = mappedSections.find(s => s.key === backendCurrentSkill)
+        
+        if (!initialSection) {
+          initialSection = mappedSections.find(s => (skillRemaining[s.key] || 0) > 0)
+        }
+        
+        if (!initialSection) initialSection = mappedSections[0]
+
+        setActiveSectionKey(initialSection?.key || null)
         setTotalQuestions(
           examData.totalQuestions ||
           mappedSections.reduce((sum, s) => sum + s.questions.length, 0)
@@ -504,7 +516,6 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
               : getTestConfig(level).totalTime
 
         // Initialize skillTimeRemaining. If API doesn't provide it, fall back to global duration divided equally
-        const skillRemaining = examData.skillTimeRemaining || {}
         if (Object.keys(skillRemaining).length === 0) {
           mappedSections.forEach(s => {
             skillRemaining[s.key] = totalSeconds / mappedSections.length
@@ -512,13 +523,13 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         }
         setSkillTimeRemaining(skillRemaining)
 
-        const firstSectionKey = mappedSections[0]?.key || null
-        const currentSkillSeconds = firstSectionKey ? (skillRemaining[firstSectionKey] || 0) : totalSeconds
+        const initialSectionKey = initialSection?.key || null
+        const currentSkillSeconds = initialSectionKey ? (skillRemaining[initialSectionKey] || 0) : totalSeconds
         
         setTimeRemainingSeconds(currentSkillSeconds)
         setTimeRemaining(formatTime(currentSkillSeconds))
-        const firstSectionQuestion = mappedSections[0]?.questions?.[0]
-        setCurrentQuestion(firstSectionQuestion?.questionNumber || 1)
+        const activeSectionQuestion = initialSection?.questions?.[0]
+        setCurrentQuestion(activeSectionQuestion?.questionNumber || 1)
         setCurrentQuestionIndex(0)
         setAnswers(restoredAnswers)
         setExamTitle(

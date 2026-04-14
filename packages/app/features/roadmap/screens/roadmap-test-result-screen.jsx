@@ -271,9 +271,6 @@ export function RoadmapTestResultScreen() {
         const query = `userExamId=${encodeURIComponent(userExamId)}&level=${targetAim}&selfDeclaredLevel=${selfDeclaredLevel}&isEntrance=1`
         router.push(`/roadmap/test/result/generate?${query}`)
       }}
-      onRetake={() => {
-        router.push('/roadmap/learning')
-      }}
     />
   )
 }

@@ -2,22 +2,24 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Modal, Space, Tooltip, message, Tag, Tabs, Button, FloatButton, ConfigProvider } from 'antd'
-import { 
-  FileTextOutlined, 
-  PlusOutlined, 
-  EditOutlined, 
-  DeleteOutlined, 
+import { Modal, Space, Tooltip, message, Tag, Tabs, Button, FloatButton, ConfigProvider, Card } from 'antd'
+import {
+  FileTextOutlined,
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
   EyeOutlined,
   SendOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
   SettingOutlined,
   BookOutlined,
-  ShareAltOutlined
+  ShareAltOutlined,
+  CloseCircleOutlined,
+  LoadingOutlined
 } from '@ant-design/icons'
 import ManagementLayout from '../../../../../components/layout/management-layout'
-import { getBlogsAdmin, deleteBlog } from '../../api/index'
+import { getMyBlogs, deleteBlog } from '../../api/index'
 import { LoadingWithContainer } from '../../../../../components/Loading'
 
 /**
@@ -28,22 +30,20 @@ export function BlogManagementScreen() {
   const router = useRouter()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('1') // '1': Published, '0': Draft
+  const [activeTab, setActiveTab] = useState('all') // 'all', '1': Published, '0': Draft, etc.
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
     total: 0,
   })
 
-  const loadData = useCallback(async (page = 1, pageSize = 10, status = 1) => {
+  const loadData = useCallback(async (page = 1, pageSize = 10, status = 'all') => {
     try {
       setLoading(true)
-      // Sử dụng getBlogsAdmin nhưng backend cần filter theo UserId của token hiện tại
-      // Hoặc nếu endpoint /Blog/admin tự động filter cho user không phải Admin
-      const res = await getBlogsAdmin({
+      const res = await getMyBlogs({
         pageNumber: page,
         pageSize,
-        status: parseInt(status),
+        status: status === 'all' ? undefined : parseInt(status),
       })
 
       setData(res?.items || [])
@@ -97,11 +97,11 @@ export function BlogManagementScreen() {
       render: (_, record) => (
         <Space size="middle">
           {record.thumbnailUrl && (
-             <img 
-               src={record.thumbnailUrl} 
-               style={{ width: 60, height: 40, objectFit: 'cover', borderRadius: 4 }} 
-               alt="thumbnail"
-             />
+            <img
+              src={record.thumbnailUrl}
+              style={{ width: 60, height: 40, objectFit: 'cover', borderRadius: 4 }}
+              alt="thumbnail"
+            />
           )}
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontWeight: 700, fontSize: 16, color: '#5D4037' }}>{record.title}</span>
@@ -112,8 +112,8 @@ export function BlogManagementScreen() {
     },
     {
       title: 'Ngày tạo',
-      dataIndex: 'createdDate',
-      key: 'createdDate',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
       width: '15%',
       render: (date) => new Date(date).toLocaleDateString('vi-VN')
     },
@@ -124,9 +124,18 @@ export function BlogManagementScreen() {
       width: '15%',
       align: 'center',
       render: (status) => {
-        if (status === 1) return <Tag icon={<CheckCircleOutlined />} color="success">Đã đăng</Tag>
-        if (status === 0) return <Tag icon={<ClockCircleOutlined />} color="default">Bản nháp</Tag>
-        return <Tag color="warning">Đang chờ</Tag>
+        switch (status) {
+          case 0: return <Tag icon={<FileTextOutlined />} color="default">Bản nháp</Tag>
+          case 1: return <Tag icon={<CheckCircleOutlined />} color="success">Đã đăng</Tag>
+          case 2: return <Tag icon={<EyeOutlined />} color="default">Đã ẩn</Tag>
+          case 3: return <Tag icon={<BookOutlined />} color="cyan">Lưu trữ</Tag>
+          case 4: return <Tag icon={<ClockCircleOutlined />} color="processing">Chờ duyệt</Tag>
+          case 5: return <Tag icon={<CloseCircleOutlined />} color="error">Đã từ chối</Tag>
+          case 6: return <Tag icon={<LoadingOutlined />} color="warning">AI đang kiểm duyệt</Tag>
+          case 7: return <Tag icon={<CloseCircleOutlined />} color="error">AI đã từ chối</Tag>
+          case 8: return null // Không hiện enum 8 theo yêu cầu
+          default: return <Tag color="warning">Không xác định</Tag>
+        }
       }
     },
     {
@@ -137,25 +146,25 @@ export function BlogManagementScreen() {
       render: (_, record) => (
         <Space size="middle">
           <Tooltip title="Xem bài viết">
-            <Button 
-               type="text" 
-               icon={<EyeOutlined style={{ color: '#1890ff' }} />} 
-               onClick={() => router.push(`/blog/${record.slug || record.id}`)}
+            <Button
+              type="text"
+              icon={<EyeOutlined style={{ color: '#1890ff' }} />}
+              onClick={() => router.push(`/blog/${record.slug || record.id}`)}
             />
           </Tooltip>
           <Tooltip title="Chỉnh sửa">
-            <Button 
-               type="text" 
-               icon={<EditOutlined style={{ color: '#faad14' }} />} 
-               onClick={() => router.push(`/blog/edit/${record.id || record.blogId}`)}
+            <Button
+              type="text"
+              icon={<EditOutlined style={{ color: '#faad14' }} />}
+              onClick={() => router.push(`/blog/edit/${record.id || record.blogId}`)}
             />
           </Tooltip>
           <Tooltip title="Xóa">
-            <Button 
-               type="text" 
-               danger 
-               icon={<DeleteOutlined />} 
-               onClick={() => handleDelete(record)}
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(record)}
             />
           </Tooltip>
         </Space>
@@ -173,93 +182,183 @@ export function BlogManagementScreen() {
   ]
 
   const extraFilters = (
-    <Tabs 
-      activeKey={activeTab} 
+    <Tabs
+      activeKey={activeTab}
       onChange={setActiveTab}
       items={[
-        { key: '1', label: 'Bài viết đã đăng', icon: <SendOutlined /> },
+        { key: 'all', label: 'Tất cả', icon: <SettingOutlined /> },
+        { key: '1', label: 'Đã đăng', icon: <SendOutlined /> },
         { key: '0', label: 'Bản nháp', icon: <FileTextOutlined /> },
+        { key: '4', label: 'Chờ duyệt', icon: <ClockCircleOutlined /> },
+        { key: '5', label: 'Bị từ chối', icon: <CloseCircleOutlined /> },
       ]}
       style={{ marginBottom: -16 }}
     />
   )
 
-  return (
-    <div style={{ padding: '24px', maxWidth: 1200, margin: '0 auto', minHeight: '80vh' }}>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 900, color: '#5D4037', marginBottom: 8 }}>
-          Quản lý bài viết của bạn
-        </h1>
-        <p style={{ color: '#8D6E63' }}>Xem, chỉnh sửa hoặc tạo bài viết blog mới của bạn.</p>
-      </div>
-
-      <ManagementLayout
-        searchPlaceholder="Tìm kiếm bài viết..."
-        actions={actions}
-        extraFilters={extraFilters}
-        tableProps={{
-          columns,
-          dataSource: data,
-          loading,
-          pagination: {
-            current: pagination.current,
-            pageSize: pagination.pageSize,
-            total: pagination.total,
-            onChange: handlePaginationChange,
-          }
-        }}
+  const renderCard = useCallback((record) => (
+    <Card
+      hoverable
+      cover={
+        <div style={{ position: 'relative', height: 160, overflow: 'hidden' }}>
+          {record.thumbnailUrl ? (
+            <img
+              alt={record.title}
+              src={record.thumbnailUrl}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            <div style={{ width: '100%', height: '100%', backgroundColor: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FileTextOutlined style={{ fontSize: 40, color: '#d9d9d9' }} />
+            </div>
+          )}
+          <div style={{ position: 'absolute', top: 12, right: 12 }}>
+            {(() => {
+              const status = record.status
+              switch (status) {
+                case 0: return <Tag color="default">Nháp</Tag>
+                case 1: return <Tag color="success">Đã đăng</Tag>
+                case 4: return <Tag color="processing">Chờ duyệt</Tag>
+                case 5:
+                case 7: return <Tag color="error">Bị từ chối</Tag>
+                default: return <Tag color="warning">Khác</Tag>
+              }
+            })()}
+          </div>
+        </div>
+      }
+      actions={[
+        <Tooltip title="Xem">
+          <EyeOutlined key="view" onClick={() => router.push(`/blog/${record.slug || record.id}`)} />
+        </Tooltip>,
+        <Tooltip title="Sửa">
+          <EditOutlined key="edit" onClick={() => router.push(`/blog/edit/${record.id || record.blogId}`)} />
+        </Tooltip>,
+        <Tooltip title="Xóa">
+          <DeleteOutlined key="delete" onClick={() => handleDelete(record)} />
+        </Tooltip>,
+      ]}
+      style={{ borderRadius: 16, overflow: 'hidden' }}
+    >
+      <Card.Meta
+        title={<span style={{ fontWeight: 700, color: '#5D4037' }}>{record.title}</span>}
+        description={
+          <div style={{ marginTop: 8 }}>
+            <div style={{ fontSize: 13, color: '#8D6E63', marginBottom: 4 }}>{record.categoryName || 'Chưa phân loại'}</div>
+            <div style={{ fontSize: 12, color: '#BDBDBD' }}>{new Date(record.createdAt).toLocaleDateString('vi-VN')}</div>
+          </div>
+        }
       />
-      
-      {/* Floating Actions */}
-      <ConfigProvider
-        theme={{
-          token: {
-            colorPrimary: '#F1BE4B',
-            borderRadius: 16,
-            fontFamily: "'Epilogue', sans-serif",
+    </Card>
+  ), [router, handleDelete])
+
+  return (
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: '#F1BE4B',
+          borderRadius: 16,
+          fontFamily: "'Plus Jakarta Sans', 'Epilogue', sans-serif",
+        },
+        components: {
+          Button: {
+            borderRadius: 24,
+            fontWeight: 600,
+            controlHeight: 40,
+          },
+          Tabs: {
+            itemSelectedColor: '#F1BE4B',
+            inkBarColor: '#F1BE4B',
+            titleFontSize: 16,
+          },
+          Card: {
+            borderRadiusLG: 20,
           }
-        }}
-      >
-        <FloatButton.BackTop visibilityHeight={400} style={{ right: 32, bottom: 32, width: 56, height: 56 }} />
+        }
+      }}
+    >
+      <div style={{ width: '100%', minHeight: '100vh', backgroundColor: '#FDFBF4' }}>
+        <div style={{
+          width: '92%',
+          maxWidth: 1400,
+          margin: '0 auto',
+          padding: '40px 0 80px 0'
+        }}>
+          {/* Dashboard Header */}
+          <div style={{
+            marginBottom: 40,
+            padding: '48px',
+            borderRadius: 32,
+            background: 'linear-gradient(135deg, #F1BE4B 0%, #FFD700 100%)',
+            boxShadow: '0 20px 40px rgba(241, 190, 75, 0.15)',
+            position: 'relative',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center'
+          }}>
+            {/* Decorative Orbs */}
+            <div style={{ position: 'absolute', right: '-40px', top: '-40px', width: 240, height: 240, borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />
+            <div style={{ position: 'absolute', left: '5%', bottom: '-50px', width: 150, height: 150, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                <div style={{ backgroundColor: 'rgba(255,255,255,0.9)', padding: '8px 16px', borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#F1BE4B', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Dành cho người dùng
+                </div>
+              </div>
+              <h1 style={{ fontSize: 'clamp(28px, 5vw, 42px)', fontWeight: 900, color: '#5D4037', marginBottom: 12, letterSpacing: '-1px', lineHeight: 1.1 }}>
+                Blog Studio
+              </h1>
+              <p style={{ color: '#5D4037', fontSize: 'clamp(16px, 1.5vw, 19px)', opacity: 0.85, maxWidth: 650, lineHeight: 1.6, fontWeight: 500 }}>
+                Nơi nuôi dưỡng tâm hồn và chia sẻ kiến thức cộng đồng. Quản lý những câu chuyện truyền cảm hứng của bạn tại đây.
+              </p>
+            </div>
+          </div>
+
+          <ManagementLayout
+            searchPlaceholder="Tìm kiếm ý tưởng của bạn..."
+            actions={actions}
+            extraFilters={extraFilters}
+            renderCard={renderCard}
+            tableProps={{
+              columns,
+              dataSource: data,
+              loading,
+              pagination: {
+                current: pagination.current,
+                pageSize: pagination.pageSize,
+                total: pagination.total,
+                onChange: handlePaginationChange,
+                showSizeChanger: true,
+                style: { marginTop: 32 }
+              }
+            }}
+          />
+        </div>
+
+        {/* Floating Actions */}
+        <FloatButton.BackTop visibilityHeight={600} style={{ right: 40, bottom: 40, width: 64, height: 64 }} />
         <FloatButton.Group
           trigger="hover"
           type="primary"
-          style={{ left: 32, bottom: 32, width: 56, height: 56 }}
+          style={{ left: 40, bottom: 40 }}
           icon={<SettingOutlined style={{ fontSize: 24 }} />}
         >
-          <Tooltip title="Quản lý bài viết" placement="right">
-            <FloatButton 
-              icon={<FileTextOutlined style={{ fontSize: 22 }} />} 
-              style={{ width: 56, height: 56 }}
-              onClick={() => loadData(1, pagination.pageSize, activeTab)} 
-            />
-          </Tooltip>
-          <Tooltip title="Bộ sưu tập" placement="right">
-            <FloatButton 
-              icon={<BookOutlined style={{ fontSize: 22 }} />} 
-              style={{ width: 56, height: 56 }}
-              onClick={() => message.info('Tính năng đang phát triển')} 
-            />
-          </Tooltip>
-          <Tooltip title="Chia sẻ" placement="right">
-            <FloatButton 
-              icon={<ShareAltOutlined style={{ fontSize: 22 }} />} 
-              style={{ width: 56, height: 56 }}
-              onClick={() => {
-                navigator.clipboard.writeText(window.location.href)
-                message.success('Link đã được sao chép')
-              }} 
+          <Tooltip title="Làm mới" placement="right">
+            <FloatButton
+              icon={<LoadingOutlined style={{ fontSize: 22 }} />}
+              onClick={() => loadData(1, pagination.pageSize, activeTab)}
             />
           </Tooltip>
           <Tooltip title="Viết bài mới" placement="right">
-            <FloatButton 
-              icon={<PlusOutlined style={{ fontSize: 22 }} />} 
-              style={{ width: 56, height: 56 }}
-              onClick={() => router.push('/blog/create')} 
+            <FloatButton
+              icon={<PlusOutlined style={{ fontSize: 22 }} />}
+              onClick={() => router.push('/blog/create')}
             />
           </Tooltip>
         </FloatButton.Group>
-      </ConfigProvider>
-    </div>
+      </div>
+    </ConfigProvider>
   )
 }

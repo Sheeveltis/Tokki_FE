@@ -12,6 +12,8 @@ import { ErrorScreen } from '@tokki/app/features/general/screens/error-screen'
 import LeaderboardScreen from '@tokki/app/features/general/screens/leaderboard-screen'
 import { BlogListScreen } from '@tokki/app/features/blog/screens/client/blog-list-screen'
 import { BlogDetailScreen } from '@tokki/app/features/blog/screens/client/blog-detail-screen'
+import { BlogManagementScreen } from '@tokki/app/features/blog/screens/client/blog-management-screen'
+import { BlogEditorScreen } from '@tokki/app/features/blog/screens/client/blog-editor-screen'
 import UserScreen from '@tokki/app/features/user/screens/client/user-profile-screen'
 import { MinigameScreen } from '@tokki/app/features/minigame/screens/minigame-screen'
 import MatchingCardLevelScreen from '@tokki/app/features/minigame/screens/matching-card/matching-card-level-screen'
@@ -104,6 +106,33 @@ function BlogListRoute() {
 
 function BlogDetailRoute() {
   return <BlogDetailScreen />
+}
+
+function BlogManagementRoute() {
+  const { navigate } = useRouteNavigation()
+
+  React.useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/blog/management', { replace: true })
+    }
+  }, [navigate])
+
+  return <BlogManagementScreen />
+}
+
+function BlogEditorRoute() {
+  const { navigate } = useRouteNavigation()
+
+  React.useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      const currentPath = window.location.pathname
+      navigate(`/login?redirect=${currentPath}`, { replace: true })
+    }
+  }, [navigate])
+
+  return <BlogEditorScreen />
 }
 
 function PaymentDetailRoute() {
@@ -312,6 +341,9 @@ export const publicRoutes = [
 
   // Blog
   { path: '/blog', element: <BlogListRoute /> },
+  { path: '/blog/management', element: <BlogManagementRoute /> },
+  { path: '/blog/create', element: <BlogEditorRoute /> },
+  { path: '/blog/edit/:id', element: <BlogEditorRoute /> },
   { path: '/blog/:slug', element: <BlogDetailRoute /> },
 
   // Payment

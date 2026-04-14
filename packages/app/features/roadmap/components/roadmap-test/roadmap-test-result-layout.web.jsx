@@ -173,7 +173,6 @@ export function RoadmapTestResultLayout({
   gradingProgress = null,
   isEntrance = false,
   onNavigateToGenerate,
-  onRetake,
 }) {
   const router = useRouter()
 
@@ -335,15 +334,8 @@ export function RoadmapTestResultLayout({
             )}
             <View style={styles.secondaryActionsRow}>
               <RoadmapTestButton
-                title="Làm kiểm tra lại"
-                onPress={onRetake}
-                style={[styles.actionButtonMinor, styles.actionButtonSecondary]}
-                hoverStyle={styles.actionButtonSecondaryHover}
-                textStyle={styles.actionButtonSecondaryText}
-              />
-              <RoadmapTestButton
-                title="Quay lại trang lộ trình"
-                onPress={() => router.push('/roadmap/learning')}
+                title="Quay lại trang chủ"
+                onPress={() => router.push('/')}
                 style={[styles.actionButtonMinor, styles.actionButtonSecondary]}
                 hoverStyle={styles.actionButtonSecondaryHover}
                 textStyle={styles.actionButtonSecondaryText}
