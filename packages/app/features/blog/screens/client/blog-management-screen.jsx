@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
+import { Modal, Space, Tooltip, message, Tag, Tabs, Button, FloatButton, ConfigProvider } from 'antd'
 import { 
   FileTextOutlined, 
   PlusOutlined, 
@@ -10,9 +11,11 @@ import {
   EyeOutlined,
   SendOutlined,
   ClockCircleOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  SettingOutlined,
+  BookOutlined,
+  ShareAltOutlined
 } from '@ant-design/icons'
-import { Modal, Space, Tooltip, message, Tag, Tabs, Button } from 'antd'
 import ManagementLayout from '../../../../../components/layout/management-layout'
 import { getBlogsAdmin, deleteBlog } from '../../api/index'
 import { LoadingWithContainer } from '../../../../../components/Loading'
@@ -206,6 +209,57 @@ export function BlogManagementScreen() {
           }
         }}
       />
+      
+      {/* Floating Actions */}
+      <ConfigProvider
+        theme={{
+          token: {
+            colorPrimary: '#F1BE4B',
+            borderRadius: 16,
+            fontFamily: "'Epilogue', sans-serif",
+          }
+        }}
+      >
+        <FloatButton.BackTop visibilityHeight={400} style={{ right: 32, bottom: 32, width: 56, height: 56 }} />
+        <FloatButton.Group
+          trigger="hover"
+          type="primary"
+          style={{ left: 32, bottom: 32, width: 56, height: 56 }}
+          icon={<SettingOutlined style={{ fontSize: 24 }} />}
+        >
+          <Tooltip title="Quản lý bài viết" placement="right">
+            <FloatButton 
+              icon={<FileTextOutlined style={{ fontSize: 22 }} />} 
+              style={{ width: 56, height: 56 }}
+              onClick={() => loadData(1, pagination.pageSize, activeTab)} 
+            />
+          </Tooltip>
+          <Tooltip title="Bộ sưu tập" placement="right">
+            <FloatButton 
+              icon={<BookOutlined style={{ fontSize: 22 }} />} 
+              style={{ width: 56, height: 56 }}
+              onClick={() => message.info('Tính năng đang phát triển')} 
+            />
+          </Tooltip>
+          <Tooltip title="Chia sẻ" placement="right">
+            <FloatButton 
+              icon={<ShareAltOutlined style={{ fontSize: 22 }} />} 
+              style={{ width: 56, height: 56 }}
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href)
+                message.success('Link đã được sao chép')
+              }} 
+            />
+          </Tooltip>
+          <Tooltip title="Viết bài mới" placement="right">
+            <FloatButton 
+              icon={<PlusOutlined style={{ fontSize: 22 }} />} 
+              style={{ width: 56, height: 56 }}
+              onClick={() => router.push('/blog/create')} 
+            />
+          </Tooltip>
+        </FloatButton.Group>
+      </ConfigProvider>
     </div>
   )
 }

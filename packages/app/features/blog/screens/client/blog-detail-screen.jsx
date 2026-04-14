@@ -163,24 +163,43 @@ export function BlogDetailScreen() {
         {renderContent()}
 
         {/* Floating Actions */}
-        <FloatButton.BackTop visibilityHeight={400} style={{ right: 24, bottom: 24 }} />
+        <FloatButton.BackTop visibilityHeight={400} style={{ right: 32, bottom: 32, width: 56, height: 56 }} />
         <FloatButton.Group
           trigger="hover"
           type="primary"
-          style={{ left: 24, bottom: 175 }}
-          icon={<SettingOutlined />}
+          style={{ left: 32, bottom: 32, width: 56, height: 56 }}
+          icon={<SettingOutlined style={{ fontSize: 24 }} />}
         >
           <Tooltip title="Quản lý bài viết" placement="right">
-            <FloatButton icon={<FileTextOutlined />} onClick={() => router.push('/blog/management')} />
+            <FloatButton 
+              icon={<FileTextOutlined style={{ fontSize: 22 }} />} 
+              style={{ width: 56, height: 56 }}
+              onClick={() => router.push('/blog/management')} 
+            />
           </Tooltip>
-          <Tooltip title="Lưu bài viết" placement="right">
-            <FloatButton icon={<BookOutlined />} onClick={() => message.info('Đã lưu vào bộ sưu tập')} />
+          <Tooltip title="Bộ sưu tập" placement="right">
+            <FloatButton 
+              icon={<BookOutlined style={{ fontSize: 22 }} />} 
+              style={{ width: 56, height: 56 }}
+              onClick={() => message.info('Đã lưu vào bộ sưu tập')} 
+            />
           </Tooltip>
           <Tooltip title="Chia sẻ" placement="right">
-            <FloatButton icon={<ShareAltOutlined />} onClick={() => message.success('Link đã được sao chép')} />
+            <FloatButton 
+              icon={<ShareAltOutlined style={{ fontSize: 22 }} />} 
+              style={{ width: 56, height: 56 }}
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href)
+                message.success('Link đã được sao chép')
+              }} 
+            />
           </Tooltip>
           <Tooltip title="Viết bài mới" placement="right">
-            <FloatButton icon={<PlusOutlined />} onClick={() => router.push('/blog/create')} />
+            <FloatButton 
+              icon={<PlusOutlined style={{ fontSize: 22 }} />} 
+              style={{ width: 56, height: 56 }}
+              onClick={() => router.push('/blog/create')} 
+            />
           </Tooltip>
         </FloatButton.Group>
       </BlogLayout>
