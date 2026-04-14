@@ -311,21 +311,23 @@ export function FlashcardFirstLearnMain({
         </View>
       </View>
 
-      <View style={styles.stepContainer}>
-        {renderStep()}
-      </View>
+      <View style={styles.contentArea}>
+        <View style={styles.stepContainer}>
+          {renderStep()}
+        </View>
 
-      {(currentStepKey === 'view' || showResult) && (
-        <TouchableOpacity
-          style={[styles.nextButton, !canContinue && styles.nextButtonDisabled]}
-          onPress={onContinue}
-          disabled={!canContinue}
-        >
-          <Text style={styles.nextText}>
-            {currentStepKey === 'meaning' && showResult && currentIndex + 1 === total ? 'Hoàn thành' : 'Tiếp tục'}
-          </Text>
-        </TouchableOpacity>
-      )}
+        {(currentStepKey === 'view' || showResult) && (
+          <TouchableOpacity
+            style={[styles.nextButton, !canContinue && styles.nextButtonDisabled]}
+            onPress={onContinue}
+            disabled={!canContinue}
+          >
+            <Text style={styles.nextText}>
+              {currentStepKey === 'meaning' && showResult && currentIndex + 1 === total ? 'Hoàn thành' : 'Tiếp tục'}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Dialog tiếp tục học */}
       {showContinueDialog && (
@@ -370,10 +372,15 @@ const styles = StyleSheet.create({
   mainWrapper: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
     width: '100%',
     paddingBottom: 20,
     paddingTop: 20,
+  },
+  contentArea: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   statsRow: {
     width: '100%',

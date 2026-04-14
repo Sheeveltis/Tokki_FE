@@ -17,7 +17,7 @@ export function FlashcardFirstLearnLayout({
       hideHero={true}
       contentContainerStyle={{
         flexGrow: 1,
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         paddingVertical: 0,
         paddingHorizontal: 0,
       }}
