@@ -38,7 +38,7 @@ export function useFlashcardFirstLearn(topicId) {
   const [originalTotal, setOriginalTotal] = useState(0) // Tổng số từ ban đầu trong batch hiện tại
   const [completedWords, setCompletedWords] = useState(new Set()) // Set các từ đã hoàn thành cả 3 bước đúng
   const [isTopicCompleted, setIsTopicCompleted] = useState(false)
-  const [completedSteps, setCompletedSteps] = useState(0) // Số bước đã hoàn thành (view/listen/meaning)
+  const [completedTasks, setCompletedTasks] = useState(new Set()) // Set các bước đã hoàn thành đúng: "vocabId:stepIndex"
   const [index, setIndex] = useState(0)
   const [step, setStep] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
@@ -192,7 +192,7 @@ export function useFlashcardFirstLearn(topicId) {
           setQueue(base)
           setOriginalTotal(base.length)
           setCompletedWords(new Set())
-          setCompletedSteps(0)
+          setCompletedTasks(new Set())
           setIndex(0)
           setStep(0)
           setIsFlipped(false)
@@ -238,7 +238,7 @@ export function useFlashcardFirstLearn(topicId) {
   const resetForNewBatch = useCallback((base) => {
     setQueue(base)
     setOriginalTotal(base.length)
-    setCompletedSteps(0)
+    setCompletedTasks(new Set())
     setIndex(0)
     setStep(0)
     setIsFlipped(false)
@@ -299,7 +299,14 @@ export function useFlashcardFirstLearn(topicId) {
     if (currentStepKey === 'view') {
       if (!hasFlippedOnce) return
       // Bước 1: chỉ chuyển sang bước 2, không lưu tiến độ
-      setCompletedSteps((prev) => prev + 1)
+      // Bước 1: chỉ chuyển sang bước 2, tính là đã xong bước view cho từ này
+      if (current?.id) {
+        setCompletedTasks((prev) => {
+          const next = new Set(prev)
+          next.add(`${current.id}:0`)
+          return next
+        })
+      }
       setStep(1)
       resetForNextStep()
       return
@@ -309,7 +316,7 @@ export function useFlashcardFirstLearn(topicId) {
     if (currentStepKey === 'listen') {
       // Bước 2: nếu sai → đưa về cuối ngay, không học bước 3
       if (!isCorrect) {
-        setCompletedSteps((prev) => prev + 1)
+        // Không cộng tiến độ nếu sai
         if (current?.id) {
           const prev = attemptsRef.current.get(current.id) || 1
           if (prev < MAX_ATTEMPTS_PER_WORD) {
@@ -337,7 +344,14 @@ export function useFlashcardFirstLearn(topicId) {
         return
       }
       // Bước 2 đúng → chuyển sang bước 3
-      setCompletedSteps((prev) => prev + 1)
+      // Bước 2 đúng → chuyển sang bước 3, tính đã xong bước listen
+      if (current?.id) {
+        setCompletedTasks((prev) => {
+          const next = new Set(prev)
+          next.add(`${current.id}:1`)
+          return next
+        })
+      }
       setStep(2)
       resetForNextStep()
       return
@@ -346,7 +360,7 @@ export function useFlashcardFirstLearn(topicId) {
     // meaning step -> finish word
     // Bước 3: nếu sai → đưa về cuối
     if (!isCorrect) {
-      setCompletedSteps((prev) => prev + 1)
+      // Không cộng tiến độ nếu sai
       if (current?.id) {
         const prev = attemptsRef.current.get(current.id) || 1
         if (prev < MAX_ATTEMPTS_PER_WORD) {
@@ -376,7 +390,11 @@ export function useFlashcardFirstLearn(topicId) {
 
     // Bước 3 đúng → đánh dấu hoàn thành cả 3 bước
     if (current?.id) {
-      setCompletedSteps((prev) => prev + 1)
+      setCompletedTasks((prev) => {
+        const next = new Set(prev)
+        next.add(`${current.id}:2`)
+        return next
+      })
       setCompletedWords((prev) => new Set([...prev, current.id]))
       
       // Chỉ đếm nếu từ này thuộc batch hiện tại (không phải từ bị đưa lại vào queue)
@@ -480,10 +498,10 @@ export function useFlashcardFirstLearn(topicId) {
     setAllWordsCompleted(true)
   }, [])
 
-  // Progress: tính dựa trên số bước đã hoàn thành / (3 * tổng số từ ban đầu)
+  // Progress: tính dựa trên số tác vụ đã hoàn thành đúng / (3 * tổng số từ ban đầu)
   const totalPlannedSteps = originalTotal * 3
   const progress =
-    totalPlannedSteps > 0 ? Math.min(100, Math.round((completedSteps / totalPlannedSteps) * 100)) : 0
+    totalPlannedSteps > 0 ? Math.min(100, Math.round((completedTasks.size / totalPlannedSteps) * 100)) : 0
 
   // Khi hoàn thành toàn bộ từ trong topic -> gọi complete-topic 1 lần
   useEffect(() => {

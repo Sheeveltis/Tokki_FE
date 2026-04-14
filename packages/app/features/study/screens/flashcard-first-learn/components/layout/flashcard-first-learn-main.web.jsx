@@ -119,6 +119,21 @@ export function FlashcardFirstLearnMain({
       }).start()
     }
   }, [showResult])
+  
+  const animatedProgress = useRef(new Animated.Value(progress)).current
+  useEffect(() => {
+    Animated.spring(animatedProgress, {
+      toValue: progress,
+      useNativeDriver: false,
+      friction: 8,
+      tension: 60,
+    }).start()
+  }, [progress])
+
+  const progressWidth = animatedProgress.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  })
 
   const renderStep = () => {
     if (!current) return null
@@ -303,7 +318,7 @@ export function FlashcardFirstLearnMain({
       <View style={styles.statsRow}>
         <View style={styles.progressSection}>
           <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${progress}%` }]} />
+            <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
           </View>
           <Text style={styles.progressText}>
             Tiến độ hoàn thành: <Text style={{ color: '#1A1A1A', fontWeight: '800' }}>{progress}%</Text>
@@ -406,6 +421,10 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#F1BE4B',
     borderRadius: 100,
+    ...(Platform.OS === 'web' && {
+      backgroundImage: 'linear-gradient(90deg, #F1BE4B, #FFD56B)',
+      boxShadow: '0 0 10px rgba(241, 190, 75, 0.4)',
+    }),
   },
   progressText: {
     fontSize: 13,

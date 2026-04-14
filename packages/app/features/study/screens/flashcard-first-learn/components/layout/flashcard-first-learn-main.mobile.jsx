@@ -340,6 +340,21 @@ export function FlashcardFirstLearnMain({
       }).start()
     }
   }, [showResult])
+  
+  const animatedProgress = useRef(new Animated.Value(progress)).current
+  useEffect(() => {
+    Animated.spring(animatedProgress, {
+      toValue: progress,
+      useNativeDriver: false,
+      friction: 8,
+      tension: 60,
+    }).start()
+  }, [progress])
+
+  const progressWidth = animatedProgress.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  })
 
   // Helper function để kiểm tra xem icon có phải là React component không (SVG component)
   const isReactComponent = (icon) => {
@@ -590,7 +605,7 @@ export function FlashcardFirstLearnMain({
 
       <View style={styles.progressBarContainer}>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${progress}%` }]} />
+          <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
         </View>
       </View>
 
