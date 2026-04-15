@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { BlogListLayout } from '../../components/blog-list/blog-list-layout'
 import { useBlogsInfinite } from '../../api/hooks'
 import { LoadingWithContainer } from '../../../../../components/Loading'
+import { BlogFloatingActions } from '../../components/shared/blog-floating-actions'
 
 const PAGE_SIZE = 10 // 10 blog mỗi trang
 
@@ -72,12 +73,15 @@ export function BlogListScreen() {
   }
 
   return (
-    <BlogListLayout 
-      blogs={blogs}
-      loading={isFetchingNextPage}
-      hasMore={hasMore}
-      onLoadMore={handleLoadMore}
-    />
+    <>
+      <BlogListLayout 
+        blogs={blogs}
+        loading={isFetchingNextPage}
+        hasMore={hasMore}
+        onLoadMore={handleLoadMore}
+      />
+      <BlogFloatingActions />
+    </>
   )
 }
 

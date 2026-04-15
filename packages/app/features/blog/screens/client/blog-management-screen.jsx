@@ -21,6 +21,7 @@ import {
 import ManagementLayout from '../../../../../components/layout/management-layout'
 import { getMyBlogs, deleteBlog } from '../../api/index'
 import { LoadingWithContainer } from '../../../../../components/Loading'
+import { BlogFloatingActions } from '../../components/shared/blog-floating-actions'
 
 const { Meta } = Card
 
@@ -183,21 +184,6 @@ export function BlogManagementScreen() {
     }
   ], [activeTab, pagination, router])
 
-  const actions = [
-    {
-      label: 'Viết bài mới',
-      icon: <PlusOutlined />,
-      onPress: () => router.push('/blog/create'),
-      type: 'primary',
-      style: {
-        background: 'linear-gradient(135deg, #F1BE4B 0%, #E6A817 100%)',
-        border: 'none',
-        boxShadow: '0 4px 12px rgba(241, 190, 75, 0.4)',
-        color: '#fff',
-      }
-    }
-  ]
-
   const extraFilters = (
     <Tabs
       activeKey={activeTab}
@@ -334,7 +320,6 @@ export function BlogManagementScreen() {
             searchValue={keyword}
             onSearchChange={setKeyword}
             onSearchSubmit={setKeyword}
-            actions={actions}
             extraFilters={extraFilters}
             renderCard={renderCard}
             tableProps={{
@@ -355,25 +340,7 @@ export function BlogManagementScreen() {
 
         {/* Floating Actions */}
         <FloatButton.BackTop visibilityHeight={600} style={{ right: 40, bottom: 40, width: 64, height: 64 }} />
-        <FloatButton.Group
-          trigger="hover"
-          type="primary"
-          style={{ left: 40, bottom: 40 }}
-          icon={<SettingOutlined style={{ fontSize: 24 }} />}
-        >
-          <Tooltip title="Làm mới" placement="right">
-            <FloatButton
-              icon={<LoadingOutlined style={{ fontSize: 22 }} />}
-              onClick={() => loadData(1, pagination.pageSize, activeTab, keyword)}
-            />
-          </Tooltip>
-          <Tooltip title="Viết bài mới" placement="right">
-            <FloatButton
-              icon={<PlusOutlined style={{ fontSize: 22 }} />}
-              onClick={() => router.push('/blog/create')}
-            />
-          </Tooltip>
-        </FloatButton.Group>
+        <BlogFloatingActions />
       </div>
 
     </ConfigProvider>
