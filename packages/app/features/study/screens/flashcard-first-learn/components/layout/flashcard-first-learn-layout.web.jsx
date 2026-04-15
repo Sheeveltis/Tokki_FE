@@ -15,6 +15,8 @@ export function FlashcardFirstLearnLayout({
       onBackPress={onBackPress}
       breadcrumbActive="Học mới"
       hideHero={true}
+      transparentContent={true}
+      scrollable={false}
       contentContainerStyle={{
         flexGrow: 1,
         justifyContent: 'flex-start',

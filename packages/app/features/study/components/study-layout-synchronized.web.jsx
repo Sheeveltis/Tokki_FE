@@ -18,6 +18,8 @@ export function StudyLayoutSynchronized({
   headerActions,
   sidebarActions,
   hideHero = false,
+  transparentContent = false,
+  scrollable = true,
   contentContainerStyle
 }) {
   return (
@@ -80,14 +82,24 @@ export function StudyLayoutSynchronized({
             )}
 
             {/* Content Card bên phải */}
-            <View style={[styles.contentCard, (!showSidebar || !sidebarActions) && { flex: 1 }]}>
-              <ScrollView
-                style={styles.contentCardScroll}
-                showsVerticalScrollIndicator={true}
-                contentContainerStyle={[styles.contentCardInner, contentContainerStyle]}
-              >
-                {children}
-              </ScrollView>
+            <View style={[
+              styles.contentCard, 
+              (!showSidebar || !sidebarActions) && { flex: 1 },
+              transparentContent && styles.transparentContent
+            ]}>
+              {scrollable ? (
+                <ScrollView
+                  style={styles.contentCardScroll}
+                  showsVerticalScrollIndicator={true}
+                  contentContainerStyle={[styles.contentCardInner, contentContainerStyle]}
+                >
+                  {children}
+                </ScrollView>
+              ) : (
+                <View style={[styles.contentCardScroll, styles.contentCardInner, contentContainerStyle]}>
+                  {children}
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -254,6 +266,11 @@ const styles = StyleSheet.create({
     borderColor: '#F0F0F0',
     overflow: 'hidden',
     ...(Platform.OS === 'web' && { boxShadow: '0 10px 40px rgba(0,0,0,0.03)' }),
+  },
+  transparentContent: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    ...(Platform.OS === 'web' && { boxShadow: 'none' }),
   },
   contentCardScroll: {
     flex: 1,
