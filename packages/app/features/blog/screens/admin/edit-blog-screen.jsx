@@ -77,6 +77,7 @@ export function EditBlogScreen() {
     try {
       setSaving(true)
       const payload = {
+        id: blogId,
         title: values.title,
         thumbnailUrl: values.thumbnailUrl,
         content: values.content,

@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Space, Tooltip, Modal, Form, Input, message } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
+import { Space, Tooltip, Modal, Form, Input, message, Card, Button, Select } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, DownloadOutlined, TableOutlined, AppstoreOutlined, FilterOutlined } from '@ant-design/icons'
+
+const { Option } = Select
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 import { getCategoriesPaged, createCategory, updateCategory, deleteCategory, importCategories, exportCategories } from '../../api'
 import { useManagementFilters } from '../../../back-office/hooks/use-management-filters.js'
@@ -164,51 +166,93 @@ export function CategoryManagement() {
 
   const columns = useMemo(() => [
     {
-      title: 'STT',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>STT</span>,
       key: 'stt',
       align: 'center',
       width: 70,
-      render: (_, __, index) => (filters.page - 1) * filters.size + index + 1
+      render: (_, __, index) => (
+        <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>
+          {(filters.page - 1) * filters.size + index + 1}
+        </span>
+      ),
+      responsive: ['md'],
     },
     {
-      title: 'Tên danh mục',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Tên danh mục</span>,
       dataIndex: 'name',
       key: 'name',
-      render: (text) => <span style={{ fontWeight: 600 }}>{text}</span>
+      render: (text) => <span style={{ fontWeight: 600, fontSize: 'clamp(13px, 1vw, 15px)' }}>{text}</span>
     },
     {
-      title: 'Slug',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Slug</span>,
       dataIndex: 'slug',
       key: 'slug',
-      render: (text) => <span style={{ color: '#666' }}>{text}</span>
+      render: (text) => <span style={{ color: '#666', fontSize: 'clamp(12px, 0.9vw, 14px)' }}>{text}</span>,
+      responsive: ['sm'],
     },
     {
-      title: 'Ngày tạo',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Ngày tạo</span>,
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 200,
-      render: (val) => val ? new Date(val).toLocaleString('vi-VN') : '--'
+      render: (val) => <span style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>{val ? new Date(val).toLocaleString('vi-VN') : '--'}</span>,
+      responsive: ['lg'],
     },
     {
-      title: 'Hành động',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Hành động</span>,
       key: 'actions',
       align: 'center',
       width: 150,
       render: (_, record) => {
-        const iconStyle = { fontSize: 20, cursor: 'pointer', color: '#1890ff' }
+        const iconStyle = { fontSize: 'clamp(18px, 1.4vw, 22px)', cursor: 'pointer', color: '#1890ff' }
         return (
           <Space size="middle">
             <Tooltip title="Chỉnh sửa">
               <EditOutlined style={iconStyle} onClick={() => handleOpenModal(record)} />
             </Tooltip>
             <Tooltip title="Xóa">
-              <DeleteOutlined style={{ ...iconStyle }} onClick={() => handleDelete(record)} />
+              <DeleteOutlined style={iconStyle} onClick={() => handleDelete(record)} />
             </Tooltip>
           </Space>
         )
       }
     }
   ], [filters, data])
+
+  const renderCard = (record) => (
+    <Card
+      hoverable
+      style={{
+        borderRadius: 16,
+        overflow: 'hidden',
+        border: '1px solid #f0f0f0',
+        height: '100%',
+      }}
+      bodyStyle={{ padding: 16 }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div style={{ fontSize: 16, fontWeight: 600, color: '#262626', marginBottom: 4 }}>
+          {record.name}
+        </div>
+        <div style={{ color: '#8c8c8c', fontSize: 13, marginBottom: 12 }}>
+          {record.slug}
+        </div>
+        <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 12, color: '#bfbfbf' }}>
+            {record.createdAt ? new Date(record.createdAt).toLocaleDateString('vi-VN') : '--'}
+          </span>
+          <Space>
+            <Tooltip title="Chỉnh sửa">
+              <Button type="text" icon={<EditOutlined style={{ color: '#1890ff' }} />} onClick={() => handleOpenModal(record)} />
+            </Tooltip>
+            <Tooltip title="Xóa">
+              <Button type="text" icon={<DeleteOutlined style={{ color: '#1890ff' }} />} onClick={() => handleDelete(record)} />
+            </Tooltip>
+          </Space>
+        </div>
+      </div>
+    </Card>
+  )
 
   const actions = [
     {
@@ -233,6 +277,28 @@ export function CategoryManagement() {
     }
   ]
 
+  const filterStyle = { 
+    width: 'clamp(150px, 15vw, 200px)', 
+    height: 'clamp(32px, 4vh, 40px)', 
+    borderRadius: '1rem', 
+    fontSize: 'clamp(13px, 1.1vw, 14px)' 
+  }
+
+  const extraFilters = (
+    <Space wrap>
+      <Select
+        placeholder="Sắp xếp theo"
+        suffixIcon={<FilterOutlined />}
+        style={filterStyle}
+        defaultValue="newest"
+      >
+        <Option value="newest">Mới nhất</Option>
+        <Option value="oldest">Cũ nhất</Option>
+        <Option value="name">Tên A-Z</Option>
+      </Select>
+    </Space>
+  )
+
   return (
     <>
       <ManagementLayout
@@ -241,7 +307,9 @@ export function CategoryManagement() {
         searchValue={filters.search}
         onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
         onSearchSubmit={() => handleFilterChange('search', filters.search)}
+        extraFilters={extraFilters}
         actions={actions}
+        renderCard={renderCard}
         tableProps={{
           columns,
           dataSource: data || [],

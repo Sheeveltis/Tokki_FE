@@ -84,15 +84,24 @@ export default function ManagementLayout({
   const paginationProps = tableProps?.pagination
 
   useEffect(() => {
-    // Đặt chiều cao cố định để giao diện ổn định, không bị nhảy theo nội dung hay resize linh hoạt
-    setTableScrollY(580)
+    const updateHeight = () => {
+      // Calculate height based on viewport, subtracting space for header and footer items
+      // 580 was the old fixed value, now we try to fit better
+      const vh = window.innerHeight
+      const calculatedHeight = Math.max(400, vh - 260) // Ensure at least 400px
+      setTableScrollY(calculatedHeight)
+    }
+
+    updateHeight()
+    window.addEventListener('resize', updateHeight)
+    return () => window.removeEventListener('resize', updateHeight)
   }, [])
 
   return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      gap: 20,
+      gap: 16,
       width: '100%',
       height: '100%',
       position: 'relative',
@@ -104,7 +113,7 @@ export default function ManagementLayout({
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '1rem',
-        paddingBottom: '0.5rem'
+        paddingBottom: '0.25rem'
       }}>
         <Space size="middle" style={{ flex: '1 1 auto', flexWrap: 'wrap', gap: '0.75rem' }}>
           {(onSearchChange || onSearchSubmit) && (
@@ -199,7 +208,7 @@ export default function ManagementLayout({
             display: 'flex',
             justifyContent: 'flex-end',
             alignItems: 'center',
-            padding: '16px 32px',
+            padding: '16px clamp(16px, 2.5vw, 32px)',
             backgroundColor: '#fff',
             borderTop: '1px solid #f0f0f0',
             zIndex: 10,
