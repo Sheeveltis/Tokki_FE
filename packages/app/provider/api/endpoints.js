@@ -28,11 +28,14 @@ export const API_BASE_URL = `${DOMAIN}${PREFIX}`
 export const ENDPOINTS = {
   BLOG: {
     GET_ALL: '/Blog/user',
+    GET_USER_DETAIL: (id) => `/Blog/user/${id}`,
     GET_BY_ID: (id) => `/Blog/${id}`,
     CREATE: '/Blog',                // POST: Tạo mới
     UPDATE: (id) => `/Blog/${id}`,
     DELETE: (id) => `/Blog/admin/delete/${id}`,
     ADMIN_LIST: '/Blog/admin',
+    MY_BLOGS: '/Blog/user/my-blog',
+    SAVE: '/Blog/user/save',
     STAFF_SUBMIT_FOR_APPROVAL: (blogId) => `/Blog/staff/submit-for-approval/${blogId}`,
     MODERATOR_APPROVE: (blogId) => `/Blog/moderator/approve/${blogId}`,
     MODERATOR_REJECT: '/Blog/moderator/reject',
@@ -248,6 +251,7 @@ export const ENDPOINTS = {
     UPLOAD_TITLE_IMAGE: '/Cloudinary/image/title',  // POST: Upload ảnh title lên Cloudinary
   },
   EXCEL: {
+    IMPORT_VOCAB: '/Excel/import/vocab',
     ADD_VOCAB_TO_TOPIC: (topicId) => `/Excel/import/vocab?topicId=${topicId}`,  // POST: Import từ vựng từ Excel vào chủ đề
     EXPORT_BY_TOPIC: (topicId) => `/Excel/export/topic/${topicId}`,  // GET: Export từ vựng của chủ đề ra Excel
     IMPORT_QUESTIONS: '/Excel/import/questions', // POST: Import câu hỏi từ Excel theo QuestionTypeId
@@ -329,5 +333,10 @@ export const ENDPOINTS = {
     GET_ALL: '/system-configs',
     CREATE: '/system-configs',
     UPDATE: '/system-configs',
+  },
+  NOTIFICATION: {
+    MY_NOTIFICATIONS: (pageNumber = 1, pageSize = 20, filter = 0) => `/Notification/my-notifications?pageNumber=${pageNumber}&pageSize=${pageSize}&filter=${filter}`,
+    MARK_AS_READ: (id) => `/Notification/mark-as-read/${id}`,
+    MARK_ALL_AS_READ: '/Notification/mark-all-as-read',
   },
 }

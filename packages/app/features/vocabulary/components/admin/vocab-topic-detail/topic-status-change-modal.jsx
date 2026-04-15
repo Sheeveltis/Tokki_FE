@@ -66,8 +66,8 @@ export function TopicStatusChangeModal({ open, loading, onCancel, onSubmit, curr
         style: {
           minWidth: 180,
           height: 40,
-          borderRadius: 8,
-          fontWeight: 500,
+          borderRadius: '2rem',
+          fontWeight: 600,
         },
         icon: <CheckOutlined />,
         disabled: selectedStatus === null || selectedStatus === currentStatus || !confirmed,
@@ -77,7 +77,8 @@ export function TopicStatusChangeModal({ open, loading, onCancel, onSubmit, curr
         style: {
           minWidth: 100,
           height: 40,
-          borderRadius: 8,
+          borderRadius: '2rem',
+          fontWeight: 600,
         },
       }}
       destroyOnClose

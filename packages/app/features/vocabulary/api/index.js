@@ -66,9 +66,9 @@ export async function fetchVocabularies(params = {}) {
     // Map data để tương thích với component
     const mappedItems = Array.isArray(items)
       ? items.map((item) => ({
-          ...item,
-          id: item.vocabularyId, // giữ key tương thích bảng/route cũ
-        }))
+        ...item,
+        id: item.vocabularyId, // giữ key tương thích bảng/route cũ
+      }))
       : []
 
     return {
@@ -107,7 +107,7 @@ export async function searchVocabulariesForUser(params = {}) {
     const {
       searchTerm = '',
       pageNumber = 1,
-      pageSize = 20,
+      pageSize = 10,
     } = params
 
     const queryParams = {
@@ -841,18 +841,18 @@ export async function searchVocabulariesForTopic(keyword = '', options = {}) {
   try {
     const { pageSize = 10 } = options
     const trimmedKeyword = keyword?.trim() || ''
-    
+
     const params = {
       pageNumber: 1,
       pageSize,
       status: 1,
     }
-    
+
     // Chỉ thêm searchText nếu có từ khóa
     if (trimmedKeyword) {
       params.searchText = trimmedKeyword
     }
-    
+
     const res = await fetchVocabularies(params)
     // Trả về items từ kết quả
     return Array.isArray(res?.items) ? res.items : []
@@ -914,7 +914,7 @@ export async function addVocabulariesToTopicAndReload(topicId, vocabularyIds) {
   try {
     // Thêm từ vựng vào chủ đề
     const response = await addVocabulariesToTopic(topicId, vocabularyIds)
-    
+
     // Nếu thành công, reload lại chi tiết chủ đề
     let topicDetail = null
     if (response?.isSuccess) {
@@ -925,7 +925,7 @@ export async function addVocabulariesToTopicAndReload(topicId, vocabularyIds) {
         // Không throw error, vì việc thêm đã thành công
       }
     }
-    
+
     return {
       response,
       topicDetail,
@@ -1418,6 +1418,48 @@ export async function uploadExcelToTopic(topicId, file) {
 }
 
 /**
+ * Import từ vựng từ file Excel (chung)
+ * @param {File} file - File Excel cần import
+ * @returns {Promise<Object>} - Response từ API với successList và failureList
+ */
+export async function importVocabulariesFromExcel(file) {
+  try {
+    if (!file) {
+      throw new Error('File Excel là bắt buộc')
+    }
+
+    // Tạo FormData để gửi file
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const res = await apiClient.post(ENDPOINTS.EXCEL.IMPORT_VOCAB, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 0, // Không giới hạn thời gian cho import Excel vì backend xử lý lâu
+    })
+
+    const payload = res?.data
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể import từ vựng từ Excel'
+      throw { status: payload?.statusCode || 400, message, errors: payload?.errors, response: payload }
+    }
+
+    return payload
+  } catch (error) {
+    console.error('Error importing vocabularies from Excel:', error)
+    // Ném error để component có thể xử lý và hiển thị thông báo
+    if (error?.response) {
+      throw error.response
+    }
+    throw error
+  }
+}
+
+/**
  * Export từ vựng theo chủ đề ra file Excel
  * @param {string} topicId - ID của chủ đề
  * @returns {Promise<Blob>} - File Excel dưới dạng Blob
@@ -1444,7 +1486,7 @@ export async function exportTopicToExcel(topicId) {
     throw new Error('Không thể tải file Excel')
   } catch (error) {
     console.error('Error exporting topic to Excel:', error)
-    
+
     // Nếu có response data từ error, có thể là error message từ server
     if (error?.response?.data) {
       // Nếu response là blob (có thể là error message từ server), thử đọc text
@@ -1465,12 +1507,57 @@ export async function exportTopicToExcel(topicId) {
         }
       }
     }
-    
+
     throw {
       status: error?.status || 500,
       message: error?.message || 'Không thể export file Excel',
       errors: error?.errors || [],
     }
+  }
+}
+
+/**
+ * Thêm từ vựng vào danh sách yêu thích
+ * @param {string} vocabularyId 
+ */
+export async function addFavoriteVocabulary(vocabularyId) {
+  try {
+    const res = await apiClient.post(ENDPOINTS.FAVORITES.ADD, { vocabularyId })
+    return res?.data
+  } catch (error) {
+    console.error('Error adding to favorites:', error)
+    throw error
+  }
+}
+
+/**
+ * Xóa từ vựng khỏi danh sách yêu thích
+ * @param {string} vocabularyId 
+ */
+export async function removeFavoriteVocabulary(vocabularyId) {
+  try {
+    // API REMOVE thường dùng DELETE với body hoặc query
+    const res = await apiClient.delete(ENDPOINTS.FAVORITES.REMOVE, {
+      data: { vocabularyId }
+    })
+    return res?.data
+  } catch (error) {
+    console.error('Error removing from favorites:', error)
+    throw error
+  }
+}
+
+/**
+ * Lấy danh sách yêu thích để kiểm tra status
+ * (Có thể tối ưu bằng một API check riêng nếu backend hỗ trợ)
+ */
+export async function fetchFavorites(params = {}) {
+  try {
+    const res = await apiClient.get(ENDPOINTS.FAVORITES.GET_ALL, { params })
+    return res?.data?.data?.items || []
+  } catch (error) {
+    console.error('Error fetching favorites:', error)
+    return []
   }
 }
 

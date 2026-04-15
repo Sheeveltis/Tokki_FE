@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, Typography, Space, Button, Popconfirm, Tag, Checkbox, Input } from 'antd'
+import { Card, Typography, Space, Button, Tag, Checkbox, Input } from 'antd'
 import { EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, SendOutlined, CheckOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import { QuestionEditForm } from './QuestionEditForm'
 import { OptionsEditor } from './OptionsEditor'
@@ -23,30 +23,10 @@ const QUESTION_BANK_STATUS = {
 export function QuestionCard({
   question,
   index,
-  isEditing,
-  editingId,
-  saving,
   deletingId,
-  editForm,
-  setEditForm,
-  editOptions,
-  mediaObjectUrl,
-  setMediaObjectUrl,
   passage,
-  allPassages,
-  loadingPassages,
-  currentPassage,
-  currentQuestionType,
-  validatePassageSkillCompatibility,
   onEdit,
-  onCancelEdit,
-  onSave,
   onDeleteQuestion,
-  onAddOption,
-  onRemoveOption,
-  onOptionChange,
-  onSelectCorrect,
-  onOpenTypeSelector,
   onSubmitForApproval,
   isSelected,
   onToggleSelect,
@@ -95,7 +75,7 @@ export function QuestionCard({
   return (
     <Card
       key={key}
-      bordered
+      variant="outlined"
       style={{
         marginBottom: 24,
         borderRadius: 12,
@@ -105,10 +85,10 @@ export function QuestionCard({
         boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
         transition: 'all 0.3s ease'
       }}
-      bodyStyle={{ padding: 24 }}
+      styles={{ body: { padding: 24 } }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-        <Space direction="vertical" size={4}>
+        <Space orientation="vertical" size={4}>
           <Space size={12}>
             {canSelect && (
               <Checkbox
@@ -132,7 +112,7 @@ export function QuestionCard({
             }}>
               {index + 1}
             </div>
-            <Tag color="blue" bordered={false} style={{ margin: 0, fontWeight: 600, borderRadius: 4, padding: '0 8px' }}>
+            <Tag color="blue" variant="filled" style={{ margin: 0, fontWeight: 600, borderRadius: 4, padding: '0 8px' }}>
               CÂU HỎI {index + 1}
             </Tag>
             {question.status !== undefined && (() => {
@@ -150,180 +130,147 @@ export function QuestionCard({
         </Space>
 
         <Space>
-          {isEditing ? (
-            <>
-              <Button type="primary" icon={<SaveOutlined />} onClick={onSave} loading={saving}>Lưu</Button>
-              <Button icon={<CloseOutlined />} onClick={onCancelEdit}>Hủy</Button>
-            </>
-          ) : (
-            <div style={{ display: 'flex', gap: 8 }}>
-              {canApprove && (
-                <div style={{ display: 'flex', gap: 4, marginRight: 8, paddingRight: 8, borderRight: '1px solid #f0f0f0' }}>
-                  <Button
-                    icon={<CheckOutlined />}
-                    onClick={() => onSetApprovalStatus && onSetApprovalStatus(key, approvalStatus === 'approve' ? null : 'approve')}
-                    style={{
-                      borderColor: approvalStatus === 'approve' ? '#52c41a' : '#d9d9d9',
-                      color: approvalStatus === 'approve' ? '#fff' : '#52c41a',
-                      backgroundColor: approvalStatus === 'approve' ? '#52c41a' : 'transparent',
-                    }}
-                  >Duyệt</Button>
-                  <Button
-                    danger
-                    icon={<CloseCircleOutlined />}
-                    onClick={() => onSetApprovalStatus && onSetApprovalStatus(key, approvalStatus === 'reject' ? null : 'reject')}
-                    style={{
-                      backgroundColor: approvalStatus === 'reject' ? '#ff4d4f' : 'transparent',
-                      color: approvalStatus === 'reject' ? '#fff' : '#ff4d4f',
-                    }}
-                  >Từ chối</Button>
-                </div>
-              )}
-              {canEdit && <Button type="text" icon={<EditOutlined />} onClick={() => onEdit(key)}>Sửa</Button>}
-              {canDelete && (
-                <Popconfirm title="Xóa câu hỏi?" onConfirm={() => onDeleteQuestion(key)}>
-                  <Button type="text" danger icon={<DeleteOutlined />} loading={deletingId === key} />
-                </Popconfirm>
-              )}
-              {canResubmit && onSubmitForApproval && (
-                <Button type="primary" ghost icon={<SendOutlined />} onClick={() => onSubmitForApproval(key)}>Gửi duyệt</Button>
-              )}
-            </div>
-          )}
+          <div style={{ display: 'flex', gap: 8 }}>
+            {canApprove && (
+              <div style={{ display: 'flex', gap: 4, marginRight: 8, paddingRight: 8, borderRight: '1px solid #f0f0f0' }}>
+                <Button
+                  icon={<CheckOutlined />}
+                  onClick={() => onSetApprovalStatus && onSetApprovalStatus(key, approvalStatus === 'approve' ? null : 'approve')}
+                  style={{
+                    borderColor: approvalStatus === 'approve' ? '#52c41a' : '#d9d9d9',
+                    color: approvalStatus === 'approve' ? '#fff' : '#52c41a',
+                    backgroundColor: approvalStatus === 'approve' ? '#52c41a' : 'transparent',
+                  }}
+                >Duyệt</Button>
+                <Button
+                  danger
+                  icon={<CloseCircleOutlined />}
+                  onClick={() => onSetApprovalStatus && onSetApprovalStatus(key, approvalStatus === 'reject' ? null : 'reject')}
+                  style={{
+                    backgroundColor: approvalStatus === 'reject' ? '#ff4d4f' : 'transparent',
+                    color: approvalStatus === 'reject' ? '#fff' : '#ff4d4f',
+                  }}
+                >Từ chối</Button>
+              </div>
+            )}
+            {canEdit && <Button type="text" icon={<EditOutlined />} onClick={() => onEdit(key)}>Sửa</Button>}
+            {canDelete && (
+              <Button type="text" danger icon={<DeleteOutlined />} loading={deletingId === key} onClick={() => onDeleteQuestion(key)} />
+            )}
+            {canResubmit && onSubmitForApproval && (
+              <Button type="primary" ghost icon={<SendOutlined />} onClick={() => onSubmitForApproval(key)}>Gửi duyệt</Button>
+            )}
+          </div>
         </Space>
       </div>
 
-      {isEditing ? (
-        <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 20 }}>
-          <QuestionEditForm
-            editForm={editForm}
-            setEditForm={setEditForm}
-            mediaObjectUrl={mediaObjectUrl}
-            setMediaObjectUrl={setMediaObjectUrl}
-            allPassages={allPassages}
-            loadingPassages={loadingPassages}
-            currentPassage={currentPassage}
-            currentQuestionType={currentQuestionType}
-            validatePassageSkillCompatibility={validatePassageSkillCompatibility}
-            onOpenTypeSelector={onOpenTypeSelector}
-          />
-          <OptionsEditor
-            options={editOptions}
-            onAddOption={onAddOption}
-            onRemoveOption={onRemoveOption}
-            onOptionChange={onOptionChange}
-            onSelectCorrect={onSelectCorrect}
-          />
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Passage Area */}
-          {hasPassage && (
-            <div style={{ 
-              padding: 16, 
-              backgroundColor: '#f9f9f9', 
-              borderRadius: 8, 
-              borderLeft: '4px solid #1890ff',
-              boxShadow: 'inset 0 0 10px rgba(0,0,0,0.02)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <Text strong style={{ color: '#1890ff', fontSize: 13, textTransform: 'uppercase' }}>Dữ liệu dùng chung / Đoạn văn</Text>
-                <Tag color="processing">{passage.title}</Tag>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* Passage Area */}
+        {hasPassage && (
+          <div style={{ 
+            padding: 16, 
+            backgroundColor: '#f9f9f9', 
+            borderRadius: 8, 
+            borderLeft: '4px solid #1890ff',
+            boxShadow: 'inset 0 0 10px rgba(0,0,0,0.02)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <Text strong style={{ color: '#1890ff', fontSize: 13, textTransform: 'uppercase' }}>Dữ liệu dùng chung / Đoạn văn</Text>
+              <Tag color="processing">{passage.title}</Tag>
+            </div>
+            {passage.mediaType === 1 && passage.imageUrl ? (
+              <div style={{ marginTop: 8 }}>
+                <img src={passage.imageUrl} alt={passage.title} style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8, border: '1px solid #eee' }} />
               </div>
-              {passage.mediaType === 1 && passage.imageUrl ? (
-                <div style={{ marginTop: 8 }}>
-                  <img src={passage.imageUrl} alt={passage.title} style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8, border: '1px solid #eee' }} />
-                </div>
-              ) : (
-                <Text style={{ fontSize: 15, lineHeight: 1.6, color: '#434343' }}>{passage.content}</Text>
-              )}
+            ) : (
+              <Text style={{ fontSize: 15, lineHeight: 1.6, color: '#434343' }}>{passage.content}</Text>
+            )}
+          </div>
+        )}
+
+        {/* Question Main Content */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Audio Display */}
+          {question.mediaUrl && (question.mediaUrl.includes('.mp3') || question.mediaUrl.includes('.wav')) && (
+            <div style={{ 
+              backgroundColor: '#f0f5ff', 
+              padding: '12px 16px', 
+              borderRadius: 40, 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 16, 
+              border: '1px solid #adc6ff' 
+            }}>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: '#1890ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                <SendOutlined style={{ transform: 'rotate(-45deg)' }} />
+              </div>
+              <audio controls style={{ flex: 1, height: 36 }}>
+                <source src={question.mediaUrl} />
+              </audio>
             </div>
           )}
 
-          {/* Question Main Content */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* Audio Display */}
-            {question.mediaUrl && (question.mediaUrl.includes('.mp3') || question.mediaUrl.includes('.wav')) && (
+          {/* Question Text */}
+          {question.content && (
+            <Paragraph style={{ fontSize: 17, fontWeight: 500, color: '#1f1f1f', margin: 0, lineHeight: 1.6 }}>
+              {question.content}
+            </Paragraph>
+          )}
+
+          {/* Image Placeholder if mediaUrl is not audio */}
+          {question.mediaUrl && !(question.mediaUrl.includes('.mp3') || question.mediaUrl.includes('.wav')) && (
+            <div style={{ marginTop: 8 }}>
+              <img src={question.mediaUrl} alt="Question" style={{ maxWidth: '100%', maxHeight: 400, borderRadius: 12, border: '1px solid #f0f0f0' }} />
+            </div>
+          )}
+
+          {/* Transcript / Explanation Area */}
+          {question.explanation && (
+            <div style={{ 
+              backgroundColor: '#fffbe6', 
+              padding: 16, 
+              borderRadius: 8, 
+              border: '1px solid #ffe58f',
+              position: 'relative'
+            }}>
               <div style={{ 
-                backgroundColor: '#f0f5ff', 
-                padding: '12px 16px', 
-                borderRadius: 40, 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 16, 
-                border: '1px solid #adc6ff' 
+                position: 'absolute', 
+                top: -10, 
+                left: 16, 
+                backgroundColor: '#faad14', 
+                color: '#fff', 
+                padding: '2px 10px', 
+                borderRadius: 4, 
+                fontSize: 12, 
+                fontWeight: 600 
               }}>
-                <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: '#1890ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                  <SendOutlined style={{ transform: 'rotate(-45deg)' }} />
-                </div>
-                <audio controls style={{ flex: 1, height: 36 }}>
-                  <source src={question.mediaUrl} />
-                </audio>
+                GIẢI THÍCH / TRANSCRIPT
               </div>
-            )}
-
-            {/* Question Text */}
-            {question.content && (
-              <Paragraph style={{ fontSize: 17, fontWeight: 500, color: '#1f1f1f', margin: 0, lineHeight: 1.6 }}>
-                {question.content}
-              </Paragraph>
-            )}
-
-            {/* Image Placeholder if mediaUrl is not audio */}
-            {question.mediaUrl && !(question.mediaUrl.includes('.mp3') || question.mediaUrl.includes('.wav')) && (
-              <div style={{ marginTop: 8 }}>
-                <img src={question.mediaUrl} alt="Question" style={{ maxWidth: '100%', maxHeight: 400, borderRadius: 12, border: '1px solid #f0f0f0' }} />
-              </div>
-            )}
-
-            {/* Transcript / Explanation Area */}
-            {question.explanation && (
-              <div style={{ 
-                backgroundColor: '#fffbe6', 
-                padding: 16, 
-                borderRadius: 8, 
-                border: '1px solid #ffe58f',
-                position: 'relative'
-              }}>
-                <div style={{ 
-                  position: 'absolute', 
-                  top: -10, 
-                  left: 16, 
-                  backgroundColor: '#faad14', 
-                  color: '#fff', 
-                  padding: '2px 10px', 
-                  borderRadius: 4, 
-                  fontSize: 12, 
-                  fontWeight: 600 
-                }}>
-                  GIẢI THÍCH / TRANSCRIPT
-                </div>
-                <div 
-                  style={{ fontSize: 15, color: '#434343', lineHeight: 1.6, paddingTop: 4 }}
-                  dangerouslySetInnerHTML={{ __html: question.explanation }}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Admin Rejection Reason */}
-          {canApprove && approvalStatus === 'reject' && (
-            <div style={{ backgroundColor: '#fff2f0', padding: 16, borderRadius: 8, border: '1px solid #ffccc7' }}>
-              <Text strong type="danger" style={{ display: 'block', marginBottom: 8 }}>Lí do từ chối:</Text>
-              <Input.TextArea
-                placeholder="Nhập lí do từ chối cụ thể..."
-                value={rejectReason || ''}
-                onChange={(e) => onSetRejectReason && onSetRejectReason(key, e.target.value)}
-                rows={3}
-                style={{ borderRadius: 8 }}
+              <div 
+                style={{ fontSize: 15, color: '#434343', lineHeight: 1.6, paddingTop: 4 }}
+                dangerouslySetInnerHTML={{ __html: question.explanation }}
               />
             </div>
           )}
-
-          {/* Options Display */}
-          <OptionsDisplay options={options} />
         </div>
-      )}
+
+        {/* Admin Rejection Reason */}
+        {canApprove && approvalStatus === 'reject' && (
+          <div style={{ backgroundColor: '#fff2f0', padding: 16, borderRadius: 8, border: '1px solid #ffccc7' }}>
+            <Text strong type="danger" style={{ display: 'block', marginBottom: 8 }}>Lí do từ chối:</Text>
+            <Input.TextArea
+              placeholder="Nhập lí do từ chối cụ thể..."
+              value={rejectReason || ''}
+              onChange={(e) => onSetRejectReason && onSetRejectReason(key, e.target.value)}
+              rows={3}
+              style={{ borderRadius: 8 }}
+            />
+          </div>
+        )}
+
+        {/* Options Display */}
+        <OptionsDisplay options={options} />
+      </div>
     </Card>
   )
 }

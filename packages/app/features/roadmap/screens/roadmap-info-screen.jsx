@@ -39,7 +39,7 @@ export function RoadmapInfoScreen() {
     }
 
     checkCurrentRoadmap()
-  }, [router])
+  }, [])
 
   useEffect(() => {
     if (Platform.OS === 'web' && needsTest === '1') {

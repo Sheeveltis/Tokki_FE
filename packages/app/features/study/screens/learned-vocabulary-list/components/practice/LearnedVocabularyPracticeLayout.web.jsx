@@ -12,6 +12,13 @@ export function LearnedVocabularyPracticeLayout({ children, levelId, onBackPress
       title="Ôn tập từ vựng"
       subtitle="Thử thách khả năng ghi nhớ của bạn với các từ vựng đã học."
       breadcrumbActive="Ôn tập"
+      hideHero={true}
+      contentContainerStyle={{
+        flexGrow: 1,
+        justifyContent: 'flex-start',
+        paddingVertical: 0,
+        paddingHorizontal: 0,
+      }}
     >
       {children}
     </StudyLayoutSynchronized>

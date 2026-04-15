@@ -13,14 +13,14 @@ import {
   CheckCircleOutlined
 } from '@ant-design/icons'
 
-import { AdminLayout } from '../../../../back-office/components/admin/admin-layout.web.jsx'
-import StaffLayout from '../../../../back-office/components/staff/staff-layout.web.jsx'
 import { fetchQuestionBanksPaged } from '../../../api/question-bank-management.js'
 import { deleteQuestionType, fetchQuestionTypeById } from '../../../api/question-type-management.js'
 
 import QuestionTypeInfoCard from './QuestionTypeInfoCard'
 import QuestionListSection from './QuestionListSection'
 import QuestionTypeHeaderActions from './QuestionTypeHeaderActions'
+import { EditQuestionTypeModal } from './EditQuestionTypeModal'
+import { CreateQuestionModal } from './CreateQuestionModal'
 
 const { Title, Text } = Typography
 
@@ -41,7 +41,8 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
   const [loadingPending, setLoadingPending] = useState(false)
   
   const [error, setError] = useState('')
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isCreateQuestionModalOpen, setIsCreateQuestionModalOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [pageNumber, setPageNumber] = useState(1)
   const [pendingPageNumber, setPendingPageNumber] = useState(1)
@@ -178,7 +179,7 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
     router.push(`${prefix}?tab=${key}`)
   }
 
-  const LayoutComponent = layout === 'staff' ? StaffLayout : AdminLayout
+
 
   if (loading) {
     return (
@@ -246,7 +247,7 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
             <Button
               type="primary"
               icon={<EditOutlined />}
-              onClick={() => setIsEditing(true)}
+              onClick={() => setIsEditModalOpen(true)}
               style={{
                 borderRadius: 20,
                 height: 40,
@@ -311,18 +312,6 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
                   <div style={{ padding: 24 }}>
                     <QuestionTypeInfoCard
                       questionType={questionType}
-                      isEditing={isEditing}
-                      onCancelEdit={() => setIsEditing(false)}
-                      onUpdate={async () => {
-                        setIsEditing(false)
-                        try {
-                          const qt = await fetchQuestionTypeById(questionTypeId)
-                          setQuestionType(qt)
-                          messageApi.success('Đã cập nhật dữ liệu thành công')
-                        } catch (err) {
-                          messageApi.error('Không thể tải lại dữ liệu')
-                        }
-                      }}
                     />
                   </div>
                 )
@@ -426,7 +415,7 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
                           onDelete={() => {}} 
                           hideMainButtons={true}
                           onAddQuestion={() => {
-                            router.push(`${basePath}/question-bank/create?questionTypeId=${questionTypeId}`)
+                            setIsCreateQuestionModalOpen(true)
                           }}
                           onImported={async () => {
                             try {
@@ -492,6 +481,41 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
           />
         </div>
       </div>
+      <EditQuestionTypeModal
+        open={isEditModalOpen}
+        questionType={questionType}
+        onCancel={() => setIsEditModalOpen(false)}
+        onUpdate={async () => {
+          setIsEditModalOpen(false)
+          try {
+            const qt = await fetchQuestionTypeById(questionTypeId)
+            setQuestionType(qt)
+          } catch (err) {
+            messageApi.error('Không thể tải lại dữ liệu')
+          }
+        }}
+      />
+      <CreateQuestionModal
+        open={isCreateQuestionModalOpen}
+        questionTypeId={questionTypeId}
+        onCancel={() => setIsCreateQuestionModalOpen(false)}
+        onCreated={async () => {
+          setIsCreateQuestionModalOpen(false)
+          // Refresh question list
+          const status = filters.status !== null && filters.status !== undefined ? filters.status : undefined
+          const searchTerm = filters.search?.trim() ? filters.search.trim() : undefined
+          const paged = await fetchQuestionBanksPaged({
+            QuestionTypeId: questionTypeId,
+            Status: status,
+            SearchTerm: searchTerm,
+            PageNumber: 1,
+            PageSize: PAGE_SIZE,
+          })
+          setAllQuestions(paged?.items || [])
+          setTotalQuestions(paged?.total ?? (paged?.items?.length || 0))
+          setPageNumber(1)
+        }}
+      />
     </div>
   )
 

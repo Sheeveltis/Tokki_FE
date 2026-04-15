@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Pressable, StyleSheet, Text, View, Platform, TextInput } from 'react-native'
+import { FlagFilled, FlagOutlined } from '@ant-design/icons'
 
 export function RoadmapTestQuestion({
   questionNumber = 1,
@@ -14,6 +15,8 @@ export function RoadmapTestQuestion({
   onAnswerChange, // For writing type
   showCorrectAnswer = false,
   correctAnswer = null,
+  isMarked = false,
+  onToggleMark,
 }) {
   const [, setCurrentTime] = useState(0)
   const [, setTotalTime] = useState(0)
@@ -163,8 +166,27 @@ export function RoadmapTestQuestion({
 
   return (
     <View style={styles.container}>
-      {/* Question Title */}
-      <Text style={styles.questionTitle}>Câu hỏi {questionNumber}:</Text>
+      {/* Question Header with Title and Mark button */}
+      <View style={styles.headerRow}>
+        <Text style={styles.questionTitle}>Câu hỏi {questionNumber}:</Text>
+        <Pressable
+          onPress={onToggleMark}
+          style={({ pressed }) => [
+            styles.markButton,
+            isMarked && styles.markButtonActive,
+            pressed && styles.markButtonPressed,
+          ]}
+        >
+          {isMarked ? (
+            <FlagFilled style={styles.markIconActive} />
+          ) : (
+            <FlagOutlined style={styles.markIcon} />
+          )}
+          <Text style={[styles.markText, isMarked && styles.markTextActive]}>
+            Đánh dấu
+          </Text>
+        </Pressable>
+      </View>
 
       {/* Audio Player or Question Text */}
       {type === 'audio' ? (
@@ -351,12 +373,49 @@ const styles = StyleSheet.create({
       boxShadow: '0 8px 24px rgba(0,0,0,0.03)',
     }),
   },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   questionTitle: {
     fontSize: 18,
     fontWeight: '900',
     color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
     letterSpacing: -0.5,
+  },
+  markButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+  },
+  markButtonActive: {
+    backgroundColor: '#FEE2E2',
+  },
+  markButtonPressed: {
+    opacity: 0.7,
+  },
+  markIcon: {
+    fontSize: 14,
+    color: '#9CA3AF',
+  },
+  markIconActive: {
+    fontSize: 14,
+    color: '#EF4444',
+  },
+  markText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  markTextActive: {
+    color: '#EF4444',
   },
   questionTextContainer: {
     paddingVertical: 12,

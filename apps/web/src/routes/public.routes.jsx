@@ -12,6 +12,9 @@ import { ErrorScreen } from '@tokki/app/features/general/screens/error-screen'
 import LeaderboardScreen from '@tokki/app/features/general/screens/leaderboard-screen'
 import { BlogListScreen } from '@tokki/app/features/blog/screens/client/blog-list-screen'
 import { BlogDetailScreen } from '@tokki/app/features/blog/screens/client/blog-detail-screen'
+import { BlogManagementScreen } from '@tokki/app/features/blog/screens/client/blog-management-screen'
+import { BlogEditorScreen } from '@tokki/app/features/blog/screens/client/blog-editor-screen'
+import { BlogPreviewScreen } from '@tokki/app/features/blog/screens/client/blog-preview-screen'
 import UserScreen from '@tokki/app/features/user/screens/client/user-profile-screen'
 import { MinigameScreen } from '@tokki/app/features/minigame/screens/minigame-screen'
 import MatchingCardLevelScreen from '@tokki/app/features/minigame/screens/matching-card/matching-card-level-screen'
@@ -104,6 +107,37 @@ function BlogListRoute() {
 
 function BlogDetailRoute() {
   return <BlogDetailScreen />
+}
+
+function BlogManagementRoute() {
+  const { navigate } = useRouteNavigation()
+
+  React.useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/blog/management', { replace: true })
+    }
+  }, [navigate])
+
+  return <BlogManagementScreen />
+}
+
+function BlogEditorRoute() {
+  const { navigate } = useRouteNavigation()
+
+  React.useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      const currentPath = window.location.pathname
+      navigate(`/login?redirect=${currentPath}`, { replace: true })
+    }
+  }, [navigate])
+
+  return <BlogEditorScreen />
+}
+
+function BlogPreviewRoute() {
+  return <BlogPreviewScreen />
 }
 
 function PaymentDetailRoute() {
@@ -252,22 +286,8 @@ function WordleBoardRoute() {
 // Dictionary Routes
 function DictionaryRoute() {
   return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: 'center',
-        backgroundColor: '#FFD7D0',
-        paddingVertical: 40,
-      }}
-    >
-      <View
-        style={{
-          width: '70%',
-          maxWidth: 1200,
-        }}
-      >
-        <DictionarySearchScreen />
-      </View>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <DictionarySearchScreen />
     </View>
   )
 }
@@ -276,22 +296,8 @@ function DictionaryDetailRoute() {
   const { id } = useParams()
 
   return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: 'center',
-        backgroundColor: '#FFD7D0',
-        paddingVertical: 40,
-      }}
-    >
-      <View
-        style={{
-          width: '70%',
-          maxWidth: 1200,
-        }}
-      >
-        <DictionaryVocabularyDetailScreen vocabularyId={id} />
-      </View>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <DictionaryVocabularyDetailScreen vocabularyId={id} />
     </View>
   )
 }
@@ -312,6 +318,10 @@ export const publicRoutes = [
 
   // Blog
   { path: '/blog', element: <BlogListRoute /> },
+  { path: '/blog/management', element: <BlogManagementRoute /> },
+  { path: '/blog/management/preview/:id', element: <BlogPreviewRoute /> },
+  { path: '/blog/create', element: <BlogEditorRoute /> },
+  { path: '/blog/edit/:id', element: <BlogEditorRoute /> },
   { path: '/blog/:slug', element: <BlogDetailRoute /> },
 
   // Payment
@@ -357,7 +367,8 @@ export function PublicLayout() {
   const isStudyRoute = location.pathname.startsWith('/study')
   const isFlashcardRoute = location.pathname.startsWith('/flashcard')
   const isProfileRoute = location.pathname.startsWith('/user-profile') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/users')
-  const shouldHideFooter = isRoadmapRoute || isStudyRoute || isFlashcardRoute || isProfileRoute
+  const isBlogManagementRoute = location.pathname.startsWith('/blog/management') || location.pathname.startsWith('/blog/create') || location.pathname.startsWith('/blog/edit')
+  const shouldHideFooter = isRoadmapRoute || isStudyRoute || isFlashcardRoute || isProfileRoute || isBlogManagementRoute
 
   // Hide Navbar for specific distraction-free screens
   const isPracticePage = location.pathname.includes('/roadmap/learning/practice') || location.pathname.includes('/roadmap/practice-test')
@@ -365,9 +376,9 @@ export function PublicLayout() {
   const shouldHideNavbar = isPracticePage || isTestPage
 
   return (
-    <View style={{ flex: 1, height: shouldHideFooter ? '100vh' : undefined, minHeight: '100vh', backgroundColor: '#fff', overflow: shouldHideFooter ? 'hidden' : 'visible' }}>
+    <View style={{ flex: 1, height: shouldHideFooter ? '100vh' : undefined, minHeight: '100vh', backgroundColor: '#fff', overflow: shouldHideFooter ? 'auto' : 'visible' }}>
       {!shouldHideNavbar && <Navbar />}
-      <View style={{ flex: 1, overflow: shouldHideFooter ? 'hidden' : 'visible' }}>
+      <View style={{ flex: 1, overflow: shouldHideFooter ? 'auto' : 'visible' }}>
         <Outlet />
       </View>
       {!shouldHideFooter && <Footer />}

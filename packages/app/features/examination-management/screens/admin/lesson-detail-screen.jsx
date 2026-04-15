@@ -135,7 +135,6 @@ export function LessonDetailScreen() {
             type="primary"
             icon={<ArrowLeftOutlined />}
             onClick={() => router.back()}
-            style={{ marginTop: 10, borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
           >
             Quay lại
           </Button>
@@ -151,7 +150,6 @@ export function LessonDetailScreen() {
             type="primary"
             icon={<ArrowLeftOutlined />}
             onClick={() => router.back()}
-            style={{ marginTop: 12, borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
           >
             Quay lại danh sách
           </Button>
@@ -161,7 +159,7 @@ export function LessonDetailScreen() {
 
     return (
       <div style={{ padding: 24 }}>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Space orientation="vertical" size="large" style={{ width: '100%' }}>
           <Space style={{ justifyContent: 'space-between', width: '100%' }}>
             <div>
               <Title level={3} style={{ marginBottom: 4 }}>
@@ -174,7 +172,6 @@ export function LessonDetailScreen() {
                 type="primary"
                 icon={<ArrowLeftOutlined />}
                 onClick={() => router.back()}
-                style={{ borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600, backgroundColor: '#BCD0CA', borderColor: '#BCD0CA', color: '#373039' }}
               >
                 Quay lại
               </Button>

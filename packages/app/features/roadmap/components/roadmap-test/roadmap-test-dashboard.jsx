@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { FlagFilled } from '@ant-design/icons'
 
 export function RoadmapTestDashboard({
   totalQuestions = 8, // dùng cho fallback
@@ -10,6 +11,7 @@ export function RoadmapTestDashboard({
   isLastSection = false,
   currentQuestion = 1,
   onQuestionSelect,
+  markedQuestions = {},
 }) {
   // Dùng danh sách questionNumbers từ API, fallback sang 1..totalQuestions nếu chưa truyền vào
   // Sắp xếp theo thứ tự tăng dần
@@ -61,6 +63,10 @@ export function RoadmapTestDashboard({
               styles.questionBox,
               currentQuestion === questionNum && styles.questionBoxActive,
               currentQuestion !== questionNum &&
+              markedQuestions[questionNum] &&
+              styles.questionBoxMarked,
+              currentQuestion !== questionNum &&
+              !markedQuestions[questionNum] &&
               answers?.[questionNum] !== undefined &&
               answers?.[questionNum] !== null &&
               (typeof answers?.[questionNum] === 'number'
@@ -78,10 +84,16 @@ export function RoadmapTestDashboard({
               style={[
                 styles.questionNumber,
                 currentQuestion === questionNum && styles.questionNumberActive,
+                currentQuestion !== questionNum && markedQuestions[questionNum] && styles.questionNumberMarked,
               ]}
             >
               {questionNum}
             </Text>
+            {markedQuestions[questionNum] && (
+              <View style={styles.flagIconContainer}>
+                <FlagFilled style={styles.flagIcon} />
+              </View>
+            )}
           </Pressable>
         ))}
       </ScrollView>
@@ -170,6 +182,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#E6FFFA',
     borderColor: '#B2F5EA',
   },
+  questionBoxMarked: {
+    backgroundColor: '#FEE2E2',
+    borderColor: '#FECACA',
+  },
   questionBoxActive: {
     backgroundColor: '#F1BE4B',
     borderColor: '#F1BE4B',
@@ -182,6 +198,18 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#999',
     fontFamily: 'Epilogue, sans-serif',
+  },
+  questionNumberMarked: {
+    color: '#EF4444',
+  },
+  flagIconContainer: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+  },
+  flagIcon: {
+    fontSize: 10,
+    color: '#EF4444',
   },
   questionNumberActive: {
     color: '#FFFFFF',

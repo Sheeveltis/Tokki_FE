@@ -27,7 +27,7 @@ export function QuestionEditForm({
   const role = getCurrentUserRole()
   const isStaff = role === 'Staff'
   return (
-    <Space direction="vertical" size={8} style={{ width: '100%' }}>
+    <Space orientation="vertical" size={8} style={{ width: '100%' }}>
       {/* Change Question Type Button */}
       <div>
         <Button 
@@ -56,7 +56,7 @@ export function QuestionEditForm({
             setEditForm(prev => ({ ...prev, passageId: value }))
             // Validate if questionType is selected
             if (editForm.questionTypeId && value) {
-              const selectedPassage = allPassages.find(p => p.passageId === value)
+              const selectedPassage = Array.isArray(allPassages) ? allPassages.find(p => p.passageId === value) : null
               if (selectedPassage && !validatePassageSkillCompatibility(value, editForm.questionTypeId)) {
                 const skillName = ['Nghe', 'Đọc', 'Viết'][currentQuestionType?.skill - 1]
                 const mediaTypeName = ['Text', 'Hình ảnh', 'Audio'][selectedPassage.mediaType]

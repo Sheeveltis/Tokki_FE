@@ -120,7 +120,7 @@ function RoadmapRoute() {
     }
 
     checkRoadmap()
-  }, [navigate])
+  }, [])
 
   return null
 }

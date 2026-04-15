@@ -74,8 +74,8 @@ export function TopicApprovalModal({ open, loading, onCancel, onSubmit, initialA
         style: {
           minWidth: 140,
           height: 40,
-          borderRadius: 8,
-          fontWeight: 500,
+          borderRadius: '2rem',
+          fontWeight: 600,
         },
         icon: isApprove ? <CheckOutlined /> : <CloseCircleOutlined />,
       }}
@@ -84,7 +84,8 @@ export function TopicApprovalModal({ open, loading, onCancel, onSubmit, initialA
         style: {
           minWidth: 100,
           height: 40,
-          borderRadius: 8,
+          borderRadius: '2rem',
+          fontWeight: 600,
         },
       }}
       destroyOnClose

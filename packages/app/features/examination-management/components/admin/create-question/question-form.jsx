@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { Form, Input, Select, Space, Typography, Upload, message, Switch } from 'antd'
+import { Form, Input, Select, Space, Typography, Upload, message, Switch, Row, Col } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import { fetchPassages, fetchQuestionTypeById } from '../../../api/create-question.js'
 import { isAudioUrl, createObjectUrl } from '../../../api/upload-utils.js'
@@ -28,13 +28,11 @@ export function QuestionForm({ form, questionTypeId }) {
       typeof window.localStorage !== 'undefined' &&
       window.localStorage.getItem('userLevel') === '2')
 
-  // Load questionType khi có questionTypeId
   useEffect(() => {
     if (!questionTypeId) {
       setQuestionType(null)
       return
     }
-
     const loadQuestionType = async () => {
       try {
         setLoadingQuestionType(true)
@@ -49,7 +47,6 @@ export function QuestionForm({ form, questionTypeId }) {
     loadQuestionType()
   }, [questionTypeId])
 
-  // Load passages
   useEffect(() => {
     const loadPassages = async () => {
       try {
@@ -65,34 +62,17 @@ export function QuestionForm({ form, questionTypeId }) {
     loadPassages()
   }, [])
 
-  // Filter passages dựa trên skill của questionType
   const validPassages = useMemo(() => {
-    if (!questionType || !questionType.skill) {
-      // Nếu không có questionType hoặc skill, hiển thị tất cả
-      return passages
-    }
-
+    if (!questionType || !questionType.skill) return passages
     const skill = questionType.skill
-
     return passages.filter((passage) => {
       const mediaType = passage.mediaType
-
-      // Skill 1 (Listening) chỉ chấp nhận mediaType 2 (Audio)
-      if (skill === 1) {
-        return mediaType === 2
-      }
-
-      // Skill 2 (Reading) và 3 (Writing) chấp nhận mediaType 0 (Text) hoặc 1 (Image)
-      if (skill === 2 || skill === 3) {
-        return mediaType === 0 || mediaType === 1
-      }
-
-      // Skill khác → không hiển thị passage nào
+      if (skill === 1) return mediaType === 2
+      if (skill === 2 || skill === 3) return mediaType === 0 || mediaType === 1
       return false
     })
   }, [passages, questionType])
 
-  // Chỉ chọn file + preview tại local. Upload Cloudinary sẽ chạy khi bấm "Tạo mới".
   const mediaUploadProps = {
     name: 'file',
     multiple: false,
@@ -104,78 +84,60 @@ export function QuestionForm({ form, questionTypeId }) {
         message.error('Chỉ chấp nhận file hình ảnh hoặc audio!')
         return Upload.LIST_IGNORE
       }
-      // Lưu File vào form để submit sau
-      form.setFieldsValue({ mediaFile: file })
-      // Nếu trước đó có mediaUrl (đã upload) thì reset để ưu tiên file mới
-      form.setFieldsValue({ mediaUrl: null })
-      return false // chặn antd tự upload
+      form.setFieldsValue({ mediaFile: file, mediaUrl: null })
+      return false
     },
   }
 
   return (
-    <Space orientation="vertical" size="large" style={{ width: '100%' }}>
-      <div>
-        <Title level={4} style={{ marginBottom: 16 }}>
-          Thông tin câu hỏi
-        </Title>
-      </div>
-
-      <Form.Item
-        label="Đoạn văn (Passage)"
-        name="passageId"
-        tooltip="Chọn đoạn văn nếu câu hỏi thuộc về một đoạn văn cụ thể"
-      >
-        <Select
-          size="large"
-          placeholder="Chọn đoạn văn (tùy chọn)"
-          allowClear
-          loading={loadingPassages}
-          showSearch
-          filterOption={(input, option) =>
-            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-          }
-          options={validPassages.map((passage) => ({
-            value: passage.passageId,
-            label: `${passage.title || 'Không có tiêu đề'}`,
-            passage: passage,
-          }))}
-          optionRender={(option) => (
-            <div>
-              <div style={{ fontWeight: 500 }}>{option.label}</div>
-              {option.data.passage?.content && (
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: '#666',
-                    marginTop: 4,
-                    maxHeight: 60,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {option.data.passage.content.substring(0, 100)}...
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <Row gutter={16}>
+        <Col span={16}>
+          <Form.Item
+            label="Đoạn văn (Passage)"
+            name="passageId"
+            tooltip="Chọn đoạn văn nếu câu hỏi thuộc về một đoạn văn cụ thể"
+          >
+            <Select
+              placeholder="Chọn đoạn văn (tùy chọn)"
+              allowClear
+              loading={loadingPassages}
+              showSearch
+              style={{ width: '100%' }}
+              filterOption={(input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              options={validPassages.map((passage) => ({
+                value: passage.passageId,
+                label: `${passage.title || 'Không có tiêu đề'}`,
+                passage: passage,
+              }))}
+              optionRender={(option) => (
+                <div>
+                  <div style={{ fontWeight: 500 }}>{option.label}</div>
+                  {option.data.passage?.content && (
+                    <div style={{ fontSize: 11, color: '#8c8c8c', maxWidth: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {option.data.passage.content}
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          )}
-        />
-      </Form.Item>
-
-      <Form.Item
-        label="Trạng thái"
-        name="status"
-        tooltip="Nháp: Soạn thảo/Không hoạt động. Hoạt động: sẽ được kích hoạt sau khi tạo."
-        initialValue={0}
-      >
-        <Switch
-          checkedChildren={isStaff ? 'Gửi duyệt' : 'Hoạt động'}
-          unCheckedChildren="Nháp"
-          checked={Form.useWatch('status', form) === (isStaff ? 3 : 1)}
-          onChange={(checked) =>
-            form.setFieldsValue({ status: checked ? (isStaff ? 3 : 1) : 0 })
-          }
-        />
-      </Form.Item>
+            />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item
+            label="Trạng thái"
+            name="status"
+            initialValue={0}
+          >
+            <Select>
+              <Select.Option value={0}>Nháp</Select.Option>
+              <Select.Option value={isStaff ? 3 : 1}>{isStaff ? 'Gửi duyệt' : 'Hoạt động'}</Select.Option>
+            </Select>
+          </Form.Item>
+        </Col>
+      </Row>
 
       <Form.Item
         label="Nội dung câu hỏi"
@@ -183,69 +145,77 @@ export function QuestionForm({ form, questionTypeId }) {
         rules={[{ required: true, message: 'Vui lòng nhập nội dung câu hỏi' }]}
       >
         <TextArea
-          rows={4}
+          rows={3}
           placeholder="Nhập nội dung câu hỏi..."
-          size="large"
         />
       </Form.Item>
 
-      <Form.Item
-        label="Hình ảnh hoặc Audio"
-        name="mediaUrl"
-        tooltip="Tải lên hình ảnh hoặc file audio cho câu hỏi"
-      >
-        <div>
-          <Dragger {...mediaUploadProps}>
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
-            <p className="ant-upload-text">Nhấp hoặc kéo thả file vào đây để tải lên</p>
-            <p className="ant-upload-hint">Hỗ trợ hình ảnh (JPG, PNG) hoặc audio (MP3, WAV)</p>
-          </Dragger>
-
+      <Row gutter={16}>
+        <Col span={14}>
+          <Form.Item
+            label="Đính kèm (Hình ảnh / Audio)"
+            name="mediaUrl"
+          >
+            <Dragger {...mediaUploadProps} style={{ borderRadius: 8, padding: 16 }}>
+              <p className="ant-upload-drag-icon" style={{ marginBottom: 8 }}><InboxOutlined style={{ fontSize: 32 }} /></p>
+              <p className="ant-upload-text" style={{ fontSize: 13 }}>Kéo thả file để tải lên</p>
+            </Dragger>
+          </Form.Item>
+        </Col>
+        <Col span={10}>
           {mediaPreview ? (
-            <div style={{ marginTop: 12 }}>
+            <div style={{ 
+              height: '100%', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              justifyContent: 'center',
+              backgroundColor: '#fafafa',
+              borderRadius: 8,
+              border: '1px dashed #d9d9d9',
+              padding: 12
+            }}>
               {isAudioUrl(mediaPreview) ? (
-                <audio controls style={{ width: '100%' }}>
+                <audio controls style={{ width: '100%', height: 32 }}>
                   <source src={mediaPreview} />
-                  Trình duyệt không hỗ trợ phát audio.
                 </audio>
               ) : (
-                <img
-                  src={mediaPreview}
-                  alt="Preview"
-                  style={{ 
-                    maxWidth: '100%', 
-                    maxHeight: 240, 
-                    borderRadius: 8, 
-                    border: '1px solid #d9d9d9',
-                    display: 'block',
-                    marginTop: 8
-                  }}
-                />
+                <div style={{ textAlign: 'center' }}>
+                  <img src={mediaPreview} alt="Preview" style={{ maxWidth: '100%', maxHeight: 80, borderRadius: 4 }} />
+                </div>
               )}
               {mediaFile && (
-                <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
-                  File đã chọn: {mediaFile.name}
+                <div style={{ fontSize: 11, color: '#8c8c8c', marginTop: 8, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {mediaFile.name}
                 </div>
               )}
             </div>
-          ) : null}
-        </div>
-      </Form.Item>
+          ) : (
+            <div style={{ 
+              height: '100%', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              backgroundColor: '#fafafa',
+              borderRadius: 8,
+              border: '1px dashed #d9d9d9',
+              color: '#bfbfbf',
+              fontSize: 12
+            }}>
+              Xem trước hình ảnh/âm thanh
+            </div>
+          )}
+        </Col>
+      </Row>
 
       <Form.Item
-        label="Chú thích (Giải thích)"
+        label="Giải thích / Chú thích"
         name="explanation"
-        tooltip="Giải thích cho câu hỏi này"
       >
         <TextArea
-          rows={3}
-          placeholder="Nhập chú thích hoặc giải thích cho câu hỏi..."
-          size="large"
+          rows={2}
+          placeholder="Nhập chú thích..."
         />
       </Form.Item>
-    </Space>
+    </div>
   )
 }
-

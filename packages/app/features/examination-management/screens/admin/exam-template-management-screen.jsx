@@ -145,9 +145,16 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
           e?.stopPropagation?.()
           Modal.confirm({
             title: 'Xác nhận sao chép',
+            centered: true,
             content: `Bạn có chắc chắn muốn sao chép mẫu đề "${name}"?`,
             okText: 'Sao chép',
             cancelText: 'Hủy',
+            okButtonProps: { 
+              style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+            },
+            cancelButtonProps: { 
+              style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+            },
             onOk: async () => {
               try {
                 const result = await duplicateExamTemplate(id)

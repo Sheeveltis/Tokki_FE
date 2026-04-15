@@ -1,37 +1,39 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { Navbar } from '../../../../../components/navbar'
+import { View, StyleSheet, ScrollView } from 'react-native'
+import { NavbarMobile } from '../../../../../components/navbar-mobile'
 
-/**
- * AlphabetSelectModeLayout (Mobile): Layout cho trang chọn học phần chữ cái Hàn Quốc trên mobile
- */
 export function AlphabetSelectModeLayout({ children }) {
   return (
     <View style={styles.root}>
-      <Navbar />
-      <View style={styles.contentWrapper}>
-        {children}
-      </View>
+      <NavbarMobile />
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.contentWrapper}>
+          {children}
+        </View>
+      </ScrollView>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   root: {
-    minHeight: '100%',
-    backgroundColor: '#FFD7D0',
-    alignItems: 'center',
-    paddingVertical: 16,
+    flex: 1,
+    backgroundColor: '#FAFAFA',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 40,
   },
   contentWrapper: {
-    width: '100%',
-    paddingHorizontal: 16,
+    padding: 20,
     gap: 24,
-    alignItems: 'center',
-    backgroundColor: '#F5F0DD',
-    paddingTop: 32,
-    paddingBottom: 48,
-    borderRadius: 16,
   },
 })
 

@@ -28,38 +28,38 @@ const PremiumButton = ({ onPress, style, textStyle, label = 'Nâng cấp VIP' }
           .uiverse-premium-button {
             width: fit-content;
             display: flex !important;
-            padding: 10px 20px !important;
+            padding: 10px 22px !important;
             cursor: pointer;
             gap: 10px;
-            font-weight: bold;
-            border-radius: 30px !important;
-            text-shadow: 2px 2px 3px rgba(136, 0, 136, 0.5) !important;
-            background-color: #880088 !important;
-            background-image: linear-gradient(15deg, #880088 0%, #aa2068 12.5%, #cc3f47 25%, #de6f3d 37.5%, #f09f33 50%, #de6f3d 62.5%, #cc3f47 75%, #aa2068 87.5%, #880088 100%) !important;
-            background-size: 300% !important;
-            background-repeat: no-repeat !important;
+            font-weight: 800;
+            border-radius: 99px !important;
+            background-color: #FF8F00 !important;
+            background-image: linear-gradient(135deg, #FFB300 0%, #FF8F00 50%, #FF6F00 100%) !important;
+            background-size: 200% !important;
             background-position: left center !important;
             color: #ffffff !important;
             border: none !important;
-            box-shadow: 0 10px 20px -10px rgba(136, 0, 136, 0.5) !important;
-            transition: all .3s ease !important;
+            box-shadow: 0 8px 15px rgba(255, 143, 0, 0.25) !important;
+            transition: all .3s cubic-bezier(0.4, 0, 0.2, 1) !important;
             align-items: center;
             justify-content: center;
             flex-direction: row !important;
             outline: none !important;
-            font-family: Epilogue, sans-serif !important;
+            font-family: 'Plus Jakarta Sans', Epilogue, sans-serif !important;
             font-size: 14px !important;
             line-height: 1 !important;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
             text-decoration: none !important;
             -webkit-user-select: none;
             user-select: none;
+            z-index: 10;
           }
 
           .uiverse-premium-button:hover {
-            background-size: 320% !important;
             background-position: right center !important;
-            transform: scale(1.05) translateY(-1px);
-            box-shadow: 0 15px 25px -10px rgba(136, 0, 136, 0.6) !important;
+            transform: scale(1.04) translateY(-1px);
+            box-shadow: 0 12px 20px rgba(255, 143, 0, 0.35) !important;
           }
 
           .uiverse-premium-button:active {
@@ -67,16 +67,15 @@ const PremiumButton = ({ onPress, style, textStyle, label = 'Nâng cấp VIP' }
           }
 
           .uiverse-premium-button svg {
-            width: 22px;
-            height: 16px;
-            fill: #f09f33 !important;
+            width: 20px;
+            height: 20px;
+            fill: #ffffff !important;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
             transition: all .3s ease;
           }
 
           .uiverse-premium-button:hover svg {
-            fill: #ffffff !important;
-            filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));
-            transform: scale(1.1);
+            transform: scale(1.1) rotate(5deg);
           }
         `}} />
         <button
@@ -84,8 +83,8 @@ const PremiumButton = ({ onPress, style, textStyle, label = 'Nâng cấp VIP' }
           onClick={onPress}
           style={style}
         >
-          <svg viewBox="0 0 36 24">
-            <path d={pathData} />
+          <svg viewBox="0 0 24 24">
+             <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5M19 19C19 19.6 18.6 20 18 20H6C5.4 20 5 19.6 5 19V18H19V19Z" />
           </svg>
           <span style={textStyle}>{label}</span>
         </button>
@@ -104,13 +103,6 @@ const PremiumButton = ({ onPress, style, textStyle, label = 'Nâng cấp VIP' }
       ]}
     >
       <View style={styles.container}>
-        {Svg && Path ? (
-          <Svg width={22} height={16} viewBox="0 0 36 24" style={styles.mobileSvg}>
-            <Path d={pathData} fill="#f09f33" />
-          </Svg>
-        ) : (
-          <View style={styles.fallbackIcon} />
-        )}
         <Text style={[styles.text, textStyle]}>{label}</Text>
       </View>
     </Pressable>
@@ -124,14 +116,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   mobileBtn: {
-    backgroundColor: '#880088',
+    backgroundColor: '#FF8F00',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 30,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#880088',
+    shadowColor: '#FF8F00',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,

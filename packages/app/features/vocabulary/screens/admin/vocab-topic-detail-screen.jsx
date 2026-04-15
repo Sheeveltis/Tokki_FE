@@ -263,10 +263,17 @@ export function FlashcardTopicDetailScreen() {
 
     Modal.confirm({
       title: 'Xác nhận xóa chủ đề',
+      centered: true,
       content: `Bạn chắc chắn muốn xóa chủ đề "${detailTopic?.title || detailTopic?._raw?.topicName || topicId}"?`,
       okText: 'Xóa',
       cancelText: 'Hủy',
-      okButtonProps: { danger: true },
+      okButtonProps: { 
+        danger: true,
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
+      cancelButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
       onOk: async () => {
         try {
           setDeleteLoading(true)

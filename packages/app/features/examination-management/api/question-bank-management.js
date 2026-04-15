@@ -40,7 +40,8 @@ export async function fetchPassages(params = {}) {
 
 export async function fetchQuestionTypes(params = {}) {
   const res = await apiClient.get(ENDPOINTS.QUESTION_TYPE.GET_ALL, { params })
-  return res.data?.data || []
+  const data = res.data?.data
+  return Array.isArray(data) ? data : data?.items || []
 }
 
 // Lấy danh sách câu hỏi có phân trang

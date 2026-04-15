@@ -84,22 +84,8 @@ export default function ManagementLayout({
   const paginationProps = tableProps?.pagination
 
   useEffect(() => {
-    const calculateTableHeight = () => {
-      if (tableWrapperRef.current) {
-        const rect = tableWrapperRef.current.getBoundingClientRect()
-        // Giảm bớt khoảng trừ vì pagination đã nằm ngoài, cần trừ thêm gap, padding của layout và chiều cao của header bảng
-        const availableHeight = window.innerHeight - rect.top - 180
-        setTableScrollY(availableHeight > 300 ? availableHeight : 300)
-      }
-    }
-
-    // Delay một chút để layout render xong
-    const timer = setTimeout(calculateTableHeight, 100)
-    window.addEventListener('resize', calculateTableHeight)
-    return () => {
-      window.removeEventListener('resize', calculateTableHeight)
-      clearTimeout(timer)
-    }
+    // Đặt chiều cao cố định để giao diện ổn định, không bị nhảy theo nội dung hay resize linh hoạt
+    setTableScrollY(580)
   }, [])
 
   return (
@@ -151,76 +137,82 @@ export default function ManagementLayout({
         <ActionGroup actions={actions} />
       </div>
 
-      {/* TABLE SECTION */}
-      <div
-        ref={tableWrapperRef}
-        style={{
-          flex: 1,
-          overflowY: viewMode === 'table' ? 'hidden' : 'auto',
-          overflowX: 'auto',
-          width: '100%',
-          borderRadius: 8,
-        }}
-      >
-        {viewMode === 'table' ? (
-          <ManagementTable
-            {...tableProps}
-            pagination={false}
-            scroll={{ ...tableProps?.scroll, x: 'max-content', y: tableScrollY }}
-            size="middle"
-          />
-        ) : (
-          <div style={{ padding: '4px 0' }}>
-            <List
-              grid={{
-                gutter: 16,
-                xs: 1,
-                sm: 2,
-                md: 2,
-                lg: 3,
-                xl: 4,
-                xxl: 4,
-              }}
-              rowKey={(item) => item.id || item.userId || item.key || item.email}
-              loading={tableProps?.loading}
-              dataSource={tableProps?.dataSource || []}
-              renderItem={(item) => (
-                <List.Item>
-                  {renderCard(item)}
-                </List.Item>
-              )}
-              locale={{
-                emptyText: <Empty description="Không có dữ liệu" />
-              }}
+      {/* UNIFIED CONTENT BOX (TABLE/CARDS + PAGINATION) */}
+      <div style={{
+        backgroundColor: '#fff',
+        borderRadius: '1rem',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        {/* CONTENT SECTION */}
+        <div
+          ref={tableWrapperRef}
+          className="management-content-wrapper"
+          style={{
+            height: tableScrollY,
+            overflowY: viewMode === 'table' ? 'hidden' : 'auto',
+            overflowX: 'auto',
+            width: '100%',
+          }}
+        >
+          {viewMode === 'table' ? (
+            <ManagementTable
+              {...tableProps}
+              pagination={false}
+              scroll={{ ...tableProps?.scroll, x: 'max-content', y: tableScrollY }}
+              size="middle"
+            />
+          ) : (
+            <div style={{ padding: '24px 24px 24px 24px' }}>
+              <List
+                grid={{
+                  gutter: 16,
+                  xs: 1,
+                  sm: 2,
+                  md: 2,
+                  lg: 3,
+                  xl: 4,
+                  xxl: 4,
+                }}
+                rowKey={(item) => item.id || item.userId || item.key || item.email}
+                loading={tableProps?.loading}
+                dataSource={tableProps?.dataSource || []}
+                renderItem={(item) => (
+                  <List.Item>
+                    {renderCard(item)}
+                  </List.Item>
+                )}
+                locale={{
+                  emptyText: <Empty description="Không có dữ liệu" />
+                }}
+              />
+            </div>
+          )}
+          {children}
+        </div>
+
+        {/* PAGINATION SECTION */}
+        {paginationProps && (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            padding: '16px 32px',
+            backgroundColor: '#fff',
+            borderTop: '1px solid #f0f0f0',
+            zIndex: 10,
+          }}>
+            <Pagination
+              {...paginationProps}
+              showSizeChanger
+              showTotal={(total) => <span style={{ fontSize: 'clamp(12px, 1vw, 14px)', fontWeight: 500 }}>Tổng {total} mục</span>}
+              onChange={paginationProps.onChange}
             />
           </div>
         )}
-        {children}
       </div>
-
-      {/* PAGINATION SECTION - STICKY TO BOTTOM */}
-      {paginationProps && (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          padding: 'clamp(12px, 1.5vh, 20px) clamp(16px, 2vw, 32px)',
-          backgroundColor: '#fff',
-          borderRadius: '0 0 1rem 1rem',
-          borderTop: '1px solid #f0f0f0',
-          position: 'sticky',
-          bottom: 0,
-          zIndex: 10,
-          boxShadow: '0 -4px 12px rgba(0,0,0,0.04)'
-        }}>
-          <Pagination
-            {...paginationProps}
-            showSizeChanger
-            showTotal={(total) => <span style={{ fontSize: 'clamp(12px, 1vw, 14px)', fontWeight: 500 }}>Tổng {total} mục</span>}
-            onChange={paginationProps.onChange}
-          />
-        </div>
-      )}
     </div>
   )
 }

@@ -26,7 +26,7 @@ export const QuestionCard = ({
     <Card 
       id={`q-${question.templatePartId}-${question.qIndex}`}
       size="small" 
-      bodyStyle={{ padding: 24 }}
+      styles={{ body: { padding: 24 } }}
       style={{
         marginBottom: 16,
         borderRadius: 8,
@@ -38,7 +38,7 @@ export const QuestionCard = ({
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-        <Space direction="vertical" size={12}>
+        <Space orientation="vertical" size={12}>
           <Space>
             <Avatar 
               size="small" 
@@ -52,7 +52,7 @@ export const QuestionCard = ({
             >
               {question.questionNo}
             </Avatar>
-            <Tag color={isPending ? "warning" : isHighlighted ? "success" : "blue"} bordered={false} style={{ margin: 0 }}>
+            <Tag color={isPending ? "warning" : isHighlighted ? "success" : "blue"} variant="filled" style={{ margin: 0 }}>
               CÂU HỎI {question.questionNo}
             </Tag>
           </Space>

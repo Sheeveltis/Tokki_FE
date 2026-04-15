@@ -40,7 +40,7 @@ export const ExamAnalysisTab = ({ exam, statsData }) => {
       <Row gutter={[24, 24]}>
         {/* KPI Row */}
         <Col xs={12} sm={12} md={6}>
-          <Card bordered={false} style={{ boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', borderRadius: 8, border: '1px solid #f0f0f0' }}>
+          <Card variant="borderless" style={{ boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', borderRadius: 8, border: '1px solid #f0f0f0' }}>
             <Statistic
               title={<Text type="secondary" strong>Tổng lượt thi</Text>}
               value={totalParticipants}
@@ -50,7 +50,7 @@ export const ExamAnalysisTab = ({ exam, statsData }) => {
           </Card>
         </Col>
         <Col xs={12} sm={12} md={6}>
-          <Card bordered={false} style={{ boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', borderRadius: 8, border: '1px solid #f0f0f0' }}>
+          <Card variant="borderless" style={{ boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', borderRadius: 8, border: '1px solid #f0f0f0' }}>
             <Statistic
               title={<Text type="secondary" strong>Trung bình điểm</Text>}
               value={statsData?.averageScore || 0}
@@ -62,7 +62,7 @@ export const ExamAnalysisTab = ({ exam, statsData }) => {
           </Card>
         </Col>
         <Col xs={12} sm={12} md={6}>
-          <Card bordered={false} style={{ boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', borderRadius: 8, border: '1px solid #f0f0f0' }}>
+          <Card variant="borderless" style={{ boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', borderRadius: 8, border: '1px solid #f0f0f0' }}>
             <Statistic
               title={<Text type="secondary" strong>Điểm cao nhất</Text>}
               value={statsData?.topScore || 0}
@@ -74,7 +74,7 @@ export const ExamAnalysisTab = ({ exam, statsData }) => {
           </Card>
         </Col>
         <Col xs={12} sm={12} md={6}>
-          <Card bordered={false} style={{ boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', borderRadius: 8, border: '1px solid #f0f0f0' }}>
+          <Card variant="borderless" style={{ boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', borderRadius: 8, border: '1px solid #f0f0f0' }}>
             <Statistic
               title={<Text type="secondary" strong>Thời gian TB</Text>}
               value={statsData?.averageDurationMinutes || 0}
@@ -91,7 +91,7 @@ export const ExamAnalysisTab = ({ exam, statsData }) => {
         <Col xs={24} lg={16}>
           <Card
             title={<Space><PieChartOutlined style={{ color: '#1890ff' }} /><span>Tổ chức câu hỏi theo kỹ năng</span></Space>}
-            bordered={false}
+            variant="borderless"
             style={{ boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', borderRadius: 8, border: '1px solid #f0f0f0', height: '100%' }}
           >
             <div style={{ height: 350, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -132,7 +132,7 @@ export const ExamAnalysisTab = ({ exam, statsData }) => {
         <Col xs={24} lg={8}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24, height: '100%' }}>
             
-            <Card title={<Space><TeamOutlined style={{ color: '#722ed1' }} /><span>Tình trạng tham gia</span></Space>} bordered={false} style={{ boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', borderRadius: 8, border: '1px solid #f0f0f0' }}>
+            <Card title={<Space><TeamOutlined style={{ color: '#722ed1' }} /><span>Tình trạng tham gia</span></Space>} variant="borderless" style={{ boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', borderRadius: 8, border: '1px solid #f0f0f0' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24, padding: '0 8px', marginTop: 8 }}>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 8 }}>
@@ -154,7 +154,7 @@ export const ExamAnalysisTab = ({ exam, statsData }) => {
 
             <Row gutter={[16, 16]} style={{ flex: 1 }}>
               <Col span={12}>
-                <Card bordered={false} style={{ backgroundColor: '#fafafa', borderRadius: 8, border: '1px solid #f0f0f0', height: '100%' }}>
+                <Card variant="borderless" style={{ backgroundColor: '#fafafa', borderRadius: 8, border: '1px solid #f0f0f0', height: '100%' }}>
                   <Statistic
                     title={<Text type="secondary" style={{ fontSize: 12 }}>Tổng câu hỏi</Text>}
                     value={statsData?.totalQuestions || exam?.totalQuestions || 0}
@@ -165,7 +165,7 @@ export const ExamAnalysisTab = ({ exam, statsData }) => {
                 </Card>
               </Col>
               <Col span={12}>
-                <Card bordered={false} style={{ backgroundColor: '#fafafa', borderRadius: 8, border: '1px solid #f0f0f0', height: '100%' }}>
+                <Card variant="borderless" style={{ backgroundColor: '#fafafa', borderRadius: 8, border: '1px solid #f0f0f0', height: '100%' }}>
                   <Statistic
                     title={<Text type="secondary" style={{ fontSize: 12 }}>Lượt tải PDF</Text>}
                     value={statsData?.pdfDownloadCount || 0}

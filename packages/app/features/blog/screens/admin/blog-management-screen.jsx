@@ -27,6 +27,24 @@ export function BlogManagement() {
     status: undefined,
   })
 
+  // Local state for search to avoid lag
+  const [localSearch, setLocalSearch] = useState(filters.search)
+
+  // Sync with filters.search
+  useEffect(() => {
+    setLocalSearch(filters.search)
+  }, [filters.search])
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== filters.search) {
+        handleFilterChange('search', localSearch)
+      }
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [localSearch])
+
   const [data, setData] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -84,10 +102,17 @@ export function BlogManagement() {
   const handleDelete = (item) => {
     Modal.confirm({
       title: 'Xác nhận xóa',
+      centered: true,
       content: `Bạn có chắc chắn muốn xóa bài viết "${item.title}"?`,
       okText: 'Xóa',
       okType: 'danger',
       cancelText: 'Hủy',
+      okButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
+      cancelButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
       onOk: async () => {
         try {
           await deleteBlog(item.id)
@@ -222,9 +247,9 @@ export function BlogManagement() {
     <ManagementLayout
       title="Quản lý Bài viết"
       searchPlaceholder="Tìm kiếm tiêu đề, tác giả..."
-      searchValue={filters.search}
-      onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
-      onSearchSubmit={() => handleFilterChange('search', filters.search)}
+      searchValue={localSearch}
+      onSearchChange={setLocalSearch}
+      onSearchSubmit={() => handleFilterChange('search', localSearch)}
       extraFilters={extraFilters}
       actions={actions}
       tableProps={{

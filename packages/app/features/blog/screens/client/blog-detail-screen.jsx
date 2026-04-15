@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useParams } from 'solito/navigation'
 import { ConfigProvider, FloatButton, Tooltip, message } from 'antd'
-import { SettingOutlined, BookOutlined, ShareAltOutlined } from '@ant-design/icons'
+import { SettingOutlined, BookOutlined, ShareAltOutlined, FileTextOutlined, PlusOutlined } from '@ant-design/icons'
 
 import { BlogLayout } from '../../components/blog-detail/blog-layout'
 import { getBlogDetail, getAllBlogs, increaseViewCount, getCommentsByBlog } from '../../api'
@@ -163,18 +163,43 @@ export function BlogDetailScreen() {
         {renderContent()}
 
         {/* Floating Actions */}
-        <FloatButton.BackTop visibilityHeight={400} style={{ right: 24, bottom: 24 }} />
+        <FloatButton.BackTop visibilityHeight={400} style={{ right: 32, bottom: 32, width: 56, height: 56 }} />
         <FloatButton.Group
           trigger="hover"
           type="primary"
-          style={{ right: 24, bottom: 84 }}
-          icon={<SettingOutlined />}
+          style={{ left: 32, bottom: 32, width: 56, height: 56 }}
+          icon={<SettingOutlined style={{ fontSize: 24 }} />}
         >
-          <Tooltip title="Lưu bài viết" placement="left">
-            <FloatButton icon={<BookOutlined />} onClick={() => message.info('Đã lưu vào bộ sưu tập')} />
+          <Tooltip title="Quản lý bài viết" placement="right">
+            <FloatButton 
+              icon={<FileTextOutlined style={{ fontSize: 22 }} />} 
+              style={{ width: 56, height: 56 }}
+              onClick={() => router.push('/blog/management')} 
+            />
           </Tooltip>
-          <Tooltip title="Chia sẻ" placement="left">
-            <FloatButton icon={<ShareAltOutlined />} onClick={() => message.success('Link đã được sao chép')} />
+          <Tooltip title="Bộ sưu tập" placement="right">
+            <FloatButton 
+              icon={<BookOutlined style={{ fontSize: 22 }} />} 
+              style={{ width: 56, height: 56 }}
+              onClick={() => message.info('Đã lưu vào bộ sưu tập')} 
+            />
+          </Tooltip>
+          <Tooltip title="Chia sẻ" placement="right">
+            <FloatButton 
+              icon={<ShareAltOutlined style={{ fontSize: 22 }} />} 
+              style={{ width: 56, height: 56 }}
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href)
+                message.success('Link đã được sao chép')
+              }} 
+            />
+          </Tooltip>
+          <Tooltip title="Viết bài mới" placement="right">
+            <FloatButton 
+              icon={<PlusOutlined style={{ fontSize: 22 }} />} 
+              style={{ width: 56, height: 56 }}
+              onClick={() => router.push('/blog/create')} 
+            />
           </Tooltip>
         </FloatButton.Group>
       </BlogLayout>

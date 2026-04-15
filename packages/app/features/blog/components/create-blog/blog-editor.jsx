@@ -77,7 +77,7 @@ export function BlogEditor({ name, label, rules }) {
   const formats = useMemo(() => [
     'header', 'font', 'size',
     'bold', 'italic', 'underline', 'strike', 'blockquote', 'code-block',
-    'list', 'bullet', 'indent', 'script',
+    'list', 'indent', 'script',
     'link', 'image', 'video', 'color', 'background', 'align'
   ], [])
 

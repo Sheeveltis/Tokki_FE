@@ -392,7 +392,19 @@ export default function AccountDetails({ userId, onAfterChange, onBack, initialE
         />
       </div>
 
-      <Modal open={avatarPreviewOpen} title="Xác nhận cập nhật avatar" onOk={handleConfirmAvatarUpdate} onCancel={() => setAvatarPreviewOpen(false)} okText="Xác nhận" cancelText="Hủy" confirmLoading={updatingAvatar} width={400}>
+      <Modal 
+        open={avatarPreviewOpen} 
+        title="Xác nhận cập nhật avatar" 
+        onOk={handleConfirmAvatarUpdate} 
+        onCancel={() => setAvatarPreviewOpen(false)} 
+        okText="Xác nhận" 
+        cancelText="Hủy" 
+        confirmLoading={updatingAvatar} 
+        width={400}
+        centered
+        okButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
+        cancelButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
+      >
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
           <Avatar size={200} src={previewAvatarUrl || undefined} style={{ border: '3px solid #e8e8e8', marginBottom: 16 }}>{!previewAvatarUrl && 'U'}</Avatar>
           <Text type="secondary" style={{ display: 'block' }}>Bạn có muốn cập nhật avatar này không?</Text>

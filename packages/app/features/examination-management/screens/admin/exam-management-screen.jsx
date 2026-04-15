@@ -193,10 +193,17 @@ export function ExamManagement({ initialData = null }) {
                   e?.stopPropagation?.()
                   Modal.confirm({
                     title: 'Xác nhận xóa',
+                    centered: true,
                     content: `Bạn có chắc chắn muốn xóa đề thi "${record.title}"?`,
                     okText: 'Xóa',
                     okType: 'danger',
                     cancelText: 'Hủy',
+                    okButtonProps: { 
+                      style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+                    },
+                    cancelButtonProps: { 
+                      style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+                    },
                     onOk: async () => {
                       try {
                         await deleteExam(record.examId)
@@ -229,7 +236,7 @@ export function ExamManagement({ initialData = null }) {
           display: 'flex',
           flexDirection: 'column'
         }}
-        bodyStyle={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}
+        styles={{ body: { padding: 16, flex: 1, display: 'flex', flexDirection: 'column' } }}
         onClick={() => router.push(`/admin/exams/${record.examId}`)}
       >
         <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

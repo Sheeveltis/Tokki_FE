@@ -100,6 +100,15 @@ export const getBlogById = async (id) => {
 }
 
 /**
+ * Lấy chi tiết blog cho quản lý người dùng (xem trước bài viết của mình)
+ */
+export const getBlogUserDetail = async (id) => {
+  const res = await apiClient.get(ENDPOINTS.BLOG.GET_USER_DETAIL(id))
+  const response = res.data
+  return parseBlogDetailResponse(response)
+}
+
+/**
  * Lấy blog theo slug
  * Tự động extract ID từ slug (phần cuối cùng) và gọi getBlogById
  * @param {string} slug - Slug của blog (ví dụ: "10-quy-tac-bat-di-bat-dich-abc123")
@@ -145,9 +154,6 @@ export const getTopAuthors = async (count = 5) => {
 /**
  * Danh sách blog cho admin với pagination
  */
-/**
- * Danh sách blog cho admin với pagination
- */
 export const getBlogsAdmin = async ({ pageNumber = 1, pageSize = 10, categoryId, keyword, status } = {}) => {
   const params = { 
     PageNumber: pageNumber, 
@@ -158,6 +164,35 @@ export const getBlogsAdmin = async ({ pageNumber = 1, pageSize = 10, categoryId,
   }
   
   const res = await apiClient.get(ENDPOINTS.BLOG.ADMIN_LIST, { params })
+  const data = res?.data?.data || {}
+  
+  const items = Array.isArray(data.items) ? data.items.map((item) => ({
+    ...item,
+    authorName: item.author?.fullName || item.authorName || item.authorId,
+    categoryName: item.categoryName || '',
+  })) : []
+  
+  return {
+    items,
+    totalPages: data.totalPages || 1,
+    totalCount: data.totalCount || 0,
+    pageNumber: data.pageNumber || pageNumber,
+    pageSize: data.pageSize || pageSize,
+  }
+}
+
+/**
+ * Danh sách blog của riêng user hiện tại
+ */
+export const getMyBlogs = async ({ pageNumber = 1, pageSize = 10, keyword, status } = {}) => {
+  const params = { 
+    pageNumber, 
+    pageSize,
+    keyword: keyword || undefined,
+    status: status !== undefined ? status : undefined
+  }
+  
+  const res = await apiClient.get(ENDPOINTS.BLOG.MY_BLOGS, { params })
   const data = res?.data?.data || {}
   
   const items = Array.isArray(data.items) ? data.items.map((item) => ({
@@ -291,6 +326,15 @@ export const updateBlog = async (blogId, payload) => {
 export const deleteBlog = async (blogId) => {
   const res = await apiClient.delete(ENDPOINTS.BLOG.DELETE(blogId))
   // Response format: { isSuccess: true, data: {...}, errors: null, message: '...', statusCode: 200 }
+  return res.data
+}
+
+/**
+ * Lưu bài viết (Tạo mới hoặc cập nhật - dùng cho Client)
+ * @param {Object} payload 
+ */
+export const saveBlog = async (payload) => {
+  const res = await apiClient.post(ENDPOINTS.BLOG.SAVE, payload)
   return res.data
 }
 

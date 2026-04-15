@@ -410,12 +410,6 @@ export function ExamTemplateDetailScreen() {
                 icon={<SendOutlined />}
                 onClick={handleSubmitForApproval}
                 loading={submittingForApproval}
-                style={{
-                  borderRadius: 20,
-                  height: 40,
-                  padding: '0 20px',
-                  fontWeight: 600
-                }}
               >
                 Gửi duyệt
               </Button>
@@ -427,12 +421,6 @@ export function ExamTemplateDetailScreen() {
                 icon={<SwapOutlined />}
                 onClick={() => setStatusChangeModalOpen(true)}
                 loading={statusChangeLoading}
-                style={{
-                  borderRadius: 20,
-                  height: 40,
-                  padding: '0 20px',
-                  fontWeight: 600
-                }}
               >
                 Chuyển trạng thái
               </Button>
@@ -446,32 +434,16 @@ export function ExamTemplateDetailScreen() {
               icon={<EditOutlined />}
               onClick={handleEdit}
               disabled={isStaff && ![0, 4].includes(examTemplate.status ?? 0)}
-              style={{
-                borderRadius: 20,
-                height: 40,
-                padding: '0 20px',
-                fontWeight: 600
-              }}
             >
               Chỉnh sửa
             </Button>
             {/* Chỉ cho phép xóa khi không phải trạng thái Đã xuất bản */}
             {examTemplate.status !== 1 && (
-              <Button danger icon={<DeleteOutlined />} onClick={handleDelete} loading={deleting} style={{
-                borderRadius: 20,
-                height: 40,
-                padding: '0 20px',
-                fontWeight: 600
-              }}>
+              <Button danger icon={<DeleteOutlined />} onClick={handleDelete} loading={deleting}>
                 Xóa
               </Button>
             )}
-            <Button icon={<ArrowLeftOutlined />} onClick={handleBack} style={{
-              borderRadius: 20,
-              height: 40,
-              padding: '0 20px',
-              fontWeight: 600
-            }}>
+            <Button icon={<ArrowLeftOutlined />} onClick={handleBack}>
               Quay lại
             </Button>
           </Space>
@@ -625,7 +597,7 @@ export function ExamTemplateDetailScreen() {
                   </div>
 
                   {/* Details List */}
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                  <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
                     <div>
                       <Text type="secondary" style={{ fontSize: 17, display: 'block', marginBottom: 4 }}>
                         <FileTextOutlined style={{ marginRight: 8 }} /> Loại đề

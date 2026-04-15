@@ -133,7 +133,7 @@ export function ExamStatusChangeModal({ open, loading, onCancel, onSubmit, curre
                     position: 'relative',
                     opacity: isCurrent ? 0.7 : 1,
                   }}
-                  bodyStyle={{ padding: 0 }}
+                  styles={{ body: { padding: 0 } }}
                 >
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
                     <div

@@ -113,10 +113,17 @@ export function VocabularyDetailScreen() {
 
     Modal.confirm({
       title: 'Xác nhận xóa từ vựng',
+      centered: true,
       content: `Bạn chắc chắn muốn xóa từ vựng "${detailVocab?.text || vocabularyId}"?`,
       okText: 'Xóa',
       cancelText: 'Hủy',
-      okButtonProps: { danger: true },
+      okButtonProps: { 
+        danger: true,
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
+      cancelButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
       onOk: async () => {
         try {
           setDeleteLoading(true)
@@ -322,10 +329,17 @@ export function VocabularyDetailScreen() {
 
     Modal.confirm({
       title: 'Xác nhận xóa câu mẫu',
+      centered: true,
       content: `Bạn chắc chắn muốn xóa câu mẫu "${example?.sentence || exampleId}"?`,
       okText: 'Xóa',
       cancelText: 'Hủy',
-      okButtonProps: { danger: true },
+      okButtonProps: { 
+        danger: true,
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
+      cancelButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
       onOk: async () => {
         try {
           setDeletingExampleId(exampleId)
