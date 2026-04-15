@@ -39,8 +39,8 @@ export function MenuStudy({
     aimLevel,
   } = useMenuStudy(router, levelId)
 
-  // Ưu tiên dùng level người dùng (aimLevel) từ API
-  const currentLevel = aimLevel || levelId
+  // Chỉ sử dụng levelId từ props hoặc params, không tự động fallback về aimLevel
+  const currentLevel = levelId
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain

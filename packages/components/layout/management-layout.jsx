@@ -103,7 +103,8 @@ export default function ManagementLayout({
       flexDirection: 'column',
       gap: 16,
       width: '100%',
-      height: '100%',
+      flex: 1,
+      minHeight: '100%',
       position: 'relative',
     }}>
       {/* HEADER SECTION */}
@@ -153,14 +154,17 @@ export default function ManagementLayout({
         boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
         overflow: 'hidden',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        flex: 1, // Đẩy box này chiếm toàn bộ không gian còn lại
+        minHeight: 0 // Quan trọng để flex child có thể nhỏ hơn nội dung
       }}>
         {/* CONTENT SECTION */}
         <div
           ref={tableWrapperRef}
           className="management-content-wrapper"
           style={{
-            height: tableScrollY,
+            flex: 1, // Để wrapper tự giãn theo không gian còn lại trong box
+            minHeight: 0,
             overflowY: viewMode === 'table' ? 'hidden' : 'auto',
             overflowX: 'auto',
             width: '100%',
@@ -170,7 +174,8 @@ export default function ManagementLayout({
             <ManagementTable
               {...tableProps}
               pagination={false}
-              scroll={{ ...tableProps?.scroll, x: 'max-content', y: tableScrollY }}
+              // Trừ đi khoảng 80px để chừa chỗ cho header, border và thanh cuộn ngang nếu có
+              scroll={{ ...tableProps?.scroll, x: 'max-content', y: tableScrollY - 70 }}
               size="middle"
             />
           ) : (
@@ -208,7 +213,7 @@ export default function ManagementLayout({
             display: 'flex',
             justifyContent: 'flex-end',
             alignItems: 'center',
-            padding: '16px clamp(16px, 2.5vw, 32px)',
+            padding: '12px 24px 16px 24px', // Giảm bớt padding để khít hơn
             backgroundColor: '#fff',
             borderTop: '1px solid #f0f0f0',
             zIndex: 10,
