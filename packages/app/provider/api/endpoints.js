@@ -34,6 +34,7 @@ export const ENDPOINTS = {
     ADMIN_LIST: '/Blog/admin',
     MY_BLOGS: '/Blog/user/my-blog',
     SAVE: '/Blog/user/save',
+    USER_SUBMIT_APPROVAL: (blogId) => `/Blog/user/submit-approval/${blogId}`,
     STAFF_SUBMIT_FOR_APPROVAL: (blogId) => `/Blog/staff/submit-for-approval/${blogId}`,
     MODERATOR_APPROVE: (blogId) => `/Blog/moderator/approve/${blogId}`,
     MODERATOR_REJECT: '/Blog/moderator/reject',

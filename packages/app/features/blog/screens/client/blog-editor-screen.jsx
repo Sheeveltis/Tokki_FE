@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'solito/navigation'
-import { Card, Form, Typography, message, Space, Spin, Button, ConfigProvider } from 'antd'
-import { ArrowLeftOutlined, EyeOutlined, SaveOutlined } from '@ant-design/icons'
-import { getBlogUserDetail, saveBlog } from '../../api'
+import { Card, Form, Typography, message, Space, Spin, Button, ConfigProvider, Modal } from 'antd'
+import { ArrowLeftOutlined, EyeOutlined, SaveOutlined, SendOutlined } from '@ant-design/icons'
+import { getBlogUserDetail, saveBlog, submitBlogForApproval } from '../../api'
 import { BlogEditor } from '../../components/create-blog/blog-editor'
 import { BlogGeneralInfo } from '../../components/create-blog/blog-general-info'
 import { BlogMetaInfo } from '../../components/create-blog/blog-meta-info'
@@ -27,8 +27,9 @@ export function BlogEditorScreen() {
   const isEdit = !!blogId
 
   const [form] = Form.useForm()
-  const [loading, setLoading] = useState(isEdit)
+  const [loading, setLoading] = useState(true) // Always start with loading true
   const [saving, setSaving] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   // State quản lý Preview
   const [previewOpen, setPreviewOpen] = useState(false)
@@ -36,34 +37,48 @@ export function BlogEditorScreen() {
 
   // Load blog data if editing
   useEffect(() => {
-    if (!isEdit) return
+    let mounted = true;
+    
+    // Nếu không phải trang edit, tắt loading ngay
+    if (!blogId) {
+      setLoading(false)
+      return
+    }
 
     const loadBlog = async () => {
       try {
         setLoading(true)
         const data = await getBlogUserDetail(blogId)
 
-        // Set form values
-        form.setFieldsValue({
-          id: data.id || blogId,
-          title: data.title || '',
-          thumbnailUrl: data.thumbnailUrl || '',
-          content: data.content || '',
-          shortDescription: data.shortDescription || '',
-          categoryId: data.categoryId || '',
-          tags: data.tags || [],
-          isPublished: data.status === 1,
-        })
+        if (mounted) {
+          // Set form values
+          form.setFieldsValue({
+            id: data.id || blogId,
+            title: data.title || '',
+            thumbnailUrl: data.thumbnailUrl || '',
+            content: data.content || '',
+            shortDescription: data.shortDescription || '',
+            categoryId: data.categoryId || '',
+            tags: data.tags || [],
+          })
+        }
       } catch (error) {
         console.error('Failed to load blog for edit:', error)
-        message.error('Không thể tải bài viết để chỉnh sửa')
-        router.push('/blog/management')
+        if (mounted) {
+          message.error('Không thể tải bài viết để chỉnh sửa')
+          router.push('/blog/management')
+        }
       } finally {
-        setLoading(false)
+        if (mounted) {
+          setLoading(false)
+        }
       }
     }
     loadBlog()
-  }, [blogId, isEdit, form, router])
+    
+    return () => { mounted = false; }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blogId])
 
   const handlePreview = () => {
     const values = form.getFieldsValue()
@@ -75,40 +90,89 @@ export function BlogEditorScreen() {
     setPreviewOpen(true)
   }
 
-  const handleSubmit = async (values) => {
-    Modal.confirm({
-      title: isEdit ? 'Cập nhật bài viết?' : 'Xuất bản bài viết bài viết?',
-      content: 'Nội dung sau khi xuất bản sẽ trải qua hai bước kiểm duyệt: đầu tiên là hệ thống lọc từ khóa tự động, sau đó mới đến bước phê duyệt cuối cùng của quản trị viên (admin).',
-      okText: isEdit ? 'Cập nhật ngay' : 'Xuất bản ngay',
-      cancelText: 'Để sau',
-      centered: true,
-      onOk: async () => {
-        try {
-          setSaving(true)
-          const payload = {
-            id: isEdit ? blogId : undefined,
-            title: values.title,
-            thumbnailUrl: values.thumbnailUrl,
-            content: values.content,
-            shortDescription: values.shortDescription,
-            categoryId: values.categoryId,
-            tags: values.tags || [],
-          }
-
-          const response = await saveBlog(payload)
-          if (response?.isSuccess) {
-            message.success(isEdit ? 'Đã cập nhật bài viết thành công' : 'Đã gửi bài viết thành công. Vui lòng chờ kiểm duyệt!')
-            router.push('/blog/management')
-          } else {
-            throw new Error(response?.message || 'Có lỗi xảy ra khi lưu bài viết')
-          }
-        } catch (error) {
-          console.error('Save blog error:', error)
-          message.error(error.message || 'Lưu bài viết thất bại')
-        } finally {
-          setSaving(false)
-        }
+  const handleSaveOnly = async () => {
+    try {
+      const values = await form.validateFields()
+      setSaving(true)
+      const payload = {
+        id: isEdit ? blogId : undefined,
+        title: values.title,
+        thumbnailUrl: values.thumbnailUrl,
+        content: values.content,
+        shortDescription: values.shortDescription,
+        categoryId: values.categoryId,
+        tags: values.tags || [],
       }
+
+      const response = await saveBlog(payload)
+      if (response?.isSuccess) {
+        message.success('Đã lưu nội dung bài viết thành công')
+        // Trả về management sau khi lưu
+        router.push('/blog/management')
+      } else {
+        throw new Error(response?.message || 'Có lỗi xảy ra khi lưu bài viết')
+      }
+    } catch (error) {
+      if (error?.errorFields) return; // Form validation failed
+      console.error('Save blog error:', error)
+      message.error(error.message || 'Lưu bài viết thất bại')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleSubmitForApproval = () => {
+    form.validateFields().then((values) => {
+      Modal.confirm({
+        title: 'Gửi duyệt bài viết?',
+        content: 'Bài viết sẽ được gửi để quản trị viên kiểm duyệt. Bạn không thể chỉnh sửa trong quá trình này.',
+        okText: 'Gửi duyệt ngay',
+        cancelText: 'Để sau',
+        centered: true,
+        onOk: async () => {
+          try {
+            setSubmitting(true)
+            // Bước 1: Lưu nội dung trước
+            const payload = {
+              id: isEdit ? blogId : undefined,
+              title: values.title,
+              thumbnailUrl: values.thumbnailUrl,
+              content: values.content,
+              shortDescription: values.shortDescription,
+              categoryId: values.categoryId,
+              tags: values.tags || [],
+            }
+
+            const response = await saveBlog(payload)
+            if (!response?.isSuccess) {
+              throw new Error(response?.message || 'Lưu bài viết thất bại, không thể gửi duyệt.')
+            }
+
+            // Bước 2: Gọi api gửi duyệt với ID (nếu tạo mới thì lấy ID từ response data)
+            const createdOrUpdatedId = response?.data?.id || (response?.data && typeof response?.data === 'string' ? response.data : null) || blogId
+            
+            if (!createdOrUpdatedId) {
+              throw new Error('Không lấy được ID bài viết để gửi duyệt.')
+            }
+
+            const submitRes = await submitBlogForApproval(createdOrUpdatedId)
+            if (submitRes?.isSuccess) {
+              message.success('Đã gửi bài viết thành công. Vui lòng chờ kiểm duyệt!')
+              router.push('/blog/management')
+            } else {
+              throw new Error(submitRes?.message || 'Có lỗi xảy ra khi gửi duyệt')
+            }
+
+          } catch (error) {
+            console.error('Submit for approval error:', error)
+            message.error(error.message || 'Gửi duyệt bài viết thất bại')
+          } finally {
+            setSubmitting(false)
+          }
+        }
+      })
+    }).catch(info => {
+      console.log('Validation failed:', info)
     })
   }
 
@@ -116,11 +180,12 @@ export function BlogEditorScreen() {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', flexDirection: 'column', gap: 20, backgroundColor: '#FDFBF4' }}>
         <Spin size="large" />
-        <Text type="secondary" style={{ fontSize: 16 }}>Đang chuẩn bị trình soạn thảo...</Text>
+        <Text type="secondary" style={{ fontSize: 16 }}>Đang chuẩn bị trình soạn thảo (blogId: {blogId})...</Text>
       </div>
     )
   }
 
+  // Rest of the screen is rendered when loading = false
   return (
     <ConfigProvider
       theme={{
@@ -168,13 +233,23 @@ export function BlogEditorScreen() {
                 Xem trước
               </Button>
               <Button
-                type="primary"
                 icon={<SaveOutlined />}
                 loading={saving}
-                onClick={() => form.submit()}
+                disabled={submitting}
+                onClick={handleSaveOnly}
                 style={BUTTON_STYLE}
               >
-                {isEdit ? 'Cập nhật' : 'Xuất bản'}
+                Lưu
+              </Button>
+              <Button
+                type="primary"
+                icon={<SendOutlined />}
+                loading={submitting}
+                disabled={saving}
+                onClick={handleSubmitForApproval}
+                style={BUTTON_STYLE}
+              >
+                Gửi duyệt
               </Button>
             </Space>
           </div>
@@ -183,7 +258,6 @@ export function BlogEditorScreen() {
             <Form
               form={form}
               layout="vertical"
-              onFinish={handleSubmit}
               scrollToFirstError
               initialValues={{ tags: [], content: '' }}
             >
