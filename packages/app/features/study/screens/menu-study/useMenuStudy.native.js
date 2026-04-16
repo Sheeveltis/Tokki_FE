@@ -73,6 +73,8 @@ export function useMenuStudy(navigation, levelId) {
 
   const handleModulePress = (moduleId, itemLabel, overrideLevel) => {
     const finalLevel = overrideLevel || levelId
+  const handleModulePress = (moduleId, itemLabel, overrideLevel) => {
+    const finalLevel = overrideLevel || levelId
     // Tạm thời bỏ chặn đăng nhập cho speaking để vào màn pronunciation theo yêu cầu
     const shouldRequireLogin = isLoginRequiredModule(moduleId) && moduleId !== 'speaking'
     if (shouldRequireLogin) {
@@ -81,6 +83,7 @@ export function useMenuStudy(navigation, levelId) {
     }
 
     // Lấy route tương ứng và điều hướng nếu có
+    const route = getMenuStudyRoute({ moduleId, itemLabel, levelId: finalLevel })
     const route = getMenuStudyRoute({ moduleId, itemLabel, levelId: finalLevel })
     if (route) {
       navigateToRoute(route)
@@ -94,9 +97,13 @@ export function useMenuStudy(navigation, levelId) {
   const handleTopikRoadmapPress = (overrideLevel) => {
     const finalLevel = overrideLevel || levelId
     if (!finalLevel) {
+  const handleTopikRoadmapPress = (overrideLevel) => {
+    const finalLevel = overrideLevel || levelId
+    if (!finalLevel) {
       navigateToRoute('/roadmap/info')
       return
     }
+    navigateToRoute(`/roadmap/learning?level=${finalLevel}`)
     navigateToRoute(`/roadmap/learning?level=${finalLevel}`)
   }
 
@@ -106,6 +113,7 @@ export function useMenuStudy(navigation, levelId) {
     handleModulePress,
     handleAlphabetPress,
     handleTopikRoadmapPress,
+    aimLevel,
     aimLevel,
   }
 }

@@ -31,15 +31,12 @@ export function WordleRule({ onStart }) {
             <View style={styles.body}>
               <Text style={styles.title}>Quy luật trò chơi :</Text>
               <Text style={styles.paragraph}>
-                Sẽ có những ô vuông để bạn có thể nhập bằng chữ cái tiếng hàn vào và nhập từ có nghĩa vào ở đó bạn có thể xem được chữ cái nào đang được sử dụng cho đúng ở đó
+                Sẽ có những ô vuông để bạn có thể nhập bằng chữ cái tiếng hàn vào và nhập từ có nghĩa vào ở đó bạn có thể xem được chữ cái nào đang được sử dụng cho đúng ở đó.
               </Text>
               <Text style={styles.paragraph}>
-                Nếu những ô được hiển hiện màu xanh có nghĩa là trong từ keyword bạn đang tìm kiếm có những ô đó, còn nếu ô màu vàng thì sẽ là không có
+                Nếu những ô được hiển hiện màu xanh có nghĩa là trong từ keyword bạn đang tìm kiếm có những ô đó, còn nếu ô màu vàng thì sẽ là không có.
               </Text>
-              <Text style={styles.paragraph}>Điểm số sẽ được tính dựa trên :</Text>
-              <Text style={styles.paragraph}>- Số lượt ít nhất.</Text>
-              <Text style={styles.paragraph}>- Thời gian chơi nhanh nhất.</Text>
-              <Text style={styles.paragraph}>- Độ khó.</Text>
+              
             </View>
 
             {onStart ? (
@@ -79,11 +76,12 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   innerWeb: {
-    maxWidth: 1024,
+    maxWidth: 900,
     alignSelf: 'center',
+    paddingTop: 50
   },
   innerNative: {
-    paddingTop: 16,
+    paddingTop: 100,
     paddingBottom: 12,
   },
   container: {
@@ -140,7 +138,8 @@ const styles = StyleSheet.create({
   },
   ground: {
     width: '100%',
-    height: Platform.OS === 'web' ? 170 : 140,
+    height: Platform.OS === 'web' ? 180 : 140,
+    top: Platform.OS === 'web' ? 20 : -5,
   },
 })
 

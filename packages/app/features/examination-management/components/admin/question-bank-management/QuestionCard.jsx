@@ -267,6 +267,9 @@ export function QuestionCard({
         {/* Options Display */}
         <OptionsDisplay options={options} />
       </div>
+        {/* Options Display */}
+        <OptionsDisplay options={options} />
+      </div>
     </Card>
   )
 }

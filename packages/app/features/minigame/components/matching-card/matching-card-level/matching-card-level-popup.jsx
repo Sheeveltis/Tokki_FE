@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Modal, Pressable, StyleSheet, Text, View, Image, Platform } from 'react-native'
+import { Pressable, StyleSheet, Text, View, Image, Platform } from 'react-native'
 
 import BunnyEasy from '../../../../../../assets/bunny/1.png'
 import BunnyMedium from '../../../../../../assets/bunny/9.png'
@@ -21,15 +21,11 @@ const DEFAULT_LEVELS = [
 
 /**
  * Popup component chọn mức độ cho matching card
- *
- * @param {{
- *  visible: boolean
- *  onClose?: () => void
- *  onConfirm?: (level: { id: string, quantity: number }) => void
- * }} props
  */
 export function MatchingCardLevelPopup({ visible, onClose, onConfirm }) {
   const [current, setCurrent] = useState('medium')
+
+  if (!visible) return null
 
   const handleSelect = (id) => {
     setCurrent(id)
@@ -49,80 +45,82 @@ export function MatchingCardLevelPopup({ visible, onClose, onConfirm }) {
   }
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={handleClose}
-    >
-      <View style={styles.overlay}>
-        <View style={styles.modal}>
-          <Text style={styles.title}>Chọn mức độ</Text>
+    <View style={styles.overlay}>
+      <View style={styles.modal}>
+        <Text style={styles.title}>Chọn mức độ</Text>
 
-          <View style={styles.list}>
-            {DEFAULT_LEVELS.map((level) => {
-              const active = level.id === current
-              return (
-                <Pressable
-                  key={level.id}
-                  style={[styles.item, active && styles.itemActive]}
-                  onPress={() => handleSelect(level.id)}
-                >
-                  <View style={styles.itemLeft}>
+        <View style={styles.list}>
+          {DEFAULT_LEVELS.map((level) => {
+            const active = level.id === current
+            return (
+              <Pressable
+                key={level.id}
+                style={[styles.item, active && styles.itemActive]}
+                onPress={() => handleSelect(level.id)}
+              >
+                <View style={styles.itemLeft}>
+                  <View style={[styles.iconContainer, active && styles.iconContainerActive]}>
                     <Image
                       source={normalizeImageSource(level.icon)}
                       style={styles.avatar}
                       resizeMode="contain"
                     />
                   </View>
+                </View>
 
-                  <View style={styles.itemDivider} />
+                <View style={styles.itemText}>
+                  <Text style={styles.itemTitle}>{level.title}</Text>
+                  <Text style={styles.itemSubtitle}>{level.subtitle}</Text>
+                </View>
+              </Pressable>
+            )
+          })}
+        </View>
 
-                  <View style={styles.itemText}>
-                    <Text style={styles.itemTitle}>{level.title}</Text>
-                    <Text style={styles.itemSubtitle}>{level.subtitle}</Text>
-                  </View>
-                </Pressable>
-              )
-            })}
-          </View>
-
-          <View style={styles.actions}>
-            <Pressable style={[styles.button, styles.buttonCancel]} onPress={handleClose}>
-              <Text style={styles.buttonCancelText}>Hủy</Text>
-            </Pressable>
-            <Pressable style={[styles.button, styles.buttonConfirm]} onPress={handleConfirm}>
-              <Text style={styles.buttonConfirmText}>Xác nhận</Text>
-            </Pressable>
-          </View>
+        <View style={styles.actions}>
+          <Pressable style={[styles.button, styles.buttonCancel]} onPress={handleClose}>
+            <Text style={styles.buttonCancelText}>Hủy</Text>
+          </Pressable>
+          <Pressable style={[styles.button, styles.buttonConfirm]} onPress={handleConfirm}>
+            <Text style={styles.buttonConfirmText}>Xác nhận</Text>
+          </Pressable>
         </View>
       </View>
-    </Modal>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(250, 250, 250, 0.85)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    zIndex: 2000,
+    elevation: 20,
+    paddingHorizontal: 16,
   },
   modal: {
-    backgroundColor: '#F7F0DD',
-    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 32,
     padding: 24,
     width: '100%',
     maxWidth: 500,
-    ...(Platform.OS === 'web' && { boxShadow: '0px 8px 24px rgba(0,0,0,0.25)' }),
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    ...(Platform.OS === 'web' && { boxShadow: '0 12px 40px rgba(0,0,0,0.12)' }),
   },
   title: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#1C1C1C',
+    color: '#1A1A1A',
     textAlign: 'center',
     marginBottom: 24,
+    fontFamily: 'Epilogue, sans-serif',
   },
   list: {
     gap: 16,
@@ -133,29 +131,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 18,
-    backgroundColor: '#FFEEC2',
-    borderRadius: 80,
-    borderWidth: 2,
-    borderColor: '#F5D27A',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    gap: 16,
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.2s ease',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+    }),
   },
   itemActive: {
-    backgroundColor: '#F39F2D',
-    borderColor: '#C06C00',
+    backgroundColor: '#FEF7E6',
+    borderColor: '#F1BE4B',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 12px rgba(241, 190, 75, 0.15)',
+    }),
   },
   itemLeft: {
-    width: 70,
+    width: 60,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatar: {
+  iconContainer: {
     width: 60,
     height: 60,
+    borderRadius: 14,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
-  itemDivider: {
-    width: 2,
-    height: 60,
-    backgroundColor: '#F1BE4B',
-    marginHorizontal: 14,
+  iconContainerActive: {
+    backgroundColor: '#FFFFFF',
+  },
+  avatar: {
+    width: 50,
+    height: 50,
   },
   itemText: {
     flex: 1,
@@ -164,11 +176,13 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#1C1C1C',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
   },
   itemSubtitle: {
     fontSize: 16,
-    color: '#1C1C1C',
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
   },
   actions: {
     flexDirection: 'row',
@@ -183,20 +197,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonCancel: {
-    backgroundColor: '#CCCCCC',
+    backgroundColor: '#F5F5F5',
   },
   buttonConfirm: {
-    backgroundColor: '#7FA14D',
+    backgroundColor: '#F1BE4B',
   },
   buttonCancelText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1C1C1C',
+    color: '#666',
   },
   buttonConfirmText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
   },
 })
 
+export default MatchingCardLevelPopup

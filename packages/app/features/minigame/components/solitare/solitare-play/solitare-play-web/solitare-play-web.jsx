@@ -13,7 +13,6 @@ import { SolitarePlayWebBody } from './solitare-play-web-body'
 import { SolitarePlayWebMovingCard } from './solitare-play-web-moving-card'
 import { SolitareGameOverPopup } from './solitare-game-over-popup'
 import { SolitarePlayWebTour, hasSeenSolitaireTour } from './solitare-play-web-tour'
-// Styles for main component
 const styles = {
   page: {
     display: 'flex',

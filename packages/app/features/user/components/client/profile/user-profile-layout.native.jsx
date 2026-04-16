@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet, Platform } from 'react-native'
-import { UserInformation } from './user-information'
+import { UserInformation } from './user-information.native'
 import { NavbarMobile } from '../../../../../../components/navbar-mobile'
 
 /**
@@ -25,12 +25,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F0DD',
-    position: 'relative',
   },
   content: {
     flex: 1,
-    paddingBottom: 100, // space for navbar
-    overflow: 'hidden',
   },
 })
 

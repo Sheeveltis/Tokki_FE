@@ -13,6 +13,7 @@ import { ENDPOINTS, API_BASE_URL } from '../../../provider/api/endpoints'
 import axios from 'axios'
 import { apiErrors } from '../../../string.js'
 
+
 /**
  * Xác thực OTP cho email (đăng ký / xác thực email)
  * message: title, data (success) hoặc errors[].description (error) là description
@@ -125,10 +126,32 @@ export const sendEmailVerificationOtp = async (email) => {
  * @param {string} credentials.email - Email người dùng
  * @param {string} credentials.password - Mật khẩu
  * @param {boolean} credentials.rememberMe - Ghi nhớ đăng nhập
+ * @param {boolean} credentials.rememberMe - Ghi nhớ đăng nhập
  * @returns {Promise<Object>} Response từ API với format:
  *   - Success: { isSuccess: true, data: { token, fullName, role, avatarUrl }, message, statusCode: 200 }
  *   - Error: { isSuccess: false, data: null, errors: [...], message, statusCode: 400 }
  */
+export const loginUser = async ({ email, password, rememberMe = false }) => {
+  return loginInternal({ email, password, rememberMe, endpoint: ENDPOINTS.ACCOUNT.LOGIN_USER })
+}
+
+/**
+ * Đăng nhập Admin/Staff/Moderator
+ * 
+ * @param {Object} credentials - Thông tin đăng nhập
+ * @param {string} credentials.email - Email
+ * @param {string} credentials.password - Mật khẩu
+ * @param {boolean} credentials.rememberMe - Ghi nhớ đăng nhập
+ * @returns {Promise<Object>} Response từ API
+ */
+export const loginAdmin = async ({ email, password, rememberMe = false }) => {
+  return loginInternal({ email, password, rememberMe, endpoint: ENDPOINTS.ACCOUNT.LOGIN_ADMIN })
+}
+
+/**
+ * Hàm login nội bộ dùng chung
+ */
+const loginInternal = async ({ email, password, rememberMe = false, endpoint }) => {
 export const loginUser = async ({ email, password, rememberMe = false }) => {
   return loginInternal({ email, password, rememberMe, endpoint: ENDPOINTS.ACCOUNT.LOGIN_USER })
 }
@@ -169,7 +192,9 @@ const loginInternal = async ({ email, password, rememberMe = false, endpoint }) 
 
     // Gọi API
     console.log('[Login API] Calling:', endpoint)
+    console.log('[Login API] Calling:', endpoint)
     console.log('[Login API] Payload:', { email, password: '***', rememberMe })
+    const response = await apiClient.post(endpoint, {
     const response = await apiClient.post(endpoint, {
       email,
       password,
@@ -208,6 +233,28 @@ const loginInternal = async ({ email, password, rememberMe = false, endpoint }) 
         },
       ],
       message: finalMsg,
+      statusCode: error.response?.status || 500,
+    }
+  }
+}
+
+/**
+ * Lấy level mục tiêu của người dùng
+ * @returns {Promise<Object>} Response từ API với format:
+ *  - Success: { isSuccess: true, data: number, message, statusCode: 200 }
+ */
+export const getAccountAimLevel = async () => {
+  try {
+    const response = await apiClient.get(ENDPOINTS.ACCOUNT.AIM_LEVEL)
+    return response.data
+  } catch (error) {
+    if (error.response?.data) {
+      return error.response.data
+    }
+    return {
+      isSuccess: false,
+      data: null,
+      message: error.message || 'Không thể lấy level người dùng',
       statusCode: error.response?.status || 500,
     }
   }

@@ -6,11 +6,15 @@ import { useRouter } from 'solito/navigation'
 import { Navbar } from '../../../../../components/navbar'
 
 import GameCardIcon from '../../../../../assets/icon/icon-mainflow/game-card.svg'
-import { NavigationPill } from 'components/navigation-pill'
+import { StudyLayoutSynchronized } from '@tokki/app/features/study/components/study-layout-synchronized.web'
 import { MinigameBanner } from './minigame-banner'
 import { MinigameGameCard } from './minigame-game-card'
-import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
 import { useMinigameGames } from '../../hooks/use-minigame-games'
+import WordleLevelPopup from '../wordle/wordle-rule/wordle-level-popup'
+import SolitareLevelPopup from '../solitare/solitare-level/solitare-level-popup'
+import MatchingCardTopicPopup from '../matching-card/matching-card-topic/matching-card-topic-popup'
+import { MatchingCardLevelPopup } from '../matching-card/matching-card-level/matching-card-level-popup'
+import { LoginRequest } from '../../../../../components/loginRequest'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -22,69 +26,107 @@ const normalizeImageSource = (src) => {
 
 export function MinigameLayout() {
   const router = useRouter()
-  const { games, loading, error, handleGamePress } = useMinigameGames()
+  const {
+    levelId,
+    games,
+    loading,
+    error,
+    handleGamePress,
+    showWordleLevelPopup,
+    setShowWordleLevelPopup,
+    loadingWordleLevel,
+    wordleLevelsData,
+    showSolitareLevelPopup,
+    setShowSolitareLevelPopup,
+    showMatchingCardTopicPopup,
+    setShowMatchingCardTopicPopup,
+    showMatchingCardLevelPopup,
+    setShowMatchingCardLevelPopup,
+    showLoginRequest,
+    setShowLoginRequest,
+    handleSelectWordleLevel,
+    handleSelectSolitareLevel,
+    handleSelectMatchingCardTopic,
+    handleSelectMatchingCardLevel,
+  } = useMinigameGames()
 
   return (
-    <View style={styles.page}>
-      <Navbar />
-
-      <View style={styles.inner}>
-        <View style={styles.centerCardWrapper}>
-          <View style={styles.centerCard}>
-            <View style={styles.headerRow}>
-              <NavigationPill
-                label="Quay lại"
-                icon={ArrowIcon}
-                onPress={() => router.back()}
-                style={styles.backPill}
-                textStyle={styles.backPillText}
-                iconStyle={styles.backPillIcon}
-              />
-
-              <View style={styles.titleRow}>
-                <Image
-                  source={normalizeImageSource(GameCardIcon)}
-                  style={styles.titleIcon}
-                  resizeMode="contain"
-                />
-                <Text style={styles.titleText}>MiniGame</Text>
-              </View>
-
-              <View style={styles.headerRightSpacer} />
-            </View>
-
-            <View style={styles.bannerWrapper}>
-              <MinigameBanner />
-            </View>
-
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#FF6B9D" />
-                <Text style={styles.loadingText}>Đang tải danh sách game...</Text>
-              </View>
-            ) : error ? (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
-              </View>
-            ) : games.length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>Không có game nào khả dụng</Text>
-              </View>
-            ) : (
-              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.cardsContainer}>
-                <View style={styles.cardsRow}>
-                  {games.map((game, index) => (
-                    <View key={game.gameId || index} style={styles.cardCol}>
-                      <MinigameGameCard game={game} onPress={() => handleGamePress(game)} />
-                    </View>
-                  ))}
-                </View>
-              </ScrollView>
-            )}
-          </View>
+    <>
+      <StudyLayoutSynchronized
+        title="Minigame"
+        subtitle="Lựa chọn kỹ năng bạn muốn rèn luyện hôm nay để chinh phục điểm số cao nhất."
+        breadcrumbPrefix="Học tập"
+        breadcrumbActive="Minigame"
+        onBackPress={() => router.back()}
+      >
+        <View style={styles.bannerWrapper}>
+          <MinigameBanner />
         </View>
-      </View>
-    </View>
+
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#F1BE4B" />
+            <Text style={styles.loadingText}>Đang tải danh sách game...</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : games.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Không có game nào khả dụng</Text>
+          </View>
+        ) : (
+          <View style={styles.cardsRow}>
+            {games.map((game, index) => (
+              <View key={game.gameId || index} style={styles.cardCol}>
+                <MinigameGameCard game={game} onPress={() => handleGamePress(game)} />
+              </View>
+            ))}
+          </View>
+        )}
+      </StudyLayoutSynchronized>
+
+      {showWordleLevelPopup && (
+        <WordleLevelPopup
+          loading={loadingWordleLevel}
+          levelsData={wordleLevelsData}
+          onClose={() => setShowWordleLevelPopup(false)}
+          onSelectLevel={handleSelectWordleLevel}
+        />
+      )}
+
+      {showSolitareLevelPopup && (
+        <SolitareLevelPopup
+          visible={showSolitareLevelPopup}
+          onClose={() => setShowSolitareLevelPopup(false)}
+          onConfirm={handleSelectSolitareLevel}
+        />
+      )}
+
+      {showLoginRequest && (
+        <View style={styles.loginOverlay}>
+          <LoginRequest onClose={() => setShowLoginRequest(false)} />
+        </View>
+      )}
+
+      {showMatchingCardTopicPopup && (
+        <MatchingCardTopicPopup
+          visible={showMatchingCardTopicPopup}
+          levelId={levelId}
+          onClose={() => setShowMatchingCardTopicPopup(false)}
+          onConfirm={handleSelectMatchingCardTopic}
+        />
+      )}
+
+      {showMatchingCardLevelPopup && (
+        <MatchingCardLevelPopup
+          visible={showMatchingCardLevelPopup}
+          onClose={() => setShowMatchingCardLevelPopup(false)}
+          onConfirm={handleSelectMatchingCardLevel}
+        />
+      )}
+    </>
   )
 }
 
@@ -96,7 +138,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingBottom: 24,
-    backgroundColor: '#FFD7D0',
+    backgroundColor: '#FAFAFA',
   },
   inner: {
     width: '100%',
@@ -114,17 +156,16 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   centerCard: {
-    backgroundColor: '#F5F0DD',
+    backgroundColor: '#FFFFFF',
     borderRadius: 32,
     paddingVertical: 32,
     paddingHorizontal: 28,
-    shadowColor: '#00000020',
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
+    shadowColor: '#000000',
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
     minHeight: 520,
     flex: 1,
-    opacity: 0.9,
   },
   headerRow: {
     flexDirection: 'row',
@@ -150,7 +191,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '800',
     color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
+    fontFamily: 'Lexend, sans-serif',
     paddingRight: 50,
   },
   headerRightSpacer: {
@@ -159,24 +200,18 @@ const styles = StyleSheet.create({
   bannerWrapper: {
     marginBottom: 24,
   },
-  cardsContainer: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-  },
   cardsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 20,
+    gap: 60, // Increased gap
     alignItems: 'flex-start',
     justifyContent: 'center',
-    paddingHorizontal: 4,
   },
   cardCol: {
-    width: '48%',
-    maxWidth: 320,
-    alignItems: 'center',
-    transform: [{ scale: 0.85 }],
-    marginBottom: 20,
+    width: 'calc(30% - 40px)',
+    maxWidth: 300, // Slightly smaller cards
+    alignItems: 'stretch',
+    marginBottom: 40,
   },
   loadingContainer: {
     alignItems: 'center',
@@ -208,6 +243,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     fontFamily: 'Epilogue, sans-serif',
+  },
+  loginOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    zIndex: 2000,
   },
 })
 

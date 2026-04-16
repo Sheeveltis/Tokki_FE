@@ -9,7 +9,16 @@
       "ios",
       "android"
     ],
+    "plugins": [
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Cho phép Tokki truy cập micro để luyện phát âm."
+        }
+      ]
+    ],
     "ios": {
+
       "bundleIdentifier": "com.solito.blank"
     },
     "newArchEnabled": true,
@@ -18,10 +27,15 @@
     },
     "android": {
       "package": "com.solito.blank",
+      "permissions": [
+        "RECORD_AUDIO",
+        "MODIFY_AUDIO_SETTINGS"
+      ],
       "navigationBar": {
         "backgroundColor": "#000000",
         "barStyle": "light-content"
       }
     }
+
   }
 }

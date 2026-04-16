@@ -4,30 +4,28 @@ import { FireFilled } from '@ant-design/icons'
 
 /**
  * Component hiển thị chuỗi ngày học (Streak) của người dùng
- * @param {Object} props
- * @param {number} props.currentStreak - Số ngày streak hiện tại
- * @param {number} props.maxStreak - Số ngày streak tối đa đã đạt được
- * @param {string} props.label - Label hiển thị (mặc định "Chuỗi ngày học")
+ * Hỗ trợ đa nền tảng (Web & Mobile) với phong cách Cozy Garden cho Mobile
  */
 export function UserStreak({ currentStreak = 0, maxStreak = 0, label = 'Chuỗi ngày học' }) {
+  const isMobile = Platform.OS !== 'web'
   const fireAnim = useRef(new Animated.Value(1)).current
 
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(fireAnim, {
-          toValue: 1.2,
-          duration: 600,
+          toValue: isMobile ? 1.15 : 1.2,
+          duration: isMobile ? 800 : 600,
           useNativeDriver: true,
         }),
         Animated.timing(fireAnim, {
           toValue: 1,
-          duration: 600,
+          duration: isMobile ? 800 : 600,
           useNativeDriver: true,
         }),
       ])
     ).start()
-  }, [fireAnim])
+  }, [fireAnim, isMobile])
 
   return (
     <View style={styles.card}>
@@ -60,6 +58,7 @@ export function UserStreak({ currentStreak = 0, maxStreak = 0, label = 'Chuỗi 
 }
 
 const styles = StyleSheet.create({
+  // Styles cho Web (giữ nguyên hoặc tinh chỉnh nhẹ)
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 24,

@@ -64,3 +64,5 @@ pnpm-debug.log*
 *.tsbuildinfo
 
 *.exe
+
+.agents/rules/style.md

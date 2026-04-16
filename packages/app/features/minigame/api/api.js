@@ -46,3 +46,18 @@ export async function awardMinigameXP(level) {
     throw error
   }
 }
+
+/**
+ * Cộng XP theo amount cụ thể
+ * @param {number} amount
+ * @returns {Promise<any>}
+ */
+export async function awardXP(amount) {
+  try {
+    const response = await apiClient.post(ENDPOINTS.GAMIFICATION.GAME_XP, { amount })
+    return response.data
+  } catch (error) {
+    console.error('[awardXP] Error:', error)
+    throw error
+  }
+}

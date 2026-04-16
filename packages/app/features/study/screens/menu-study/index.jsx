@@ -24,6 +24,7 @@ import {
  */
 export function MenuStudy({
   levelId = null,
+  levelId = null,
   onBackPress,
   onQuickTestPress,
   lessonsLearned,
@@ -43,6 +44,9 @@ export function MenuStudy({
   // Chỉ sử dụng levelId từ props hoặc params, không tự động fallback về aimLevel
   const currentLevel = levelId
 
+  // Chỉ sử dụng levelId từ props hoặc params, không tự động fallback về aimLevel
+  const currentLevel = levelId
+
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
 
@@ -52,6 +56,7 @@ export function MenuStudy({
 
   return (
     <Layout
+      levelId={currentLevel}
       levelId={currentLevel}
       onBackPress={onBackPress}
       onQuickTestPress={onQuickTestPress}
@@ -69,6 +74,8 @@ export function MenuStudy({
         showLoginRequest={showLoginRequest}
         onCloseLoginRequest={() => setShowLoginRequest(false)}
         onAlphabetPress={handleAlphabetPress}
+        onTopikRoadmapPress={() => handleTopikRoadmapPress(currentLevel)}
+        aimLevel={aimLevel}
         onTopikRoadmapPress={() => handleTopikRoadmapPress(currentLevel)}
         aimLevel={aimLevel}
       />

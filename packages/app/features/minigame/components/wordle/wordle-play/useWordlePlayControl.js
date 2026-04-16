@@ -6,7 +6,7 @@ import { useKoreanWordleIME } from './useKoreanWordleIME'
 import TapSound from '../../../../../../assets/sound-effect/solitare/tap.wav'
 import FailSound from '../../../../../../assets/sound-effect/solitare/fail.wav'
 import SuccessSound from '../../../../../../assets/sound-effect/solitare/success.wav'
-import { submitWordleGuess, getWordleResult } from '../../../api/wordle-level-api'
+import { submitWordleGuess, getWordleResult, getWordleLevels } from '../../../api/wordle-level-api'
 import { awardMinigameXP } from '../../../api/api'
 import { hasSeenHowToPlayTour } from './components/HowToPlayTour'
 
@@ -14,17 +14,15 @@ export function useWordlePlayControl({
   level: _level = 1,
   dailyWordleId,
   initialWordLength,
-  initialAttemptCount = 0,
   maxAttempts,
 }) {
   const router = useRouter()
   const isWeb = Platform.OS === 'web'
 
   const WORD_LENGTH = initialWordLength || 2
-  const usedAttempts = initialAttemptCount || 0
   const configuredMaxAttempts =
     typeof maxAttempts === 'number' && maxAttempts > 0 ? maxAttempts : 6
-  const MAX_GUESSES = Math.max(0, configuredMaxAttempts - usedAttempts)
+  const MAX_GUESSES = configuredMaxAttempts
   const TOPIC_NAME = ''
 
   const [rows, setRows] = useState([])
@@ -238,6 +236,61 @@ export function useWordlePlayControl({
     [focusCell, focusHiddenImeInput]
   )
 
+  // Hydrate lượt đoán cũ từ API để reload vẫn giữ các ô đã đoán
+  useEffect(() => {
+    let cancelled = false
+
+    const hydrateAttempts = async () => {
+      if (!dailyWordleId) return
+
+      try {
+        const levels = await getWordleLevels()
+        if (cancelled || !Array.isArray(levels)) return
+
+        const levelData =
+          levels.find((lv) => String(lv?.dailyWordleId) === String(dailyWordleId)) ||
+          levels.find((lv) => Number(lv?.level) === Number(_level))
+
+        if (!levelData) return
+
+        const attempts = Array.isArray(levelData.attempts) ? levelData.attempts : []
+        const hydratedRows = attempts
+          .map((attempt) => (Array.isArray(attempt?.feedbacks) ? attempt.feedbacks : null))
+          .filter((feedbacks) => Array.isArray(feedbacks) && feedbacks.length > 0)
+
+        if (!cancelled) {
+          setRows(hydratedRows)
+
+          if (levelData.isWon) {
+            setGameState('won')
+            const lastGuess = attempts[attempts.length - 1]?.guess
+            if (lastGuess) setTargetWord(lastGuess)
+
+            try {
+              const result = await getWordleResult(levelData.dailyWordleId || dailyWordleId)
+              if (!cancelled) setWordResult(result || null)
+            } catch (error) {
+              console.error('[useWordlePlayControl] Error hydrating wordle result:', error)
+            }
+          } else {
+            const apiMaxAttempts = Number(levelData.maxAttempts) || 0
+            const apiAttemptCount = Number(levelData.attemptCount) || hydratedRows.length
+            const isGameOverByAttempts = apiMaxAttempts > 0 && apiAttemptCount >= apiMaxAttempts
+            setGameState(isGameOverByAttempts ? 'lost' : 'playing')
+          }
+        }
+      } catch (error) {
+        console.error('[useWordlePlayControl] Error hydrating attempts:', error)
+      }
+    }
+
+    hydrateAttempts()
+
+    return () => {
+      cancelled = true
+    }
+  }, [dailyWordleId, _level])
+
   // focus hidden input mỗi khi đang chơi
   useEffect(() => {
     if (!isWeb) return
@@ -443,6 +496,7 @@ export function useWordlePlayControl({
   return {
     // config
     isWeb,
+    LEVEL: _level,
     WORD_LENGTH,
     MAX_GUESSES,
     TOPIC_NAME,

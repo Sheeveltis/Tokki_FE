@@ -7,6 +7,7 @@ import { getCurrentUserId } from '../../../../../provider/api/client'
  * Component hiển thị thanh kinh nghiệm (EXP) của người dùng
  * @param {Object} props
  * @param {string} props.label - Label hiển thị (mặc định "Kinh nghiệm")
+ * @param {string} props.variant - Biến thể hiển thị ('default' hoặc 'mobile')
  */
 export function UserExp({ label = 'Kinh nghiệm', progress }) {
   const [loading, setLoading] = useState(!progress)
@@ -18,6 +19,7 @@ export function UserExp({ label = 'Kinh nghiệm', progress }) {
       setLoading(false)
       return
     }
+
 
     const fetchProgress = async () => {
       try {
@@ -37,8 +39,8 @@ export function UserExp({ label = 'Kinh nghiệm', progress }) {
 
   // Set width trực tiếp từ progressPercentage, không dùng animation
   // Ví dụ: progressPercentage = 54.95 -> width: '54.95%'
-  const progressWidth = progressData?.progressPercentage !== undefined 
-    ? `${progressData.progressPercentage}%` 
+  const progressWidth = progressData?.progressPercentage !== undefined
+    ? `${progressData.progressPercentage}%`
     : '0%'
 
   if (loading) {
@@ -64,6 +66,7 @@ export function UserExp({ label = 'Kinh nghiệm', progress }) {
   // Tính XP còn thiếu để lên cấp: maxXPOfLevel - xpInCurrentLevel
   // Ví dụ: 182 - 100 = 82 XP
   const xpNeeded = progressData.maxXPOfLevel - progressData.xpInCurrentLevel
+  const isMobile = variant === 'mobile'
 
   return (
     <View style={styles.card}>
@@ -72,7 +75,12 @@ export function UserExp({ label = 'Kinh nghiệm', progress }) {
           <Text style={styles.label}>{label}</Text>
           <Text style={styles.xpText}>Cấp {progressData.level}</Text>
         </View>
+        <View style={styles.labelSection}>
+          <Text style={styles.label}>{label}</Text>
+          <Text style={styles.xpText}>Cấp {progressData.level}</Text>
+        </View>
         <View style={styles.levelBadge}>
+          <Text style={styles.levelValue}>{progressData.progressPercentage}%</Text>
           <Text style={styles.levelValue}>{progressData.progressPercentage}%</Text>
         </View>
       </View>
@@ -93,7 +101,12 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 24,
     gap: 16,
+    borderRadius: 24,
+    padding: 24,
+    gap: 16,
     borderWidth: 1,
+    borderColor: '#F0F0F0',
+    width: '100%',
     borderColor: '#F0F0F0',
     width: '100%',
   },
@@ -105,12 +118,22 @@ const styles = StyleSheet.create({
   labelSection: {
     gap: 4,
   },
+  labelSection: {
+    gap: 4,
+  },
   label: {
     fontSize: 16,
     fontWeight: '800',
     color: '#20130A',
+    fontWeight: '800',
+    color: '#20130A',
     fontFamily: 'Epilogue, sans-serif',
   },
+  xpText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#F1BE4B',
+    fontFamily: 'Epilogue, sans-serif',
   xpText: {
     fontSize: 13,
     fontWeight: '600',
@@ -122,11 +145,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 10,
+    backgroundColor: '#FFF9F0',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
     borderWidth: 1,
+    borderColor: 'rgba(241, 190, 75, 0.3)',
     borderColor: 'rgba(241, 190, 75, 0.3)',
   },
   levelValue: {
     fontSize: 14,
+    fontWeight: '800',
+    color: '#20130A',
     fontWeight: '800',
     color: '#20130A',
     fontFamily: 'Epilogue, sans-serif',
@@ -138,11 +168,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 12,
     backgroundColor: '#F5F5F5',
+    backgroundColor: '#F5F5F5',
     borderRadius: 6,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
+    backgroundColor: '#F1BE4B',
     backgroundColor: '#F1BE4B',
     borderRadius: 6,
   },
@@ -150,7 +182,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    alignItems: 'center',
   },
+  xpDetail: {
   xpDetail: {
     fontFamily: 'Epilogue, sans-serif',
   },
@@ -161,11 +195,22 @@ const styles = StyleSheet.create({
   },
   xpTarget: {
     fontSize: 13,
+  xpCurrent: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#20130A',
+  },
+  xpTarget: {
+    fontSize: 13,
     fontWeight: '500',
+    color: '#A0A0A0',
     color: '#A0A0A0',
   },
   xpNeeded: {
+  xpNeeded: {
     fontSize: 12,
+    fontWeight: '500',
+    color: '#A0A0A0',
     fontWeight: '500',
     color: '#A0A0A0',
     fontFamily: 'Epilogue, sans-serif',
@@ -176,9 +221,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
     paddingVertical: 30,
+    paddingVertical: 30,
   },
   loadingText: {
     fontSize: 14,
+    color: '#A0A0A0',
     color: '#A0A0A0',
     fontFamily: 'Epilogue, sans-serif',
   },

@@ -8,7 +8,8 @@ export function PronunciationExampleCard({
   text, 
   sortOrder, 
   onPress,
-  subtitle = 'Chạm để luyện tập phát âm'
+  subtitle = 'Chạm để bắt đầu luyện tập',
+  isCompleted = false // Giả định prop này để hiển thị checkmark
 }) {
   const [hovered, setHovered] = useState(false)
 
@@ -26,25 +27,26 @@ export function PronunciationExampleCard({
         <View style={styles.left}>
           <View style={[
             styles.numberBox,
-            hovered && styles.numberBoxHovered
+            isCompleted && styles.completedBox,
           ]}>
-             <Text style={styles.numberText}>{sortOrder}</Text>
+             {isCompleted ? (
+               <View style={styles.checkmark} />
+             ) : (
+               <Text style={styles.numberText}>{sortOrder}</Text>
+             )}
           </View>
         </View>
 
         <View style={styles.content}>
-          <Text style={styles.title} numberOfLines={2}>
+          <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
             {text}
           </Text>
           <Text style={styles.subtitle}>{subtitle}</Text>
         </View>
 
-        <View style={[
-          styles.right,
-          hovered && styles.rightHovered
-        ]}>
-          <View style={styles.playIconCircle}>
-             <View style={styles.playArrow} />
+        <View style={styles.right}>
+          <View style={[styles.playIconCircle, { backgroundColor: isCompleted ? '#FF7E5F' : '#F5F5F5' }]}>
+             <View style={[styles.playArrow, { borderLeftColor: isCompleted ? '#FFF' : '#4B5563' }]} />
           </View>
         </View>
       </Pressable>
@@ -55,111 +57,98 @@ export function PronunciationExampleCard({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
+    paddingVertical: 6,
   },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    padding: 20,
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
-    marginBottom: 0,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    elevation: 3,
-    ...(Platform.OS === 'web' && {
-      transitionProperty: 'all',
-      transitionDuration: '200ms',
-      cursor: 'pointer',
-    }),
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
   },
   cardActive: {
-    shadowOpacity: 0.1,
-    borderColor: '#7FB069',
-    backgroundColor: '#FAFFF7',
-    shadowColor: '#7FB069',
-    ...(Platform.OS === 'web' && {
-      transform: 'translateY(-2px)',
-    }),
+    transform: [{ scale: 0.99 }],
+    backgroundColor: '#FBFBFB',
   },
   left: {
-    marginRight: 20,
+    marginRight: 16,
   },
   numberBox: {
-    width: 60,
-    height: 60,
-    borderRadius: 18,
-    backgroundColor: '#7FB069',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#E6E2D3',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#7FB069',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-    ...(Platform.OS === 'web' && {
-      transitionProperty: 'all',
-      transitionDuration: '200ms',
-    }),
   },
-  numberBoxHovered: {
-    transform: [{ scale: 1.05 }],
-    backgroundColor: '#6EA058',
+  completedBox: {
+    backgroundColor: '#8B4513',
   },
   numberText: {
-    color: '#FFFFFF',
-    fontSize: 26,
-    fontWeight: '900',
+    color: '#4B5563',
+    fontSize: 20,
+    fontWeight: '800',
     fontFamily: 'Epilogue, sans-serif',
+  },
+  checkmark: {
+    width: 14,
+    height: 8,
+    borderLeftWidth: 3,
+    borderBottomWidth: 3,
+    borderColor: '#FFFFFF',
+    transform: [{ rotate: '-45deg' }],
+    marginTop: -2,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
+    paddingRight: 8,
   },
   title: {
-    fontSize: 21,
+    fontSize: 18,
     fontWeight: '800',
-    color: '#000000', // Đen tuyền để nổi bật hoàn toàn
+    color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
-    marginBottom: 6,
-    letterSpacing: -0.5,
+    marginBottom: 4,
+    lineHeight: 26,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#666666',
+    fontSize: 13,
+    color: '#8E9AAF',
     fontFamily: 'Epilogue, sans-serif',
     fontWeight: '500',
+    fontStyle: 'italic',
   },
   right: {
-    marginLeft: 12,
-    ...(Platform.OS === 'web' && {
-      transitionProperty: 'transform',
-      transitionDuration: '200ms',
-    }),
-  },
-  rightHovered: {
-    transform: [{ translateX: 6 }],
+    marginLeft: 8,
   },
   playIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#F5F5F5',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   playArrow: {
     width: 0,
     height: 0,
-    borderTopWidth: 7,
-    borderBottomWidth: 7,
-    borderLeftWidth: 12,
+    borderTopWidth: 6,
+    borderBottomWidth: 6,
+    borderLeftWidth: 10,
     borderTopColor: 'transparent',
     borderBottomColor: 'transparent',
-    borderLeftColor: '#7FB069',
+    borderLeftColor: '#4B5563',
     marginLeft: 3,
   }
 })

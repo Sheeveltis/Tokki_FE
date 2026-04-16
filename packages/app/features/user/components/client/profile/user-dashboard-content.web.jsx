@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from 'react'
 import { Image, StyleSheet, Text, View, Platform, ScrollView, Pressable } from 'react-native'
 import { Spin } from 'antd'
 
-import Carrot from '../../../../../../assets/carrot.png'
 import { getCurrentUser, updateBasicInfo, uploadAvatar, uploadAvatarToCloudinary, getTitleById, getProgress } from '../../../api/profile'
 import { getPaymentHistory } from '../../../api/get-payment-history'
 import { getCurrentUserId } from '../../../../../provider/api/client'
@@ -189,7 +188,6 @@ export function UserDashboardContent({
           {(onlyProfile || showAll) && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Image source={normalizeImageSource(Carrot)} style={styles.carrot} resizeMode="contain" />
                 <Text style={styles.sectionTitle}>Thông tin người dùng</Text>
                 <Text style={styles.sectionSubtitle}>Quản lí thông tin tài khoản và thuộc tính cá nhân của bạn.</Text>
               </View>
@@ -293,14 +291,6 @@ const styles = StyleSheet.create({
   sectionHeader: {
     marginBottom: 24,
     position: 'relative',
-  },
-  carrot: {
-    position: 'absolute',
-    top: -40,
-    right: 100,
-    width: 120,
-    height: 80,
-    transform: [{ rotate: '15deg' }],
   },
   sectionTitle: {
     fontSize: 28,
