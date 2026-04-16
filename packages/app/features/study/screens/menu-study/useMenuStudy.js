@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getMenuStudyRoute, isLoginRequiredModule } from './menuStudyRoutes'
-import { getAccountAimLevel } from '@tokki/app/features/authentication/api'
+import { getAccountAimLevel, getMyStreak } from '@tokki/app/features/authentication/api'
 
 /**
  * Hook xử lý logic cho MenuStudyScreen
@@ -10,6 +10,10 @@ import { getAccountAimLevel } from '@tokki/app/features/authentication/api'
 export function useMenuStudy(router, levelId) {
   const [showLoginRequest, setShowLoginRequest] = useState(false)
   const [aimLevel, setAimLevel] = useState(null)
+  const [streakData, setStreakData] = useState({
+    currentStreak: 0,
+    isCompletedToday: false
+  })
 
   useEffect(() => {
     const fetchAimLevel = async () => {
@@ -18,7 +22,20 @@ export function useMenuStudy(router, levelId) {
         setAimLevel(result.data)
       }
     }
+    const fetchStreak = async () => {
+      const result = await getMyStreak()
+      if (result && (result.isSuccess || result.currentStreak !== undefined)) {
+        // API response provided by user has currentStreak, isCompletedToday
+        // If it returns the same format as in the request
+        const data = result.data || result
+        setStreakData({
+          currentStreak: data.currentStreak ?? 0,
+          isCompletedToday: data.isCompletedToday ?? false
+        })
+      }
+    }
     fetchAimLevel()
+    fetchStreak()
   }, [])
 
   const handleModulePress = (moduleId, itemLabel, overrideLevel) => {
@@ -57,6 +74,7 @@ export function useMenuStudy(router, levelId) {
     handleAlphabetPress,
     handleTopikRoadmapPress,
     aimLevel,
+    streakData,
   }
 }
 

@@ -21,7 +21,7 @@ import {
   BookOutlined,
   UserOutlined
 } from '@ant-design/icons'
-import { Space, Typography, Spin, Alert, Descriptions, Modal, message, Button, Tooltip, Tag, Row, Col, Tabs, Table, Card } from 'antd'
+import { Space, Typography, Spin, Alert, Descriptions, Modal, message, Button, Tooltip, Tag, Row, Col, Tabs, Table, Card, Divider } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
 import ExamTemplatePartsForm from '../../components/admin/exam-template-detail/ExamTemplatePartsForm.jsx'

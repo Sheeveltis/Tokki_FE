@@ -3,30 +3,40 @@ import { View, Text, StyleSheet, Image, Platform } from 'react-native'
 import { colors } from '@tokki/app/color'
 import { normalizeImageSource } from '@tokki/app/features/study/api'
 
-import StarIcon from 'assets/icon/decor/19.png'
-import LeafIcon from 'assets/icon/decor/18.png'
+import FireIcon from 'assets/icon/icon-mainflow/fire.svg'
 
 /**
- * StudyStatsCards: Component hiển thị 2 card thống kê học tập
+ * StudyStatsCards: Component hiển thị card thống kê chuỗi học tập (streak)
  * @param {{
  *   lessonsLearned?: number
  *   streakDays?: number
+ *   isCompletedToday?: boolean
  * }} props
  */
-export function StudyStatsCards({ streakDays = 30 }) {
+export function StudyStatsCards({ streakDays = 0, isCompletedToday = false }) {
   return (
     <View style={styles.container}>
-      {/* Card: Bạn đã học liên tục */}
-      <View style={styles.streakCard}>
-        <View style={styles.leafContainer}>
-          <Image
-            source={normalizeImageSource(LeafIcon)}
-            style={styles.leaf}
-            resizeMode="contain"
-          />
+      {/* Card: Chuỗi học tập */}
+      <View style={[styles.streakCard, isCompletedToday && styles.streakCardActive]}>
+        <View style={styles.fireContainer}>
+          <View style={[!isCompletedToday && styles.fireDark]}>
+            <FireIcon width={56} height={56} />
+          </View>
         </View>
-        <Text style={styles.streakLabel}>Bạn đã học liên tục</Text>
-        <Text style={styles.streakValue}>{streakDays} ngày</Text>
+        <Text style={[styles.streakLabel, isCompletedToday && styles.streakLabelActive]}>
+          Chuỗi học tập
+        </Text>
+        <View style={styles.valueRow}>
+          <Text style={[styles.streakValue, isCompletedToday && styles.streakValueActive]}>
+            {streakDays}
+          </Text>
+          <Text style={[styles.streakUnit, isCompletedToday && styles.streakUnitActive]}>
+            ngày
+          </Text>
+        </View>
+        {!isCompletedToday && (
+          <Text style={styles.hintText}>Học ngay để duy trì lửa!</Text>
+        )}
       </View>
     </View>
   )
@@ -44,40 +54,76 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     paddingHorizontal: 28,
     borderWidth: 1,
-    borderColor: '#FCE4EC',
+    borderColor: '#E0E0E0',
     width: '100%',
     flex: 1,
     justifyContent: 'center',
     position: 'relative',
+    overflow: 'hidden',
     ...(Platform.OS === 'web' && {
-      boxShadow: '0 8px 24px rgba(194, 24, 91, 0.05)',
+      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.04)',
     }),
   },
-  leafContainer: {
+  streakCardActive: {
+    borderColor: '#FFF3E0',
+    backgroundColor: '#FFF8F1',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 8px 24px rgba(255, 152, 0, 0.12)',
+    }),
+  },
+  fireContainer: {
     position: 'absolute',
     top: 12,
-    right: 20,
+    right: 16,
     zIndex: 1,
   },
-  leaf: {
-    width: 48,
-    height: 48,
+  fireDark: {
+    opacity: 0.3,
+    ...(Platform.OS === 'web' && {
+      filter: 'grayscale(1)',
+    }),
   },
   streakLabel: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#F06292',
+    color: '#757575',
     fontFamily: 'Epilogue, sans-serif',
-    marginBottom: 6,
+    marginBottom: 4,
     textTransform: 'uppercase',
-    letterSpacing: 1.2,
+    letterSpacing: 1,
+  },
+  streakLabelActive: {
+    color: '#F57C00',
+  },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
   },
   streakValue: {
-    fontSize: 28,
+    fontSize: 36,
     fontWeight: '900',
-    color: '#C2185B',
+    color: '#424242',
     fontFamily: 'Epilogue, sans-serif',
-    lineHeight: 34,
+  },
+  streakValueActive: {
+    color: '#E65100',
+  },
+  streakUnit: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#9E9E9E',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  streakUnitActive: {
+    color: '#FB8C00',
+  },
+  hintText: {
+    fontSize: 11,
+    color: '#9E9E9E',
+    fontFamily: 'Epilogue, sans-serif',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
 })
 

@@ -405,6 +405,27 @@ export const checkDailyTitles = async () => {
   }
 }
 
+/**
+ * Lấy thông tin streak của người dùng
+ * @returns {Promise<Object>} Response từ API
+ */
+export const getMyStreak = async () => {
+  try {
+    const response = await apiClient.get(ENDPOINTS.GAMIFICATION.MY_STREAK)
+    return response.data
+  } catch (error) {
+    if (error.response?.data) {
+      return error.response.data
+    }
+    return {
+      isSuccess: false,
+      data: null,
+      message: error.message || 'Không thể lấy thông tin streak',
+      statusCode: error.response?.status || 500,
+    }
+  }
+}
+
 
 
 /**

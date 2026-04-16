@@ -11,6 +11,7 @@ import { StudyStatsCards } from '@tokki/app/features/study/components/study-stat
 export function MenuStudyMain({ 
   levelId, 
   streakDays,
+  isCompletedToday,
   lessonsLearned,
   onModulePress,
   showLoginRequest,
@@ -46,7 +47,11 @@ export function MenuStudyMain({
 
         {/* Stats Section integrated to the side or top row */}
         <View style={styles.statsContainer}>
-          <StudyStatsCards lessonsLearned={lessonsLearned} streakDays={streakDays} />
+          <StudyStatsCards 
+            lessonsLearned={lessonsLearned} 
+            streakDays={streakDays} 
+            isCompletedToday={isCompletedToday}
+          />
         </View>
       </View>
 

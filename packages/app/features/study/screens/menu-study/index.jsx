@@ -37,6 +37,7 @@ export function MenuStudy({
     handleAlphabetPress,
     handleTopikRoadmapPress,
     aimLevel,
+    streakData,
   } = useMenuStudy(router, levelId)
 
   // Chỉ sử dụng levelId từ props hoặc params, không tự động fallback về aimLevel
@@ -45,18 +46,24 @@ export function MenuStudy({
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
 
+  // Dữ liệu streak ưu tiên từ API hook, sau đó mới đến props
+  const finalStreakDays = streakData?.currentStreak ?? streakDays
+  const isCompletedToday = streakData?.isCompletedToday ?? false
+
   return (
     <Layout
       levelId={currentLevel}
       onBackPress={onBackPress}
       onQuickTestPress={onQuickTestPress}
       lessonsLearned={lessonsLearned}
-      streakDays={streakDays}
+      streakDays={finalStreakDays}
+      isCompletedToday={isCompletedToday}
       aimLevel={aimLevel}
     >
       <Main
         levelId={currentLevel}
-        streakDays={streakDays}
+        streakDays={finalStreakDays}
+        isCompletedToday={isCompletedToday}
         lessonsLearned={lessonsLearned}
         onModulePress={(moduleId, label) => handleModulePress(moduleId, label, currentLevel)}
         showLoginRequest={showLoginRequest}

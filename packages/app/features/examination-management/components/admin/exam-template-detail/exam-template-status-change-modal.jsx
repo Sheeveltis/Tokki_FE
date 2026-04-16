@@ -107,7 +107,7 @@ export function ExamTemplateStatusChangeModal({ open, loading, onCancel, onSubmi
           style={{ marginBottom: 0 }}
         >
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12 }}>
-            {statusOptions.map((option) => {
+            {statusOptions.filter(opt => ![3, 4].includes(opt.value) || opt.value === currentStatus).map((option) => {
               const Icon = option.icon
               const isSelected = selectedStatus === option.value
               const isCurrent = currentStatus === option.value

@@ -215,6 +215,7 @@ export const ENDPOINTS = {
     PROGRESS: '/Gamification/progress',  // GET: Lấy thông tin progress (level, XP, streak, title) cho user hiện tại
     GAME_XP: '/Gamification/game-xp', // POST: Cộng XP theo amount cho account hiện tại
     ADD_XP: '/Gamification/add-xp', // POST: Cộng XP với amount và source (body: { amount, source })
+    MY_STREAK: '/Gamification/my-streak', // GET: Lấy thông tin streak của người dùng hiện tại
   },
     TITLE: {
     GET_ALL: '/Title/admin',  // GET: Lấy danh sách danh hiệu (admin)
