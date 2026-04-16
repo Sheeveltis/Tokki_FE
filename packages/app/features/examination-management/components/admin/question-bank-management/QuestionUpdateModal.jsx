@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { Modal, Form, Space, Button, message, Spin, Divider, Typography, Tabs, Input } from 'antd'
+import { Modal, Form, Space, Button, message, Spin, Divider, Typography, Tabs, Input, notification } from 'antd'
 const { Title, Text } = Typography
 const { TextArea } = Input
 import { SaveOutlined, FileTextOutlined } from '@ant-design/icons'
@@ -157,10 +157,11 @@ export function QuestionUpdateModal({ open, question, onCancel, onUpdated }) {
         await activateQuestionBanks([questionBankId])
       }
 
-      message.success('Cập nhật thành công')
+      message.success('Cập nhật câu hỏi thành công')
       if (onUpdated) onUpdated()
     } catch (error) {
-      message.error(error?.message || 'Cập nhật thất bại')
+      const errorMsg = error.response?.data?.message || error.message || 'Cập nhật thất bại'
+      message.error(errorMsg)
     } finally {
       setSaving(false)
     }

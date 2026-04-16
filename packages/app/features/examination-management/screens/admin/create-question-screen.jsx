@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import { useRouter, useSearchParams } from 'solito/navigation'
-import { Card, Form, Space, Typography, Divider, Input, Button, Tabs, Tag } from 'antd'
+import { Card, Form, Space, Typography, Divider, Input, Button, Tabs, Tag, notification } from 'antd'
 import { SaveOutlined, FileTextOutlined, FormOutlined, CheckCircleOutlined, PlusOutlined } from '@ant-design/icons'
-import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import { createQuestion, activateQuestionBanks, submitQuestionBanksForApproval } from '../../api/create-question.js'
 import { QuestionForm } from '../../components/admin/create-question/question-form.jsx'
 import { AnswerForm } from '../../components/admin/create-question/answer-form.jsx'
@@ -48,18 +47,18 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
     // khiến UI tưởng đang chạy nhưng thực ra bị kẹt.
     // Validate options
     if (!values.options || values.options.length < 2) {
-      showAdminError('Cần ít nhất 2 đáp án')
+      message.error('Cần ít nhất 2 đáp án')
       return
     }
 
     const correctOptions = values.options.filter((a) => a?.isCorrect)
     if (correctOptions.length === 0) {
-      showAdminError('Cần ít nhất 1 đáp án đúng')
+      message.error('Cần ít nhất 1 đáp án đúng')
       return
     }
 
     if (!questionTypeId) {
-      showAdminError('Vui lòng chọn loại câu hỏi')
+      message.error('Vui lòng chọn loại câu hỏi')
       return
     }
 
@@ -119,7 +118,7 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
         await submitQuestionBanksForApproval([createdId])
       }
 
-      showAdminSuccess('Đã tạo câu hỏi mới thành công')
+      message.success('Đã tạo câu hỏi mới thành công')
 
       if (questionTypeId) {
         router.push(`${basePath}/question-type/${questionTypeId}`)
@@ -127,8 +126,9 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
         const prefix = layout === 'staff' ? '/staff' : '/admin'
         router.push(`${prefix}?tab=question-bank`)
       }
-    } catch (error) {
-      showAdminError(error.message || 'Tạo câu hỏi thất bại')
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || 'Tạo câu hỏi thất bại'
+      message.error(errorMsg)
     } finally {
       setLoading(false)
     }
@@ -179,11 +179,7 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
           onFinish={handleSubmit}
           onFinishFailed={({ errorFields }) => {
             const firstError = errorFields?.[0]?.errors?.[0]
-            if (firstError) {
-              showAdminError(firstError)
-            } else {
-              showAdminError('Vui lòng kiểm tra lại các trường bắt buộc')
-            }
+            message.error(firstError || 'Vui lòng kiểm tra lại các trường bắt buộc')
           }}
           initialValues={{
             options: [
