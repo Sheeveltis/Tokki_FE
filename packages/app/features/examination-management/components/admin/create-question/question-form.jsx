@@ -64,9 +64,12 @@ export function QuestionForm({ form, questionTypeId }) {
 
   const validPassages = useMemo(() => {
     if (!questionType || !questionType.skill) return passages
+    if (!questionType || !questionType.skill) return passages
     const skill = questionType.skill
     return passages.filter((passage) => {
       const mediaType = passage.mediaType
+      if (skill === 1) return mediaType === 2
+      if (skill === 2 || skill === 3) return mediaType === 0 || mediaType === 1
       if (skill === 1) return mediaType === 2
       if (skill === 2 || skill === 3) return mediaType === 0 || mediaType === 1
       return false
@@ -84,6 +87,8 @@ export function QuestionForm({ form, questionTypeId }) {
         message.error('Chỉ chấp nhận file hình ảnh hoặc audio!')
         return Upload.LIST_IGNORE
       }
+      form.setFieldsValue({ mediaFile: file, mediaUrl: null })
+      return false
       form.setFieldsValue({ mediaFile: file, mediaUrl: null })
       return false
     },

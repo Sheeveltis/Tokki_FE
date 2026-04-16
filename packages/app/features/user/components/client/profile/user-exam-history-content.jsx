@@ -1,6 +1,5 @@
 import React from 'react'
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Image, Platform, Pressable } from 'react-native'
-import Carrot from '../../../../../../assets/carrot.png'
 import { useRouter } from 'solito/navigation'
 import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
@@ -54,9 +53,6 @@ export function UserExamHistoryContent({ exams, loading, error }) {
 
   return (
     <View style={styles.container}>
-      {isWeb && (
-        <Image source={normalizeImageSource(Carrot)} style={styles.carrot} resizeMode="contain" />
-      )}
 
       <View style={isWeb ? styles.header : styles.headerNative}>
         <Text style={styles.title}>Lịch sử làm bài</Text>
@@ -118,14 +114,6 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 500,
     position: 'relative',
-  },
-  carrot: {
-    position: 'absolute',
-    top: -40,
-    right: 100,
-    width: 120,
-    height: 80,
-    transform: [{ rotate: '15deg' }],
   },
   header: {
     gap: 4,

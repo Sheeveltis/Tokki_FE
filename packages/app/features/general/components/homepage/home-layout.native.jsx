@@ -1,7 +1,6 @@
 import React from 'react'
 import { View, ScrollView, StyleSheet } from 'react-native'
-import { Navbar } from '../../../../../components/navbar'
-import { Footer } from '../../../../../components/footer'
+import { NavbarMobile } from '../../../../../components/navbar-mobile'
 import { HomeSidebar } from './home-sidebar'
 
 /**
@@ -31,15 +30,6 @@ export function HomeLayout({
 }) {
   return (
     <View style={styles.root}>
-      {/* Navbar ở đầu trang */}
-      <Navbar
-        onHomePress={onHomePress}
-        onRoadmapPress={onRoadmapPress}
-        onFlashcardPress={onFlashcardPress}
-        onBlogPress={onBlogPress}
-        onProfilePress={onProfilePress}
-      />
-
       {/* Nội dung chính */}
       <ScrollView style={styles.container}>
         <View style={styles.wrapper}>
@@ -54,9 +44,13 @@ export function HomeLayout({
           </View>
         </View>
       </ScrollView>
-
-      {/* Footer ở cuối trang */}
-      <Footer />
+      <NavbarMobile
+        onHomePress={onHomePress}
+        onRoadmapPress={onRoadmapPress}
+        onFlashcardPress={onFlashcardPress}
+        onBlogPress={onBlogPress}
+        onProfilePress={onProfilePress}
+      />
     </View>
   )
 }
@@ -71,10 +65,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   wrapper: {
-    width: '70%',
+    width: '100%',
     maxWidth: '100%',
     alignSelf: 'center',
     padding: 16,
+    paddingBottom: 50,
   },
   content: {
     marginBottom: 30,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { View, StyleSheet, Text, TouchableOpacity, TextInput, Platform, Image, Animated } from 'react-native'
 import { submitSpacedRepetition } from '@tokki/app/features/study/api'
+import { awardXP } from '@tokki/app/features/minigame/api/api'
 import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
 import SoundIcon from 'assets/icon/icon-mainflow/sound.svg'
@@ -44,6 +45,7 @@ export function LearnedVocabularyPracticeMode({
   const [isCorrect, setIsCorrect] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasAnswered, setHasAnswered] = useState(false)
+  const [xpAwardedIds, setXpAwardedIds] = useState(new Set()) // Track vocab IDs that already received XP in this session
   
   const audioRef = useRef(null)
   const soundRef = useRef(null)
@@ -421,7 +423,21 @@ export function LearnedVocabularyPracticeMode({
     }
 
     submitAnswer(correct ? 2 : 0)
-  }, [currentVocab, userAnswer, hasAnswered, playSoundEffect])
+
+    // Cộng XP nếu đúng và đúng hạn
+    if (correct && currentVocab?.id && !xpAwardedIds.has(currentVocab.id)) {
+      const now = new Date()
+      const nextReviewAt = currentVocab.nextReviewAt ? new Date(currentVocab.nextReviewAt) : null
+      
+      // Nếu không có nextReviewAt hoặc nextReviewAt <= now thì được coi là đúng hạn
+      if (!nextReviewAt || nextReviewAt <= now) {
+        awardXP(5).catch((err) => {
+          console.error('[awardXP] Failed to award XP for SRS review:', err)
+        })
+        setXpAwardedIds((prev) => new Set([...prev, currentVocab.id]))
+      }
+    }
+  }, [currentVocab, userAnswer, hasAnswered, playSoundEffect, xpAwardedIds])
 
   // Submit kết quả
   const submitAnswer = useCallback(async (quality) => {

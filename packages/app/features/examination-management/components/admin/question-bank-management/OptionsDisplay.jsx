@@ -1,5 +1,4 @@
 'use client'
-
 import React from 'react'
 import { Row, Col, Space, Typography, Image } from 'antd'
 import { CheckCircleFilled } from '@ant-design/icons'
@@ -7,6 +6,7 @@ import { CheckCircleFilled } from '@ant-design/icons'
 const { Text } = Typography
 
 /**
+ * Component hiển thị danh sách đáp án với giao diện hiện đại
  * Component hiển thị danh sách đáp án với giao diện hiện đại
  */
 export function OptionsDisplay({ options }) {

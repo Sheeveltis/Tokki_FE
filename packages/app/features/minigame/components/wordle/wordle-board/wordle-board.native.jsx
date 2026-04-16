@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ImageBackground, Pressable, Platform } from 're
 import { useRouter, useSearchParams } from 'solito/navigation'
 
 import { WordleBoardContent } from './component/WordleBoardContent'
-import BackgroundImage from '../../../../../../assets/BackgroundSolite.png'
+import BackgroundImage from '../../../../../../assets/BackgroundSolite.jpg'
 import { getWordleTopSentences, toggleWordleSentenceLike } from '../../../api/wordle-level-api'
 
 export function WordleBoardNative({ dailyWordleId: propDailyWordleId }) {
@@ -46,10 +46,10 @@ export function WordleBoardNative({ dailyWordleId: propDailyWordleId }) {
         prev.map(item =>
           item.submissionId === submissionId
             ? {
-                ...item,
-                isLiked: true,
-                likeCount: (item.likeCount || 0) + 1,
-              }
+              ...item,
+              isLiked: true,
+              likeCount: (item.likeCount || 0) + 1,
+            }
             : item
         )
       )

@@ -52,9 +52,6 @@ export function ExamManagement({ initialData = null }) {
     search: '',
     status: undefined,
     type: undefined,
-    creatorFilter: 2,
-    sortBy: 0,
-    isDescending: true,
     page: 1,
     size: 20,
   })

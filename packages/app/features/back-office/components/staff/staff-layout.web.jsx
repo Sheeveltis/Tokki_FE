@@ -326,7 +326,6 @@ export function StaffLayout({
                     .flatMap((item) => [item, ...(item.children || [])])
                     .find((item) => item.key === selectedKey)?.label || 'Dashboard'}
                 </div>
-
                 <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
                   <Popover
                     placement="bottomRight"

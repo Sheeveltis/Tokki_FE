@@ -13,6 +13,7 @@ import { ENDPOINTS, API_BASE_URL } from '../../../provider/api/endpoints'
 import axios from 'axios'
 import { apiErrors } from '../../../string.js'
 
+
 /**
  * Xác thực OTP cho email (đăng ký / xác thực email)
  * message: title, data (success) hoặc errors[].description (error) là description

@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
-import { FlashcardTopicCard } from '../../study/components/shared'
+import { PronunciationRuleCard } from './PronunciationRuleCard'
 
 export function PronunciationRuleList({ rules, onSelectRule }) {
   if (!Array.isArray(rules) || rules.length === 0) {
@@ -14,14 +14,9 @@ export function PronunciationRuleList({ rules, onSelectRule }) {
   return (
     <View style={styles.container}>
       {rules.map((rule) => (
-        <FlashcardTopicCard
+        <PronunciationRuleCard
           key={String(rule.id)}
-          icon={rule.icon || null}
-          title={rule.title}
-          subtitle={rule.description || 'Quy tắc phát âm tiếng Hàn'}
-          progress={0}
-          compact={false}
-          showBadge={false}
+          rule={rule}
           onPress={() => onSelectRule?.(rule)}
         />
       ))}
@@ -31,9 +26,8 @@ export function PronunciationRuleList({ rules, onSelectRule }) {
 
 const styles = StyleSheet.create({
   container: {
-    width: '80%',
-    maxWidth: '100%',
-    gap: 30,
+    width: '100%',
+    gap: 20,
   },
   emptyContainer: {
     width: '100%',

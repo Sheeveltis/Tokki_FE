@@ -2,7 +2,7 @@ import React from 'react'
 import { View, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import HomeIcon from '../assets/icon/navigate-app/home.svg'
-import LayersIcon from '../assets/icon/navigate-app/layers-svgrepo-com.svg'
+import MicrophoneIcon from '../assets/icon/navigate-app/layers-svgrepo-com.svg'
 import FlashcardIcon from '../assets/icon/navigate-app/folder.svg'
 import BlogIcon from '../assets/icon/navigate-app/chat.svg'
 import UserIcon from '../assets/icon/navigate-app/user-svgrepo-com.svg'
@@ -46,8 +46,10 @@ const isReactComponent = (icon) => {
 /**
  * Render icon - hỗ trợ cả Image source và React component (SVG)
  */
-const renderIcon = (Icon, style, isActive = false) => {
+const renderIcon = (Icon, style, isActive = false, activeColor = '#78905E') => {
   if (!Icon) return null
+  
+  const tint = isActive ? activeColor : '#6A5634'
   
   // Kiểm tra xem icon có phải là React component không (SVG component)
   const isComponent = isReactComponent(Icon)
@@ -56,8 +58,8 @@ const renderIcon = (Icon, style, isActive = false) => {
     // Nếu là React component (SVG component), render trực tiếp
     const IconComponent = typeof Icon === 'function' ? Icon : (Icon.default || Icon)
     return (
-      <View style={[styles.iconContainer, isActive && styles.iconContainerActive]}>
-        <IconComponent width={30} height={30} fill="#000" />
+      <View style={[styles.iconContainer, isActive && { backgroundColor: activeColor + '20', borderRadius: 15 }]}>
+        <IconComponent width={30} height={30} fill={tint} color={tint} />
       </View>
     )
   }
@@ -66,7 +68,9 @@ const renderIcon = (Icon, style, isActive = false) => {
   const iconSource = normalizeImageSource(Icon)
   if (iconSource) {
     return (
-      <Image source={iconSource} style={[styles.icon, style]} resizeMode="contain" />
+      <View style={[styles.iconContainer, isActive && { backgroundColor: activeColor + '20', borderRadius: 15 }]}>
+        <Image source={iconSource} style={[{ width: 30, height: 30 }, style, { tintColor: tint }]} resizeMode="contain" />
+      </View>
     )
   }
   
@@ -78,7 +82,13 @@ const renderIcon = (Icon, style, isActive = false) => {
  * - Bottom navigation bar for mobile
  * - Icons from left to right: Home - Flashcard - Menu - Blog - Profile
  */
-export function NavbarMobile() {
+export function NavbarMobile({ 
+  onHomePress, 
+  onFlashcardPress, 
+  onBlogPress, 
+  onProfilePress,
+  onMenuPress 
+}) {
   // Chỉ sử dụng navigation hook trên mobile
   let navigation = null
   if (Platform.OS !== 'web') {
@@ -125,15 +135,23 @@ export function NavbarMobile() {
 
 
   const handleHomePress = () => {
+    if (onHomePress) {
+      onHomePress()
+      return
+    }
     if (!navigation) return
     try {
-      navigation.navigate('home')
+      navigation.navigate('wordle-rule')
     } catch (error) {
       console.error('Navigation error:', error)
     }
   }
 
   const handleFlashcardPress = () => {
+    if (onFlashcardPress) {
+      onFlashcardPress()
+      return
+    }
     if (!navigation) return
     try {
       navigation.navigate('flashcard-list')
@@ -143,21 +161,36 @@ export function NavbarMobile() {
   }
 
   const handleMenuPress = () => {
-    // Menu button - can be used for minigame or other features
-    // For now, just a placeholder
-    console.log('Menu pressed')
+    if (onMenuPress) {
+      onMenuPress()
+      return
+    }
+    if (!navigation) return
+    try {
+      navigation.navigate('pronunciation-rules')
+    } catch (error) {
+      console.error('Navigation error:', error)
+    }
   }
 
   const handleBlogPress = () => {
+    if (onBlogPress) {
+      onBlogPress()
+      return
+    }
     if (!navigation) return
     try {
-      navigation.navigate('blog')
+      navigation.navigate('blog-list')
     } catch (error) {
       console.error('Navigation error:', error)
     }
   }
 
   const handleProfilePress = () => {
+    if (onProfilePress) {
+      onProfilePress()
+      return
+    }
     if (!navigation) return
     try {
       navigation.navigate('menu-mobile')
@@ -170,37 +203,38 @@ export function NavbarMobile() {
     <View style={styles.container}>
       {/* Home - Leftmost */}
         <TouchableOpacity style={styles.iconButton} onPress={handleHomePress} activeOpacity={0.7}>
-          {renderIcon(HomeIcon, styles.icon, currentRouteName === 'home')}
+          {renderIcon(HomeIcon, styles.icon, currentRouteName === 'wordle-rule', '#5E794E')}
         </TouchableOpacity>
 
         {/* Flashcard - Second from left */}
         <TouchableOpacity style={styles.iconButton} onPress={handleFlashcardPress} activeOpacity={0.7}>
-          {renderIcon(FlashcardIcon, styles.icon, currentRouteName === 'flashcard-list')}
+          {renderIcon(FlashcardIcon, styles.icon, currentRouteName === 'flashcard-list', '#F4900C')}
         </TouchableOpacity>
 
-        {/* Menu - Center */}
+        {/* Pronunciation AI - Center */}
         <TouchableOpacity style={styles.iconButton} onPress={handleMenuPress} activeOpacity={0.7}>
-          {renderIcon(LayersIcon, styles.icon, currentRouteName === 'menu')}
+          {renderIcon(MicrophoneIcon, styles.icon, currentRouteName === 'pronunciation-rules', '#4834D4')}
         </TouchableOpacity>
+
 
         {/* Blog - Second from right */}
         <TouchableOpacity style={styles.iconButton} onPress={handleBlogPress} activeOpacity={0.7}>
-          {renderIcon(BlogIcon, styles.icon, currentRouteName === 'blog')}
+          {renderIcon(BlogIcon, styles.icon, currentRouteName === 'blog-list', '#DD9B9D')}
         </TouchableOpacity>
 
         {/* Profile - Rightmost */}
         <TouchableOpacity style={styles.iconButton} onPress={handleProfilePress} activeOpacity={0.7}>
-          <View style={[styles.avatarContainer, currentRouteName === 'menu-mobile' && styles.avatarContainerActive]}>
-            {avatarUrl ? (
+          {avatarUrl ? (
+            <View style={[styles.avatarContainer, currentRouteName === 'menu-mobile' && { backgroundColor: '#89A455' + '20', borderRadius: 15 }]}>
               <Image
                 source={normalizeImageSource(avatarUrl)}
                 style={styles.avatarIcon}
                 resizeMode="cover"
               />
-            ) : (
-              renderIcon(UserIcon, styles.icon, currentRouteName === 'menu-mobile')
-            )}
-          </View>
+            </View>
+          ) : (
+            renderIcon(UserIcon, styles.icon, currentRouteName === 'menu-mobile', '#89A455')
+          )}
       </TouchableOpacity>
     </View>
   )
@@ -211,7 +245,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: '#FFD700', // Yellow background
+    backgroundColor: 'rgba(255, 248, 231, 0.95)', // Match web header color closely but enough opacity for mobile readability
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderTopLeftRadius: 20,

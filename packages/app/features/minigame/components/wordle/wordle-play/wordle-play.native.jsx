@@ -16,7 +16,7 @@ import { WordleSentenceFlow } from './components/WordleSentenceFlow'
 import { WordleMenuPopup } from './components/WordleMenuPopup'
 import { useWordlePlayControl } from './useWordlePlayControl'
 
-import BackgroundImage from '../../../../../../assets/BackgroundSolite.png'
+import BackgroundImage from '../../../../../../assets/BackgroundSolite.jpg'
 import MenuIcon from '../../../../../../assets/menu-solitare.png'
 
 export function WordlePlayNative(props) {

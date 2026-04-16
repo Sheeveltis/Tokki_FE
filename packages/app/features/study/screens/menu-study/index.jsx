@@ -43,6 +43,8 @@ export function MenuStudy({
   // Chỉ sử dụng levelId từ props hoặc params, không tự động fallback về aimLevel
   const currentLevel = levelId
 
+  // Chỉ sử dụng levelId từ props hoặc params, không tự động fallback về aimLevel
+
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
 

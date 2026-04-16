@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Platform } from 'react-native'
 import { completeTopic, getFlashcardsForStudy, submitSpacedRepetitionWithCorrect } from '@tokki/app/features/study/api'
+import { awardXP } from '@tokki/app/features/minigame/api/api'
 
 // Import expo-av cho mobile (nếu có)
 let ExpoAudio = null
@@ -99,7 +100,7 @@ export function useFlashcardFirstLearn(topicId) {
       console.warn('[Audio] No audioUrl for current word')
       return
     }
-    
+
     if (Platform.OS === 'web') {
       // Web: sử dụng HTML5 Audio
       await cleanupAudio()
@@ -123,7 +124,7 @@ export function useFlashcardFirstLearn(topicId) {
         await cleanupAudio()
         const { sound } = await ExpoAudio.Sound.createAsync(
           { uri: current.audioUrl },
-          { 
+          {
             shouldPlay: true,
             volume: 1.0,
             isMuted: false,
@@ -131,14 +132,14 @@ export function useFlashcardFirstLearn(topicId) {
         )
         soundRef.current = sound
         const initialStatus = await sound.getStatusAsync()
-        
+
         if (initialStatus.error) {
           console.error('[Audio] Error in initial status:', initialStatus.error)
           await sound.unloadAsync()
           soundRef.current = null
           return
         }
-        
+
         sound.setOnPlaybackStatusUpdate((status) => {
           if (status.isLoaded) {
             if (status.didJustFinish) {
@@ -150,7 +151,7 @@ export function useFlashcardFirstLearn(topicId) {
             console.error('[Audio] Sound load error:', status.error)
           }
         })
-        
+
         // Đảm bảo sound được play
         setTimeout(async () => {
         }, 100)
@@ -174,7 +175,7 @@ export function useFlashcardFirstLearn(topicId) {
       setError(null)
       const data = await getFlashcardsForStudy(topicId, BATCH_SIZE)
       const base = Array.isArray(data) ? data : []
-      
+
       // Nếu không có từ vựng nào trả về, có nghĩa là đã học hết
       if (base.length === 0) {
         setHasMoreFlashcards(false)
@@ -375,7 +376,7 @@ export function useFlashcardFirstLearn(topicId) {
         if (current?.id) {
           // Kiểm tra Ref trước tiên để ngăn chặn nộp 2 lần ngay cả khi state chưa kịp update
           const alreadySubmitted = submittedIdsRef.current.has(current.id)
-          
+
           setCompletedTasks((prev) => {
             const next = new Set(prev)
             next.add(`${current.id}:2`)
@@ -501,16 +502,16 @@ export function useFlashcardFirstLearn(topicId) {
     if (completedWords.size !== originalTotal) return
 
     completedTopicRef.current = true
-    ;(async () => {
-      try {
-        await completeTopic(topicId)
-        setIsTopicCompleted(true)
-      } catch (err) {
-        // nếu fail thì cho phép retry bằng cách mở lại flag
-        completedTopicRef.current = false
-        console.error('Error completeTopic:', err)
-      }
-    })()
+      ; (async () => {
+        try {
+          await completeTopic(topicId)
+          setIsTopicCompleted(true)
+        } catch (err) {
+          // nếu fail thì cho phép retry bằng cách mở lại flag
+          completedTopicRef.current = false
+          console.error('Error completeTopic:', err)
+        }
+      })()
   }, [completedWords.size, originalTotal, topicId])
 
   const handleFlipChange = (nextFlipped) => {

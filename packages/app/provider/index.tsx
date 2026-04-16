@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Platform } from 'react-native'
 import { SafeArea } from 'app/provider/safe-area'
 import { NavigationProvider } from './navigation'
+import { QueryProvider } from './query/query-client'
 
 // Import expo-navigation-bar cho Android
 let setBackgroundColorAsync: ((color: string) => Promise<void>) | null = null
@@ -26,10 +27,10 @@ export function Provider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (Platform.OS === 'android') {
       if (setBackgroundColorAsync) {
-        setBackgroundColorAsync('#000000').catch(() => {}) // Màu đen
+        setBackgroundColorAsync('#000000').catch(() => { }) // Màu đen
       }
       if (setButtonStyleAsync) {
-        setButtonStyleAsync('light').catch(() => {}) // Nút sáng (trắng) trên nền đen
+        setButtonStyleAsync('light').catch(() => { }) // Nút sáng (trắng) trên nền đen
       }
     }
   }, [])
@@ -37,9 +38,11 @@ export function Provider({ children }: { children: React.ReactNode }) {
   return (
     <SafeArea>
       <XpProvider>
-        <NotificationProvider>
-          <NavigationProvider>{children}</NavigationProvider>
-        </NotificationProvider>
+        <QueryProvider>
+          <NotificationProvider>
+            <NavigationProvider>{children}</NavigationProvider>
+          </NotificationProvider>
+        </QueryProvider>
       </XpProvider>
     </SafeArea>
   )

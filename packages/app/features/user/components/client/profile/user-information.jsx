@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Image, StyleSheet, Text, View, Platform } from 'react-native'
 
-import Carrot from '../../../../../../assets/carrot.png'
 import UserIcon from '../../../../../../assets/user.png'
 import { getCurrentUser, updateBasicInfo, uploadAvatar, uploadAvatarToCloudinary, getTitleById } from '../../../api/profile'
 import { showAdminSuccess } from '../../../../../../components/HelperAdmin'
@@ -28,6 +27,7 @@ export function UserInformation() {
   const [titleData, setTitleData] = useState(null)
   const [isTitlesModalVisible, setIsTitlesModalVisible] = useState(false)
   const [isEditModalVisible, setIsEditModalVisible] = useState(false)
+
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -64,6 +64,9 @@ export function UserInformation() {
         fullName: (values.fullName || '').trim(),
         phoneNumber: values.phoneNumber || null,
         dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : (userData?.dateOfBirth ? String(userData.dateOfBirth).split('T')[0] : null),
+        fullName: (values.fullName || '').trim(),
+        phoneNumber: values.phoneNumber || null,
+        dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : (userData?.dateOfBirth ? String(userData.dateOfBirth).split('T')[0] : null),
       })
 
       setUserData(updatedData)
@@ -72,8 +75,11 @@ export function UserInformation() {
       
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         setTimeout(() => window.location.reload(), 800)
+        setTimeout(() => window.location.reload(), 800)
       }
     } catch (err) {
+      console.error('Error updating info:', err)
+      alert(err.message || 'Không thể cập nhật')
       console.error('Error updating info:', err)
       alert(err.message || 'Không thể cập nhật')
     }
@@ -150,6 +156,13 @@ export function UserInformation() {
       <View style={styles.contentCard}>
         <Image source={normalizeImageSource(Carrot)} style={styles.carrot} resizeMode="contain" />
 
+        <View style={styles.header}>
+          <View style={styles.headerPattern} />
+          <View style={styles.headerInfo}>
+            <Text style={styles.title}>Thông tin người dùng</Text>
+            <Text style={styles.subtitle}>Quản lí thông tin tài khoản của bạn và cập nhật thông tin cơ bản.</Text>
+          </View>
+        </View>
         <View style={styles.header}>
           <View style={styles.headerPattern} />
           <View style={styles.headerInfo}>
@@ -328,4 +341,3 @@ const getStyles = () => {
 }
 
 const styles = getStyles()
-
