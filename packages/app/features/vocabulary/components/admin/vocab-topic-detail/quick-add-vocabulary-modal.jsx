@@ -1,40 +1,15 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Modal, Form, Input, Upload, message } from 'antd'
+import { Modal, Form, message } from 'antd'
 import { createVocabulary, uploadVocabularyImageToCloudinary } from '../../../api'
+import { VocabularyFormFields } from '../create-vocabulary/vocabulary-form-fields'
 
 export function QuickAddVocabularyModal({ open, onCancel, onSuccess, topicId, onAddToTopic }) {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState('')
-  const [selectedFile, setSelectedFile] = useState(null)
 
-  const handleBeforeUpload = (file) => {
-    const isImage = file.type.startsWith('image/')
-    if (!isImage) {
-      message.error('Chỉ chấp nhận file ảnh!')
-      return false
-    }
 
-    const isLt5M = file.size / 1024 / 1024 < 5
-    if (!isLt5M) {
-      message.error('Ảnh phải nhỏ hơn 5MB!')
-      return false
-    }
-
-    setSelectedFile(file)
-    form?.setFieldsValue({ imageFile: file })
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      setPreviewUrl(e.target.result)
-    }
-    reader.readAsDataURL(file)
-
-    message.success('Đã chọn ảnh')
-    return false
-  }
 
   const handleSubmit = async () => {
     try {
@@ -62,30 +37,12 @@ export function QuickAddVocabularyModal({ open, onCancel, onSuccess, topicId, on
         pronunciation: values.pronunciation || '',
         definition: values.definition,
         imgURL: imgURL,
-        examples: [],
-      }
-
-      // Xử lý examples nếu có
-      if (values.exampleSentence) {
-        const exampleText = values.exampleSentence.trim()
-        if (exampleText) {
-          const match = exampleText.match(/^(.+?)\s*\((.+?)\)$/)
-          if (match) {
-            payload.examples = [
-              {
-                sentence: match[1].trim(),
-                translation: match[2].trim(),
-              },
-            ]
-          } else {
-            payload.examples = [
-              {
-                sentence: exampleText,
-                translation: '',
-              },
-            ]
-          }
-        }
+        examples: (values.examples || [])
+          .filter(ex => ex.sentence && ex.sentence.trim())
+          .map(ex => ({
+            sentence: ex.sentence.trim(),
+            translation: ex.translation ? ex.translation.trim() : ''
+          }))
       }
 
       const createdVocab = await createVocabulary(payload)
@@ -112,8 +69,6 @@ export function QuickAddVocabularyModal({ open, onCancel, onSuccess, topicId, on
 
       // Reset form và đóng modal
       form.resetFields()
-      setPreviewUrl('')
-      setSelectedFile(null)
       
       if (onSuccess) {
         onSuccess(createdVocab)
@@ -133,8 +88,6 @@ export function QuickAddVocabularyModal({ open, onCancel, onSuccess, topicId, on
 
   const handleCancel = () => {
     form.resetFields()
-    setPreviewUrl('')
-    setSelectedFile(null)
     onCancel()
   }
 
@@ -151,65 +104,17 @@ export function QuickAddVocabularyModal({ open, onCancel, onSuccess, topicId, on
       cancelText="Hủy"
       okButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
       cancelButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
-      width={600}
+      width={900}
       styles={{ body: { maxHeight: '70vh', overflowY: 'auto' } }}
       destroyOnClose
     >
-      <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
-        <Form.Item
-          label="Từ"
-          name="text"
-          rules={[{ required: true, message: 'Vui lòng nhập từ' }]}
-        >
-          <Input placeholder="VD: 봄" size="large" style={{ fontSize: 18, color: '#111' }} />
-        </Form.Item>
-
-        <Form.Item label="Phiên âm" name="pronunciation">
-          <Input placeholder="VD: Bom" size="large" style={{ fontSize: 18, color: '#111' }} />
-        </Form.Item>
-
-        <Form.Item
-          label="Định nghĩa"
-          name="definition"
-          rules={[{ required: true, message: 'Vui lòng nhập nghĩa/định nghĩa' }]}
-        >
-          <Input placeholder="VD: mùa xuân" size="large" style={{ fontSize: 18, color: '#111' }} />
-        </Form.Item>
-
-        <Form.Item label="Câu ví dụ" name="exampleSentence">
-          <Input.TextArea
-            placeholder='VD: 봄이 왔어요. (Mùa xuân đã đến.)'
-            rows={3}
-            size="large"
-            style={{ fontSize: 16, color: '#111' }}
-          />
-        </Form.Item>
-
-        <Form.Item label="Ảnh minh họa (tùy chọn)" name="imgURL">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <Upload.Dragger
-              multiple={false}
-              showUploadList={false}
-              beforeUpload={handleBeforeUpload}
-              accept="image/*"
-              style={{ padding: 8 }}
-            >
-              <p style={{ fontWeight: 'bold', margin: 0 }}>Kéo thả hoặc bấm để chọn ảnh</p>
-              <p style={{ fontWeight: 'bold', margin: 0, fontSize: 12 }}>
-                Ảnh sẽ lưu qua Cloudinary nội bộ
-              </p>
-            </Upload.Dragger>
-            {previewUrl ? (
-              <div style={{ border: '1px solid #f0f0f0', borderRadius: 6, padding: 8, textAlign: 'center' }}>
-                <img
-                  src={previewUrl}
-                  alt="preview"
-                  style={{ maxWidth: '100%', maxHeight: 200, objectFit: 'contain' }}
-                />
-              </div>
-            ) : null}
-          </div>
-        </Form.Item>
+      <Form 
+        form={form} 
+        layout="vertical" 
+        style={{ marginTop: 0 }}
+        initialValues={{ examples: [{ sentence: '', translation: '' }] }}
+      >
+        <VocabularyFormFields />
       </Form>
     </Modal>
   )

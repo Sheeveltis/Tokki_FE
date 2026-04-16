@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import { Card, Space, Select, Table, Typography, List, Tag, Modal, Input, Button, Pagination } from 'antd'
-import { UploadOutlined, DownloadOutlined, PlusOutlined, DeleteOutlined, CloseOutlined } from '@ant-design/icons'
+import { UploadOutlined, DownloadOutlined, PlusOutlined, DeleteOutlined, CloseOutlined, CheckCircleOutlined, SyncOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import { VocabularyGuideButton } from './vocabulary-guide-modal'
 
 export function TopicVocabSection({
@@ -166,18 +166,18 @@ export function TopicVocabSection({
           <Space direction="vertical" size="middle" style={{ width: '100%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
               <Space size="middle">
-                <Button 
-                  type="primary" 
-                  icon={<PlusOutlined />} 
-                  onClick={() => setAddVocabModalOpen(true)} 
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => setAddVocabModalOpen(true)}
                   style={{ borderRadius: 20, height: 40, padding: '0 24px', fontWeight: 600, backgroundColor: '#1890ff' }}
                 >
                   Thêm từ hệ thống
                 </Button>
                 {onQuickAdd && (
-                  <Button 
-                    icon={<PlusOutlined />} 
-                    onClick={onQuickAdd} 
+                  <Button
+                    icon={<PlusOutlined />}
+                    onClick={onQuickAdd}
                     style={{ borderRadius: 20, height: 40, padding: '0 24px', fontWeight: 600 }}
                   >
                     Tạo mới & Thêm
@@ -189,11 +189,11 @@ export function TopicVocabSection({
                 <Text type="secondary" style={{ fontSize: 13 }}>
                   Đã chọn <Text strong>{selecting?.length || 0}</Text> từ vựng
                 </Text>
-                <Button 
-                  type="primary" 
-                  onClick={onAdd} 
-                  disabled={!selecting?.length || adding} 
-                  loading={adding} 
+                <Button
+                  type="primary"
+                  onClick={onAdd}
+                  disabled={!selecting?.length || adding}
+                  loading={adding}
                   style={{ borderRadius: 20, height: 40, padding: '0 32px', fontWeight: 600, backgroundColor: selecting?.length > 0 ? '#52c41a' : undefined, borderColor: selecting?.length > 0 ? '#52c41a' : undefined }}
                 >
                   {adding ? 'Đang lưu...' : 'Lưu thay đổi'}
@@ -208,9 +208,9 @@ export function TopicVocabSection({
                 </div>
                 <Space wrap size={[8, 8]}>
                   {selectedOptions.map((item, index) => (
-                    <Tag 
-                      key={item.value || index} 
-                      closable 
+                    <Tag
+                      key={item.value || index}
+                      closable
                       onClose={() => {
                         const newSelecting = selecting.filter(v => v !== item.value)
                         onSelectingChange(newSelecting)
@@ -378,32 +378,122 @@ export function TopicVocabSection({
       </div>
 
       {excelImportResult && (
-        <Card
-          size="large"
-          style={{ marginTop: 12, background: '#f6ffed', borderColor: '#b7eb8f' }}
-          title={<Text strong>Kết quả import Excel</Text>}
+        <div 
+          style={{ 
+            marginTop: 20, 
+            padding: '20px', 
+            background: '#f6ffed', 
+            border: '1px solid #b7eb8f', 
+            borderRadius: 16,
+            boxShadow: '0 2px 12px rgba(82, 196, 26, 0.08)'
+          }}
         >
-          <Space direction="vertical" size={2} style={{ width: '100%' }}>
-            <Text style={{ color: '#389e0d' }}>
-              <Text strong style={{ color: '#389e0d' }}>
-                Thêm mới:
-              </Text>{' '}
-              {excelImportResult.addedNewCount ?? 0}
-            </Text>
-            <Text>
-              <Text strong>
-                Link vào Topic:
-              </Text>{' '}
-              {excelImportResult.linkedExistingCount ?? 0}
-            </Text>
-            <Text style={{ color: '#cf1322' }}>
-              <Text strong style={{ color: '#cf1322' }}>
-                Thất bại:
-              </Text>{' '}
-              {excelImportResult.failureCount ?? 0}
-            </Text>
-          </Space>
-        </Card>
+          <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ 
+              width: 36, 
+              height: 36, 
+              borderRadius: 10, 
+              background: '#d9f7be', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              color: '#389e0d',
+              fontSize: 18
+            }}>
+              <CheckCircleOutlined />
+            </div>
+            <div>
+              <Text strong style={{ fontSize: 16, color: '#135200', display: 'block', lineHeight: 1.2 }}>
+                Hoàn tất nhập dữ liệu
+              </Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Kết quả xử lý file Excel của bạn
+              </Text>
+            </div>
+          </div>
+
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+            gap: 12 
+          }}>
+            {/* New Vocab Card */}
+            <div style={{ 
+              background: '#fff', 
+              padding: '16px', 
+              borderRadius: 12, 
+              border: '1px solid #e8ffb8',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4
+            }}>
+              <Space style={{ color: '#389e0d', fontSize: 13, marginBottom: 4 }}>
+                <PlusOutlined />
+                <Text strong style={{ color: '#389e0d', fontSize: 13 }}>Thêm mới hoàn toàn</Text>
+              </Space>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                <Text strong style={{ fontSize: 28, color: '#237804' }}>
+                  {excelImportResult.addedNewCount ?? 0}
+                </Text>
+                <Text type="secondary" style={{ fontSize: 13 }}>từ vựng</Text>
+              </div>
+              <Text type="secondary" style={{ fontSize: 11, fontStyle: 'italic' }}>
+                Đã thêm vào ngân hàng & chủ đề
+              </Text>
+            </div>
+
+            {/* Linked Vocab Card */}
+            <div style={{ 
+              background: '#fff', 
+              padding: '16px', 
+              borderRadius: 12, 
+              border: '1px solid #e8ffb8',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4
+            }}>
+              <Space style={{ color: '#096dd9', fontSize: 13, marginBottom: 4 }}>
+                <SyncOutlined />
+                <Text strong style={{ color: '#096dd9', fontSize: 13 }}>Liên kết từ ngân hàng</Text>
+              </Space>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                <Text strong style={{ fontSize: 28, color: '#003a8c' }}>
+                  {excelImportResult.linkedExistingCount ?? 0}
+                </Text>
+                <Text type="secondary" style={{ fontSize: 13 }}>từ vựng</Text>
+              </div>
+              <Text type="secondary" style={{ fontSize: 11, fontStyle: 'italic' }}>
+                Đã tồn tại trong hệ thống
+              </Text>
+            </div>
+
+            {/* Failure Card */}
+            <div style={{ 
+              background: excelImportResult.failureCount > 0 ? '#fff2f0' : '#fff', 
+              padding: '16px', 
+              borderRadius: 12, 
+              border: '1px solid',
+              borderColor: excelImportResult.failureCount > 0 ? '#ffccc7' : '#e8ffb8',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4
+            }}>
+              <Space style={{ color: excelImportResult.failureCount > 0 ? '#cf1322' : '#8c8c8c', fontSize: 13, marginBottom: 4 }}>
+                <CloseCircleOutlined />
+                <Text strong style={{ color: excelImportResult.failureCount > 0 ? '#cf1322' : '#8c8c8c', fontSize: 13 }}>Nhập thất bại</Text>
+              </Space>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                <Text strong style={{ fontSize: 28, color: excelImportResult.failureCount > 0 ? '#a8071a' : '#bfbfbf' }}>
+                  {excelImportResult.failureCount ?? 0}
+                </Text>
+                <Text type="secondary" style={{ fontSize: 13 }}>trường hợp</Text>
+              </div>
+              <Text type="secondary" style={{ fontSize: 11, fontStyle: 'italic' }}>
+                Vui lòng kiểm tra lại file mẫu
+              </Text>
+            </div>
+          </div>
+        </div>
       )}
     </Card>
   )
