@@ -211,7 +211,6 @@ export function AlphabetStudyMain({
         <Text style={styles.title}>BẢNG CHỮ CÁI TIẾNG HÀN</Text>
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <FlashcardActionButton title="Luyện gõ câu" icon={EditOutlined} onPress={startSentenceTyping} />
-          <FlashcardActionButton title="Kiểm tra" icon={PlayCircleOutlined} onPress={onTestPress} />
         </View>
       </View>
 
