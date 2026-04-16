@@ -3,9 +3,9 @@ import { View, StyleSheet } from 'react-native'
 import { Navbar } from '../../../../../components/navbar'
 
 /**
- * AlphabetStudyLayout (Mobile): Layout cho trang học chữ cái Hàn Quốc trên mobile
+ * AlphabetStudyLayout: Layout cho trang học chữ cái Hàn Quốc
  */
-export function AlphabetStudyLayoutMobile({ children }) {
+export function AlphabetStudyLayout({ children }) {
   return (
     <View style={styles.root}>
       <Navbar />
