@@ -24,7 +24,7 @@ import {
 
 const ThemeContext = createContext({
   themeMode: 'light',
-  toggleTheme: () => {},
+  toggleTheme: () => { },
 })
 
 export const useTheme = () => useContext(ThemeContext)
@@ -35,7 +35,7 @@ export const useTheme = () => useContext(ThemeContext)
 export function StaffLayout({
   screens = {},
   defaultKey = 'users',
-  onLogout = () => {},
+  onLogout = () => { },
   onNavigate,
   children,
 }) {
@@ -53,15 +53,6 @@ export function StaffLayout({
       key: 'users',
       icon: <UserOutlined />,
       label: 'Quản lý Người dùng',
-    },
-    {
-      key: 'content',
-      icon: <BookOutlined />,
-      label: 'Quản lý Nội dung',
-      children: [
-        { key: 'lessons', icon: <BookOutlined />, label: 'Bài học' },
-        { key: 'blog', icon: <FileTextOutlined />, label: 'Bài viết' },
-      ],
     },
     {
       key: 'vocabulary',
@@ -85,11 +76,20 @@ export function StaffLayout({
       icon: <FileDoneOutlined />,
       label: 'Quản lý Đề',
       children: [
-        { key: 'exam-templates', icon: <FileTextOutlined />, label: 'Mẫu đề' },
         { key: 'question-bank', icon: <QuestionCircleOutlined />, label: 'Bộ câu hỏi' },
+        { key: 'exam-templates', icon: <FileTextOutlined />, label: 'Mẫu đề' },
       ],
     },
-    
+    {
+      key: 'content',
+      icon: <BookOutlined />,
+      label: 'Quản lý Nội dung',
+      children: [
+        // { key: 'lessons', icon: <BookOutlined />, label: 'Bài học' },
+        { key: 'blog', icon: <FileTextOutlined />, label: 'Bài viết' },
+      ],
+    },
+
     {
       key: 'customer-service',
       icon: <CustomerServiceOutlined />,
@@ -108,9 +108,9 @@ export function StaffLayout({
     const searchParams = new URLSearchParams(location.search)
     const tab = searchParams.get('tab')
     const pathname = location.pathname
-    
+
     let key = tab || defaultKey
-    
+
     // Ánh xạ pathname về tab tương ứng cho staff
     if (pathname.includes('/staff/users/')) key = 'users'
     if (pathname.includes('/staff/vocab/')) key = 'vocabulary-words'
@@ -123,9 +123,9 @@ export function StaffLayout({
 
     // Tìm parent
     for (const item of menuItems) {
-       if (item.children && item.children.some(child => child.key === key)) {
-         return { key, parents: [item.key] }
-       }
+      if (item.children && item.children.some(child => child.key === key)) {
+        return { key, parents: [item.key] }
+      }
     }
     return { key, parents: [] }
   }
@@ -203,12 +203,12 @@ export function StaffLayout({
     <ThemeContext.Provider
       value={{
         themeMode,
-        toggleTheme: () => {},
+        toggleTheme: () => { },
       }}
     >
-      <ConfigProvider 
-        theme={{ 
-          algorithm, 
+      <ConfigProvider
+        theme={{
+          algorithm,
           token: themeTokens,
           components: {
             Layout: {
@@ -253,9 +253,9 @@ export function StaffLayout({
                   }}
                 >
                   {!collapsed && (
-                    <span style={{ 
-                      fontSize: 20, 
-                      fontWeight: 800, 
+                    <span style={{
+                      fontSize: 20,
+                      fontWeight: 800,
                       color: '#1677ff',
                       letterSpacing: '-0.5px'
                     }}>
@@ -326,7 +326,7 @@ export function StaffLayout({
                     .flatMap((item) => [item, ...(item.children || [])])
                     .find((item) => item.key === selectedKey)?.label || 'Dashboard'}
                 </div>
-                
+
                 <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
                   <Popover
                     placement="bottomRight"
@@ -353,11 +353,11 @@ export function StaffLayout({
                     </Badge>
                   </Popover>
 
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 12, 
-                    padding: '4px 8px', 
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '4px 8px',
                     borderRadius: 32,
                     cursor: 'pointer',
                     border: '1px solid #f0f0f0'
@@ -367,11 +367,11 @@ export function StaffLayout({
                   </div>
                 </div>
               </Layout.Header>
-              
-              <Layout.Content 
-                style={{ 
-                  padding: '24px', 
-                  height: 'calc(100vh - 64px)', 
+
+              <Layout.Content
+                style={{
+                  padding: '24px',
+                  height: 'calc(100vh - 64px)',
                   backgroundColor: '#f7f9fc',
                   overflow: 'hidden' // Vô hiệu hóa scroll tổng của trang
                 }}
