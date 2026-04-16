@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Modal, Form, Input, Select, Upload } from 'antd'
+import { Modal, Form, Input, Select, Upload, Space } from 'antd'
 import { 
   InboxOutlined, 
   FontSizeOutlined, 
@@ -9,8 +9,7 @@ import {
   AlignLeftOutlined, 
   PictureOutlined, 
   AudioOutlined, 
-  CheckCircleOutlined,
-  Space
+  CheckCircleOutlined
 } from '@ant-design/icons'
 import { showAdminError } from '../../../../../../components/HelperAdmin.jsx'
 

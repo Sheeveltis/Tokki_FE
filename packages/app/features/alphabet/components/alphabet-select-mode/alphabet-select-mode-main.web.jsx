@@ -79,9 +79,9 @@ export function AlphabetSelectModeMain({
       secondaryColor: '#FFF8E1',
       icon: FolderIcon,
       image: BunnySyllable,
-      badge: 'Nâng cao',
+      badge: 'Đang phát triển',
       onPress: onSyllablesPress,
-      isComingSoon: false
+      isComingSoon: true
     }
   ]
 
@@ -94,7 +94,7 @@ export function AlphabetSelectModeMain({
       {/* Header */}
       <View style={styles.header}>
         <NavigationPill
-          label="Trở lại"
+          label="Quay lại"
           to={undefined}
           icon={ArrowIcon}
           iconStyle={{ transform: [{ scaleX: -1 }], tintColor: '#1A1A1A' }}
@@ -104,13 +104,9 @@ export function AlphabetSelectModeMain({
       </View>
 
       <View style={styles.titleSection}>
-        <View style={styles.titleTag}>
-          <Text style={styles.titleTagText}>LEVEL 01</Text>
-        </View>
         <Text style={styles.title}>
           Bảng Chữ Cái <Text style={{ color: '#D32F2F' }}>Hàn Quốc</Text>
         </Text>
-        <Text style={styles.subtitle}>Bắt đầu hành trình chinh phục tiếng Hàn từ những bước căn bản nhất cùng Tokki</Text>
       </View>
 
       {/* Mode Selection Cards */}
@@ -118,7 +114,7 @@ export function AlphabetSelectModeMain({
         {modes.map((mode) => (
           <Pressable
             key={mode.id}
-            onPress={mode.onPress}
+            onPress={mode.isComingSoon ? undefined : mode.onPress}
             onPointerEnter={() => setHoveredCard(mode.id)}
             onPointerLeave={() => setHoveredCard(null)}
             style={[
@@ -170,7 +166,7 @@ export function AlphabetSelectModeMain({
                   }
                 ]}
               >
-                <Text style={styles.itemLabel}>Học ngay</Text>
+                <Text style={styles.itemLabel}>{mode.isComingSoon ? 'Sắp ra mắt' : 'Học ngay'}</Text>
                 <View style={styles.arrowIconBg}>
                   {renderIcon(ArrowIcon, { width: 12, height: 12, tintColor: mode.primaryColor })}
                 </View>
@@ -189,9 +185,9 @@ export function AlphabetSelectModeMain({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    gap: 48,
+    gap: 24,
     position: 'relative',
-    paddingBottom: 40,
+    // paddingBottom: 40,
   },
   bgDecoration1: {
     position: 'absolute',
@@ -220,7 +216,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   titleSection: {
-    gap: 16,
     alignItems: 'flex-start',
   },
   titleTag: {
@@ -256,10 +251,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 32,
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
   },
   moduleCard: {
-    width: 380,
+    width: '35vw',
     borderRadius: 32,
     padding: 32,
     backgroundColor: '#FFFFFF',
@@ -352,7 +347,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 20,
+    // padding: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.85)',
     ...(Platform.OS === 'web' && {
       backdropFilter: 'blur(10px)',
