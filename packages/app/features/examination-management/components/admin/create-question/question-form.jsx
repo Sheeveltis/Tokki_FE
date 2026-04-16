@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { Form, Input, Select, Space, Typography, Upload, message, Switch, Row, Col } from 'antd'
-import { Form, Input, Select, Space, Typography, Upload, message, Switch, Row, Col } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import { fetchPassages, fetchQuestionTypeById } from '../../../api/create-question.js'
 import { isAudioUrl, createObjectUrl } from '../../../api/upload-utils.js'

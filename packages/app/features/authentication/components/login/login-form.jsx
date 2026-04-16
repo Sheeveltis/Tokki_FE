@@ -35,7 +35,6 @@ if (Platform.OS !== 'web') {
 import { TextInput } from '../../../../../components/textInput'
 import { Button } from '../../../../../components/button'
 import { loginUser, loginWithGoogle, checkDailyTitles } from '../../api'
-import { loginUser, loginWithGoogle, checkDailyTitles } from '../../api'
 import { setAuthToken, clearAuthToken } from '../../../../provider/api/client'
 import { heartbeatService } from '../shared/heartbeat-service'
 import { showApiNotification } from '../../utils/notification'

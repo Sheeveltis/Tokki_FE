@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useState, useEffect } from 'react'
 import { getMenuStudyRoute, isLoginRequiredModule } from './menuStudyRoutes'
 import { getAccountAimLevel, getMyStreak } from '@tokki/app/features/authentication/api'
 
@@ -50,7 +49,6 @@ export function useMenuStudy(router, levelId) {
 
     // Lấy route tương ứng và điều hướng nếu có
     const route = getMenuStudyRoute({ moduleId, itemLabel, levelId: finalLevel })
-    const route = getMenuStudyRoute({ moduleId, itemLabel, levelId: finalLevel })
     if (route) {
       router.push(route)
     }
@@ -63,13 +61,9 @@ export function useMenuStudy(router, levelId) {
   const handleTopikRoadmapPress = (overrideLevel) => {
     const finalLevel = overrideLevel || levelId
     if (!finalLevel) {
-  const handleTopikRoadmapPress = (overrideLevel) => {
-    const finalLevel = overrideLevel || levelId
-    if (!finalLevel) {
       router.push('/roadmap/info')
       return
     }
-    router.push(`/roadmap/learning?level=${finalLevel}`)
     router.push(`/roadmap/learning?level=${finalLevel}`)
   }
 

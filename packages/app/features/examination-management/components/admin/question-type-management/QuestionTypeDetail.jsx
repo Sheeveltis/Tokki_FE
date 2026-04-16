@@ -1,18 +1,3 @@
-import React, { useEffect, useState } from 'react'
-import { useRouter } from 'solito/navigation'
-import { useParams } from 'react-router-dom'
-import { Card, Space, Typography, Spin, Alert, Modal, Button, Tabs, Divider, notification, message } from 'antd'
-import {
-  ArrowLeftOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  PlusOutlined,
-  InfoCircleOutlined,
-  UnorderedListOutlined,
-  FileExcelOutlined,
-  CheckCircleOutlined
-} from '@ant-design/icons'
-
 import { Card, Space, Typography, Spin, Alert, Modal, Button, Tabs, Divider, notification, message } from 'antd'
 import {
   ArrowLeftOutlined,
@@ -30,9 +15,6 @@ import { deleteQuestionType, fetchQuestionTypeById } from '../../../api/question
 
 import QuestionTypeInfoCard from './QuestionTypeInfoCard'
 import QuestionListSection from './QuestionListSection'
-import QuestionTypeHeaderActions from './QuestionTypeHeaderActions'
-import { EditQuestionTypeModal } from './EditQuestionTypeModal'
-import { CreateQuestionModal } from './CreateQuestionModal'
 import QuestionTypeHeaderActions from './QuestionTypeHeaderActions'
 import { EditQuestionTypeModal } from './EditQuestionTypeModal'
 import { CreateQuestionModal } from './CreateQuestionModal'

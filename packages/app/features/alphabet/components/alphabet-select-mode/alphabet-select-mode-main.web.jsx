@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import React, { useState } from 'react'
 import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
 import { NavigationPill } from '../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
@@ -99,7 +98,6 @@ export function AlphabetSelectModeMain({
           to={undefined}
           icon={ArrowIcon}
           iconStyle={{ transform: [{ scaleX: -1 }], tintColor: '#1A1A1A' }}
-          iconStyle={{ transform: [{ scaleX: -1 }], tintColor: '#1A1A1A' }}
           onPress={onBackPress}
           textStyle={{ fontWeight: '700' }}
         />
@@ -185,7 +183,6 @@ export function AlphabetSelectModeMain({
         ))}
       </View>
     </View>
-    </View>
   )
 }
 
@@ -255,12 +252,9 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   grid: {
-  grid: {
     width: '100%',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 32,
-    justifyContent: 'flex-start',
     gap: 32,
     justifyContent: 'flex-start',
   },
@@ -385,14 +379,7 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' && {
       transition: 'all 0.3s ease',
     }),
-    ...(Platform.OS === 'web' && {
-      transition: 'all 0.3s ease',
-    }),
   },
-  itemLabel: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#FFFFFF',
   itemLabel: {
     fontSize: 16,
     fontWeight: '800',
