@@ -12,9 +12,124 @@ import { AlphabetGuideInfo } from './alphabet-guide-info'
 import { ReactSketchCanvas } from 'react-sketch-canvas'
 import alphabetStrokesData from '../../api/alphabet-strokes.json'
 import { GuideStrokes } from '../alphabet-drawing/GuideStrokes'
+import { TypingPractice } from '../alphabet-typing/TypingPractice'
 
 /** * AlphabetStudyMain: Nội dung chính của trang học chữ cái Hàn Quốc
  */
+const PRACTICE_SENTENCES = [
+  // 1-9: Câu gốc của bạn
+  "안녕하세요 만나서 반가워요",
+  "한국어 공부는 정말 재미있어요",
+  "오늘 날씨가 아주 좋아요",
+  "맛있는 음식을 먹고 싶어요",
+  "저와 함께 한국어를 배워요",
+  "배가 고파요 밥 먹으러 가요",
+  "영화를 보고 싶어요 같이 갈래요",
+  "지금 몇 시예요",
+  "이것은 얼마예요",
+
+  // 10-25: Chào hỏi & Cơ bản
+  "이름이 무엇입니까",
+  "저는 베트남 사람입니다",
+  "다시 말해 주세요",
+  "어떻게 지냈어요",
+  "잘 지내고 있어요",
+  "안녕히 계세요",
+  "안녕히 가세요",
+  "고맙습니다",
+  "감사합니다",
+  "실례합니다",
+  "도와주세요",
+  "괜찮아요",
+  "알겠어요",
+  "몰라요",
+  "천천히 말씀해 주세요",
+  "만나서 반가웠어요",
+
+  // 26-45: Đời sống & Thói quen
+  "오늘 뭐 해요",
+  "지금 바빠요",
+  "나중에 봐요",
+  "숙제를 다 했어요",
+  "일찍 일어났어요",
+  "운동을 좋아해요",
+  "피곤해요",
+  "일하러 가요",
+  "집에서 쉬고 싶어요",
+  "잠을 자고 싶어요",
+  "친구를 만나요",
+  "음악을 들어요",
+  "책을 읽고 있어요",
+  "텔레비전을 봐요",
+  "청소를 해요",
+  "빨래를 해요",
+  "요리를 해요",
+  "산책하러 가요",
+  "전화해 주세요",
+  "기분이 좋아요",
+
+  // 46-65: Ăn uống & Mua sắm
+  "메뉴판 좀 주세요",
+  "물 좀 주세요",
+  "이거 매워요",
+  "진짜 맛있어요",
+  "계산해 주세요",
+  "영수증 주세요",
+  "너무 비싸요",
+  "좀 깎아 주세요",
+  "카드로 결제할 수 있어요",
+  "봉투 필요하세요",
+  "커피 한 잔 주세요",
+  "배불러요",
+  "예약하고 싶어요",
+  "추천해 주세요",
+  "쇼핑하러 가요",
+  "백화점에 가요",
+  "이것 좀 보여주세요",
+  "입어봐도 돼요",
+  "다른 거 없어요",
+  "선물이에요",
+
+  // 66-85: Thời gian & Thời tiết
+  "내일 봐요",
+  "어제 뭐 했어요",
+  "비가 와요",
+  "눈이 와요",
+  "날씨가 더워요",
+  "날씨가 추워요",
+  "바람이 많이 불어요",
+  "주말에 시간이 있어요",
+  "몇 시에 만날까요",
+  "벌써 밤이네요",
+  "여름을 좋아해요",
+  "겨울은 너무 추워요",
+  "내일은 맑을 거예요",
+  "태풍이 오고 있어요",
+  "하늘이 예뻐요",
+  "지금 어디예요",
+  "빨리 오세요",
+  "조금 늦을 거예요",
+  "약속이 있어요",
+  "시간이 없어요",
+
+  // 86-100: Học tập & Công việc & Linh tinh
+  "한국어를 공부하고 있어요",
+  "시험이 어려워요",
+  "질문이 있어요",
+  "회의 중이에요",
+  "퇴근하고 싶어요",
+  "휴가 가고 싶어요",
+  "연락드릴게요",
+  "이메일 확인해 보세요",
+  "열심히 하세요",
+  "성공할 거예요",
+  "생일 축하해요",
+  "새해 복 많이 받으세요",
+  "건강하세요",
+  "잘 잤어요",
+  "행운을 빌어요"
+];
+
 export function AlphabetStudyMain({
   modeTitle,
   current,
@@ -37,12 +152,15 @@ export function AlphabetStudyMain({
 }) {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [isDrawing, setIsDrawing] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
   const [strokeCount, setStrokeCount] = useState(0)
   const [strokeScores, setStrokeScores] = useState([])
   const [finalScore, setFinalScore] = useState(null)
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
+  const [isSentenceMode, setIsSentenceMode] = useState(false)
+  const [currentSentence, setCurrentSentence] = useState('')
   const canvasRef = useRef(null)
-  
+
   const selectedStrokeData = alphabetStrokesData.find(s => s.word === current?.word)
   const normalizedStrokes = selectedStrokeData?.strokes
     ? selectedStrokeData.strokes.map(s => s.hangulPoints)
@@ -55,7 +173,23 @@ export function AlphabetStudyMain({
     onSelectFlashcard(index)
     setIsModalVisible(true)
     setIsDrawing(false)
+    setIsTyping(false)
+    setIsSentenceMode(false)
     resetDrawing()
+  }
+
+  const startSentenceTyping = () => {
+    const randomIdx = Math.floor(Math.random() * PRACTICE_SENTENCES.length)
+    setCurrentSentence(PRACTICE_SENTENCES[randomIdx])
+    setIsSentenceMode(true)
+    setIsTyping(false)
+    setIsDrawing(false)
+    setIsModalVisible(true)
+  }
+
+  const handleNextSentence = () => {
+    const randomIdx = Math.floor(Math.random() * PRACTICE_SENTENCES.length)
+    setCurrentSentence(PRACTICE_SENTENCES[randomIdx])
   }
 
   const resetDrawing = () => {
@@ -114,7 +248,7 @@ export function AlphabetStudyMain({
 
   const handleStroke = (path, isEraser) => {
     if (isEraser || !selectedStrokeData || !canvasSize.width || !canvasSize.height || !path || path.paths.length < 3) return
-    
+
     const expectedStrokes = selectedStrokeData.totalStrokes || selectedStrokeData.strokes?.length || 1
     if (finalScore !== null || strokeCount >= expectedStrokes) return
 
@@ -169,7 +303,10 @@ export function AlphabetStudyMain({
           textStyle={{ fontWeight: '700' }}
         />
         <Text style={styles.title}>BẢNG CHỮ CÁI</Text>
-        <FlashcardActionButton title="Kiểm tra" icon={TestIcon} onPress={onTestPress} />
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <FlashcardActionButton title="Luyện gõ câu" icon={TypingIcon} onPress={startSentenceTyping} />
+          <FlashcardActionButton title="Kiểm tra" icon={TestIcon} onPress={onTestPress} />
+        </View>
       </View>
 
       {/* Alphabet Table view */}
@@ -188,8 +325,11 @@ export function AlphabetStudyMain({
         animationType="fade"
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, isDrawing && styles.modalContentDrawing]}>
-            {!isDrawing ? (
+          <View style={[
+            styles.modalContent,
+            (isDrawing || isTyping || isSentenceMode) && styles.modalContentDrawing
+          ]}>
+            {!isDrawing && !isTyping && !isSentenceMode ? (
               <>
                 <TouchableOpacity
                   style={styles.closeButton}
@@ -201,23 +341,23 @@ export function AlphabetStudyMain({
                 {/* Display selected letter */}
                 {current && (
                   <View style={styles.wordInfoContainer}>
-                     <Text style={styles.koreanWord}>{current.word}</Text>
-                     <TouchableOpacity onPress={handlePlaySound} style={styles.soundButton}>
-                       <PronunciationIcon width={32} height={32} fill="#D32F2F" />
-                     </TouchableOpacity>
-                     {current.pronunciation || current.meaning ? (
-                       <Text style={styles.meaningText}>{current.pronunciation || current.meaning}</Text>
-                     ) : null}
+                    <Text style={styles.koreanWord}>{current.word}</Text>
+                    <TouchableOpacity onPress={handlePlaySound} style={styles.soundButton}>
+                      <PronunciationIcon width={32} height={32} fill="#D32F2F" />
+                    </TouchableOpacity>
+                    {current.pronunciation || current.meaning ? (
+                      <Text style={styles.meaningText}>{current.pronunciation || current.meaning}</Text>
+                    ) : null}
                   </View>
                 )}
 
                 {/* Action buttons */}
                 <View style={styles.actions}>
-                  <FlashcardActionButton title="Tập đánh chữ" icon={TypingIcon} onPress={onTypingPress} />
+                  <FlashcardActionButton title="Tập đánh chữ" icon={TypingIcon} onPress={() => setIsTyping(true)} />
                   <FlashcardActionButton title="Vẽ chữ" icon={DrawingIcon} onPress={() => setIsDrawing(true)} />
                 </View>
               </>
-            ) : (
+            ) : isDrawing ? (
               <View style={styles.drawingContainer}>
                 <View style={styles.drawingHeader}>
                   <TouchableOpacity style={styles.backToDetailButton} onPress={() => setIsDrawing(false)}>
@@ -273,6 +413,54 @@ export function AlphabetStudyMain({
                     <Text style={[styles.drawingActionText, { color: '#D32F2F' }]}>Xoá hết</Text>
                   </TouchableOpacity>
                 </View>
+              </View>
+            ) : isTyping ? (
+              <View style={styles.drawingContainer}>
+                <View style={styles.drawingHeader}>
+                  <TouchableOpacity style={styles.backToDetailButton} onPress={() => setIsTyping(false)}>
+                    <ArrowIcon width={16} height={16} style={{ transform: [{ scaleX: -1 }] }} fill="#1A1A1A" />
+                    <Text style={styles.backToDetailText}>Trở về</Text>
+                  </TouchableOpacity>
+                  <View style={styles.drawingTitleContainer}>
+                    <Text style={styles.drawingTitle}>Tập gõ "{current?.word}"</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={() => setIsModalVisible(false)}
+                  >
+                    <Text style={styles.closeButtonText}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TypingPractice
+                  targetWord={current?.word}
+                  onComplete={() => {
+                    // Could add a completion message or effect
+                  }}
+                />
+              </View>
+            ) : (
+              <View style={styles.drawingContainer}>
+                <View style={styles.drawingHeader}>
+                  <TouchableOpacity style={styles.backToDetailButton} onPress={() => { setIsModalVisible(false); setIsSentenceMode(false); }}>
+                    <ArrowIcon width={16} height={16} style={{ transform: [{ scaleX: -1 }] }} fill="#1A1A1A" />
+                    <Text style={styles.backToDetailText}>Thoát</Text>
+                  </TouchableOpacity>
+                  <View style={styles.drawingTitleContainer}>
+                    <Text style={styles.drawingTitle}>Luyện gõ câu ngẫu nhiên</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={[styles.backToDetailButton, { backgroundColor: '#4CAF50' }]}
+                    onPress={handleNextSentence}
+                  >
+                    <Text style={[styles.backToDetailText, { color: '#fff' }]}>Câu tiếp</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TypingPractice
+                  targetWord={currentSentence}
+                  onComplete={handleNextSentence}
+                />
               </View>
             )}
           </View>
@@ -331,8 +519,10 @@ const styles = StyleSheet.create({
   },
   modalContentDrawing: {
     padding: 20,
-    width: '95%',
-    maxWidth: 500,
+    width: '98%',
+    maxWidth: 800,
+    height: '95%',
+    justifyContent: 'flex-start',
   },
   closeButton: {
     alignSelf: 'flex-end',

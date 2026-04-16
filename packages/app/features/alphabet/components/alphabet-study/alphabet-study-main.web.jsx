@@ -9,10 +9,30 @@ import { AlphabetGuideInfo } from './alphabet-guide-info'
 import { ReactSketchCanvas } from 'react-sketch-canvas'
 import alphabetStrokesData from '../../api/alphabet-strokes.json'
 import { GuideStrokes } from '../alphabet-drawing/GuideStrokes'
+import { TypingPractice } from '../alphabet-typing/TypingPractice'
 
 /**
  * AlphabetStudyMain (Web): Nội dung chính của trang học chữ cái Hàn Quốc trên web
  */
+const PRACTICE_SENTENCES = [
+  "안녕하세요 만나서 반가워요",
+  "한국어 공부는 정말 재미있어요",
+  "오늘 날씨가 아주 좋아요",
+  "맛있는 음식을 먹고 싶어요",
+  "저와 함께 한국어를 배워요",
+  "배가 고파요 밥 먹으러 가요",
+  "영화를 보고 싶어요 같이 갈래요",
+  "지금 몇 시예요",
+  "이것은 얼마예요",
+  "이름이 무엇입니까",
+  "저는 베트남 사람입니다",
+  "다시 말해 주세요",
+  "어떻게 지냈어요",
+  "잘 지내고 있어요",
+  "안녕히 계세요",
+  "안녕히 가세요"
+]
+
 export function AlphabetStudyMain({
   modeTitle,
   current,
@@ -35,10 +55,13 @@ export function AlphabetStudyMain({
 }) {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [isDrawing, setIsDrawing] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
   const [strokeCount, setStrokeCount] = useState(0)
   const [strokeScores, setStrokeScores] = useState([])
   const [finalScore, setFinalScore] = useState(null)
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
+  const [isSentenceMode, setIsSentenceMode] = useState(false)
+  const [currentSentence, setCurrentSentence] = useState('')
   const canvasRef = useRef(null)
   const canvasBoxRef = useRef(null)
 
@@ -54,7 +77,23 @@ export function AlphabetStudyMain({
     onSelectFlashcard(index)
     setIsModalVisible(true)
     setIsDrawing(false)
+    setIsTyping(false)
+    setIsSentenceMode(false)
     resetDrawing()
+  }
+
+  const startSentenceTyping = () => {
+    const randomIdx = Math.floor(Math.random() * PRACTICE_SENTENCES.length)
+    setCurrentSentence(PRACTICE_SENTENCES[randomIdx])
+    setIsSentenceMode(true)
+    setIsTyping(false)
+    setIsDrawing(false)
+    setIsModalVisible(true)
+  }
+
+  const handleNextSentence = () => {
+    const randomIdx = Math.floor(Math.random() * PRACTICE_SENTENCES.length)
+    setCurrentSentence(PRACTICE_SENTENCES[randomIdx])
   }
 
   const resetDrawing = () => {
@@ -170,7 +209,10 @@ export function AlphabetStudyMain({
           textStyle={{ fontWeight: '700' }}
         />
         <Text style={styles.title}>BẢNG CHỮ CÁI TIẾNG HÀN</Text>
-        <FlashcardActionButton title="Kiểm tra" icon={PlayCircleOutlined} onPress={onTestPress} />
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <FlashcardActionButton title="Luyện gõ câu" icon={EditOutlined} onPress={startSentenceTyping} />
+          <FlashcardActionButton title="Kiểm tra" icon={PlayCircleOutlined} onPress={onTestPress} />
+        </View>
       </View>
 
       {/* Alphabet Table view */}
@@ -189,8 +231,11 @@ export function AlphabetStudyMain({
         animationType="fade"
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, isDrawing && styles.modalContentDrawing]}>
-            {!isDrawing ? (
+          <View style={[
+            styles.modalContent, 
+            (isDrawing || isTyping || isSentenceMode) && styles.modalContentDrawing
+          ]}>
+            {!isDrawing && !isTyping && !isSentenceMode ? (
               <>
                 <TouchableOpacity 
                   style={styles.closeButton} 
@@ -212,11 +257,11 @@ export function AlphabetStudyMain({
 
                 {/* Action buttons */}
                 <View style={styles.actions}>
-                  <FlashcardActionButton title="Tập đánh chữ" icon={EditOutlined} onPress={onTypingPress} />
+                  <FlashcardActionButton title="Tập đánh chữ" icon={EditOutlined} onPress={() => setIsTyping(true)} />
                   <FlashcardActionButton title="Vẽ chữ" icon={HighlightOutlined} onPress={() => setIsDrawing(true)} />
                 </View>
               </>
-            ) : (
+            ) : isDrawing ? (
               <View style={styles.drawingContainer}>
                 <View style={styles.drawingHeader}>
                   <TouchableOpacity style={styles.backToDetailButton} onPress={() => setIsDrawing(false)}>
@@ -276,6 +321,54 @@ export function AlphabetStudyMain({
                   </TouchableOpacity>
                 </View>
               </View>
+            ) : isTyping ? (
+              <View style={styles.drawingContainer}>
+                <View style={styles.drawingHeader}>
+                  <TouchableOpacity style={styles.backToDetailButton} onPress={() => setIsTyping(false)}>
+                    <ArrowLeftOutlined />
+                    <Text style={styles.backToDetailText}>Quay lại</Text>
+                  </TouchableOpacity>
+                  <View style={styles.drawingTitleContainer}>
+                    <Text style={styles.drawingTitle}>Tập gõ chữ "{current?.word}"</Text>
+                  </View>
+                  <TouchableOpacity 
+                    style={styles.closeButton} 
+                    onPress={() => setIsModalVisible(false)}
+                  >
+                    <Text style={styles.closeButtonText}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TypingPractice 
+                  targetWord={current?.word} 
+                  onComplete={() => {
+                    // Could add a completion message or effect
+                  }} 
+                />
+              </View>
+            ) : (
+              <View style={styles.drawingContainer}>
+                <View style={styles.drawingHeader}>
+                  <TouchableOpacity style={styles.backToDetailButton} onPress={() => { setIsModalVisible(false); setIsSentenceMode(false); }}>
+                    <ArrowLeftOutlined />
+                    <Text style={styles.backToDetailText}>Thoát</Text>
+                  </TouchableOpacity>
+                  <View style={styles.drawingTitleContainer}>
+                    <Text style={styles.drawingTitle}>Luyện gõ câu ngẫu nhiên</Text>
+                  </View>
+                  <TouchableOpacity 
+                    style={[styles.backToDetailButton, { backgroundColor: '#4CAF50' }]}
+                    onPress={handleNextSentence}
+                  >
+                    <Text style={[styles.backToDetailText, { color: '#fff' }]}>Câu tiếp</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TypingPractice 
+                  targetWord={currentSentence} 
+                  onComplete={handleNextSentence} 
+                />
+              </View>
             )}
           </View>
         </View>
@@ -332,7 +425,11 @@ const styles = StyleSheet.create({
   },
   modalContentDrawing: {
     padding: 24,
-    maxWidth: 700,
+    width: '98%',
+    maxWidth: 900,
+    height: '98%',
+    justifyContent: 'flex-start',
+    overflow: 'auto', // for web scrolling
   },
   closeButton: {
     alignSelf: 'flex-end',
