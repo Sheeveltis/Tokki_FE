@@ -1,10 +1,6 @@
 import React from 'react'
 import { View, StyleSheet, ScrollView, Platform } from 'react-native'
-import { Navbar } from '../../../../../components/navbar'
 
-/**
- * AlphabetSelectModeLayout (Web): Layout cho trang chọn học phần chữ cái Hàn Quốc trên web
- */
 export function AlphabetSelectModeLayout({ children }) {
   return (
     <View style={styles.wrapper}>

@@ -4,6 +4,7 @@ import { NavigationPill } from '../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
 import { normalizeImageSource } from '../../../study/api'
 import BunnyStudy from '../../../../../assets/bunny/14.png'
+import BunnySyllable from '../../../../../assets/bunny/13.png'
 import LightbulbIcon from '../../../../../assets/icon/icon-roadmap/lightbulb-minimalistic-svgrepo-com.svg'
 import FolderIcon from '../../../../../assets/icon/icon-mainflow/folder.svg'
 
@@ -63,8 +64,10 @@ export function AlphabetSelectModeMain({
       id: 'letters',
       title: 'Học Chữ Cái',
       description: 'Khám phá bảng chữ cái Hangul cơ bản, cách viết và phát âm từng ký tự đơn lẻ.',
-      primaryColor: '#79964E',
+      primaryColor: '#79964E', // Moss Green
+      secondaryColor: '#E8F5E9',
       icon: LightbulbIcon,
+      image: BunnyStudy,
       badge: 'Cơ bản',
       onPress: onLettersPress
     },
@@ -72,15 +75,22 @@ export function AlphabetSelectModeMain({
       id: 'syllables',
       title: 'Học Ghép Âm',
       description: 'Học cách kết hợp phụ âm và nguyên âm để tạo thành các âm tiết và từ hoàn chỉnh.',
-      primaryColor: '#F1BE4B',
+      primaryColor: '#F1BE4B', // Marigold
+      secondaryColor: '#FFF8E1',
       icon: FolderIcon,
+      image: BunnySyllable,
       badge: 'Nâng cao',
-      onPress: onSyllablesPress
+      onPress: onSyllablesPress,
+      isComingSoon: false
     }
   ]
 
   return (
     <View style={styles.container}>
+      {/* Background Decorations */}
+      <View style={styles.bgDecoration1} />
+      <View style={styles.bgDecoration2} />
+
       {/* Header */}
       <View style={styles.header}>
         <NavigationPill
@@ -94,15 +104,21 @@ export function AlphabetSelectModeMain({
       </View>
 
       <View style={styles.titleSection}>
-        <Text style={styles.title}>Bảng Chữ Cái Hàn Quốc</Text>
-        <Text style={styles.subtitle}>Bắt đầu hành trình chinh phục tiếng Hàn từ những bước căn bản nhất</Text>
+        <View style={styles.titleTag}>
+          <Text style={styles.titleTagText}>LEVEL 01</Text>
+        </View>
+        <Text style={styles.title}>
+          Bảng Chữ Cái <Text style={{ color: '#D32F2F' }}>Hàn Quốc</Text>
+        </Text>
+        <Text style={styles.subtitle}>Bắt đầu hành trình chinh phục tiếng Hàn từ những bước căn bản nhất cùng Tokki</Text>
       </View>
 
       {/* Mode Selection Cards */}
       <View style={styles.grid}>
         {modes.map((mode) => (
-          <View
+          <Pressable
             key={mode.id}
+            onPress={mode.onPress}
             onPointerEnter={() => setHoveredCard(mode.id)}
             onPointerLeave={() => setHoveredCard(null)}
             style={[
@@ -110,52 +126,60 @@ export function AlphabetSelectModeMain({
               hoveredCard === mode.id && styles.moduleCardHovered
             ]}
           >
-            {/* Top accent bar */}
+            {/* Top accent gradient bar */}
             <View style={[styles.topAccentBar, { backgroundColor: mode.primaryColor }]} />
-            
+
             {/* Header */}
             <View style={styles.moduleHeader}>
-              <View style={styles.iconContainer}>
+              <View style={[styles.iconContainer, { backgroundColor: mode.secondaryColor }]}>
                 {renderIcon(mode.icon, [styles.moduleIcon, { tintColor: mode.primaryColor }])}
               </View>
-              <View>
-                <Text style={[styles.moduleTitle, { color: mode.primaryColor }]}>{mode.title}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.moduleTitle, { color: '#1A1A1A' }]}>{mode.title}</Text>
+                <View style={[styles.badgeInline, { backgroundColor: mode.primaryColor + '15' }]}>
+                  <Text style={[styles.badgeText, { color: mode.primaryColor }]}>{mode.badge}</Text>
+                </View>
               </View>
             </View>
 
             {/* Image Content Container */}
             <View style={styles.imageContentContainer}>
-              <Image
-                source={normalizeImageSource(BunnyStudy)}
-                style={styles.moduleImage}
-                resizeMode="cover"
-              />
-              <View style={styles.imageOverlay}>
+              <View style={styles.imageWrapper}>
+                <Image
+                  source={normalizeImageSource(mode.image)}
+                  style={[
+                    styles.moduleImage,
+                    hoveredCard === mode.id && { transform: [{ scale: 1.05 }] }
+                  ]}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.descriptionContainer}>
                 <Text style={styles.modeDescription}>{mode.description}</Text>
               </View>
             </View>
 
-            {/* Action Button */}
-            <Pressable
-              onPress={mode.onPress}
-              style={({ pressed }) => [
-                styles.itemButton,
-                { backgroundColor: mode.primaryColor },
-                pressed && { transform: [{ scale: 0.98 }] },
-                hoveredCard === mode.id && {
-                  boxShadow: `0 8px 16px ${mode.primaryColor}40`,
-                }
-              ]}
-            >
-              <Text style={styles.itemLabel}>Bắt đầu học ngay</Text>
-              {renderIcon(ArrowIcon, { width: 16, height: 16, tintColor: '#FFFFFF' })}
-            </Pressable>
-
-            {/* Badge */}
-            <View style={[styles.badge, { backgroundColor: mode.primaryColor + '15' }]}>
-              <Text style={[styles.badgeText, { color: mode.primaryColor }]}>{mode.badge}</Text>
+            {/* Action Footer */}
+            <View style={styles.footer}>
+              <View
+                style={[
+                  styles.itemButton,
+                  { backgroundColor: mode.primaryColor },
+                  hoveredCard === mode.id && {
+                    boxShadow: `0 8px 24px ${mode.primaryColor}50`,
+                  }
+                ]}
+              >
+                <Text style={styles.itemLabel}>Học ngay</Text>
+                <View style={styles.arrowIconBg}>
+                  {renderIcon(ArrowIcon, { width: 12, height: 12, tintColor: mode.primaryColor })}
+                </View>
+              </View>
             </View>
-          </View>
+
+            {/* Shine effect on hover */}
+            {hoveredCard === mode.id && <View style={styles.shineEffect} />}
+          </Pressable>
         ))}
       </View>
     </View>
@@ -165,7 +189,29 @@ export function AlphabetSelectModeMain({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    gap: 40,
+    gap: 48,
+    position: 'relative',
+    paddingBottom: 40,
+  },
+  bgDecoration1: {
+    position: 'absolute',
+    top: -100,
+    right: -100,
+    width: 400,
+    height: 400,
+    borderRadius: 200,
+    backgroundColor: 'rgba(211, 47, 47, 0.03)',
+    zIndex: -1,
+  },
+  bgDecoration2: {
+    position: 'absolute',
+    bottom: 50,
+    left: -50,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: 'rgba(121, 150, 78, 0.03)',
+    zIndex: -1,
   },
   header: {
     width: '100%',
@@ -174,21 +220,36 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   titleSection: {
-    gap: 12,
+    gap: 16,
+    alignItems: 'flex-start',
+  },
+  titleTag: {
+    backgroundColor: '#1A1A1A',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  titleTagText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '900',
+    fontSize: 42,
+    fontWeight: '950',
     color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
-    letterSpacing: -1,
+    letterSpacing: -1.5,
+    lineHeight: 48,
   },
   subtitle: {
     fontSize: 18,
     fontWeight: '500',
     color: '#666',
     fontFamily: 'Epilogue, sans-serif',
-    maxWidth: 600,
+    maxWidth: 550,
+    lineHeight: 28,
   },
   grid: {
     width: '100%',
@@ -198,26 +259,26 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   moduleCard: {
-    flex: 1,
-    minWidth: 380,
-    borderRadius: 24,
+    width: 380,
+    borderRadius: 32,
     padding: 32,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(230, 230, 230, 0.5)',
+    borderColor: 'rgba(0, 0, 0, 0.05)',
     position: 'relative',
     overflow: 'hidden',
-    gap: 32,
+    gap: 24,
     ...(Platform.OS === 'web' && {
-      boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-      transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.04)',
+      transition: 'all 0.5s cubic-bezier(0.23, 1, 0.32, 1)',
+      cursor: 'pointer',
     }),
   },
   moduleCardHovered: {
-    transform: [{ translateY: -12 }],
-    borderColor: 'rgba(0,0,0,0.02)',
+    transform: [{ translateY: -16 }, { scale: 1.02 }],
+    borderColor: 'rgba(0,0,0,0.08)',
     ...(Platform.OS === 'web' && {
-      boxShadow: '0 30px 60px -12px rgba(0, 0, 0, 0.12), 0 18px 36px -18px rgba(0, 0, 0, 0.15)',
+      boxShadow: '0 40px 80px -15px rgba(0, 0, 0, 0.1), 0 20px 40px -20px rgba(0, 0, 0, 0.1)',
     }),
   },
   topAccentBar: {
@@ -225,69 +286,95 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 8,
-    opacity: 0.9,
+    height: 6,
   },
   moduleHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 20,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
+    width: 56,
+    height: 56,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
   moduleIcon: {
-    width: 32,
-    height: 32,
+    width: 28,
+    height: 28,
   },
   moduleTitle: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '900',
     fontFamily: 'Epilogue, sans-serif',
     letterSpacing: -0.5,
+    marginBottom: 4,
+  },
+  badgeInline: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   imageContentContainer: {
     width: '100%',
-    height: 180,
-    borderRadius: 20,
+    height: 220,
+    borderRadius: 24,
     overflow: 'hidden',
     position: 'relative',
-    backgroundColor: '#F7F7F9',
+    backgroundColor: '#F9FAFB',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  moduleImage: {
+  imageWrapper: {
     width: '100%',
     height: '100%',
-    opacity: 0.9,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
-  imageOverlay: {
+  moduleImage: {
+    width: '80%',
+    height: '80%',
+    ...(Platform.OS === 'web' && {
+      transition: 'transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)',
+    }),
+  },
+  descriptionContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: '40%',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
+    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
     ...(Platform.OS === 'web' && {
-      backdropFilter: 'blur(8px)',
+      backdropFilter: 'blur(10px)',
     }),
   },
   modeDescription: {
-    color: '#FFFFFF',
+    color: '#4B5563',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     fontFamily: 'Epilogue, sans-serif',
     lineHeight: 20,
+    textAlign: 'center',
+  },
+  footer: {
+    width: '100%',
   },
   itemButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 20,
     ...(Platform.OS === 'web' && {
       transition: 'all 0.3s ease',
@@ -299,19 +386,25 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontFamily: 'Epilogue, sans-serif',
   },
-  badge: {
-    position: 'absolute',
-    top: 28,
-    right: 28,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
+  arrowIconBg: {
+    width: 24,
+    height: 24,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  shineEffect: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    ...(Platform.OS === 'web' && {
+      background: 'linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%)',
+    }),
+    pointerEvents: 'none',
   },
 })
+
 
