@@ -363,6 +363,7 @@ export async function fetchExamTemplates(params = {}) {
       searchTerm = '',
       status = 1, // Mặc định là Published (1)
       type = null, // null = lấy tất cả
+      creatorFilter = null,
     } = params
 
     const queryParams = {
@@ -380,6 +381,10 @@ export async function fetchExamTemplates(params = {}) {
 
     if (type !== null && type !== undefined) {
       queryParams.Type = type
+    }
+
+    if (creatorFilter !== null && creatorFilter !== undefined) {
+      queryParams.CreatorFilter = creatorFilter
     }
 
     const res = await apiClient.get(ENDPOINTS.EXAM_TEMPLATES.ADMIN_LIST, {

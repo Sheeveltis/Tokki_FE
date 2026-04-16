@@ -28,6 +28,7 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
     search: '',
     status: null, // Default status is All
     type: null,
+    creatorFilter: 2, // Default to Human (Người tạo)
     page: 1,
     size: 20,
   })
@@ -45,6 +46,7 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
       searchTerm: filters.search,
       status: filters.status,
       type: filters.type,
+      creatorFilter: filters.creatorFilter,
     },
     initialData
   )
@@ -230,6 +232,19 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
         options={[
           { value: 1, label: 'TOPIK I' },
           { value: 2, label: 'TOPIK II' },
+        ]}
+      />
+      <Select
+        allowClear
+        placeholder="Nguồn tạo"
+        suffixIcon={<FilterOutlined />}
+        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
+        value={filters.creatorFilter}
+        onChange={(val) => handleFilterChange('creatorFilter', val)}
+        options={[
+          { value: 0, label: 'Tất cả nguồn' },
+          { value: 1, label: 'Hệ thống A.I' },
+          { value: 2, label: 'Người tạo' },
         ]}
       />
     </Space>
