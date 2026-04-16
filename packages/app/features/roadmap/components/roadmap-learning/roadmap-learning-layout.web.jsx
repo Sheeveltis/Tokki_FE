@@ -31,76 +31,7 @@ export function RoadmapLearningLayout({
   const [isInfoModalVisible, setIsInfoModalVisible] = useState(false)
   const [isGeneratingNextWeek, setIsGeneratingNextWeek] = useState(false)
   const [progressData, setProgressData] = useState(null)
-
-  const handleGenerateNextWeek = async () => {
-    // 1. Xác định tuần mốc (tuần đã hoàn thành)
-    // Nếu tuần hiện tại đã có bài học (đang ở Day 7 chẳng hạn), thì dùng tuần này làm mốc để tạo tuần TIẾP THEO.
-    // Nếu tuần hiện tại đang trống (VD tuần 2 chưa có bài), thì dùng tuần TRƯỚC ĐÓ làm mốc để tạo nội dung cho chính tuần này.
-    const currentWeekInfo = weeks.find(w => w.weekIndex === activeWeekIndex)
-    const hasContent = Array.isArray(currentWeekInfo?.tasks) && currentWeekInfo.tasks.length > 0
-    
-    const referenceWeek = hasContent 
-      ? currentWeekInfo 
-      : weeks.find(w => w.weekIndex === (activeWeekIndex - 1))
-    
-    if (!referenceWeek?.roadmapWeekId) {
-       Alert.alert('Thông báo', 'Không tìm thấy thông tin tuần học tham chiếu để khởi tạo lộ trình.')
-       return
-    }
-
-    setIsGeneratingNextWeek(true)
-    setProgressData({ percent: 10, step: 'Đang bắt đầu phân tích lộ trình...', isCompleted: false })
-    
-    try {
-      // Tăng tiến trình giả lập để user cảm thấy app đang chạy
-      const progressInterval = setInterval(() => {
-        setProgressData(prev => {
-          if (prev && prev.percent < 85) return { ...prev, percent: prev.percent + 5 }
-          return prev
-        })
-      }, 2000)
-
-      // 2. Gọi API tạo tuần tiếp theo với finishedWeekId
-      const response = await apiClient.post(ENDPOINTS.ROADMAP.NEXT_WEEK, {
-        finishedWeekId: referenceWeek.roadmapWeekId
-      })
-
-      clearInterval(progressInterval)
-
-      if (response?.data) {
-        setProgressData({ percent: 100, step: 'Tạo tuần mới thành công!', isCompleted: true })
-        setTimeout(() => {
-          setIsGeneratingNextWeek(false)
-          onRetry?.() // Refresh roadmap data
-
-          // Nếu vừa xong một tuần có học (VD tuần 1), tự động nhảy sang tuần tiếp theo (tuần 2) vừa tạo
-          if (hasContent) {
-            handleWeekChange(activeWeekIndex + 1)
-          }
-        }, 1500)
-      } else {
-        setIsGeneratingNextWeek(false)
-      }
-    } catch (err) {
-      console.error('Failed to generate next week:', err)
-      const status = err.response?.status
-      const backendMessage = err.response?.data?.message
-      
-      if (status === 403) {
-        Alert.alert(
-          'Yêu cầu nâng cấp VIP',
-          'Tính năng tự động thiết kế lộ trình học tập nâng cao chỉ dành cho thành viên VIP. Bạn có muốn nâng cấp ngay không?',
-          [
-            { text: 'Để sau', style: 'cancel' },
-            { text: 'Nâng cấp ngay', onPress: () => router.push('/payment-package'), style: 'default' }
-          ]
-        )
-      } else {
-        Alert.alert('Thông báo', backendMessage || 'Không thể tạo tuần tiếp theo. Vui lòng thử lại.')
-      }
-      setIsGeneratingNextWeek(false)
-    }
-  }
+  const [isCancelling, setIsCancelling] = useState(false)
 
   // ĐỔI MỚI: Quản lý tuần hiện tại
   const [activeWeekIndex, setActiveWeekIndex] = useState(null)
@@ -131,6 +62,147 @@ export function RoadmapLearningLayout({
     setActiveWeekIndex(index)
     // Cập nhật URL để sync trạng thái, giữ cho trải nghiệm như một ứng dụng desktop
     router.replace(`/roadmap/learning?week=${index}`, undefined, { shallow: true })
+  }
+
+  const handleCancelRoadmap = async () => {
+    console.log('Cancel roadmap clicked')
+    const performCancel = async () => {
+      setIsCancelling(true)
+      try {
+        await apiClient.post(ENDPOINTS.ROADMAP.CANCEL)
+        if (Platform.OS === 'web') {
+          window.alert('Đã hủy lộ trình thành công.')
+        } else {
+          Alert.alert('Thành công', 'Đã hủy lộ trình thành công.')
+        }
+        router.push('/roadmap/test')
+      } catch (err) {
+        console.error('Failed to cancel roadmap:', err)
+        if (Platform.OS === 'web') {
+          window.alert('Không thể hủy lộ trình. Vui lòng thử lại sau.')
+        } else {
+          Alert.alert('Lỗi', 'Không thể hủy lộ trình. Vui lòng thử lại sau.')
+        }
+      } finally {
+        setIsCancelling(false)
+      }
+    }
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Bạn có chắc chắn muốn hủy lộ trình hiện tại? Tất cả các mục tiêu và tiến trình tuần này sẽ bị xóa.')) {
+        await performCancel()
+      }
+    } else {
+      Alert.alert(
+        'Xác nhận hủy',
+        'Bạn có chắc chắn muốn hủy lộ trình hiện tại? Tất cả các mục tiêu và tiến trình tuần này sẽ bị xóa.',
+        [
+          { text: 'Hủy bỏ', style: 'cancel' },
+          { 
+            text: 'Xác nhận hủy', 
+            style: 'destructive',
+            onPress: performCancel
+          }
+        ]
+      )
+    }
+  }
+
+  const pollIntervalRef = useRef(null)
+
+  const stopPolling = useCallback(() => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current)
+      pollIntervalRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    return () => stopPolling()
+  }, [stopPolling])
+
+  const pollProgress = useCallback(
+    async (jobId, shouldGoToNextWeek) => {
+      stopPolling()
+      pollIntervalRef.current = setInterval(async () => {
+        try {
+          const response = await apiClient.get(ENDPOINTS.ROADMAP.PROGRESS(jobId))
+          const data = response?.data
+          setProgressData(data)
+
+          if (data?.isCompleted) {
+            stopPolling()
+            setTimeout(() => {
+              setIsGeneratingNextWeek(false)
+              onRetry?.() // Refresh roadmap data
+              if (shouldGoToNextWeek) {
+                handleWeekChange(activeWeekIndex + 1)
+              }
+            }, 1500)
+          } else if (data?.isError) {
+            stopPolling()
+            setIsGeneratingNextWeek(false)
+            Alert.alert('Thông báo', data?.errorMessage || 'Có lỗi xảy ra trong quá trình tạo tuần mới.')
+          }
+        } catch (err) {
+          console.error('Progress polling error:', err)
+        }
+      }, 2000)
+    },
+    [stopPolling, onRetry, activeWeekIndex, handleWeekChange]
+  )
+
+  const handleGenerateNextWeek = async () => {
+    // 1. Xác định tuần mốc (tuần đã hoàn thành)
+    // Nếu tuần hiện tại đã có bài học (đang ở Day 7 chẳng hạn), thì dùng tuần này làm mốc để tạo tuần TIẾP THEO.
+    // Nếu tuần hiện tại đang trống (VD tuần 2 chưa có bài), thì dùng tuần TRƯỚC ĐÓ làm mốc để tạo nội dung cho chính tuần này.
+    const currentWeekInfo = weeks.find(w => w.weekIndex === activeWeekIndex)
+    const hasContent = Array.isArray(currentWeekInfo?.tasks) && currentWeekInfo.tasks.length > 0
+    
+    const referenceWeek = hasContent 
+      ? currentWeekInfo 
+      : weeks.find(w => w.weekIndex === (activeWeekIndex - 1))
+    
+    if (!referenceWeek?.roadmapWeekId) {
+       Alert.alert('Thông báo', 'Không tìm thấy thông tin tuần học tham chiếu để khởi tạo lộ trình.')
+       return
+    }
+
+    setIsGeneratingNextWeek(true)
+    setProgressData({ percent: 10, step: 'Đang bắt đầu phân tích lộ trình...', isCompleted: false })
+    
+    try {
+      // 2. Gọi API tạo tuần tiếp theo với finishedWeekId
+      const response = await apiClient.post(ENDPOINTS.ROADMAP.NEXT_WEEK, {
+        finishedWeekId: referenceWeek.roadmapWeekId
+      })
+
+      const jobId = response?.data?.data
+      if (jobId) {
+        setProgressData({ percent: 0, step: 'Đang bắt đầu...', isCompleted: false })
+        pollProgress(jobId, hasContent)
+      } else {
+        setIsGeneratingNextWeek(false)
+      }
+    } catch (err) {
+      console.error('Failed to generate next week:', err)
+      const status = err.response?.status
+      const backendMessage = err.response?.data?.message
+      
+      if (status === 403) {
+        Alert.alert(
+          'Yêu cầu nâng cấp VIP',
+          'Tính năng tự động thiết kế lộ trình học tập nâng cao chỉ dành cho thành viên VIP. Bạn có muốn nâng cấp ngay không?',
+          [
+            { text: 'Để sau', style: 'cancel' },
+            { text: 'Nâng cấp ngay', onPress: () => router.push('/payment-package'), style: 'default' }
+          ]
+        )
+      } else {
+        Alert.alert('Thông báo', backendMessage || 'Không thể tạo tuần tiếp theo. Vui lòng thử lại.')
+      }
+      setIsGeneratingNextWeek(false)
+    }
   }
 
   const targetAim = roadmapData?.targetAim || 1
@@ -218,6 +290,14 @@ export function RoadmapLearningLayout({
               </View>
 
               <View style={styles.headerActions}>
+                <Pressable
+                  onPress={handleCancelRoadmap}
+                  style={({ pressed }) => [styles.cancelIconButton, pressed && styles.cancelIconButtonPressed]}
+                  disabled={isCancelling}
+                >
+                  <Text style={styles.cancelBtnText}>Hủy lộ trình</Text>
+                </Pressable>
+
                 <Pressable
                   onPress={() => setIsHistoryModalVisible(true)}
                   style={({ pressed }) => [styles.historyIconButton, pressed && styles.historyIconButtonPressed]}
@@ -702,6 +782,25 @@ const styles = StyleSheet.create({
   historyIconButtonPressed: {
     backgroundColor: '#D38E3F',
     transform: [{ scale: 0.96 }]
+  },
+  cancelIconButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 100,
+    backgroundColor: '#FFF1F0',
+    borderWidth: 1,
+    borderColor: '#FFA39E',
+    marginRight: 10,
+    ...(Platform.OS === 'web' && { cursor: 'pointer', transition: 'all 0.15s ease' }),
+  },
+  cancelIconButtonPressed: {
+    backgroundColor: '#FFCCC7',
+    transform: [{ scale: 0.96 }]
+  },
+  cancelBtnText: {
+    color: '#F5222D',
+    fontSize: 14,
+    fontWeight: '600',
   },
   weekPillPressed: {
     transform: [{ scale: 0.98 }],
