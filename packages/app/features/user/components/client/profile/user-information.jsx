@@ -6,12 +6,10 @@ import { getCurrentUser, updateBasicInfo, uploadAvatar, uploadAvatarToCloudinary
 import { showAdminSuccess } from '../../../../../../components/HelperAdmin'
 import { BasicInfo } from './basic-info'
 import { ProfileEditModal } from './profile-edit-modal'
-import { ProfileEditModal } from './profile-edit-modal'
 import { UserAvatarCard } from './user-avt'
 import { UserExp } from './user-exp'
 import { UserStreak } from './user-streak'
 import { UserTitle } from './user-title'
-import { UserTitlesModal } from './user-titles-modal'
 import { UserTitlesModal } from './user-titles-modal'
 
 const normalizeImageSource = (src) => {
@@ -60,7 +58,6 @@ export function UserInformation() {
     fetchUserData()
   }, [])
 
-  const handleProfileUpdate = async (values) => {
   const handleProfileUpdate = async (values) => {
     try {
       const updatedData = await updateBasicInfo({
