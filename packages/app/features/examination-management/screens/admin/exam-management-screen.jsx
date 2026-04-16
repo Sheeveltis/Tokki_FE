@@ -9,6 +9,7 @@ import ManagementLayout from '../../../../../components/layout/management-layout
 import { useExamsAdmin } from '../../api/exam-hooks.js'
 import { deleteExam, importExams, exportExams } from '../../api/exam-management.js'
 import CreateExamModal from '../../components/admin/create-exam-modal.jsx'
+import { EditExamInfoModal } from '../../components/admin/exam-detail/edit-exam-info-modal.jsx'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { useManagementFilters } from '../../../back-office/hooks/use-management-filters.js'
@@ -59,6 +60,8 @@ export function ExamManagement({ initialData = null }) {
   })
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingRecord, setEditingRecord] = useState(null)
   const [importing, setImporting] = useState(false)
   const [exporting, setExporting] = useState(false)
   const fileInputRef = React.useRef(null)
@@ -182,7 +185,8 @@ export function ExamManagement({ initialData = null }) {
                 style={iconStyle}
                 onClick={(e) => {
                   e?.stopPropagation?.()
-                  router.push(`/admin/exams/${record.examId}`)
+                  setEditingRecord(record)
+                  setEditModalOpen(true)
                 }}
               />
             </Tooltip>
@@ -440,6 +444,20 @@ export function ExamManagement({ initialData = null }) {
         onSuccess={async (examId) => {
           await queryClient.invalidateQueries({ queryKey: ['exams', 'admin'] })
           router.push(`/admin/exams/${examId}`)
+        }}
+      />
+
+      <EditExamInfoModal
+        open={editModalOpen}
+        exam={editingRecord}
+        onCancel={() => {
+          setEditModalOpen(false)
+          setEditingRecord(null)
+        }}
+        onSuccess={async () => {
+          await queryClient.invalidateQueries({ queryKey: ['exams', 'admin'] })
+          setEditModalOpen(false)
+          setEditingRecord(null)
         }}
       />
 

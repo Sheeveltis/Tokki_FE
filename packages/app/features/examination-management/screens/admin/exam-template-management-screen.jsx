@@ -3,8 +3,9 @@ import { useRouter } from 'solito/navigation'
 import { Space, Select, message, Modal, Tooltip, Button } from 'antd'
 import { EyeOutlined, CopyOutlined, FilterOutlined, PlusOutlined, EditOutlined, SearchOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import CreateExamTemplateModal from '../../components/admin/create-exam-template/CreateExamTemplateModal.jsx'
+import EditExamTemplateModal from '../../components/admin/exam-template-detail/EditExamTemplateModal.jsx'
 import { useExamTemplatesQuery } from '../../../back-office/api/useAdminQueries.js'
-import { duplicateExamTemplate, importExamTemplates, exportExamTemplates } from '../../../back-office/api/admin-index.js'
+import { duplicateExamTemplate, importExamTemplates, exportExamTemplates, updateExamTemplate } from '../../../back-office/api/admin-index.js'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -34,6 +35,8 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
   })
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingRecord, setEditingRecord] = useState(null)
   const [importing, setImporting] = useState(false)
   const [exporting, setExporting] = useState(false)
   const fileInputRef = React.useRef(null)
@@ -188,7 +191,8 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
                 style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
                 onClick={(e) => {
                   e?.stopPropagation?.()
-                  router.push(`${basePath}/exam-templates/${id}`)
+                  setEditingRecord(record)
+                  setEditModalOpen(true)
                 }}
               />
             </Tooltip>
@@ -353,6 +357,30 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
             setCreateModalOpen(false)
             refetch()
             router.push(`${basePath}/exam-templates/${examTemplateId}`)
+          }}
+        />
+      )}
+
+      {editModalOpen && (
+        <EditExamTemplateModal
+          open={editModalOpen}
+          examTemplate={editingRecord}
+          onCancel={() => {
+            setEditModalOpen(false)
+            setEditingRecord(null)
+          }}
+          onSuccess={async (payload) => {
+            try {
+              const id = editingRecord.id || editingRecord.ExamTemplateId || editingRecord.examTemplateId
+              await updateExamTemplate(id, payload)
+              message.success('Cập nhật mẫu đề thành công')
+              setEditModalOpen(false)
+              setEditingRecord(null)
+              refetch()
+            } catch (error) {
+              // Message error đã được bắn trong updateExamTemplate hoặc Detail modal
+              throw error
+            }
           }}
         />
       )}
