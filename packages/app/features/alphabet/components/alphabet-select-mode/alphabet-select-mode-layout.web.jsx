@@ -35,30 +35,33 @@ const styles = StyleSheet.create({
   },
   mainWrapper: {
     width: '100%',
-    maxWidth: 1400,
-    flex: 1,
-    paddingVertical: 24,
-    paddingHorizontal: 20,
+    maxWidth: 1200,
+    paddingTop: 32,
+    paddingBottom: 48,
+    paddingHorizontal: 24,
     alignSelf: 'center',
   },
   dashboardContainer: {
-    flex: 1,
+    width: '100%',
   },
   contentCard: {
-    flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
+    borderRadius: 40,
     borderWidth: 1,
-    borderColor: '#F0F0F0',
+    borderColor: 'rgba(0,0,0,0.04)',
     overflow: 'hidden',
-    ...(Platform.OS === 'web' && { boxShadow: '0 10px 40px rgba(0,0,0,0.03)' }),
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 20px 50px rgba(0,0,0,0.04)',
+    }),
   },
   contentCardScroll: {
-    flex: 1,
+    width: '100%',
   },
   contentCardInner: {
     padding: 32,
-    gap: 24,
+    paddingTop: 24,
+    paddingBottom: 64,
+    gap: 48,
   },
 })
 
