@@ -100,6 +100,15 @@ export const getBlogById = async (id) => {
 }
 
 /**
+ * Lấy chi tiết blog cho quản lý người dùng (xem trước bài viết của mình)
+ */
+export const getBlogUserDetail = async (id) => {
+  const res = await apiClient.get(ENDPOINTS.BLOG.GET_USER_DETAIL(id))
+  const response = res.data
+  return parseBlogDetailResponse(response)
+}
+
+/**
  * Lấy blog theo slug
  * Tự động extract ID từ slug (phần cuối cùng) và gọi getBlogById
  * @param {string} slug - Slug của blog (ví dụ: "10-quy-tac-bat-di-bat-dich-abc123")
@@ -145,22 +154,57 @@ export const getTopAuthors = async (count = 5) => {
 /**
  * Danh sách blog cho admin với pagination
  */
-export const getBlogsAdmin = async ({ pageNumber = 1, pageSize = 10, status } = {}) => {
-  const params = { PageNumber: pageNumber, PageSize: pageSize }
-  if (status !== undefined && status !== null && status !== '') {
-    params.Status = status
+export const getBlogsAdmin = async ({ pageNumber = 1, pageSize = 10, categoryId, keyword, status } = {}) => {
+  const params = { 
+    PageNumber: pageNumber, 
+    PageSize: pageSize,
+    CategoryId: categoryId || undefined,
+    Keyword: keyword || undefined,
+    Status: status !== undefined ? status : undefined
   }
+  
   const res = await apiClient.get(ENDPOINTS.BLOG.ADMIN_LIST, { params })
   const data = res?.data?.data || {}
+  
   const items = Array.isArray(data.items) ? data.items.map((item) => ({
     ...item,
-    // Chuẩn hóa để bảng hiển thị
-    authorName: item.authorName || item.authorId,
+    authorName: item.author?.fullName || item.authorName || item.authorId,
+    categoryName: item.categoryName || '',
   })) : []
+  
   return {
     items,
     totalPages: data.totalPages || 1,
-    totalCount: data.totalCount || (data.items?.length || 0),
+    totalCount: data.totalCount || 0,
+    pageNumber: data.pageNumber || pageNumber,
+    pageSize: data.pageSize || pageSize,
+  }
+}
+
+/**
+ * Danh sách blog của riêng user hiện tại
+ */
+export const getMyBlogs = async ({ pageNumber = 1, pageSize = 10, keyword, status } = {}) => {
+  const params = { 
+    pageNumber, 
+    pageSize,
+    keyword: keyword || undefined,
+    status: status !== undefined ? status : undefined
+  }
+  
+  const res = await apiClient.get(ENDPOINTS.BLOG.MY_BLOGS, { params })
+  const data = res?.data?.data || {}
+  
+  const items = Array.isArray(data.items) ? data.items.map((item) => ({
+    ...item,
+    authorName: item.author?.fullName || item.authorName || item.authorId,
+    categoryName: item.categoryName || '',
+  })) : []
+  
+  return {
+    items,
+    totalPages: data.totalPages || 1,
+    totalCount: data.totalCount || 0,
     pageNumber: data.pageNumber || pageNumber,
     pageSize: data.pageSize || pageSize,
   }
@@ -174,6 +218,64 @@ export const getAllCategories = async () => {
   const res = await apiClient.get(ENDPOINTS.CATEGORY.GET_ALL)
   const data = res?.data?.data
   return Array.isArray(data) ? data : []
+}
+
+/**
+ * Lấy danh sách danh mục có phân trang
+ */
+export const getCategoriesPaged = async ({ pageNumber = 1, pageSize = 10, searchTerm = '' } = {}) => {
+  const params = { pageNumber, pageSize, searchTerm }
+  const res = await apiClient.get(ENDPOINTS.CATEGORY.GET_PAGED, { params })
+  const data = res?.data?.data || {}
+  return {
+    items: data.items || [],
+    totalCount: data.totalCount || 0,
+    totalPages: data.totalPages || 1,
+  }
+}
+
+/**
+ * Tạo danh mục mới
+ */
+export const createCategory = async (payload) => {
+  const res = await apiClient.post(ENDPOINTS.CATEGORY.CREATE, payload)
+  return res.data
+}
+
+/**
+ * Cập nhật danh mục
+ */
+export const updateCategory = async (id, payload) => {
+  const res = await apiClient.put(ENDPOINTS.CATEGORY.UPDATE(id), payload)
+  return res.data
+}
+
+/**
+ * Xóa danh mục
+ */
+export const deleteCategory = async (id) => {
+  const res = await apiClient.delete(ENDPOINTS.CATEGORY.DELETE(id))
+  return res.data
+}
+
+/**
+ * Import danh mục từ Excel
+ */
+export const importCategories = async (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await apiClient.post('/Category/import', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+  return res.data
+}
+
+/**
+ * Export danh mục ra Excel
+ */
+export const exportCategories = async () => {
+  const res = await apiClient.get('/Category/export', { responseType: 'blob' })
+  return res.data
 }
 
 /**
@@ -224,6 +326,24 @@ export const updateBlog = async (blogId, payload) => {
 export const deleteBlog = async (blogId) => {
   const res = await apiClient.delete(ENDPOINTS.BLOG.DELETE(blogId))
   // Response format: { isSuccess: true, data: {...}, errors: null, message: '...', statusCode: 200 }
+  return res.data
+}
+
+/**
+ * Lưu bài viết (Tạo mới hoặc cập nhật - dùng cho Client)
+ * @param {Object} payload 
+ */
+export const saveBlog = async (payload) => {
+  const res = await apiClient.post(ENDPOINTS.BLOG.SAVE, payload)
+  return res.data
+}
+
+/**
+ * Gửi duyệt bài viết
+ * @param {string} blogId 
+ */
+export const submitBlogForApproval = async (blogId) => {
+  const res = await apiClient.post(ENDPOINTS.BLOG.USER_SUBMIT_APPROVAL(blogId))
   return res.data
 }
 

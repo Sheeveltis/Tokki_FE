@@ -7,6 +7,7 @@ import { LessonDetailScreen } from '@tokki/app/features/examination-management/s
 import { CreateBlogScreen } from '@tokki/app/features/blog/screens/admin/create-blog-screen'
 import { ViewBlogScreen } from '@tokki/app/features/blog/screens/admin/view-blog-screen'
 import { EditBlogScreen } from '@tokki/app/features/blog/screens/admin/edit-blog-screen'
+import { CategoryManagement } from '@tokki/app/features/blog/screens/admin/category-management-screen'
 import { UserDetailScreen } from '@tokki/app/features/user/screens/admin/user-detail-screen'
 import { CreateUserScreen } from '@tokki/app/features/user/screens/admin/create-user-screen'
 import { CreateAdminStaffScreen } from '@tokki/app/features/user/screens/admin/create-admin-staff-screen'
@@ -64,6 +65,7 @@ export const adminRoutes = [
       // Admin - Blog Module
       { path: 'blog/create', element: <CreateBlogScreen /> },
       { path: 'blog/:id/edit', element: <EditBlogScreen /> },
+      { path: 'blog/category', element: <CategoryManagement /> },
       { path: 'blog/:id', element: <ViewBlogScreen /> },
 
       // Admin - Users Module

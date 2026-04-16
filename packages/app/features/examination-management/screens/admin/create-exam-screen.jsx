@@ -91,7 +91,7 @@ export function CreateExamScreen() {
   return (
     <>
       <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto' }}>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Space orientation="vertical" size="large" style={{ width: '100%' }}>
           {/* Header */}
           <div>
             <Title level={2} style={{ margin: 0 }}>
@@ -206,13 +206,11 @@ export function CreateExamScreen() {
                     type="primary"
                     onClick={() => form.submit()}
                     loading={loading}
-                    style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#F1BE4B', borderColor: '#F1BE4B' }}
                   >
                     Tạo đề thi
                   </Button>
                   <Button
                     onClick={() => router.push('/admin?tab=exam-management')}
-                    style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#373039', color: '#fff', border: 'none' }}
                   >
                     Hủy
                   </Button>

@@ -26,19 +26,10 @@ export const adminMenuItems = [
     icon: <UserOutlined />,
     label: 'Quản lý Người dùng',
     children: [
-      { key: 'users-all', icon: <UserOutlined />, label: 'Tài khoản' },
+      { key: 'users-all', icon: <UserOutlined />, label: 'Người dùng' },
       { key: 'title-management', icon: <TrophyOutlined />, label: 'Danh hiệu' },
     ],
   },
-  // {
-  //   key: 'content',
-  //   icon: <BookOutlined />,
-  //   label: 'Quản lý Nội dung',
-  //   children: [
-  //     { key: 'lessons', icon: <BookOutlined />, label: 'Bài học' },
-  //     { key: 'blog', icon: <FileTextOutlined />, label: 'Bài viết' },
-  //   ],
-  // },
   {
     key: 'vocabulary',
     icon: <DatabaseOutlined />,
@@ -49,14 +40,31 @@ export const adminMenuItems = [
     ],
   },
   {
+    key: 'pronunciation-parent',
+    icon: <CustomerServiceOutlined />,
+    label: 'Quản lý Phát âm',
+    children: [
+      { key: 'pronunciation-management', icon: <MessageOutlined />, label: 'Quy tắc phát âm' },
+    ],
+  },
+  {
     key: 'exam',
     icon: <FileDoneOutlined />,
     label: 'Quản lý Đề',
     children: [
-      { key: 'exam-template', icon: <FormOutlined />, label: 'Cấu trúc đề' },
       { key: 'question-bank', icon: <QuestionCircleOutlined />, label: 'Bộ câu hỏi' },
-      { key: 'passage-management', icon: <FileTextOutlined />, label: 'Passage' },
+      { key: 'exam-template', icon: <FormOutlined />, label: 'Cấu trúc đề' },
+      // { key: 'passage-management', icon: <FileTextOutlined />, label: 'Passage' },
       { key: 'exam-management', icon: <FileDoneOutlined />, label: 'Đề' },
+    ],
+  },
+  {
+    key: 'blog-parent',
+    icon: <FileTextOutlined />,
+    label: 'Quản lý Bài viết',
+    children: [
+      { key: 'blog', icon: <FileTextOutlined />, label: 'Bài viết' },
+      { key: 'blog-category', icon: <BookOutlined />, label: 'Danh mục' },
     ],
   },
   {
@@ -81,8 +89,8 @@ export const adminMenuItems = [
     ],
   },
   { key: 'ai-statistics', icon: <ThunderboltOutlined />, label: 'Báo cáo thống kê A.I' },
-  { key: 'system-log', icon: <DatabaseOutlined />, label: 'System Log' },
-  { key: 'settings', icon: <SettingOutlined />, label: 'Cài đặt' },
+  // { key: 'system-log', icon: <DatabaseOutlined />, label: 'System Log' },
+  // { key: 'settings', icon: <SettingOutlined />, label: 'Cài đặt' },
   { key: 'system-config', icon: <DatabaseOutlined />, label: 'Cấu hình hệ thống' },
   {
     type: 'divider',

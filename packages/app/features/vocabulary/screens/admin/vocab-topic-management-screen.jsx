@@ -1,11 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
-import { Space, Select, Modal, InputNumber, Tooltip } from 'antd'
+import { Space, Select, Modal, InputNumber, Tooltip, message } from 'antd'
 import { EyeOutlined, EditOutlined, SwapOutlined, PlusOutlined, GlobalOutlined, ArrowLeftOutlined, CheckCircleOutlined, CloseCircleOutlined, UploadOutlined, DownloadOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useRouter } from 'solito/navigation'
 import { searchFlashcardTopics, createFlashcardTopic, approveTopic, rejectTopic, updateFlashcardTopic, uploadTopicImageToCloudinary, updateTopicOrderIndex, deleteTopic } from '../../api/index.js'
-import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 import FlashcardTopicCreateModal from '../../components/admin/vocab-topic-management/vocab-topic-create-modal.jsx'
 import TopicApprovalModal from '../../components/admin/vocab-topic-detail/topic-approval-modal.jsx'
@@ -151,17 +150,14 @@ export function FlashcardTopicManagement({ initialData = null }) {
       setData((prev) => [newTopic, ...prev])
 
       // Refresh pending count nếu topic mới có status = 3
-      showAdminSuccess('Đã tạo chủ đề flashcard thành công')
+      message.success('Đã tạo chủ đề flashcard thành công')
       setCreateModalOpen(false)
     } catch (err) {
-      // err có thể là response object từ API hoặc error object
       if (err?.isSuccess === false || err?.errors) {
-        // Là response từ API với lỗi
         const errorMessage = err?.message || err?.errors?.[0]?.description || 'Tạo chủ đề flashcard thất bại'
-        showAdminError(errorMessage, err?.statusCode)
+        message.error(errorMessage)
       } else {
-        // Là error khác
-        showAdminError(err?.message || 'Tạo chủ đề flashcard thất bại')
+        message.error(err?.message || 'Tạo chủ đề flashcard thất bại')
       }
     } finally {
       setCreateLoading(false)
@@ -192,17 +188,17 @@ export function FlashcardTopicManagement({ initialData = null }) {
       if (values.approvalType === 'approve') {
         // Đồng ý phê duyệt
         await approveTopic(topicIdForApproval)
-        showAdminSuccess('Phê duyệt chủ đề thành công')
+        message.success('Phê duyệt chủ đề thành công')
       } else {
         // Từ chối phê duyệt
         const rejectReason = values.rejectionReason?.trim() || ''
         if (!rejectReason || rejectReason.length < 10) {
-          showAdminError('Lý do từ chối phải có ít nhất 10 ký tự')
+          message.error('Lý do từ chối phải có ít nhất 10 ký tự')
           setApprovalLoading(false)
           return
         }
         await rejectTopic(topicIdForApproval, rejectReason)
-        showAdminSuccess('Từ chối phê duyệt chủ đề thành công')
+        message.success('Từ chối phê duyệt chủ đề thành công')
       }
 
       // Reload lại danh sách sau khi phê duyệt
@@ -212,7 +208,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
       setTopicIdForApproval(null)
     } catch (err) {
       const errorMessage = err?.message || err?.errors?.[0]?.description || 'Không thể phê duyệt chủ đề'
-      showAdminError(errorMessage, err?.statusCode)
+      message.error(errorMessage)
     } finally {
       setApprovalLoading(false)
     }
@@ -231,12 +227,12 @@ export function FlashcardTopicManagement({ initialData = null }) {
       setEditLoading(true)
       const topicId = editingTopic?.id || editingTopic?._raw?.topicId
       if (!topicId) {
-        showAdminError('Không tìm thấy ID chủ đề')
+        message.error('Không tìm thấy ID chủ đề')
         return
       }
 
       if (!values?.topicName || !values?.description) {
-        showAdminError('Vui lòng nhập đầy đủ thông tin')
+        message.error('Vui lòng nhập đầy đủ thông tin')
         return
       }
 
@@ -245,11 +241,11 @@ export function FlashcardTopicManagement({ initialData = null }) {
         try {
           imgUrl = await uploadTopicImageToCloudinary(values.imageFile)
           if (!imgUrl) {
-            showAdminError('Không thể upload ảnh lên Cloudinary')
+            message.error('Không thể upload ảnh lên Cloudinary')
             return
           }
         } catch (err) {
-          showAdminError(err?.message || 'Không thể upload ảnh lên Cloudinary')
+          message.error(err?.message || 'Không thể upload ảnh lên Cloudinary')
           return
         }
       }
@@ -265,16 +261,16 @@ export function FlashcardTopicManagement({ initialData = null }) {
         imgUrl: imgUrl,
       })
 
-      showAdminSuccess('Đã cập nhật chủ đề thành công')
+      message.success('Đã cập nhật chủ đề thành công')
       setEditModalOpen(false)
       setEditingTopic(null)
       await loadData(pagination.current, pagination.pageSize, searchTerm, level, status)
     } catch (err) {
       if (err?.isSuccess === false || err?.errors) {
         const errorMessage = err?.message || err?.errors?.[0]?.description || 'Cập nhật chủ đề thất bại'
-        showAdminError(errorMessage, err?.statusCode)
+        message.error(errorMessage)
       } else {
-        showAdminError(err?.message || 'Cập nhật chủ đề thất bại')
+        message.error(err?.message || 'Cập nhật chủ đề thất bại')
       }
     } finally {
       setEditLoading(false)
@@ -296,14 +292,14 @@ export function FlashcardTopicManagement({ initialData = null }) {
     try {
       setOrderLoading(true)
       await updateTopicOrderIndex(topicId, nextOrderIndex)
-      showAdminSuccess('Cập nhật thứ tự chủ đề thành công')
+      message.success('Cập nhật thứ tự chủ đề thành công')
       setOrderModalOpen(false)
       setOrderTopic(null)
       setOrderValue(null)
       await loadData(pagination.current, pagination.pageSize, searchTerm, level, status)
     } catch (err) {
       const errorMessage = err?.message || err?.errors?.[0]?.description || 'Không thể cập nhật thứ tự chủ đề'
-      showAdminError(errorMessage, err?.statusCode)
+      message.error(errorMessage)
     } finally {
       setOrderLoading(false)
     }
@@ -320,23 +316,30 @@ export function FlashcardTopicManagement({ initialData = null }) {
     e?.stopPropagation?.()
     Modal.confirm({
       title: 'Xóa chủ đề',
+      centered: true,
       content: `Bạn có chắc chắn muốn xóa chủ đề "${record?.title || record?._raw?.topicName}" không?`,
       okText: 'Xóa',
       okType: 'danger',
       cancelText: 'Hủy',
+      okButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
+      cancelButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
       onOk: async () => {
         try {
           const topicId = record?.id || record?.topicId || record?._raw?.topicId
           if (!topicId) {
-            showAdminError('Không tìm thấy ID chủ đề')
+            message.error('Không tìm thấy ID chủ đề')
             return
           }
           await deleteTopic(topicId)
-          showAdminSuccess('Xóa chủ đề thành công')
+          message.success('Xóa chủ đề thành công')
           await loadData(pagination.current, pagination.pageSize, searchTerm, level, status)
         } catch (err) {
           const errorMessage = err?.message || err?.errors?.[0]?.description || 'Không thể xóa chủ đề'
-          showAdminError(errorMessage, err?.statusCode)
+          message.error(errorMessage)
         }
       },
     })
@@ -523,13 +526,13 @@ export function FlashcardTopicManagement({ initialData = null }) {
       label: 'Import',
       icon: <UploadOutlined />,
       type: 'dashed',
-      onPress: () => showAdminSuccess('Tính năng Import sắp ra mắt'),
+      onPress: () => message.success('Tính năng Import sắp ra mắt'),
     },
     {
       label: 'Export',
       icon: <DownloadOutlined />,
       type: 'dashed',
-      onPress: () => showAdminSuccess('Đang xuất dữ liệu...'),
+      onPress: () => message.success('Đang xuất dữ liệu...'),
     },
     status === 3
       ? {
@@ -573,7 +576,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
               placeholder="Chọn level"
               value={level}
               onChange={(value) => setFilters(prev => ({ ...prev, level: value || 1, page: 1 }))}
-              style={{ width: 150 }}
+              style={{ width: 'clamp(120px, 10vw, 160px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
             >
               {[1, 2, 3, 4, 5, 6].map((lvl) => (
                 <Option key={lvl} value={lvl}>
@@ -585,7 +588,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
               placeholder="Chọn trạng thái"
               value={status}
               onChange={(val) => setFilters(prev => ({ ...prev, status: val, page: 1 }))}
-              style={{ width: 150 }}
+              style={{ width: 'clamp(140px, 12vw, 200px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
             >
               {STATUS_OPTIONS.map((option) => (
                 <Option key={option.value} value={option.value}>
@@ -658,6 +661,12 @@ export function FlashcardTopicManagement({ initialData = null }) {
         okText="Lưu"
         cancelText="Hủy"
         confirmLoading={orderLoading}
+        okButtonProps={{ 
+          style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+        }}
+        cancelButtonProps={{ 
+          style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+        }}
         centered
         width={420}
       >

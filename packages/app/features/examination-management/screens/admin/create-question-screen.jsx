@@ -15,7 +15,7 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   
-  const LayoutComponent = layout === 'staff' ? StaffLayout : AdminLayout
+
   
   const handleNavigate = (key) => {
     const prefix = layout === 'staff' ? '/staff' : '/admin'
@@ -143,71 +143,66 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
   }
 
   return (
-    <>
-      <div style={{ padding: 24 }}>
-        <Card>
-          <Space direction="vertical" size="large" style={{ width: '100%' }}>
-            <div>
-              <Title level={3} style={{ marginBottom: 4 }}>
-                Tạo câu hỏi mới
-              </Title>
-            </div>
+    <div style={{ padding: 24 }}>
+      <Card>
+        <Space orientation="vertical" size="large" style={{ width: '100%' }}>
+          <div>
+            <Title level={3} style={{ marginBottom: 4 }}>
+              Tạo câu hỏi mới
+            </Title>
+          </div>
 
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={handleSubmit}
-              onFinishFailed={({ errorFields }) => {
-                const firstError = errorFields?.[0]?.errors?.[0]
-                if (firstError) {
-                  showAdminError(firstError)
-                } else {
-                  showAdminError('Vui lòng kiểm tra lại các trường bắt buộc')
-                }
-              }}
-              initialValues={{
-                options: [
-                  { keyOption: 1, content: '', imageUrl: '', isCorrect: false },
-                  { keyOption: 2, content: '', imageUrl: '', isCorrect: false },
-                ],
-              }}
-            >
-              <QuestionForm form={form} questionTypeId={questionTypeId} />
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleSubmit}
+            onFinishFailed={({ errorFields }) => {
+              const firstError = errorFields?.[0]?.errors?.[0]
+              if (firstError) {
+                showAdminError(firstError)
+              } else {
+                showAdminError('Vui lòng kiểm tra lại các trường bắt buộc')
+              }
+            }}
+            initialValues={{
+              options: [
+                { keyOption: 1, content: '', imageUrl: '', isCorrect: false },
+                { keyOption: 2, content: '', imageUrl: '', isCorrect: false },
+              ],
+            }}
+          >
+            <QuestionForm form={form} questionTypeId={questionTypeId} />
 
-              {/* hidden fields for local files */}
-              <Form.Item name="mediaFile" hidden>
-                <Input type="hidden" />
-              </Form.Item>
+            <Form.Item name="mediaFile" hidden>
+              <Input type="hidden" />
+            </Form.Item>
 
-              <Divider />
+            <Divider />
 
-              <AnswerForm form={form} />
+            <AnswerForm form={form} />
 
-              <Divider />
+            <Divider />
 
-              <Form.Item>
-                <Space>
-                  <Button
-                    onClick={handleCancel}
-                    style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#373039', color: '#fff', border: 'none' }}
-                  >
-                    Hủy
-                  </Button>
-                  <Button
-                    type="primary"
-                    onClick={() => form.submit()}
-                    loading={loading}
-                    style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#F87218', borderColor: '#F87218' }}
-                  >
-                    Tạo mới
-                  </Button>
-                </Space>
-              </Form.Item>
-            </Form>
-          </Space>
-        </Card>
-      </div>
-    </>
+            <Form.Item>
+              <Space>
+                <Button
+                  onClick={handleCancel}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={() => form.submit()}
+                  loading={loading}
+                >
+                  Tạo mới
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Space>
+      </Card>
+    </div>
   )
 }
 

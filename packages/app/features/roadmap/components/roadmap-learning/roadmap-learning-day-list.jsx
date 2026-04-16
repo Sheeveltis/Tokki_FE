@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { Pressable, StyleSheet, Text, View, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { RoadmapLearningLessonCard } from './roadmap-learning-lesson-card'
+import { RoadmapTestButton } from '../roadmap-test/roadmap-test-button'
 
 import ListeningIcon from '../../../../../assets/icon/icon-roadmap/headphones-round-sound-svgrepo-com.svg'
 import ReadingIcon from '../../../../../assets/icon/navigate-app/book.svg'
@@ -63,7 +64,15 @@ const buildLessonsFromTasks = (tasks = [], hasWriting) =>
     })
     .filter(Boolean)
 
-export function RoadmapLearningDayList({ hasWriting, targetAim = 1, weeks = [], activeWeek, initialDayIndex = null }) {
+export function RoadmapLearningDayList({ 
+  hasWriting, 
+  targetAim = 1, 
+  weeks = [], 
+  activeWeek, 
+  initialDayIndex = null,
+  onGenerateNextWeek,
+  isNextWeekEmpty = false
+}) {
   const router = useRouter()
 
   const lessonsByDay = useMemo(() => {
@@ -161,6 +170,18 @@ export function RoadmapLearningDayList({ hasWriting, targetAim = 1, weeks = [], 
                 )
               })}
             </View>
+
+            {activeDay === 7 && isNextWeekEmpty && activeDayLessons.every(l => l.isCompleted) && (
+              <View style={styles.nextWeekAction}>
+                <View style={styles.actionDivider} />
+                <Text style={styles.actionNote}>Bạn đã hoàn thành tuần học này! Hãy tạo nội dung cho tuần kế tiếp nhé.</Text>
+                <RoadmapTestButton 
+                  title="Tạo tuần tiếp theo" 
+                  onPress={onGenerateNextWeek}
+                  style={styles.nextWeekBtn}
+                />
+              </View>
+            )}
           </View>
         </>
       )}
@@ -190,4 +211,27 @@ const styles = StyleSheet.create({
     flex: 1, minHeight: 0, borderRadius: 18, borderWidth: 1, borderColor: '#F0F0F0', backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center',
   },
   emptyText: { fontSize: 14, color: '#999', fontFamily: 'Epilogue, sans-serif' },
+  nextWeekAction: {
+    marginTop: 20,
+    gap: 12,
+    alignItems: 'center',
+    paddingTop: 20,
+  },
+  actionDivider: {
+    height: 1,
+    backgroundColor: '#F0F0F0',
+    width: '100%',
+    marginBottom: 8,
+  },
+  actionNote: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 20,
+    maxWidth: 300,
+  },
+  nextWeekBtn: {
+    minWidth: 200,
+  }
 })

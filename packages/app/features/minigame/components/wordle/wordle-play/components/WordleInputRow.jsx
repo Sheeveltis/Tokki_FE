@@ -141,6 +141,8 @@ const styles = StyleSheet.create({
   cellActive: {
     borderColor: '#4CAF50',
     borderWidth: 3,
+    borderBottomWidth: Platform.OS === 'web' ? 3 : 6,
+    borderBottomColor: '#388E3C', // Darker green for 3D effect
     backgroundColor: '#E8F5E9',
     ...(Platform.OS === 'web' && { 
       boxShadow: 'inset 0 -4px 0 rgba(76, 175, 80, 0.2), 0 4px 6px rgba(0,0,0,0.2)',

@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'solito/navigation'
 import { Space, Spin, Alert, message, Modal, Row, Col, Tabs, Typography, Button, Descriptions, FloatButton, Table } from 'antd'
-import { FileTextOutlined, AreaChartOutlined, InfoCircleOutlined, BookOutlined, ClockCircleOutlined, CalendarOutlined, UserOutlined, TeamOutlined } from '@ant-design/icons'
+import { FileTextOutlined, AreaChartOutlined, InfoCircleOutlined, BookOutlined, ClockCircleOutlined, CalendarOutlined, UserOutlined, TeamOutlined, SettingOutlined } from '@ant-design/icons'
 import { useExamDetailAdmin, useExamStatsAdmin } from '../../api/exam-hooks.js'
 import { fetchExamDetailAdmin, regenerateExamPart, updateExamQuestion, updateExamStatus } from '../../api/exam-management.js'
 import { useQueryClient } from '@tanstack/react-query'
@@ -19,6 +19,7 @@ import ExamStatisticsBar from '../../components/admin/exam-detail/exam-statistic
 import ExamContentTab from '../../components/admin/exam-detail/exam-content-tab.jsx'
 import ExamAnalysisTab from '../../components/admin/exam-detail/exam-analysis-tab.jsx'
 import ExamParticipantsTab from '../../components/admin/exam-detail/exam-participants-tab.jsx'
+import ExamSettingsTab from '../../components/admin/exam-detail/exam-settings-tab.jsx'
 import QuestionNavigator from '../../components/admin/exam-detail/question-navigator.jsx'
 
 const { Text: AntdText, Title } = Typography
@@ -263,8 +264,16 @@ export function ExamDetailScreen() {
 
     Modal.confirm({
       title: 'Lưu thay đổi câu hỏi',
+      centered: true,
       content: `Xác nhận áp dụng thay đổi mới cho câu hỏi số ${payload?.questionNo}?`,
       okText: 'Áp dụng',
+      cancelText: 'Hủy',
+      okButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
+      cancelButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
       onOk: async () => {
         try {
           setSavingUpdateKey(key)
@@ -295,8 +304,16 @@ export function ExamDetailScreen() {
 
     Modal.confirm({
       title: 'Lưu thay đổi hàng loạt',
+      centered: true,
       content: `Hệ thống sẽ cập nhật ${entries.length} câu hỏi mới vào đề thi này. Bạn có chắc chắn?`,
       okText: 'Lưu toàn bộ',
+      cancelText: 'Hủy',
+      okButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
+      cancelButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
       onOk: async () => {
         try {
           setBulkSaving(true)
@@ -420,18 +437,21 @@ export function ExamDetailScreen() {
             skill: 'Nghe (Listening)',
             questions: statsDataForAnalysis?.skillQuestionCounts?.listening || 0,
             duration: exam?.skillDurations?.listening || 0,
+            score: null,
           },
           {
             key: 'reading',
             skill: 'Đọc (Reading)',
             questions: statsDataForAnalysis?.skillQuestionCounts?.reading || 0,
             duration: exam?.skillDurations?.reading || 0,
+            score: null,
           },
           {
             key: 'writing',
             skill: 'Viết (Writing)',
             questions: statsDataForAnalysis?.skillQuestionCounts?.writing || 0,
             duration: exam?.skillDurations?.writing || 0,
+            score: null,
           }
         ];
 
@@ -455,6 +475,13 @@ export function ExamDetailScreen() {
             key: 'duration',
             align: 'center',
             render: (val) => <AntdText>{val} phút</AntdText>
+          },
+          {
+            title: 'Điểm số',
+            dataIndex: 'score',
+            key: 'score',
+            align: 'center',
+            render: (val) => <AntdText>{val ? `${val} điểm` : '-'}</AntdText>
           },
         ];
 
@@ -512,6 +539,9 @@ export function ExamDetailScreen() {
                         <Table.Summary.Cell index={2} align="center">
                           <AntdText strong>{exam.duration || 0} phút</AntdText>
                         </Table.Summary.Cell>
+                        <Table.Summary.Cell index={3} align="center">
+                          <AntdText type="danger" strong>{exam.maxScore || 0} điểm</AntdText>
+                        </Table.Summary.Cell>
                       </Table.Summary.Row>
                     </Table.Summary>
                   )}
@@ -556,6 +586,11 @@ export function ExamDetailScreen() {
       key: 'participants',
       label: <Space><TeamOutlined /><span style={{ fontWeight: 500 }}>Danh sách làm bài</span></Space>,
       children: <ExamParticipantsTab examId={examId} />
+    },
+    {
+      key: 'settings',
+      label: <Space><SettingOutlined /><span style={{ fontWeight: 500 }}>Cài đặt đề</span></Space>,
+      children: <ExamSettingsTab examId={examId} />
     },
   ]
 
@@ -625,9 +660,16 @@ export function ExamDetailScreen() {
         onOk={handleConfirmSelectedQuestion}
         onCancel={() => { setConfirmQuestionModalOpen(false); setPendingSelectedQuestion(null); }}
         width={750}
+        centered
         destroyOnClose
         okText="Chọn câu hỏi này"
         cancelText="Hủy bỏ"
+        okButtonProps={{ 
+          style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+        }}
+        cancelButtonProps={{ 
+          style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+        }}
         style={{ borderRadius: 8 }}
       >
         {pendingSelectedQuestion && (

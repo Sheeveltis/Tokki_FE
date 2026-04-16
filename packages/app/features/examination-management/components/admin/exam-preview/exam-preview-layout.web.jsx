@@ -22,7 +22,7 @@ const formatTime = (seconds) => {
 const mapAdminExamToSections = (examData) => {
   if (!examData || !examData.templateParts) return []
 
-  const { templateParts } = examData
+  const { templateParts, skillDurations = {} } = examData
   let globalQuestionCounter = 1
 
   const SKILL_MAP = {
@@ -39,15 +39,24 @@ const mapAdminExamToSections = (examData) => {
     return SKILL_MAP[skillName] || null
   }
 
-  const buildSection = (key, label, skillValues, defaultType) => {
+  const buildSection = (key, label, skillValues, defaultType, durationFallbackKey) => {
     // Collect all parts belonging to this skill
     const parts = templateParts.filter((p) => skillValues.includes(getSkillValue(p)))
     if (parts.length === 0) return null
     const questions = []
+
+    // Prefer explicit per-part skillDuration, then aggregate, then exam-level skillDurations map
     let sectionDuration = 0
+    parts.forEach((p) => {
+      // Parts from API use `skillDuration` (minutes), not `duration`
+      sectionDuration = Math.max(sectionDuration, p.skillDuration || p.duration || 0)
+    })
+    // Fallback to exam-level skillDurations map (e.g. { listening: 60, reading: 60, writing: 60 })
+    if (!sectionDuration && durationFallbackKey) {
+      sectionDuration = skillDurations[durationFallbackKey] || 0
+    }
 
     parts.forEach((p) => {
-      sectionDuration += p.duration || 0
       // Group questions by passage similar to how RoadmapTestLayout handles groups
       const qList = p.questions || []
 
@@ -69,7 +78,7 @@ const mapAdminExamToSections = (examData) => {
           type,
           questionText,
           audioUrl: q.mediaType === 'Audio' ? q.mediaUrl : (q.passageAudioUrl || null),
-          imageUrl: q.mediaType === 'Image' ? q.mediaUrl : (q.passageImageUrl || q.mediaUrl || null),
+          imageUrl: q.mediaType === 'Image' ? q.mediaUrl : (q.passageImageUrl || null),
           options,
           correctAnswer: correctAnswer > 0 ? correctAnswer : null,
           questionTypeCode: q.questionTypeCode || null,
@@ -90,16 +99,16 @@ const mapAdminExamToSections = (examData) => {
       label,
       title: parts[0]?.templatePartsTitle || label,
       description: parts[0]?.description || '',
-      duration: sectionDuration,
+      duration: sectionDuration, // in minutes
       questions,
     }
   }
 
   // Student view order: Listening (1), Writing (3), Reading (2)
   const sections = [
-    buildSection('listening', 'Nghe', [1], 'audio'),
-    buildSection('writing', 'Viết', [3], 'writing'),
-    buildSection('reading', 'Đọc', [2], 'text'),
+    buildSection('listening', 'Nghe', [1], 'audio', 'listening'),
+    buildSection('writing', 'Viết', [3], 'writing', 'writing'),
+    buildSection('reading', 'Đọc', [2], 'text', 'reading'),
   ].filter(Boolean)
 
   return sections
@@ -132,8 +141,8 @@ export function ExamPreviewLayout({ examData }) {
         setCurrentQuestionIndex(0)
       }
 
-      const totalSeconds = (examData.duration || 0) * 60 || 3600
-      setTimeRemaining(formatTime(totalSeconds))
+      const firstSectionDuration = mappedSections[0]?.duration || examData.duration || 0
+      setTimeRemaining(formatTime(firstSectionDuration * 60))
       setExamTitle(examData.title || '')
     }
   }, [examData])

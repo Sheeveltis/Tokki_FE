@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { View, StyleSheet, Text, TouchableOpacity, TextInput, Platform, Image } from 'react-native'
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Platform, Image, Animated } from 'react-native'
 import { submitSpacedRepetition } from '@tokki/app/features/study/api'
 import { awardXP } from '@tokki/app/features/minigame/api/api'
 import { NavigationPill } from 'components/navigation-pill'
@@ -126,85 +126,86 @@ export function LearnedVocabularyPracticeMode({
     return result
   }, [vocabularies])
 
-  // Tạo queue học tập: [group0-firstMode, group1-firstMode, group0-secondMode, group2-firstMode, group1-secondMode, ...]
+  // Tạo queue học tập: Một danh sách bẹt gồm các tasks { vocab, mode }
   const practiceQueue = useMemo(() => {
     if (groups.length === 0) return []
     
-    const queue = []
-    const groupModes = {} // Track chế độ đã random cho mỗi nhóm: { groupIndex: 'meaning' | 'listen' }
-    
-    // Random chế độ cho mỗi nhóm lần đầu
-    groups.forEach((group, groupIndex) => {
-      const randomMode = Math.random() < 0.5 ? 'meaning' : 'listen'
-      groupModes[groupIndex] = randomMode
+    // Tạo các Passes cho mỗi nhóm
+    const groupPasses = groups.map((group, groupIndex) => {
+      // Mỗi từ trong nhóm sẽ có 1 mode ngẫu nhiên cho pass đầu
+      const pass1Tasks = group.map(vocab => ({
+        vocab,
+        mode: Math.random() < 0.5 ? 'meaning' : 'listen'
+      }))
+      
+      // Pass 2 là mode ngược lại
+      const pass2Tasks = pass1Tasks.map(task => ({
+        vocab: task.vocab,
+        mode: task.mode === 'meaning' ? 'listen' : 'meaning'
+      }))
+
+      // Shuffle thứ tự từ trong mỗi pass để tăng tính ngẫu nhiên
+      const shuffle = (array) => {
+        const result = [...array]
+        for (let i = result.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [result[i], result[j]] = [result[j], result[i]]
+        }
+        return result
+      }
+
+      return {
+        pass1: shuffle(pass1Tasks),
+        pass2: shuffle(pass2Tasks)
+      }
     })
 
-    // Tạo queue: nhóm đầu tiên học cả 2 chế độ, sau đó mỗi nhóm mới học 1 chế độ rồi quay lại nhóm trước
+    // Lồng ghép (interweave) các passes theo logic: G0P1, G1P1, G0P2, G2P1, G1P2, G3P1, G2P2...
+    const finalQueue = []
+    
+    // Thực hiện interweave giống logic cũ nhưng ở mức task bẹt
     for (let i = 0; i < groups.length; i++) {
-      const group = groups[i]
-      const firstMode = groupModes[i]
-      const secondMode = firstMode === 'meaning' ? 'listen' : 'meaning'
+      // Lần đầu học nhóm này
+      finalQueue.push(...groupPasses[i].pass1)
       
-      // Lần đầu học nhóm này với chế độ random
-      queue.push({
-        groupIndex: i,
-        vocabularies: group,
-        mode: firstMode,
-        isFirstPass: true,
-      })
-      
-      // Nếu không phải nhóm đầu tiên, thêm nhóm trước học chế độ còn lại
+      // Nếu không phải nhóm đầu tiên, xen kẽ nhóm trước đó học lần 2
       if (i > 0) {
-        const prevGroupIndex = i - 1
-        const prevFirstMode = groupModes[prevGroupIndex]
-        const prevSecondMode = prevFirstMode === 'meaning' ? 'listen' : 'meaning'
-        
-        queue.push({
-          groupIndex: prevGroupIndex,
-          vocabularies: groups[prevGroupIndex],
-          mode: prevSecondMode,
-          isFirstPass: false,
-        })
+        finalQueue.push(...groupPasses[i-1].pass2)
       }
     }
     
-    // Thêm nhóm cuối học chế độ còn lại
+    // Thêm lượt học cuối cùng cho nhóm cuối cùng
     if (groups.length > 0) {
-      const lastGroupIndex = groups.length - 1
-      const lastFirstMode = groupModes[lastGroupIndex]
-      const lastSecondMode = lastFirstMode === 'meaning' ? 'listen' : 'meaning'
-      
-      queue.push({
-        groupIndex: lastGroupIndex,
-        vocabularies: groups[lastGroupIndex],
-        mode: lastSecondMode,
-        isFirstPass: false,
-      })
+      finalQueue.push(...groupPasses[groups.length - 1].pass2)
     }
     
-    return queue
+    return finalQueue
   }, [groups])
 
-  // Lấy thông tin học tập hiện tại từ queue
-  const currentPractice = practiceQueue[currentQueueIndex]
-  const [currentGroupIndex, setCurrentGroupIndex] = useState(0)
-  const [currentVocabIndex, setCurrentVocabIndex] = useState(0)
-  
-  const currentVocab = currentPractice?.vocabularies[currentVocabIndex]
-  const currentMode = currentPractice?.mode || 'meaning'
+  // Lấy thông tin học tập hiện tại từ queue bẹt
+  const currentTask = practiceQueue[currentQueueIndex]
+  const currentVocab = currentTask?.vocab
+  const currentMode = currentTask?.mode || 'meaning'
   
   // Tính tổng số từ cần học (mỗi từ học 2 lần)
   const totalVocabCount = vocabularies.length * 2
-  const completedCount = useMemo(() => {
-    let count = 0
-    for (let i = 0; i < currentQueueIndex; i++) {
-      count += practiceQueue[i]?.vocabularies.length || 0
-    }
-    count += currentVocabIndex
-    return count
-  }, [currentQueueIndex, currentVocabIndex, practiceQueue])
+  const completedCount = currentQueueIndex
   
   const progress = totalVocabCount > 0 ? (completedCount / totalVocabCount) * 100 : 0
+  const animatedProgress = useRef(new Animated.Value(progress)).current
+  useEffect(() => {
+    Animated.spring(animatedProgress, {
+      toValue: progress,
+      useNativeDriver: false,
+      friction: 8,
+      tension: 60,
+    }).start()
+  }, [progress])
+
+  const progressWidth = animatedProgress.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  })
 
   // Reset state khi chuyển từ vựng hoặc chế độ
   useEffect(() => {
@@ -217,15 +218,8 @@ export function LearnedVocabularyPracticeMode({
         inputRef.current?.focus()
       }, 100)
     }
-  }, [currentVocabIndex, currentQueueIndex, currentMode])
+  }, [currentQueueIndex, currentMode])
 
-  // Cập nhật groupIndex và vocabIndex khi queueIndex thay đổi
-  useEffect(() => {
-    if (currentPractice) {
-      setCurrentGroupIndex(currentPractice.groupIndex)
-      setCurrentVocabIndex(0)
-    }
-  }, [currentQueueIndex, currentPractice])
 
   // Phát âm thanh
   const handlePlaySound = useCallback(async () => {
@@ -461,29 +455,33 @@ export function LearnedVocabularyPracticeMode({
 
   // Chuyển từ tiếp theo hoặc nhóm tiếp theo
   const handleNext = useCallback(() => {
-    if (!currentPractice) return
-
-    // Kiểm tra xem còn từ nào trong nhóm hiện tại không
-    if (currentVocabIndex < currentPractice.vocabularies.length - 1) {
-      // Chuyển sang từ tiếp theo trong nhóm
-      setCurrentVocabIndex((prev) => prev + 1)
+    if (currentQueueIndex < practiceQueue.length - 1) {
+      setCurrentQueueIndex((prev) => prev + 1)
     } else {
-      // Hết từ trong nhóm, chuyển sang nhóm tiếp theo
-      if (currentQueueIndex < practiceQueue.length - 1) {
-        setCurrentQueueIndex((prev) => prev + 1)
+      // Hoàn thành tất cả
+      onPracticeComplete?.()
+    }
+  }, [currentQueueIndex, practiceQueue.length, onPracticeComplete])
+
+  // Phím tắt Enter (Web only)
+  useEffect(() => {
+    if (Platform.OS !== 'web') return
+
+    const handleKeyDown = (event) => {
+      if (event.key !== 'Enter') return
+
+      if (!hasAnswered) {
+        // Nếu chưa trả lời, kiểm tra kết quả
+        checkAnswer()
       } else {
-        // Hoàn thành tất cả
-        onPracticeComplete?.()
+        // Nếu đã hiện kết quả, sang từ tiếp theo
+        handleNext()
       }
     }
-  }, [currentVocabIndex, currentPractice, currentQueueIndex, practiceQueue.length, onPracticeComplete])
 
-  // Xử lý Enter để submit
-  const handleKeyPress = (e) => {
-    if (Platform.OS === 'web' && e.key === 'Enter' && !hasAnswered) {
-      checkAnswer()
-    }
-  }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [hasAnswered, checkAnswer, handleNext])
 
   // Tự động phát âm khi vào chế độ listen
   useEffect(() => {
@@ -493,7 +491,7 @@ export function LearnedVocabularyPracticeMode({
       }, 300)
       return () => clearTimeout(timer)
     }
-  }, [currentMode, currentVocabIndex, currentQueueIndex, currentVocab, handlePlaySound, hasAnswered])
+  }, [currentMode, currentQueueIndex, currentVocab, handlePlaySound, hasAnswered])
 
   // Cleanup audio khi unmount
   useEffect(() => {
@@ -539,7 +537,7 @@ export function LearnedVocabularyPracticeMode({
     }
   }
 
-  if (!currentPractice || !currentVocab) {
+  if (!currentTask || !currentVocab) {
     return (
       <View style={styles.container}>
         <View style={styles.headerTop}>
@@ -572,10 +570,10 @@ export function LearnedVocabularyPracticeMode({
 
       <View style={styles.progressContainer}>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${progress}%` }]} />
+          <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
         </View>
         <Text style={styles.progressText}>
-          {completedCount} / {totalVocabCount}
+          Tiến độ hoàn thành: <Text style={{ color: '#1A1A1A', fontWeight: '800' }}>{Math.round(progress)}%</Text>
         </Text>
       </View>
 
@@ -599,7 +597,6 @@ export function LearnedVocabularyPracticeMode({
                   placeholder="Gõ từ tiếng Hàn..."
                   placeholderTextColor="#999"
                   onSubmitEditing={checkAnswer}
-                  onKeyPress={handleKeyPress}
                   editable={!hasAnswered}
                   autoFocus
                 />
@@ -637,7 +634,6 @@ export function LearnedVocabularyPracticeMode({
                   placeholder="Gõ lại từ bạn nghe được"
                   placeholderTextColor="#999"
                   onSubmitEditing={checkAnswer}
-                  onKeyPress={handleKeyPress}
                   editable={!hasAnswered}
                   autoFocus
                 />
@@ -717,7 +713,7 @@ export function LearnedVocabularyPracticeMode({
               onPress={handleNext}
             >
               <Text style={styles.nextButtonText}>
-                {currentVocabIndex < currentPractice.vocabularies.length - 1 || currentQueueIndex < practiceQueue.length - 1
+                {currentQueueIndex < practiceQueue.length - 1
                   ? 'Tiếp tục'
                   : 'Hoàn thành'}
               </Text>
@@ -747,32 +743,39 @@ const styles = StyleSheet.create({
   },
   progressContainer: {
     width: '100%',
+    maxWidth: '80vh',
+    alignSelf: 'center',
     marginTop: 8,
     marginBottom: 20,
+    gap: 10,
   },
   progressBar: {
     width: '100%',
-    height: 10,
+    height: 15,
     backgroundColor: '#E8E8E8',
-    borderRadius: 5,
+    borderRadius: 100,
     overflow: 'hidden',
-    marginBottom: 10,
   },
   progressFill: {
     height: '100%',
     backgroundColor: '#F1BE4B',
-    borderRadius: 5,
+    borderRadius: 100,
+    ...(Platform.OS === 'web' && {
+      backgroundImage: 'linear-gradient(90deg, #F1BE4B, #FFD56B)',
+      boxShadow: '0 0 10px rgba(241, 190, 75, 0.4)',
+    }),
   },
   progressText: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#1F1F1F',
-    textAlign: 'center',
+    color: '#999',
     fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
   },
   practiceContainer: {
     width: '100%',
     alignItems: 'center',
+    justifyContent: 'center',
     flex: 1,
   },
   questionContainer: {

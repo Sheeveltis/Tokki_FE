@@ -10,6 +10,11 @@ export const fetchSystemConfigs = async (params) => {
   return response?.data?.data || response?.data
 }
 
+export const createSystemConfig = async (data) => {
+  const response = await apiClient.post(ENDPOINTS.SYSTEM_CONFIGS.CREATE, data)
+  return response?.data
+}
+
 export const updateSystemConfig = async (data) => {
   const response = await apiClient.put(ENDPOINTS.SYSTEM_CONFIGS.UPDATE, data)
   return response?.data

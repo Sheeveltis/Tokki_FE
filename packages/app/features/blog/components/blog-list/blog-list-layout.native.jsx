@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useCallback } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { NavbarMobile } from '../../../../../components/navbar-mobile'
-import { CategoryFilter } from './category-filter'
-import { TagFilter } from './tag-filter'
+import { CategoryFilter } from './category-filter.native'
+import { TagFilter } from './tag-filter.native'
 import { BlogCard } from '../shared/blog-card'
 import { useRouter } from 'solito/navigation'
 import { Loading } from '../../../../../components/Loading'
@@ -49,95 +50,63 @@ export function BlogListLayout({ blogs = [], loading = false, hasMore = false, o
   }, [blogs, selectedCategory, selectedTags])
 
   return (
-    <View style={styles.root}>
-      {/* Content area */}
-      <ScrollView 
-        style={styles.container} 
+    <LinearGradient colors={['#FEF7E6', '#FFFFFF']} locations={[0, 0.4]} style={styles.root}>
+      <ScrollView
+        style={styles.container}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header/Title */}
         <View style={styles.header}>
-            <Text style={styles.headerTitle}>Blog & Tin tức</Text>
-            <Text style={styles.headerSubtitle}>Khám phá văn hóa và kiến thức tiếng Hàn</Text>
+          <Text style={styles.headerTitle}>Blog & Tin tức</Text>
+          <Text style={styles.headerSubtitle}>Khám phá văn hóa và kiến thức tiếng Hàn</Text>
         </View>
 
-        {/* Filters */}
         <View style={styles.filtersContainer}>
-          <CategoryFilter 
-            selectedId={selectedCategory} 
-            onSelect={setSelectedCategory} 
-          />
+          <CategoryFilter selectedId={selectedCategory} onSelect={setSelectedCategory} />
           <View style={styles.tagFilterItem}>
-              <TagFilter 
-                selectedTags={selectedTags} 
-                onToggle={handleToggleTag} 
-              />
+            <TagFilter selectedTags={selectedTags} onToggle={handleToggleTag} />
           </View>
         </View>
 
-        {/* Blog List */}
         <View style={styles.blogList}>
           {filteredBlogs.map((item) => (
-            <BlogCard
-              key={item.id}
-              item={item}
-              onPress={() => router.push(`/blog/${item.slug}`)}
-            />
+            <BlogCard key={item.id} item={item} onPress={() => router.push(`/blog/${item.slug}`)} />
           ))}
-          
+
           {filteredBlogs.length === 0 && !loading && (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>
-                Không tìm thấy bài viết phù hợp.
-              </Text>
+              <Text style={styles.emptyText}>Không tìm thấy bài viết phù hợp.</Text>
             </View>
           )}
-          
-          {/* Load More Section */}
+
           {hasMore && (
             <View style={styles.loadMoreContainer}>
               {loading ? (
                 <Loading size={24} color="#5E794C" shadowColor="#5E794C50" />
               ) : (
-                <TouchableOpacity
-                  style={styles.loadMoreButton}
-                  onPress={onLoadMore}
-                  activeOpacity={0.7}
-                >
+                <TouchableOpacity style={styles.loadMoreButton} onPress={onLoadMore} activeOpacity={0.7}>
                   <Text style={styles.loadMoreText}>Xem thêm bài viết</Text>
                 </TouchableOpacity>
               )}
             </View>
           )}
 
-          {/* Spacer for bottom navbar */}
           <View style={{ height: 100 }} />
         </View>
       </ScrollView>
 
-      {/* Navbar ở cuối trang */}
       <NavbarMobile />
-    </View>
+    </LinearGradient>
   )
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 20,
-  },
+  root: { flex: 1 },
+  container: { flex: 1 },
+  scrollContent: { paddingBottom: 20 },
   header: {
     padding: 20,
-    backgroundColor: '#F9FBF7',
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEF2EB',
+    backgroundColor: 'transparent',
   },
   headerTitle: {
     fontSize: 28,
@@ -151,15 +120,11 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   filtersContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
     paddingVertical: 10,
   },
-  tagFilterItem: {
-    marginTop: -5,
-  },
-  blogList: {
-    paddingHorizontal: 16,
-  },
+  tagFilterItem: { marginTop: -5 },
+  blogList: { paddingHorizontal: 16 },
   emptyState: {
     padding: 40,
     alignItems: 'center',

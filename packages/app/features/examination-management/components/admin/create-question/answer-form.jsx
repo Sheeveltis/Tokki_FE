@@ -59,7 +59,7 @@ export function AnswerForm({ form }) {
   })
 
   return (
-    <Space orientation="vertical" size="large" style={{ width: '100%' }}>
+    <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Title level={4} style={{ margin: 0 }}>
           Đáp án
@@ -84,7 +84,7 @@ export function AnswerForm({ form }) {
       >
         {(fields, { add, remove }) => {
           return (
-            <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
+            <Space orientation="vertical" size="small" style={{ width: '100%' }}>
               {fields.map(({ key, name, ...restField }, index) => {
                 const isCorrect = currentAnswers[index]?.isCorrect || false
                 return (

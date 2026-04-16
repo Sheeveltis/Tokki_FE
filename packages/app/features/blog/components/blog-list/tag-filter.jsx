@@ -1,5 +1,7 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { Typography } from 'antd'
+
+const { Title } = Typography
 
 // Giả lập list Tags phổ biến
 const POPULAR_TAGS = [
@@ -9,40 +11,51 @@ const POPULAR_TAGS = [
 
 export const TagFilter = React.memo(function TagFilter({ selectedTags = [], onToggle }) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>Lọc theo thẻ (Chọn nhiều):</Text>
-      <View style={styles.wrap}>
+    <div className="tag-filter-wrapper">
+      <Title level={5} style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', color: '#94a3b8', marginBottom: '16px', letterSpacing: '0.1em' }}>
+        Tìm theo thẻ
+      </Title>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
         {POPULAR_TAGS.map(tag => {
-          // Kiểm tra xem tag này có đang được chọn không
           const isSelected = selectedTags.includes(tag)
           
           return (
-            <TouchableOpacity 
+            <div 
               key={tag}
-              style={[styles.tag, isSelected && styles.tagActive]}
-              onPress={() => onToggle(tag)}
+              className={`tag-item ${isSelected ? 'active' : ''}`}
+              onClick={() => onToggle(tag)}
+              style={{ 
+                padding: '6px 16px', 
+                borderRadius: '8px', 
+                backgroundColor: isSelected ? '#F1BE4B' : '#f8fafc', 
+                color: isSelected ? 'white' : '#64748b',
+                fontWeight: 600,
+                fontSize: '13px',
+                cursor: 'pointer',
+                border: '1px solid',
+                borderColor: isSelected ? '#F1BE4B' : '#f1f5f9',
+                transition: 'all 0.3s ease'
+              }}
             >
-              <Text style={[styles.text, isSelected && styles.textActive]}>
-                {isSelected ? '✓ ' : ''}#{tag}
-              </Text>
-            </TouchableOpacity>
+              #{tag}
+            </div>
           )
         })}
-      </View>
-    </View>
-  )
-})
+      </div>
 
-const styles = StyleSheet.create({
-  container: { paddingHorizontal: 16, marginBottom: 10 },
-  label: { fontSize: 14, fontWeight: 'bold', marginBottom: 8, color: '#333' },
-  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 }, // flexWrap để tự xuống dòng
-  tag: { 
-    paddingHorizontal: 12, paddingVertical: 6, 
-    borderRadius: 6, borderWidth: 1, borderColor: '#ddd',
-    backgroundColor: '#fff'
-  },
-  tagActive: { backgroundColor: '#e6f7ff', borderColor: '#1890ff' },
-  text: { fontSize: 12, color: '#666' },
-  textActive: { color: '#1890ff', fontWeight: 'bold' }
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .tag-item:hover {
+          border-color: #F1BE4B !important;
+          color: #F1BE4B !important;
+        }
+        .tag-item.active:hover {
+          background-color: #D9A635 !important;
+          border-color: #D9A635 !important;
+          color: white !important;
+        }
+        `
+      }} />
+    </div>
+  )
 })

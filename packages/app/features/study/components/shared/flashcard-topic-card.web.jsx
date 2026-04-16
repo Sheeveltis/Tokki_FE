@@ -11,18 +11,12 @@ export function FlashcardTopicCard({
   icon,
   title,
   subtitle,
-  badgeText = '펀',
-  highlight,
-  muted,
-  onPress,
-  compact = false,
-  showBadge = true,
   progress = 0,
+  vocabularyCount,
+  onPress,
 }) {
   const [hovered, setHovered] = useState(false)
-  const shouldShowBadge = showBadge && (!compact || Platform.OS !== 'web')
   const isComplete = progress >= 100
-  const showProgress = !isComplete
 
   return (
     <Pressable
@@ -31,196 +25,197 @@ export function FlashcardTopicCard({
       onHoverOut={() => Platform.OS === 'web' && setHovered(false)}
       style={({ pressed }) => [
         styles.card,
-        compact && styles.cardCompact,
-        highlight && styles.cardHighlight,
-        muted && styles.cardMuted,
         (pressed || hovered) && styles.cardActive,
       ]}
     >
-      <View style={[styles.left, compact && styles.leftCompact]}>
-        <StudyIcon
-          source={icon}
-          width={compact ? (Platform.OS === 'web' ? 48 : 40) : 100}
-          height={compact ? (Platform.OS === 'web' ? 48 : 40) : 100}
-        />
-      </View>
-      <View style={[styles.divider, compact && styles.dividerCompact]} />
-      <View style={[styles.middle, compact && styles.middleCompact]}>
-        <Text style={[styles.title, compact && styles.titleCompact]}>{title}</Text>
-        <Text 
-          style={[styles.subtitle, compact && styles.subtitleCompact]}
-          numberOfLines={2}
-          ellipsizeMode="tail"
-        >
-          {subtitle}
-        </Text>
-      </View>
-      {shouldShowBadge ? (
-        <View style={[styles.right, compact && styles.rightCompact]}>
-          {isComplete ? (
+      <View style={styles.cardInner}>
+        <View style={styles.leftSection}>
+          <View style={styles.iconContainer}>
+            <StudyIcon
+              source={icon}
+              width={80}
+              height={80}
+            />
+          </View>
+        </View>
+
+        <View style={styles.contentSection}>
+          <View style={styles.headerRow}>
+            <Text style={styles.title} numberOfLines={1}>{title}</Text>
+            {vocabularyCount && (
+              <View style={styles.vocabBadge}>
+                <Text style={styles.vocabBadgeText}>{vocabularyCount} từ</Text>
+              </View>
+            )}
+          </View>
+
+          <Text
+            style={styles.subtitle}
+            numberOfLines={2}
+          >
+            {subtitle}
+          </Text>
+
+          <View style={styles.progressSection}>
+            <View style={styles.progressInfo}>
+              <Text style={styles.progressLabel}>Tiến độ học tập</Text>
+              <Text style={styles.progressPercent}>{Math.round(progress)}%</Text>
+            </View>
+            <View style={styles.progressBarBg}>
+              <View
+                style={[
+                  styles.progressBarFill,
+                  { width: `${Math.min(100, Math.max(0, progress))}%` },
+                  isComplete && styles.progressBarComplete
+                ]}
+              />
+            </View>
+          </View>
+        </View>
+
+        {isComplete && (
+          <View style={styles.completeOverlay}>
             <RNImage
               source={normalizeImageSource(CompleteStamp)}
-              style={[styles.badgeStamp, compact && styles.badgeStampCompact]}
+              style={styles.stampImage}
               resizeMode="contain"
             />
-          ) : showProgress ? (
-            <Text style={[styles.progressText, compact && styles.progressTextCompact]}>
-              {progress}%
-            </Text>
-          ) : null}
-        </View>
-      ) : null}
+          </View>
+        )}
+      </View>
     </Pressable>
   )
 }
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 22,
-    paddingHorizontal: 20,
-    backgroundColor: '#FDEEB9',
-    borderRadius: 80,
-    ...Platform.select({
-      web: {
-        boxShadow: '0 6px 0 #F1BE4B',
-      },
-      default: {
-        shadowColor: '#F1BE4B',
-        shadowOpacity: 1,
-        shadowRadius: 1,
-        shadowOffset: { width: 0, height: 6 },
-      },
-    }),
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    overflow: 'hidden',
     ...(Platform.OS === 'web' && {
-      transitionProperty: 'transform, box-shadow, background-color, border-color',
-      transitionDuration: '150ms',
+      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
       cursor: 'pointer',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
     }),
-  },
-  cardHighlight: {
-    backgroundColor: '#FDEEB9',
-    borderColor: '#F1BE4B',
-  },
-  cardCompact: {
-    paddingVertical: Platform.OS === 'web' ? 10 : 8,
-    paddingHorizontal: Platform.OS === 'web' ? 50 : 16,
-    paddingHorizontal: Platform.OS === 'web' ? 50 : 16,
-    borderRadius: 100,
-    backgroundColor: '#F1BE4B',
-    ...Platform.select({
-      web: {
-        boxShadow: '0 4px 0 #F1BE4B',
-      },
-      default: {
-        shadowOffset: { width: 0, height: 4 },
-      },
-    }),
-    ...(Platform.OS !== 'web' && {
-      marginBottom: 12,
-    }),
-  },
-  cardMuted: {
-    opacity: 0.85,
   },
   cardActive: {
-    transform: [{ translateY: -2 }],
-    backgroundColor: '#F1BE4B',
-    borderColor: '#F1BE4B',
-    ...Platform.select({
-      web: {
-        boxShadow: '0 8px 12px rgba(241, 190, 75, 0.4)',
-      },
-      default: {
-        shadowOpacity: 0.22,
-      },
+    transform: [{ translateY: -6 }],
+    borderColor: '#F1BE4B50',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 12px 24px rgba(241, 190, 75, 0.12)',
     }),
   },
-  left: {
-    width: 90,
+  cardInner: {
+    flexDirection: 'row',
+    padding: 24,
+    gap: 20,
     alignItems: 'center',
-    justifyContent: 'center',
+    position: 'relative',
   },
-  leftCompact: {
-    width: Platform.OS === 'web' ? 60 : 50,
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-  },
-  avatarCompact: {
-    width: Platform.OS === 'web' ? 48 : 40,
-    height: Platform.OS === 'web' ? 48 : 40,
-  },
-  divider: {
-    width: 2,
-    height: 80,
-    backgroundColor: '#F1BE4B',
-    marginHorizontal: 16,
-  },
-  dividerCompact: {
-    height: Platform.OS === 'web' ? 50 : 40,
-    marginHorizontal: Platform.OS === 'web' ? 12 : 8,
-  },
-  middle: {
-    flex: 1,
-    gap: 6,
-    minHeight: 80, // Đảm bảo chiều cao tối thiểu để bố cục đồng nhất
-  },
-  middleCompact: {
-    gap: 2,
-    minHeight: Platform.OS === 'web' ? 50 : 48, // Đảm bảo chiều cao tối thiểu cho compact mode
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: '700',
-    color: '#1F1F1F',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  titleCompact: {
-    fontSize: Platform.OS === 'web' ? 16 : 14,
-    fontWeight: '700',
-  },
-  subtitle: {
-    fontSize: 15,
-    lineHeight: 24,
-    color: '#333',
-    fontFamily: 'Epilogue, sans-serif',
-    maxHeight: 48, // 2 dòng với lineHeight 24
-    minHeight: 48, // Đảm bảo chiều cao cố định để bố cục đồng nhất
-  },
-  subtitleCompact: {
-    fontSize: Platform.OS === 'web' ? 13 : 11,
-    lineHeight: Platform.OS === 'web' ? 18 : 16,
-    maxHeight: Platform.OS === 'web' ? 36 : 32, // 2 dòng
-    minHeight: Platform.OS === 'web' ? 36 : 32, // Đảm bảo chiều cao cố định để bố cục đồng nhất
-  },
-  right: {
+  leftSection: {
     width: 80,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  rightCompact: {
-    width: 60,
+  iconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: '#FEF7E6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
-  badgeStamp: {
-    width: 100,
-    height: 100,
+  contentSection: {
+    flex: 1,
+    gap: 8,
   },
-  badgeStampCompact: {
-    width: 36,
-    height: 36,
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
   },
-  progressText: {
-    fontSize: 24,
+  title: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+    flex: 1,
+  },
+  vocabBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: '#F1BE4B15',
+    borderRadius: 8,
+  },
+  vocabBadgeText: {
+    fontSize: 12,
     fontWeight: '700',
-    color: '#1F1F1F',
+    color: '#D9A635',
     fontFamily: 'Epilogue, sans-serif',
   },
-  progressTextCompact: {
+  subtitle: {
     fontSize: 14,
-    fontWeight: '700',
+    lineHeight: 20,
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
+    minHeight: 40,
+  },
+  progressSection: {
+    marginTop: 4,
+    gap: 6,
+  },
+  progressInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  progressLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#999',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  progressPercent: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  progressBarBg: {
+    height: 8,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 4,
+    width: '100%',
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#F1BE4B',
+    borderRadius: 4,
+    ...(Platform.OS === 'web' && {
+      transition: 'width 0.5s ease-out',
+    }),
+  },
+  progressBarComplete: {
+    backgroundColor: '#4CAF50',
+  },
+  completeOverlay: {
+    position: 'absolute',
+    right: 600,
+    top: 0,
+    width: 60,
+    height: 60,
+    opacity: 0.8,
+    transform: [{ rotate: '15deg' }],
+    pointerEvents: 'none',
+  },
+  stampImage: {
+    width: '100%',
+    height: '100%',
   },
 })
 

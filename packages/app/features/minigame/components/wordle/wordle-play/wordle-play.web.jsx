@@ -9,14 +9,16 @@ import { WordleMenuPopup } from './components/WordleMenuPopup'
 import { HowToPlayTour } from './components/HowToPlayTour'
 import { useWordlePlayControl } from './useWordlePlayControl'
 
-import BackgroundImage from '../../../../../../assets/BackgroundSolite.jpg'
+import BackgroundImage from '../../../../../../assets/BackgroundTokki.png'
 import BannerSolitare from '../../../../../../assets/BannerSolitare.png'
 import MenuIcon from '../../../../../../assets/menu-solitare.png'
+import BackgroundColumn from '../../../../../../assets/BackgroundColumn.png'
 
 export function WordlePlayWeb(props) {
   const {
     WORD_LENGTH,
     MAX_GUESSES,
+    LEVEL,
     rows,
     gameState,
     targetWord,
@@ -63,27 +65,27 @@ export function WordlePlayWeb(props) {
     <ImageBackground source={BackgroundImage} style={styles.container}>
       <View style={styles.overlay}>
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={styles.soundBox}>
-              <VolumeControl />
-            </View>
-          </View>
+          <View style={styles.headerSpacer} />
 
           <View style={styles.titleWrapper}>
             <Image source={BannerSolitare} style={styles.bannerImage} />
             <Text style={styles.titleText}>Wordle</Text>
           </View>
 
-          <View style={styles.headerRight}>
-            <Pressable style={styles.howToBtn} onPress={handleHowToPlay}>
-              <Text style={styles.howToText}>Cách chơi</Text>
-            </Pressable>
-
-            <Pressable nativeID="tour-menu" style={styles.menuBtn} onPress={handleMenuClick}>
-              <Image source={MenuIcon} style={styles.menuIcon} />
-            </Pressable>
-          </View>
+          <View style={styles.headerSpacer} />
         </View>
+
+        <ImageBackground source={BackgroundColumn} style={styles.controlsPanel} imageStyle={styles.controlsPanelImage}>
+          <VolumeControl />
+
+          <Pressable style={styles.howToBtn} onPress={handleHowToPlay}>
+            <Text style={styles.howToText}>Cách chơi</Text>
+          </Pressable>
+
+          <Pressable nativeID="tour-menu" style={styles.menuBtn} onPress={handleMenuClick}>
+            <Image source={MenuIcon} style={styles.menuIcon} />
+          </Pressable>
+        </ImageBackground>
 
         <View style={styles.content}>
           <View style={styles.gameLayout}>
@@ -119,6 +121,7 @@ export function WordlePlayWeb(props) {
                 rows={gameState === 'won' ? [] : rows}
                 maxGuesses={gameState === 'won' ? 0 : MAX_GUESSES}
                 wordLength={WORD_LENGTH}
+                level={LEVEL}
                 targetWord={targetWord}
                 gridCells={gridCells}
                 gameState={gameState}
@@ -170,7 +173,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
   },
   header: {
     flexDirection: 'row',
@@ -182,20 +185,8 @@ const styles = StyleSheet.create({
     width: '100%',
     zIndex: 10,
   },
-  headerLeft: {
+  headerSpacer: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  soundBox: {
-    backgroundColor: '#fff7ea',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.12)',
-    top: -20,
   },
   titleWrapper: {
     flex: 2,
@@ -220,13 +211,20 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
     fontFamily: Platform.OS === 'web' ? 'Epilogue, sans-serif' : undefined,
   },
-  headerRight: {
-    flex: 1,
-    flexDirection: 'row',
+  controlsPanel: {
+    position: 'absolute',
+    right: 20,
+    top: 20,
+    flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: 10,
-    top: -15,
+    justifyContent: 'center',
+    paddingVertical: 35,
+    paddingHorizontal: 25,
+    gap: 15,
+    zIndex: 20,
+  },
+  controlsPanelImage: {
+    resizeMode: 'stretch',
   },
   howToBtn: {
     backgroundColor: '#8B4513',

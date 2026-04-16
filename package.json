@@ -38,6 +38,7 @@
     "i": "^0.3.7",
     "jwt-decode": "^4.0.0",
     "react-joyride": "^2.9.3",
+    "react-native-webview": "^13.16.1",
     "react-quill": "^2.0.0",
     "react-quill-new": "^3.7.0",
     "recharts": "^3.5.1",

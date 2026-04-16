@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'solito/navigation'
 import { EyeOutlined, PlusOutlined, GlobalOutlined, FilterOutlined, UploadOutlined, DownloadOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
-import { Modal, Select, Space, Tooltip, message } from 'antd'
-import { fetchVocabularies, updateVocabulary, deleteVocabulary, uploadVocabularyImageToCloudinary, fetchVocabularyDetail } from '../../api/index.js'
+import { Modal, Select, Space, Tooltip, message, Badge, Button as AntButton, Table } from 'antd'
+import { fetchVocabularies, updateVocabulary, deleteVocabulary, uploadVocabularyImageToCloudinary, fetchVocabularyDetail, importVocabulariesFromExcel } from '../../api/index.js'
 import VocabularyEditModal from '../../components/admin/vocabulary-detail/vocabulary-edit-modal.jsx'
 import VocabularyCreateModal from '../../components/admin/vocabulary-detail/vocabulary-create-modal.jsx'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
@@ -27,11 +27,31 @@ export function VocabularyManagement({ initialData = null }) {
   })
   const [filters, setFilters] = useManagementFilters({ search: '', status: 1, page: 1, size: 20 })
 
+  const [localSearchText, setLocalSearchText] = useState(filters.search)
+
+  // Sync local search text with filters.search
+  useEffect(() => {
+    setLocalSearchText(filters.search)
+  }, [filters.search])
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearchText !== filters.search) {
+        handleFilterChange('search', localSearchText)
+      }
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [localSearchText])
+
   const [editOpen, setEditOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
   const [editLoading, setEditLoading] = useState(false)
   const [editingVocab, setEditingVocab] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState(null)
+  const fileInputRef = useRef(null)
 
   // Xác định cổng hiện tại dựa vào URL
   const getCurrentPortal = () => {
@@ -126,16 +146,7 @@ export function VocabularyManagement({ initialData = null }) {
   useEffect(() => {
     loadData(filters.page, filters.size, filters.status, filters.search)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.page, filters.size, filters.status])
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      loadData(1, filters.size, filters.status, filters.search)
-    }, 500)
-
-    return () => clearTimeout(timer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.search])
+  }, [filters.page, filters.size, filters.status, filters.search])
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value, page: 1 }))
@@ -220,10 +231,17 @@ export function VocabularyManagement({ initialData = null }) {
 
     Modal.confirm({
       title: 'Xác nhận xóa từ vựng',
+      centered: true,
       content: `Bạn chắc chắn muốn xóa từ vựng "${record?.text || vocabularyId}"?`,
       okText: 'Xóa',
       cancelText: 'Hủy',
-      okButtonProps: { danger: true },
+      okButtonProps: { 
+        danger: true,
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
+      cancelButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
       onOk: async () => {
         try {
           setDeleteLoading(true)
@@ -239,17 +257,52 @@ export function VocabularyManagement({ initialData = null }) {
     })
   }
 
+  // ==========================================
+  // EXCEL HANDLERS
+  // ==========================================
+  const handleImportClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Reset input để có thể chọn lại cùng 1 file
+    e.target.value = ''
+
+    setImporting(true)
+    const hide = message.loading('Đang xử lý file Excel...', 0)
+    try {
+      const res = await importVocabulariesFromExcel(file)
+      if (res?.isSuccess) {
+        setImportResult(res.data)
+        message.success(res.message || 'Import hoàn tất')
+        // Load lại trang đầu tiên
+        loadData(1, filters.size, filters.status, filters.search)
+      } else {
+        message.error(res?.message || 'Import thất bại')
+      }
+    } catch (err) {
+      console.error('Import error:', err)
+      message.error(getApiErrorMessage(err, 'Lỗi hệ thống khi import file'))
+    } finally {
+      setImporting(false)
+      hide()
+    }
+  }
+
   const columns = useMemo(() => [
     {
-      title: () => (
-        <Tooltip title="Số thứ tự">
-          <span>STT</span>
-        </Tooltip>
-      ),
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>STT</span>,
       key: 'stt',
       align: 'center',
-      width: 70,
-      render: (_, __, index) => (filters.page - 1) * filters.size + index + 1,
+      width: '5%',
+      render: (_, __, index) => (
+        <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>
+          {(filters.page - 1) * filters.size + index + 1}
+        </span>
+      ),
     },
     // {
     //   title: () => (
@@ -263,35 +316,28 @@ export function VocabularyManagement({ initialData = null }) {
     //   render: (_, record) => record.vocabularyId || record.id || '-',
     // },
     {
-      title: () => (
-        <Tooltip title="Từ vựng tiếng Hàn">
-          <span>Từ vựng (Tiếng Hàn)</span>
-        </Tooltip>
-      ),
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Từ vựng (Tiếng Hàn)</span>,
       key: 'text',
-      width: 250,
+      width: '30%',
       render: (_, record) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <span style={{ fontWeight: 'bold', fontSize: 18, color: '#262626' }}>{record.text}</span>
-          <span style={{ color: '#8c8c8c', fontSize: 13, fontWeight: 'normal' }}>{record.pronunciation}</span>
+          <span style={{ fontWeight: 'bold', fontSize: 'clamp(16px, 1.25vw, 20px)', color: '#262626' }}>{record.text}</span>
+          <span style={{ color: '#8c8c8c', fontSize: 'clamp(12px, 0.9vw, 14px)', fontWeight: 'normal' }}>{record.pronunciation}</span>
         </div>
       ),
     },
     {
-      title: () => (
-        <Tooltip title="Nghĩa tiếng Việt">
-          <span>Ý nghĩa / Định nghĩa</span>
-        </Tooltip>
-      ),
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Ý nghĩa / Định nghĩa</span>,
       dataIndex: 'definition',
       key: 'definition',
-      width: 250,
+      width: '25%',
+      render: (text) => <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>{text}</span>
     },
     {
-      title: 'Trạng thái',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Trạng thái</span>,
       dataIndex: 'status',
       key: 'status',
-      width: 120,
+      width: '15%',
       align: 'center',
       render: (status) => {
         const statusMap = {
@@ -304,8 +350,8 @@ export function VocabularyManagement({ initialData = null }) {
           <Tooltip title={statusInfo.label} color={statusInfo.color} placement="top">
             <div
               style={{
-                width: 14,
-                height: 14,
+                width: 'clamp(14px, 1.1vw, 18px)',
+                height: 'clamp(14px, 1.1vw, 18px)',
                 borderRadius: '50%',
                 backgroundColor: statusInfo.color,
                 margin: '0 auto',
@@ -318,13 +364,13 @@ export function VocabularyManagement({ initialData = null }) {
       },
     },
     {
-      title: 'Hành động',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Hành động</span>,
       key: 'actions',
       align: 'center',
-      width: 160,
+      width: '25%',
       render: (_, record) => {
         const vocabId = record.vocabularyId || record.id
-        const iconStyle = { fontSize: 18, cursor: 'pointer', color: '#1890ff' }
+        const iconStyle = { fontSize: 'clamp(18px, 1.4vw, 22px)', cursor: 'pointer', color: '#1890ff' }
         return (
           <Space size="large">
             <Tooltip title="Xem chi tiết">
@@ -367,7 +413,8 @@ export function VocabularyManagement({ initialData = null }) {
       icon: <UploadOutlined />,
       // color: '#107c41',
       type: 'dashed',
-      onPress: () => console.info('Import vocabularies'),
+      onPress: handleImportClick,
+      loading: importing,
     },
     {
       label: 'Export',
@@ -397,7 +444,7 @@ export function VocabularyManagement({ initialData = null }) {
         allowClear
         placeholder="Lọc theo trạng thái"
         suffixIcon={<FilterOutlined />}
-        style={{ width: 180 }}
+        style={{ width: 'clamp(160px, 14vw, 220px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
         value={filters.status}
         onChange={(val) => handleFilterChange('status', val)}
         options={STATUS_OPTIONS.map((option) => ({ value: option.value, label: option.label }))}
@@ -409,9 +456,9 @@ export function VocabularyManagement({ initialData = null }) {
     <>
       <ManagementLayout
         searchPlaceholder="Tìm theo ID hoặc tiếng Hàn"
-        searchValue={filters.search}
-        onSearchChange={(val) => setFilters((prev) => ({ ...prev, search: val }))}
-        onSearchSubmit={() => handleFilterChange('search', filters.search)}
+        searchValue={localSearchText}
+        onSearchChange={setLocalSearchText}
+        onSearchSubmit={() => handleFilterChange('search', localSearchText)}
         extraFilters={extraFilters}
         actions={actions}
         tableProps={{
@@ -449,6 +496,84 @@ export function VocabularyManagement({ initialData = null }) {
           loadData(1, filters.size, filters.status, filters.search)
         }}
       />
+
+      {/* Hidden File Input for Import */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        accept=".xlsx, .xls"
+        onChange={handleFileChange}
+      />
+
+      {/* Import Result Modal */}
+      <Modal
+        title={<span style={{ fontWeight: 700, fontSize: 'clamp(16px, 1.2vw, 20px)' }}>Kết quả Import Excel</span>}
+        open={!!importResult}
+        onOk={() => setImportResult(null)}
+        onCancel={() => setImportResult(null)}
+        width={800}
+        centered
+        footer={[
+          <AntButton 
+            key="close" 
+            type="primary" 
+            onClick={() => setImportResult(null)}
+            style={{ borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 }}
+          >
+            Đóng
+          </AntButton>
+        ]}
+      >
+        {importResult && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', gap: 24 }}>
+              <Badge count={importResult.successList?.length || 0} showZero color="#52c41a">
+                <span style={{ marginRight: 8, fontWeight: 500, fontSize: 'clamp(13px, 1vw, 15px)' }}>Thành công</span>
+              </Badge>
+              <Badge count={importResult.failureList?.length || 0} showZero color="#f5222d">
+                <span style={{ marginRight: 8, fontWeight: 500, fontSize: 'clamp(13px, 1vw, 15px)' }}>Thất bại</span>
+              </Badge>
+            </div>
+
+            {importResult.failureList?.length > 0 && (
+              <>
+                <div style={{ fontWeight: 600, color: '#f5222d', marginTop: 8, fontSize: 'clamp(13px, 1vw, 15px)' }}>
+                  Danh sách lỗi chi tiết:
+                </div>
+                <Table
+                  dataSource={importResult.failureList}
+                  rowKey={(record, index) => index}
+                  pagination={{ pageSize: 5 }}
+                  size="small"
+                  columns={[
+                    { 
+                      title: <span style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>Từ vựng</span>, 
+                      dataIndex: 'text', 
+                      key: 'text', 
+                      width: 150,
+                      render: (text) => <span style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>{text}</span>
+                    },
+                    { 
+                      title: <span style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>Định nghĩa</span>, 
+                      dataIndex: 'definition', 
+                      key: 'definition', 
+                      width: 250,
+                      render: (text) => <span style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>{text}</span>
+                    },
+                    {
+                      title: <span style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>Lý do lỗi</span>,
+                      dataIndex: 'reason',
+                      key: 'reason',
+                      render: (text) => <span style={{ color: '#ff4d4f', fontSize: 'clamp(12px, 0.9vw, 14px)' }}>{text}</span>
+                    },
+                  ]}
+                />
+              </>
+            )}
+          </div>
+        )}
+      </Modal>
     </>
   )
 }

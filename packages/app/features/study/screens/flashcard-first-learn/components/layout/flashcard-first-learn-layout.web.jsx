@@ -4,7 +4,7 @@ import { StudyLayoutSynchronized } from '@tokki/app/features/study/components/st
 /**
  * FlashcardFirstLearnLayout (Web): Layout cho trang học từ vựng lần đầu trên web
  */
-export function FlashcardFirstLearnLayout({ 
+export function FlashcardFirstLearnLayout({
   children,
   levelId,
   onBackPress
@@ -13,9 +13,16 @@ export function FlashcardFirstLearnLayout({
     <StudyLayoutSynchronized
       levelId={levelId}
       onBackPress={onBackPress}
-      title="Học từ mới"
-      subtitle="Tiếp cận những từ vựng mới một cách dễ dàng và hiệu quả."
       breadcrumbActive="Học mới"
+      hideHero={true}
+      transparentContent={true}
+      scrollable={false}
+      contentContainerStyle={{
+        flexGrow: 1,
+        justifyContent: 'flex-start',
+        paddingVertical: 0,
+        paddingHorizontal: 0,
+      }}
     >
       {children}
     </StudyLayoutSynchronized>

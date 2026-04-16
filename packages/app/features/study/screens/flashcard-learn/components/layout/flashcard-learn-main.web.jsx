@@ -218,17 +218,16 @@ export function FlashcardLearnMain({
 
   return (
     <>
-      {/* Header */}
-      <View style={styles.header}>
-        <NavigationPill
-          label="Trở lại"
-          to={undefined}
-          icon={ArrowIcon}
-          iconStyle={{ transform: [{ scaleX: -1 }] }}
-          onPress={onBackPress}
-          textStyle={{ fontWeight: '700' }}
-        />
-        {/* Random and Help Icons */}
+      <View style={styles.statsRow}>
+        <View style={styles.progressSection}>
+          <View style={styles.progressBar}>
+            <View style={[styles.progressFill, { width: `${progress}%` }]} />
+          </View>
+          <Text style={styles.progressText}>
+            Đã hoàn thành <Text style={{ color: '#1A1A1A', fontWeight: '800' }}>{learnedCount} / {total}</Text> từ vựng ({progress}%)
+          </Text>
+        </View>
+
         <View style={styles.headerActions}>
           <TouchableOpacity
             style={[
@@ -239,9 +238,9 @@ export function FlashcardLearnMain({
           >
             <StudyIcon
               source={RandomIcon}
-              width={20}
-              height={20}
-              tintColor={colors.neutralBlack}
+              width={18}
+              height={18}
+              tintColor={isShuffled ? '#FFF' : '#1A1A1A'}
             />
           </TouchableOpacity>
           <TouchableOpacity
@@ -251,18 +250,6 @@ export function FlashcardLearnMain({
             <Text style={styles.helpIcon}>?</Text>
           </TouchableOpacity>
         </View>
-      </View>
-
-      <Text style={styles.title}>{title}</Text>
-
-      {/* Progress Bar */}
-      <View style={styles.progressContainer}>
-        <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${progress}%` }]} />
-        </View>
-        <Text style={styles.progressText}>
-          {learnedCount} / {total} từ đã học ({progress}%)
-        </Text>
       </View>
 
       {/* Flashcard */}
@@ -365,12 +352,36 @@ export function FlashcardLearnMain({
 }
 
 const styles = StyleSheet.create({
-  header: {
+  statsRow: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 24,
+    marginBottom: 10,
+    paddingHorizontal: 4,
+  },
+  progressSection: {
+    flex: 1,
+    gap: 10,
+  },
+  progressBar: {
+    width: '100%',
+    height: 10,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 100,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#F1BE4B',
+    borderRadius: 100,
+  },
+  progressText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#999',
+    fontFamily: 'Epilogue, sans-serif',
   },
   headerActions: {
     flexDirection: 'row',
@@ -378,154 +389,136 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.accentYellow,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
     justifyContent: 'center',
     alignItems: 'center',
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
+      transition: 'all 0.2s ease',
     }),
   },
   iconButtonActive: {
-    backgroundColor: '#79964E', // Màu xanh lá khi đang random
-  },
-  iconImage: {
-    width: 20,
-    height: 20,
-    tintColor: colors.neutralBlack,
+    backgroundColor: '#1A1A1A',
+    borderColor: '#1A1A1A',
   },
   helpButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.accentYellow,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
     justifyContent: 'center',
     alignItems: 'center',
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
+      transition: 'all 0.2s ease',
     }),
   },
   helpIcon: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.neutralBlack,
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
   },
   instructionsContainer: {
     width: '100%',
-    maxWidth: 500,
+    maxWidth: 400,
     position: 'absolute',
-    top: 80,
-    right: 24,
-    zIndex: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  title: {
-    ...studyStyles.pageTitle,
-  },
-  progressContainer: {
-    width: '100%',
-    gap: 8,
-  },
-  progressBar: {
-    width: '100%',
-    height: 12,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 6,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#79964E',
-    borderRadius: 6,
-  },
-  progressText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-    textAlign: 'center',
-    fontFamily: 'Epilogue, sans-serif',
+    top: 60,
+    right: 4,
+    zIndex: 100,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+    }),
   },
   cardContainer: {
     width: '100%',
-    minHeight: 500,
-    position: 'relative',
+    minHeight: 520,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'visible',
+    marginVertical: 20,
   },
   slideWrapper: {
     width: '100%',
+    maxWidth: 800,
     height: 500,
     overflow: 'hidden',
   },
   cardWrapper: {
     width: '100%',
+    maxWidth: 800,
     height: 500,
-    position: 'relative',
   },
   actionsContainer: {
     width: '100%',
-    position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 20,
+    paddingBottom: 20,
   },
   statusBadge: {
     position: 'absolute',
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  statusIcon: {
-    width: 32,
-    height: 32,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    ...(Platform.OS === 'web' && { boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }),
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
-    minHeight: 200,
+    padding: 60,
+    gap: 20,
   },
   errorText: {
     fontSize: 16,
-    color: '#ff4d4f',
+    color: '#FF6B6B',
     textAlign: 'center',
-    marginBottom: 16,
     fontFamily: 'Epilogue, sans-serif',
   },
   retryButton: {
     backgroundColor: '#F1BE4B',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-    shadowColor: '#F1BE4B',
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    paddingHorizontal: 32,
+    height: 48,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...(Platform.OS === 'web' && { 
+      cursor: 'pointer',
+      boxShadow: '0 8px 20px rgba(241,190,75,0.2)',
+    }),
   },
   retryButtonText: {
-    color: '#1F1F1F',
-    fontSize: 14,
-    fontWeight: '700',
+    color: '#1A1A1A',
+    fontSize: 15,
+    fontWeight: '800',
     fontFamily: 'Epilogue, sans-serif',
   },
   emptyContainer: {
-    padding: 40,
+    padding: 60,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#FAFAFA',
+    borderRadius: 24,
+    borderStyle: 'dashed',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   emptyText: {
     fontSize: 16,
-    color: '#666',
+    color: '#999',
+    fontWeight: '500',
     textAlign: 'center',
     fontFamily: 'Epilogue, sans-serif',
   },

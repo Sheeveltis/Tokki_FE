@@ -1,14 +1,46 @@
 'use client'
 
 import React, { useEffect, useState, useRef } from 'react'
-import { View, Text, ScrollView, ActivityIndicator, Platform, Image, Pressable, Animated } from 'react-native'
+import {
+  View,
+  Text,
+  ScrollView,
+  ActivityIndicator,
+  Platform,
+  Image,
+  Pressable,
+  Animated,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { NavigationPill } from 'components/navigation-pill'
-import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
-import SoundIcon from '../../../../../assets/icon/icon-mainflow/sound.svg'
-import { fetchVocabularyDetailForUser, fetchUserVocabularyExamples } from '../../api'
+import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
+import SoundIcon from 'assets/icon/icon-mainflow/sound.svg'
+import RabbitWaitingImage from 'assets/bunny/2.png'
+import {
+  fetchVocabularyDetailForUser,
+  fetchUserVocabularyExamples,
+  addFavoriteVocabulary,
+  removeFavoriteVocabulary,
+  fetchFavorites
+} from '../../api'
 
-// Hàm normalize image source để xử lý URL ảnh
+/**
+ * Ant Design Style Heart Icon
+ */
+const HeartIcon = ({ filled = false, size = 22, color = '#FF4D4F' }) => (
+  <View style={{ width: size, height: size }}>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : 'none'} xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+        stroke={color}
+        strokeWidth="2"
+      />
+    </svg>
+  </View>
+)
+
 const normalizeImageSource = (src) => {
   if (!src) return null
   if (typeof src === 'number' || src.uri) return src
@@ -18,481 +50,493 @@ const normalizeImageSource = (src) => {
 }
 
 /**
- * Màn chi tiết từ vựng cho Dictionary (user):
- * - Chỉ hiển thị thông tin, không có chức năng admin (edit/delete)
- *
- * @param {{ vocabularyId: string }} props
+ * PulseSoundButton: Nút loa với hiệu ứng animation pulse cao cấp
  */
-export function DictionaryVocabularyDetailScreen({ vocabularyId }) {
-  const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [detail, setDetail] = useState(null)
-  const [examples, setExamples] = useState([])
-  const [isPlaying, setIsPlaying] = useState(false)
-  const audioRef = useRef(null)
+const PulseSoundButton = ({ onPlay, isPlaying }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current
   const pulseAnim = useRef(new Animated.Value(1)).current
 
   useEffect(() => {
+    if (isPlaying) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1.15, duration: 600, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+        ])
+      ).start()
+    } else {
+      pulseAnim.stopAnimation()
+      pulseAnim.setValue(1)
+    }
+  }, [isPlaying, pulseAnim])
+
+  const handlePress = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, { toValue: 0.85, duration: 100, useNativeDriver: true }),
+      Animated.timing(scaleAnim, { toValue: 1, duration: 100, useNativeDriver: true }),
+    ]).start()
+    onPlay?.()
+  }
+
+  return (
+    <Pressable onPress={handlePress}>
+      <Animated.View style={[
+        styles.audioBtn,
+        isPlaying && styles.audioBtnActive,
+        { transform: [{ scale: scaleAnim }] }
+      ]}>
+        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+          <SoundIcon
+            width={24}
+            height={24}
+            style={{ tintColor: isPlaying ? '#FFF' : '#F1BE4B' }}
+          />
+        </Animated.View>
+      </Animated.View>
+    </Pressable>
+  )
+}
+
+export function DictionaryVocabularyDetailScreen({ vocabularyId }) {
+  const router = useRouter()
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [vocabulary, setVocabulary] = useState(null)
+  const [examples, setExamples] = useState([])
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [isFavorite, setIsFavorite] = useState(false)
+  const [loadingFav, setLoadingFav] = useState(false)
+  const audioRef = useRef(null)
+
+  useEffect(() => {
     if (!vocabularyId) {
-      setError('Không tìm thấy ID từ vựng')
+      setError('ID từ vựng không khả dụng.')
       setLoading(false)
       return
     }
 
-    let mounted = true
-    const loadDetail = async () => {
+    let isMounted = true
+    const loadData = async () => {
       try {
         setLoading(true)
-        setError('')
-        const [data, exampleList] = await Promise.all([
+        const [data, exList, favList] = await Promise.all([
           fetchVocabularyDetailForUser(vocabularyId),
           fetchUserVocabularyExamples(vocabularyId),
+          fetchFavorites({ pageSize: 1000 })
         ])
-        if (mounted) {
-          setDetail(data)
-          setExamples(Array.isArray(exampleList) ? exampleList : [])
+        if (isMounted) {
+          setVocabulary(data)
+          setExamples(Array.isArray(exList) ? exList : [])
+
+          // Check if current vocab is in favorites
+          const exists = favList.some(item =>
+            (item.vocabularyId === vocabularyId) || (item.id === vocabularyId)
+          )
+          setIsFavorite(exists)
         }
       } catch (e) {
-        console.error('Error loading vocabulary detail (dictionary):', e)
-        if (mounted) {
-          setError(e?.message || 'Không thể tải chi tiết từ vựng.')
-        }
+        console.error('Error loading vocab detail:', e)
+        if (isMounted) setError('Không thể tải dữ liệu từ vựng.')
       } finally {
-        if (mounted) {
-          setLoading(false)
-        }
+        if (isMounted) setLoading(false)
       }
     }
 
-    loadDetail()
-
-    return () => {
-      mounted = false
-    }
+    loadData()
+    return () => { isMounted = false }
   }, [vocabularyId])
 
-  // Hàm phát âm thanh từ audioURL
-  const handlePlaySound = () => {
-    if (!detail?.audioURL) {
-      return
+  const toggleFavorite = async () => {
+    if (!vocabulary || loadingFav) return
+
+    setLoadingFav(true)
+    try {
+      if (isFavorite) {
+        await removeFavoriteVocabulary(vocabularyId)
+        setIsFavorite(false)
+      } else {
+        await addFavoriteVocabulary(vocabularyId)
+        setIsFavorite(true)
+      }
+    } catch (e) {
+      console.error('Toggle favorite failed:', e)
+    } finally {
+      setLoadingFav(false)
     }
-
-    // Animation khi nhấn
-    Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 0.9,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start()
-
-    // Dừng audio hiện tại nếu đang phát
-    if (audioRef.current) {
-      audioRef.current.pause()
-      audioRef.current.currentTime = 0
-      setIsPlaying(false)
-      pulseAnim.stopAnimation()
-      pulseAnim.setValue(1)
-    }
-
-    // Tạo audio element mới và phát
-    const audio = new Audio(detail.audioURL)
-    audioRef.current = audio
-
-    setIsPlaying(true)
-    
-    // Pulse animation khi đang phát
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start()
-
-    audio.play().catch((error) => {
-      console.error('Error playing audio:', error)
-      setIsPlaying(false)
-      pulseAnim.stopAnimation()
-      pulseAnim.setValue(1)
-    })
-
-    // Cleanup khi audio kết thúc
-    audio.addEventListener('ended', () => {
-      audioRef.current = null
-      setIsPlaying(false)
-      pulseAnim.stopAnimation()
-      pulseAnim.setValue(1)
-    })
-
-    // Track khi audio bị pause
-    audio.addEventListener('pause', () => {
-      setIsPlaying(false)
-      pulseAnim.stopAnimation()
-      pulseAnim.setValue(1)
-    })
   }
 
-  // Cleanup audio khi component unmount hoặc detail thay đổi
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current = null
-      }
-      setIsPlaying(false)
-      scaleAnim.stopAnimation()
-      pulseAnim.stopAnimation()
-      scaleAnim.setValue(1)
-      pulseAnim.setValue(1)
+  const playAudio = (url) => {
+    if (!url) return
+    if (audioRef.current) {
+      audioRef.current.pause()
     }
-  }, [detail])
+    const audio = new Audio(url)
+    audioRef.current = audio
+    setIsPlaying(true)
+    audio.play()
+    audio.onended = () => setIsPlaying(false)
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.loadingWrapper}>
+        <ActivityIndicator color="#F1BE4B" size="large" />
+      </View>
+    )
+  }
+
+  if (error || !vocabulary) {
+    return (
+      <View style={styles.errorWrapper}>
+        <Image source={RabbitWaitingImage} style={styles.errorRabbit} />
+        <Text style={styles.errorMsg}>{error || 'Không tìm thấy từ vựng.'}</Text>
+        <TouchableOpacity style={styles.backLink} onPress={() => router.push('/dictionary')}>
+          <Text style={styles.backLinkText}>Quay lại từ điển</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  }
 
   return (
-    <View
-      style={{
-        flex: 1,
-        paddingHorizontal: 16,
-        paddingTop: Platform.OS === 'web' ? 32 : 24,
-        paddingBottom: 32,
-      }}
-    >
-      <View
-        style={{
-          width: '100%',
-          backgroundColor: '#F5F0DD',
-          borderRadius: 16,
-          paddingVertical: 24,
-          paddingHorizontal: 24,
-          gap: 24,
-        }}
-      >
-        <View style={{ alignSelf: 'flex-start', marginBottom: 0 }}>
-          <NavigationPill
-            label="Quay lại"
-            to={undefined}
-            icon={ArrowIcon}
-            onPress={() => router.push('/dictionary')}
-            textStyle={{ fontWeight: '700' }}
-            iconStyle={{ transform: [{ scaleX: -1 }] }}
-          />
+    <ScrollView style={styles.root} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <View style={styles.unifiedCard}>
+        {/* Navigation Area */}
+        <View style={styles.navHeader}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.push('/dictionary')}>
+            <View style={{ transform: [{ rotate: '180deg' }] }}>
+              <ArrowIcon width={18} height={18} style={{ tintColor: '#999' }} />
+            </View>
+            <Text style={styles.backBtnLabel}>Quay lại</Text>
+          </TouchableOpacity>
         </View>
 
-        <Text
-          style={{
-            fontSize: 24,
-            fontWeight: '700',
-            marginBottom: 0,
-            color: '#111827',
-            textAlign: 'center',
-            width: '100%',
-          }}
-        >
-          Chi tiết từ vựng
-        </Text>
-
-        {loading && (
-          <View
-            style={{
-              width: '100%',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginTop: 0,
-              gap: 8,
-            }}
-          >
-            <ActivityIndicator color="#6366F1" />
-            <Text style={{ color: '#4B5563', fontSize: 13 }}>Đang tải chi tiết từ vựng...</Text>
-          </View>
-        )}
-
-        {!loading && !!error && (
-          <View
-            style={{
-              width: '100%',
-              marginTop: 0,
-              padding: 12,
-              borderRadius: 8,
-              backgroundColor: '#FEE2E2',
-              borderWidth: 1,
-              borderColor: '#FCA5A5',
-            }}
-          >
-            <Text
-              style={{
-                color: '#B91C1C',
-                fontSize: 13,
-              }}
-            >
-              {error}
-            </Text>
-          </View>
-        )}
-
-        {!loading && !error && !detail && (
-          <Text
-            style={{
-              width: '100%',
-              marginTop: 0,
-              color: '#6B7280',
-              fontSize: 13,
-            }}
-          >
-            Không tìm thấy dữ liệu từ vựng.
-          </Text>
-        )}
-
-        {!loading && !!detail && (
-          <ScrollView
-            style={{ width: '100%' }}
-            contentContainerStyle={{
-              width: '100%',
-              paddingVertical: 12,
-              paddingBottom: 40,
-              gap: 16,
-            }}
-          >
-            <View
-              style={{
-                width: '100%',
-                padding: 16,
-                borderRadius: 12,
-                backgroundColor: '#FFFFFF',
-                borderWidth: 1,
-                borderColor: '#F3F4F6',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-              }}
-            >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'flex-end',
-                justifyContent: 'space-between',
-                marginBottom: 8,
-              }}
-            >
-              <View style={{ flexShrink: 1, paddingRight: 8 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                  <Text
-                    style={{
-                      fontSize: 50,
-                      fontWeight: '800',
-                      color: '#111827',
-                    }}
-                  >
-                    {detail.text || 'Không có từ'}
-                  </Text>
-                  {!!detail.audioURL && (
-                    <Pressable onPress={handlePlaySound}>
-                      <Animated.View
-                        style={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 24,
-                          backgroundColor: isPlaying ? '#8B5CF6' : '#6366F1',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          boxShadow: isPlaying ? '0 4px 8px rgba(139, 92, 246, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.1)',
-                          transform: [{ scale: scaleAnim }],
-                        }}
-                      >
-                        <Animated.View
-                          style={{
-                            transform: [{ scale: pulseAnim }],
-                          }}
-                        >
-                          <Image
-                            source={normalizeImageSource(SoundIcon)}
-                            style={{
-                              width: 24,
-                              height: 24,
-                              tintColor: '#FFFFFF',
-                            }}
-                            resizeMode="contain"
-                          />
-                        </Animated.View>
-                      </Animated.View>
-                    </Pressable>
-                  )}
-                </View>
-                {!!detail.pronunciation && (
-                  <Text
-                    style={{
-                      fontSize: 20,
-                      color: '#6B7280',
-                      marginTop: 4,
-                    }}
-                  >
-                    /{detail.pronunciation}/
-                  </Text>
+        {/* Word Hero Section */}
+        <View style={styles.heroSection}>
+          <View style={styles.wordHeader}>
+            <View style={styles.wordTitleRow}>
+              <View>
+                <Text style={styles.mainWord}>{vocabulary.text}</Text>
+                {!!vocabulary.pronunciation && (
+                  <Text style={styles.pronunciation}>/{vocabulary.pronunciation}/</Text>
                 )}
               </View>
 
-              {!!detail.vocabularyId && (
-                <Text
-                  style={{
-                    fontSize: 11,
-                    color: '#9CA3AF',
-                  }}
-                >
-                  ID: {detail.vocabularyId}
-                </Text>
-              )}
+              <TouchableOpacity
+                style={[styles.favBtn, isFavorite && styles.favBtnActive]}
+                onPress={toggleFavorite}
+                disabled={loadingFav}
+              >
+                {loadingFav ? (
+                  <ActivityIndicator size="small" color={isFavorite ? '#FFF' : '#FF4D4F'} />
+                ) : (
+                  <HeartIcon filled={isFavorite} color={isFavorite ? '#FFF' : '#FF4D4F'} />
+                )}
+              </TouchableOpacity>
             </View>
 
-            {!!detail.definition && (
-              <View
-                style={{
-                  marginTop: 8,
-                  padding: 10,
-                  borderRadius: 10,
-                  backgroundColor: '#FEF3C7',
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 15,
-                    color: '#92400E',
-                  }}
-                >
-                  {detail.definition}
-                </Text>
-              </View>
-            )}
+            <PulseSoundButton
+              isPlaying={isPlaying}
+              onPlay={() => playAudio(vocabulary.audioURL)}
+            />
           </View>
 
-            {!!detail.imgURL && (
-              <View
-                style={{
-                  width: '100%',
-                  padding: 16,
-                  borderRadius: 12,
-                  backgroundColor: '#FFFFFF',
-                  borderWidth: 1,
-                  borderColor: '#F3F4F6',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '700',
-                    marginBottom: 12,
-                    color: '#111827',
-                  }}
-                >
-                  Hình ảnh minh họa
-                </Text>
-                <View
-                  style={{
-                    width: '100%',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Image
-                    source={normalizeImageSource(detail.imgURL)}
-                    style={{
-                      width: '100%',
-                      height: 250,
-                      borderRadius: 12,
-                      resizeMode: 'contain',
-                    }}
-                  />
-                </View>
+          <View style={styles.meaningBox}>
+            <Text style={styles.label}>Nghĩa tiếng Việt</Text>
+            <Text style={styles.meaningText}>{vocabulary.definition}</Text>
+          </View>
+        </View>
+
+        <View style={styles.divider} />
+
+        {/* Content Body */}
+        <View style={styles.contentBody}>
+          <View style={styles.bodyRow}>
+            {/* Left: Illustration */}
+            <View style={styles.bodyColLeft}>
+              <Text style={styles.label}>Hình ảnh</Text>
+              <View style={styles.imageContainer}>
+                <Image
+                  source={vocabulary.imgURL ? { uri: vocabulary.imgURL } : RabbitWaitingImage}
+                  style={styles.illustration}
+                  resizeMode="cover"
+                />
               </View>
-            )}
-
-            {examples.length > 0 && (
-              <View
-                style={{
-                  width: '100%',
-                  padding: 16,
-                  borderRadius: 12,
-                  backgroundColor: '#FFFFFF',
-                  borderWidth: 1,
-                  borderColor: '#F3F4F6',
-                }}
-              >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '700',
-                  marginBottom: 8,
-                  color: '#111827',
-                }}
-              >
-                Ví dụ
-              </Text>
-
-              {examples.map((ex, index) => (
-                <View
-                  key={ex.exampleId || index}
-                  style={{
-                    paddingVertical: 6,
-                    borderBottomWidth: index === examples.length - 1 ? 0 : 1,
-                    borderBottomColor: '#E5E7EB',
-                  }}
-                >
-                  {!!ex.sentence && (
-                    <Text
-                      style={{
-                        fontSize: 18,
-                        color: '#111827',
-                        fontWeight: '700',
-                      }}
-                    >
-                      {ex.sentence}
-                    </Text>
-                  )}
-                  {!!ex.translation && (
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        color: '#6B7280',
-                        marginTop: 2,
-                      }}
-                    >
-                      {ex.translation}
-                    </Text>
-                  )}
-                </View>
-              ))}
             </View>
-          )}
 
-            {examples.length === 0 && (
-              <Text
-                style={{
-                  width: '100%',
-                  fontSize: 16,
-                  color: '#6B7280',
-                }}
-              >
-                Chưa có câu ví dụ cho từ vựng này.
-              </Text>
-            )}
-        </ScrollView>
-      )}
+            {/* Right: Examples */}
+            <View style={styles.bodyColRight}>
+              <Text style={styles.label}>Ví dụ thực tế</Text>
+              <View style={styles.examplesList}>
+                {examples.length > 0 ? (
+                  examples.map((ex, i) => (
+                    <View key={i} style={styles.exampleItem}>
+                      <View style={styles.exampleHeader}>
+                        <View style={styles.dot} />
+                        <Text style={styles.exSentence}>{ex.sentence}</Text>
+                      </View>
+                      <Text style={styles.exTranslation}>{ex.translation}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <View style={styles.emptyExamples}>
+                    <Text style={styles.emptyText}>Chưa có ví dụ nào cho từ vựng này.</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          </View>
+        </View>
+
       </View>
-    </View>
+    </ScrollView>
   )
 }
 
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    width: Platform.OS === 'web' ? '70%' : '100%',
+    alignSelf: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  loadingWrapper: {
+    padding: 100,
+    alignItems: 'center',
+  },
+  errorWrapper: {
+    padding: 60,
+    alignItems: 'center',
+    gap: 16,
+  },
+  errorRabbit: {
+    width: 140,
+    height: 140,
+    opacity: 0.8,
+  },
+  errorMsg: {
+    fontSize: 16,
+    color: '#FF4D4F',
+    fontWeight: '700',
+  },
+  backLink: {
+    padding: 12,
+    backgroundColor: '#F1BE4B',
+    borderRadius: 12,
+  },
+  backLinkText: {
+    color: '#FFF',
+    fontWeight: '700',
+  },
+  unifiedCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    overflow: 'hidden',
+  },
+  navHeader: {
+    paddingTop: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8F8F8',
+  },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#F9FAFB',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+  },
+  backBtnLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#999',
+  },
+  heroSection: {
+    padding: 24,
+    gap: 16,
+  },
+  wordHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  wordTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+  },
+  favBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FF4D4F20',
+    shadowColor: '#FF4D4F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  favBtnActive: {
+    backgroundColor: '#FF4D4F',
+    borderColor: '#FF4D4F',
+    shadowOpacity: 0.3,
+  },
+  mainWord: {
+    fontSize: 42,
+    fontWeight: '900',
+    color: '#1A1A1A',
+    letterSpacing: -1,
+  },
+  pronunciation: {
+    fontSize: 20,
+    color: '#F1BE4B',
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  audioBtn: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFF9EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#F1BE4B30',
+  },
+  audioBtnActive: {
+    backgroundColor: '#F1BE4B',
+  },
+  soundIcon: {
+    width: 24,
+    height: 24,
+  },
+  meaningBox: {
+    backgroundColor: '#FFF9EB',
+    paddingHorizontal: 28,
+    paddingVertical: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#F1BE4B20',
+    borderLeftWidth: 6,
+    borderLeftColor: '#F1BE4B',
+  },
+  label: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#CCC',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginBottom: 12,
+  },
+  meaningText: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    lineHeight: 30,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#F8F8F8',
+    marginHorizontal: 32,
+  },
+  contentBody: {
+    padding: 24,
+  },
+  bodyRow: {
+    flexDirection: Platform.OS === 'web' ? 'row' : 'column',
+    gap: 32,
+  },
+  bodyColLeft: {
+    width: 400, // Giảm kích thước ảnh để tiết kiệm diện tích
+  },
+  bodyColRight: {
+    flex: 1,
+  },
+  imageContainer: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    aspectRatio: 1,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    width: '100%',
+  },
+  illustration: {
+    width: '100%',
+    height: '100%',
+  },
+  examplesList: {
+    gap: 16,
+  },
+  exampleItem: {
+    backgroundColor: '#F9FAFB',
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  exampleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#F1BE4B',
+  },
+  exSentence: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    lineHeight: 22,
+  },
+  exTranslation: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+    paddingLeft: 14,
+  },
+  emptyExamples: {
+    padding: 30,
+    borderRadius: 18,
+    borderStyle: 'dashed',
+    borderWidth: 1,
+    borderColor: '#DDD',
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: '#BBB',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  rabbitDecor: {
+    alignItems: 'flex-end',
+    paddingRight: 20,
+    paddingBottom: 20,
+    marginTop: -40,
+    pointerEvents: 'none',
+  },
+  decorImage: {
+    width: 140,
+    height: 140,
+    opacity: 0.1,
+  },
+})
+
 export default DictionaryVocabularyDetailScreen
-
-

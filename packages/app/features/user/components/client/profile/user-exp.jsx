@@ -9,27 +9,21 @@ import { getCurrentUserId } from '../../../../../provider/api/client'
  * @param {string} props.label - Label hiển thị (mặc định "Kinh nghiệm")
  * @param {string} props.variant - Biến thể hiển thị ('default' hoặc 'mobile')
  */
-export function UserExp({ label = 'Kinh nghiệm', variant = 'default' }) {
-  const [loading, setLoading] = useState(true)
-  const [progressData, setProgressData] = useState(null)
+export function UserExp({ label = 'Kinh nghiệm', progress, variant = 'default' }) {
+  const [loading, setLoading] = useState(!progress)
+  const [progressData, setProgressData] = useState(progress || null)
 
   useEffect(() => {
+    if (progress) {
+      setProgressData(progress)
+      setLoading(false)
+      return
+    }
+
     const fetchProgress = async () => {
       try {
         setLoading(true)
-        // Lấy userId từ token (decode từ JWT)
-        const userId = getCurrentUserId()
-        console.log('[UserExp] userId từ token:', userId)
-        if (!userId) {
-          console.warn('[UserExp] Không tìm thấy userId từ token')
-          setLoading(false)
-          return
-        }
-
-        console.log('[UserExp] Đang gọi API getProgress với userId:', userId)
-        const data = await getProgress(userId)
-        console.log('[UserExp] Data nhận được từ API:', data)
-        // Chỉ set data từ API, không dùng giá trị mặc định
+        const data = await getProgress()
         setProgressData(data)
       } catch (error) {
         console.error('[UserExp] Lỗi khi lấy thông tin progress:', error)
@@ -75,20 +69,14 @@ export function UserExp({ label = 'Kinh nghiệm', variant = 'default' }) {
 
   return (
     <View style={styles.card}>
-      <View style={[styles.header, isMobile && { justifyContent: 'flex-start', gap: 12 }]}>
-        {isMobile && (
-          <View style={styles.levelBadge}>
-            <Text style={styles.levelLabel}>Cấp</Text>
-            <Text style={styles.levelValue}>{progressData.level}</Text>
-          </View>
-        )}
-        <Text style={styles.label}>{label}</Text>
-        {!isMobile && (
-          <View style={styles.levelBadge}>
-            <Text style={styles.levelLabel}>Cấp</Text>
-            <Text style={styles.levelValue}>{progressData.level}</Text>
-          </View>
-        )}
+      <View style={styles.header}>
+        <View style={styles.labelSection}>
+          <Text style={styles.label}>{label}</Text>
+          <Text style={styles.xpText}>Cấp {progressData.level}</Text>
+        </View>
+        <View style={styles.levelBadge}>
+          <Text style={styles.levelValue}>{progressData.progressPercentage}%</Text>
+        </View>
       </View>
 
       <View style={styles.progressContainer}>
@@ -97,13 +85,6 @@ export function UserExp({ label = 'Kinh nghiệm', variant = 'default' }) {
         </View>
       </View>
 
-      <View style={styles.footer}>
-        <View style={styles.footerLeft}>
-          <Text style={styles.xpText}>Hiện tại: {progressData.xpInCurrentLevel} XP</Text>
-          <Text style={styles.xpNeededText}>Cần thêm: {xpNeeded} XP để lên cấp</Text>
-        </View>
-        <Text style={styles.percentageText}>{Math.round(progressData.progressPercentage)}%</Text>
-      </View>
     </View>
   )
 }
@@ -111,63 +92,45 @@ export function UserExp({ label = 'Kinh nghiệm', variant = 'default' }) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-    gap: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 3,
+    borderRadius: 24,
+    padding: 24,
+    gap: 16,
     borderWidth: 1,
-    borderColor: '#E5E3DC',
-    minWidth: 280,
-    width: '100%', // Ensure full width on native
+    borderColor: '#F0F0F0',
+    width: '100%',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  label: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  levelBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF4E6',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FFDCAA',
+  labelSection: {
     gap: 4,
   },
-  levelLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#8B6914',
+  label: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#20130A',
     fontFamily: 'Epilogue, sans-serif',
+  },
+  xpText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#F1BE4B',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  levelBadge: {
+    backgroundColor: '#FFF9F0',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(241, 190, 75, 0.3)',
   },
   levelValue: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#D97706',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  expText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666666',
+    fontWeight: '800',
+    color: '#20130A',
     fontFamily: 'Epilogue, sans-serif',
   },
   progressContainer: {
@@ -176,49 +139,37 @@ const styles = StyleSheet.create({
   progressBarBg: {
     width: '100%',
     height: 12,
-    backgroundColor: '#F2F2F2',
+    backgroundColor: '#F5F5F5',
     borderRadius: 6,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#FFDCAA', // Màu cam nhạt
+    backgroundColor: '#F1BE4B',
     borderRadius: 6,
-    shadowColor: '#FFDCAA',
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    // Đảm bảo thanh progress hiển thị rõ ràng
-    minWidth: 2,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: 12,
+    alignItems: 'center',
   },
-  footerLeft: {
-    flex: 1,
-    gap: 4,
-  },
-  xpText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#8F8F8F',
+  xpDetail: {
     fontFamily: 'Epilogue, sans-serif',
   },
-  xpNeededText: {
-    fontSize: 11,
+  xpCurrent: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#20130A',
+  },
+  xpTarget: {
+    fontSize: 13,
     fontWeight: '500',
-    color: '#B8B8B8',
-    fontFamily: 'Epilogue, sans-serif',
+    color: '#A0A0A0',
   },
-  percentageText: {
+  xpNeeded: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#8F8F8F',
+    fontWeight: '500',
+    color: '#A0A0A0',
     fontFamily: 'Epilogue, sans-serif',
   },
   loadingContainer: {
@@ -226,11 +177,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
-    paddingVertical: 20,
+    paddingVertical: 30,
   },
   loadingText: {
     fontSize: 14,
-    color: '#8F8F8F',
+    color: '#A0A0A0',
     fontFamily: 'Epilogue, sans-serif',
   },
   errorText: {

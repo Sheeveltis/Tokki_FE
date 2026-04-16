@@ -2,5 +2,6 @@ export { FlashcardFirstLearnLayout } from './layout/flashcard-first-learn-layout
 export { FlashcardFirstLearnMain } from './layout/flashcard-first-learn-main.web'
 export { FlashcardFirstLearnLayout as FlashcardFirstLearnLayoutMobile } from './layout/flashcard-first-learn-layout.mobile'
 export { FlashcardFirstLearnMain as FlashcardFirstLearnMainMobile } from './layout/flashcard-first-learn-main.mobile'
+export { FlashcardFirstLearnList as FlashcardFirstLearnListWeb } from './list/flashcard-first-learn-list.web.jsx'
 
 

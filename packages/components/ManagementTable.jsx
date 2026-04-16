@@ -9,7 +9,7 @@ export default function ManagementTable({
   dataSource,
   loading = false,
   onRowClick,
-  rowKey = 'id',
+  rowKey = (record) => record.id || record.userId || record.key || record.email,
   pagination,
   onChange,
   scroll,

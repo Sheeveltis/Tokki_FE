@@ -2,10 +2,15 @@
 
 import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'solito/navigation'
-import { Card, Space, Typography, Spin, Alert, Modal, Button } from 'antd'
-import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
-import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web.jsx'
-import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
+import { Card, Space, Typography, Spin, Alert, Modal, Button, Tabs, Divider, notification, message } from 'antd'
+import {
+  EditOutlined,
+  SendOutlined,
+  DeleteOutlined,
+  ArrowLeftOutlined,
+  InfoCircleOutlined,
+  UnorderedListOutlined
+} from '@ant-design/icons'
 import {
   fetchFlashcardTopicDetail,
   searchVocabulariesForTopic,
@@ -20,7 +25,6 @@ import {
   approveTopic,
   rejectTopic,
 } from '../../api'
-import { HelperAdmin, showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import { getCurrentUserRole } from '../../../../provider/api/client.js'
 import TopicInfoCard from '../../components/admin/vocab-topic-detail/topic-info-card'
 import TopicVocabSection from '../../components/admin/vocab-topic-detail/topic-vocab-section'
@@ -34,6 +38,7 @@ const { Title, Text } = Typography
 
 export function FlashcardTopicDetailScreen() {
   const router = useRouter()
+  const [messageApi, contextHolder] = message.useMessage()
   const params = useParams()
   const searchParams = useSearchParams()
   const topicId = params?.id
@@ -49,7 +54,7 @@ export function FlashcardTopicDetailScreen() {
     if (pathname === '/moderator' || pathname.startsWith('/moderator/')) return 'moderator'
     return 'admin'
   }
-  
+
   const currentPortal = getCurrentPortal()
 
   const [loading, setLoading] = useState(true)
@@ -64,10 +69,9 @@ export function FlashcardTopicDetailScreen() {
   const [adding, setAdding] = useState(false)
   const [removing, setRemoving] = useState(false)
   const [submittingForApproval, setSubmittingForApproval] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [editLoading, setEditLoading] = useState(false)
-  const [deleteLoading, setDeleteLoading] = useState(false)
-  const [apiResponse, setApiResponse] = useState(null)
   const [quickAddModalOpen, setQuickAddModalOpen] = useState(false)
   const [uploadingExcel, setUploadingExcel] = useState(false)
   const [exportingExcel, setExportingExcel] = useState(false)
@@ -168,26 +172,23 @@ export function FlashcardTopicDetailScreen() {
     if (!removingKeys?.length || !topicId) return
 
     setRemoving(true)
-    setApiResponse(null)
-
     try {
       const { response, topicDetail } = await removeVocabulariesFromTopicAndReload(topicId, removingKeys)
-      setApiResponse(response)
 
-      if (response?.isSuccess && topicDetail?.topic) {
-        setDetailTopic(topicDetail.topic)
-        setTopicVocabIds(topicDetail.topic.vocabIds || [])
-        setTopicVocabularies(topicDetail.vocabularies || [])
-        setRemovingKeys([])
+      if (response?.isSuccess) {
+        if (topicDetail?.topic) {
+          setDetailTopic(topicDetail.topic)
+          setTopicVocabIds(topicDetail.topic.vocabIds || [])
+          setTopicVocabularies(topicDetail.vocabularies || [])
+          setRemovingKeys([])
+        }
+        messageApi.success('Đã gỡ từ vựng thành công')
+      } else {
+        messageApi.error(response?.message || 'Không thể gỡ từ vựng khỏi chủ đề')
       }
     } catch (err) {
       console.error('Error removing vocabularies:', err)
-      setApiResponse({
-        isSuccess: false,
-        message: err?.message || 'Không thể gỡ từ vựng khỏi chủ đề',
-        errors: err?.errors || [],
-        statusCode: err?.statusCode || 500,
-      })
+      messageApi.error(err?.message || 'Không thể gỡ từ vựng khỏi chủ đề')
     } finally {
       setRemoving(false)
     }
@@ -197,7 +198,7 @@ export function FlashcardTopicDetailScreen() {
     // Sử dụng topicVocabularies (danh sách từ vựng đã có trong chủ đề) thay vì searchVocabList
     const safeTopicVocabularies = Array.isArray(topicVocabularies) ? topicVocabularies : []
     const safeTopicVocabIds = Array.isArray(topicVocabIds) ? topicVocabIds : []
-    
+
     // Lọc và map các từ vựng theo topicVocabIds
     return safeTopicVocabIds
       .map((id) => safeTopicVocabularies.find((v) => v.vocabularyId === id || v.id === id))
@@ -207,33 +208,27 @@ export function FlashcardTopicDetailScreen() {
 
   const handleAddVocab = async () => {
     if (!selecting?.length || !topicId) return
-    
+
     setAdding(true)
-    setApiResponse(null)
-    
     try {
-      // Sử dụng function API đã được tách ra với logic reload
       const { response, topicDetail } = await addVocabulariesToTopicAndReload(topicId, selecting)
-      setApiResponse(response)
-      
-      // Nếu thành công và có topicDetail, cập nhật state
-      if (response?.isSuccess && topicDetail?.topic) {
-        setDetailTopic(topicDetail.topic)
-        setTopicVocabIds(topicDetail.topic.vocabIds || [])
-        setTopicVocabularies(topicDetail.vocabularies || [])
-        
-        // Reset selection và danh sách search
-        setSelecting([])
-        setSearchVocabList([])
+
+      if (response?.isSuccess) {
+        if (topicDetail?.topic) {
+          setDetailTopic(topicDetail.topic)
+          setTopicVocabIds(topicDetail.topic.vocabIds || [])
+          setTopicVocabularies(topicDetail.vocabularies || [])
+
+          setSelecting([])
+          setSearchVocabList([])
+        }
+        messageApi.success('Đã thêm từ vựng thành công')
+      } else {
+        messageApi.error(response?.message || 'Không thể thêm từ vựng vào chủ đề')
       }
     } catch (err) {
       console.error('Error adding vocabularies:', err)
-      setApiResponse({
-        isSuccess: false,
-        message: err?.message || 'Không thể thêm từ vựng vào chủ đề',
-        errors: err?.errors || [],
-        statusCode: err?.statusCode || 500,
-      })
+      messageApi.error(err?.message || 'Không thể thêm từ vựng vào chủ đề')
     } finally {
       setAdding(false)
     }
@@ -262,21 +257,28 @@ export function FlashcardTopicDetailScreen() {
   const handleDelete = () => {
     const topicId = detailTopic?.id || detailTopic?._raw?.topicId
     if (!topicId) {
-      showAdminError('Không tìm thấy ID chủ đề')
+      messageApi.error('Không tìm thấy ID chủ đề')
       return
     }
 
     Modal.confirm({
       title: 'Xác nhận xóa chủ đề',
+      centered: true,
       content: `Bạn chắc chắn muốn xóa chủ đề "${detailTopic?.title || detailTopic?._raw?.topicName || topicId}"?`,
       okText: 'Xóa',
       cancelText: 'Hủy',
-      okButtonProps: { danger: true },
+      okButtonProps: { 
+        danger: true,
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
+      cancelButtonProps: { 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      },
       onOk: async () => {
         try {
           setDeleteLoading(true)
           await deleteTopic(topicId)
-          showAdminSuccess('Đã xóa chủ đề thành công')
+          messageApi.success('Đã xóa chủ đề thành công')
           if (currentPortal === 'staff') {
             router.push('/staff?tab=vocabulary-topics')
           } else if (currentPortal === 'moderator') {
@@ -285,15 +287,8 @@ export function FlashcardTopicDetailScreen() {
             router.push('/admin?tab=vocabulary-topics')
           }
         } catch (err) {
-          // err có thể là response object từ API hoặc error object
-          if (err?.isSuccess === false || err?.errors) {
-            // Là response từ API với lỗi
-            const errorMessage = err?.message || err?.errors?.[0]?.description || 'Xóa chủ đề thất bại'
-            showAdminError(errorMessage, err?.statusCode)
-          } else {
-            // Là error khác
-            showAdminError(err?.message || 'Xóa chủ đề thất bại')
-          }
+          const errorMessage = err?.message || err?.errors?.[0]?.description || 'Xóa chủ đề thất bại'
+          messageApi.error(errorMessage)
         } finally {
           setDeleteLoading(false)
         }
@@ -306,12 +301,12 @@ export function FlashcardTopicDetailScreen() {
       setEditLoading(true)
       const topicId = detailTopic?.id || detailTopic?._raw?.topicId
       if (!topicId) {
-        showAdminError('Không tìm thấy ID chủ đề')
+        messageApi.error('Không tìm thấy ID chủ đề')
         return
       }
 
       if (!values?.topicName || !values?.description) {
-        showAdminError('Vui lòng nhập đầy đủ thông tin')
+        messageApi.error('Vui lòng nhập đầy đủ thông tin')
         return
       }
 
@@ -321,11 +316,11 @@ export function FlashcardTopicDetailScreen() {
         try {
           imgUrl = await uploadTopicImageToCloudinary(values.imageFile)
           if (!imgUrl) {
-            showAdminError('Không thể upload ảnh lên Cloudinary')
+            messageApi.error('Không thể upload ảnh lên Cloudinary')
             return
           }
         } catch (err) {
-          showAdminError(err?.message || 'Không thể upload ảnh lên Cloudinary')
+          messageApi.error(err?.message || 'Không thể upload ảnh lên Cloudinary')
           return
         }
       }
@@ -354,18 +349,11 @@ export function FlashcardTopicDetailScreen() {
         console.error('Error reloading topic detail:', reloadError)
       }
 
-      showAdminSuccess('Đã cập nhật chủ đề thành công')
+      messageApi.success('Đã cập nhật chủ đề thành công')
       setEditOpen(false)
     } catch (err) {
-      // err có thể là response object từ API hoặc error object
-      if (err?.isSuccess === false || err?.errors) {
-        // Là response từ API với lỗi
-        const errorMessage = err?.message || err?.errors?.[0]?.description || 'Cập nhật chủ đề thất bại'
-        showAdminError(errorMessage, err?.statusCode)
-      } else {
-        // Là error khác
-        showAdminError(err?.message || 'Cập nhật chủ đề thất bại')
-      }
+      const errorMessage = err?.message || err?.errors?.[0]?.description || 'Cập nhật chủ đề thất bại'
+      messageApi.error(errorMessage)
     } finally {
       setEditLoading(false)
     }
@@ -379,59 +367,52 @@ export function FlashcardTopicDetailScreen() {
       (typeof detailTopic?.vocabularyCount === 'number'
         ? detailTopic.vocabularyCount
         : Array.isArray(topicVocabIds)
-        ? topicVocabIds.length
-        : Array.isArray(topicVocabData)
-        ? topicVocabData.length
-        : 0) > 0
+          ? topicVocabIds.length
+          : Array.isArray(topicVocabData)
+            ? topicVocabData.length
+            : 0) > 0
 
     // Cho phép gửi lại khi status = 0 (Draft) hoặc 4 (Rejected)
     if (!isDraft && !isRejected) {
-      showAdminError('Chỉ có thể gửi chủ đề ở trạng thái Bản nháp hoặc Bị từ chối phê duyệt')
+      messageApi.error('Chỉ có thể gửi chủ đề ở trạng thái Bản nháp hoặc Bị từ chối phê duyệt')
       return
     }
 
     if (!hasVocab) {
-      showAdminError('Chủ đề phải có ít nhất 1 từ vựng mới được gửi phê duyệt')
+      messageApi.error('Chủ đề phải có ít nhất 1 từ vựng mới được gửi phê duyệt')
       return
     }
 
     const topicIdForSubmit = detailTopic?.id || detailTopic?._raw?.topicId
     if (!topicIdForSubmit) {
-      showAdminError('Không tìm thấy ID chủ đề')
+      messageApi.error('Không tìm thấy ID chủ đề')
       return
     }
 
     try {
       setSubmittingForApproval(true)
-      setApiResponse(null)
 
       const response = await submitTopicForApproval(topicIdForSubmit)
 
-      // Reload lại chi tiết chủ đề sau khi gửi duyệt
-      try {
-        const refreshedDetail = await fetchFlashcardTopicDetail(topicIdForSubmit)
-        if (refreshedDetail?.topic) {
-          setDetailTopic(refreshedDetail.topic)
-          setTopicVocabIds(refreshedDetail.topic.vocabIds || [])
-          setTopicVocabularies(refreshedDetail.vocabularies || [])
+      if (response?.isSuccess) {
+        // Reload lại chi tiết chủ đề sau khi gửi duyệt
+        try {
+          const refreshedDetail = await fetchFlashcardTopicDetail(topicIdForSubmit)
+          if (refreshedDetail?.topic) {
+            setDetailTopic(refreshedDetail.topic)
+            setTopicVocabIds(refreshedDetail.topic.vocabIds || [])
+            setTopicVocabularies(refreshedDetail.vocabularies || [])
+          }
+        } catch (reloadError) {
+          console.error('Error reloading topic detail after submit for approval:', reloadError)
         }
-      } catch (reloadError) {
-        console.error('Error reloading topic detail after submit for approval:', reloadError)
+        messageApi.success('Gửi chủ đề chờ phê duyệt thành công')
+      } else {
+        messageApi.error(response?.message || 'Không thể gửi chủ đề chờ phê duyệt')
       }
-
-      setApiResponse({
-        isSuccess: true,
-        message: response?.message || 'Gửi chủ đề chờ phê duyệt thành công',
-        statusCode: response?.statusCode || 200,
-      })
     } catch (err) {
       console.error('Error submitting topic for approval:', err)
-      setApiResponse({
-        isSuccess: false,
-        message: err?.message || err?.errors?.[0]?.description || 'Không thể gửi chủ đề chờ phê duyệt',
-        errors: err?.errors || [],
-        statusCode: err?.statusCode || err?.status || 500,
-      })
+      messageApi.error(err?.message || 'Không thể gửi chủ đề chờ phê duyệt')
     } finally {
       setSubmittingForApproval(false)
     }
@@ -440,7 +421,7 @@ export function FlashcardTopicDetailScreen() {
   const handleOpenApprovalModal = (type) => {
     const topicIdForApproval = detailTopic?.id || detailTopic?._raw?.topicId
     if (!topicIdForApproval) {
-      showAdminError('Không tìm thấy ID chủ đề')
+      messageApi.error('Không tìm thấy ID chủ đề')
       return
     }
     setTopicIdForApproval(topicIdForApproval)
@@ -450,7 +431,7 @@ export function FlashcardTopicDetailScreen() {
 
   const handleStatusChange = async (values) => {
     if (!topicId) {
-      showAdminError('Không tìm thấy ID chủ đề')
+      messageApi.error('Không tìm thấy ID chủ đề')
       return
     }
 
@@ -458,13 +439,12 @@ export function FlashcardTopicDetailScreen() {
     const currentStatus = detailTopic?._raw?.status ?? detailTopic?.status
 
     if (newStatus === currentStatus) {
-      showAdminError('Trạng thái đã được chọn')
+      messageApi.error('Trạng thái đã được chọn')
       setStatusChangeModalOpen(false)
       return
     }
 
     setStatusChangeLoading(true)
-    setApiResponse(null)
 
     try {
       await updateFlashcardTopic(topicId, {
@@ -491,21 +471,12 @@ export function FlashcardTopicDetailScreen() {
         4: 'Bị từ chối phê duyệt',
       }
 
-      setApiResponse({
-        isSuccess: true,
-        message: `Chuyển trạng thái sang "${statusLabels[newStatus]}" thành công`,
-        statusCode: 200,
-      })
+      messageApi.success(`Chuyển trạng thái sang "${statusLabels[newStatus]}" thành công`)
       setStatusChangeModalOpen(false)
     } catch (err) {
       console.error('Error changing topic status:', err)
       const errorMessage = err?.message || err?.errors?.[0]?.description || 'Không thể chuyển trạng thái chủ đề'
-      setApiResponse({
-        isSuccess: false,
-        message: errorMessage,
-        errors: err?.errors || [],
-        statusCode: err?.statusCode || err?.status || 500,
-      })
+      messageApi.error(errorMessage)
     } finally {
       setStatusChangeLoading(false)
     }
@@ -513,12 +484,11 @@ export function FlashcardTopicDetailScreen() {
 
   const handleApproval = async (values) => {
     if (!topicIdForApproval) {
-      showAdminError('Không tìm thấy ID chủ đề')
+      messageApi.error('Không tìm thấy ID chủ đề')
       return
     }
 
     setApprovalLoading(true)
-    setApiResponse(null)
 
     try {
       if (values.approvalType === 'approve') {
@@ -537,17 +507,13 @@ export function FlashcardTopicDetailScreen() {
           console.error('Error reloading topic detail after approval:', reloadError)
         }
 
-        setApiResponse({
-          isSuccess: true,
-          message: 'Phê duyệt chủ đề thành công',
-          statusCode: 200,
-        })
+        messageApi.success('Phê duyệt chủ đề thành công')
         setApprovalModalOpen(false)
       } else {
         // Từ chối phê duyệt
         const rejectReason = values.rejectionReason?.trim() || ''
         if (!rejectReason || rejectReason.length < 10) {
-          showAdminError('Lý do từ chối phải có ít nhất 10 ký tự')
+          messageApi.error('Lý do từ chối phải có ít nhất 10 ký tự')
           setApprovalLoading(false)
           return
         }
@@ -566,23 +532,14 @@ export function FlashcardTopicDetailScreen() {
           console.error('Error reloading topic detail after rejection:', reloadError)
         }
 
-        setApiResponse({
-          isSuccess: true,
-          message: 'Từ chối phê duyệt chủ đề thành công',
-          statusCode: 200,
-        })
+        messageApi.success('Từ chối phê duyệt chủ đề thành công')
         setApprovalModalOpen(false)
         setTopicIdForApproval(null)
       }
     } catch (err) {
       console.error('Error approving/rejecting topic:', err)
       const errorMessage = err?.message || err?.errors?.[0]?.description || 'Không thể phê duyệt chủ đề'
-      setApiResponse({
-        isSuccess: false,
-        message: errorMessage,
-        errors: err?.errors || [],
-        statusCode: err?.statusCode || err?.status || 500,
-      })
+      messageApi.error(errorMessage)
     } finally {
       setApprovalLoading(false)
     }
@@ -592,7 +549,6 @@ export function FlashcardTopicDetailScreen() {
     if (!topicId || !file) return
 
     setUploadingExcel(true)
-    setApiResponse(null)
     setExcelImportResult(null)
 
     try {
@@ -614,11 +570,7 @@ export function FlashcardTopicDetailScreen() {
           console.error('Error reloading topic detail:', reloadError)
         }
 
-        setApiResponse({
-          isSuccess: true,
-          message: response?.message || `Import thành công ${successCount} từ vựng${failureCount > 0 ? `, thất bại ${failureCount} từ vựng` : ''}`,
-          statusCode: 200,
-        })
+        messageApi.success(response?.message || `Import thành công ${successCount} từ vựng${failureCount > 0 ? `, thất bại ${failureCount} từ vựng` : ''}`)
 
         setExcelImportResult({
           addedNewCount: response?.data?.addedNewCount ?? 0,
@@ -631,12 +583,7 @@ export function FlashcardTopicDetailScreen() {
     } catch (err) {
       console.error('Error uploading Excel:', err)
       const errorMessage = err?.message || err?.errors?.[0]?.description || 'Không thể import từ vựng từ Excel'
-      setApiResponse({
-        isSuccess: false,
-        message: errorMessage,
-        errors: err?.errors || [],
-        statusCode: err?.statusCode || 500,
-      })
+      messageApi.error(errorMessage)
       setExcelImportResult(null)
     } finally {
       setUploadingExcel(false)
@@ -657,7 +604,7 @@ export function FlashcardTopicDetailScreen() {
     const isValidExtension = validExtensions.some((ext) => fileName.endsWith(ext))
 
     if (!isValidExtension) {
-      showAdminError('Vui lòng chọn file Excel (.xlsx hoặc .xls)')
+      messageApi.error('Vui lòng chọn file Excel (.xlsx hoặc .xls)')
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
@@ -670,12 +617,11 @@ export function FlashcardTopicDetailScreen() {
 
   const handleExportExcel = async () => {
     if (!topicId) {
-      showAdminError('Không tìm thấy ID chủ đề')
+      messageApi.error('Không tìm thấy ID chủ đề')
       return
     }
 
     setExportingExcel(true)
-    setApiResponse(null)
 
     try {
       // Gọi API để lấy file Excel
@@ -685,35 +631,25 @@ export function FlashcardTopicDetailScreen() {
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      
+
       // Lấy tên file từ topic hoặc dùng tên mặc định
       const topicName = detailTopic?.title || detailTopic?._raw?.topicName || 'topic'
       const fileName = `${topicName}_${topicId}.xlsx`
       link.download = fileName
-      
+
       // Trigger download
       document.body.appendChild(link)
       link.click()
-      
+
       // Cleanup
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
 
-      setApiResponse({
-        isSuccess: true,
-        message: 'Xuất file Excel thành công',
-        statusCode: 200,
-      })
+      messageApi.success('Xuất file Excel thành công')
     } catch (err) {
       console.error('Error exporting Excel:', err)
       const errorMessage = err?.message || err?.errors?.[0]?.description || 'Không thể xuất file Excel'
-      setApiResponse({
-        isSuccess: false,
-        message: errorMessage,
-        errors: err?.errors || [],
-        statusCode: err?.status || 500,
-      })
-      showAdminError(errorMessage)
+      messageApi.error(errorMessage)
     } finally {
       setExportingExcel(false)
     }
@@ -734,10 +670,12 @@ export function FlashcardTopicDetailScreen() {
     if (error) {
       return (
         <div style={{ padding: 24 }}>
+          {contextHolder}
           <Alert type="error" message="Lỗi" description={error} />
           <Button
             type="primary"
-            style={{ marginTop: 10, minWidth: 120 }}
+            icon={<ArrowLeftOutlined />}
+            style={{ marginTop: 10, minWidth: 120, borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
             onClick={() => router.back()}
           >
             Quay lại
@@ -749,10 +687,12 @@ export function FlashcardTopicDetailScreen() {
     if (!detailTopic) {
       return (
         <div style={{ padding: 24 }}>
+          {contextHolder}
           <Alert type="warning" message="Không tìm thấy chủ đề" />
           <Button
             type="primary"
-            style={{ marginTop: 12, minWidth: 140 }}
+            icon={<ArrowLeftOutlined />}
+            style={{ marginTop: 12, minWidth: 140, borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}
             onClick={() => router.back()}
           >
             Quay lại danh sách
@@ -764,14 +704,15 @@ export function FlashcardTopicDetailScreen() {
     return (
       <div
         style={{
+          width: '100%',
           height: '100%',
           padding: 12,
-          margin: '0 auto',
           display: 'flex',
           flexDirection: 'column',
           minHeight: 0,
         }}
       >
+        {contextHolder}
         <div
           style={{
             width: '100%',
@@ -783,24 +724,38 @@ export function FlashcardTopicDetailScreen() {
             paddingRight: 4,
           }}
         >
-          <Card style={{ borderRadius: 10 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
             <div
               style={{
                 display: 'flex',
-                alignItems: 'flex-start',
+                alignItems: 'center',
                 justifyContent: 'space-between',
-                gap: 12,
                 flexWrap: 'wrap',
-                padding: 4,
+                gap: 12,
               }}
             >
               <div>
-                <Title level={3} style={{ marginBottom: 2, marginTop: 0 }}>
+                <Title level={3} style={{ marginBottom: 4, marginTop: 0 }}>
                   Chi tiết chủ đề flashcard
                 </Title>
-                <Text type="secondary">ID: {detailTopic.id}</Text>
+                <Text type="secondary" style={{ fontSize: 14 }}>ID: {detailTopic.id}</Text>
               </div>
-              <Space wrap size={[8, 8]}>
+              <Space size="small" wrap>
+                <Button
+                  icon={<ArrowLeftOutlined />}
+                  onClick={() => router.back()}
+                  style={{
+                    borderRadius: 20,
+                    height: 40,
+                    padding: '0 20px',
+                    fontWeight: 600
+                  }}
+                >
+                  Quay lại
+                </Button>
+
+                <Divider orientation="vertical" style={{ height: 24, margin: '0 12px', borderLeft: '2px solid #e8e8e8ff' }} />
+
                 {(() => {
                   const topicStatus = detailTopic?._raw?.status ?? detailTopic?.status
                   const isDraft = topicStatus === 0
@@ -808,20 +763,18 @@ export function FlashcardTopicDetailScreen() {
                   const isDeleted = topicStatus === 2
                   const isRejected = topicStatus === 4
                   const userRole = getCurrentUserRole()
-                  const isAdmin = userRole === 'Admin'
                   const isStaff = userRole === 'Staff'
                   const isModerator = userRole === 'Moderator'
 
                   const cannotEditForStaffModerator = (isStaff || isModerator) && (isActive || isDeleted)
-
                   const hasVocab =
                     (typeof detailTopic?.vocabularyCount === 'number'
                       ? detailTopic.vocabularyCount
                       : Array.isArray(topicVocabIds)
-                      ? topicVocabIds.length
-                      : Array.isArray(topicVocabData)
-                      ? topicVocabData.length
-                      : 0) > 0
+                        ? topicVocabIds.length
+                        : Array.isArray(topicVocabData)
+                          ? topicVocabData.length
+                          : 0) > 0
 
                   const canSubmitForApproval = isStaff && (isDraft || isRejected) && hasVocab && !isDeleted
 
@@ -829,141 +782,198 @@ export function FlashcardTopicDetailScreen() {
                     <>
                       <Button
                         type="primary"
+                        icon={<EditOutlined />}
                         onClick={() => setEditOpen(true)}
                         disabled={isDeleted || editLoading || cannotEditForStaffModerator}
+                        style={{
+                          borderRadius: 20,
+                          height: 40,
+                          padding: '0 20px',
+                          fontWeight: 600
+                        }}
                       >
                         Chỉnh sửa
                       </Button>
+
                       {canSubmitForApproval && (
-                        <Button onClick={handleSubmitForApproval} disabled={submittingForApproval}>
+                        <Button
+                          type="primary"
+                          icon={<SendOutlined />}
+                          onClick={handleSubmitForApproval}
+                          disabled={submittingForApproval}
+                          style={{
+                            borderRadius: 20,
+                            height: 40,
+                            padding: '0 20px',
+                            fontWeight: 600
+                          }}
+                        >
                           {submittingForApproval ? 'Đang gửi...' : 'Gửi chờ duyệt'}
                         </Button>
                       )}
+
                       {!isDeleted && !isModerator && (
-                        <Button danger onClick={handleDelete} disabled={deleteLoading}>
+                        <Button
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={handleDelete}
+                          disabled={deleteLoading}
+                          style={{
+                            borderRadius: 20,
+                            height: 40,
+                            padding: '0 20px',
+                            fontWeight: 600
+                          }}
+                        >
                           {deleteLoading ? 'Đang xóa...' : 'Xóa'}
                         </Button>
                       )}
-                      <Button
-                        onClick={() => router.back()}
-                      >
-                        Quay lại
-                      </Button>
                     </>
                   )
                 })()}
               </Space>
             </div>
-          </Card>
 
-          <HelperAdmin response={apiResponse} />
-          
-          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: 600 }}>
-              <TopicVocabSection
-                selecting={selecting}
-                onSelectingChange={setSelecting}
-                removingKeys={removingKeys}
-                onRemovingKeysChange={setRemovingKeys}
-                availableOptions={availableOptions}
-                onSearch={handleSearchVocab}
-                onFocus={handleSelectFocus}
-                searching={searching}
-                onAdd={handleAddVocab}
-                adding={adding}
-                onRemove={handleRemoveVocab}
-                removing={removing}
-                dataSource={topicVocabData}
-                onQuickAdd={currentPortal !== 'moderator' ? () => setQuickAddModalOpen(true) : undefined}
-                onExcelUpload={currentPortal !== 'moderator' ? handleExcelFileSelect : undefined}
-                uploadingExcel={uploadingExcel}
-                fileInputRef={fileInputRef}
-                onExportExcel={currentPortal !== 'moderator' ? handleExportExcel : undefined}
-                exportingExcel={exportingExcel}
-                onOpenGuide={() => setGuideModalOpen(true)}
-                isModerator={currentPortal === 'moderator'}
-                excelImportResult={excelImportResult}
+
+
+            <div style={{ backgroundColor: '#fff', borderRadius: 8, boxShadow: '0 1px 2px rgba(0,0,0,0.05)', border: '1px solid #f0f0f0', overflow: 'hidden' }}>
+              <Tabs
+                defaultActiveKey="vocabulary-list"
+                tabBarStyle={{ padding: '4px 24px 0', borderBottom: '1px solid #f0f0f0', background: '#ffffff', margin: 0 }}
+                items={[
+                  {
+                    key: 'basic-info',
+                    label: (
+                      <Space>
+                        <InfoCircleOutlined />
+                        <span style={{ fontWeight: 500 }}>Thông tin cơ bản</span>
+                      </Space>
+                    ),
+                    children: (
+                      <div style={{ padding: 24 }}>
+                        <TopicInfoCard
+                          topic={detailTopic}
+                          isAdmin={(() => {
+                            const userRole = getCurrentUserRole()
+                            return userRole === 'Admin'
+                          })()}
+                          onApprove={() => handleOpenApprovalModal('approve')}
+                          onReject={() => handleOpenApprovalModal('reject')}
+                          approvalLoading={approvalLoading}
+                        />
+                      </div>
+                    )
+                  },
+                  {
+                    key: 'vocabulary-list',
+                    label: (
+                      <Space>
+                        <UnorderedListOutlined />
+                        <span style={{ fontWeight: 500 }}>Danh sách từ vựng</span>
+                      </Space>
+                    ),
+                    children: (
+                      <div style={{ padding: 24 }}>
+                        <TopicVocabSection
+                          selecting={selecting}
+                          onSelectingChange={setSelecting}
+                          removingKeys={removingKeys}
+                          onRemovingKeysChange={setRemovingKeys}
+                          availableOptions={availableOptions}
+                          onSearch={handleSearchVocab}
+                          onFocus={handleSelectFocus}
+                          searching={searching}
+                          onAdd={handleAddVocab}
+                          adding={adding}
+                          onRemove={handleRemoveVocab}
+                          removing={removing}
+                          dataSource={topicVocabData}
+                          onQuickAdd={currentPortal !== 'moderator' ? () => setQuickAddModalOpen(true) : undefined}
+                          onExcelUpload={currentPortal !== 'moderator' ? handleExcelFileSelect : undefined}
+                          uploadingExcel={uploadingExcel}
+                          fileInputRef={fileInputRef}
+                          onExportExcel={currentPortal !== 'moderator' ? handleExportExcel : undefined}
+                          exportingExcel={exportingExcel}
+                          onOpenGuide={() => setGuideModalOpen(true)}
+                          isModerator={currentPortal === 'moderator'}
+                          excelImportResult={excelImportResult}
+                        />
+                      </div>
+                    )
+                  }
+                ]}
               />
             </div>
-            
-            <div style={{ width: 450, flexShrink: 0, position: 'sticky', top: 0 }}>
-              <TopicInfoCard
-                topic={detailTopic}
-                isAdmin={(() => {
-                  const userRole = getCurrentUserRole()
-                  return userRole === 'Admin'
-                })()}
-                onApprove={() => handleOpenApprovalModal('approve')}
-                onReject={() => handleOpenApprovalModal('reject')}
-                approvalLoading={approvalLoading}
-              />
-            </div>
-          </div>
-          <FlashcardTopicEditModal
-            open={editOpen}
-            loading={editLoading}
-            initialValues={{
-              topicName: detailTopic?.title || detailTopic?._raw?.topicName || '',
-              description: detailTopic?.subtitle || detailTopic?._raw?.description || '',
-              level: detailTopic?.level ?? detailTopic?._raw?.level ?? 1,
-              status: detailTopic?._raw?.status ?? detailTopic?.status ?? 1,
-              imgUrl: detailTopic?.imgUrl || detailTopic?._raw?.imgUrl || '',
-            }}
-            onCancel={() => setEditOpen(false)}
-            onSubmit={handleUpdate}
-            isModerator={currentPortal === 'moderator'}
-            isStaff={currentPortal === 'staff'}
-          />
-          <QuickAddVocabularyModal
-            open={quickAddModalOpen}
-            onCancel={() => setQuickAddModalOpen(false)}
-            topicId={topicId}
-            onAddToTopic={async (vocabIds) => {
-              try {
-                setApiResponse(null)
-                // Gọi API thêm vào topic
-                const { response, topicDetail } = await addVocabulariesToTopicAndReload(topicId, vocabIds)
-                setApiResponse(response)
-                
-                if (response?.isSuccess && topicDetail?.topic) {
-                  setDetailTopic(topicDetail.topic)
-                  setTopicVocabIds(topicDetail.topic.vocabIds || [])
-                  setTopicVocabularies(topicDetail.vocabularies || [])
-                  setSelecting([])
+            <FlashcardTopicEditModal
+              open={editOpen}
+              loading={editLoading}
+              initialValues={{
+                topicName: detailTopic?.title || detailTopic?._raw?.topicName || '',
+                description: detailTopic?.subtitle || detailTopic?._raw?.description || '',
+                level: detailTopic?.level ?? detailTopic?._raw?.level ?? 1,
+                status: detailTopic?._raw?.status ?? detailTopic?.status ?? 1,
+                imgUrl: detailTopic?.imgUrl || detailTopic?._raw?.imgUrl || '',
+              }}
+              onCancel={() => setEditOpen(false)}
+              onSubmit={handleUpdate}
+              isModerator={currentPortal === 'moderator'}
+              isStaff={currentPortal === 'staff'}
+            />
+            <QuickAddVocabularyModal
+              open={quickAddModalOpen}
+              onCancel={() => setQuickAddModalOpen(false)}
+              topicId={topicId}
+              onAddToTopic={async (vocabIds) => {
+                try {
+                  // Gọi API thêm vào topic
+                  const { response, topicDetail } = await addVocabulariesToTopicAndReload(topicId, vocabIds)
+
+                  if (response?.isSuccess) {
+                    if (topicDetail?.topic) {
+                      setDetailTopic(topicDetail.topic)
+                      setTopicVocabIds(topicDetail.topic.vocabIds || [])
+                      setTopicVocabularies(topicDetail.vocabularies || [])
+                      setSelecting([])
+                    }
+                    messageApi.success('Đã thêm từ vựng thành công')
+                  } else {
+                    messageApi.error(response?.message || 'Không thể thêm từ vựng vào chủ đề')
+                  }
+                  return { success: response?.isSuccess, response }
+                } catch (err) {
+                  console.error('Error adding vocab to topic:', err)
+                  messageApi.error(err?.message || 'Không thể thêm từ vựng vào chủ đề')
+                  return { success: false, error: err }
                 }
-                return { success: response?.isSuccess, response }
-              } catch (err) {
-                console.error('Error adding vocab to topic:', err)
-                return { success: false, error: err }
-              }
-            }}
-            onSuccess={(createdVocab) => {
-              // Reload lại danh sách từ vựng để hiển thị từ vựng mới
-              if (createdVocab?.vocabularyId) {
-                // Từ vựng đã được thêm vào topic trong onAddToTopic
-                // Không cần làm gì thêm
-              }
-            }}
-          />
-          <VocabularyGuideModal open={guideModalOpen} onCancel={() => setGuideModalOpen(false)} />
-          <TopicApprovalModal
-            open={approvalModalOpen}
-            loading={approvalLoading}
-            initialApprovalType={approvalType}
-            onCancel={() => {
-              setApprovalModalOpen(false)
-              setTopicIdForApproval(null)
-              setApprovalType('approve')
-            }}
-            onSubmit={handleApproval}
-          />
-          <TopicStatusChangeModal
-            open={statusChangeModalOpen}
-            loading={statusChangeLoading}
-            currentStatus={detailTopic?._raw?.status ?? detailTopic?.status}
-            onCancel={() => setStatusChangeModalOpen(false)}
-            onSubmit={handleStatusChange}
-          />
+              }}
+              onSuccess={(createdVocab) => {
+                // Reload lại danh sách từ vựng để hiển thị từ vựng mới
+                if (createdVocab?.vocabularyId) {
+                  // Từ vựng đã được thêm vào topic trong onAddToTopic
+                  // Không cần làm gì thêm
+                }
+              }}
+            />
+            <VocabularyGuideModal open={guideModalOpen} onCancel={() => setGuideModalOpen(false)} />
+            <TopicApprovalModal
+              open={approvalModalOpen}
+              loading={approvalLoading}
+              initialApprovalType={approvalType}
+              onCancel={() => {
+                setApprovalModalOpen(false)
+                setTopicIdForApproval(null)
+                setApprovalType('approve')
+              }}
+              onSubmit={handleApproval}
+            />
+            <TopicStatusChangeModal
+              open={statusChangeModalOpen}
+              loading={statusChangeLoading}
+              currentStatus={detailTopic?._raw?.status ?? detailTopic?.status}
+              onCancel={() => setStatusChangeModalOpen(false)}
+              onSubmit={handleStatusChange}
+            />
+          </div>
         </div>
       </div>
     )

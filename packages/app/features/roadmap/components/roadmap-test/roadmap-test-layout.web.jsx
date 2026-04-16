@@ -5,7 +5,7 @@ import { RoadmapTestQuestion } from './roadmap-test-question'
 import { RoadmapTestDashboard } from './roadmap-test-dashboard'
 import { RoadmapTestButton } from './roadmap-test-button'
 import { ToastNotification } from './toast-notification'
-import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons'
+import { ArrowLeftOutlined, ArrowRightOutlined, FlagFilled } from '@ant-design/icons'
 import { getTestQuestions, getTestConfig, formatTime } from '../../api/roadmap-test'
 import { apiClient } from '../../../../provider/api/client'
 import { ENDPOINTS } from '../../../../provider/api/endpoints'
@@ -396,7 +396,7 @@ const restoreAnswersFromSections = (sections) => {
   return restoredAnswers
 }
 
-export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, isEntrance = false }) {
+export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, isEntrance = false, taskId = null }) {
   const router = useRouter()
   const [userExamId, setUserExamId] = useState(null)
   const [sections, setSections] = useState([])
@@ -422,6 +422,21 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
   const [toastVisible, setToastVisible] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const [toastType, setToastType] = useState('success')
+  const [markedQuestions, setMarkedQuestions] = useState({}) // { [sectionKey]: { [questionNo]: boolean } }
+
+  const handleToggleMark = (questionNum) => {
+    if (!activeSectionKey) return
+    setMarkedQuestions((prev) => {
+      const sectionMarked = prev[activeSectionKey] || {}
+      return {
+        ...prev,
+        [activeSectionKey]: {
+          ...sectionMarked,
+          [questionNum]: !sectionMarked[questionNum],
+        },
+      }
+    })
+  }
 
   // Load exam data (ưu tiên gọi API thật, fallback sang mock theo level nếu lỗi)
   useEffect(() => {
@@ -475,7 +490,19 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         const restoredAnswers = restoreAnswersFromSections(mappedSections)
 
         setSections(mappedSections)
-        setActiveSectionKey(mappedSections[0]?.key || null)
+        
+        // Respect currentSkill from backend if available, or find first section with time remaining
+        const skillRemaining = examData.skillTimeRemaining || {}
+        const backendCurrentSkill = (examData.currentSkill || '').toLowerCase()
+        let initialSection = mappedSections.find(s => s.key === backendCurrentSkill)
+        
+        if (!initialSection) {
+          initialSection = mappedSections.find(s => (skillRemaining[s.key] || 0) > 0)
+        }
+        
+        if (!initialSection) initialSection = mappedSections[0]
+
+        setActiveSectionKey(initialSection?.key || null)
         setTotalQuestions(
           examData.totalQuestions ||
           mappedSections.reduce((sum, s) => sum + s.questions.length, 0)
@@ -489,7 +516,6 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
               : getTestConfig(level).totalTime
 
         // Initialize skillTimeRemaining. If API doesn't provide it, fall back to global duration divided equally
-        const skillRemaining = examData.skillTimeRemaining || {}
         if (Object.keys(skillRemaining).length === 0) {
           mappedSections.forEach(s => {
             skillRemaining[s.key] = totalSeconds / mappedSections.length
@@ -497,13 +523,13 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         }
         setSkillTimeRemaining(skillRemaining)
 
-        const firstSectionKey = mappedSections[0]?.key || null
-        const currentSkillSeconds = firstSectionKey ? (skillRemaining[firstSectionKey] || 0) : totalSeconds
+        const initialSectionKey = initialSection?.key || null
+        const currentSkillSeconds = initialSectionKey ? (skillRemaining[initialSectionKey] || 0) : totalSeconds
         
         setTimeRemainingSeconds(currentSkillSeconds)
         setTimeRemaining(formatTime(currentSkillSeconds))
-        const firstSectionQuestion = mappedSections[0]?.questions?.[0]
-        setCurrentQuestion(firstSectionQuestion?.questionNumber || 1)
+        const activeSectionQuestion = initialSection?.questions?.[0]
+        setCurrentQuestion(activeSectionQuestion?.questionNumber || 1)
         setCurrentQuestionIndex(0)
         setAnswers(restoredAnswers)
         setExamTitle(
@@ -514,31 +540,22 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
           ''
         )
       } catch (error) {
-        console.error('Failed to load exam from API, fallback to mock:', error)
-
-        const testConfig = getTestConfig(level)
-        const testQuestions = getTestQuestions(level)
-
-        setTotalQuestions(testConfig.totalQuestions)
-        setSections([
-          {
-            key: 'mock',
-            label: 'Đề mẫu',
-            title: 'Đề luyện tập',
-            description: '',
-            questions: testQuestions,
-          },
-        ])
-        setActiveSectionKey('mock')
-        setExamTitle('')
-
-        const totalSeconds = testConfig.totalTime
-        const skillRemaining = { mock: totalSeconds }
-        setSkillTimeRemaining(skillRemaining)
-        setTimeRemainingSeconds(totalSeconds)
-        setTimeRemaining(formatTime(totalSeconds))
-
-        setLoadError('Không tải được đề thi thật, đang dùng dữ liệu mẫu.')
+        console.error('Failed to load exam:', error)
+        
+        if (isMounted) {
+          Alert.alert(
+            'Không thể tải đề thi',
+            'Đã có lỗi xảy ra khi lấy thông tin bài kiểm tra. Vui lòng thử lại sau.',
+            [{ text: 'Đồng ý', onPress: () => router.push(`/roadmap/learning?level=${level}`) }]
+          )
+          
+          // Sau 2 giây nếu chưa chuyển trang thì tự động chuyển (đề phòng Alert bị chặn hoặc không gọi onPress)
+          setTimeout(() => {
+            if (isMounted) {
+              router.push(`/roadmap/learning?level=${level}`)
+            }
+          }, 2000)
+        }
       } finally {
         if (isMounted) {
           setIsLoading(false)
@@ -815,12 +832,12 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     if (isSubmitting) return
 
     // If auto-submit, we don't clear the timer here (it's already 0)
-    if (!isAuto) {
+    if (isAuto !== true) {
       // timeRemainingSeconds logic handled below
     }
 
     if (!userExamId) {
-      if (!isAuto) {
+      if (isAuto !== true) {
         Alert.alert('Thông báo', 'Bạn đang làm đề mẫu. Kết quả không được lưu.')
       }
       return
@@ -830,7 +847,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     const activeSectionIndexSnapshot = activeSectionIndex
     const isLastSkill = activeSectionIndexSnapshot === sections.length - 1
 
-    if (!isAuto) {
+    if (isAuto !== true) {
       const confirmText = isLastSkill
         ? 'Bạn có chắc chắn muốn nộp bài? Sau khi nộp, bạn sẽ không thể chỉnh sửa đáp án.'
         : `Bạn có chắc chắn muốn nộp phần thi ${activeSectionSnapshot?.label || ''} và chuyển sang phần tiếp theo?`
@@ -873,7 +890,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         router.push(
           `/roadmap/test/result?userExamId=${encodeURIComponent(
             submittedUserExamId
-          )}&level=${encodeURIComponent(String(level))}&isEntrance=${isEntrance ? '1' : '0'}`
+          )}&level=${encodeURIComponent(String(level))}&isEntrance=${isEntrance ? '1' : '0'}&taskId=${taskId || ''}`
         )
 
         startExamOncePromise = null
@@ -1105,6 +1122,8 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
                                }))
                              }
                           }}
+                          isMarked={(markedQuestions[activeSectionKey] || {})[q.questionNumber]}
+                          onToggleMark={() => handleToggleMark(q.questionNumber)}
                         />
                       </View>
                     ))}
@@ -1150,12 +1169,13 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
               isLastSection={isLastSection}
               currentQuestion={currentQuestion}
               onQuestionSelect={handleQuestionSelect}
+              markedQuestions={markedQuestions[activeSectionKey] || {}}
             />
 
             <View style={[styles.navigationButtons, styles.dashboardNavigationButtons]}>
               {currentQuestionIndex > 0 ? (
                 <RoadmapTestButton onPress={handlePrevQuestion} style={styles.navButtonLeft}>
-                  <ArrowLeftOutlined style={styles.navButtonIcon} />
+                  <ArrowLeftOutlined style={styles.navButtonIconLeft} />
                 </RoadmapTestButton>
               ) : (
                 <View style={{ flex: 1 }} />
@@ -1204,7 +1224,9 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
                   pressed && styles.confirmButtonPressed,
                 ]}
               >
-                <Text style={styles.confirmButtonOkText}>Nộp bài</Text>
+                <Text style={styles.confirmButtonOkText}>
+                  {isLastSection ? 'Nộp bài' : 'Xác nhận'}
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -1431,7 +1453,7 @@ const styles = StyleSheet.create({
   timerValue: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
   },
   contentRow: {
     flex: 1,
@@ -1500,7 +1522,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: '#F1BE4B',
+    backgroundColor: '#F5F5F5',
   },
   navButtonRight: {
     flex: 1,
@@ -1511,6 +1533,10 @@ const styles = StyleSheet.create({
   navButtonIcon: {
     fontSize: 16,
     color: '#FFFFFF',
+  },
+  navButtonIconLeft: {
+    fontSize: 16,
+    color: '#666666',
   },
   confirmOverlay: {
     flex: 1,

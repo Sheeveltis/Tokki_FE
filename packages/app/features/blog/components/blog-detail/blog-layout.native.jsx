@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from 'react-native'
 import { NavbarMobile } from '../../../../../components/navbar-mobile'
-import { BlogSidebar } from './blog-detail-sidebar'
+import { BlogDetailSidebar } from './blog-detail-sidebar'
 import { useRouter } from 'solito/navigation'
 
 /**
@@ -41,7 +41,7 @@ export function BlogLayout({ children, relatedPosts }) {
 
         {/* Related Posts Section (Formerly Sidebar) */}
         <View style={styles.relatedSection}>
-           <BlogSidebar relatedPosts={relatedPosts} />
+           <BlogDetailSidebar relatedPosts={relatedPosts} />
         </View>
 
         {/* Spacer for bottom navbar */}

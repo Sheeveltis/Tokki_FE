@@ -23,7 +23,7 @@ import {
  * }} props
  */
 export function MenuStudy({
-  levelId = 1,
+  levelId = null,
   onBackPress,
   onQuickTestPress,
   lessonsLearned,
@@ -36,26 +36,34 @@ export function MenuStudy({
     handleModulePress,
     handleAlphabetPress,
     handleTopikRoadmapPress,
+    aimLevel,
   } = useMenuStudy(router, levelId)
+
+  // Chỉ sử dụng levelId từ props hoặc params, không tự động fallback về aimLevel
+  const currentLevel = levelId
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
 
   return (
     <Layout
-      levelId={levelId}
+      levelId={currentLevel}
       onBackPress={onBackPress}
       onQuickTestPress={onQuickTestPress}
       lessonsLearned={lessonsLearned}
       streakDays={streakDays}
+      aimLevel={aimLevel}
     >
       <Main
-        levelId={levelId}
-        onModulePress={handleModulePress}
+        levelId={currentLevel}
+        streakDays={streakDays}
+        lessonsLearned={lessonsLearned}
+        onModulePress={(moduleId, label) => handleModulePress(moduleId, label, currentLevel)}
         showLoginRequest={showLoginRequest}
         onCloseLoginRequest={() => setShowLoginRequest(false)}
         onAlphabetPress={handleAlphabetPress}
-        onTopikRoadmapPress={handleTopikRoadmapPress}
+        onTopikRoadmapPress={() => handleTopikRoadmapPress(currentLevel)}
+        aimLevel={aimLevel}
       />
     </Layout>
   )

@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from 'react'
-import { View, StyleSheet, Text, TouchableOpacity, TextInput, Platform, Modal, Image as RNImage } from 'react-native'
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Platform, Modal, Image as RNImage, Animated } from 'react-native'
 import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
 import { normalizeImageSource } from '@tokki/app/features/study/api'
 import SoundIcon from 'assets/icon/icon-mainflow/sound.svg'
+import CorrectIcon from 'assets/icon/icon-mainflow/correct.svg'
+import WarnIcon from 'assets/icon/icon-mainflow/warn.svg'
 import { studyStyles } from '@tokki/app/features/study/styles'
 import { LoadingWithContainer } from 'components/Loading'
 import { FlipCard } from 'components/FlipCard'
@@ -82,7 +84,7 @@ export function FlashcardFirstLearnMain({
       const src = isCorrect ? CorrectSfx : WrongSfx
       const audio = new Audio(src)
       audio.volume = 1
-      audio.play().catch(() => {})
+      audio.play().catch(() => { })
     } catch (e) {
       // ignore
     }
@@ -99,11 +101,39 @@ export function FlashcardFirstLearnMain({
     try {
       const audio = new Audio(DoneSfx)
       audio.volume = 1
-      audio.play().catch(() => {})
+      audio.play().catch(() => { })
     } catch (e) {
       // ignore
     }
   }, [isTopicCompleted])
+  
+  const iconScale = useRef(new Animated.Value(0)).current
+  useEffect(() => {
+    if (showResult) {
+      iconScale.setValue(0)
+      Animated.spring(iconScale, {
+        toValue: 1,
+        useNativeDriver: false,
+        friction: 4,
+        tension: 40,
+      }).start()
+    }
+  }, [showResult])
+  
+  const animatedProgress = useRef(new Animated.Value(progress)).current
+  useEffect(() => {
+    Animated.spring(animatedProgress, {
+      toValue: progress,
+      useNativeDriver: false,
+      friction: 8,
+      tension: 60,
+    }).start()
+  }, [progress])
+
+  const progressWidth = animatedProgress.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  })
 
   const renderStep = () => {
     if (!current) return null
@@ -125,14 +155,14 @@ export function FlashcardFirstLearnMain({
                   <RNImage
                     source={normalizeImageSource(current.imageUrl)}
                     style={styles.flipImage}
-                    resizeMode="cover"
+                    resizeMode="contain"
                   />
                 ) : null}
                 <Text style={styles.flipMeaning}>{current.meaning || ''}</Text>
               </View>
             }
             width="100%"
-            height={500}
+            height={Platform.OS === 'web' ? '60vh' : 500}
             frontColor="#79964E"
             backColor="#79964E"
             borderWidth={12}
@@ -197,7 +227,14 @@ export function FlashcardFirstLearnMain({
           isCorrect ? styles.resultBoxCorrect : styles.resultBoxWrong,
         ]}
       >
-        <View style={[styles.resultBadge, isCorrect ? styles.resultCorrect : styles.resultWrong]} />
+        <Animated.View style={[styles.resultIconWrapper, { transform: [{ scale: iconScale }] }]}>
+          <StudyIcon
+            source={isCorrect ? CorrectIcon : WarnIcon}
+            width={64}
+            height={64}
+            tintColor={isCorrect ? '#2FB96B' : '#CF4B4B'}
+          />
+        </Animated.View>
 
         {current.imageUrl ? (
           <RNImage source={normalizeImageSource(current.imageUrl)} style={styles.cardImage} resizeMode="cover" />
@@ -212,16 +249,16 @@ export function FlashcardFirstLearnMain({
                 tintColor="#FFFFFF"
               />
             </TouchableOpacity>
-            <Text style={[styles.cardWord, styles.resultTextOnColor]}>
+            <Text style={styles.cardWord}>
               {current.word}
             </Text>
           </View>
           {current.pronunciation ? (
-            <Text style={[styles.cardPronun, styles.resultTextOnColor]}>
+            <Text style={styles.cardPronun}>
               {current.pronunciation}
             </Text>
           ) : null}
-          <Text style={[styles.cardMeaning, styles.resultTextOnColor]}>
+          <Text style={styles.cardMeaning}>
             {current.meaning}
           </Text>
           {!isCorrect ? (
@@ -268,7 +305,7 @@ export function FlashcardFirstLearnMain({
         </View>
       )
     }
-    
+
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>Chưa có từ vựng nào</Text>
@@ -277,39 +314,43 @@ export function FlashcardFirstLearnMain({
   }
 
   return (
-    <>
-      <View style={styles.progressBar}>
-        <View style={[styles.progressFill, { width: `${progress}%` }]} />
-      </View>
-
-      <View style={styles.stepContainer}>
-        {renderStep()}
-      </View>
-
-      {(currentStepKey === 'view' || showResult) && (
-        <TouchableOpacity
-          style={[styles.nextButton, !canContinue && styles.nextButtonDisabled]}
-          onPress={onContinue}
-          disabled={!canContinue}
-        >
-          <Text style={styles.nextText}>
-            {currentStepKey === 'meaning' && showResult && currentIndex + 1 === total ? 'Hoàn thành' : 'Tiếp tục'}
+    <View style={styles.mainWrapper}>
+      <View style={styles.statsRow}>
+        <View style={styles.progressSection}>
+          <View style={styles.progressBar}>
+            <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
+          </View>
+          <Text style={styles.progressText}>
+            Tiến độ hoàn thành: <Text style={{ color: '#1A1A1A', fontWeight: '800' }}>{progress}%</Text>
           </Text>
-        </TouchableOpacity>
-      )}
+        </View>
+      </View>
+
+      <View style={styles.contentArea}>
+        <View style={styles.stepContainer}>
+          {renderStep()}
+        </View>
+
+        {(currentStepKey === 'view' || showResult) && (
+          <TouchableOpacity
+            style={[styles.nextButton, !canContinue && styles.nextButtonDisabled]}
+            onPress={onContinue}
+            disabled={!canContinue}
+          >
+            <Text style={styles.nextText}>
+              {currentStepKey === 'meaning' && showResult && currentIndex + 1 === total ? 'Hoàn thành' : 'Tiếp tục'}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Dialog tiếp tục học */}
-      <Modal
-        visible={showContinueDialog}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={onStopLearning}
-      >
+      {showContinueDialog && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {hasMoreFlashcards 
-                ? `Bạn đã học xong ${completedInBatch} từ!` 
+              {hasMoreFlashcards
+                ? `Bạn đã học xong ${completedInBatch} từ!`
                 : 'Bạn đã học hết từ vựng!'}
             </Text>
             <Text style={styles.modalMessage}>
@@ -337,55 +378,64 @@ export function FlashcardFirstLearnMain({
             </View>
           </View>
         </View>
-      </Modal>
-    </>
+      )}
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  headerTop: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  titleRow: {
-    width: '100%',
-    alignItems: 'center',
-    gap: 8,
-  },
-  title: {
-    ...studyStyles.pageTitle,
-    textAlign: 'center',
-  },
-  stepContainer: {
-    width: '100%',
+  mainWrapper: {
     flex: 1,
+    alignItems: 'center',
+    width: '100%',
+    paddingBottom: 20,
+    paddingTop: 20,
+  },
+  contentArea: {
+    flex: 1,
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  progressText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+  statsRow: {
+    width: '100%',
+    maxWidth: '80vh',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 4,
+  },
+  progressSection: {
+    flex: 1,
+    gap: 10,
   },
   progressBar: {
     width: '100%',
-    height: 20,
-    borderRadius: 999,
-    backgroundColor: '#E0E0E0',
+    height: 15,
+    backgroundColor: '#afafafff',
+    borderRadius: 100,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#833ab4',
-    backgroundImage: 'linear-gradient(to right, #833ab4, #fd1d1d, #fcb045)',
-    borderRadius: 999,
+    backgroundColor: '#F1BE4B',
+    borderRadius: 100,
+    ...(Platform.OS === 'web' && {
+      backgroundImage: 'linear-gradient(90deg, #F1BE4B, #FFD56B)',
+      boxShadow: '0 0 10px rgba(241, 190, 75, 0.4)',
+    }),
+  },
+  progressText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#999',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
   },
   flipCardWrapper: {
     width: '100%',
-    maxWidth: 720,
+    maxWidth: '80vh',
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -400,7 +450,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   flipWord: {
-    fontSize: 34,
+    fontSize: 'min(5vw, 34px)',
     fontWeight: '900',
     color: '#FFFFFF',
     textAlign: 'center',
@@ -423,8 +473,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   flipImage: {
-    width: 400,
-    height: 300,
+    width: '100%',
+    height: '100%',
+    maxHeight: '40vh',
     borderRadius: 8,
   },
   flipMeaning: {
@@ -475,13 +526,15 @@ const styles = StyleSheet.create({
   practiceBox: {
     width: '100%',
     maxWidth: 720,
-    height: 500,
+    height: 'auto',
+    minHeight: '50vh',
+    maxHeight: '70vh',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
+    gap: 20,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 24,
+    padding: 32,
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
@@ -550,25 +603,33 @@ const styles = StyleSheet.create({
   resultBox: {
     width: '100%',
     maxWidth: 720,
-    height: 500,
-    gap: 12,
+    height: 'auto',
+    minHeight: '50vh',
+    maxHeight: '70vh',
+    gap: 16,
     alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 16,
-    padding: 24,
+    padding: 32,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 4,
   },
   resultBoxCorrect: {
-    backgroundColor: '#23ac38',
+    borderColor: '#2FB96B',
   },
   resultBoxWrong: {
-    backgroundColor: '#eb5757',
+    borderColor: '#CF4B4B',
+  },
+  resultIconWrapper: {
+    marginBottom: 10,
   },
   resultBadge: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
   },
-  resultCorrect: { backgroundColor: '#23ac38' },
-  resultWrong: { backgroundColor: '#eb5757' },
+  resultCorrect: { backgroundColor: '#2FB96B' },
+  resultWrong: { backgroundColor: '#CF4B4B' },
   resultBadgeText: { fontSize: 15, fontWeight: '800', color: '#1F1F1F' },
   resultContent: { width: '100%', gap: 6, alignItems: 'center' },
   resultHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -576,13 +637,18 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 8,
     padding: 12,
-    backgroundColor: '#ffffff33',
+    backgroundColor: '#FDECEA',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#ffffff66',
+    borderColor: '#CF4B4B',
   },
-  wrongLabel: { fontSize: 13, fontWeight: '700', color: '#FFFFFF' },
-  wrongText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  wrongLabel: { fontSize: 13, fontWeight: '700', color: '#CF4B4B' },
+  wrongText: { fontSize: 16, fontWeight: '700', color: '#CF4B4B' },
+  stepContainer: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   resultTextOnColor: {
     color: '#FFFFFF',
   },
@@ -633,7 +699,12 @@ const styles = StyleSheet.create({
   completedText: { fontSize: 24, fontWeight: '800', color: '#4CAF50', marginBottom: 12 },
   completedSubtext: { fontSize: 16, color: '#666' },
   modalOverlay: {
-    flex: 1,
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     alignItems: 'center',
     justifyContent: 'center',

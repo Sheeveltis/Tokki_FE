@@ -19,24 +19,32 @@ if (Platform.OS === 'android') {
   }
 }
 
+import { XpProvider } from './xp'
+import { NotificationProvider } from './notification'
+
 export function Provider({ children }: { children: React.ReactNode }) {
   // Set navigation bar color thành đen khi app load
   useEffect(() => {
     if (Platform.OS === 'android') {
       if (setBackgroundColorAsync) {
-        setBackgroundColorAsync('#000000').catch(() => {}) // Màu đen
+        setBackgroundColorAsync('#000000').catch(() => { }) // Màu đen
       }
       if (setButtonStyleAsync) {
-        setButtonStyleAsync('light').catch(() => {}) // Nút sáng (trắng) trên nền đen
+        setButtonStyleAsync('light').catch(() => { }) // Nút sáng (trắng) trên nền đen
       }
     }
   }, [])
 
   return (
-    <QueryProvider>
-      <SafeArea>
-        <NavigationProvider>{children}</NavigationProvider>
-      </SafeArea>
-    </QueryProvider>
+    <SafeArea>
+      <XpProvider>
+        <QueryProvider>
+          <NotificationProvider>
+            <NavigationProvider>{children}</NavigationProvider>
+          </NotificationProvider>
+        </QueryProvider>
+      </XpProvider>
+    </SafeArea>
   )
 }
+

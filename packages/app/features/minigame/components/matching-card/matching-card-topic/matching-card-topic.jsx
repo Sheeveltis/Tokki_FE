@@ -86,22 +86,18 @@ const MatchingCardTopicComponent = forwardRef(({ levelId, selectedId, onSelect, 
               style={[styles.item, active && styles.itemActive]}
             >
               <View style={styles.itemLeft}>
-                <Image
-                  source={normalizeImageSource(topic.imgUrl)}
-                  style={styles.avatar}
-                  resizeMode="contain"
-                />
+                <View style={[styles.iconContainer, active && styles.iconContainerActive]}>
+                  <Image
+                    source={normalizeImageSource(topic.imgUrl)}
+                    style={styles.avatar}
+                    resizeMode="contain"
+                  />
+                </View>
               </View>
-
-              <View style={styles.itemDivider} />
 
               <View style={styles.itemText}>
-                <Text style={styles.itemTitle}>{topic.titleKo}</Text>
-                <Text style={styles.itemSubtitle}>{topic.titleVi}</Text>
-              </View>
-
-              <View style={styles.itemBadge}>
-                <Text style={styles.itemBadgeText}>펀</Text>
+                <Text style={styles.itemTitle} numberOfLines={1}>{topic.titleKo}</Text>
+                <Text style={styles.itemSubtitle} numberOfLines={2}>{topic.titleVi}</Text>
               </View>
             </Pressable>
           )
@@ -136,21 +132,21 @@ export const MatchingCardTopic = MatchingCardTopicComponent
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: '#F5F0DD',
-    borderRadius: 18,
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-    ...(Platform.OS === 'web' && { boxShadow: '0px 1px 5px rgba(0,0,0,0.15)' }),
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
   },
   title: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#1C1C1C',
+    color: '#1A1A1A',
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
+    fontFamily: 'Epilogue, sans-serif',
   },
   list: {
-    gap: 12,
+    gap: 16,
     paddingVertical: 4,
   },
   pagination: {
@@ -158,13 +154,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
-    marginTop: 14,
+    marginTop: 20,
   },
   pageBtn: {
-    backgroundColor: '#7FA14D',
+    backgroundColor: '#F1BE4B',
     paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
     ...(Platform.OS === 'web' && { cursor: 'pointer' }),
   },
   pageBtnDisabled: {
@@ -172,77 +168,77 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' && { cursor: 'not-allowed' }),
   },
   pageBtnText: {
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     fontSize: 14,
     fontWeight: '700',
+    fontFamily: 'Epilogue, sans-serif',
   },
   pageInfo: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1C1C1C',
+    color: '#666',
     minWidth: 56,
     textAlign: 'center',
+    fontFamily: 'Epilogue, sans-serif',
   },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    backgroundColor: '#FDEEB9',
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#FDEEB9',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    gap: 16,
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.2s ease',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+    }),
   },
   itemActive: {
-    backgroundColor: '#F39F2D',
-    borderColor: '#F39F2D',
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 4 },
+    backgroundColor: '#FEF7E6',
+    borderColor: '#F1BE4B',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 12px rgba(241, 190, 75, 0.15)',
+    }),
   },
   itemLeft: {
-    width: 64,
+    width: 60,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatar: {
-    width: 54,
-    height: 54,
-  },
-  itemDivider: {
-    width: 2,
+  iconContainer: {
+    width: 60,
     height: 60,
-    backgroundColor: '#F1BE4B',
-    marginHorizontal: 12,
+    borderRadius: 14,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  iconContainerActive: {
+    backgroundColor: '#FFFFFF',
+  },
+  avatar: {
+    width: 50,
+    height: 50,
   },
   itemText: {
     flex: 1,
     gap: 4,
   },
   itemTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
-    color: '#1C1C1C',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
   },
   itemSubtitle: {
     fontSize: 14,
-    color: '#1C1C1C',
-  },
-  itemBadge: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    borderWidth: 2,
-    borderColor: '#C45A32',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FDE7D4',
-  },
-  itemBadgeText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#C45A32',
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 18,
   },
 })
 

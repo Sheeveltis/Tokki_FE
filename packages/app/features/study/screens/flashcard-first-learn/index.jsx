@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useState } from 'react'
+
 import { Platform } from 'react-native'
 import { useFlashcardFirstLearn } from './useFlashcardFirstLearn'
 import {
@@ -6,7 +7,9 @@ import {
   FlashcardFirstLearnMain as WebMain,
   FlashcardFirstLearnLayoutMobile as MobileLayout,
   FlashcardFirstLearnMainMobile as MobileMain,
+  FlashcardFirstLearnListWeb,
 } from './components'
+import { useXp, XpConfigKeys, XpSourceList } from 'app/provider/xp'
 
 // Conditional import để tránh lỗi trên web
 let useRoute, useNavigation
@@ -43,6 +46,10 @@ export function FlashcardFirstLearnScreen({
 
   // Lấy topicId từ route params hoặc props
   const topicId = route?.params?.topicId || topicIdProp
+
+  const [mode, setMode] = useState('list') // 'list' | 'learn'
+
+  const { addXp } = useXp()
 
   // Handler cho nút back
   const handleBackPress = () => {
@@ -83,8 +90,16 @@ export function FlashcardFirstLearnScreen({
     batchSize,
   } = useFlashcardFirstLearn(topicId)
 
+  // Cộng XP khi hoàn thành 1 tour 5 từ (hiện dialog hỏi tiếp tục)
+  React.useEffect(() => {
+    if (showContinueDialog) {
+      addXp(XpConfigKeys.COMPLETED_FLASHCARD_TOPIC, XpSourceList.VOCABULARY)
+    }
+  }, [showContinueDialog, addXp])
+
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
+  const List = Platform.OS === 'web' ? FlashcardFirstLearnListWeb : FlashcardFirstLearnListWeb
 
   const canContinue = currentStepKey !== 'view' || hasFlippedOnce
 
@@ -118,41 +133,48 @@ export function FlashcardFirstLearnScreen({
   return (
     <Layout
       levelId={route?.params?.levelId || 1}
-      onBackPress={handleBackPress}
+      onBackPress={mode === 'learn' ? () => setMode('list') : handleBackPress}
       lessonsLearned={30}
       streakDays={30}
     >
-      <Main
-        title={title}
-        current={current}
-        currentIndex={currentIndex}
-        total={total}
-        currentStepKey={currentStepKey}
-        isFlipped={isFlipped}
-        loading={loading}
-        error={error}
-        userAnswer={userAnswer}
-        showResult={showResult}
-        isCorrect={isCorrect}
-        setUserAnswer={setUserAnswer}
-        onFlip={handleFlip}
-        onSubmit={handleSubmit}
-        onContinue={handleContinue}
-        canContinue={canContinue}
-        onBackPress={handleBackPress}
-        onRetry={fetchFlashcards}
-        onPlaySound={playAudio}
-        progress={progress}
-        flashcards={flashcards}
-        isTopicCompleted={isTopicCompleted}
-        showContinueDialog={showContinueDialog}
-        hasMoreFlashcards={hasMoreFlashcards}
-        allWordsCompleted={allWordsCompleted}
-        onContinueLearning={handleContinueLearning}
-        onStopLearning={handleStopAndExit}
-        completedInBatch={completedInBatch}
-        batchSize={batchSize}
-      />
+      {mode === 'list' ? (
+        <List 
+          topicId={topicId}
+          onStartLearning={() => setMode('learn')}
+        />
+      ) : (
+        <Main
+          title={title}
+          current={current}
+          currentIndex={currentIndex}
+          total={total}
+          currentStepKey={currentStepKey}
+          isFlipped={isFlipped}
+          loading={loading}
+          error={error}
+          userAnswer={userAnswer}
+          showResult={showResult}
+          isCorrect={isCorrect}
+          setUserAnswer={setUserAnswer}
+          onFlip={handleFlip}
+          onSubmit={handleSubmit}
+          onContinue={handleContinue}
+          canContinue={canContinue}
+          onBackPress={handleBackPress}
+          onRetry={fetchFlashcards}
+          onPlaySound={playAudio}
+          progress={progress}
+          flashcards={flashcards}
+          isTopicCompleted={isTopicCompleted}
+          showContinueDialog={showContinueDialog}
+          hasMoreFlashcards={hasMoreFlashcards}
+          allWordsCompleted={allWordsCompleted}
+          onContinueLearning={handleContinueLearning}
+          onStopLearning={handleStopAndExit}
+          completedInBatch={completedInBatch}
+          batchSize={batchSize}
+        />
+      )}
     </Layout>
   )
 }

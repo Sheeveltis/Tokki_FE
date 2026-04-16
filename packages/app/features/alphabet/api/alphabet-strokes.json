@@ -10,20 +10,42 @@
         "order": 1,
         "isMainStroke": true,
         "hangulPoints": [
-          [0.2, 0.3],
-          [0.7, 0.3],
-          [0.7, 0.8]
+          [
+            0.2,
+            0.3
+          ],
+          [
+            0.7,
+            0.3
+          ],
+          [
+            0.7,
+            0.8
+          ]
         ],
         "guide": {
           "arrowPath": [
-            [0.60, 0.2],
-            [0.8, 0.2],
-            [0.8, 0.35]
+            [
+              0.3,
+              0.25
+            ],
+            [
+              0.5,
+              0.25
+            ],
+            [
+              0.75,
+              0.25
+            ],
+            [
+              0.75,
+              0.5
+            ]
           ],
           "numberLabel": {
             "value": 1,
             "position": [
-              0.8,
+              0.45,
               0.2
             ]
           }
@@ -42,21 +64,39 @@
         "order": 1,
         "isMainStroke": true,
         "hangulPoints": [
-          [0.25, 0.2],
-          [0.25, 0.75],
-          [0.75, 0.75]
+          [
+            0.3,
+            0.3
+          ],
+          [
+            0.3,
+            0.75
+          ],
+          [
+            0.8,
+            0.75
+          ]
         ],
         "guide": {
           "arrowPath": [
-            [0.15, 0.6],
-            [0.15, 0.85],
-            [0.4, 0.85]
+            [
+              0.25,
+              0.4
+            ],
+            [
+              0.25,
+              0.8
+            ],
+            [
+              0.6,
+              0.8
+            ]
           ],
           "numberLabel": {
             "value": 1,
             "position": [
-              0.15,
-              0.85
+              0.2,
+              0.5
             ]
           }
         }
@@ -74,13 +114,116 @@
         "order": 1,
         "isMainStroke": true,
         "hangulPoints": [
-          [0.25, 0.25],
-          [0.75, 0.25]
+          [
+            0.25,
+            0.3
+          ],
+          [
+            0.75,
+            0.3
+          ]
         ],
         "guide": {
           "arrowPath": [
-            [0.25, 0.15],
-            [0.75, 0.15]
+            [
+              0.3,
+              0.25
+            ],
+            [
+              0.7,
+              0.25
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.5,
+              0.2
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.25,
+            0.3
+          ],
+          [
+            0.25,
+            0.75
+          ],
+          [
+            0.75,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.2,
+              0.45
+            ],
+            [
+              0.2,
+              0.8
+            ],
+            [
+              0.6,
+              0.8
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.15,
+              0.6
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㄹ",
+    "meaning": "rieul (r/l)",
+    "pronunciation": "r/l",
+    "totalStrokes": 3,
+    "description": "Nét ㄱ trên, nét ngang giữa, và nét ㄴ dưới.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.25,
+            0.25
+          ],
+          [
+            0.75,
+            0.25
+          ],
+          [
+            0.75,
+            0.45
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.3,
+              0.2
+            ],
+            [
+              0.8,
+              0.2
+            ],
+            [
+              0.8,
+              0.4
+            ]
           ],
           "numberLabel": {
             "value": 1,
@@ -95,21 +238,4287 @@
         "order": 2,
         "isMainStroke": true,
         "hangulPoints": [
-          [0.25, 0.25],
-          [0.25, 0.75],
-          [0.75, 0.75]
+          [
+            0.25,
+            0.45
+          ],
+          [
+            0.75,
+            0.45
+          ]
         ],
         "guide": {
           "arrowPath": [
-            [0.15, 0.55],
-            [0.15, 0.85],
-            [0.4, 0.85]
+            [
+              0.3,
+              0.5
+            ],
+            [
+              0.7,
+              0.5
+            ]
           ],
           "numberLabel": {
             "value": 2,
             "position": [
+              0.5,
+              0.55
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.25,
+            0.45
+          ],
+          [
+            0.25,
+            0.75
+          ],
+          [
+            0.75,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.2,
+              0.6
+            ],
+            [
+              0.2,
+              0.8
+            ],
+            [
+              0.6,
+              0.8
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
               0.15,
+              0.7
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅁ",
+    "meaning": "mieum (m)",
+    "pronunciation": "m",
+    "totalStrokes": 3,
+    "description": "Nét thẳng trái, nét gập trên-phải, rồi nét ngang dưới.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.25
+          ],
+          [
+            0.3,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.25,
+              0.3
+            ],
+            [
+              0.25,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.2,
+              0.35
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.25
+          ],
+          [
+            0.7,
+            0.25
+          ],
+          [
+            0.7,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.35,
+              0.2
+            ],
+            [
+              0.75,
+              0.2
+            ],
+            [
+              0.75,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.5,
+              0.15
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.75
+          ],
+          [
+            0.7,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.35,
+              0.8
+            ],
+            [
+              0.65,
+              0.8
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.5,
               0.85
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅂ",
+    "meaning": "bieup (b/p)",
+    "pronunciation": "b/p",
+    "totalStrokes": 4,
+    "description": "Hai nét thẳng xuống, rồi hai nét ngang.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.2
+          ],
+          [
+            0.3,
+            0.8
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.25,
+              0.3
+            ],
+            [
+              0.25,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.2,
+              0.35
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.7,
+            0.2
+          ],
+          [
+            0.7,
+            0.8
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.75,
+              0.3
+            ],
+            [
+              0.75,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.8,
+              0.35
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.5
+          ],
+          [
+            0.7,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.4,
+              0.45
+            ],
+            [
+              0.6,
+              0.45
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.5,
+              0.4
+            ]
+          }
+        }
+      },
+      {
+        "order": 4,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.8
+          ],
+          [
+            0.7,
+            0.8
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.4,
+              0.85
+            ],
+            [
+              0.6,
+              0.85
+            ]
+          ],
+          "numberLabel": {
+            "value": 4,
+            "position": [
+              0.5,
+              0.9
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅅ",
+    "meaning": "siot (s)",
+    "pronunciation": "s",
+    "totalStrokes": 2,
+    "description": "Hai nét chéo sang hai bên.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.5,
+            0.25
+          ],
+          [
+            0.25,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.45,
+              0.3
+            ],
+            [
+              0.3,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.35,
+              0.35
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.5,
+            0.25
+          ],
+          [
+            0.75,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.55,
+              0.3
+            ],
+            [
+              0.7,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.65,
+              0.35
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅇ",
+    "meaning": "ieung (ng)",
+    "pronunciation": "ng",
+    "totalStrokes": 1,
+    "description": "Vẽ hình tròn ngược chiều kim đồng hồ.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.5,
+            0.25
+          ],
+          [
+            0.25,
+            0.5
+          ],
+          [
+            0.5,
+            0.75
+          ],
+          [
+            0.75,
+            0.5
+          ],
+          [
+            0.5,
+            0.25
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.4,
+              0.25
+            ],
+            [
+              0.2,
+              0.5
+            ],
+            [
+              0.5,
+              0.8
+            ],
+            [
+              0.8,
+              0.5
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.5,
+              0.2
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅈ",
+    "meaning": "jieut (j)",
+    "pronunciation": "j",
+    "totalStrokes": 3,
+    "description": "Nét ngang trên, sau đó là hai nét chéo.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.25
+          ],
+          [
+            0.7,
+            0.25
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.35,
+              0.2
+            ],
+            [
+              0.65,
+              0.2
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.5,
+              0.15
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.5,
+            0.25
+          ],
+          [
+            0.25,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.45,
+              0.3
+            ],
+            [
+              0.3,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.35,
+              0.35
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.5,
+            0.25
+          ],
+          [
+            0.75,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.55,
+              0.3
+            ],
+            [
+              0.7,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.65,
+              0.35
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅊ",
+    "meaning": "cheut (ch)",
+    "pronunciation": "ch",
+    "totalStrokes": 4,
+    "description": "Dấu phẩy trên, rồi nét ㅈ.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.45,
+            0.1
+          ],
+          [
+            0.55,
+            0.1
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.5,
+              0.05
+            ],
+            [
+              0.5,
+              0.15
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.6,
+              0.08
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.3
+          ],
+          [
+            0.7,
+            0.3
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.4,
+              0.25
+            ],
+            [
+              0.6,
+              0.25
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.5,
+              0.2
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.5,
+            0.3
+          ],
+          [
+            0.25,
+            0.8
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.45,
+              0.4
+            ],
+            [
+              0.3,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.35,
+              0.45
+            ]
+          }
+        }
+      },
+      {
+        "order": 4,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.5,
+            0.3
+          ],
+          [
+            0.75,
+            0.8
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.55,
+              0.4
+            ],
+            [
+              0.7,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 4,
+            "position": [
+              0.65,
+              0.45
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅋ",
+    "meaning": "kieuk (k)",
+    "pronunciation": "k",
+    "totalStrokes": 2,
+    "description": "Nét ㄱ, rồi nét ngang giữa.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.25
+          ],
+          [
+            0.7,
+            0.25
+          ],
+          [
+            0.7,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.35,
+              0.2
+            ],
+            [
+              0.75,
+              0.2
+            ],
+            [
+              0.75,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.5,
+              0.15
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.5
+          ],
+          [
+            0.7,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.4,
+              0.55
+            ],
+            [
+              0.6,
+              0.55
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.5,
+              0.6
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅌ",
+    "meaning": "tieut (t)",
+    "pronunciation": "t",
+    "totalStrokes": 3,
+    "description": "Hai nét ngang trên, rồi nét ㄴ.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.25
+          ],
+          [
+            0.7,
+            0.25
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.4,
+              0.2
+            ],
+            [
+              0.6,
+              0.2
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.5,
+              0.15
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.5
+          ],
+          [
+            0.7,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.4,
+              0.45
+            ],
+            [
+              0.6,
+              0.45
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.5,
+              0.4
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.25
+          ],
+          [
+            0.3,
+            0.75
+          ],
+          [
+            0.7,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.25,
+              0.4
+            ],
+            [
+              0.25,
+              0.8
+            ],
+            [
+              0.6,
+              0.8
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.2,
+              0.5
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅍ",
+    "meaning": "pieup (p)",
+    "pronunciation": "p",
+    "totalStrokes": 4,
+    "description": "Nét ngang trên, hai nét thẳng, rồi nét ngang dưới.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.25,
+            0.25
+          ],
+          [
+            0.75,
+            0.25
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.35,
+              0.2
+            ],
+            [
+              0.65,
+              0.2
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.5,
+              0.15
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.4,
+            0.25
+          ],
+          [
+            0.4,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.35,
+              0.35
+            ],
+            [
+              0.35,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.3,
+              0.4
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.6,
+            0.25
+          ],
+          [
+            0.6,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.65,
+              0.35
+            ],
+            [
+              0.65,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.7,
+              0.4
+            ]
+          }
+        }
+      },
+      {
+        "order": 4,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.25,
+            0.75
+          ],
+          [
+            0.75,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.35,
+              0.8
+            ],
+            [
+              0.65,
+              0.8
+            ]
+          ],
+          "numberLabel": {
+            "value": 4,
+            "position": [
+              0.5,
+              0.85
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅎ",
+    "meaning": "hieut (h)",
+    "pronunciation": "h",
+    "totalStrokes": 3,
+    "description": "Dấu phẩy, nét ngang, và hình tròn ㅇ.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.45,
+            0.1
+          ],
+          [
+            0.55,
+            0.1
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.5,
+              0.05
+            ],
+            [
+              0.5,
+              0.15
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.6,
+              0.08
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.25
+          ],
+          [
+            0.7,
+            0.25
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.4,
+              0.2
+            ],
+            [
+              0.6,
+              0.2
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.5,
+              0.15
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.5,
+            0.45
+          ],
+          [
+            0.3,
+            0.65
+          ],
+          [
+            0.5,
+            0.85
+          ],
+          [
+            0.7,
+            0.65
+          ],
+          [
+            0.5,
+            0.45
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.4,
+              0.45
+            ],
+            [
+              0.2,
+              0.65
+            ],
+            [
+              0.5,
+              0.95
+            ],
+            [
+              0.8,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.5,
+              0.4
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅏ",
+    "meaning": "a",
+    "pronunciation": "a",
+    "totalStrokes": 2,
+    "description": "Nét thẳng trước, nét ngang sau.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.5,
+            0.15
+          ],
+          [
+            0.5,
+            0.85
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.55,
+              0.3
+            ],
+            [
+              0.55,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.6,
+              0.2
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.8,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.55,
+              0.55
+            ],
+            [
+              0.75,
+              0.55
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.65,
+              0.6
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅑ",
+    "meaning": "ya",
+    "pronunciation": "ya",
+    "totalStrokes": 3,
+    "description": "Nét thẳng trước, hai nét ngang sau.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.4,
+            0.15
+          ],
+          [
+            0.4,
+            0.85
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.45,
+              0.3
+            ],
+            [
+              0.45,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.5,
+              0.25
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.4,
+            0.35
+          ],
+          [
+            0.7,
+            0.35
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.45,
+              0.4
+            ],
+            [
+              0.65,
+              0.4
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.55,
+              0.45
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.4,
+            0.65
+          ],
+          [
+            0.7,
+            0.65
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.45,
+              0.7
+            ],
+            [
+              0.65,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.55,
+              0.75
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅓ",
+    "meaning": "eo",
+    "pronunciation": "eo",
+    "totalStrokes": 2,
+    "description": "Nét ngang trước, nét thẳng sau.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.2,
+            0.5
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.25,
+              0.55
+            ],
+            [
+              0.45,
+              0.55
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.35,
+              0.6
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.5,
+            0.15
+          ],
+          [
+            0.5,
+            0.85
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.55,
+              0.3
+            ],
+            [
+              0.55,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.6,
+              0.25
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅕ",
+    "meaning": "yeo",
+    "pronunciation": "yeo",
+    "totalStrokes": 3,
+    "description": "Hai nét ngang trước, nét thẳng sau.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.35
+          ],
+          [
+            0.6,
+            0.35
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.35,
+              0.4
+            ],
+            [
+              0.55,
+              0.4
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.45,
+              0.45
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.65
+          ],
+          [
+            0.6,
+            0.65
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.35,
+              0.7
+            ],
+            [
+              0.55,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.45,
+              0.75
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.6,
+            0.15
+          ],
+          [
+            0.6,
+            0.85
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.65,
+              0.3
+            ],
+            [
+              0.65,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.7,
+              0.25
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅗ",
+    "meaning": "o",
+    "pronunciation": "o",
+    "totalStrokes": 2,
+    "description": "Nét thẳng ngắn trên, nét ngang dài dưới.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.5,
+            0.3
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.55,
+              0.35
+            ],
+            [
+              0.55,
+              0.45
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.6,
+              0.4
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.2,
+            0.5
+          ],
+          [
+            0.8,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.3,
+              0.55
+            ],
+            [
+              0.7,
+              0.55
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.5,
+              0.6
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅛ",
+    "meaning": "yo",
+    "pronunciation": "yo",
+    "totalStrokes": 3,
+    "description": "Hai nét thẳng ngắn trên, nét ngang dài dưới.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.4,
+            0.3
+          ],
+          [
+            0.4,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.45,
+              0.35
+            ],
+            [
+              0.45,
+              0.45
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.45,
+              0.25
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.6,
+            0.3
+          ],
+          [
+            0.6,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.65,
+              0.35
+            ],
+            [
+              0.65,
+              0.45
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.65,
+              0.25
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.2,
+            0.5
+          ],
+          [
+            0.8,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.3,
+              0.55
+            ],
+            [
+              0.7,
+              0.55
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.5,
+              0.6
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅜ",
+    "meaning": "u",
+    "pronunciation": "u",
+    "totalStrokes": 2,
+    "description": "Nét ngang dài trên, nét thẳng ngắn dưới.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.2,
+            0.5
+          ],
+          [
+            0.8,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.3,
+              0.45
+            ],
+            [
+              0.7,
+              0.45
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.5,
+              0.4
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.5,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.55,
+              0.55
+            ],
+            [
+              0.55,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.6,
+              0.6
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅠ",
+    "meaning": "yu",
+    "pronunciation": "yu",
+    "totalStrokes": 3,
+    "description": "Nét ngang dài trên, hai nét thẳng ngắn dưới.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.2,
+            0.5
+          ],
+          [
+            0.8,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.3,
+              0.45
+            ],
+            [
+              0.7,
+              0.45
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.5,
+              0.4
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.4,
+            0.5
+          ],
+          [
+            0.4,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.45,
+              0.55
+            ],
+            [
+              0.45,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.45,
+              0.75
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.6,
+            0.5
+          ],
+          [
+            0.6,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.65,
+              0.55
+            ],
+            [
+              0.65,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.65,
+              0.75
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅡ",
+    "meaning": "eu",
+    "pronunciation": "eu",
+    "totalStrokes": 1,
+    "description": "Nét ngang từ trái sang phải.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.2,
+            0.5
+          ],
+          [
+            0.8,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.3,
+              0.55
+            ],
+            [
+              0.7,
+              0.55
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.5,
+              0.6
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅣ",
+    "meaning": "i",
+    "pronunciation": "i",
+    "totalStrokes": 1,
+    "description": "Nét thẳng từ trên xuống.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.5,
+            0.15
+          ],
+          [
+            0.5,
+            0.85
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.55,
+              0.3
+            ],
+            [
+              0.55,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.6,
+              0.25
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㄲ",
+    "meaning": "ssang-giyeok (kk)",
+    "pronunciation": "kk",
+    "totalStrokes": 2,
+    "description": "Hai nét ㄱ viết gần nhau.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.2,
+            0.3
+          ],
+          [
+            0.45,
+            0.3
+          ],
+          [
+            0.45,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.25,
+              0.25
+            ],
+            [
+              0.4,
+              0.25
+            ],
+            [
+              0.4,
+              0.6
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.35,
+              0.2
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.55,
+            0.3
+          ],
+          [
+            0.8,
+            0.3
+          ],
+          [
+            0.8,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.6,
+              0.25
+            ],
+            [
+              0.75,
+              0.25
+            ],
+            [
+              0.75,
+              0.6
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.7,
+              0.2
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㄸ",
+    "meaning": "ssang-digeut (tt)",
+    "pronunciation": "tt",
+    "totalStrokes": 4,
+    "description": "Hai nét ㄷ viết gần nhau.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.2,
+            0.3
+          ],
+          [
+            0.45,
+            0.3
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.25,
+              0.25
+            ],
+            [
+              0.4,
+              0.25
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.35,
+              0.2
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.2,
+            0.3
+          ],
+          [
+            0.2,
+            0.7
+          ],
+          [
+            0.45,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.15,
+              0.35
+            ],
+            [
+              0.15,
+              0.75
+            ],
+            [
+              0.4,
+              0.75
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.1,
+              0.5
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.55,
+            0.3
+          ],
+          [
+            0.8,
+            0.3
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.6,
+              0.25
+            ],
+            [
+              0.75,
+              0.25
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.7,
+              0.2
+            ]
+          }
+        }
+      },
+      {
+        "order": 4,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.55,
+            0.3
+          ],
+          [
+            0.55,
+            0.7
+          ],
+          [
+            0.8,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.5,
+              0.35
+            ],
+            [
+              0.5,
+              0.75
+            ],
+            [
+              0.75,
+              0.75
+            ]
+          ],
+          "numberLabel": {
+            "value": 4,
+            "position": [
+              0.45,
+              0.5
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅃ",
+    "meaning": "ssang-bieup (pp)",
+    "pronunciation": "pp",
+    "totalStrokes": 8,
+    "description": "Hai nét ㅂ viết gần nhau.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.25,
+            0.3
+          ],
+          [
+            0.25,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.2,
+              0.35
+            ],
+            [
+              0.2,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.2,
+              0.25
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.45,
+            0.3
+          ],
+          [
+            0.45,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.5,
+              0.35
+            ],
+            [
+              0.5,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.5,
+              0.25
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.25,
+            0.5
+          ],
+          [
+            0.45,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.3,
+              0.45
+            ],
+            [
+              0.4,
+              0.45
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.35,
+              0.4
+            ]
+          }
+        }
+      },
+      {
+        "order": 4,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.25,
+            0.7
+          ],
+          [
+            0.45,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.3,
+              0.75
+            ],
+            [
+              0.4,
+              0.75
+            ]
+          ],
+          "numberLabel": {
+            "value": 4,
+            "position": [
+              0.35,
+              0.8
+            ]
+          }
+        }
+      },
+      {
+        "order": 5,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.55,
+            0.3
+          ],
+          [
+            0.55,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.5,
+              0.35
+            ],
+            [
+              0.5,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 5,
+            "position": [
+              0.5,
+              0.25
+            ]
+          }
+        }
+      },
+      {
+        "order": 6,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.75,
+            0.3
+          ],
+          [
+            0.75,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.8,
+              0.35
+            ],
+            [
+              0.8,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 6,
+            "position": [
+              0.8,
+              0.25
+            ]
+          }
+        }
+      },
+      {
+        "order": 7,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.55,
+            0.5
+          ],
+          [
+            0.75,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.6,
+              0.45
+            ],
+            [
+              0.7,
+              0.45
+            ]
+          ],
+          "numberLabel": {
+            "value": 7,
+            "position": [
+              0.65,
+              0.4
+            ]
+          }
+        }
+      },
+      {
+        "order": 8,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.55,
+            0.7
+          ],
+          [
+            0.75,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.6,
+              0.75
+            ],
+            [
+              0.7,
+              0.75
+            ]
+          ],
+          "numberLabel": {
+            "value": 8,
+            "position": [
+              0.65,
+              0.8
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅆ",
+    "meaning": "ssang-siot (ss)",
+    "pronunciation": "ss",
+    "totalStrokes": 4,
+    "description": "Hai nét ㅅ viết gần nhau.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.3
+          ],
+          [
+            0.2,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.25,
+              0.35
+            ],
+            [
+              0.2,
+              0.6
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.2,
+              0.35
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.3
+          ],
+          [
+            0.45,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.35,
+              0.35
+            ],
+            [
+              0.4,
+              0.6
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.4,
+              0.35
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.7,
+            0.3
+          ],
+          [
+            0.6,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.65,
+              0.35
+            ],
+            [
+              0.6,
+              0.6
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.6,
+              0.35
+            ]
+          }
+        }
+      },
+      {
+        "order": 4,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.7,
+            0.3
+          ],
+          [
+            0.85,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.75,
+              0.35
+            ],
+            [
+              0.8,
+              0.6
+            ]
+          ],
+          "numberLabel": {
+            "value": 4,
+            "position": [
+              0.8,
+              0.35
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅉ",
+    "meaning": "ssang-jieut (jj)",
+    "pronunciation": "jj",
+    "totalStrokes": 6,
+    "description": "Hai nét ㅈ viết gần nhau.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.2,
+            0.3
+          ],
+          [
+            0.45,
+            0.3
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.25,
+              0.25
+            ],
+            [
+              0.4,
+              0.25
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.35,
+              0.2
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.35,
+            0.3
+          ],
+          [
+            0.2,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.3,
+              0.35
+            ],
+            [
+              0.25,
+              0.6
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.25,
+              0.35
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.35,
+            0.3
+          ],
+          [
+            0.45,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.4,
+              0.35
+            ],
+            [
+              0.4,
+              0.6
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.45,
+              0.35
+            ]
+          }
+        }
+      },
+      {
+        "order": 4,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.55,
+            0.3
+          ],
+          [
+            0.8,
+            0.3
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.6,
+              0.25
+            ],
+            [
+              0.75,
+              0.25
+            ]
+          ],
+          "numberLabel": {
+            "value": 4,
+            "position": [
+              0.7,
+              0.2
+            ]
+          }
+        }
+      },
+      {
+        "order": 5,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.7,
+            0.3
+          ],
+          [
+            0.55,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.65,
+              0.35
+            ],
+            [
+              0.6,
+              0.6
+            ]
+          ],
+          "numberLabel": {
+            "value": 5,
+            "position": [
+              0.6,
+              0.35
+            ]
+          }
+        }
+      },
+      {
+        "order": 6,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.7,
+            0.3
+          ],
+          [
+            0.8,
+            0.7
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.75,
+              0.35
+            ],
+            [
+              0.75,
+              0.6
+            ]
+          ],
+          "numberLabel": {
+            "value": 6,
+            "position": [
+              0.8,
+              0.35
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅐ",
+    "meaning": "ae",
+    "pronunciation": "e",
+    "totalStrokes": 3,
+    "description": "Nét ㅏ rồi thêm một nét thẳng đứng bên phải.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.35,
+            0.25
+          ],
+          [
+            0.35,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.3,
+              0.35
+            ],
+            [
+              0.3,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.3,
+              0.25
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.35,
+            0.5
+          ],
+          [
+            0.65,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.4,
+              0.45
+            ],
+            [
+              0.6,
+              0.45
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.5,
+              0.4
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.65,
+            0.25
+          ],
+          [
+            0.65,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.7,
+              0.35
+            ],
+            [
+              0.7,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.7,
+              0.25
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅒ",
+    "meaning": "yae",
+    "pronunciation": "ye",
+    "totalStrokes": 4,
+    "description": "Nét ㅑ rồi thêm một nét thẳng đứng bên phải.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.25
+          ],
+          [
+            0.3,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.25,
+              0.35
+            ],
+            [
+              0.25,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.25,
+              0.25
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.4
+          ],
+          [
+            0.6,
+            0.4
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.35,
+              0.35
+            ],
+            [
+              0.55,
+              0.35
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.45,
+              0.3
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.6
+          ],
+          [
+            0.6,
+            0.6
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.35,
+              0.55
+            ],
+            [
+              0.55,
+              0.55
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.45,
+              0.5
+            ]
+          }
+        }
+      },
+      {
+        "order": 4,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.6,
+            0.25
+          ],
+          [
+            0.6,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.65,
+              0.35
+            ],
+            [
+              0.65,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 4,
+            "position": [
+              0.65,
+              0.25
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅔ",
+    "meaning": "e",
+    "pronunciation": "ê",
+    "totalStrokes": 3,
+    "description": "Nét ㅓ rồi thêm một nét thẳng đứng bên phải.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.25,
+            0.5
+          ],
+          [
+            0.55,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.3,
+              0.45
+            ],
+            [
+              0.5,
+              0.45
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.4,
+              0.4
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.55,
+            0.25
+          ],
+          [
+            0.55,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.5,
+              0.35
+            ],
+            [
+              0.5,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.5,
+              0.25
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.8,
+            0.25
+          ],
+          [
+            0.8,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.75,
+              0.35
+            ],
+            [
+              0.75,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.75,
+              0.25
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅖ",
+    "meaning": "ye",
+    "pronunciation": "yê",
+    "totalStrokes": 4,
+    "description": "Nét ㅕ rồi thêm một nét thẳng đứng bên phải.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.25,
+            0.4
+          ],
+          [
+            0.55,
+            0.4
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.3,
+              0.35
+            ],
+            [
+              0.5,
+              0.35
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.4,
+              0.3
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.25,
+            0.6
+          ],
+          [
+            0.55,
+            0.6
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.3,
+              0.55
+            ],
+            [
+              0.5,
+              0.55
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.4,
+              0.5
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.55,
+            0.25
+          ],
+          [
+            0.55,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.5,
+              0.35
+            ],
+            [
+              0.5,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.5,
+              0.25
+            ]
+          }
+        }
+      },
+      {
+        "order": 4,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.8,
+            0.25
+          ],
+          [
+            0.8,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.75,
+              0.35
+            ],
+            [
+              0.75,
+              0.65
+            ]
+          ],
+          "numberLabel": {
+            "value": 4,
+            "position": [
+              0.75,
+              0.25
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅘ",
+    "meaning": "wa",
+    "pronunciation": "oa",
+    "totalStrokes": 4,
+    "description": "Nét ㅗ rồi thêm nét ㅏ.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.35,
+            0.35
+          ],
+          [
+            0.35,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.4,
+              0.35
+            ],
+            [
+              0.4,
+              0.45
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.4,
+              0.3
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.2,
+            0.5
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.25,
+              0.55
+            ],
+            [
+              0.45,
+              0.55
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.35,
+              0.6
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.7,
+            0.25
+          ],
+          [
+            0.7,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.75,
+              0.3
+            ],
+            [
+              0.75,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.75,
+              0.2
+            ]
+          }
+        }
+      },
+      {
+        "order": 4,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.7,
+            0.5
+          ],
+          [
+            0.9,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.75,
+              0.55
+            ],
+            [
+              0.85,
+              0.55
+            ]
+          ],
+          "numberLabel": {
+            "value": 4,
+            "position": [
+              0.8,
+              0.6
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅙ",
+    "meaning": "wae",
+    "pronunciation": "oe",
+    "totalStrokes": 5,
+    "description": "Nét ㅗ rồi thêm nét ㅐ.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.4
+          ],
+          [
+            0.3,
+            0.55
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.35,
+              0.4
+            ],
+            [
+              0.35,
+              0.5
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.35,
+              0.35
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.15,
+            0.55
+          ],
+          [
+            0.45,
+            0.55
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.2,
+              0.6
+            ],
+            [
+              0.4,
+              0.6
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.3,
+              0.65
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.6,
+            0.25
+          ],
+          [
+            0.6,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.65,
+              0.3
+            ],
+            [
+              0.65,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.65,
+              0.2
+            ]
+          }
+        }
+      },
+      {
+        "order": 4,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.6,
+            0.5
+          ],
+          [
+            0.75,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.65,
+              0.55
+            ],
+            [
+              0.7,
+              0.55
+            ]
+          ],
+          "numberLabel": {
+            "value": 4,
+            "position": [
+              0.67,
+              0.6
+            ]
+          }
+        }
+      },
+      {
+        "order": 5,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.75,
+            0.25
+          ],
+          [
+            0.75,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.8,
+              0.3
+            ],
+            [
+              0.8,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 5,
+            "position": [
+              0.8,
+              0.2
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅚ",
+    "meaning": "oe",
+    "pronunciation": "uê",
+    "totalStrokes": 3,
+    "description": "Nét ㅗ rồi thêm nét ㅣ.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.35,
+            0.35
+          ],
+          [
+            0.35,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.4,
+              0.35
+            ],
+            [
+              0.4,
+              0.45
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.4,
+              0.3
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.15,
+            0.5
+          ],
+          [
+            0.55,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.25,
+              0.55
+            ],
+            [
+              0.45,
+              0.55
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.35,
+              0.6
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.7,
+            0.25
+          ],
+          [
+            0.7,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.75,
+              0.3
+            ],
+            [
+              0.75,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.75,
+              0.2
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅝ",
+    "meaning": "wo",
+    "pronunciation": "uơ",
+    "totalStrokes": 4,
+    "description": "Nét ㅜ rồi thêm nét ㅓ.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.2,
+            0.35
+          ],
+          [
+            0.55,
+            0.35
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.3,
+              0.3
+            ],
+            [
+              0.45,
+              0.3
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.35,
+              0.25
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.4,
+            0.35
+          ],
+          [
+            0.4,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.45,
+              0.4
+            ],
+            [
+              0.45,
+              0.45
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.45,
+              0.55
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.55,
+            0.5
+          ],
+          [
+            0.8,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.6,
+              0.55
+            ],
+            [
+              0.75,
+              0.55
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.67,
+              0.6
+            ]
+          }
+        }
+      },
+      {
+        "order": 4,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.8,
+            0.25
+          ],
+          [
+            0.8,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.85,
+              0.3
+            ],
+            [
+              0.85,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 4,
+            "position": [
+              0.85,
+              0.2
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅞ",
+    "meaning": "we",
+    "pronunciation": "uê",
+    "totalStrokes": 5,
+    "description": "Nét ㅜ rồi thêm nét ㅔ.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.15,
+            0.35
+          ],
+          [
+            0.45,
+            0.35
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.2,
+              0.3
+            ],
+            [
+              0.4,
+              0.3
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.3,
+              0.25
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.3,
+            0.35
+          ],
+          [
+            0.3,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.35,
+              0.4
+            ],
+            [
+              0.35,
+              0.45
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.35,
+              0.55
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.45,
+            0.5
+          ],
+          [
+            0.65,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.5,
+              0.55
+            ],
+            [
+              0.6,
+              0.55
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.55,
+              0.6
+            ]
+          }
+        }
+      },
+      {
+        "order": 4,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.65,
+            0.25
+          ],
+          [
+            0.65,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.7,
+              0.3
+            ],
+            [
+              0.7,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 4,
+            "position": [
+              0.7,
+              0.2
+            ]
+          }
+        }
+      },
+      {
+        "order": 5,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.85,
+            0.25
+          ],
+          [
+            0.85,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.9,
+              0.3
+            ],
+            [
+              0.9,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 5,
+            "position": [
+              0.9,
+              0.2
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅟ",
+    "meaning": "wi",
+    "pronunciation": "uy",
+    "totalStrokes": 3,
+    "description": "Nét ㅜ rồi thêm nét ㅣ.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.2,
+            0.35
+          ],
+          [
+            0.55,
+            0.35
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.3,
+              0.3
+            ],
+            [
+              0.45,
+              0.3
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.35,
+              0.25
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.4,
+            0.35
+          ],
+          [
+            0.4,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.45,
+              0.4
+            ],
+            [
+              0.45,
+              0.45
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.45,
+              0.55
+            ]
+          }
+        }
+      },
+      {
+        "order": 3,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.75,
+            0.25
+          ],
+          [
+            0.75,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.8,
+              0.3
+            ],
+            [
+              0.8,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 3,
+            "position": [
+              0.8,
+              0.2
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "word": "ㅢ",
+    "meaning": "ui",
+    "pronunciation": "ưi",
+    "totalStrokes": 2,
+    "description": "Nét ㅡ rồi thêm nét ㅣ.",
+    "strokes": [
+      {
+        "order": 1,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.25,
+            0.5
+          ],
+          [
+            0.55,
+            0.5
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.3,
+              0.55
+            ],
+            [
+              0.5,
+              0.55
+            ]
+          ],
+          "numberLabel": {
+            "value": 1,
+            "position": [
+              0.4,
+              0.6
+            ]
+          }
+        }
+      },
+      {
+        "order": 2,
+        "isMainStroke": true,
+        "hangulPoints": [
+          [
+            0.75,
+            0.25
+          ],
+          [
+            0.75,
+            0.75
+          ]
+        ],
+        "guide": {
+          "arrowPath": [
+            [
+              0.8,
+              0.3
+            ],
+            [
+              0.8,
+              0.7
+            ]
+          ],
+          "numberLabel": {
+            "value": 2,
+            "position": [
+              0.8,
+              0.2
             ]
           }
         }

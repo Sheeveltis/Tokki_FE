@@ -42,7 +42,7 @@ const formatPrice = (price) => {
 
 export function PaymentHistoryContent({ payments, loading, error }) {
   const isWeb = Platform.OS === 'web'
-  
+
   return (
     <View style={styles.container}>
       {isWeb && (
@@ -50,25 +50,41 @@ export function PaymentHistoryContent({ payments, loading, error }) {
       )}
 
       <View style={isWeb ? styles.header : styles.headerNative}>
-        <Text style={styles.title}>Lịch sử thanh toán</Text>
-        <Text style={styles.subtitle}>Xem lại các giao dịch thanh toán của bạn</Text>
+        <View style={styles.headerInfo}>
+          <Text style={styles.title}>Lịch sử giao dịch</Text>
+          <Text style={styles.subtitle}>Ghi lại toàn bộ hành trình nâng cấp của bạn</Text>
+        </View>
+
+        {isWeb && payments.length > 0 && (
+          <View style={styles.recordCount}>
+            <Text style={styles.countText}>{payments.length} Giao dịch</Text>
+          </View>
+        )}
       </View>
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#7FA14D" />
-          <Text style={styles.loadingText}>Đang tải lịch sử...</Text>
+          <ActivityIndicator size="large" color="#F1BE4B" />
+          <Text style={styles.loadingText}>Đang lấy dữ liệu từ hệ thống...</Text>
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.errorText}>Oops! {error}</Text>
         </View>
       ) : payments.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Chưa có giao dịch nào</Text>
+          <View style={styles.emptyIconContainer}>
+            <Text style={styles.emptyIcon}>💳</Text>
+          </View>
+          <Text style={styles.emptyText}>Bạn chưa thực hiện giao dịch nào</Text>
+          <Text style={styles.emptySubtext}>Các gói VIP đã mua sẽ xuất hiện tại đây</Text>
         </View>
       ) : (
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.listContainer}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+        >
           {payments.map((payment) => (
             <PaymentHistoryItem
               key={payment.paymentId}
@@ -85,84 +101,124 @@ export function PaymentHistoryContent({ payments, loading, error }) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#F5F0DD',
-    borderRadius: 30,
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-    gap: 18,
     flex: 1,
-    minHeight: 400,
+    minHeight: 600,
     position: 'relative',
   },
   carrot: {
     position: 'absolute',
-    top: -50,
-    right: -100,
-    width: 200,
-    height: 100,
-    zIndex: 2,
-    pointerEvents: 'none',
+    top: -40,
+    right: 100,
+    width: 120,
+    height: 80,
+    transform: [{ rotate: '15deg' }],
   },
   header: {
-    gap: 6,
-    paddingRight: 100,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: 32,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
   headerNative: {
-    gap: 6,
+    gap: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 18,
+    marginBottom: 24,
+  },
+  headerInfo: {
+    gap: 4,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '800',
+    fontSize: 28,
+    fontWeight: '900',
     fontFamily: 'Epilogue, sans-serif',
-    color: '#1C1C1C',
-    textAlign: Platform.OS === 'web' ? 'left' : 'center',
+    color: '#0F172A',
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#2C2C2C',
+    fontSize: 15,
+    color: '#64748B',
     fontFamily: 'Epilogue, sans-serif',
-    lineHeight: 20,
-    textAlign: Platform.OS === 'web' ? 'left' : 'center',
+  },
+  recordCount: {
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  countText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#475569',
+    fontFamily: 'Epilogue, sans-serif',
   },
   scrollView: {
     flex: 1,
   },
   listContainer: {
-    gap: 16,
+    gap: 20,
+    paddingBottom: 40,
   },
   loadingContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: 100,
+    gap: 20,
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666',
+    fontSize: 15,
+    color: '#64748B',
     fontFamily: 'Epilogue, sans-serif',
+    fontWeight: '500',
   },
   errorContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: 100,
   },
   errorText: {
     fontSize: 16,
-    color: '#d9534f',
+    color: '#EF4444',
     fontFamily: 'Epilogue, sans-serif',
+    fontWeight: '600',
   },
   emptyContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: 80,
+    gap: 12,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  emptyIcon: {
+    fontSize: 32,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
     fontFamily: 'Epilogue, sans-serif',
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#94A3B8',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
   },
 })
 

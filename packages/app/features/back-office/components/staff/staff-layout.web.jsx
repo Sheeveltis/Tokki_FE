@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useMemo, useState, useEffect, useTransition } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useRouter } from 'solito/navigation'
-import { Layout, Menu, ConfigProvider, Badge, Popover, List, Modal, theme as antdTheme, Button, Avatar } from 'antd'
+import { Layout, Menu, ConfigProvider, Badge, Popover, List, Modal, theme as antdTheme, Button, Avatar, App } from 'antd'
 import {
   UserOutlined,
   BookOutlined,
@@ -73,6 +73,14 @@ export function StaffLayout({
       ],
     },
     {
+      key: 'pronunciation-parent',
+      icon: <CustomerServiceOutlined />,
+      label: 'Quản lý Phát âm',
+      children: [
+        { key: 'pronunciation-management', icon: <MessageOutlined />, label: 'Quy tắc phát âm' },
+      ],
+    },
+    {
       key: 'exam',
       icon: <FileDoneOutlined />,
       label: 'Quản lý Đề',
@@ -111,6 +119,7 @@ export function StaffLayout({
     if (pathname.includes('/staff/lessons/')) key = 'lessons'
     if (pathname.includes('/staff/vocab-topic/')) key = 'vocabulary-topics'
     if (pathname.includes('/staff/question-type/')) key = 'question-bank'
+    if (pathname.includes('/staff/pronunciation/')) key = 'pronunciation-management'
 
     // Tìm parent
     for (const item of menuItems) {
@@ -216,174 +225,176 @@ export function StaffLayout({
           }
         }}
       >
-        <Layout style={{ height: '100vh', overflow: 'hidden' }}>
-          <Layout.Sider
-            collapsible
-            collapsed={collapsed}
-            trigger={null}
-            onCollapse={(val) => setCollapsed(val)}
-            width={260}
-            theme="light"
-            style={{
-              borderRight: '1px solid #f0f0f0',
-              zIndex: 10,
-              height: '100vh'
-            }}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-              <div
-                style={{
-                  height: 64,
-                  padding: '0 24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: collapsed ? 'center' : 'space-between',
-                  borderBottom: '1px solid #f0f0f0',
-                  transition: 'all 0.2s'
-                }}
-              >
-                {!collapsed && (
-                  <span style={{ 
-                    fontSize: 20, 
-                    fontWeight: 800, 
-                    color: '#1677ff',
-                    letterSpacing: '-0.5px'
-                  }}>
-                    TOKKI <span style={{ color: '#faad14' }}>STAFF</span>
-                  </span>
-                )}
-                <Button
-                  type="text"
-                  icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                  onClick={() => setCollapsed(!collapsed)}
-                  style={{ fontSize: '16px', width: 40, height: 40 }}
-                />
-              </div>
-
-              <div style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
-                <Menu
-                  mode="inline"
-                  selectedKeys={[selectedKey]}
-                  openKeys={openKeys}
-                  onOpenChange={handleOpenChange}
-                  onClick={handleMenuClick}
-                  items={menuItems}
-                  style={{ borderRight: 'none' }}
-                />
-              </div>
-
-              <div
-                style={{
-                  padding: '16px',
-                  borderTop: '1px solid #f0f0f0',
-                  background: '#ffffff',
-                }}
-              >
-                <Button
-                  danger
-                  type="ghost"
-                  icon={<PoweroffOutlined />}
-                  onClick={() => handleMenuClick({ key: 'logout' })}
+        <App>
+          <Layout style={{ height: '100vh', overflow: 'hidden' }}>
+            <Layout.Sider
+              collapsible
+              collapsed={collapsed}
+              trigger={null}
+              onCollapse={(val) => setCollapsed(val)}
+              width={260}
+              theme="light"
+              style={{
+                borderRight: '1px solid #f0f0f0',
+                zIndex: 10,
+                height: '100vh'
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <div
                   style={{
-                    width: '100%',
-                    borderRadius: 10,
+                    height: 64,
+                    padding: '0 24px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: collapsed ? 'center' : 'flex-start',
-                    fontWeight: 600,
-                    height: 44
+                    justifyContent: collapsed ? 'center' : 'space-between',
+                    borderBottom: '1px solid #f0f0f0',
+                    transition: 'all 0.2s'
                   }}
                 >
-                  {!collapsed && <span>Đăng xuất</span>}
-                </Button>
-              </div>
-            </div>
-          </Layout.Sider>
+                  {!collapsed && (
+                    <span style={{ 
+                      fontSize: 20, 
+                      fontWeight: 800, 
+                      color: '#1677ff',
+                      letterSpacing: '-0.5px'
+                    }}>
+                      TOKKI <span style={{ color: '#faad14' }}>STAFF</span>
+                    </span>
+                  )}
+                  <Button
+                    type="text"
+                    icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                    onClick={() => setCollapsed(!collapsed)}
+                    style={{ fontSize: '16px', width: 40, height: 40 }}
+                  />
+                </div>
 
-          <Layout style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <Layout.Header
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                boxShadow: '0 1px 4px rgba(0,21,41,0.08)',
-                zIndex: 9,
-                height: 64
-              }}
-            >
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#262626' }}>
-                {menuItems
-                  .flatMap((item) => [item, ...(item.children || [])])
-                  .find((item) => item.key === selectedKey)?.label || 'Dashboard'}
-              </div>
-              
-              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                <Popover
-                  placement="bottomRight"
-                  title="Thông báo"
-                  trigger="click"
-                  content={
-                    <List
-                      size="small"
-                      dataSource={notifications}
-                      style={{ width: 300 }}
-                      renderItem={(item) => (
-                        <List.Item style={{ cursor: 'pointer' }}>
-                          <List.Item.Meta
-                            title={<span style={{ fontWeight: 600 }}>{item.title}</span>}
-                            description={<span style={{ fontSize: 12 }}>{item.time}</span>}
-                          />
-                        </List.Item>
-                      )}
-                    />
-                  }
+                <div style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
+                  <Menu
+                    mode="inline"
+                    selectedKeys={[selectedKey]}
+                    openKeys={openKeys}
+                    onOpenChange={handleOpenChange}
+                    onClick={handleMenuClick}
+                    items={menuItems}
+                    style={{ borderRight: 'none' }}
+                  />
+                </div>
+
+                <div
+                  style={{
+                    padding: '16px',
+                    borderTop: '1px solid #f0f0f0',
+                    background: '#ffffff',
+                  }}
                 >
-                  <Badge count={2} size="small" offset={[-2, 2]}>
-                    <Button type="text" shape="circle" icon={<BellOutlined style={{ fontSize: 18 }} />} />
-                  </Badge>
-                </Popover>
-
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: 12, 
-                  padding: '4px 8px', 
-                  borderRadius: 32,
-                  cursor: 'pointer',
-                  border: '1px solid #f0f0f0'
-                }}>
-                  <Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: '#faad14' }} />
-                  <span style={{ fontWeight: 600, fontSize: 13 }}>Staff</span>
+                  <Button
+                    danger
+                    type="ghost"
+                    icon={<PoweroffOutlined />}
+                    onClick={() => handleMenuClick({ key: 'logout' })}
+                    style={{
+                      width: '100%',
+                      borderRadius: 10,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: collapsed ? 'center' : 'flex-start',
+                      fontWeight: 600,
+                      height: 44
+                    }}
+                  >
+                    {!collapsed && <span>Đăng xuất</span>}
+                  </Button>
                 </div>
               </div>
-            </Layout.Header>
-            
-            <Layout.Content 
-              style={{ 
-                padding: '24px', 
-                height: 'calc(100vh - 64px)', 
-                backgroundColor: '#f7f9fc',
-                overflow: 'hidden' // Vô hiệu hóa scroll tổng của trang
-              }}
-            >
-              <div
+            </Layout.Sider>
+
+            <Layout style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <Layout.Header
                 style={{
-                  background: '#ffffff',
-                  padding: '24px',
-                  borderRadius: 16,
-                  height: '100%', // Chiếm hết chiều cao Content
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
-                  border: '1px solid #f0f0f0',
                   display: 'flex',
-                  flexDirection: 'column',
-                  overflowY: 'auto' // Cho phép scroll riêng phần content này
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 1px 4px rgba(0,21,41,0.08)',
+                  zIndex: 9,
+                  height: 64
                 }}
               >
-                {currentScreen}
-              </div>
-            </Layout.Content>
+                <div style={{ fontSize: 18, fontWeight: 700, color: '#262626' }}>
+                  {menuItems
+                    .flatMap((item) => [item, ...(item.children || [])])
+                    .find((item) => item.key === selectedKey)?.label || 'Dashboard'}
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                  <Popover
+                    placement="bottomRight"
+                    title="Thông báo"
+                    trigger="click"
+                    content={
+                      <List
+                        size="small"
+                        dataSource={notifications}
+                        style={{ width: 300 }}
+                        renderItem={(item) => (
+                          <List.Item style={{ cursor: 'pointer' }}>
+                            <List.Item.Meta
+                              title={<span style={{ fontWeight: 600 }}>{item.title}</span>}
+                              description={<span style={{ fontSize: 12 }}>{item.time}</span>}
+                            />
+                          </List.Item>
+                        )}
+                      />
+                    }
+                  >
+                    <Badge count={2} size="small" offset={[-2, 2]}>
+                      <Button type="text" shape="circle" icon={<BellOutlined style={{ fontSize: 18 }} />} />
+                    </Badge>
+                  </Popover>
+
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 12, 
+                    padding: '4px 8px', 
+                    borderRadius: 32,
+                    cursor: 'pointer',
+                    border: '1px solid #f0f0f0'
+                  }}>
+                    <Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: '#faad14' }} />
+                    <span style={{ fontWeight: 600, fontSize: 13 }}>Staff</span>
+                  </div>
+                </div>
+              </Layout.Header>
+              
+              <Layout.Content 
+                style={{ 
+                  padding: '24px', 
+                  height: 'calc(100vh - 64px)', 
+                  backgroundColor: '#f7f9fc',
+                  overflow: 'hidden' // Vô hiệu hóa scroll tổng của trang
+                }}
+              >
+                <div
+                  style={{
+                    background: '#ffffff',
+                    padding: '24px',
+                    borderRadius: 16,
+                    height: '100%', // Chiếm hết chiều cao Content
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                    border: '1px solid #f0f0f0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflowY: 'auto' // Cho phép scroll riêng phần content này
+                  }}
+                >
+                  {currentScreen}
+                </div>
+              </Layout.Content>
+            </Layout>
           </Layout>
-        </Layout>
+        </App>
       </ConfigProvider>
     </ThemeContext.Provider>
   )

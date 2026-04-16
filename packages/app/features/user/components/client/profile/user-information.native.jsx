@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Image, StyleSheet, Text, View, Platform, ScrollView, RefreshControl } from 'react-native'
 
-import Carrot from '../../../../../../assets/carrot.png'
 import UserIcon from '../../../../../../assets/user.png'
 import { getCurrentUser, updateBasicInfo, uploadAvatar, uploadAvatarToCloudinary, getTitleById } from '../../../api/profile'
 import { showAdminSuccess } from '../../../../../../components/HelperAdmin'
@@ -136,7 +135,6 @@ export function UserInformation() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FFDCAA']} />
       }
     >
-      <Image source={normalizeImageSource(Carrot)} style={styles.carrot} resizeMode="contain" />
 
       <View style={styles.header}>
         <Text style={styles.title}>Thông tin người dùng</Text>
@@ -189,15 +187,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     gap: 20,
   },
-  carrot: {
-    position: 'absolute',
-    top: 10,
-    right: -20,
-    width: 150,
-    height: 80,
-    zIndex: 2,
-    transform: [{ rotate: '15deg' }],
-  },
+
   header: {
     marginBottom: 10,
   },

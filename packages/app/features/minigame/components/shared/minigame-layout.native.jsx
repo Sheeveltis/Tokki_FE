@@ -6,12 +6,38 @@ import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
 import { MinigameBanner } from './minigame-banner'
 import { MinigameGameCard } from './minigame-game-card'
 import { useMinigameGames } from '../../hooks/use-minigame-games'
+import WordleLevelPopup from '../wordle/wordle-rule/wordle-level-popup'
+import SolitareLevelPopup from '../solitare/solitare-level/solitare-level-popup'
+import MatchingCardTopicPopup from '../matching-card/matching-card-topic/matching-card-topic-popup'
+import { MatchingCardLevelPopup } from '../matching-card/matching-card-level/matching-card-level-popup'
+import { LoginRequest } from '../../../../../components/loginRequest'
 
 export function MinigameLayout() {
   const navigation = useNavigation()
   const route = useRoute()
   const levelId = route?.params?.level || route?.params?.levelId || ''
-  const { games, loading, error, handleGamePress } = useMinigameGames({
+  const {
+    games,
+    loading,
+    error,
+    handleGamePress,
+    showWordleLevelPopup,
+    setShowWordleLevelPopup,
+    loadingWordleLevel,
+    wordleLevelsData,
+    showSolitareLevelPopup,
+    setShowSolitareLevelPopup,
+    showMatchingCardTopicPopup,
+    setShowMatchingCardTopicPopup,
+    showMatchingCardLevelPopup,
+    setShowMatchingCardLevelPopup,
+    showLoginRequest,
+    setShowLoginRequest,
+    handleSelectWordleLevel,
+    handleSelectSolitareLevel,
+    handleSelectMatchingCardTopic,
+    handleSelectMatchingCardLevel,
+  } = useMinigameGames({
     levelId,
     onNavigate: (screenName, params) => navigation.navigate(screenName, params),
   })
@@ -55,6 +81,46 @@ export function MinigameLayout() {
           </ScrollView>
         )}
       </View>
+
+      {showWordleLevelPopup && (
+        <WordleLevelPopup
+          loading={loadingWordleLevel}
+          levelsData={wordleLevelsData}
+          onClose={() => setShowWordleLevelPopup(false)}
+          onSelectLevel={handleSelectWordleLevel}
+        />
+      )}
+
+      {showSolitareLevelPopup && (
+        <SolitareLevelPopup
+          visible={showSolitareLevelPopup}
+          onClose={() => setShowSolitareLevelPopup(false)}
+          onConfirm={handleSelectSolitareLevel}
+        />
+      )}
+
+      {showMatchingCardTopicPopup && (
+        <MatchingCardTopicPopup
+          visible={showMatchingCardTopicPopup}
+          levelId={levelId}
+          onClose={() => setShowMatchingCardTopicPopup(false)}
+          onConfirm={handleSelectMatchingCardTopic}
+        />
+      )}
+
+      {showMatchingCardLevelPopup && (
+        <MatchingCardLevelPopup
+          visible={showMatchingCardLevelPopup}
+          onClose={() => setShowMatchingCardLevelPopup(false)}
+          onConfirm={handleSelectMatchingCardLevel}
+        />
+      )}
+
+      {showLoginRequest && (
+        <View style={styles.loginOverlay}>
+          <LoginRequest onClose={() => setShowLoginRequest(false)} />
+        </View>
+      )}
     </View>
   )
 }
@@ -108,6 +174,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#D9534F',
     textAlign: 'center',
+  },
+  loginOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    zIndex: 2000,
   },
 })
 

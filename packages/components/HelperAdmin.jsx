@@ -41,6 +41,7 @@ export function HelperAdmin({
 
     // Nếu không có response, không hiển thị gì
     if (!response) {
+      lastShownRef.current = null
       return
     }
 
@@ -50,6 +51,7 @@ export function HelperAdmin({
       message: response.message,
       statusCode: response.statusCode,
       errors: response.errors?.map((e) => `${e.code}-${e.description}`),
+      _timestamp: response._timestamp, // Thêm timestamp để nhận diện click mới
     })
 
     // Nếu key trùng với lần trước => bỏ qua để tránh hiện 2 lần
@@ -76,7 +78,7 @@ export function HelperAdmin({
 
     // Hiển thị notification (chỉ trên web)
     notification[notificationType]({
-      message: statusCode ? `[${statusCode}] ${message}` : message,
+      title: statusCode ? `[${statusCode}] ${message}` : message,
       description: description || undefined,
       placement,
       duration,
@@ -111,7 +113,7 @@ export function showAdminSuccess(message, options = {}) {
     return
   }
   notification.success({
-    message: 'Thành công',
+    title: 'Thành công',
     description: message,
     placement: options.placement || 'topRight',
     duration: options.duration || 3,
@@ -132,7 +134,7 @@ export function showAdminError(message, statusCode, options = {}) {
     return
   }
   notification.error({
-    message: statusCode ? `[${statusCode}] ${message}` : message,
+    title: statusCode ? `[${statusCode}] ${message}` : message,
     placement: options.placement || 'topRight',
     duration: options.duration || 4.5,
   })

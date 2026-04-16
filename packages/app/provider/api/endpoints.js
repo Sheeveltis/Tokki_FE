@@ -25,19 +25,23 @@ export const API_BASE_URL = `${DOMAIN}${PREFIX}`
 
 export const ENDPOINTS = {
   BLOG: {
-    GET_ALL: '/Blog',
+    GET_ALL: '/Blog/user',
+    GET_USER_DETAIL: (id) => `/Blog/user/${id}`,
     GET_BY_ID: (id) => `/Blog/${id}`,
     CREATE: '/Blog',                // POST: Tạo mới
     UPDATE: (id) => `/Blog/${id}`,
     DELETE: (id) => `/Blog/admin/delete/${id}`,
-    ADMIN_LIST: '/Blog', // same endpoint, nhưng dùng kèm query pageNumber/pageSize
+    ADMIN_LIST: '/Blog/admin',
+    MY_BLOGS: '/Blog/user/my-blog',
+    SAVE: '/Blog/user/save',
+    USER_SUBMIT_APPROVAL: (blogId) => `/Blog/user/submit-approval/${blogId}`,
     STAFF_SUBMIT_FOR_APPROVAL: (blogId) => `/Blog/staff/submit-for-approval/${blogId}`,
     MODERATOR_APPROVE: (blogId) => `/Blog/moderator/approve/${blogId}`,
     MODERATOR_REJECT: '/Blog/moderator/reject',
     INCREASE_VIEW_COUNT: (blogId) => `/Blog/increase-view/${blogId}`,
   },
   QUESTION_TYPE: {
-    GET_ALL: '/QuestionType',
+    GET_ALL: '/QuestionType/admin',
     GET_BY_ID: (id) => `/QuestionType/${id}`,
     CREATE: '/QuestionType',
     UPDATE: (id) => `/QuestionType/${id}`,
@@ -94,13 +98,15 @@ export const ENDPOINTS = {
     GET_ALL: '/VipPackage',
   },
   ACCOUNT: {
-    LOGIN: '/Account/login',
+    LOGIN_USER: '/Account/login/user',
+    LOGIN_ADMIN: '/Account/login/admin',
     REFRESH: '/Account/refresh',
     GOOGLE_LOGIN: '/Account/google-login',
     REGISTER: '/Account/register',
     FORGOT_PASSWORD_RESET: '/Account/forgot-password/reset',
     PROFILE: '/Account/profile',
     ME: '/Account/me',
+    AIM_LEVEL: '/Account/me/aim-level',
     GET_ALL: '/Account/get-all',
     DETAIL: (id) => `/Account/detail/${id}`,
     CREATE_ACCOUNT: '/Account/create-account',
@@ -206,15 +212,21 @@ export const ENDPOINTS = {
   },
   GAMIFICATION: {
     HEARTBEAT: '/Gamification/heartbeat',  // POST: Heartbeat để track thời gian học tập
-    PROGRESS: (userId) => `/Gamification/progress/${userId}`,  // GET: Lấy thông tin progress (level, XP, streak, title)
+    PROGRESS: '/Gamification/progress',  // GET: Lấy thông tin progress (level, XP, streak, title) cho user hiện tại
     GAME_XP: '/Gamification/game-xp', // POST: Cộng XP theo amount cho account hiện tại
+    ADD_XP: '/Gamification/add-xp', // POST: Cộng XP với amount và source (body: { amount, source })
   },
   TITLE: {
-    GET_ALL: '/Title',  // GET: Lấy danh sách danh hiệu
+    GET_ALL: '/Title/admin',  // GET: Lấy danh sách danh hiệu (admin)
     GET_BY_ID: (id) => `/Title/${id}`,  // GET: Lấy thông tin title theo ID
     CREATE: '/Title',  // POST: Tạo mới danh hiệu
     UPDATE: (id) => `/Title/${id}`,  // PUT: Cập nhật danh hiệu
     DELETE: (id) => `/Title/${id}`,  // DELETE: Xóa danh hiệu
+    CHECK_DAILY_TITLES: '/Title/user/check-daily-titles', // POST: Kiểm tra và mở khóa danh hiệu hàng ngày
+    MY_TITLES: '/Title/my-titles', // GET: Lấy danh sách danh hiệu của tôi (query: pageNumber, pageSize)
+    EQUIP: '/Title/equip', // PUT: Trang bị danh hiệu
+    IMPORT: '/Title/import',
+    EXPORT: '/Title/export',
   },
   LEADERBOARD: {
     GET_ALL: '/Leaderboard',  // GET: Lấy danh sách leaderboard (query: timeFrame, top)
@@ -238,6 +250,7 @@ export const ENDPOINTS = {
     UPLOAD_TITLE_IMAGE: '/Cloudinary/image/title',  // POST: Upload ảnh title lên Cloudinary
   },
   EXCEL: {
+    IMPORT_VOCAB: '/Excel/import/vocab',
     ADD_VOCAB_TO_TOPIC: (topicId) => `/Excel/import/vocab?topicId=${topicId}`,  // POST: Import từ vựng từ Excel vào chủ đề
     EXPORT_BY_TOPIC: (topicId) => `/Excel/export/topic/${topicId}`,  // GET: Export từ vựng của chủ đề ra Excel
     IMPORT_QUESTIONS: '/Excel/import/questions', // POST: Import câu hỏi từ Excel theo QuestionTypeId
@@ -266,9 +279,12 @@ export const ENDPOINTS = {
     TEMPLATE_PARTS: '/ExamTemplates/TemplateParts',  // POST: Thêm/cập nhật template parts
     UPDATE_TEMPLATE_PART: (templatePartId) => `/ExamTemplates/TemplateParts/${templatePartId}`,  // PUT: Cập nhật một template part (templatePartId trong URL)
     DUPLICATE: (id) => `/ExamTemplates/${id}/duplicate`,  // POST: Sao chép exam template
+    IMPORT: '/ExamTemplates/import',
+    EXPORT: '/ExamTemplates/export',
   },
   EXAMS: {
     ADMIN_LIST: '/Exams/admin',              // GET: Lấy danh sách exams cho admin (query: PageNumber, PageSize, Status, Type)
+    ADMIN_STATS_LIST: '/Exams/admin/stats',   // GET: Lấy danh sách exams với thống kê (admin)
     ADMIN_DETAIL: '/Exams/admin/detail',     // GET: Lấy chi tiết exam cho admin (query: examId)
     ADMIN_STATS: (id) => `/Exams/admin/stats/${id}`, // GET: Lấy thống kê exam
     ADMIN_PARTICIPANTS: (id) => `/Exams/admin/stats/${id}/participants`, // GET: Danh sách người làm bài
@@ -280,6 +296,9 @@ export const ENDPOINTS = {
     GET_QUESTIONS_BY_PART: '/Exams/get-questions-by-part', // GET: Lấy danh sách câu hỏi theo templatePartId
     UPDATE_EXAM_QUESTION: '/Exams/update-exam-question', // PUT: Cập nhật 1 câu hỏi trong đề (body: { examId, questionBankId, questionNo })
     REGENERATE_PART: '/Exams/regenerate-part', // POST: Random/regenerate lại bộ câu hỏi của một phần (body: { examId, templatePartId })
+    EXPORT_PDF: (id) => `/Exams/${id}/export-pdf`, // GET: Xuất PDF
+    IMPORT: '/Exams/import',
+    EXPORT: '/Exams/export',
   },
   USER_EXAM: {
     TAKE_EXAM: (examId, isShuffle = true) =>
@@ -295,6 +314,7 @@ export const ENDPOINTS = {
     ANALYSIS: (userExamId) => `/UserExam/${encodeURIComponent(userExamId)}/analysis`,
     HISTORY: '/UserExam/user/history',
     PRACTICE_QUESTIONS: (questionTypeId, quantity = 10) => `/UserExam/${encodeURIComponent(questionTypeId)}?quantity=${quantity}`,
+    GRADING_PROGRESS: (userExamId) => `/UserExam/${encodeURIComponent(userExamId)}/grading-progress`,
     NEXT_SKILL: (userExamId) => `/UserExam/user/${encodeURIComponent(userExamId)}/next-skill`,
   },
   ROADMAP: {
@@ -305,10 +325,17 @@ export const ENDPOINTS = {
     CURRENT: '/Roadmap/current',
     TASK_DETAIL: (taskId) => `/Roadmap/task/${encodeURIComponent(taskId)}/detail`,
     COMPLETE: '/Roadmap/complete',
+    NEXT_WEEK: '/Roadmap/next-week',
   },
   SYSTEM_CONFIGS: {
     GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,
     GET_ALL: '/system-configs',
+    CREATE: '/system-configs',
     UPDATE: '/system-configs',
+  },
+  NOTIFICATION: {
+    MY_NOTIFICATIONS: (pageNumber = 1, pageSize = 20, filter = 0) => `/Notification/my-notifications?pageNumber=${pageNumber}&pageSize=${pageSize}&filter=${filter}`,
+    MARK_AS_READ: (id) => `/Notification/mark-as-read/${id}`,
+    MARK_ALL_AS_READ: '/Notification/mark-all-as-read',
   },
 }

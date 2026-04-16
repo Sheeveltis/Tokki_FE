@@ -43,7 +43,7 @@ export function SystemConfigDetailScreen() {
       <Card>
         <Empty description="Không tìm thấy thông tin cấu hình" />
         <div style={{ textAlign: 'center', marginTop: 20 }}>
-          <Button icon={<ArrowLeftOutlined />} onClick={() => router.back()}>
+          <Button type="primary" icon={<ArrowLeftOutlined />} onClick={() => router.back()} style={{ borderRadius: 20, height: 40, padding: '0 20px', fontWeight: 600 }}>
             Quay lại
           </Button>
         </div>
@@ -67,8 +67,14 @@ export function SystemConfigDetailScreen() {
             type="primary" 
             icon={<EditOutlined />} 
             onClick={() => router.push('/admin?tab=system-config')} // Giả định quay lại để edit qua modal
+            style={{
+              borderRadius: 20,
+              height: 40,
+              padding: '0 20px',
+              fontWeight: 600
+            }}
           >
-            Quản lý chung
+            Chỉnh sửa
           </Button>
         </div>
 

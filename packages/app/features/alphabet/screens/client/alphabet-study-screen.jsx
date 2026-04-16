@@ -4,10 +4,8 @@ import React from 'react'
 import { Platform } from 'react-native'
 import { useAlphabetStudy } from '../../api/alphabet-study-logic'
 import { 
-  AlphabetStudyLayout as WebLayout,
-  AlphabetStudyMain as WebMain,
-  AlphabetStudyLayoutMobile as MobileLayout,
-  AlphabetStudyMainMobile as MobileMain
+  AlphabetStudyLayout,
+  AlphabetStudyMain
 } from '../../api/alphabet-study-index'
 
 /**
@@ -38,12 +36,9 @@ export function AlphabetStudyScreen({
     setIsFlipped,
   } = useAlphabetStudy(mode)
 
-  const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
-  const Main = Platform.OS === 'web' ? WebMain : MobileMain
-
   return (
-    <Layout>
-      <Main
+    <AlphabetStudyLayout>
+      <AlphabetStudyMain
         modeTitle={modeTitle}
         current={current}
         currentIndex={index}
@@ -63,7 +58,7 @@ export function AlphabetStudyScreen({
         onPrev={handlePrev}
         onNext={handleNext}
       />
-    </Layout>
+    </AlphabetStudyLayout>
   )
 }
 

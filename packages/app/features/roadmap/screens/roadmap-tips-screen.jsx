@@ -38,7 +38,7 @@ export function RoadmapTipsScreen({ tipId }) {
     try {
       await apiClient.post(ENDPOINTS.ROADMAP.COMPLETE, {
         taskId: tipId,
-        performance: 'string', // Theo schema API
+        performance: 'Completed',
       })
       // Cập nhật state tại chỗ để UI phản hồi ngay
       setTaskDetail((prev) => (prev ? { ...prev, isCompleted: true } : prev))

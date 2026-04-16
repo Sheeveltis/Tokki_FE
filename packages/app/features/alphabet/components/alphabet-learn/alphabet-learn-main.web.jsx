@@ -140,7 +140,7 @@ export function AlphabetLearnMain({
           label="Trở lại"
           to={undefined}
           icon={ArrowIcon}
-          iconStyle={{ transform: [{ scaleX: -1 }] }}
+          iconStyle={{ transform: [{ scaleX: -1 }], tintColor: '#1A1A1A' }}
           onPress={onBackPress}
           textStyle={{ fontWeight: '700' }}
         />

@@ -76,9 +76,14 @@ export const NavigationPill = ({
     // Nếu là React component (SVG component), render trực tiếp
     if (isReactComponent) {
       const IconComponent = typeof icon === 'function' ? icon : (icon.default || icon)
+      const flattenedIconStyle = StyleSheet.flatten(iconStyle)
       return (
         <View style={[styles.iconContainer, iconStyle]}>
-          <IconComponent width={20} height={20} />
+          <IconComponent 
+            width={flattenedIconStyle?.width || 20} 
+            height={flattenedIconStyle?.height || 20} 
+            fill={flattenedIconStyle?.tintColor || flattenedIconStyle?.color || '#111'}
+          />
         </View>
       )
     }
@@ -86,9 +91,14 @@ export const NavigationPill = ({
     // Fallback: thử render như component
     if (typeof icon === 'function') {
       const IconComponent = icon
+      const flattenedIconStyle = StyleSheet.flatten(iconStyle)
       return (
         <View style={[styles.iconContainer, iconStyle]}>
-          <IconComponent width={20} height={20} />
+          <IconComponent 
+            width={flattenedIconStyle?.width || 20} 
+            height={flattenedIconStyle?.height || 20} 
+            fill={flattenedIconStyle?.tintColor || flattenedIconStyle?.color || '#111'}
+          />
         </View>
       )
     }

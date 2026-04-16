@@ -1,37 +1,56 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { Navbar } from '../../../../../components/navbar'
+import { View, StyleSheet, ScrollView, Platform } from 'react-native'
 
-/**
- * AlphabetStudyLayout (Web): Layout cho trang học chữ cái Hàn Quốc trên web
- */
 export function AlphabetStudyLayout({ children }) {
   return (
-    <View style={styles.root}>
-      <Navbar />
-      <View style={styles.contentWrapper}>
-        {children}
+    <View style={styles.wrapper}>
+      <View style={styles.mainContainer}>
+        <View style={styles.mainWrapper}>
+          <View style={styles.dashboardContainer}>
+            <View style={styles.contentCard}>
+              <ScrollView
+                style={styles.contentCardScroll}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.contentCardInner}
+              >
+                {children}
+              </ScrollView>
+            </View>
+          </View>
+        </View>
       </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: '#FFD7D0',
-    alignItems: 'center',
-    paddingVertical: 16,
+  wrapper: {
+    backgroundColor: '#FAFAFA',
   },
-  contentWrapper: {
-    width: '70%',
-    maxWidth: 1200,
-    gap: 20,
+  mainContainer: {
     alignItems: 'center',
-    backgroundColor: '#F5F0DD',
+  },
+  mainWrapper: {
+    width: '100%',
+    maxWidth: 1400,
     paddingVertical: 24,
-    paddingHorizontal: 24,
-    borderRadius: 16,
+    paddingHorizontal: 20,
+    alignSelf: 'center',
+  },
+  dashboardContainer: {
+  },
+  contentCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    overflow: 'hidden',
+    ...(Platform.OS === 'web' && { boxShadow: '0 10px 40px rgba(0,0,0,0.03)' }),
+  },
+  contentCardScroll: {
+  },
+  contentCardInner: {
+    padding: 32,
+    gap: 24,
   },
 })
-

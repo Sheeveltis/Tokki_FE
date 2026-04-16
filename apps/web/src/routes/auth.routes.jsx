@@ -1,6 +1,7 @@
 import React from 'react'
 import { Route } from 'react-router-dom'
 import { useRouteNavigation } from './utils/navigation-helpers'
+import { getCurrentUserId, getCurrentUserRole } from '@tokki/app/provider/api/client'
 import { LoginScreen } from '@tokki/app/features/authentication/screens/login-screen.web'
 import { RegisterScreen } from '@tokki/app/features/authentication/screens/register-screen.web'
 import { ForgotPasswordScreen } from '@tokki/app/features/authentication/screens/forgot-password-screen'
@@ -12,6 +13,23 @@ import { AdminLoginScreen } from '@tokki/app/features/authentication/screens/adm
 function LoginRoute() {
   const { navigate } = useRouteNavigation()
 
+  React.useEffect(() => {
+    const userId = getCurrentUserId()
+    const role = getCurrentUserRole()
+    
+    if (userId) {
+      if (role === 'Admin') {
+        navigate('/admin', { replace: true })
+      } else if (role === 'Staff') {
+        navigate('/staff', { replace: true })
+      } else if (role === 'Moderator') {
+        navigate('/moderator', { replace: true })
+      } else {
+        navigate('/study', { replace: true })
+      }
+    }
+  }, [navigate])
+
   return (
     <LoginScreen
       onPressSignUp={() => navigate('/register')}
@@ -21,6 +39,13 @@ function LoginRoute() {
 
 function RegisterRoute() {
   const { navigate } = useRouteNavigation()
+
+  React.useEffect(() => {
+    const userId = getCurrentUserId()
+    if (userId) {
+      navigate('/study', { replace: true })
+    }
+  }, [navigate])
 
   return (
     <RegisterScreen
@@ -32,6 +57,13 @@ function RegisterRoute() {
 function ForgotPasswordRoute() {
   const { navigate, getQueryParam } = useRouteNavigation()
   const email = getQueryParam('email')
+
+  React.useEffect(() => {
+    const userId = getCurrentUserId()
+    if (userId) {
+      navigate('/study', { replace: true })
+    }
+  }, [navigate])
 
   const handleSubmit = async ({ email: formEmail, newPassword, confirmPassword }) => {
     const finalEmail = formEmail || email

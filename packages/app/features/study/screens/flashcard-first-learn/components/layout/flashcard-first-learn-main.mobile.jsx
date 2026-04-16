@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image, Modal, Dimensions, Platform } from 'react-native'
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image, Modal, Dimensions, Platform, Animated } from 'react-native'
 import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
 import { normalizeImageSource } from '@tokki/app/features/study/api'
@@ -7,6 +7,8 @@ import { studyStyles } from '@tokki/app/features/study/styles'
 import { LoadingWithContainer } from 'components/Loading'
 import { FlipCardMobile } from 'components/FlipCardMobile'
 import SoundIcon from 'assets/icon/icon-mainflow/sound.svg'
+import CorrectIcon from 'assets/icon/icon-mainflow/correct.svg'
+import WarnIcon from 'assets/icon/icon-mainflow/warn.svg'
 // Import sound effects - sử dụng require() cho React Native
 // Trong React Native, require() trả về một số (module ID) hoặc object
 let CorrectSfx = null
@@ -15,12 +17,12 @@ let WrongSfx = null
 try {
   const correctModule = require('assets/sound-effect/correct.wav')
   const wrongModule = require('assets/sound-effect/wrong.wav')
-  
+
   // Xử lý các trường hợp khác nhau của require()
   // Trường hợp 1: require() trả về number trực tiếp (module ID)
   if (typeof correctModule === 'number') {
     CorrectSfx = correctModule
-  } 
+  }
   // Trường hợp 2: require() trả về object có default
   else if (correctModule && typeof correctModule === 'object') {
     CorrectSfx = correctModule.default || correctModule
@@ -32,10 +34,10 @@ try {
   else {
     CorrectSfx = correctModule
   }
-  
+
   if (typeof wrongModule === 'number') {
     WrongSfx = wrongModule
-  } 
+  }
   else if (wrongModule && typeof wrongModule === 'object') {
     WrongSfx = wrongModule.default || wrongModule
   }
@@ -108,12 +110,12 @@ export function FlashcardFirstLearnMain({
   const lastSfxKeyRef = useRef('')
   const lastIsCorrectRef = useRef(null)
   const lastStepKeyRef = useRef('')
-  
+
   // Preload sound assets và set audio mode khi component mount (chỉ mobile)
   useEffect(() => {
     if (Platform.OS === 'web') return
     if (!ExpoAudioMode) return
-    
+
     const setupAudio = async () => {
       try {
         // Set audio mode trước
@@ -124,13 +126,13 @@ export function FlashcardFirstLearnMain({
           shouldDuckAndroid: true,
           playThroughEarpieceAndroid: false,
         })
-        
+
         // Preload sound assets nếu có Asset và sound files
         if (Asset && CorrectSfx && WrongSfx) {
           try {
             const correctAsset = Asset.fromModule(CorrectSfx)
             const wrongAsset = Asset.fromModule(WrongSfx)
-            
+
             if (!correctAsset.downloaded) {
               await correctAsset.downloadAsync()
             }
@@ -144,10 +146,10 @@ export function FlashcardFirstLearnMain({
         // Failed to set audio mode
       }
     }
-    
+
     setupAudio()
   }, [])
-  
+
   useEffect(() => {
     if (Platform.OS === 'web') return
     if (!showResult) {
@@ -160,14 +162,14 @@ export function FlashcardFirstLearnMain({
 
     const vocabId = current?.id || ''
     const sfxKey = `${vocabId}:${currentStepKey}:${isCorrect ? 'correct' : 'wrong'}`
-    
+
     // Reset key nếu step key hoặc isCorrect thay đổi (cho phép phát lại khi chuyển từ wrong sang correct hoặc ngược lại)
     if (lastStepKeyRef.current !== currentStepKey || lastIsCorrectRef.current !== isCorrect) {
       lastSfxKeyRef.current = ''
       lastStepKeyRef.current = currentStepKey
       lastIsCorrectRef.current = isCorrect
     }
-    
+
     if (lastSfxKeyRef.current === sfxKey) {
       return
     }
@@ -176,17 +178,17 @@ export function FlashcardFirstLearnMain({
     const playSoundEffect = async () => {
       try {
         const src = isCorrect ? CorrectSfx : WrongSfx
-        
+
         // Kiểm tra xem sound file có tồn tại không
         if (!src) {
           return
         }
-        
-        
+
+
         if (Platform.OS === 'web') {
           // Web: sử dụng HTML5 Audio
-          const audioSrc = typeof src === 'string' 
-            ? src 
+          const audioSrc = typeof src === 'string'
+            ? src
             : (src?.default || src?.src || src)
           const audio = typeof window !== 'undefined' && window.Audio ? new window.Audio(audioSrc) : null
           if (audio) {
@@ -200,12 +202,12 @@ export function FlashcardFirstLearnMain({
           if (!ExpoAudio) {
             return
           }
-          
+
           // Normalize sound source - có thể là require() (number), string, hoặc object
           // Trong React Native với expo-av, require() cho local files trả về number (module ID)
           // Cần sử dụng Asset.fromModule() để resolve thành URI thực tế
           let soundSource = null
-          
+
           if (typeof src === 'number') {
             // require() trả về number (module ID)
             // Sử dụng Asset.fromModule() để resolve thành URI nếu có Asset
@@ -249,30 +251,30 @@ export function FlashcardFirstLearnMain({
               soundSource = src
             }
           }
-          
+
           if (soundSource === null || soundSource === undefined) {
             return
           }
-          
-          
+
+
           try {
             const { sound } = await ExpoAudio.Sound.createAsync(
               soundSource,
-              { 
-                shouldPlay: true, 
+              {
+                shouldPlay: true,
                 volume: 1.0,
                 isMuted: false,
               }
             )
-            
+
             // Kiểm tra status ngay sau khi tạo
             const initialStatus = await sound.getStatusAsync()
-            
+
             if (initialStatus.error) {
               await sound.unloadAsync()
               return
             }
-            
+
             sound.setOnPlaybackStatusUpdate((status) => {
               if (status.isLoaded) {
                 if (status.didJustFinish) {
@@ -287,7 +289,7 @@ export function FlashcardFirstLearnMain({
                 // Sound load error
               }
             })
-            
+
             // Đảm bảo sound được play - kiểm tra lại sau một chút
             setTimeout(async () => {
               try {
@@ -326,11 +328,39 @@ export function FlashcardFirstLearnMain({
     playSoundEffect()
   }, [showResult, currentStepKey, isCorrect, current?.id])
 
+  const iconScale = useRef(new Animated.Value(0)).current
+  useEffect(() => {
+    if (showResult) {
+      iconScale.setValue(0)
+      Animated.spring(iconScale, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 40,
+        friction: 4,
+      }).start()
+    }
+  }, [showResult])
+  
+  const animatedProgress = useRef(new Animated.Value(progress)).current
+  useEffect(() => {
+    Animated.spring(animatedProgress, {
+      toValue: progress,
+      useNativeDriver: false,
+      friction: 8,
+      tension: 60,
+    }).start()
+  }, [progress])
+
+  const progressWidth = animatedProgress.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  })
+
   // Helper function để kiểm tra xem icon có phải là React component không (SVG component)
   const isReactComponent = (icon) => {
     if (!icon) return false
     return (
-      (typeof icon === 'function') || 
+      (typeof icon === 'function') ||
       (typeof icon === 'object' && icon.$$typeof) ||
       (typeof icon === 'object' && icon.default && (typeof icon.default === 'function' || icon.default.$$typeof))
     )
@@ -338,57 +368,24 @@ export function FlashcardFirstLearnMain({
 
   // Helper function để render SoundIcon - hỗ trợ cả React component (SVG) và Image source
   // Tương tự như cách navbar-mobile.jsx xử lý SVG icons
-  const renderSoundIcon = (size = 32) => {
-    if (!SoundIcon) {
-      return null
-    }
-    
-    // Thử render trực tiếp như component trước (SVG thường được transform thành component)
+  // Helper function để render icon kết quả
+  const renderResultIcon = (iconSource, size = 64, color) => {
+    if (!iconSource) return null
     try {
-      // Trường hợp 1: SoundIcon là function (React component từ @svgr/react-native-svg-transformer)
-      if (typeof SoundIcon === 'function') {
-        const IconComponent = SoundIcon
-        return <IconComponent width={size} height={size} fill="#1F1F1F" />
+      if (typeof iconSource === 'function') {
+        const IconComponent = iconSource
+        return <IconComponent width={size} height={size} fill={color} />
       }
-      
-      // Trường hợp 2: SoundIcon có default property là function
-      if (SoundIcon && typeof SoundIcon === 'object' && SoundIcon.default) {
-        if (typeof SoundIcon.default === 'function') {
-          const IconComponent = SoundIcon.default
-          return <IconComponent width={size} height={size} fill="#1F1F1F" />
+      if (iconSource && typeof iconSource === 'object' && iconSource.default) {
+        if (typeof iconSource.default === 'function') {
+          const IconComponent = iconSource.default
+          return <IconComponent width={size} height={size} fill={color} />
         }
       }
-      
-      // Trường hợp 3: Kiểm tra với isReactComponent helper
-      const isComponent = isReactComponent(SoundIcon)
-      if (isComponent) {
-        const IconComponent = typeof SoundIcon === 'function' ? SoundIcon : (SoundIcon.default || SoundIcon)
-        return <IconComponent width={size} height={size} fill="#1F1F1F" />
-      }
-    } catch (error) {
-      // Error rendering SoundIcon as component
-    }
-    
-    // Fallback: Nếu không phải component, thử dùng Image với normalizeImageSource
-    try {
-      const iconSource = normalizeImageSource(SoundIcon)
-      if (iconSource) {
-        return (
-          <Image
-            source={iconSource}
-            style={{ width: size, height: size }}
-            resizeMode="contain"
-          />
-        )
-      }
-    } catch (error) {
-      // Error rendering SoundIcon as Image
-    }
-    
-    // Nếu tất cả đều fail, render một View trống với background để debug
-    return (
-      <View style={{ width: size, height: size, backgroundColor: '#FF0000', borderRadius: size / 2 }} />
-    )
+    } catch (e) { }
+
+    const source = normalizeImageSource(iconSource)
+    return <Image source={source} style={{ width: size, height: size }} tintColor={color} />
   }
 
   const renderStep = () => {
@@ -441,7 +438,7 @@ export function FlashcardFirstLearnMain({
           {currentStepKey === 'listen' ? (
             <View style={styles.audioRow}>
               <TouchableOpacity style={styles.audioButton} onPress={onPlaySound}>
-                {renderSoundIcon(32)}
+                {renderResultIcon(SoundIcon, 32, '#1F1F1F')}
               </TouchableOpacity>
             </View>
           ) : (
@@ -476,34 +473,37 @@ export function FlashcardFirstLearnMain({
           isCorrect ? styles.resultBoxCorrect : styles.resultBoxWrong,
         ]}
       >
-        <View style={[styles.resultBadge, isCorrect ? styles.resultCorrect : styles.resultWrong]} />
+        <Animated.View style={[styles.resultIconWrapper, { transform: [{ scale: iconScale }] }]}>
+          {renderResultIcon(isCorrect ? CorrectIcon : WarnIcon, 64, isCorrect ? '#23ac38' : '#eb5757')}
+        </Animated.View>
+
         {current.imageUrl ? (
           <Image source={normalizeImageSource(current.imageUrl)} style={styles.cardImage} resizeMode="cover" />
         ) : null}
         <View style={styles.resultContent}>
           <View style={styles.resultHeader}>
             {current?.audioUrl && onPlaySound ? (
-              <TouchableOpacity 
-                style={styles.audioButtonSmall} 
+              <TouchableOpacity
+                style={styles.audioButtonSmall}
                 onPress={() => {
                   if (onPlaySound) {
                     onPlaySound()
                   }
                 }}
               >
-                {renderSoundIcon(24)}
+                {renderResultIcon(SoundIcon, 24, '#1F1F1F')}
               </TouchableOpacity>
             ) : null}
-            <Text style={[styles.cardWord, styles.resultTextOnColor]}>
+            <Text style={styles.cardWord}>
               {current.word}
             </Text>
           </View>
           {current.pronunciation ? (
-            <Text style={[styles.cardPronun, styles.resultTextOnColor]}>
+            <Text style={styles.cardPronun}>
               {current.pronunciation}
             </Text>
           ) : null}
-          <Text style={[styles.cardMeaning, styles.resultTextOnColor]}>
+          <Text style={styles.cardMeaning}>
             {current.meaning}
           </Text>
           {!isCorrect ? (
@@ -572,7 +572,7 @@ export function FlashcardFirstLearnMain({
         </>
       )
     }
-    
+
     return (
       <>
         <View style={styles.headerTop}>
@@ -605,8 +605,11 @@ export function FlashcardFirstLearnMain({
 
       <View style={styles.progressBarContainer}>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${progress}%` }]} />
+          <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
         </View>
+        <Text style={styles.progressText}>
+          Tiến độ hoàn thành: <Text style={{ color: '#1A1A1A', fontWeight: '900' }}>{progress}%</Text>
+        </Text>
       </View>
 
       <View style={styles.stepContainer}>
@@ -635,8 +638,8 @@ export function FlashcardFirstLearnMain({
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {hasMoreFlashcards 
-                ? `Bạn đã học xong ${completedInBatch} từ!` 
+              {hasMoreFlashcards
+                ? `Bạn đã học xong ${completedInBatch} từ!`
                 : 'Bạn đã học hết từ vựng!'}
             </Text>
             <Text style={styles.modalMessage}>
@@ -701,13 +704,17 @@ const styles = StyleSheet.create({
     minHeight: 0,
   },
   progressText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#333',
+    color: '#999',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
   },
   progressBarContainer: {
     width: '100%',
     paddingHorizontal: 16,
+    gap: 10,
+    marginBottom: 8,
   },
   progressBar: {
     width: '100%',
@@ -718,9 +725,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#833ab4',
-    // Gradient sẽ áp dụng trên web, native sẽ fallback màu đầu tiên
-    backgroundImage: 'linear-gradient(to right, #833ab4, #fd1d1d, #fcb045)',
+    backgroundColor: '#F1BE4B',
     borderRadius: 999,
   },
   flipCardWrapper: {
@@ -785,8 +790,8 @@ const styles = StyleSheet.create({
   cardWord: { fontSize: 24, fontWeight: '800', color: '#1F1F1F', textTransform: 'capitalize' },
   cardPronun: { fontSize: 15, color: '#666', fontStyle: 'italic' },
   cardMeaning: { fontSize: 16, color: '#1F1F1F', textAlign: 'center' },
-  cardHint: { 
-    fontSize: 12, 
+  cardHint: {
+    fontSize: 12,
     color: '#777',
     textAlign: 'center',
     marginTop: 8,
@@ -846,14 +851,20 @@ const styles = StyleSheet.create({
   submitText: { fontSize: 15, fontWeight: '800', color: '#1F1F1F' },
   resultBox: {
     width: '100%',
-    height: 360,
+    height: 480, // Tăng chiều cao một chút để icon không bị chen chúc
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 10,
     borderRadius: 12,
     padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 4,
   },
-  resultBoxCorrect: { backgroundColor: '#23ac38' },
-  resultBoxWrong: { backgroundColor: '#eb5757' },
+  resultBoxCorrect: { borderColor: '#23ac38' },
+  resultBoxWrong: { borderColor: '#eb5757' },
+  resultIconWrapper: {
+    marginBottom: 6,
+  },
   resultBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
   resultCorrect: { backgroundColor: '#23ac38' },
   resultWrong: { backgroundColor: '#eb5757' },
@@ -864,13 +875,13 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 6,
     padding: 10,
-    backgroundColor: '#ffffff33',
+    backgroundColor: '#FDECEA',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ffffff66',
+    borderColor: '#eb5757',
   },
-  wrongLabel: { fontSize: 12, fontWeight: '700', color: '#FFFFFF' },
-  wrongText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+  wrongLabel: { fontSize: 12, fontWeight: '700', color: '#eb5757' },
+  wrongText: { fontSize: 15, fontWeight: '700', color: '#eb5757' },
   nextButton: {
     marginTop: 8,
     marginBottom: 16,

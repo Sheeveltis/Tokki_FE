@@ -32,7 +32,7 @@ export const ExamStatisticsBar = ({ exam, statsData }) => {
                 borderBottom: `2px solid ${item.border}`,
                 height: '100%'
               }}
-              bodyStyle={{ padding: 16 }}
+              styles={{ body: { padding: 16 } }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                 <div

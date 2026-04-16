@@ -56,6 +56,8 @@ export function FlashcardTopicCreateModal({ open, loading, onCancel, onSubmit })
       okText="Tạo"
       cancelText="Hủy"
       confirmLoading={loading}
+      okButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
+      cancelButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
       destroyOnClose
       centered
       styles={{

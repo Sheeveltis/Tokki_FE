@@ -1,10 +1,6 @@
 import React from 'react'
-import { View, ScrollView, StyleSheet } from 'react-native'
-import { Navbar } from '../../../../../components/navbar'
-import { Footer } from '../../../../../components/footer'
+import { View, StyleSheet } from 'react-native'
 import { HomeSidebar } from './home-sidebar'
-import BubbleChat from '../../api/bubble-chat-index'
-import { AppShow } from '../../../../../components/appShow'
 
 /**
  * HomeLayout (Web): Bố cục trang Home cho màn hình desktop
@@ -25,54 +21,18 @@ import { AppShow } from '../../../../../components/appShow'
 export function HomeLayout({
   children,
   sidebarData,
-  onHomePress,
-  onRoadmapPress,
-  onFlashcardPress,
-  onBlogPress,
-  onProfilePress,
 }) {
   return (
     <View style={styles.root}>
-      {/* Navbar ở đầu trang */}
-      <Navbar
-        onHomePress={onHomePress}
-        onRoadmapPress={onRoadmapPress}
-        onFlashcardPress={onFlashcardPress}
-        onBlogPress={onBlogPress}
-        onProfilePress={onProfilePress}
-      />
-
-      {/* Nội dung chính */}
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={[styles.scrollContent, styles.scrollContentGrow]}
-      >
-        <View style={styles.wrapper}>
-          <View style={styles.leftCol}>
-            {children}
-          </View>
-
-          <View style={styles.rightCol}>
-            <HomeSidebar data={sidebarData} />
-          </View>
+      <View style={styles.wrapper}>
+        <View style={styles.leftCol}>
+          {children}
         </View>
-      </ScrollView>
 
-      {/* Footer ở cuối trang */}
-      <Footer style={{}} />
-
-      {/* Icon ứng dụng học (fixed) - dùng danh sách app mặc định trong AppShow */}
-      <AppShow
-        style={{
-          position: 'fixed',
-          right: 20,
-          bottom: 20, // nằm dưới bubble chat, thẳng hàng bên phải
-          zIndex: 1000,
-        }}
-      />
-
-      {/* Bubble chat hỗ trợ (tự fixed bằng CSS) */}
-      <BubbleChat />
+        <View style={styles.rightCol}>
+          <HomeSidebar data={sidebarData} />
+        </View>
+      </View>
     </View>
   )
 }
@@ -81,8 +41,9 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#fff',
-    // react-native-web: giúp layout luôn phủ đủ viewport khi zoom out
     minHeight: '100vh',
+    alignItems: 'center',
+    paddingVertical: 20,
   },
   container: {
     flex: 1,
@@ -103,6 +64,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 40,
     alignItems: 'flex-start',
+    alignSelf: 'center',
   },
   leftCol: {
     flex: 1,

@@ -5,30 +5,24 @@ import { renderStudyRoutes } from './study.routes'
 import { renderAdminRoutes } from './admin.routes'
 import { renderStaffRoutes } from './staff.routes'
 import { renderModeratorRoutes } from './moderator.routes'
-import { renderPublicRoutes } from './public.routes'
+import { renderPublicRouteItems, PublicLayout } from './public.routes'
 import { TestLayout } from '../test-layout'
-import { ErrorScreen } from 'app/features/general/screens/error-screen'
+import { ErrorScreen } from '@tokki/app/features/general/screens/error-screen'
 
 /**
  * App Routes - Centralized Route Configuration
- * 
- * This module aggregates all route modules following:
- * - Route Grouping / Route Modularization
- * - Wrapper / Container Pattern
- * - Logic Abstraction
- * - Code Cleanup & Organization
  */
 export function AppRoutes() {
   return (
     <Routes>
-      {/* Public Routes */}
-      {renderPublicRoutes()}
+      {/* Root Layout for persistent navigation across Public and Study core features */}
+      <Route element={<PublicLayout />}>
+        {renderPublicRouteItems()}
+        {renderStudyRoutes()}
+      </Route>
 
       {/* Authentication Routes */}
       {renderAuthRoutes()}
-
-      {/* Study Routes */}
-      {renderStudyRoutes()}
 
       {/* Staff Routes */}
       {renderStaffRoutes()}

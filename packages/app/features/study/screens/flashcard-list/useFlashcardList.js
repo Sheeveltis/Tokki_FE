@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Platform } from 'react-native'
 import { getFlashcardTopics } from '@tokki/app/features/study/api'
+import { getCurrentUserId } from '@tokki/app/provider/api/client'
+import { getProgress } from '@tokki/app/features/user/api/profile'
 
 // Import useFocusEffect chỉ trên mobile (React Navigation)
 let useFocusEffect = null
@@ -24,56 +26,89 @@ function useSafeFocusEffect(callback) {
 /**
  * Hook xử lý logic cho FlashcardListScreen
  */
-export function useFlashcardList(levelId) {
+export function useFlashcardList(initialLevelId) {
   const [topics, setTopics] = useState([])
   const [loading, setLoading] = useState(true)
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
-  const [isLevelResolved] = useState(true)
+  // Nếu có initialLevelId (từ URL/params), ưu tiên nó. Nếu không, để null và load aimLevel.
+  const [selectedLevel, setSelectedLevel] = useState(initialLevelId ?? null)
+  const [isLevelAutoLoaded, setIsLevelAutoLoaded] = useState(false)
 
   const [pageNumber, setPageNumber] = useState(1)
-  const pageSize = 5
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const pageSize = 10 // Đã chỉnh sửa thành 10 theo yêu cầu người dùng
 
   const debounceTimerRef = useRef(null)
 
+  // 1. Effect để tự động lấy aimLevel nếu chưa có levelId ban đầu
+  useEffect(() => {
+    const loadAimLevel = async () => {
+      // Nếu đã có levelId từ props/URL, không tự động ghi đè
+      if (initialLevelId) {
+        setIsLevelAutoLoaded(true)
+        return
+      }
 
+      try {
+        const userId = getCurrentUserId()
+        if (userId) {
+          // Bỏ logic tự động lấy level người dùng để tránh ép buộc level
+          // const progress = await getProgress(userId)
+          // if (progress?.level) {
+          //   setSelectedLevel(progress.level)
+          // }
+        }
+      } catch (err) {
+        console.error('[useFlashcardList] Error loading user aimLevel:', err)
+      } finally {
+        setIsLevelAutoLoaded(true)
+      }
+    }
 
-  const effectiveLevelId = levelId ?? null
+    loadAimLevel()
+  }, [initialLevelId])
 
   const fetchTopics = useCallback(async () => {
-    if (!isLevelResolved) return
+    // Chỉ fetch khi đã xác định xong level (dù là aimLevel hay mặc định)
+    if (!isLevelAutoLoaded) return
+
     try {
       setLoading(true)
       setError(null)
-      const data = await getFlashcardTopics(effectiveLevelId, {
+      const data = await getFlashcardTopics(selectedLevel, {
         pageNumber,
         pageSize,
         searchTerm: debouncedSearchTerm || undefined,
       })
-      setTopics(Array.isArray(data) ? data : [])
+      
+      setTopics(data.items || [])
+      setTotalPages(data.totalPages || 1)
+      setTotalCount(data.totalCount || 0)
       setIsInitialLoading(false)
     } catch (err) {
       console.error('Error fetching flashcard topics:', err)
       setError(err.message || 'Không thể tải danh sách chủ đề flashcard')
       setTopics([])
+      setTotalPages(1)
       setIsInitialLoading(false)
     } finally {
       setLoading(false)
     }
-  }, [debouncedSearchTerm, effectiveLevelId, isLevelResolved, pageNumber])
+  }, [debouncedSearchTerm, selectedLevel, pageNumber, pageSize, isLevelAutoLoaded])
 
   useEffect(() => {
-    if (!isLevelResolved) return
     fetchTopics()
-  }, [fetchTopics, isLevelResolved])
+  }, [fetchTopics])
 
   const refreshOnFocus = useCallback(() => {
-    if (isLevelResolved && !isInitialLoading) {
+    if (!isInitialLoading) {
       fetchTopics()
     }
-  }, [fetchTopics, isInitialLoading, isLevelResolved])
+  }, [fetchTopics, isInitialLoading])
 
   useSafeFocusEffect(refreshOnFocus)
 
@@ -83,7 +118,10 @@ export function useFlashcardList(levelId) {
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
+      if (searchTerm !== debouncedSearchTerm) {
+        setPageNumber(1)
+        setDebouncedSearchTerm(searchTerm)
+      }
     }, 500)
 
     return () => {
@@ -91,7 +129,7 @@ export function useFlashcardList(levelId) {
         clearTimeout(debounceTimerRef.current)
       }
     }
-  }, [searchTerm])
+  }, [searchTerm, debouncedSearchTerm])
 
   const handleSearchChange = (value) => {
     setSearchTerm(value)
@@ -105,7 +143,12 @@ export function useFlashcardList(levelId) {
     setDebouncedSearchTerm(searchTerm)
   }
 
-  const canNextPage = topics.length === pageSize
+  const handleLevelChange = (level) => {
+    setSelectedLevel(level)
+    setPageNumber(1)
+  }
+
+  const canNextPage = pageNumber < totalPages
 
   const handlePrevPage = () => {
     setPageNumber((p) => Math.max(1, p - 1))
@@ -114,6 +157,10 @@ export function useFlashcardList(levelId) {
   const handleNextPage = () => {
     if (!canNextPage) return
     setPageNumber((p) => p + 1)
+  }
+
+  const handlePageChange = (page) => {
+    setPageNumber(page)
   }
 
   return {
@@ -125,11 +172,15 @@ export function useFlashcardList(levelId) {
     searchTerm,
     handleSearchChange,
     handleSearchSubmit,
-
+    selectedLevel,
+    handleLevelChange,
     pageNumber,
+    totalPages,
+    totalCount,
     pageSize,
     canNextPage,
     handlePrevPage,
     handleNextPage,
+    handlePageChange,
   }
 }

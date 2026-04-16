@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Space, Segmented, Button, Typography, Empty, Tooltip, Badge, Row, Col, Card, Image } from 'antd';
+import { Space, Segmented, Button, Typography, Empty, Tooltip, Badge, Row, Col, Card, Image, Tabs } from 'antd';
 import {
   CustomerServiceOutlined,
   ReadOutlined,
@@ -28,6 +28,25 @@ export const ExamContentTab = ({
   onSaveQuestion,
   onRegeneratePart
 }) => {
+
+  // Tính toán danh sách các kỹ năng thực sự có trong đề
+  const availableSkills = useMemo(() => {
+    const skills = new Set();
+    templateParts?.forEach(p => {
+      const skill = (p.skill || '').toLowerCase();
+      if (skill.includes('listen')) skills.add('Listening');
+      if (skill.includes('read')) skills.add('Reading');
+      if (skill.includes('writ')) skills.add('Writing');
+    });
+    return skills;
+  }, [templateParts]);
+
+  // Nếu kỹ năng hiện tại không nằm trong danh sách có sẵn, tự chuyển sang cái đầu tiên
+  React.useEffect(() => {
+    if (availableSkills.size > 0 && !availableSkills.has(currentSkill)) {
+       setCurrentSkill(Array.from(availableSkills)[0]);
+    }
+  }, [availableSkills, currentSkill, setCurrentSkill]);
 
   // Filter and group by passage
   const filteredParts = useMemo(() => {
@@ -75,18 +94,16 @@ export const ExamContentTab = ({
 
   return (
     <div style={{ padding: 24, margin: '0 auto', minHeight: 600 }}>
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
-        <Segmented
-          value={currentSkill}
-          onChange={setCurrentSkill}
-          style={{ padding: 4, borderRadius: 8 }}
-          options={[
-            { label: <Space style={{ padding: '4px 16px' }}><CustomerServiceOutlined />Nghe</Space>, value: 'Listening' },
-            { label: <Space style={{ padding: '4px 16px' }}><EditOutlined />Viết</Space>, value: 'Writing' },
-            { label: <Space style={{ padding: '4px 16px' }}><ReadOutlined />Đọc</Space>, value: 'Reading' },
-          ]}
-        />
-      </div>
+      <Tabs
+        activeKey={currentSkill}
+        onChange={setCurrentSkill}
+        style={{ marginBottom: 24 }}
+        items={[
+          { key: 'Listening', label: <Space style={{ fontWeight: 500, padding: '0 8px' }}><CustomerServiceOutlined />Nghe</Space> },
+          { key: 'Writing', label: <Space style={{ fontWeight: 500, padding: '0 8px' }}><EditOutlined />Viết</Space> },
+          { key: 'Reading', label: <Space style={{ fontWeight: 500, padding: '0 8px' }}><ReadOutlined />Đọc</Space> },
+        ].filter(opt => availableSkills.has(opt.key))}
+      />
 
       {filteredParts.length > 0 ? (
         filteredParts.map((part, pIdx) => {
@@ -142,12 +159,12 @@ export const ExamContentTab = ({
                   <div key={group.key} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     {group.passage && (
                       <Card
-                        bordered={false}
+                        variant="borderless"
                         style={{
                           backgroundColor: '#fafafa', border: '1px solid #f0f0f0',
                           borderRadius: 8, overflow: 'hidden'
                         }}
-                        bodyStyle={{ padding: 0 }}
+                        styles={{ body: { padding: 0 } }}
                       >
                         <Row gutter={0}>
                           {group.passage.imageUrl && (

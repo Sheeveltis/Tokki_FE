@@ -9,13 +9,14 @@ import { Provider as AppProvider } from '@tokki/app/provider'
 import { QueryProvider } from '@tokki/app/provider/query/query-client'
 
 import { AppRoutes } from './routes'
-
+import { PageTitle } from './routes/utils/PageTitle'
 
 function App() {
   return (
     <QueryProvider>
       <AppProvider>
         <BrowserRouter>
+          <PageTitle />
           <AppRoutes />
           {showSpeedInsights ? <SpeedInsights /> : null}
         </BrowserRouter>

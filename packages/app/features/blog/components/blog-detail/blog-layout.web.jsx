@@ -1,53 +1,61 @@
 import React from 'react'
-import { View, ScrollView, StyleSheet } from 'react-native'
-import { Navbar } from '../../../../../components/navbar'
-import { Footer } from '../../../../../components/footer'
-import { BlogSidebar } from './blog-detail-sidebar'
+import { BlogDetailSidebar } from './blog-detail-sidebar'
 
+/**
+ * BlogLayout (Web) — premium 2-col layout cho blog detail
+ * max-width: 1400px, left: nội dung, right: sticky sidebar
+ */
 export function BlogLayout({ children, relatedPosts }) {
   return (
-    <View style={styles.root}>
-      {/* Navbar ở đầu trang */}
-      <Navbar />
+    <div className="bld-root">
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        @import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700;800;900&display=swap');
 
-      {/* Nội dung chính */}
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.wrapper}>
-          
-          <View style={styles.leftCol}>
-             {children}
-          </View>
+        .bld-root {
+          font-family: 'Epilogue', sans-serif;
+          background: linear-gradient(180deg, #FEF7E6 0%, #FFFFFF 280px);
+          min-height: 100vh;
+        }
 
-          <View style={styles.rightCol}>
-             {/* Truyền relatedPosts xuống Sidebar */}
-             <BlogSidebar relatedPosts={relatedPosts} />
-          </View>
+        .bld-wrapper {
+          max-width: 1400px;
+          margin: 0 auto;
+          padding: 40px 24px 80px;
+          display: grid;
+          grid-template-columns: 1fr 320px;
+          gap: 56px;
+          align-items: start;
+        }
 
-        </View>
-      </ScrollView>
+        @media (max-width: 1024px) {
+          .bld-wrapper {
+            grid-template-columns: 1fr;
+          }
+          .bld-sidebar-col {
+            display: none;
+          }
+        }
 
-      {/* Footer ở cuối trang */}
-      <Footer style={{}} />
-    </View>
+        .bld-main-col {
+          min-width: 0;
+        }
+
+        .bld-sidebar-col {
+          position: sticky;
+          top: 100px;
+        }
+        `
+      }} />
+
+      <div className="bld-wrapper">
+        <div className="bld-main-col">
+          {children}
+        </div>
+        <div className="bld-sidebar-col">
+          <BlogDetailSidebar relatedPosts={relatedPosts} />
+        </div>
+      </div>
+    </div>
   )
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    width: '100%',
-    backgroundColor: '#fff',
-  },
-  container: { flex: 1, backgroundColor: '#fff' },
-  scrollContent: { alignItems: 'center', paddingVertical: 20 },
-  wrapper: { 
-    width: '100%', 
-    maxWidth: 1200, 
-    paddingHorizontal: 16, 
-    flexDirection: 'row', 
-    gap: 40,
-    alignItems: 'flex-start' 
-  },
-  leftCol: { flex: 1, minWidth: 0 }, 
-  rightCol: { width: 300, flexShrink: 0 } 
-})

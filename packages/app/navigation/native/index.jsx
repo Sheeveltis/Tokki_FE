@@ -1,5 +1,4 @@
 // packages/app/navigation/native/index.jsx
-// packages/app/navigation/native/index.jsx
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { View, StyleSheet } from 'react-native'
 
@@ -33,6 +32,9 @@ import { MinigameScreen } from 'app/features/minigame/screens/minigame-screen'
 import { WordleRuleScreen } from 'app/features/minigame/screens/wordle/wordle-rule-screen'
 import { WordlePlayScreen } from 'app/features/minigame/screens/wordle/wordle-play-screen'
 import { WordleBoardScreen } from 'app/features/minigame/screens/wordle/wordle-board-screen'
+import { PronunciationRulesScreen } from 'app/features/pronunciation/screens/PronunciationRulesScreen'
+import { PronunciationExamplesScreen } from 'app/features/pronunciation/screens/PronunciationExamplesScreen'
+import { PronunciationExampleDetailScreen } from 'app/features/pronunciation/screens/PronunciationExampleDetailScreen'
 
 const Stack = createNativeStackNavigator()
 
@@ -82,6 +84,9 @@ export function NativeNavigation() {
       <Stack.Screen
         name="blog-detail"
         component={BlogDetailScreen}
+        options={{
+          headerShown: false,
+        }}
       />
       <Stack.Screen
         name="blog-list"
@@ -90,26 +95,31 @@ export function NativeNavigation() {
           headerShown: false,
         }}
       />
-       {/* <Stack.Screen
+      <Stack.Screen
         name="payment-package"
         component={PackageScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="premium-package"
         component={PremiumScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="payment-detail"
         component={PaymentScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="payment-success"
         component={PaymentSuccessScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="payment-failed"
         component={PaymentFailedScreen}
-      /> */}
+        options={{ headerShown: false }}
+      />
       {/* Roadmap screens disabled on native (web-only) */}
       {/* <Stack.Screen
         name="roadmap-info"
@@ -215,6 +225,27 @@ export function NativeNavigation() {
       <Stack.Screen
         name="wordle-board"
         component={WordleBoardScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="pronunciation-rules"
+        component={PronunciationRulesScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="pronunciation-examples"
+        component={PronunciationExamplesScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="pronunciation-example-detail"
+        component={PronunciationExampleDetailScreen}
         options={{
           headerShown: false,
         }}

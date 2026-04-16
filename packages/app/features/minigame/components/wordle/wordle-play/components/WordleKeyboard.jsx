@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
-import { View, Text, StyleSheet, Platform } from 'react-native'
+import { View, Text, StyleSheet, Platform, ImageBackground } from 'react-native'
 import { motion } from 'framer-motion'
+import BackgroundClock from '../../../../../../../assets/backgroundClock.png'
 
 // Layout bàn phím Hangul chuẩn với các jamo
 const HANGUL_ROWS = [
@@ -32,24 +33,24 @@ export function WordleKeyboard({ rows = [], onKeyPress }) {
   const renderKey = (key) => {
     const status = keyStatuses?.[key]
     let keyStyle = [styles.key]
-          let textStyle = styles.keyText
+    let textStyle = styles.keyText
 
-          if (key === 'Gửi') {
-            keyStyle = [styles.key, styles.submitKey]
-          } else if (key === 'Xóa') {
-            keyStyle = [styles.key, styles.deleteKey]
-          }
+    if (key === 'Gửi') {
+      keyStyle = [styles.key, styles.submitKey]
+    } else if (key === 'Xóa') {
+      keyStyle = [styles.key, styles.deleteKey]
+    }
 
-          if (status === 'correct') {
+    if (status === 'correct') {
       keyStyle = [...keyStyle, styles.correct]
-            textStyle = [styles.keyText, styles.whiteText]
-          } else if (status === 'present') {
+      textStyle = [styles.keyText, styles.whiteText]
+    } else if (status === 'present') {
       keyStyle = [...keyStyle, styles.present]
-            textStyle = [styles.keyText, styles.whiteText]
-          } else if (status === 'absent') {
+      textStyle = [styles.keyText, styles.whiteText]
+    } else if (status === 'absent') {
       keyStyle = [...keyStyle, styles.absent]
-            textStyle = [styles.keyText, styles.whiteText]
-          }
+      textStyle = [styles.keyText, styles.whiteText]
+    }
 
     const handleKeyClick = () => {
       if (!onKeyPress) return
@@ -77,7 +78,7 @@ export function WordleKeyboard({ rows = [], onKeyPress }) {
             alignItems: 'center',
             justifyContent: 'center',
           }}
-          whileTap={{ 
+          whileTap={{
             y: 3,
             boxShadow: '0 1px 0 rgba(0,0,0,0.2)',
           }}
@@ -88,7 +89,7 @@ export function WordleKeyboard({ rows = [], onKeyPress }) {
             e.preventDefault()
           }}
         >
-          <Text 
+          <Text
             style={[textStyle, { textAlign: 'center' }]}
             selectable={false}
           >
@@ -99,20 +100,20 @@ export function WordleKeyboard({ rows = [], onKeyPress }) {
     }
 
     // Fallback cho React Native
-          return (
+    return (
       <View
         key={key}
         style={keyStyle}
         onTouchStart={handleKeyClick}
       >
-        <Text 
+        <Text
           style={textStyle}
           selectable={false}
         >
           {key}
         </Text>
       </View>
-          )
+    )
   }
 
   // Chia thành 3 hàng ngang
@@ -121,7 +122,7 @@ export function WordleKeyboard({ rows = [], onKeyPress }) {
   const row3 = [...HANGUL_ROWS[2], 'Xóa', 'Gửi']
 
   return (
-    <View style={styles.keyboard}>
+    <ImageBackground source={BackgroundClock} style={styles.keyboard} resizeMode="stretch">
       <View style={styles.row}>
         {row1.map(renderKey)}
       </View>
@@ -131,7 +132,7 @@ export function WordleKeyboard({ rows = [], onKeyPress }) {
       <View style={styles.row}>
         {row3.map(renderKey)}
       </View>
-    </View>
+    </ImageBackground>
   )
 }
 
@@ -140,7 +141,8 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     gap: 8,
-    padding: 10,
+    paddingVertical: 50,
+    paddingHorizontal: 60,
   },
   row: {
     flexDirection: 'row',
@@ -149,14 +151,15 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   key: {
-    minWidth: 42,
-    height: 52,
+    minWidth: Platform.OS === 'web' ? 40 : 33,
+    height: Platform.OS === 'web' ? 40 : 33,
     backgroundColor: '#FFF9E3', // Soft cream/pastel
     borderRadius: 14, // Bubbly
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 8,
-    ...(Platform.OS === 'web' && { 
+    borderBottomWidth: Platform.OS === 'web' ? 0 : 4,
+    borderBottomColor: '#EAD7AE',
+    ...(Platform.OS === 'web' && {
       cursor: 'pointer',
       userSelect: 'none',
       WebkitUserSelect: 'none',
@@ -165,10 +168,12 @@ const styles = StyleSheet.create({
       boxShadow: '0 4px 0 #EAD7AE, 0 6px 8px rgba(0, 0, 0, 0.15)',
       transition: 'all 0.05s ease',
     }),
+
   },
   submitKey: {
     minWidth: 70,
     backgroundColor: '#4CAF50', // Friendly Green
+    borderBottomColor: '#2E7D32',
     ...(Platform.OS === 'web' && {
       boxShadow: '0 4px 0 #2E7D32, 0 6px 8px rgba(0, 0, 0, 0.15)',
     }),
@@ -176,24 +181,28 @@ const styles = StyleSheet.create({
   deleteKey: {
     minWidth: 70,
     backgroundColor: '#EF5350', // Soft earthy red
+    borderBottomColor: '#C62828',
     ...(Platform.OS === 'web' && {
       boxShadow: '0 4px 0 #C62828, 0 6px 8px rgba(0, 0, 0, 0.15)',
     }),
   },
   correct: {
     backgroundColor: '#4CAF50',
+    borderBottomColor: '#2E7D32',
     ...(Platform.OS === 'web' && {
       boxShadow: '0 4px 0 #2E7D32, 0 6px 8px rgba(0, 0, 0, 0.15)',
     }),
   },
   present: {
     backgroundColor: '#FBC02D',
+    borderBottomColor: '#F9A825',
     ...(Platform.OS === 'web' && {
       boxShadow: '0 4px 0 #F9A825, 0 6px 8px rgba(0, 0, 0, 0.15)',
     }),
   },
   absent: {
     backgroundColor: '#90A4AE',
+    borderBottomColor: '#546E7A',
     ...(Platform.OS === 'web' && {
       boxShadow: '0 4px 0 #546E7A, 0 6px 8px rgba(0, 0, 0, 0.15)',
     }),

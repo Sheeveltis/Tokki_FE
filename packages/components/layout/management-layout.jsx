@@ -9,7 +9,7 @@ const { Text } = Typography
 const ActionGroup = ({ actions = [] }) => {
   if (!actions || actions.length === 0) return null
   return (
-    <Space size="middle">
+    <Space size="middle" style={{ flexWrap: 'wrap' }}>
       {actions.map((action, index) => {
         if (action.hidden) return null
         return (
@@ -20,10 +20,15 @@ const ActionGroup = ({ actions = [] }) => {
             loading={action.loading}
             type={action.type || 'primary'}
             style={{
-              borderRadius: 20,
-              height: 40,
-              padding: '0 20px',
+              borderRadius: '2rem',
+              height: 'clamp(36px, 40px, 44px)',
+              padding: '0 1.25rem',
               fontWeight: 600,
+              fontSize: 'clamp(13px, 1.2vw, 15px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              whiteSpace: 'nowrap',
               ...action.style
             }}
           >
@@ -44,11 +49,10 @@ const SearchBar = ({ placeholder, value, onChange, onSearch }) => {
       prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
       placeholder={placeholder || 'Tìm kiếm...'}
       style={{
-        maxWidth: 300,
-        minWidth: 200,
-        borderRadius: 16,
-        height: 32,
-        fontSize: 13
+        width: 'min(320px, 100%)',
+        borderRadius: '1rem',
+        height: 'clamp(32px, 36px, 40px)',
+        fontSize: 'clamp(13px, 1.1vw, 14px)'
       }}
       value={value}
       onChange={(e) => onChange?.(e.target.value)}
@@ -80,31 +84,27 @@ export default function ManagementLayout({
   const paginationProps = tableProps?.pagination
 
   useEffect(() => {
-    const calculateTableHeight = () => {
-      if (tableWrapperRef.current) {
-        const rect = tableWrapperRef.current.getBoundingClientRect()
-        // Giảm bớt khoảng trừ vì pagination đã nằm ngoài, cần trừ thêm gap, padding của layout và chiều cao của header bảng
-        const availableHeight = window.innerHeight - rect.top - 180
-        setTableScrollY(availableHeight > 300 ? availableHeight : 300)
-      }
+    const updateHeight = () => {
+      // Calculate height based on viewport, subtracting space for header and footer items
+      // 580 was the old fixed value, now we try to fit better
+      const vh = window.innerHeight
+      const calculatedHeight = Math.max(400, vh - 260) // Ensure at least 400px
+      setTableScrollY(calculatedHeight)
     }
 
-    // Delay một chút để layout render xong
-    const timer = setTimeout(calculateTableHeight, 100)
-    window.addEventListener('resize', calculateTableHeight)
-    return () => {
-      window.removeEventListener('resize', calculateTableHeight)
-      clearTimeout(timer)
-    }
+    updateHeight()
+    window.addEventListener('resize', updateHeight)
+    return () => window.removeEventListener('resize', updateHeight)
   }, [])
 
   return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      gap: 20,
+      gap: 16,
       width: '100%',
-      height: '100%',
+      flex: 1,
+      minHeight: '100%',
       position: 'relative',
     }}>
       {/* HEADER SECTION */}
@@ -113,10 +113,10 @@ export default function ManagementLayout({
         justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
-        gap: 16,
-        paddingBottom: 4
+        gap: '1rem',
+        paddingBottom: '0.25rem'
       }}>
-        <Space size="middle" style={{ flex: 1, flexWrap: 'wrap' }}>
+        <Space size="middle" style={{ flex: '1 1 auto', flexWrap: 'wrap', gap: '0.75rem' }}>
           {(onSearchChange || onSearchSubmit) && (
             <SearchBar
               placeholder={searchPlaceholder}
@@ -128,14 +128,15 @@ export default function ManagementLayout({
           {extraFilters}
           {renderCard && (
             <Segmented
+              style={{ borderRadius: '0.75rem', padding: '2px' }}
               options={[
                 {
                   value: 'table',
-                  icon: <Tooltip title="Xem dạng bảng"><TableOutlined /></Tooltip>
+                  icon: <Tooltip title="Xem dạng bảng"><TableOutlined style={{ fontSize: 'clamp(14px, 1.2vw, 18px)' }} /></Tooltip>
                 },
                 {
                   value: 'card',
-                  icon: <Tooltip title="Xem dạng lưới"><AppstoreOutlined /></Tooltip>
+                  icon: <Tooltip title="Xem dạng lưới"><AppstoreOutlined style={{ fontSize: 'clamp(14px, 1.2vw, 18px)' }} /></Tooltip>
                 },
               ]}
               value={viewMode}
@@ -146,73 +147,86 @@ export default function ManagementLayout({
         <ActionGroup actions={actions} />
       </div>
 
-      {/* TABLE SECTION */}
-      <div
-        ref={tableWrapperRef}
-        style={{
-          flex: 1,
-          overflowY: viewMode === 'table' ? 'hidden' : 'auto',
-          overflowX: 'hidden',
-          width: '100%',
-          borderRadius: 8,
-        }}
-      >
-        {viewMode === 'table' ? (
-          <ManagementTable
-            {...tableProps}
-            pagination={false}
-            scroll={{ ...tableProps?.scroll, x: 'max-content', y: tableScrollY }}
-            size="middle"
-          />
-        ) : (
-          <div style={{ padding: '4px 0' }}>
-            <List
-              grid={{
-                gutter: 16,
-                xs: 1,
-                sm: 2,
-                md: 2,
-                lg: 3,
-                xl: 4,
-                xxl: 4,
-              }}
-              loading={tableProps?.loading}
-              dataSource={tableProps?.dataSource || []}
-              renderItem={(item) => (
-                <List.Item>
-                  {renderCard(item)}
-                </List.Item>
-              )}
-              locale={{
-                emptyText: <Empty description="Không có dữ liệu" />
-              }}
+      {/* UNIFIED CONTENT BOX (TABLE/CARDS + PAGINATION) */}
+      <div style={{
+        backgroundColor: '#fff',
+        borderRadius: '1rem',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1, // Đẩy box này chiếm toàn bộ không gian còn lại
+        minHeight: 0 // Quan trọng để flex child có thể nhỏ hơn nội dung
+      }}>
+        {/* CONTENT SECTION */}
+        <div
+          ref={tableWrapperRef}
+          className="management-content-wrapper"
+          style={{
+            flex: 1, // Để wrapper tự giãn theo không gian còn lại trong box
+            minHeight: 0,
+            overflowY: viewMode === 'table' ? 'hidden' : 'auto',
+            overflowX: 'auto',
+            width: '100%',
+          }}
+        >
+          {viewMode === 'table' ? (
+            <ManagementTable
+              {...tableProps}
+              pagination={false}
+              // Trừ đi khoảng 80px để chừa chỗ cho header, border và thanh cuộn ngang nếu có
+              scroll={{ ...tableProps?.scroll, x: 'max-content', y: tableScrollY - 70 }}
+              size="middle"
+            />
+          ) : (
+            <div style={{ padding: '24px 24px 24px 24px' }}>
+              <List
+                grid={{
+                  gutter: 16,
+                  xs: 1,
+                  sm: 2,
+                  md: 2,
+                  lg: 3,
+                  xl: 4,
+                  xxl: 4,
+                }}
+                rowKey={(item) => item.id || item.userId || item.key || item.email}
+                loading={tableProps?.loading}
+                dataSource={tableProps?.dataSource || []}
+                renderItem={(item) => (
+                  <List.Item>
+                    {renderCard(item)}
+                  </List.Item>
+                )}
+                locale={{
+                  emptyText: <Empty description="Không có dữ liệu" />
+                }}
+              />
+            </div>
+          )}
+          {children}
+        </div>
+
+        {/* PAGINATION SECTION */}
+        {paginationProps && (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            padding: '12px 24px 16px 24px', // Giảm bớt padding để khít hơn
+            backgroundColor: '#fff',
+            borderTop: '1px solid #f0f0f0',
+            zIndex: 10,
+          }}>
+            <Pagination
+              {...paginationProps}
+              showSizeChanger
+              showTotal={(total) => <span style={{ fontSize: 'clamp(12px, 1vw, 14px)', fontWeight: 500 }}>Tổng {total} mục</span>}
+              onChange={paginationProps.onChange}
             />
           </div>
         )}
-        {children}
       </div>
-
-      {/* PAGINATION SECTION - STICKY TO BOTTOM */}
-      {paginationProps && (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          padding: '12px 16px',
-          backgroundColor: '#fff',
-          borderRadius: '0 0 8px 8px',
-          borderTop: '1px solid #f0f0f0',
-          position: 'sticky',
-          bottom: 0,
-          zIndex: 10,
-          boxShadow: '0 -2px 8px rgba(0,0,0,0.05)'
-        }}>
-          <Pagination
-            {...paginationProps}
-            onChange={paginationProps.onChange}
-          />
-        </div>
-      )}
     </div>
   )
 }

@@ -12,7 +12,33 @@
  * @returns {string|null}
  */
 export function getMenuStudyRoute({ moduleId, itemLabel, levelId }) {
-  // Module TỪ VỰNG - đi tới trang flashcard
+  // Mapping theo label chính xác từ UI mới
+  if (itemLabel === 'Học từ vựng theo chủ đề') {
+    return levelId ? `/flashcard?level=${levelId}` : '/flashcard'
+  }
+  if (itemLabel === 'Minigame từ vựng') {
+    return levelId ? `/minigame?level=${levelId}` : '/minigame'
+  }
+  if (itemLabel === 'Ôn tập từ vựng đã học') {
+    return '/flashcard/learned'
+  }
+  if (itemLabel === 'Luyện phát âm với AI') {
+    return '/pronunciation'
+  }
+  if (itemLabel === 'Học bảng chữ cái cho người mới') {
+    return '/alphabet'
+  }
+  if (itemLabel === 'Học lộ trình (Roadmap)') {
+    return '/roadmap/learning'
+  }
+  if (itemLabel === 'Học TOPIK theo dạng') {
+    return levelId ? `/topik/types?level=${levelId}` : '/topik/types'
+  }
+  if (itemLabel === 'Giải đề TOPIK') {
+    return levelId ? `/topik/exams?level=${levelId}` : '/topik/exams'
+  }
+
+  // Fallback cho logic cũ nếu cần
   if (moduleId === 'vocabulary') {
     switch (itemLabel) {
       case 'Minigame':
@@ -25,64 +51,12 @@ export function getMenuStudyRoute({ moduleId, itemLabel, levelId }) {
     }
   }
 
-  // Module BẢNG CHỮ CÁI
-  if (moduleId === 'alphabet') {
-    return '/alphabet'
-  }
-
-  // Module NGHE
-  if (moduleId === 'listening') {
-    switch (itemLabel) {
-      case 'Radio':
-        return '/listening/radio'
-      case 'Podcast':
-        return '/listening/podcast'
-      case 'Nhạc':
-        return '/listening/music'
-      case 'Nghe chép chính tả':
-        return '/listening/dictation'
-      default:
-        return '/listening'
-    }
-  }
-
-  // Module NÓI
-  if (moduleId === 'speaking') {
-    switch (itemLabel) {
-      case 'Nghe chép chính tả':
-        return '/pronunciation/dictation'
-      case 'Luyện nói với A.I':
-        return '/pronunciation'
-      default:
-        return '/pronunciation'
-    }
-  }
-
-  // Module ĐỌC
-  if (moduleId === 'reading') {
-    switch (itemLabel) {
-      case 'Blog':
-        return '/reading/blog'
-      case 'Truyện':
-        return '/reading/story'
-      case 'Báo':
-        return '/reading/news'
-      case 'Đọc văn bản':
-        return '/reading/text'
-      default:
-        return '/reading'
-    }
-  }
-
-  // Module VIẾT
-  if (moduleId === 'writing') {
-    return '/writing'
-  }
-
-  // Module NGỮ PHÁP
-  if (moduleId === 'grammar') {
-    return '/grammar'
-  }
+  if (moduleId === 'alphabet') return '/alphabet'
+  if (moduleId === 'speaking') return '/pronunciation'
+  if (moduleId === 'listening') return '/listening'
+  if (moduleId === 'reading') return '/reading'
+  if (moduleId === 'writing') return '/writing'
+  if (moduleId === 'grammar') return '/grammar'
 
   return null
 }

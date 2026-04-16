@@ -37,19 +37,13 @@ export function PaymentFailedScreen() {
         style={styles.backgroundImage}
       />
 
-      {/* Navbar ở đầu trang */}
-      <Navbar />
-
       {/* Nội dung chính */}
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+      <View style={styles.container}>
         <View style={styles.wrapper}>
           <PaymentFailedLayout />
         </View>
-      </ScrollView>
+      </View>
 
-      {/* Footer chỉ hiển thị trên web */}
-      {Platform.OS === 'web' && <Footer />}
-      
       {/* NavbarMobile chỉ hiển thị trên native */}
       {Platform.OS !== 'web' && <NavbarMobile />}
     </View>
@@ -77,11 +71,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
     zIndex: 1,
-  },
-  scrollContent: {
     alignItems: 'center',
     paddingVertical: 40,
-    paddingBottom: Platform.OS === 'web' ? 60 : 100, // Extra padding on native for navbar
   },
   wrapper: {
     width: '100%',

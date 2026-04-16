@@ -1,5 +1,4 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
 
 /**
  * AuthLayout: layout chia đôi màn hình cho hero (bên trái) và panel (bên phải)
@@ -11,40 +10,46 @@ import { View, StyleSheet } from 'react-native'
  */
 export function AuthLayout({ hero, panel }) {
   return (
-    <View style={styles.root}>
-      <View style={styles.split}>
-        <View style={styles.hero}>{hero}</View>
-        <View style={styles.panel}>{panel}</View>
-      </View>
-    </View>
+    <div style={rootStyle}>
+      <div style={splitStyle}>
+        <div style={heroStyle}>{hero}</div>
+        <div style={panelStyle}>{panel}</div>
+      </div>
+    </div>
   )
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    width: '100%',
-    height: '100vh',
-    minHeight: '100vh',
-    backgroundColor: 'white',
-    alignItems: 'stretch',
-    justifyContent: 'center',
-  },
-  split: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    flexDirection: 'row',
-    alignItems: 'stretch',
-  },
-  hero: {
-    flex: 1,
-    height: '100%',
-  },
-  panel: {
-    flex: 1,
-    height: '100%',
-  },
-})
+const rootStyle = {
+  display: 'flex',
+  width: '100%',
+  height: '100vh',
+  // minHeight: '50vh',
+  backgroundColor: 'white',
+  overflow: 'hidden',
+}
+
+const splitStyle = {
+  display: 'flex',
+  flexDirection: 'row',
+  width: '100%',
+  height: '100%',
+  flex: 1,
+}
+
+const heroStyle = {
+  flex: 1,
+  height: '100%',
+  position: 'relative',
+  overflow: 'hidden',
+}
+
+const panelStyle = {
+  flex: 1,
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  overflowY: 'auto',
+}
 
 

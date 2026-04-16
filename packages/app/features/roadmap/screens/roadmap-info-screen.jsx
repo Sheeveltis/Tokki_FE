@@ -1,8 +1,9 @@
-'use client'
-
-import { useState } from 'react'
-import { useRouter } from 'solito/navigation'
+import { useState, useEffect } from 'react'
+import { Platform } from 'react-native'
+import { useRouter, useSearchParams } from 'solito/navigation'
 import { RoadmapInfoLayout } from '../components/roadmap-info/roadmap-info-layout.web'
+import { apiClient } from '../../../provider/api/client'
+import { ENDPOINTS } from '../../../provider/api/endpoints'
 
 // Định nghĩa mapping giữa level và key bài thi
 const ENTRANCE_EXAM_KEYS = {
@@ -16,7 +17,43 @@ const ENTRANCE_EXAM_KEYS = {
 
 export function RoadmapInfoScreen() {
   const router = useRouter()
-  const [isChecking, setIsChecking] = useState(false)
+  const searchParams = useSearchParams()
+  const needsTest = searchParams?.get('needsTest')
+  const [isChecking, setIsChecking] = useState(true)
+
+  useEffect(() => {
+    const checkCurrentRoadmap = async () => {
+      setIsChecking(true)
+      try {
+        const response = await apiClient.get(ENDPOINTS.ROADMAP.CURRENT)
+        const currentRoadmap = response?.data?.data
+        if (currentRoadmap?.userRoadmapId) {
+          router.replace('/roadmap/learning')
+          return
+        }
+      } catch (err) {
+        console.error('Failed to check current roadmap:', err)
+      } finally {
+        setIsChecking(false)
+      }
+    }
+
+    checkCurrentRoadmap()
+  }, [])
+
+  useEffect(() => {
+    if (Platform.OS === 'web' && needsTest === '1') {
+      // Hiển thị thông báo yêu cầu test trên web
+      import('antd').then(({ notification }) => {
+        notification.info({
+          message: 'Thông báo',
+          description: 'Bạn cần phải test để tụi mình tạo lộ trình phù hợp cho bạn',
+          placement: 'top',
+          duration: 5,
+        })
+      })
+    }
+  }, [needsTest])
 
   const handleStart = (level, selfDeclaredLevel) => {
     // Lấy exam key dựa trên level người dùng chọn

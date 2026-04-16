@@ -3,7 +3,6 @@
 import React, { useState } from 'react'
 import { Modal, Form, Input, Upload, message } from 'antd'
 import { createVocabulary, uploadVocabularyImageToCloudinary } from '../../../api'
-import { showAdminSuccess, showAdminError } from '../../../../../../components/HelperAdmin.jsx'
 
 export function QuickAddVocabularyModal({ open, onCancel, onSuccess, topicId, onAddToTopic }) {
   const [form] = Form.useForm()
@@ -48,11 +47,11 @@ export function QuickAddVocabularyModal({ open, onCancel, onSuccess, topicId, on
         try {
           imgURL = await uploadVocabularyImageToCloudinary(values.imageFile)
           if (!imgURL) {
-            showAdminError('Không thể upload ảnh lên Cloudinary')
+            message.error('Không thể upload ảnh lên Cloudinary')
             return
           }
         } catch (err) {
-          showAdminError(err?.message || 'Không thể upload ảnh lên Cloudinary')
+          message.error(err?.message || 'Không thể upload ảnh lên Cloudinary')
           return
         }
       }
@@ -96,19 +95,19 @@ export function QuickAddVocabularyModal({ open, onCancel, onSuccess, topicId, on
         try {
           const result = await onAddToTopic([createdVocab.vocabularyId])
           if (result?.success) {
-            showAdminSuccess(`Đã tạo và thêm từ vựng "${values.text}" vào chủ đề thành công`)
+            message.success(`Đã tạo và thêm từ vựng "${values.text}" vào chủ đề thành công`)
           } else {
-            showAdminSuccess(`Đã tạo từ vựng "${values.text}" thành công, nhưng không thể thêm vào chủ đề`)
+            message.success(`Đã tạo từ vựng "${values.text}" thành công, nhưng không thể thêm vào chủ đề`)
             if (result?.error) {
               console.error('Error adding vocab to topic:', result.error)
             }
           }
         } catch (err) {
-          showAdminSuccess(`Đã tạo từ vựng "${values.text}" thành công, nhưng không thể thêm vào chủ đề`)
+          message.success(`Đã tạo từ vựng "${values.text}" thành công, nhưng không thể thêm vào chủ đề`)
           console.error('Error adding vocab to topic:', err)
         }
       } else {
-        showAdminSuccess(`Đã tạo từ vựng "${values.text}" thành công`)
+        message.success(`Đã tạo từ vựng "${values.text}" thành công`)
       }
 
       // Reset form và đóng modal
@@ -126,7 +125,7 @@ export function QuickAddVocabularyModal({ open, onCancel, onSuccess, topicId, on
         // Validation error
         return
       }
-      showAdminError(error?.message || 'Tạo từ vựng thất bại')
+      message.error(error?.message || 'Tạo từ vựng thất bại')
     } finally {
       setLoading(false)
     }
@@ -150,6 +149,8 @@ export function QuickAddVocabularyModal({ open, onCancel, onSuccess, topicId, on
       confirmLoading={loading}
       okText="Tạo và thêm vào chủ đề"
       cancelText="Hủy"
+      okButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
+      cancelButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
       width={600}
       styles={{ body: { maxHeight: '70vh', overflowY: 'auto' } }}
       destroyOnClose

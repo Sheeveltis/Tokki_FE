@@ -3,7 +3,6 @@ import { Route, useParams } from 'react-router-dom'
 import { useRouteNavigation } from './utils/navigation-helpers'
 import { createLazyRouteContainer } from './utils/route-container'
 
-import { StudyScreen } from '@tokki/app/features/study/screens/study-screen'
 import { MenuStudy } from '@tokki/app/features/study/screens/menu-study'
 import AlphabetSelectModeScreen from '@tokki/app/features/alphabet/screens/client/alphabet-select-mode-screen'
 import AlphabetStudyScreen from '@tokki/app/features/alphabet/screens/client/alphabet-study-screen'
@@ -34,43 +33,96 @@ import { RoadmapPracticeTestScreen } from '@tokki/app/features/roadmap/screens/r
 import { RoadmapGenerateScreen } from '@tokki/app/features/roadmap/screens/roadmap-generate-screen'
 const AlphabetDrawingScreen = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
 
+import { getCurrentUserId, apiClient } from '@tokki/app/provider/api/client'
+import { getProgress } from '@tokki/app/features/user/api/profile'
+import { ENDPOINTS } from '@tokki/app/provider/api/endpoints'
+
 /**
  * Study Routes - Container Components
  */
 function StudyRoute() {
   const { navigate } = useRouteNavigation()
-  const [ready, setReady] = useState(false)
+  const [authorized, setAuthorized] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    navigate('/menu-study?level=1', { replace: true })
+    const checkLevel = async () => {
+      try {
+        const userId = getCurrentUserId()
+        if (!userId) {
+          navigate('/login?redirect=/study')
+          return
+        }
+
+        const progress = await getProgress(userId)
+        if (progress && progress.level && progress.level > 0) {
+          // Đã có level -> Cho phép render MenuStudy tại đây (/study)
+          setAuthorized(true)
+        } else {
+          // Chưa có level -> Chuyển sang lộ trình và yêu cầu test
+          navigate('/roadmap/info?needsTest=1', { replace: true })
+        }
+      } catch (error) {
+        console.error('[StudyRoute] Error checking level:', error)
+        navigate('/roadmap/info?needsTest=1', { replace: true })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkLevel()
   }, [navigate])
 
-  if (!ready) return null
+  if (loading) return null // Hoặc render loading state
 
-  return (
-    <StudyScreen
-      title={STUDY_PAGE_TITLES.STUDY}
-      onSelectLevel={(levelId) => navigate(`/menu-study?level=${levelId}`)}
-      onQuickTestPress={() => navigate('/test')}
-      lessonsLearned={30}
-      streakDays={30}
-    />
-  )
+  if (authorized) {
+    return (
+      <MenuStudy
+        onBackPress={() => navigate('/')}
+        onQuickTestPress={() => navigate('/test')}
+        lessonsLearned={30}
+        streakDays={30}
+      />
+    )
+  }
+
+  return null
 }
 
-function MenuStudyRoute() {
-  const { navigate, getIntQueryParam } = useRouteNavigation()
-  const levelId = getIntQueryParam('level', 1)
+function RoadmapRoute() {
+  const { navigate } = useRouteNavigation()
 
-  return (
-    <MenuStudy
-      levelId={levelId}
-      onBackPress={() => navigate('/')}
-      onQuickTestPress={() => navigate('/test')}
-      lessonsLearned={30}
-      streakDays={30}
-    />
-  )
+  useEffect(() => {
+    const checkRoadmap = async () => {
+      try {
+        const userId = getCurrentUserId()
+        if (!userId) {
+          navigate('/login?redirect=/roadmap')
+          return
+        }
+
+        // Kiểm tra xem đã có lộ trình hiện tại chưa
+        const response = await apiClient.get(ENDPOINTS.ROADMAP.CURRENT)
+        const hasRoadmap = !!response?.data?.data
+
+        if (hasRoadmap) {
+          // Đã có lộ trình -> Vào trang learning
+          navigate('/roadmap/learning', { replace: true })
+        } else {
+          // Chưa có lộ trình -> Vào trang info để tạo
+          navigate('/roadmap/info', { replace: true })
+        }
+      } catch (error) {
+        console.error('[RoadmapRoute] Error checking roadmap:', error)
+        // Fallback: Chuyển sang info
+        navigate('/roadmap/info', { replace: true })
+      }
+    }
+
+    checkRoadmap()
+  }, [])
+
+  return null
 }
 
 // Alphabet Routes
@@ -79,7 +131,7 @@ function AlphabetRoute() {
 
   return (
     <AlphabetSelectModeScreen
-      onBackPress={() => navigate('/menu-study?level=1')}
+      onBackPress={() => navigate('/study')}
       onLettersPress={() => navigate('/alphabet/letters')}
       onSyllablesPress={() => navigate('/alphabet/syllables')}
     />
@@ -173,6 +225,13 @@ function FlashcardRoute() {
   const { navigate, getIntQueryParam } = useRouteNavigation()
   const levelId = getIntQueryParam('level', 1)
 
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
+
   return (
     <FlashcardListScreen
       levelId={levelId}
@@ -190,7 +249,7 @@ function FlashcardRoute() {
         // Ngược lại, điều hướng đến học lần đầu (FlashcardFirstLearnScreen)
         navigate(`/flashcard/learn?topic=${topicId}`)
       }}
-      onBackPress={() => navigate(`/menu-study?level=${levelId}`)}
+      onBackPress={() => navigate('/menu-study')}
       onFavoritesPress={() => navigate('/flashcard/favorites')}
       onLearnedPress={() => navigate('/flashcard/learned')}
       title={STUDY_PAGE_TITLES.FLASHCARD_LIST}
@@ -202,6 +261,13 @@ function FlashcardStudyRoute() {
   const { navigate, getQueryParam } = useRouteNavigation()
   const topicId = getQueryParam('topic')
   const topicTitle = topicId ? TOPIC_TITLES[topicId] || STUDY_PAGE_TITLES.FLASHCARD_STUDY : STUDY_PAGE_TITLES.FLASHCARD_STUDY
+
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
 
   return (
     <FlashcardStudyScreen
@@ -219,6 +285,13 @@ function FlashcardLearnRoute() {
   const topicId = getQueryParam('topic')
   const topicTitle = topicId ? TOPIC_TITLES[topicId] || STUDY_PAGE_TITLES.FLASHCARD_STUDY : STUDY_PAGE_TITLES.FLASHCARD_STUDY
 
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
+
   return (
     <FlashcardFirstLearnScreen
       topicId={topicId}
@@ -233,6 +306,13 @@ function FlashcardTestRoute() {
   const topicId = getQueryParam('topic')
   const noSubmit = getQueryParam('noSubmit')
   const topicTitle = topicId ? TOPIC_TITLES[topicId] || STUDY_PAGE_TITLES.FLASHCARD_STUDY : STUDY_PAGE_TITLES.FLASHCARD_STUDY
+
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
 
   return (
     <TestScreen
@@ -253,6 +333,13 @@ function FlashcardQuizRoute() {
     ? TOPIC_TITLES[topicId] || STUDY_PAGE_TITLES.FLASHCARD_STUDY
     : STUDY_PAGE_TITLES.FLASHCARD_STUDY
 
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
+
   return (
     <TestScreen
       topicId={topicId}
@@ -267,6 +354,13 @@ function FlashcardQuizRoute() {
 
 function FlashcardFavoritesRoute() {
   const { navigate } = useRouteNavigation()
+
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
 
   return (
     <FlashcardStudyScreen
@@ -283,6 +377,13 @@ function FlashcardFavoritesRoute() {
 function FlashcardFavoritesLearnRoute() {
   const { navigate } = useRouteNavigation()
 
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
+
   return (
     <LearnScreen
       topicId={null}
@@ -296,6 +397,13 @@ function FlashcardFavoritesLearnRoute() {
 function FlashcardFavoritesTestRoute() {
   const { navigate, getQueryParam } = useRouteNavigation()
   const noSubmit = getQueryParam('noSubmit')
+
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
 
   return (
     <TestScreen
@@ -313,6 +421,13 @@ function FlashcardFavoritesTestRoute() {
 function FlashcardLearnedRoute() {
   const { navigate } = useRouteNavigation()
 
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      navigate('/login?redirect=/flashcard', { replace: true })
+    }
+  }, [navigate])
+
   return (
     <LearnedVocabularyListScreen
       title="Từ vựng đã học"
@@ -326,7 +441,7 @@ function PronunciationRulesRoute() {
 
   return (
     <PronunciationRulesScreen
-      onBackPress={() => navigate('/menu-study?level=1')}
+      onBackPress={() => navigate('/study')}
       onRulePress={(rule) => navigate(`/pronunciation/examples?ruleId=${rule?.id}`)}
     />
   )
@@ -425,7 +540,6 @@ function AlphabetSyllablesDrawingRoute() {
 export const studyRoutes = [
   // Study & Menu
   { path: '/study', element: <StudyRoute /> },
-  { path: '/menu-study', element: <MenuStudyRoute /> },
 
   // Alphabet
   { path: '/alphabet', element: <AlphabetRoute /> },
@@ -459,6 +573,7 @@ export const studyRoutes = [
   { path: '/pronunciation/example-detail', element: <PronunciationExampleDetailRoute /> },
 
   // Roadmap
+  { path: '/roadmap', element: <RoadmapRoute /> },
   { path: '/roadmap/info', element: <RoadmapInfoScreen /> },
   { path: '/roadmap/test', element: <RoadmapTestRoute /> },
   { path: '/roadmap/test/result', element: <RoadmapTestResultScreen /> },

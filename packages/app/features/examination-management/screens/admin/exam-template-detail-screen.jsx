@@ -13,7 +13,12 @@ import {
   ProfileOutlined,
   FileTextOutlined,
   AlignLeftOutlined,
-  CalendarOutlined
+  CalendarOutlined,
+  SendOutlined,
+  SwapOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ArrowLeftOutlined
 } from '@ant-design/icons'
 import { useQueryClient } from '@tanstack/react-query'
 import { AdminLayout } from '../../../back-office/components/admin/admin-layout.web.jsx'
@@ -402,6 +407,7 @@ export function ExamTemplateDetailScreen() {
             {isStaff && [0, 4].includes(examTemplate.status ?? 0) && (
               <Button
                 type="primary"
+                icon={<SendOutlined />}
                 onClick={handleSubmitForApproval}
                 loading={submittingForApproval}
               >
@@ -412,6 +418,7 @@ export function ExamTemplateDetailScreen() {
             {isAdmin && (
               <Button
                 type="primary"
+                icon={<SwapOutlined />}
                 onClick={() => setStatusChangeModalOpen(true)}
                 loading={statusChangeLoading}
               >
@@ -423,6 +430,8 @@ export function ExamTemplateDetailScreen() {
                   - Staff: chỉ được chỉnh sửa khi trạng thái là Draft (0) hoặc Từ chối (4)
               */}
             <Button
+              type="primary"
+              icon={<EditOutlined />}
               onClick={handleEdit}
               disabled={isStaff && ![0, 4].includes(examTemplate.status ?? 0)}
             >
@@ -430,11 +439,11 @@ export function ExamTemplateDetailScreen() {
             </Button>
             {/* Chỉ cho phép xóa khi không phải trạng thái Đã xuất bản */}
             {examTemplate.status !== 1 && (
-              <Button danger onClick={handleDelete} loading={deleting}>
+              <Button danger icon={<DeleteOutlined />} onClick={handleDelete} loading={deleting}>
                 Xóa
               </Button>
             )}
-            <Button onClick={handleBack}>
+            <Button icon={<ArrowLeftOutlined />} onClick={handleBack}>
               Quay lại
             </Button>
           </Space>
@@ -588,7 +597,7 @@ export function ExamTemplateDetailScreen() {
                   </div>
 
                   {/* Details List */}
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                  <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
                     <div>
                       <Text type="secondary" style={{ fontSize: 17, display: 'block', marginBottom: 4 }}>
                         <FileTextOutlined style={{ marginRight: 8 }} /> Loại đề

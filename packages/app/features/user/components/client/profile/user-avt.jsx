@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react'
 import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { CameraFilled } from '@ant-design/icons'
 
 import UserIcon from '../../../../../../assets/user.png'
 
@@ -48,6 +49,7 @@ export function UserAvatarCard({ user = MOCK_USER, onAvatarPress, style }) {
 
   return (
     <View style={[styles.card, style]}>
+      <Text style={styles.cardTitle}>Ảnh đại diện</Text>
       <Pressable
         onPress={handleAvatarPress}
         onHoverIn={() => setIsHovered(true)}
@@ -57,12 +59,14 @@ export function UserAvatarCard({ user = MOCK_USER, onAvatarPress, style }) {
         <View style={styles.avatarWrap}>
           <Image source={normalizeImageSource(user.avatar)} style={styles.avatar} resizeMode="cover" />
 
-          {isHovered && (
-            <View style={styles.hoverOverlay}>
-              <Text style={styles.editIcon}>✎</Text>
-            </View>
-          )}
-
+          <View style={[styles.hoverOverlay, isHovered && styles.hoverOverlayVisible]}>
+            {Platform.OS === 'web' ? (
+              <CameraFilled style={{ fontSize: 24, color: '#FFFFFF' }} />
+            ) : (
+              <Text style={styles.editIcon}>📷</Text>
+            )}
+            <Text style={styles.editText}>Thay đổi</Text>
+          </View>
 
           {Platform.OS === 'web' &&
             React.createElement('input', {
@@ -74,6 +78,7 @@ export function UserAvatarCard({ user = MOCK_USER, onAvatarPress, style }) {
             })}
         </View>
       </Pressable>
+      <Text style={styles.hintText}>Hỗ trợ JPG, PNG hoặc GIF. Tối đa 5MB.</Text>
     </View>
   )
 }
@@ -82,44 +87,34 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Platform.OS === 'web' ? '#FFFFFF' : 'transparent',
     borderRadius: 24,
-    paddingVertical: Platform.OS === 'web' ? 43 : 20,
-    paddingHorizontal: 16,
+    padding: 24,
     alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: Platform.OS === 'web' ? 220 : '100%',
-    minHeight: Platform.OS === 'web' ? 180 : undefined,
-    height: Platform.OS === 'web' ? '100%' : 'auto',
-    ...(Platform.OS === 'web' ? {
-      shadowColor: '#000',
-      shadowOpacity: 0.05,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 6 },
-      elevation: 3,
-      borderWidth: 1,
-      borderColor: '#E5E3DC',
-    } : {}),
+    gap: 20,
+    height: '100%',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#20130A',
+    fontFamily: 'Epilogue, sans-serif',
+    alignSelf: 'flex-start',
   },
   avatarPressable: {
     cursor: Platform.OS === 'web' ? 'pointer' : 'default',
   },
   avatarWrap: {
-    width: Platform.OS === 'web' ? 128 : 160,
-    height: Platform.OS === 'web' ? 128 : 160,
-    borderRadius: Platform.OS === 'web' ? 64 : 80,
-    backgroundColor: '#D9D9D9',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#F9F9F9',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
     position: 'relative',
     borderWidth: 4,
-    borderColor: '#FFFFFF',
-    ...(Platform.OS === 'web' ? {} : {
-      shadowColor: '#000',
-      shadowOpacity: 0.1,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 5,
-    }),
+    borderColor: '#FFF9F0',
   },
   avatar: {
     width: '100%',
@@ -127,14 +122,30 @@ const styles = StyleSheet.create({
   },
   hoverOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     alignItems: 'center',
     justifyContent: 'center',
+    opacity: 0,
+    gap: 4,
+  },
+  hoverOverlayVisible: {
+    opacity: 1,
   },
   editIcon: {
+    fontSize: 24,
+  },
+  editText: {
     color: '#FFFFFF',
-    fontSize: 26,
+    fontSize: 12,
     fontWeight: '700',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  hintText: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'center',
+    fontFamily: 'Epilogue, sans-serif',
+    lineHeight: 18,
   },
   hiddenInput: {
     display: 'none',

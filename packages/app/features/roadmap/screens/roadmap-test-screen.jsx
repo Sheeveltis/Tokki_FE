@@ -15,12 +15,16 @@ export function RoadmapTestScreen({ level = 1 }) {
       ? String(searchParams?.get?.('isEntrance') || '') === '1'
       : false
 
+  const taskIdFromQuery =
+    Platform.OS === 'web' ? searchParams?.get?.('taskId') || null : null
+
   return (
     <RoadmapTestLayout
       level={levelFromQuery || 1}
       examKey={examKeyFromQuery}
       examId={examIdFromQuery}
       isEntrance={isEntranceFromQuery}
+      taskId={taskIdFromQuery}
     />
   )
 }

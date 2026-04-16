@@ -6,6 +6,7 @@ import { Card, Space, Typography, Descriptions, Spin, Alert, message, Button } f
 import { AdminLayout } from 'app/features/back-office/components/admin/admin-layout.web.jsx'
 import { StaffLayout } from 'app/features/back-office/components/staff/staff-layout.web.jsx'
 import { ModeratorLayout } from 'app/features/moderator/components/moderator-layout.web'
+import { ArrowLeftOutlined } from '@ant-design/icons'
 import {
   fetchUsers,
   fetchLessons,
@@ -131,8 +132,9 @@ export function LessonDetailScreen() {
         <div style={{ padding: 24 }}>
           <Alert type="error" message="Lỗi" description={error} />
           <Button
+            type="primary"
+            icon={<ArrowLeftOutlined />}
             onClick={() => router.back()}
-            style={{ marginTop: 10, height: 'auto', padding: '8px 24px' }}
           >
             Quay lại
           </Button>
@@ -145,8 +147,9 @@ export function LessonDetailScreen() {
         <div style={{ padding: 24 }}>
           <Alert type="warning" message="Không tìm thấy bài học" />
           <Button
+            type="primary"
+            icon={<ArrowLeftOutlined />}
             onClick={() => router.back()}
-            style={{ marginTop: 12, height: 'auto', padding: '8px 24px' }}
           >
             Quay lại danh sách
           </Button>
@@ -156,7 +159,7 @@ export function LessonDetailScreen() {
 
     return (
       <div style={{ padding: 24 }}>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Space orientation="vertical" size="large" style={{ width: '100%' }}>
           <Space style={{ justifyContent: 'space-between', width: '100%' }}>
             <div>
               <Title level={3} style={{ marginBottom: 4 }}>
@@ -166,8 +169,9 @@ export function LessonDetailScreen() {
             </div>
             <Space>
               <Button
+                type="primary"
+                icon={<ArrowLeftOutlined />}
                 onClick={() => router.back()}
-                style={{ height: 'auto', padding: '8px 24px', backgroundColor: '#BCD0CA', borderColor: '#BCD0CA', color: '#373039' }}
               >
                 Quay lại
               </Button>

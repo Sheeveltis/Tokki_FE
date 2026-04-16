@@ -1,12 +1,13 @@
 import React, { useEffect, useRef } from 'react'
-import { View, Text, StyleSheet, Pressable, Platform } from 'react-native'
+import { View, Text, StyleSheet, Pressable, Platform, TouchableOpacity } from 'react-native'
 import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
 import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
 import StarIcon from 'assets/icon/icon-mainflow/star.svg'
-import { FlashcardActionButton, FlashcardVocabularyList } from '@tokki/app/features/study/components/shared'
+import SearchIcon from 'assets/icon/navigate-app/search.svg'
+import BookIcon from 'assets/icon/navigate-app/book.svg'
+import PlayIcon from 'assets/icon/icon-mainflow/sound.svg'
 import { FlipCard } from 'components/FlipCard'
-import BunnyStudy from 'assets/bunny/14.png'
-import BunnyTest from 'assets/bunny/15.png'
+import { FlashcardVocabularyList } from '@tokki/app/features/study/components/shared'
 import { normalizeImageSource } from '@tokki/app/features/study/api'
 import { studyStyles } from '@tokki/app/features/study/styles'
 import { LoadingWithContainer } from 'components/Loading'
@@ -58,7 +59,7 @@ export function FlashcardStudyMain({
     // Tạo audio element mới và phát
     const audio = new Audio(current.audioUrl)
     audioRef.current = audio
-    
+
     audio.play().catch((error) => {
       console.error('Error playing audio:', error)
     })
@@ -133,10 +134,13 @@ export function FlashcardStudyMain({
   if (error && flashcards.length === 0) {
     return (
       <View style={styles.emptyContainer}>
+        <View style={styles.emptyIconCircle}>
+          <StudyIcon source={SearchIcon} width={40} height={40} tintColor="#CCC" />
+        </View>
         <Text style={styles.emptyText}>{error}</Text>
-        <Pressable style={styles.resetButton} onPress={onRetry}>
+        <TouchableOpacity style={styles.resetButton} onPress={onRetry}>
           <Text style={styles.resetButtonText}>Thử lại</Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
     )
   }
@@ -145,6 +149,9 @@ export function FlashcardStudyMain({
   if (!flashcards || flashcards.length === 0) {
     return (
       <View style={styles.emptyContainer}>
+        <View style={styles.emptyIconCircle}>
+          <StudyIcon source={SearchIcon} width={40} height={40} tintColor="#CCC" />
+        </View>
         <Text style={styles.emptyText}>Chưa có từ vựng nào</Text>
       </View>
     )
@@ -154,13 +161,16 @@ export function FlashcardStudyMain({
   if (unlearnedCount === 0 && total > 0) {
     return (
       <View style={styles.emptyContainer}>
+        <View style={styles.emptyIconCircle}>
+          <StudyIcon source={StarIcon} width={40} height={40} tintColor="#F1BE4B" />
+        </View>
         <Text style={styles.emptyText}>Chúc mừng! Bạn đã hoàn thành tất cả từ vựng!</Text>
-        <Pressable 
+        <TouchableOpacity
           style={styles.resetButton}
           onPress={onResetAllLearned}
         >
           <Text style={styles.resetButtonText}>Học lại từ đầu</Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
     )
   }
@@ -170,15 +180,21 @@ export function FlashcardStudyMain({
       {/* Flashcard */}
       <View style={styles.cardContainer}>
         {/* Navigation Arrows */}
-        <Pressable 
-          style={[styles.absNavBtn, styles.absPrevBtn]} 
+        <Pressable
+          style={({ hovered, pressed }) => [
+            styles.navBtn,
+            styles.prevBtn,
+            hovered && styles.navBtnHover,
+            pressed && styles.navBtnActive
+          ]}
           onPress={onPrev}
         >
-          <StudyIcon 
-            source={ArrowIcon} 
-            style={{ transform: [{ scaleX: -1 }] }} 
-            width={28}
-            height={28}
+          <StudyIcon
+            source={ArrowIcon}
+            style={{ transform: [{ rotate: '180deg' }] }}
+            width={24}
+            height={24}
+            tintColor="#1A1A1A"
           />
         </Pressable>
 
@@ -186,8 +202,8 @@ export function FlashcardStudyMain({
           word={current.word}
           meaning={current.meaning}
           image={current.imageUrl || undefined}
-          width="100%"
-          height={500}
+          width={700}
+          height={400}
           frontColor="#79964E"
           backColor="#79964E"
           borderWidth={12}
@@ -195,20 +211,60 @@ export function FlashcardStudyMain({
           flipOnHover={false}
           isFlipped={isFlipped}
           onFlip={onFlip}
-          starIcon={normalizeImageSource(StarIcon)}
           isFavorite={isFavorite}
           onToggleFavorite={onToggleFavorite}
           onPlaySound={current?.audioUrl ? handlePlaySound : undefined}
+          footer={(
+            <View style={styles.controlsRowInner}>
+              <TouchableOpacity
+                style={styles.controlBtn}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  if (current?.audioUrl) handlePlaySound();
+                }}
+                disabled={!current?.audioUrl}
+              >
+                <StudyIcon
+                  source={PlayIcon}
+                  width={24}
+                  height={24}
+                  tintColor={current?.audioUrl ? "#F1BE4B" : "#CCC"}
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.controlBtn, isFavorite && styles.controlBtnActive]}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  onToggleFavorite();
+                }}
+              >
+                <StudyIcon
+                  source={StarIcon}
+                  width={24}
+                  height={24}
+                  tintColor={isFavorite ? "#FFF" : "#F1BE4B"}
+                />
+              </TouchableOpacity>
+
+            </View>
+          )}
         />
 
-        <Pressable 
-          style={[styles.absNavBtn, styles.absNextBtn]} 
+        <Pressable
+          style={({ hovered, pressed }) => [
+            styles.navBtn,
+            styles.nextBtn,
+            hovered && styles.navBtnHover,
+            pressed && styles.navBtnActive
+          ]}
           onPress={onNext}
         >
-          <StudyIcon 
-            source={ArrowIcon} 
-            width={28}
-            height={28}
+          <StudyIcon
+            source={ArrowIcon}
+            width={24}
+            height={24}
+            tintColor="#1A1A1A"
           />
         </Pressable>
       </View>
@@ -232,142 +288,198 @@ export function FlashcardStudyMain({
 }
 
 const styles = StyleSheet.create({
-  header: {
+  toolbar: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    marginBottom: 32,
+    gap: 24,
+    flexWrap: 'wrap',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 8px 30px rgba(0,0,0,0.02)',
+    }),
+  },
+  toolbarLeft: {
+    flex: 1,
+    minWidth: 280,
     gap: 12,
   },
-  headerButtons: {
+  progressHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
   },
-  favoritesButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: '#F1BE4B',
-    ...(Platform.OS === 'web' && {
-      cursor: 'pointer',
-    }),
-  },
-  favoritesIcon: {
-    width: 20,
-    height: 20,
-    tintColor: '#1F1F1F',
-  },
-  favoritesButtonText: {
+  progressTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1F1F1F',
+    color: '#999',
+    fontFamily: 'Epilogue, sans-serif',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  progressCount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
     fontFamily: 'Epilogue, sans-serif',
   },
-  reviewButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+  currentCount: {
+    color: '#F1BE4B',
+    fontWeight: '800',
+    fontSize: 16,
+  },
+  progressBarWrapper: {
+    width: '100%',
+  },
+  progressBarBg: {
+    height: 10,
+    backgroundColor: '#F7F7F7',
+    borderRadius: 5,
+    width: '100%',
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
     backgroundColor: '#F1BE4B',
+    borderRadius: 5,
     ...(Platform.OS === 'web' && {
-      cursor: 'pointer',
+      transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
     }),
   },
-  reviewIcon: {
-    width: 20,
-    height: 20,
+  toolbarRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  reviewButtonText: {
-    fontSize: 14,
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 20,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+    }),
+  },
+  actionBtnActive: {
+    backgroundColor: '#F1BE4B',
+    borderColor: '#F1BE4B',
+  },
+  actionBtnText: {
+    fontSize: 15,
     fontWeight: '700',
-    color: '#1F1F1F',
+    color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
   },
-  title: {
-    ...studyStyles.pageTitle,
-    flex: 1,
+  actionBtnTextActive: {
+    color: '#FFFFFF',
   },
   cardContainer: {
-    width: '100%',
-    height: 524, // 500 + 12*2 (border)
+    width: 700,
+    height: 400,
     position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pagination: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    marginTop: 16,
-    marginBottom: 8,
+    alignSelf: 'center',
+    marginBottom: 40,
   },
   navBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
-    backgroundColor: '#F1BE4B',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  absNavBtn: {
     position: 'absolute',
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: '#F1BE4B',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
     top: '50%',
-    transform: [{ translateY: -26 }],
+    marginTop: -32,
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-      transition: 'all 0.2s ease',
+      boxShadow: '0 12px 32px rgba(0,0,0,0.08)',
+      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
     }),
   },
-  absPrevBtn: {
-    left: -26,
+  navBtnHover: {
+    transform: [{ scale: 1.05 }],
+    backgroundColor: '#FAFAFA',
+    borderColor: '#F1BE4B40',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 16px 40px rgba(0,0,0,0.12)',
+    }),
   },
-  absNextBtn: {
-    right: -26,
+  navBtnActive: {
+    transform: [{ scale: 0.95 }],
+    backgroundColor: '#F0F0F0',
   },
-  navIcon: {
-    width: 20,
-    height: 20,
-    tintColor: '#1F1F1F',
+  prevBtn: {
+    left: -32,
+  },
+  nextBtn: {
+    right: -32,
+  },
+  pagination: {
+    paddingVertical: 10,
+    alignItems: 'center',
   },
   pageText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1F1F1F',
+    color: '#999',
     fontFamily: 'Epilogue, sans-serif',
   },
-  learnedButtonContainer: {
-    width: '100%',
+  controlsRowInner: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
+    justifyContent: 'center',
+    gap: 16,
   },
-  learnedButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    backgroundColor: '#79964E',
+  controlBtn: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    alignItems: 'center',
+    justifyContent: 'center',
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
+      boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
+      transition: 'all 0.2s ease',
     }),
   },
-  learnedButtonText: {
+  controlBtnActive: {
+    backgroundColor: '#F1BE4B',
+    borderColor: '#F1BE4B',
+  },
+  flipControlBtn: {
+    paddingHorizontal: 32,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#0F172A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+    }),
+  },
+  flipControlText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#FFFFFF',
     fontFamily: 'Epilogue, sans-serif',
   },
@@ -376,30 +488,47 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 48,
+    paddingVertical: 100,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 32,
+    borderStyle: 'dashed',
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+  },
+  emptyIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F7F7F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
   },
   emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#666',
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 32,
+    maxWidth: 400,
+    lineHeight: 30,
   },
   resetButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    backgroundColor: '#79964E',
-    marginTop: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 36,
+    borderRadius: 16,
+    backgroundColor: '#F1BE4B',
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
+      boxShadow: '0 10px 25px rgba(241,190,75,0.25)',
+      transition: 'all 0.2s ease',
     }),
   },
   resetButtonText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontWeight: '900',
+    color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
   },
 })

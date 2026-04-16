@@ -1,7 +1,16 @@
 import React, { useState, useMemo } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
-import { CheckOutlined } from '@ant-design/icons'
+// Import CheckOutlined conditionally for web
+let CheckOutlined = null
+if (Platform.OS === 'web') {
+  try {
+    const iconModule = require('@ant-design/icons')
+    CheckOutlined = iconModule.CheckOutlined
+  } catch (e) {
+    // console.warn('Ant Design icons not available')
+  }
+}
 // Import useNavigation cho native
 let useNavigation = null
 if (Platform.OS !== 'web') {
@@ -25,7 +34,7 @@ if (Platform.OS !== 'web') {
 }
 import { TextInput } from '../../../../../components/textInput'
 import { Button } from '../../../../../components/button'
-import { login, loginWithGoogle } from '../../api'
+import { loginUser, loginWithGoogle, checkDailyTitles } from '../../api'
 import { setAuthToken, clearAuthToken } from '../../../../provider/api/client'
 import { heartbeatService } from '../shared/heartbeat-service'
 import { showApiNotification } from '../../utils/notification'
@@ -101,7 +110,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
       try {
         const savedEmail = await getStorageItem('rememberedEmail')
         const savedPassword = await getStorageItem('rememberedPassword')
-        
+
         if (savedEmail) {
           setEmail(savedEmail)
           setRememberMe(true)
@@ -115,7 +124,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
         console.error('Error loading remembered credentials:', error)
       }
     }
-    
+
     loadRememberedCredentials()
 
     return () => {
@@ -164,7 +173,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
 
     try {
       // Gọi API login (toàn bộ xử lý lỗi network / format response nằm trong tầng API)
-      const response = await login({ email, password, rememberMe })
+      const response = await loginUser({ email, password, rememberMe })
 
       // Lưu response để hiển thị HelperAdmin
       setApiResponse(response)
@@ -194,6 +203,9 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
         // setAuthToken đã tự động mã hóa và lưu vào storage, không cần gọi setToken nữa
         await setAuthToken(token)
 
+        // Kiểm tra danh hiệu hàng ngày sau khi đăng nhập thành công
+        checkDailyTitles()
+
         // Lưu hoặc xóa thông tin ghi nhớ đăng nhập
         if (rememberMe) {
           await setStorageItem('rememberedEmail', email)
@@ -222,14 +234,21 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
         // Web: chuyển đến homepage (dùng solito router)
         setTimeout(() => {
           if (Platform.OS === 'web') {
-            router.push('/menu-study?level=1')
+            // Kiểm tra redirect query param
+            const searchParams = new URLSearchParams(window.location.search);
+            const redirectPath = searchParams.get('redirect');
+            if (redirectPath) {
+              router.push(redirectPath);
+            } else {
+              router.push('/study');
+            }
           } else {
             // Trên native, dùng React Navigation
             if (navigation) {
-              navigation.navigate('menu-study')
+              navigation.navigate('flashcard-list')
             } else {
               // Fallback nếu navigation không có
-              router.push('/menu-study')
+              router.push('/study')
             }
           }
         }, 500) // Delay nhỏ để user thấy thông báo
@@ -347,10 +366,19 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
               }
 
               await setAuthToken(token)
+
+              // Kiểm tra danh hiệu hàng ngày sau khi đăng nhập thành công
+              checkDailyTitles()
               heartbeatService.start()
 
               setTimeout(() => {
-                router.push('/menu-study?level=1')
+                const searchParams = new URLSearchParams(window.location.search);
+                const redirectPath = searchParams.get('redirect');
+                if (redirectPath) {
+                  router.push(redirectPath);
+                } else {
+                  router.push('/study');
+                }
               }, 500)
             } else {
               await clearAuthToken()
@@ -411,7 +439,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
     // Tính padding bottom dựa trên safe area, tối thiểu 16px trên mobile
     const minPaddingBottom = Platform.OS !== 'web' ? 16 : 0
     const paddingBottom = Math.max(insets.bottom, minPaddingBottom)
-    
+
     return [
       styles.container,
       { paddingBottom }
@@ -422,7 +450,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
     <View style={containerStyle}>
       {/* Ẩn button Trang chủ trên native */}
       {Platform.OS === 'web' && (
-      <NavigationPill style={styles.backHome} label="Trang chủ" to="/homepage" />
+        <NavigationPill style={styles.backHome} label="Trang chủ" to="/homepage" />
       )}
       {/* HelperAdmin để hiển thị thông báo từ API (chỉ hiển thị khi thành công) - Chỉ trên web */}
       {Platform.OS === 'web' && notifyResponse && (
@@ -434,16 +462,16 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
       {/* Logo và title - layout khác nhau cho web và native */}
       {Platform.OS === 'web' ? (
         <>
-      <View style={styles.logoContainer}>
-        {logoSource && <Image source={logoSource} style={styles.logoImage} />}
-      </View>
-      <View style={styles.content}>
-        <View style={styles.headerBlock}>
-          <Text style={styles.title}>Đăng nhập</Text>
-          <Text style={styles.subtitle}>
-          Hãy nhập thông tin để đăng nhập vào tài khoản của bạn
-          </Text>
-        </View>
+          <View style={styles.logoContainer}>
+            {logoSource && <Image source={logoSource} style={styles.logoImage} />}
+          </View>
+          <View style={styles.content}>
+            <View style={styles.headerBlock}>
+              <Text style={styles.title}>Đăng nhập</Text>
+              <Text style={styles.subtitle}>
+                Hãy nhập thông tin để đăng nhập vào tài khoản của bạn
+              </Text>
+            </View>
           </View>
         </>
       ) : (
@@ -460,7 +488,7 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
           </View>
         </View>
       )}
-      
+
       <View style={styles.content}>
 
         <View style={styles.formBlock}>
@@ -480,15 +508,21 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
             secureTextEntry
           />
         </View>
-        
+
         <View style={styles.rememberForgotRow}>
-          <TouchableOpacity 
-            style={styles.rememberRow} 
+          <TouchableOpacity
+            style={styles.rememberRow}
             onPress={() => setRememberMe(!rememberMe)}
             activeOpacity={0.8}
           >
             <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
-              {rememberMe && <CheckOutlined style={styles.checkIcon} />}
+              {rememberMe && (
+                Platform.OS === 'web' && CheckOutlined ? (
+                  <CheckOutlined style={styles.checkIcon} />
+                ) : (
+                  <View style={styles.nativeCheckmark} />
+                )
+              )}
             </View>
             <Text style={styles.rememberText}>Ghi nhớ đăng nhập</Text>
           </TouchableOpacity>
@@ -687,6 +721,12 @@ const styles = StyleSheet.create({
   checkIcon: {
     fontSize: 12,
     color: '#FFF',
+  },
+  nativeCheckmark: {
+    width: 8,
+    height: 8,
+    borderRadius: 2,
+    backgroundColor: '#FFF',
   },
   rememberText: {
     fontSize: 13,

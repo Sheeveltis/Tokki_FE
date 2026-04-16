@@ -20,8 +20,7 @@ const ROLE_OPTIONS = [
   { value: 0, label: 'Người dùng' },
   { value: 1, label: 'Quản trị viên' },
   { value: 2, label: 'Nhân viên' },
-  { value: 3, label: 'Thành viên VIP' },
-  { value: 4, label: 'Kiểm duyệt viên' }
+  { value: 3, label: 'Thành viên VIP' }
 ]
 
 const STATUS_CONFIG = {
@@ -31,6 +30,11 @@ const STATUS_CONFIG = {
 }
 
 const getRoleLabel = (val) => ROLE_OPTIONS.find(opt => opt.value === Number(val))?.label || val
+
+const VIP_STATUS_OPTIONS = [
+  { value: 1, label: 'Thành viên VIP' },
+  { value: 0, label: 'Người dùng thường' }
+]
 
 // ==========================================
 // 2. MAIN COMPONENT
@@ -46,11 +50,10 @@ export default function AccountManage({ basePath = '/admin' }) {
   const [userToDelete, setUserToDelete] = useState(null)
 
   const [filters, setFilters] = useManagementFilters({
-    search: '',
-    searchEmail: '',
-    searchPhone: '',
+    searchText: '',
     status: null,
     role: null,
+    vipStatus: null,
     page: 1,
     size: 20
   })
@@ -59,17 +62,34 @@ export default function AccountManage({ basePath = '/admin' }) {
   const [importing, setImporting] = useState(false)
   const fileInputRef = useRef(null)
 
+  // Local state for search text to avoid lag (debounce)
+  const [localSearchText, setLocalSearchText] = useState(filters.searchText)
+
+  // Sync local search text with filters.searchText (for example when URL changes)
+  useEffect(() => {
+    setLocalSearchText(filters.searchText)
+  }, [filters.searchText])
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearchText !== filters.searchText) {
+        handleFilterChange('searchText', localSearchText)
+      }
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [localSearchText])
+
   const loadData = async (currentFilters) => {
     setLoading(true)
     try {
       const res = await fetchUsers({
         pageNumber: currentFilters.page,
         pageSize: currentFilters.size,
-        searchName: currentFilters.search,
-        searchEmail: currentFilters.searchEmail,
-        searchPhone: currentFilters.searchPhone,
+        searchText: currentFilters.searchText,
         status: currentFilters.status,
-        role: currentFilters.role
+        role: currentFilters.role,
+        vipStatus: currentFilters.vipStatus
       })
       setData({ items: res.items || [], total: res.total || 0 })
     } catch (error) {
@@ -81,7 +101,7 @@ export default function AccountManage({ basePath = '/admin' }) {
 
   useEffect(() => {
     loadData(filters)
-  }, [filters.page, filters.size, filters.status, filters.role, filters.search, filters.searchEmail, filters.searchPhone])
+  }, [filters.page, filters.size, filters.status, filters.role, filters.vipStatus, filters.searchText])
 
   // Hàm xử lý khi LỌC (Search, Status, Role) -> Luôn về trang 1
   const handleFilterChange = (key, value) => {
@@ -161,70 +181,66 @@ export default function AccountManage({ basePath = '/admin' }) {
   // ==========================================
   const columns = [
     {
-      // Thay vì title: 'STT'
-      title: () => (
-        <Tooltip title="Số thứ tự">
-          <span>STT</span>
-        </Tooltip>
-      ),
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>STT</span>,
       key: 'stt',
       align: 'center',
-      width: 60,
-      render: (_, __, index) => (filters.page - 1) * filters.size + index + 1
+      width: '5%',
+      render: (_, __, index) => (
+        <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>
+          {(filters.page - 1) * filters.size + index + 1}
+        </span>
+      )
     },
     {
       title: 'Avatar',
       key: 'avatar',
       align: 'center',
-      width: 80,
+      width: '8%',
       render: (_, record) => (
         <Avatar
+          size={{ xs: 32, sm: 40, md: 44, lg: 48, xl: 52, xxl: 60 }}
           src={record.avatarUrl || undefined}
-          style={{ backgroundColor: record.avatarUrl ? 'transparent' : '#1890ff', border: '1px solid #f0f0f0' }}
+          style={{ 
+            backgroundColor: record.avatarUrl ? 'transparent' : '#1890ff', 
+            border: '1px solid #f0f0f0',
+            fontSize: 'clamp(16px, 1.2vw, 20px)'
+          }}
         >
           {!record.avatarUrl && (record.fullName?.[0]?.toUpperCase() || record.name?.[0]?.toUpperCase() || 'U')}
         </Avatar>
       )
     },
     {
-      title: () => (
-        <Tooltip title="Họ và tên đầy đủ của người dùng">
-          <span>Họ tên</span>
-        </Tooltip>
-      ),
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Họ tên</span>,
       dataIndex: 'fullName',
-      render: (_, r) => r.fullName || r.name || '',
-      width: 300,
+      render: (_, r) => <span style={{ fontSize: 'clamp(13px, 1vw, 15px)', fontWeight: 500 }}>{r.fullName || r.name || ''}</span>,
+      width: '20%',
     },
     {
-      title: () => (
-        <Tooltip title="Địa chỉ email đăng ký">
-          <span>Email</span>
-        </Tooltip>
-      ),
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Email</span>,
       dataIndex: 'email',
-      width: 500,
+      render: (text) => <span style={{ fontSize: 'clamp(13px, 1vw, 15px)', color: '#595959', wordBreak: 'break-all' }}>{text}</span>,
+      width: '25%',
     },
     {
-      title: () => (
-        <Tooltip title="Phân quyền hệ thống">
-          <span>Vai trò</span>
-        </Tooltip>
-      ),
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Vai trò</span>,
       dataIndex: 'role',
       align: 'center',
-      width: 200,
-      render: val => getRoleLabel(val)
+      width: '15%',
+      render: val => <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>{getRoleLabel(val)}</span>
     },
     {
-      title: 'Trạng thái', dataIndex: 'status', align: 'center',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Trạng thái</span>,
+      dataIndex: 'status',
+      align: 'center',
+      width: '12%',
       render: val => {
         const cfg = STATUS_CONFIG[Number(val)] || STATUS_CONFIG[0]
         return (
           <Tooltip title={cfg.label} color={cfg.color} placement="top">
             <div style={{
-              width: 14,
-              height: 14,
+              width: 'clamp(14px, 1.2vw, 18px)',
+              height: 'clamp(14px, 1.2vw, 18px)',
               borderRadius: '50%',
               backgroundColor: cfg.color,
               margin: '0 auto',
@@ -236,9 +252,11 @@ export default function AccountManage({ basePath = '/admin' }) {
       }
     },
     {
-      title: 'Hành động', align: 'center',
+      title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Hành động</span>,
+      align: 'center',
+      width: '15%',
       render: (_, record) => {
-        const iconStyle = { fontSize: 18, cursor: 'pointer', color: '#1890ff' }
+        const iconStyle = { fontSize: 'clamp(18px, 1.4vw, 22px)', cursor: 'pointer', color: '#1890ff' }
         return (
           <Space size="large">
             <Tooltip title="Xem chi tiết">
@@ -246,7 +264,6 @@ export default function AccountManage({ basePath = '/admin' }) {
                 style={iconStyle}
                 onClick={() => {
                   setSelectedUserId(record.id || record.userId)
-                  setInitialEdit(false)
                 }}
               />
             </Tooltip>
@@ -294,33 +311,21 @@ export default function AccountManage({ basePath = '/admin' }) {
 
   const extraFilters = (
     <Space wrap>
-      <Input
-        allowClear
-        prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-        placeholder="Tìm theo email..."
-        style={{ width: 220, height: 32, borderRadius: 16, fontSize: 13 }}
-        value={filters.searchEmail}
-        onChange={e => setFilters(prev => ({ ...prev, searchEmail: e.target.value }))}
-        onPressEnter={() => handleFilterChange('searchEmail', filters.searchEmail)}
-      />
-      <Input
-        allowClear
-        prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-        placeholder="Tìm theo SĐT..."
-        style={{ width: 160, height: 32, borderRadius: 16, fontSize: 13 }}
-        value={filters.searchPhone}
-        onChange={e => setFilters(prev => ({ ...prev, searchPhone: e.target.value }))}
-        onPressEnter={() => handleFilterChange('searchPhone', filters.searchPhone)}
+      <Select
+        allowClear placeholder="Lọc VIP" suffixIcon={<FilterOutlined />}
+        style={{ minWidth: 120, width: 'min(160px, 100%)', height: 'clamp(32px, 36px, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }} value={filters.vipStatus}
+        onChange={val => handleFilterChange('vipStatus', val)}
+        options={VIP_STATUS_OPTIONS}
       />
       <Select
         allowClear placeholder="Lọc trạng thái" suffixIcon={<FilterOutlined />}
-        style={{ width: 140, height: 32, borderRadius: 16, fontSize: 13 }} value={filters.status}
+        style={{ minWidth: 120, width: 'min(160px, 100%)', height: 'clamp(32px, 36px, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }} value={filters.status}
         onChange={val => handleFilterChange('status', val)}
         options={Object.entries(STATUS_CONFIG).map(([val, cfg]) => ({ value: Number(val), label: cfg.label }))}
       />
       <Select
         allowClear placeholder="Lọc vai trò" suffixIcon={<FilterOutlined />}
-        style={{ width: 140, height: 32, borderRadius: 16, fontSize: 13 }} value={filters.role}
+        style={{ minWidth: 120, width: 'min(160px, 100%)', height: 'clamp(32px, 36px, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }} value={filters.role}
         onChange={val => handleFilterChange('role', val)}
         options={ROLE_OPTIONS}
       />
@@ -347,10 +352,10 @@ export default function AccountManage({ basePath = '/admin' }) {
   return (
     <>
       <ManagementLayout
-        searchPlaceholder="Tìm theo tên..."
-        searchValue={filters.search}
-        onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
-        onSearchSubmit={() => handleFilterChange('search', filters.search)}
+        searchPlaceholder="Tìm ID, họ tên, email, SĐT..."
+        searchValue={localSearchText}
+        onSearchChange={setLocalSearchText}
+        onSearchSubmit={() => handleFilterChange('searchText', localSearchText)}
         extraFilters={extraFilters}
         actions={actions}
         tableProps={{
