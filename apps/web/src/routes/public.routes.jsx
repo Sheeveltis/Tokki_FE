@@ -368,7 +368,8 @@ export function PublicLayout() {
   const isFlashcardRoute = location.pathname.startsWith('/flashcard')
   const isProfileRoute = location.pathname.startsWith('/user-profile') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/users')
   const isBlogManagementRoute = location.pathname.startsWith('/blog/management') || location.pathname.startsWith('/blog/create') || location.pathname.startsWith('/blog/edit')
-  const shouldHideFooter = isRoadmapRoute || isStudyRoute || isFlashcardRoute || isProfileRoute || isBlogManagementRoute
+  const isAlphabetRoute = location.pathname.startsWith('/alphabet')
+  const shouldHideFooter = isRoadmapRoute || isStudyRoute || isFlashcardRoute || isProfileRoute || isBlogManagementRoute || isAlphabetRoute
 
   // Hide Navbar for specific distraction-free screens
   const isPracticePage = location.pathname.includes('/roadmap/learning/practice') || location.pathname.includes('/roadmap/practice-test')
