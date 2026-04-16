@@ -189,9 +189,8 @@ const styles = StyleSheet.create({
   },
   soundButton: {
     position: 'absolute',
-    top: '50%',
+    top: 0,
     right: 0,
-    transform: [{ translateY: -20 }],
     padding: 12,
     borderRadius: 25,
     backgroundColor: '#FFF0F0',
