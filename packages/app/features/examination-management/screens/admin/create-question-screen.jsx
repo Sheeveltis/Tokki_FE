@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
 import { useRouter, useSearchParams } from 'solito/navigation'
-import { Card, Form, Space, Typography, Divider, Input, Button } from 'antd'
+import { Card, Form, Space, Typography, Divider, Input, Button, Tabs, Tag } from 'antd'
+import { SaveOutlined, FileTextOutlined, FormOutlined, CheckCircleOutlined, PlusOutlined } from '@ant-design/icons'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
 import { createQuestion, activateQuestionBanks, submitQuestionBanksForApproval } from '../../api/create-question.js'
 import { QuestionForm } from '../../components/admin/create-question/question-form.jsx'
 import { AnswerForm } from '../../components/admin/create-question/answer-form.jsx'
 
-const { Title } = Typography
+const { Title, Text } = Typography
+const { TextArea } = Input
 
 export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) {
   const router = useRouter()
@@ -143,68 +145,108 @@ export function CreateQuestionScreen({ basePath = '/admin', layout = 'admin' }) 
   }
 
   return (
-    <div style={{ padding: 24 }}>
-      <Card>
-        <Space orientation="vertical" size="large" style={{ width: '100%' }}>
+    <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
+      <Card 
+        style={{ borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: 'none' }}
+        styles={{ body: { padding: '24px 32px' } }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <div>
-            <Title level={3} style={{ marginBottom: 4 }}>
+            <Title level={3} style={{ margin: 0, color: '#1677ff' }}>
               Tạo câu hỏi mới
             </Title>
+            <Text type="secondary">Cung cấp thông tin chi tiết để xây dựng bộ câu hỏi</Text>
           </div>
+          <Space>
+            <Button onClick={handleCancel} style={{ borderRadius: 8, height: 40 }}>
+              Hủy bỏ
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => form.submit()}
+              loading={loading}
+              icon={<PlusOutlined />}
+              style={{ borderRadius: 8, height: 40, paddingLeft: 24, paddingRight: 24 }}
+            >
+              Tạo mới câu hỏi
+            </Button>
+          </Space>
+        </div>
 
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleSubmit}
-            onFinishFailed={({ errorFields }) => {
-              const firstError = errorFields?.[0]?.errors?.[0]
-              if (firstError) {
-                showAdminError(firstError)
-              } else {
-                showAdminError('Vui lòng kiểm tra lại các trường bắt buộc')
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          onFinishFailed={({ errorFields }) => {
+            const firstError = errorFields?.[0]?.errors?.[0]
+            if (firstError) {
+              showAdminError(firstError)
+            } else {
+              showAdminError('Vui lòng kiểm tra lại các trường bắt buộc')
+            }
+          }}
+          initialValues={{
+            options: [
+              { keyOption: 1, content: '', imageUrl: '', isCorrect: false },
+              { keyOption: 2, content: '', imageUrl: '', isCorrect: false },
+            ],
+            status: 0
+          }}
+        >
+          <Tabs
+            defaultActiveKey="1"
+            type="line"
+            size="large"
+            className="custom-tabs"
+            items={[
+              {
+                key: '1',
+                label: <span style={{ fontWeight: 600 }}><FormOutlined /> 1. Nội dung câu hỏi</span>,
+                children: (
+                  <div style={{ padding: '8px 0' }}>
+                    <QuestionForm form={form} questionTypeId={questionTypeId} />
+                  </div>
+                )
+              },
+              {
+                key: '2',
+                label: <span style={{ fontWeight: 600 }}><CheckCircleOutlined /> 2. Đáp án</span>,
+                children: (
+                  <div style={{ padding: '8px 0' }}>
+                    <AnswerForm form={form} />
+                  </div>
+                )
+              },
+              {
+                key: '3',
+                label: <span style={{ fontWeight: 600 }}><FileTextOutlined /> 3. Giải thích</span>,
+                children: (
+                  <div style={{ padding: '8px 0' }}>
+                    <div style={{ marginBottom: 16 }}>
+                      <Text strong style={{ fontSize: 13, color: '#595959', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                        <FileTextOutlined style={{ color: '#faad14' }} /> Giải thích & Transcript
+                      </Text>
+                      <Form.Item name="explanation" style={{ marginBottom: 0 }}>
+                        <TextArea
+                          rows={12}
+                          placeholder="Nhập nội dung giải thích chi tiết hoặc transcript tại đây..."
+                          style={{ borderRadius: 12, padding: '12px' }}
+                        />
+                      </Form.Item>
+                    </div>
+                  </div>
+                )
               }
-            }}
-            initialValues={{
-              options: [
-                { keyOption: 1, content: '', imageUrl: '', isCorrect: false },
-                { keyOption: 2, content: '', imageUrl: '', isCorrect: false },
-              ],
-            }}
-          >
-            <QuestionForm form={form} questionTypeId={questionTypeId} />
+            ]}
+          />
 
-            <Form.Item name="mediaFile" hidden>
-              <Input type="hidden" />
-            </Form.Item>
-
-            <Divider />
-
-            <AnswerForm form={form} />
-
-            <Divider />
-
-            <Form.Item>
-              <Space>
-                <Button
-                  onClick={handleCancel}
-                >
-                  Hủy
-                </Button>
-                <Button
-                  type="primary"
-                  onClick={() => form.submit()}
-                  loading={loading}
-                >
-                  Tạo mới
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-        </Space>
+          <Form.Item name="mediaFile" hidden>
+            <Input type="hidden" />
+          </Form.Item>
+        </Form>
       </Card>
     </div>
   )
 }
 
-export default CreateQuestionScreen
 

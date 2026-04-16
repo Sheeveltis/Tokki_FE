@@ -1,7 +1,9 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { Modal, Form, Space, Button, message, Spin, Divider, Typography } from 'antd'
-const { Title } = Typography
+import { Modal, Form, Space, Button, message, Spin, Divider, Typography, Tabs, Input } from 'antd'
+const { Title, Text } = Typography
+const { TextArea } = Input
+import { SaveOutlined, FileTextOutlined } from '@ant-design/icons'
 import { fetchPassages, fetchQuestionTypes, updateQuestionBank, activateQuestionBanks } from '../../../api/question-bank-management.js'
 import { uploadOptionImageToCloudinary, uploadQuestionAudioToCloudinary, uploadQuestionImageToCloudinary } from '../../../../back-office/api/cloudinary.js'
 import { QuestionEditForm } from './QuestionEditForm'
@@ -16,8 +18,6 @@ const QUESTION_BANK_STATUS = {
   REJECTED: 4,
   ASSIGNED: 5,
 }
-
-import { Tabs } from 'antd'
 
 export function QuestionUpdateModal({ open, question, onCancel, onUpdated }) {
   const [form] = Form.useForm()
@@ -61,6 +61,7 @@ export function QuestionUpdateModal({ open, question, onCancel, onUpdated }) {
         mediaFile: null,
         passageId: question.passageId || null,
         questionTypeId: question.questionTypeId || null,
+        originalQuestionTypeId: question.questionTypeId || null,
         status: question.status !== undefined ? question.status : 1,
       })
       setEditOptions(normalized)
@@ -170,7 +171,7 @@ export function QuestionUpdateModal({ open, question, onCancel, onUpdated }) {
       key: '1',
       label: <span style={{ fontWeight: 600 }}>1. Nội dung câu hỏi</span>,
       children: (
-        <div style={{ marginTop: 8 }}>
+        <div style={{ marginTop: 4 }}>
           <QuestionEditForm
             editForm={editForm}
             setEditForm={setEditForm}
@@ -178,8 +179,8 @@ export function QuestionUpdateModal({ open, question, onCancel, onUpdated }) {
             setMediaObjectUrl={setMediaObjectUrl}
             allPassages={allPassages}
             loadingPassages={loadingPassages}
-            currentPassage={editForm.passageId && Array.isArray(allPassages) ? allPassages.find(p => p.passageId === editForm.passageId) : null}
-            currentQuestionType={editForm.questionTypeId && Array.isArray(questionTypes) ? questionTypes.find(t => t.questionTypeId === editForm.questionTypeId) : null}
+            currentPassage={editForm.passageId && Array.isArray(allPassages) && allPassages.length > 0 ? allPassages.find(p => p.passageId === editForm.passageId) : (editForm.passageId === question?.passageId ? question?.passage : null)}
+            currentQuestionType={editForm.questionTypeId && Array.isArray(questionTypes) && questionTypes.length > 0 ? questionTypes.find(t => t.questionTypeId === editForm.questionTypeId) : (editForm.questionTypeId === question?.questionTypeId ? question?.questionType : null)}
             validatePassageSkillCompatibility={validatePassageSkillCompatibility}
             onOpenTypeSelector={() => setShowTypeSelector(true)}
           />
@@ -190,7 +191,7 @@ export function QuestionUpdateModal({ open, question, onCancel, onUpdated }) {
       key: '2',
       label: <span style={{ fontWeight: 600 }}>2. Đáp án</span>,
       children: (
-        <div style={{ marginTop: 8 }}>
+        <div style={{ marginTop: 4 }}>
           <OptionsEditor
             options={editOptions}
             onAddOption={() => setEditOptions(prev => [...prev, { __tempId: `temp-${Date.now()}`, keyOption: String(prev.length + 1), content: '', isCorrect: false }])}
@@ -200,55 +201,79 @@ export function QuestionUpdateModal({ open, question, onCancel, onUpdated }) {
           />
         </div>
       )
+    },
+    {
+      key: '3',
+      label: <span style={{ fontWeight: 600 }}>3. Giải thích</span>,
+      children: (
+        <div style={{ marginTop: 4 }}>
+          <Text strong style={{ fontSize: 13, color: '#595959', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+            <FileTextOutlined style={{ color: '#faad14' }} /> Giải thích & Transcript
+          </Text>
+          <TextArea
+            rows={12}
+            value={editForm.explanation}
+            onChange={(e) => setEditForm(prev => ({ ...prev, explanation: e.target.value }))}
+            placeholder="Nhập nội dung giải thích chi tiết hoặc transcript tại đây..."
+            style={{ borderRadius: 12, padding: '12px' }}
+          />
+        </div>
+      )
     }
   ]
 
   return (
     <Modal
       title={
-        <div style={{ padding: '8px 0' }}>
-          <Title level={4} style={{ margin: 0 }}>Chỉnh sửa câu hỏi</Title>
-          <div style={{ fontSize: 13, color: '#8c8c8c', fontWeight: 400 }}>Cập nhật thông tin và đáp án của câu hỏi</div>
+        <div style={{ marginBottom: 8 }}>
+          <Title level={4} style={{ margin: 0, color: '#1677ff', letterSpacing: '0.2px' }}>Chỉnh sửa câu hỏi</Title>
+          <Text type="secondary" style={{ fontSize: 13 }}>Cập nhật thông tin chi tiết và đáp án cho câu hỏi này</Text>
         </div>
       }
       open={open}
       onCancel={onCancel}
-      footer={null}
-      width={900}
+      footer={
+        <div style={{ padding: '8px 16px', borderTop: '1px solid #f0f0f0', display: 'flex', justifyContent: 'flex-end', gap: 12, backgroundColor: '#fafafa', borderRadius: '0 0 16px 16px' }}>
+          <Button onClick={onCancel} style={{ borderRadius: 8 }}>
+            Hủy bỏ
+          </Button>
+          <Button
+            type="primary"
+            onClick={handleSave}
+            loading={saving}
+            icon={<SaveOutlined />}
+            style={{ borderRadius: 8, paddingLeft: 20, paddingRight: 20 }}
+          >
+            Lưu thay đổi
+          </Button>
+        </div>
+      }
+      width={1000}
       centered
       destroyOnHidden
       styles={{
-        body: { padding: '4px 24px 12px' }
+        body: { padding: '0 20px 20px' },
+        header: { borderBottom: '1px solid #f0f0f0', marginBottom: 0, paddingBottom: 8 }
       }}
+      style={{ borderRadius: 20 }}
     >
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 40 }}><Spin /></div>
+        <div style={{ textAlign: 'center', padding: '60px 0' }}>
+          <Spin size="large">
+            <div style={{ marginTop: 16 }}>Đang tải dữ liệu...</div>
+          </Spin>
+        </div>
       ) : (
-        <div>
+        <div style={{ marginTop: 12 }}>
           <Tabs
             activeKey={activeTab}
             onChange={setActiveTab}
             items={tabItems}
-            style={{ marginBottom: 12 }}
+            type="line"
+            style={{ marginBottom: 0 }}
+            className="custom-tabs"
           />
           
-          <Divider style={{ margin: '8px 0 16px' }} />
-
-          <div style={{ textAlign: 'right' }}>
-            <Space size="middle">
-              <Button onClick={onCancel}>
-                Hủy
-              </Button>
-              <Button
-                type="primary"
-                onClick={handleSave}
-                loading={saving}
-              >
-                Lưu thay đổi
-              </Button>
-            </Space>
-          </div>
-
           <QuestionTypeSelectorModal
             open={showTypeSelector}
             onCancel={() => setShowTypeSelector(false)}

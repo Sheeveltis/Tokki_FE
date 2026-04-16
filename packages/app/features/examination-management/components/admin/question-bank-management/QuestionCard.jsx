@@ -1,6 +1,6 @@
 import React from 'react'
 import { Card, Typography, Space, Button, Tag, Checkbox, Input } from 'antd'
-import { EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, SendOutlined, CheckOutlined, CloseCircleOutlined } from '@ant-design/icons'
+import { EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, SendOutlined, CheckOutlined, CloseCircleOutlined, SoundOutlined } from '@ant-design/icons'
 import { QuestionEditForm } from './QuestionEditForm'
 import { OptionsEditor } from './OptionsEditor'
 import { OptionsDisplay } from './OptionsDisplay'
@@ -76,114 +76,102 @@ export function QuestionCard({
     <Card
       key={key}
       variant="outlined"
+      hoverable
       style={{
-        marginBottom: 24,
-        borderRadius: 12,
+        marginBottom: 20,
+        borderRadius: 16,
         overflow: 'hidden',
-        border: isSelected ? '2px solid #1890ff' : '1px solid #f0f0f0',
-        backgroundColor: isSelected ? '#e6f7ff' : '#ffffff',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-        transition: 'all 0.3s ease'
+        border: isSelected ? '2px solid #1677ff' : '1px solid #f0f0f0',
+        backgroundColor: isSelected ? '#f0faff' : '#ffffff',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
       }}
-      styles={{ body: { padding: 24 } }}
+      styles={{ body: { padding: '20px 24px' } }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-        <Space orientation="vertical" size={4}>
-          <Space size={12}>
-            {canSelect && (
-              <Checkbox
-                checked={isSelected}
-                onChange={(e) => onToggleSelect && onToggleSelect(key, e.target.checked)}
-                style={{ transform: 'scale(1.2)' }}
-              />
-            )}
-            <div style={{
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              backgroundColor: '#1890ff',
-              color: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: 14,
-              boxShadow: '0 2px 4px rgba(24, 144, 255, 0.3)'
-            }}>
-              {index + 1}
-            </div>
-            <Tag color="blue" variant="filled" style={{ margin: 0, fontWeight: 600, borderRadius: 4, padding: '0 8px' }}>
-              CÂU HỎI {index + 1}
-            </Tag>
-            {question.status !== undefined && (() => {
-              const statusMap = {
-                0: { label: 'Nháp', color: 'default' },
-                1: { label: 'Hoạt động', color: 'success' },
-                2: { label: 'Đã xóa', color: 'error' },
-                3: { label: 'Chờ duyệt', color: 'warning' },
-                4: { label: 'Từ chối', color: 'magenta' },
-              }
-              const info = statusMap[question.status] || { label: `TT: ${question.status}`, color: 'default' }
-              return <Tag color={info.color} variant="filled" style={{ borderRadius: 4, margin: 0 }}>{info.label}</Tag>
-            })()}
-          </Space>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <Space size={12} align="center">
+          <div style={{
+            padding: '4px 12px',
+            borderRadius: 8,
+            backgroundColor: '#1677ff',
+            color: '#fff',
+            fontWeight: 700,
+            fontSize: 13,
+            letterSpacing: '0.5px',
+            boxShadow: '0 4px 10px rgba(22, 119, 255, 0.2)'
+          }}>
+            #{index + 1}
+          </div>
+          
+          <Text strong style={{ fontSize: 13, color: '#8c8c8c', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            Question
+          </Text>
+
+          {question.status !== undefined && (() => {
+            const statusMap = {
+              0: { label: 'Nháp', color: 'default' },
+              1: { label: 'Hoạt động', color: 'success' },
+              2: { label: 'Đã xóa', color: 'error' },
+              3: { label: 'Chờ duyệt', color: 'warning' },
+              4: { label: 'Từ chối', color: 'magenta' },
+            }
+            const info = statusMap[question.status] || { label: `TT: ${question.status}`, color: 'default' }
+            return <Tag color={info.color} variant="filled" style={{ borderRadius: 6, margin: 0, fontWeight: 500 }}>{info.label}</Tag>
+          })()}
         </Space>
 
         <Space>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {canApprove && (
-              <div style={{ display: 'flex', gap: 4, marginRight: 8, paddingRight: 8, borderRight: '1px solid #f0f0f0' }}>
-                <Button
-                  icon={<CheckOutlined />}
-                  onClick={() => onSetApprovalStatus && onSetApprovalStatus(key, approvalStatus === 'approve' ? null : 'approve')}
-                  style={{
-                    borderColor: approvalStatus === 'approve' ? '#52c41a' : '#d9d9d9',
-                    color: approvalStatus === 'approve' ? '#fff' : '#52c41a',
-                    backgroundColor: approvalStatus === 'approve' ? '#52c41a' : 'transparent',
-                  }}
-                >Duyệt</Button>
-                <Button
-                  danger
-                  icon={<CloseCircleOutlined />}
-                  onClick={() => onSetApprovalStatus && onSetApprovalStatus(key, approvalStatus === 'reject' ? null : 'reject')}
-                  style={{
-                    backgroundColor: approvalStatus === 'reject' ? '#ff4d4f' : 'transparent',
-                    color: approvalStatus === 'reject' ? '#fff' : '#ff4d4f',
-                  }}
-                >Từ chối</Button>
-              </div>
-            )}
-            {canEdit && <Button type="text" icon={<EditOutlined />} onClick={() => onEdit(key)}>Sửa</Button>}
+          {canApprove && (
+            <Space size={4} style={{ marginRight: 8, paddingRight: 8, borderRight: '1px solid #f0f0f0' }}>
+              <Button
+                type={approvalStatus === 'approve' ? 'primary' : 'default'}
+                icon={<CheckOutlined />}
+                size="small"
+                onClick={() => onSetApprovalStatus && onSetApprovalStatus(key, approvalStatus === 'approve' ? null : 'approve')}
+                style={approvalStatus !== 'approve' ? { color: '#52c41a', borderColor: '#52c41a' } : {}}
+              >Duyệt</Button>
+              <Button
+                danger
+                type={approvalStatus === 'reject' ? 'primary' : 'default'}
+                icon={<CloseCircleOutlined />}
+                size="small"
+                onClick={() => onSetApprovalStatus && onSetApprovalStatus(key, approvalStatus === 'reject' ? null : 'reject')}
+              >Từ chối</Button>
+            </Space>
+          )}
+          <Space size={4}>
+            {canEdit && <Button type="text" size="small" icon={<EditOutlined />} onClick={() => onEdit(key)} style={{ color: '#1677ff' }}>Sửa</Button>}
             {canDelete && (
-              <Button type="text" danger icon={<DeleteOutlined />} loading={deletingId === key} onClick={() => onDeleteQuestion(key)} />
+              <Button type="text" danger size="small" icon={<DeleteOutlined />} loading={deletingId === key} onClick={() => onDeleteQuestion(key)} />
             )}
             {canResubmit && onSubmitForApproval && (
-              <Button type="primary" ghost icon={<SendOutlined />} onClick={() => onSubmitForApproval(key)}>Gửi duyệt</Button>
+              <Button type="primary" size="small" ghost icon={<SendOutlined />} onClick={() => onSubmitForApproval(key)}>Gửi duyệt</Button>
             )}
-          </div>
+          </Space>
         </Space>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* Passage Area */}
         {hasPassage && (
           <div style={{ 
-            padding: 16, 
-            backgroundColor: '#f9f9f9', 
-            borderRadius: 8, 
-            borderLeft: '4px solid #1890ff',
-            boxShadow: 'inset 0 0 10px rgba(0,0,0,0.02)'
+            padding: '16px 20px', 
+            backgroundColor: '#fafafa', 
+            borderRadius: 12, 
+            borderLeft: '4px solid #1677ff',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <Text strong style={{ color: '#1890ff', fontSize: 13, textTransform: 'uppercase' }}>Dữ liệu dùng chung / Đoạn văn</Text>
-              <Tag color="processing">{passage.title}</Tag>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+              <Text strong style={{ color: '#1677ff', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Context / Passage
+              </Text>
+              <Tag color="blue" variant="filled" style={{ fontSize: 11 }}>{passage.title}</Tag>
             </div>
             {passage.mediaType === 1 && passage.imageUrl ? (
-              <div style={{ marginTop: 8 }}>
-                <img src={passage.imageUrl} alt={passage.title} style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8, border: '1px solid #eee' }} />
+              <div style={{ marginTop: 12 }}>
+                <img src={passage.imageUrl} alt={passage.title} style={{ maxWidth: '100%', maxHeight: 250, borderRadius: 10, border: '1px solid #f0f0f0' }} />
               </div>
             ) : (
-              <Text style={{ fontSize: 15, lineHeight: 1.6, color: '#434343' }}>{passage.content}</Text>
+              <Text style={{ fontSize: 15, lineHeight: 1.7, color: '#262626' }}>{passage.content}</Text>
             )}
           </div>
         )}
@@ -193,18 +181,28 @@ export function QuestionCard({
           {/* Audio Display */}
           {question.mediaUrl && (question.mediaUrl.includes('.mp3') || question.mediaUrl.includes('.wav')) && (
             <div style={{ 
-              backgroundColor: '#f0f5ff', 
-              padding: '12px 16px', 
-              borderRadius: 40, 
+              backgroundColor: '#f5f5f5', 
+              padding: '10px 16px', 
+              borderRadius: 12, 
               display: 'flex', 
               alignItems: 'center', 
-              gap: 16, 
-              border: '1px solid #adc6ff' 
+              gap: 12,
+              border: '1px solid #f0f0f0'
             }}>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: '#1890ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                <SendOutlined style={{ transform: 'rotate(-45deg)' }} />
+              <div style={{ 
+                width: 36, 
+                height: 36, 
+                borderRadius: 10, 
+                backgroundColor: '#fff', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                color: '#1677ff',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+              }}>
+                <SoundOutlined />
               </div>
-              <audio controls style={{ flex: 1, height: 36 }}>
+              <audio controls style={{ flex: 1, height: 32 }}>
                 <source src={question.mediaUrl} />
               </audio>
             </div>
@@ -212,42 +210,40 @@ export function QuestionCard({
 
           {/* Question Text */}
           {question.content && (
-            <Paragraph style={{ fontSize: 17, fontWeight: 500, color: '#1f1f1f', margin: 0, lineHeight: 1.6 }}>
+            <Paragraph style={{ fontSize: 16, fontWeight: 500, color: '#141414', margin: 0, lineHeight: 1.6 }}>
               {question.content}
             </Paragraph>
           )}
 
-          {/* Image Placeholder if mediaUrl is not audio */}
+          {/* Image media */}
           {question.mediaUrl && !(question.mediaUrl.includes('.mp3') || question.mediaUrl.includes('.wav')) && (
-            <div style={{ marginTop: 8 }}>
-              <img src={question.mediaUrl} alt="Question" style={{ maxWidth: '100%', maxHeight: 400, borderRadius: 12, border: '1px solid #f0f0f0' }} />
+            <div style={{ marginTop: 4 }}>
+              <img src={question.mediaUrl} alt="Question" style={{ maxWidth: '100%', maxHeight: 350, borderRadius: 12, border: '1px solid #f0f0f0' }} />
             </div>
           )}
 
           {/* Transcript / Explanation Area */}
           {question.explanation && (
             <div style={{ 
-              backgroundColor: '#fffbe6', 
-              padding: 16, 
-              borderRadius: 8, 
+              backgroundColor: '#fffcf0', 
+              padding: '16px 20px', 
+              borderRadius: 12, 
               border: '1px solid #ffe58f',
-              position: 'relative'
+              marginTop: 4
             }}>
               <div style={{ 
-                position: 'absolute', 
-                top: -10, 
-                left: 16, 
-                backgroundColor: '#faad14', 
-                color: '#fff', 
-                padding: '2px 10px', 
-                borderRadius: 4, 
-                fontSize: 12, 
-                fontWeight: 600 
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                marginBottom: 10
               }}>
-                GIẢI THÍCH / TRANSCRIPT
+                <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#faad14' }} />
+                <Text strong style={{ fontSize: 12, color: '#faad14', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Explanation & Transcript
+                </Text>
               </div>
               <div 
-                style={{ fontSize: 15, color: '#434343', lineHeight: 1.6, paddingTop: 4 }}
+                style={{ fontSize: 14, color: '#595959', lineHeight: 1.7 }}
                 dangerouslySetInnerHTML={{ __html: question.explanation }}
               />
             </div>
@@ -256,8 +252,8 @@ export function QuestionCard({
 
         {/* Admin Rejection Reason */}
         {canApprove && approvalStatus === 'reject' && (
-          <div style={{ backgroundColor: '#fff2f0', padding: 16, borderRadius: 8, border: '1px solid #ffccc7' }}>
-            <Text strong type="danger" style={{ display: 'block', marginBottom: 8 }}>Lí do từ chối:</Text>
+          <div style={{ backgroundColor: '#fff1f0', padding: 16, borderRadius: 12, border: '1px solid #ffccc7', marginTop: 8 }}>
+            <Text strong type="danger" style={{ display: 'block', marginBottom: 8, fontSize: 13 }}>Lí do từ chối:</Text>
             <Input.TextArea
               placeholder="Nhập lí do từ chối cụ thể..."
               value={rejectReason || ''}

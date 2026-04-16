@@ -92,11 +92,12 @@ export function QuestionForm({ form, questionTypeId }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <Row gutter={16}>
-        <Col span={16}>
+        <Col span={12}>
           <Form.Item
-            label="Đoạn văn (Passage)"
+            label={<span style={{ fontWeight: 600, fontSize: 13 }}>Đoạn văn (Passage)</span>}
             name="passageId"
             tooltip="Chọn đoạn văn nếu câu hỏi thuộc về một đoạn văn cụ thể"
+            style={{ marginBottom: 0 }}
           >
             <Select
               placeholder="Chọn đoạn văn (tùy chọn)"
@@ -125,11 +126,12 @@ export function QuestionForm({ form, questionTypeId }) {
             />
           </Form.Item>
         </Col>
-        <Col span={8}>
+        <Col span={12}>
           <Form.Item
-            label="Trạng thái"
+            label={<span style={{ fontWeight: 600, fontSize: 13 }}>Trạng thái</span>}
             name="status"
             initialValue={0}
+            style={{ marginBottom: 0 }}
           >
             <Select>
               <Select.Option value={0}>Nháp</Select.Option>
@@ -140,9 +142,10 @@ export function QuestionForm({ form, questionTypeId }) {
       </Row>
 
       <Form.Item
-        label="Nội dung câu hỏi"
+        label={<span style={{ fontWeight: 600, fontSize: 13 }}>Nội dung câu hỏi</span>}
         name="content"
         rules={[{ required: true, message: 'Vui lòng nhập nội dung câu hỏi' }]}
+        style={{ marginBottom: 0 }}
       >
         <TextArea
           rows={3}
@@ -150,37 +153,47 @@ export function QuestionForm({ form, questionTypeId }) {
         />
       </Form.Item>
 
-      <Row gutter={16}>
-        <Col span={14}>
+      <Row gutter={16} align="top">
+        <Col span={12}>
           <Form.Item
-            label="Đính kèm (Hình ảnh / Audio)"
+            label={<span style={{ fontWeight: 600, fontSize: 13 }}>Đính kèm (Hình ảnh / Audio)</span>}
             name="mediaUrl"
+            style={{ marginBottom: 0 }}
           >
-            <Dragger {...mediaUploadProps} style={{ borderRadius: 8, padding: 16 }}>
-              <p className="ant-upload-drag-icon" style={{ marginBottom: 8 }}><InboxOutlined style={{ fontSize: 32 }} /></p>
-              <p className="ant-upload-text" style={{ fontSize: 13 }}>Kéo thả file để tải lên</p>
+            <Dragger {...mediaUploadProps} style={{ borderRadius: 10, padding: '8px 0', height: 90, backgroundColor: '#fafafa' }}>
+              <p className="ant-upload-drag-icon" style={{ marginBottom: 4 }}>
+                <InboxOutlined style={{ fontSize: 24, color: '#1677ff' }} />
+              </p>
+              <p className="ant-upload-text" style={{ fontSize: 12, margin: 0 }}>Nhấn hoặc kéo thả để tải lên</p>
+              <p className="ant-upload-hint" style={{ fontSize: 10, margin: 0 }}>Ảnh hoặc Audio</p>
             </Dragger>
           </Form.Item>
         </Col>
-        <Col span={10}>
+        <Col span={12}>
+          <div style={{ display: 'block', marginBottom: 8, height: 22 }}>
+            <span style={{ fontWeight: 600, fontSize: 13 }}>Xem trước media</span>
+          </div>
           {mediaPreview ? (
             <div style={{ 
-              height: '100%', 
+              height: 90, 
               display: 'flex', 
               flexDirection: 'column', 
               justifyContent: 'center',
               backgroundColor: '#fafafa',
-              borderRadius: 8,
-              border: '1px dashed #d9d9d9',
-              padding: 12
+              borderRadius: 10,
+              border: '1px solid #f0f0f0',
+              padding: 4,
+              boxSizing: 'border-box'
             }}>
               {isAudioUrl(mediaPreview) ? (
-                <audio controls style={{ width: '100%', height: 32 }}>
-                  <source src={mediaPreview} />
-                </audio>
+                <audio 
+                  controls 
+                  src={mediaPreview} 
+                  style={{ width: '100%', height: 32 }} 
+                />
               ) : (
                 <div style={{ textAlign: 'center' }}>
-                  <img src={mediaPreview} alt="Preview" style={{ maxWidth: '100%', maxHeight: 80, borderRadius: 4 }} />
+                  <img src={mediaPreview} alt="Preview" style={{ maxWidth: '100%', maxHeight: 80, borderRadius: 6, display: 'block', margin: '0 auto' }} />
                 </div>
               )}
               {mediaFile && (
@@ -190,32 +203,12 @@ export function QuestionForm({ form, questionTypeId }) {
               )}
             </div>
           ) : (
-            <div style={{ 
-              height: '100%', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              backgroundColor: '#fafafa',
-              borderRadius: 8,
-              border: '1px dashed #d9d9d9',
-              color: '#bfbfbf',
-              fontSize: 12
-            }}>
-              Xem trước hình ảnh/âm thanh
+            <div style={{ height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fafafa', borderRadius: 10, border: '1px solid #f0f0f0', color: '#bfbfbf', fontSize: 11 }}>
+              Chưa có media
             </div>
           )}
         </Col>
       </Row>
-
-      <Form.Item
-        label="Giải thích / Chú thích"
-        name="explanation"
-      >
-        <TextArea
-          rows={2}
-          placeholder="Nhập chú thích..."
-        />
-      </Form.Item>
     </div>
   )
 }

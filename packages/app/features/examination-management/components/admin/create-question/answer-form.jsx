@@ -1,13 +1,13 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Form, Input, Button, Space, Typography, Card, Checkbox, Upload, message } from 'antd'
-import { PlusOutlined, DeleteOutlined, InboxOutlined } from '@ant-design/icons'
+import { Form, Input, Button, Typography, Checkbox, Upload, message, Tooltip, Image } from 'antd'
+import { PlusOutlined, DeleteOutlined, CameraOutlined, CheckCircleFilled } from '@ant-design/icons'
 import { createObjectUrl, revokeObjectUrl } from '../../../api/upload-utils'
 
-const { Title } = Typography
-const { TextArea } = Input
+const { Text } = Typography
 const { Dragger } = Upload
+const { TextArea } = Input
 
 /**
  * AnswerForm Component
@@ -59,11 +59,9 @@ export function AnswerForm({ form }) {
   })
 
   return (
-    <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Title level={4} style={{ margin: 0 }}>
-          Đáp án
-        </Title>
+    <div style={{ padding: '4px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <Text strong style={{ fontSize: 14, color: '#262626' }}>Danh sách đáp án lựa chọn</Text>
       </div>
 
       <Form.List
@@ -84,99 +82,145 @@ export function AnswerForm({ form }) {
       >
         {(fields, { add, remove }) => {
           return (
-            <Space orientation="vertical" size="small" style={{ width: '100%' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {fields.map(({ key, name, ...restField }, index) => {
                 const isCorrect = currentAnswers[index]?.isCorrect || false
                 return (
-                  <Card
+                  <div
                     key={key}
                     style={{
-                      border: isCorrect ? '2px solid #52c41a' : '1px solid #d9d9d9',
-                      backgroundColor: isCorrect ? '#f6ffed' : '#fff',
+                      display: 'grid',
+                      gridTemplateColumns: '50px 1fr 200px 44px',
+                      gap: 12,
+                      alignItems: 'center',
+                      padding: '8px 12px',
+                      borderRadius: 12,
+                      border: isCorrect ? '2px solid #52c41a' : '1px solid #f0f0f0',
+                      backgroundColor: isCorrect ? '#f6ffed' : '#ffffff',
+                      transition: 'all 0.3s ease',
+                      boxShadow: isCorrect ? '0 4px 12px rgba(82, 196, 26, 0.08)' : 'none'
                     }}
                   >
-                    <Space orientation="vertical" size="small" style={{ width: '100%' }}>
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'keyOption']}
-                        hidden
-                        initialValue={index + 1}
-                      >
-                        <Input type="hidden" />
-                      </Form.Item>
+                    <Form.Item
+                      {...restField}
+                      name={[name, 'keyOption']}
+                      hidden
+                      initialValue={index + 1}
+                    >
+                      <Input type="hidden" />
+                    </Form.Item>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div style={{ flex: 1, marginRight: 16 }}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'content']}
-                            rules={[
-                              { required: true, message: 'Vui lòng nhập nội dung đáp án' },
-                            ]}
-                            style={{ marginBottom: 8 }}
-                          >
-                            <TextArea
-                              rows={2}
-                              placeholder={`Nhập đáp án ${index + 1}...`}
-                              size="large"
-                            />
-                          </Form.Item>
+                    {/* Left Icon/Letter */}
+                    <div 
+                      onClick={() => {
+                        const options = form.getFieldValue('options') || []
+                        const updated = options.map((opt, idx) => ({ ...opt, isCorrect: idx === index }))
+                        form.setFieldValue('options', updated)
+                      }}
+                      style={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        backgroundColor: isCorrect ? '#52c41a' : '#fafafa',
+                        color: isCorrect ? '#fff' : '#d9d9d9',
+                        border: isCorrect ? 'none' : '2px dashed #d9d9d9',
+                        fontSize: 16,
+                        fontWeight: 700,
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {isCorrect ? <CheckCircleFilled /> : String.fromCharCode(65 + index)}
+                    </div>
 
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'imageUrl']}
-                            style={{ marginBottom: 0 }}
-                          >
-                            <div>
-                              <Dragger {...imageUploadProps(index)} style={{ padding: '8px 0' }}>
-                                <p className="ant-upload-drag-icon" style={{ margin: 0 }}>
-                                  <InboxOutlined style={{ fontSize: 24 }} />
-                                </p>
-                                <p className="ant-upload-text" style={{ margin: 0, fontSize: 12 }}>
-                                  Tải lên hình ảnh (tùy chọn)
-                                </p>
-                              </Dragger>
+                    {/* Content Input */}
+                    <Form.Item
+                      {...restField}
+                      name={[name, 'content']}
+                      rules={[{ required: true, message: 'Nhập nội dung' }]}
+                      style={{ marginBottom: 0 }}
+                    >
+                      <Input
+                        variant="borderless"
+                        placeholder={`Nhập nội dung lựa chọn ${String.fromCharCode(65 + index)}...`}
+                        style={{ 
+                          fontSize: 14, 
+                          fontWeight: isCorrect ? 600 : 400,
+                          backgroundColor: isCorrect ? 'transparent' : '#fafafa',
+                          borderRadius: 8,
+                          padding: '8px 12px'
+                        }}
+                      />
+                    </Form.Item>
 
-                              {(currentAnswers?.[index]?.imageFile || currentAnswers?.[index]?.imageUrl) ? (
-                                <div style={{ marginTop: 8 }}>
-                                  <img
-                                    src={previewUrls[index] || currentAnswers?.[index]?.imageUrl}
-                                    alt="Preview"
-                                    style={{ maxWidth: '100%', maxHeight: 140, borderRadius: 6, border: '1px solid #d9d9d9' }}
-                                  />
-                                  {currentAnswers?.[index]?.imageFile ? (
-                                    <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
-                                      File đã chọn: {currentAnswers[index].imageFile.name}
-                                    </div>
-                                  ) : null}
-                                </div>
-                              ) : null}
-                            </div>
-                          </Form.Item>
-                        </div>
-                        <Space orientation="vertical" size="small">
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'isCorrect']}
-                            valuePropName="checked"
-                            style={{ marginBottom: 0 }}
-                          >
-                            <Checkbox>Đáp án đúng</Checkbox>
-                          </Form.Item>
+                    {/* Media Upload (Column 3) */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Upload {...imageUploadProps(index)}>
+                        <Button 
+                          size="small" 
+                          icon={<CameraOutlined />} 
+                          style={{ borderRadius: 6, fontSize: 12 }}
+                        >
+                          {currentAnswers[index]?.imageFile || currentAnswers[index]?.imageUrl ? 'Đổi ảnh' : 'Thêm ảnh'}
+                        </Button>
+                      </Upload>
+
+                      {(currentAnswers[index]?.imageFile || currentAnswers[index]?.imageUrl) && (
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                          <Image
+                            src={previewUrls[index] || currentAnswers[index]?.imageUrl}
+                            width={32}
+                            height={32}
+                            style={{ borderRadius: 4, objectFit: 'cover', border: '1px solid #d9d9d9' }}
+                          />
                           <Button
                             type="text"
                             danger
-                            icon={<DeleteOutlined />}
-                            onClick={() => remove(name)}
-                            disabled={fields.length <= 2}
-                            title={fields.length <= 2 ? 'Cần ít nhất 2 đáp án' : 'Xóa đáp án này'}
-                          >
-                            Xóa
-                          </Button>
-                        </Space>
-                      </div>
-                    </Space>
-                  </Card>
+                            icon={<DeleteOutlined style={{ fontSize: 10 }} />}
+                            size="small"
+                            onClick={() => {
+                              form.setFieldValue(['options', index, 'imageUrl'], null)
+                              form.setFieldValue(['options', index, 'imageFile'], null)
+                            }}
+                            style={{ 
+                              position: 'absolute', 
+                              top: -8, 
+                              right: -8, 
+                              width: 16, 
+                              height: 16, 
+                              padding: 0,
+                              backgroundColor: '#fff',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                              borderRadius: '50%'
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions (Column 4) */}
+                    <Button
+                      type="text"
+                      danger
+                      shape="circle"
+                      icon={<DeleteOutlined />}
+                      onClick={() => remove(name)}
+                      disabled={fields.length <= 2}
+                      style={{ marginLeft: 'auto' }}
+                    />
+                    
+                    <Form.Item
+                      {...restField}
+                      name={[name, 'isCorrect']}
+                      valuePropName="checked"
+                      hidden
+                    >
+                      <Checkbox />
+                    </Form.Item>
+                  </div>
                 )
               })}
 
@@ -193,21 +237,22 @@ export function AnswerForm({ form }) {
                   })
                 }}
                 block
-                size="large"
+                style={{ 
+                  marginTop: 4, 
+                  height: 40, 
+                  borderRadius: 10, 
+                  fontSize: 14, 
+                  fontWeight: 500,
+                  borderWidth: 2
+                }}
               >
-                Thêm đáp án
+                Thêm lựa chọn mới (A, B, C, ...)
               </Button>
-
-              {fields.length === 0 && (
-                <div style={{ textAlign: 'center', padding: 24, color: '#999' }}>
-                  Chưa có đáp án nào. Nhấn "Thêm đáp án" để bắt đầu.
-                </div>
-              )}
-            </Space>
+            </div>
           )
         }}
       </Form.List>
-    </Space>
+    </div>
   )
 }
 
