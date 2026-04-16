@@ -88,7 +88,7 @@ export const adminMenuItems = [
       { key: 'revenue-report', icon: <PieChartOutlined />, label: 'Báo cáo doanh thu' },
     ],
   },
-  { key: 'ai-statistics', icon: <ThunderboltOutlined />, label: 'Báo cáo thống kê A.I' },
+  // { key: 'ai-statistics', icon: <ThunderboltOutlined />, label: 'Báo cáo thống kê A.I' },
   // { key: 'system-log', icon: <DatabaseOutlined />, label: 'System Log' },
   // { key: 'settings', icon: <SettingOutlined />, label: 'Cài đặt' },
   { key: 'system-config', icon: <DatabaseOutlined />, label: 'Cấu hình hệ thống' },

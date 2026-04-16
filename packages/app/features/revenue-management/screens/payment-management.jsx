@@ -1,32 +1,41 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Card, Table, Space, Typography, Tag, Select, DatePicker, Input } from 'antd'
-import { ButtonV2 } from '../../../../components/buttonV2.jsx'
-import { statusPayment } from '../../../string.js'
-import { paymentStatusColors, paymentMethodLabels } from '../../admin/mockData.js'
+import React, { useState, useEffect, useMemo } from 'react'
+import { Space, Typography, Tag, Select, DatePicker, Tooltip } from 'antd'
+import { EyeOutlined, FilterOutlined } from '@ant-design/icons'
+import { useRouter } from 'solito/navigation'
+import ManagementLayout from '../../../../components/layout/management-layout.jsx'
+import { useManagementFilters } from '../../back-office/hooks/use-management-filters.js'
 import { apiClient } from '../../../provider/api/client.js'
 import { ENDPOINTS } from '../../../provider/api/endpoints.js'
-import { EyeOutlined } from '@ant-design/icons'
-import { useRouter } from 'solito/navigation'
+import { statusPayment } from '../../../string.js'
+import { paymentStatusColors, paymentMethodLabels } from '../../admin/mockData.js'
 
-const { Title, Text } = Typography
+const { Text } = Typography
 const { RangePicker } = DatePicker
 const { Option } = Select
-const { Search } = Input
 
 export function PaymentManagement() {
   const router = useRouter()
-  const [payments, setPayments] = useState([])
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [dateRange, setDateRange] = useState(null)
-  const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0,
+  const [filters, setFilters] = useManagementFilters({
+    search: '',
+    status: 'all',
+    page: 1,
+    size: 10,
+    fromDate: undefined,
+    toDate: undefined,
   })
+
+  const [payments, setPayments] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [totalCount, setTotalCount] = useState(0)
+
+  // Memoized total revenue for display
+  const totalRevenue = useMemo(() => {
+    return payments
+      .filter((p) => p.status === 'completed' || p.status === 'paid')
+      .reduce((sum, p) => sum + (p.amount || 0), 0)
+  }, [payments])
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -34,20 +43,14 @@ export function PaymentManagement() {
         setLoading(true)
 
         const params = {
-          search: search || undefined,
-          status: statusFilter !== 'all'
-            ? statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)
+          search: filters.search || undefined,
+          status: filters.status !== 'all'
+            ? filters.status.charAt(0).toUpperCase() + filters.status.slice(1)
             : undefined,
-          fromDate:
-            dateRange && dateRange.length === 2 && dateRange[0]
-              ? dateRange[0].format('YYYY-MM-DD')
-              : undefined,
-          toDate:
-            dateRange && dateRange.length === 2 && dateRange[1]
-              ? dateRange[1].format('YYYY-MM-DD')
-              : undefined,
-          page: pagination.current,
-          pageSize: pagination.pageSize,
+          fromDate: filters.fromDate,
+          toDate: filters.toDate,
+          page: filters.page,
+          pageSize: filters.size,
         }
 
         const response = await apiClient.get(ENDPOINTS.STATISTICS.TRANSACTIONS, {
@@ -55,28 +58,16 @@ export function PaymentManagement() {
         })
 
         const apiData = response?.data?.data
-
         const items = apiData?.items || []
 
         const mapped = items.map((item) => ({
-          transactionId: item.transactionId,
-          userEmail: item.userEmail,
-          userName: item.fullName,
-          packageName: item.packageName,
-          amount: item.amount,
+          ...item,
           paymentMethod: (item.paymentMethod || '').toLowerCase(),
           status: (item.status || '').toLowerCase(),
-          createdAt: item.paymentDate,
         }))
 
         setPayments(mapped)
-
-        setPagination((prev) => ({
-          ...prev,
-          current: apiData?.pageNumber || prev.current,
-          pageSize: apiData?.pageSize || prev.pageSize,
-          total: apiData?.totalCount || prev.total,
-        }))
+        setTotalCount(apiData?.totalCount || 0)
       } catch (error) {
         console.error('Failed to fetch transactions', error)
       } finally {
@@ -85,35 +76,44 @@ export function PaymentManagement() {
     }
 
     fetchTransactions()
-  }, [statusFilter, dateRange, search, pagination.current, pagination.pageSize])
+  }, [filters])
 
-  const handleTableChange = (newPagination) => {
-    setPagination((prev) => ({
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value, page: 1 }))
+  }
+
+  const handlePaginationChange = (newPage, newSize) => {
+    setFilters((prev) => ({
       ...prev,
-      current: newPagination.current,
-      pageSize: newPagination.pageSize,
+      page: prev.size !== newSize ? 1 : newPage,
+      size: newSize,
     }))
   }
 
-  const totalRevenue = payments
-    .filter((p) => p.status === 'completed')
-    .reduce((sum, p) => sum + p.amount, 0)
-
-  const columns = [
+  const columns = useMemo(() => [
+    {
+      title: 'STT',
+      key: 'stt',
+      align: 'center',
+      width: 60,
+      render: (_, __, index) => (filters.page - 1) * filters.size + index + 1,
+    },
     {
       title: 'Mã giao dịch',
       dataIndex: 'transactionId',
       key: 'transactionId',
-      render: (text) => <Text code>{text}</Text>,
+      width: 150,
+      render: (text) => <Text code style={{ fontSize: '13px' }}>{text}</Text>,
     },
     {
       title: 'Người dùng',
       key: 'user',
+      width: 200,
       render: (_, record) => (
         <div>
-          <Text strong>{record.userName || record.fullName}</Text>
+          <Text strong style={{ fontSize: '13px' }}>{record.fullName || record.userName}</Text>
           <br />
-          <Text type="secondary" style={{ fontSize: 12 }}>
+          <Text type="secondary" style={{ fontSize: '12px' }}>
             {record.userEmail}
           </Text>
         </div>
@@ -123,14 +123,19 @@ export function PaymentManagement() {
       title: 'Gói',
       dataIndex: 'packageName',
       key: 'packageName',
-      render: (text) => <Tag color="blue" style={{ fontSize: '12px', padding: '2px 8px' }}>{text}</Tag>,
+      render: (text) => (
+        <Tag color="blue" style={{ borderRadius: 4, fontSize: '12px' }}>
+          {text}
+        </Tag>
+      ),
     },
     {
       title: 'Số tiền',
       dataIndex: 'amount',
       key: 'amount',
+      align: 'right',
       render: (amount) => (
-        <Text strong style={{ color: '#F87218' }}>
+        <Text strong style={{ color: '#F87218', fontSize: '13px' }}>
           {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)}
         </Text>
       ),
@@ -147,119 +152,94 @@ export function PaymentManagement() {
       key: 'status',
       align: 'center',
       render: (status) => (
-        <Tag color={paymentStatusColors[status]} style={{ fontSize: '12px', padding: '2px 8px' }}>
+        <Tag
+          color={paymentStatusColors[status] || 'default'}
+          style={{ borderRadius: 12, padding: '0 12px', fontSize: '11px' }}
+        >
           {statusPayment[status] || status}
         </Tag>
       ),
     },
     {
       title: 'Thời gian',
-      dataIndex: 'createdAt',
+      dataIndex: 'paymentDate',
       key: 'createdAt',
-      render: (date) => <Text style={{ fontSize: 12 }}>{date}</Text>,
+      render: (date) => <Text style={{ fontSize: '12px', color: '#595959' }}>{date}</Text>,
     },
     {
-      title: 'Thao tác',
+      title: 'Hành động',
       key: 'actions',
       align: 'center',
+      width: 100,
       render: (_, record) => (
-        <Space>
-          <div
-            onClick={() => {
-              // TODO: Navigate to payment detail
-              console.log('View payment detail:', record.id)
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              borderRadius: 4,
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#f0f0f0'
-              e.currentTarget.style.transform = 'scale(1.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.transform = 'scale(1)'
-            }}
-          >
-            <EyeOutlined style={{ fontSize: 18, color: '#111', transition: 'color 0.2s ease' }} />
-          </div>
-        </Space>
+        <Tooltip title="Xem chi tiết">
+          <EyeOutlined
+            style={{ fontSize: 18, color: '#1890ff', cursor: 'pointer' }}
+            onClick={() => console.log('View payment detail:', record.transactionId)}
+          />
+        </Tooltip>
       ),
     },
-  ]
+  ], [filters.page, filters.size])
+
+  const extraFilters = (
+    <Space wrap>
+      <Select
+        value={filters.status}
+        onChange={(val) => handleFilterChange('status', val)}
+        style={{ width: 160, borderRadius: '1rem' }}
+        placeholder="Trạng thái"
+        suffixIcon={<FilterOutlined />}
+      >
+        <Option value="all">Tất cả trạng thái</Option>
+        <Option value="Paid">{statusPayment.completed}</Option>
+        <Option value="Pending">{statusPayment.pending}</Option>
+        <Option value="failed">{statusPayment.failed}</Option>
+        <Option value="cancelled">{statusPayment.cancelled}</Option>
+      </Select>
+      <RangePicker
+        onChange={(dates) => {
+          setFilters((prev) => ({
+            ...prev,
+            fromDate: dates ? dates[0].format('YYYY-MM-DD') : undefined,
+            toDate: dates ? dates[1].format('YYYY-MM-DD') : undefined,
+            page: 1,
+          }))
+        }}
+        placeholder={['Từ ngày', 'Đến ngày']}
+        style={{ borderRadius: '1rem' }}
+      />
+      <div style={{ marginLeft: 8, padding: '4px 12px', background: '#fff7e6', border: '1px solid #ffe7ba', borderRadius: '1rem' }}>
+        <Text style={{ fontSize: 13 }}>
+          Tổng doanh thu: <Text strong style={{ color: '#f5222d' }}>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalRevenue)}</Text>
+        </Text>
+      </div>
+    </Space>
+  )
 
   return (
-    <div style={{ padding: 24 }}>
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <div>
-          <Title level={3} style={{ marginBottom: 4 }}>
-            Quản lý thanh toán
-          </Title>
-          <Text type="secondary">Theo dõi và quản lý các giao dịch thanh toán của người dùng</Text>
-        </div>
-
-        {/* Filters và thống kê */}
-        <Card>
-          <Space direction="vertical" style={{ width: '100%' }} size="middle">
-            <Space wrap>
-              <Search
-                placeholder="Tìm theo tên, email, mã giao dịch..."
-                allowClear
-                style={{ width: 300 }}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <Select
-                value={statusFilter}
-                onChange={setStatusFilter}
-                style={{ width: 150 }}
-                placeholder="Trạng thái"
-              >
-                <Option value="all">Tất cả</Option>
-                <Option value="Paid">{statusPayment.completed}</Option>
-                <Option value="Pending">{statusPayment.pending}</Option>
-                <Option value="failed">{statusPayment.failed}</Option>
-                <Option value="cancelled">{statusPayment.cancelled}</Option>
-              </Select>
-              <RangePicker
-                value={dateRange}
-                onChange={setDateRange}
-                placeholder={['Từ ngày', 'Đến ngày']}
-              />
-            </Space>
-            <div style={{ padding: '12px', backgroundColor: '#f5f5f5', borderRadius: 4 }}>
-              <Text strong>
-                Tổng doanh thu từ các giao dịch đã hoàn thành:{' '}
-                <Text style={{ color: '#F87218', fontSize: 18 }}>
-                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalRevenue)}
-                </Text>
-              </Text>
-            </div>
-          </Space>
-        </Card>
-
-        {/* Bảng thanh toán */}
-        <Card>
-          <Table
-            columns={columns}
-            dataSource={payments}
-            rowKey="transactionId"
-            pagination={pagination}
-            onChange={handleTableChange}
-            scroll={{ x: 1200 }}
-            loading={loading}
-          />
-        </Card>
-      </Space>
-    </div>
+    <ManagementLayout
+      searchPlaceholder="Tìm kiếm người dùng, mã giao dịch..."
+      searchValue={filters.search}
+      onSearchChange={(val) => setFilters((prev) => ({ ...prev, search: val }))}
+      onSearchSubmit={() => handleFilterChange('search', filters.search)}
+      extraFilters={extraFilters}
+      tableProps={{
+        columns,
+        dataSource: payments,
+        rowKey: "transactionId",
+        loading: loading,
+        pagination: {
+          current: filters.page,
+          pageSize: filters.size,
+          total: totalCount,
+          onChange: handlePaginationChange,
+        },
+      }}
+    />
   )
 }
 
 export default PaymentManagement
+
 

@@ -1,18 +1,26 @@
 'use client'
 
-import React, { useState } from 'react'
-import { Card, Table, Space, Typography, Tag, Button, Modal, Form, Input, InputNumber, message } from 'antd'
-import { ButtonV2 } from '../../../../components/buttonV2.jsx'
-import { statusPackage } from '../../../string.js'
-import { createPackage, updatePackage, deletePackage } from '../../back-office/api/admin-index.js'
-import { usePackagesQuery } from '../../back-office/api/useAdminQueries.js'
+import React, { useState, useMemo } from 'react'
+import { Space, Typography, Tag, Modal, Form, Input, InputNumber, message, Tooltip, Select } from 'antd'
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons'
+import ManagementLayout from '../../../../components/layout/management-layout.jsx'
+import { useManagementFilters } from '../../back-office/hooks/use-management-filters.js'
+import { usePackagesQuery } from '../../back-office/api/useAdminQueries.js'
+import { createPackage, updatePackage, deletePackage } from '../../back-office/api/admin-index.js'
+import { statusPackage } from '../../../string.js'
 
-const { Title, Text } = Typography
+const { Text } = Typography
 const { TextArea } = Input
+const { Option } = Select
 
 export function MembershipPackage() {
   const { data: packages = [], isLoading, refetch } = usePackagesQuery()
+  const [filters, setFilters] = useManagementFilters({
+    search: '',
+    page: 1,
+    size: 10,
+  })
+
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingPackage, setEditingPackage] = useState(null)
   const [form] = Form.useForm()
@@ -20,12 +28,16 @@ export function MembershipPackage() {
   const handleAdd = () => {
     setEditingPackage(null)
     form.resetFields()
+    form.setFieldsValue({ isActive: true, packageType: 'VIP' })
     setIsModalOpen(true)
   }
 
   const handleEdit = (record) => {
     setEditingPackage(record)
-    form.setFieldsValue(record)
+    form.setFieldsValue({
+      ...record,
+      isActive: record.isActive ?? (record.status === 'active'),
+    })
     setIsModalOpen(true)
   }
 
@@ -33,46 +45,72 @@ export function MembershipPackage() {
     Modal.confirm({
       title: 'Xác nhận xóa',
       content: 'Bạn có chắc chắn muốn xóa gói thành viên này?',
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
       onOk: async () => {
-        await deletePackage(id)
-        setPackages(packages.filter((p) => p.id !== id))
-        message.success('Đã xóa gói thành viên')
+        try {
+          await deletePackage(id)
+          message.success('Đã xóa gói thành viên')
+          refetch()
+        } catch (error) {
+          message.error('Lỗi khi xóa gói thành viên')
+        }
       },
     })
   }
 
   const handleSubmit = async (values) => {
-    if (editingPackage) {
-      const result = await updatePackage(editingPackage.id, values)
-      setPackages(packages.map((p) => (p.id === editingPackage.id ? { ...p, ...result } : p)))
-      message.success('Đã cập nhật gói thành viên')
-    } else {
-      const result = await createPackage(values)
-      setPackages([...packages, result])
-      message.success('Đã thêm gói thành viên mới')
+    try {
+      if (editingPackage) {
+        await updatePackage(editingPackage.id, values)
+        message.success('Đã cập nhật gói thành viên')
+      } else {
+        await createPackage(values)
+        message.success('Đã thêm gói thành viên mới')
+      }
+      setIsModalOpen(false)
+      form.resetFields()
+      refetch()
+    } catch (error) {
+      message.error('Lỗi khi lưu gói thành viên')
     }
-    setIsModalOpen(false)
-    form.resetFields()
   }
 
-  const columns = [
+  const columns = useMemo(() => [
+    {
+      title: 'STT',
+      key: 'stt',
+      align: 'center',
+      width: 60,
+      render: (_, __, index) => (filters.page - 1) * filters.size + index + 1,
+    },
     {
       title: 'Tên gói',
       dataIndex: 'name',
       key: 'name',
-      render: (text) => <Text strong>{text}</Text>,
+      render: (text) => <Text strong style={{ fontSize: '14px' }}>{text}</Text>,
+    },
+    {
+      title: 'Loại gói',
+      dataIndex: 'packageType',
+      key: 'packageType',
+      render: (text) => <Tag color="blue">{text}</Tag>
     },
     {
       title: 'Thời hạn',
-      dataIndex: 'duration',
-      key: 'duration',
+      dataIndex: 'durationDays',
+      key: 'durationDays',
+      align: 'center',
+      render: (days) => `${days} ngày`,
     },
     {
       title: 'Giá',
       dataIndex: 'price',
       key: 'price',
+      align: 'right',
       render: (price) => (
-        <Text strong style={{ color: '#F87218' }}>
+        <Text strong style={{ color: '#F87218', fontSize: '14px' }}>
           {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price)}
         </Text>
       ),
@@ -82,88 +120,85 @@ export function MembershipPackage() {
       dataIndex: 'description',
       key: 'description',
       ellipsis: true,
+      render: (text) => <Text type="secondary" style={{ fontSize: '13px' }}>{text}</Text>
     },
     {
       title: 'Trạng thái',
-      dataIndex: 'status',
       key: 'status',
       align: 'center',
-      render: (status) => (
-        <Tag color={status === 'active' ? 'green' : 'red'} style={{ fontSize: '12px', padding: '2px 8px' }}>
-          {statusPackage[status] || status}
-        </Tag>
-      ),
+      render: (_, record) => {
+        const active = record.isActive ?? (record.status === 'active')
+        return (
+          <Tag
+            color={active ? 'green' : 'red'}
+            style={{ borderRadius: 12, padding: '0 12px', fontSize: '11px' }}
+          >
+            {active ? 'Đang hoạt động' : 'Tạm dừng'}
+          </Tag>
+        )
+      },
     },
     {
       title: 'Thao tác',
       key: 'actions',
       align: 'center',
+      width: 120,
       render: (_, record) => (
-        <Space>
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-            style={{ color: '#111' }}
-          >
-            Sửa
-          </Button>
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.id)}
-          >
-            Xóa
-          </Button>
+        <Space size="middle">
+          <Tooltip title="Chỉnh sửa">
+            <EditOutlined
+              style={{ fontSize: 18, color: '#1890ff', cursor: 'pointer' }}
+              onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Xóa">
+            <DeleteOutlined
+              style={{ fontSize: 18, color: '#ff4d4f', cursor: 'pointer' }}
+              onClick={() => handleDelete(record.id)}
+            />
+          </Tooltip>
         </Space>
       ),
     },
+  ], [filters.page, filters.size])
+
+  const actions = [
+    {
+      label: 'Thêm gói mới',
+      icon: <PlusOutlined />,
+      type: 'primary',
+      onPress: handleAdd
+    }
   ]
 
-  return (
-    <div style={{ padding: 24 }}>
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <Title level={3} style={{ marginBottom: 4 }}>
-              Quản lý các gói thành viên
-            </Title>
-            <Text type="secondary">Thiết lập và điều chỉnh các gói thành viên mang lại doanh thu</Text>
-          </div>
-          <ButtonV2
-            title="Thêm gói mới"
-            color="#F1BE4B"
-            onPress={handleAdd}
-            style={{ minWidth: 120, paddingVertical: 10 }}
-            textStyle={{ fontSize: 14 }}
-          />
-        </div>
+  const filteredData = useMemo(() => {
+    if (!filters.search) return packages
+    return packages.filter(p => 
+      p.name?.toLowerCase().includes(filters.search.toLowerCase()) ||
+      p.description?.toLowerCase().includes(filters.search.toLowerCase())
+    )
+  }, [packages, filters.search])
 
-        <Card>
-          <Table
-            columns={columns}
-            dataSource={packages}
-            rowKey="id"
-            pagination={{ pageSize: 10 }}
-            loading={isLoading}
-            expandable={{
-              expandedRowRender: (record) => (
-                <div style={{ padding: '16px 0' }}>
-                  <Text strong style={{ display: 'block', marginBottom: 8 }}>
-                    Tính năng:
-                  </Text>
-                  <ul style={{ margin: 0, paddingLeft: 20 }}>
-                    {record.features?.map((feature, index) => (
-                      <li key={index}>{feature}</li>
-                    ))}
-                  </ul>
-                </div>
-              ),
-            }}
-          />
-        </Card>
-      </Space>
+  return (
+    <>
+      <ManagementLayout
+        searchPlaceholder="Tìm kiếm tên gói, mô tả..."
+        searchValue={filters.search}
+        onSearchChange={(val) => setFilters(prev => ({ ...prev, search: val }))}
+        actions={actions}
+        tableProps={{
+          columns,
+          dataSource: filteredData,
+          rowKey: "id",
+          loading: isLoading,
+          pagination: {
+            current: filters.page,
+            pageSize: filters.size,
+            total: filteredData.length,
+            onChange: (page, size) => setFilters(prev => ({ ...prev, page, size })),
+          },
+        }}
+      />
 
       <Modal
         title={editingPackage ? 'Chỉnh sửa gói thành viên' : 'Thêm gói thành viên mới'}
@@ -172,43 +207,50 @@ export function MembershipPackage() {
           setIsModalOpen(false)
           form.resetFields()
         }}
-        footer={null}
+        onOk={() => form.submit()}
         width={600}
+        okText={editingPackage ? 'Cập nhật' : 'Thêm mới'}
+        cancelText="Hủy"
+        okButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px' } }}
+        cancelButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px' } }}
       >
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+        <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ marginTop: 16 }}>
           <Form.Item
             label="Tên gói"
             name="name"
             rules={[{ required: true, message: 'Vui lòng nhập tên gói' }]}
           >
-            <Input placeholder="VD: VIP MONTHLY" size="large" />
+            <Input placeholder="VD: VIP MONTHLY" size="large" style={{ borderRadius: 8 }} />
           </Form.Item>
 
-          <Form.Item
-            label="Thời hạn (tháng)"
-            name="durationMonths"
-            rules={[{ required: true, message: 'Vui lòng nhập thời hạn' }]}
-          >
-            <InputNumber
-              min={1}
-              max={12}
-              placeholder="VD: 1, 6, 12"
-              style={{ width: '100%' }}
-              size="large"
-              onChange={(value) => {
-                const durations = {
-                  1: '1 tháng',
-                  6: '6 tháng',
-                  12: '1 năm',
-                }
-                form.setFieldsValue({ duration: durations[value] || `${value} tháng` })
-              }}
-            />
-          </Form.Item>
+          <Space style={{ width: '100%' }} size="large">
+            <Form.Item
+              label="Loại gói"
+              name="packageType"
+              style={{ width: 260 }}
+              rules={[{ required: true, message: 'Vui lòng chọn loại gói' }]}
+            >
+              <Select size="large" style={{ borderRadius: 8 }}>
+                <Option value="VIP">VIP</Option>
+                <Option value="PREMIUM">PREMIUM</Option>
+                <Option value="BASIC">BASIC</Option>
+              </Select>
+            </Form.Item>
 
-          <Form.Item name="duration" hidden>
-            <Input />
-          </Form.Item>
+            <Form.Item
+              label="Thời hạn (ngày)"
+              name="durationDays"
+              style={{ width: 260 }}
+              rules={[{ required: true, message: 'Vui lòng nhập thời hạn' }]}
+            >
+              <InputNumber
+                min={1}
+                placeholder="VD: 30, 180, 365"
+                style={{ width: '100%', borderRadius: 8 }}
+                size="large"
+              />
+            </Form.Item>
+          </Space>
 
           <Form.Item
             label="Giá (VND)"
@@ -218,7 +260,7 @@ export function MembershipPackage() {
             <InputNumber
               min={0}
               placeholder="VD: 99000"
-              style={{ width: '100%' }}
+              style={{ width: '100%', borderRadius: 8 }}
               size="large"
               formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
               parser={(value) => value.replace(/\$\s?|(,*)/g, '')}
@@ -226,39 +268,29 @@ export function MembershipPackage() {
           </Form.Item>
 
           <Form.Item
+            label="Trạng thái"
+            name="isActive"
+            valuePropName="checked"
+          >
+            <Select size="large" style={{ borderRadius: 8 }}>
+              <Option value={true}>Hoạt động</Option>
+              <Option value={false}>Tạm dừng</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
             label="Mô tả"
             name="description"
             rules={[{ required: true, message: 'Vui lòng nhập mô tả' }]}
           >
-            <TextArea rows={4} placeholder="Mô tả về gói thành viên" />
-          </Form.Item>
-
-          <Form.Item>
-            <Space>
-              <ButtonV2
-                title={editingPackage ? 'Cập nhật' : 'Thêm mới'}
-                color="#F1BE4B"
-                onPress={() => form.submit()}
-                style={{ minWidth: 120, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
-              <ButtonV2
-                title="Hủy"
-                color="mint"
-                onPress={() => {
-                  setIsModalOpen(false)
-                  form.resetFields()
-                }}
-                style={{ minWidth: 100, paddingVertical: 10 }}
-                textStyle={{ fontSize: 14 }}
-              />
-            </Space>
+            <TextArea rows={4} placeholder="Mô tả về gói thành viên" style={{ borderRadius: 8 }} />
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </>
   )
 }
 
 export default MembershipPackage
+
 
