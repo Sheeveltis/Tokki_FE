@@ -1,7 +1,13 @@
 'use client'
 
 import React from 'react'
-import { Modal, Form, Input, InputNumber, Upload, message } from 'antd'
+import { Modal, Form, Input, InputNumber, Upload, message, Space } from 'antd'
+import { 
+  FontSizeOutlined, 
+  FileTextOutlined, 
+  LineChartOutlined, 
+  PictureOutlined 
+} from '@ant-design/icons'
 
 /**
  * Modal tạo mới chủ đề flashcard
@@ -65,16 +71,16 @@ export function FlashcardTopicCreateModal({ open, loading, onCancel, onSubmit })
         body: { fontSize: 16 },
       }}
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} layout="vertical" requiredMark={false}>
         <Form.Item
-          label="Tên chủ đề"
+          label={<Space><FontSizeOutlined style={{ color: '#1677ff' }} />Tên chủ đề (Bắt buộc)</Space>}
           name="topicName"
           rules={[{ required: true, message: 'Vui lòng nhập tên chủ đề' }]}
         >
           <Input placeholder="VD: Từ vựng cơ bản" size="large" style={{ fontSize: 16 }} />
         </Form.Item>
         <Form.Item
-          label="Mô tả"
+          label={<Space><FileTextOutlined style={{ color: '#1677ff' }} />Mô tả (Bắt buộc)</Space>}
           name="description"
           rules={[{ required: true, message: 'Vui lòng nhập mô tả' }]}
         >
@@ -85,7 +91,7 @@ export function FlashcardTopicCreateModal({ open, loading, onCancel, onSubmit })
           />
         </Form.Item>
         <Form.Item
-          label="Level"
+          label={<Space><LineChartOutlined style={{ color: '#1677ff' }} />Level (Bắt buộc)</Space>}
           name="level"
           rules={[{ required: true, message: 'Vui lòng nhập level' }]}
           initialValue={1}
@@ -98,7 +104,10 @@ export function FlashcardTopicCreateModal({ open, loading, onCancel, onSubmit })
             style={{ width: '100%', fontSize: 16 }}
           />
         </Form.Item>
-        <Form.Item label="Ảnh minh họa" name="imgUrl">
+         <Form.Item 
+          label={<Space><PictureOutlined style={{ color: '#1677ff' }} />Ảnh minh họa</Space>} 
+          name="imgUrl"
+        >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <Upload.Dragger
               multiple={false}

@@ -1,7 +1,14 @@
 'use client'
 
 import React from 'react'
-import { Modal, Form, Input, InputNumber, Upload, message, Select, Row, Col } from 'antd'
+import { Modal, Form, Input, InputNumber, Upload, message, Select, Row, Col, Space } from 'antd'
+import { 
+  FontSizeOutlined, 
+  FileTextOutlined, 
+  LineChartOutlined, 
+  CheckCircleOutlined, 
+  PictureOutlined 
+} from '@ant-design/icons'
 
 /**
  * Modal chỉnh sửa chủ đề flashcard
@@ -94,9 +101,9 @@ export function FlashcardTopicEditModal({ open, loading, initialValues = {}, onC
         body: { fontSize: 16 },
       }}
       width={620}
-    >      <Form form={form} layout="vertical" size="middle">
+    >      <Form form={form} layout="vertical" size="middle" requiredMark={false}>
         <Form.Item
-          label="Tên chủ đề"
+          label={<Space><FontSizeOutlined style={{ color: '#1677ff' }} />Tên chủ đề (Bắt buộc)</Space>}
           name="topicName"
           rules={[{ required: true, message: 'Vui lòng nhập tên chủ đề' }]}
           style={{ marginBottom: 12 }}
@@ -105,7 +112,7 @@ export function FlashcardTopicEditModal({ open, loading, initialValues = {}, onC
         </Form.Item>
 
         <Form.Item
-          label="Mô tả"
+          label={<Space><FileTextOutlined style={{ color: '#1677ff' }} />Mô tả (Bắt buộc)</Space>}
           name="description"
           rules={[{ required: true, message: 'Vui lòng nhập mô tả' }]}
           style={{ marginBottom: 12 }}
@@ -116,7 +123,7 @@ export function FlashcardTopicEditModal({ open, loading, initialValues = {}, onC
         <Row gutter={12}>
           <Col span={12}>
             <Form.Item
-              label="Level"
+              label={<Space><LineChartOutlined style={{ color: '#1677ff' }} />Level (Bắt buộc)</Space>}
               name="level"
               rules={[{ required: true, message: 'Vui lòng nhập level' }]}
               style={{ marginBottom: 12 }}
@@ -128,7 +135,7 @@ export function FlashcardTopicEditModal({ open, loading, initialValues = {}, onC
           {!isModerator && (
             <Col span={12}>
               <Form.Item
-                label="Trạng thái"
+                label={<Space><CheckCircleOutlined style={{ color: '#1677ff' }} />Trạng thái (Bắt buộc)</Space>}
                 name="status"
                 rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
                 style={{ marginBottom: 12 }}
@@ -151,7 +158,11 @@ export function FlashcardTopicEditModal({ open, loading, initialValues = {}, onC
           )}
         </Row>
 
-        <Form.Item label="Ảnh minh họa" name="imgUrl" style={{ marginBottom: 4 }}>
+        <Form.Item 
+          label={<Space><PictureOutlined style={{ color: '#1677ff' }} />Ảnh minh họa</Space>} 
+          name="imgUrl" 
+          style={{ marginBottom: 4 }}
+        >
           <div
             style={{
               display: 'grid',

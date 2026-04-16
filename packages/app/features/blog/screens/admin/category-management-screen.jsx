@@ -3,7 +3,17 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Space, Tooltip, Modal, Form, Input, message, Card, Button, Select } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, DownloadOutlined, TableOutlined, AppstoreOutlined, FilterOutlined } from '@ant-design/icons'
+import { 
+  PlusOutlined, 
+  EditOutlined, 
+  DeleteOutlined, 
+  UploadOutlined, 
+  DownloadOutlined, 
+  TableOutlined, 
+  AppstoreOutlined, 
+  FilterOutlined,
+  FontSizeOutlined
+} from '@ant-design/icons'
 
 const { Option } = Select
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
@@ -345,9 +355,10 @@ export function CategoryManagement() {
           layout="vertical"
           onFinish={handleSubmit}
           style={{ marginTop: 16 }}
+          requiredMark={false}
         >
           <Form.Item
-            label="Tên danh mục"
+            label={<Space><FontSizeOutlined style={{ color: '#1677ff' }} />Tên danh mục (Bắt buộc)</Space>}
             name="name"
             rules={[
               { required: true, message: 'Vui lòng nhập tên danh mục' },
