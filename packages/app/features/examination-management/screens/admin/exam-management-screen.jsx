@@ -51,7 +51,7 @@ export function ExamManagement({ initialData = null }) {
     search: '',
     status: undefined,
     type: undefined,
-    creatorFilter: 0,
+    creatorFilter: 2,
     sortBy: 0,
     isDescending: true,
     page: 1,
@@ -300,19 +300,6 @@ export function ExamManagement({ initialData = null }) {
     <Space wrap>
       <Select
         allowClear
-        placeholder="Tất cả nguồn"
-        suffixIcon={<FilterOutlined />}
-        style={{ width: 'clamp(140px, 12vw, 180px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
-        value={filters.creatorFilter}
-        onChange={(val) => handleFilterChange('creatorFilter', val)}
-      >
-        {Object.entries(CREATOR_FILTER_MAP).map(([val, label]) => (
-          <Option key={val} value={Number(val)}>{label}</Option>
-        ))}
-      </Select>
-
-      <Select
-        allowClear
         placeholder="Tất cả trạng thái"
         suffixIcon={<FilterOutlined />}
         style={{ width: 'clamp(140px, 12vw, 180px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
@@ -337,12 +324,14 @@ export function ExamManagement({ initialData = null }) {
       </Select>
 
       <Select
-        placeholder="Sắp xếp theo"
+        allowClear
+        placeholder="Tất cả nguồn"
+        suffixIcon={<FilterOutlined />}
         style={{ width: 'clamp(140px, 12vw, 180px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
-        value={filters.sortBy}
-        onChange={(val) => handleFilterChange('sortBy', val)}
+        value={filters.creatorFilter}
+        onChange={(val) => handleFilterChange('creatorFilter', val)}
       >
-        {Object.entries(SORT_BY_MAP).map(([val, label]) => (
+        {Object.entries(CREATOR_FILTER_MAP).map(([val, label]) => (
           <Option key={val} value={Number(val)}>{label}</Option>
         ))}
       </Select>
