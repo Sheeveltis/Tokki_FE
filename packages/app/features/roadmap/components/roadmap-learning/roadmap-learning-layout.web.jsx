@@ -220,19 +220,20 @@ export function RoadmapLearningLayout({
   const hasWriting = useMemo(() => targetAim >= 3, [targetAim])
   const phaseLabel = useMemo(() => getTopikPhaseByLevel(targetAim), [targetAim])
 
-  // Logic xác định tuần tối đa có thể xem (Tuần đang học + 1 tuần tiếp theo)
+  // Logic xác định tuần tối đa có thể xem (Chỉ cho xem tuần tiếp theo khi đã hoàn thành tuần trước)
   const maxViewableWeekIndex = useMemo(() => {
-    const inProgressIndex = weeks.find(w => w.status === 'InProgress')?.weekIndex
-    if (inProgressIndex !== undefined) return inProgressIndex + 1
-
-    // Nếu không có tuần nào đang học, tìm tuần cuối cùng đã hoàn thành
+    // 1. Nếu có các tuần đã hoàn thành, tuần tối đa là tuần sau tuần hoàn thành cuối cùng
     const completedWeeks = weeks.filter(w => w.status === 'Completed')
     if (completedWeeks.length > 0) {
       const lastFinishedIndex = Math.max(...completedWeeks.map(w => w.weekIndex))
       return lastFinishedIndex + 1
     }
 
-    // Nếu chưa có tuần nào hoàn thành hoặc đang học, cho phép xem tuần đầu tiên
+    // 2. Nếu không có tuần nào hoàn thành nhưng có tuần đang học, chỉ cho phép xem tuần đó
+    const inProgressIndex = weeks.find(w => w.status === 'InProgress')?.weekIndex
+    if (inProgressIndex !== undefined) return inProgressIndex
+
+    // 3. Nếu chưa có gì, mặc định là tuần đầu tiên
     if (weeks.length > 0) return weeks[0].weekIndex
     return 1
   }, [weeks])
