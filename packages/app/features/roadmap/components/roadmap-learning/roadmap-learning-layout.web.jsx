@@ -50,7 +50,18 @@ export function RoadmapLearningLayout({
         }
       }
       const inProgress = weeks.find(w => w.status === 'InProgress')
-      setActiveWeekIndex(inProgress?.weekIndex || weeks[0].weekIndex)
+      if (inProgress) {
+        setActiveWeekIndex(inProgress.weekIndex)
+      } else {
+        const completedWeeks = weeks.filter(w => w.status === 'Completed')
+        if (completedWeeks.length > 0) {
+          const lastFinishedIndex = Math.max(...completedWeeks.map(w => w.weekIndex))
+          const nextWeek = weeks.find(w => w.weekIndex === lastFinishedIndex + 1)
+          setActiveWeekIndex(nextWeek ? nextWeek.weekIndex : lastFinishedIndex)
+        } else {
+          setActiveWeekIndex(weeks[0].weekIndex)
+        }
+      }
     }
   }, [weeks, initialWeekIndex, activeWeekIndex])
 
@@ -214,7 +225,14 @@ export function RoadmapLearningLayout({
     const inProgressIndex = weeks.find(w => w.status === 'InProgress')?.weekIndex
     if (inProgressIndex !== undefined) return inProgressIndex + 1
 
-    // Nếu chưa có tuần nào in progress, cho phép xem tuần 1
+    // Nếu không có tuần nào đang học, tìm tuần cuối cùng đã hoàn thành
+    const completedWeeks = weeks.filter(w => w.status === 'Completed')
+    if (completedWeeks.length > 0) {
+      const lastFinishedIndex = Math.max(...completedWeeks.map(w => w.weekIndex))
+      return lastFinishedIndex + 1
+    }
+
+    // Nếu chưa có tuần nào hoàn thành hoặc đang học, cho phép xem tuần đầu tiên
     if (weeks.length > 0) return weeks[0].weekIndex
     return 1
   }, [weeks])
@@ -228,6 +246,14 @@ export function RoadmapLearningLayout({
       total: tasks.length
     }
   }, [activeWeek])
+  
+  const isActiveWeekNextToCreate = useMemo(() => {
+    if (!activeWeek) return false
+    const hasContent = Array.isArray(activeWeek.tasks) && activeWeek.tasks.length > 0
+    const isFinished = activeWeek.status === 'Completed'
+    const isInProgress = activeWeek.status === 'InProgress'
+    return !isFinished && !isInProgress && !hasContent && activeWeek.weekIndex === maxViewableWeekIndex
+  }, [activeWeek, maxViewableWeekIndex])
 
   if (isLoading) {
     return (
@@ -326,7 +352,11 @@ export function RoadmapLearningLayout({
 
                   const hasContent = Array.isArray(week.tasks) && week.tasks.length > 0
                   const isNextWeek = week.weekIndex <= maxViewableWeekIndex
-                  const isDisabled = !isFinished && !isInProgress && (!hasContent || !isNextWeek)
+                  
+                  // Tuần "Tiếp theo" để tạo (Chưa có nội dung và nằm trong phạm vi được phép xem)
+                  const isNextToCreate = !isFinished && !isInProgress && !hasContent && week.weekIndex === maxViewableWeekIndex
+                  
+                  const isDisabled = !isFinished && !isInProgress && !hasContent && !isNextToCreate
 
                   return (
                     <Pressable
@@ -351,6 +381,11 @@ export function RoadmapLearningLayout({
                         {isFinished && <Text style={styles.weekCheck}>✓</Text>}
                         {isInProgress && !isActive && <View style={styles.inProgressSmallDot} />}
                         {isDisabled && <View style={styles.lockIcon} />}
+                        {isNextToCreate && (
+                          <View style={styles.nextToCreateBadge}>
+                            <Text style={styles.nextToCreateText}>MỚI</Text>
+                          </View>
+                        )}
                       </View>
 
                       <View style={styles.sideWeekMiniProgress}>
@@ -379,11 +414,31 @@ export function RoadmapLearningLayout({
                     <View style={styles.weekFocusHeader}>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.weekFocusLabel}>NHIỆM VỤ TUẦN {activeWeekIndex}</Text>
-                        <Text style={styles.weekFocusGoal} numberOfLines={2}>{activeWeek?.focusGoal || 'Duy trì phong độ học tập ổn định'}</Text>
+                        <Text style={styles.weekFocusGoal} numberOfLines={2}>
+                          {isActiveWeekNextToCreate 
+                            ? 'Vui lòng bấm tạo tuần tiếp theo' 
+                            : (activeWeek?.focusGoal || 'Duy trì phong độ học tập ổn định')}
+                        </Text>
                       </View>
-                      <View style={[styles.statusBadge, activeWeek?.status === 'InProgress' ? styles.statusBadgeActive : (activeWeek?.status === 'Completed' ? styles.statusBadgeFinished : styles.statusBadgePending)]}>
-                        <Text style={[styles.statusBadgeText, activeWeek?.status === 'InProgress' ? styles.statusBadgeTextActive : (activeWeek?.status === 'Completed' ? styles.statusBadgeTextFinished : styles.statusBadgeTextPending)]}>
-                          {activeWeek?.status === 'InProgress' ? 'ĐANG HỌC' : (activeWeek?.status === 'Completed' ? 'ĐÃ XONG' : 'CHƯA ĐẾN')}
+                      <View style={[
+                        styles.statusBadge, 
+                        activeWeek?.status === 'InProgress' 
+                          ? styles.statusBadgeActive 
+                          : (activeWeek?.status === 'Completed' 
+                              ? styles.statusBadgeFinished 
+                              : (isActiveWeekNextToCreate ? styles.statusBadgeActive : styles.statusBadgePending))
+                      ]}>
+                        <Text style={[
+                          styles.statusBadgeText, 
+                          activeWeek?.status === 'InProgress' 
+                            ? styles.statusBadgeTextActive 
+                            : (activeWeek?.status === 'Completed' 
+                                ? styles.statusBadgeTextFinished 
+                                : (isActiveWeekNextToCreate ? styles.statusBadgeTextActive : styles.statusBadgeTextPending))
+                        ]}>
+                          {activeWeek?.status === 'InProgress' 
+                            ? 'ĐANG HỌC' 
+                            : (activeWeek?.status === 'Completed' ? 'ĐÃ XONG' : (isActiveWeekNextToCreate ? 'SẴN SÀNG' : 'CHƯA ĐẾN'))}
                         </Text>
                       </View>
                     </View>
@@ -815,6 +870,20 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: '#BBB',
+  },
+  nextToCreateBadge: {
+    backgroundColor: '#FFF8E1',
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#FFD54F',
+  },
+  nextToCreateText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#F57C00',
+    letterSpacing: 0.5,
   },
   weekFocusArea: {
     gap: 16,
