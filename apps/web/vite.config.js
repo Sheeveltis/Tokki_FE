@@ -56,7 +56,7 @@ export default defineConfig({
       'react-native',
       'react-native-safe-area-context',
     ],
-    include: ['react', 'react-dom', '@tanstack/react-query'],
+    include: ['react', 'react-dom', '@tanstack/react-query', 'expo-linear-gradient'],
   },
   define: {
     global: 'globalThis',
