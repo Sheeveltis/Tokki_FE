@@ -19,8 +19,8 @@ export function StudyStatsCards({ streakDays = 0, isCompletedToday = false }) {
       {/* Card: Chuỗi học tập */}
       <View style={[styles.streakCard, isCompletedToday && styles.streakCardActive]}>
         <View style={styles.fireContainer}>
-          <View style={[!isCompletedToday && styles.fireDark]}>
-            <FireIcon width={56} height={56} />
+          <View style={[!isCompletedToday ? styles.fireDark : styles.fireActive]}>
+            <FireIcon width={120} height={120} />
           </View>
         </View>
         <Text style={[styles.streakLabel, isCompletedToday && styles.streakLabelActive]}>
@@ -73,15 +73,22 @@ const styles = StyleSheet.create({
   },
   fireContainer: {
     position: 'absolute',
-    top: 12,
-    right: 16,
-    zIndex: 1,
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 0,
   },
   fireDark: {
-    opacity: 0.3,
+    opacity: 0.1,
     ...(Platform.OS === 'web' && {
       filter: 'grayscale(1)',
     }),
+  },
+  fireActive: {
+    opacity: 0.2,
   },
   streakLabel: {
     fontSize: 13,
