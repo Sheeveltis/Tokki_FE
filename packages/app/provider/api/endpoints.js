@@ -321,12 +321,13 @@ export const ENDPOINTS = {
   ROADMAP: {
     DURATION_RECOMMENDATION: '/Roadmap/duration-recommendation',
     FEEDBACK: '/Roadmap/entrance-feedback',
-    GENERATE: '/Roadmap/generate',
-    PROGRESS: (jobId) => `/Roadmap/progress/${encodeURIComponent(jobId)}`,
+    GENERATE: '/RoadmapVer2/generate',
+    PROGRESS: (jobId) => `/RoadmapVer2/progress/${encodeURIComponent(jobId)}`,
     CURRENT: '/Roadmap/current',
     TASK_DETAIL: (taskId) => `/Roadmap/task/${encodeURIComponent(taskId)}/detail`,
     COMPLETE: '/Roadmap/complete',
-    NEXT_WEEK: '/Roadmap/next-week',
+    NEXT_WEEK: '/RoadmapVer2/next-week',
+    CANCEL: '/RoadmapVer2/cancel',
   },
   SYSTEM_CONFIGS: {
     GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,

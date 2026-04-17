@@ -1,8 +1,16 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Modal, Form, Input, Select, Upload } from 'antd'
-import { InboxOutlined } from '@ant-design/icons'
+import { Modal, Form, Input, Select, Upload, Space } from 'antd'
+import { 
+  InboxOutlined, 
+  FontSizeOutlined, 
+  AppstoreOutlined, 
+  AlignLeftOutlined, 
+  PictureOutlined, 
+  AudioOutlined, 
+  CheckCircleOutlined
+} from '@ant-design/icons'
 import { showAdminError } from '../../../../../../components/HelperAdmin.jsx'
 
 import { createObjectUrl, revokeObjectUrl } from '../../../api/upload-utils'
@@ -156,6 +164,7 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
       <Form
         form={form}
         layout="vertical"
+        requiredMark={false}
         onFinish={(values) => {
           try {
             validateBeforeSubmit(values)
@@ -169,8 +178,8 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
           <Input />
         </Form.Item>
 
-        <Form.Item
-          label="Tiêu đề"
+         <Form.Item
+          label={<Space><FontSizeOutlined style={{ color: '#1677ff' }} />Tiêu đề (Bắt buộc)</Space>}
           name="title"
           rules={[{ required: true, message: 'Vui lòng nhập tiêu đề' }]}
         >
@@ -178,7 +187,7 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
         </Form.Item>
 
         <Form.Item
-          label="MediaType"
+          label={<Space><AppstoreOutlined style={{ color: '#1677ff' }} />MediaType (Bắt buộc)</Space>}
           name="mediaType"
           rules={[{ required: true, message: 'Vui lòng chọn MediaType' }]}
         >
@@ -191,7 +200,7 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
 
         {mediaType === 0 ? (
           <Form.Item
-            label="Nội dung (chỉ cho Văn bản)"
+            label={<Space><AlignLeftOutlined style={{ color: '#1677ff' }} />Nội dung (Bắt buộc) (chỉ cho Văn bản)</Space>}
             name="content"
             rules={[{ required: true, message: 'Vui lòng nhập content' }]}
           >
@@ -200,7 +209,7 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
         ) : null}
 
         {mediaType === 1 ? (
-          <Form.Item label="Hình ảnh (chỉ cho Image)">
+          <Form.Item label={<Space><PictureOutlined style={{ color: '#1677ff' }} />Hình ảnh (Bắt buộc) (chỉ cho Image)</Space>}>
             <Dragger {...imageUploadProps}>
               <p className="ant-upload-drag-icon"><InboxOutlined /></p>
               <p className="ant-upload-text">Nhấp hoặc kéo thả ảnh vào đây</p>
@@ -219,7 +228,7 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
         ) : null}
 
         {mediaType === 2 ? (
-          <Form.Item label="Audio (chỉ cho Audio)">
+          <Form.Item label={<Space><AudioOutlined style={{ color: '#1677ff' }} />Audio (Bắt buộc) (chỉ cho Audio)</Space>}>
             <Dragger {...audioUploadProps}>
               <p className="ant-upload-drag-icon"><InboxOutlined /></p>
               <p className="ant-upload-text">Nhấp hoặc kéo thả audio vào đây</p>
@@ -236,7 +245,11 @@ export function UpdatePassageModal({ open, onCancel, onSubmit, loading, initialV
           </Form.Item>
         ) : null}
 
-        <Form.Item label="Status" name="status" initialValue={1}>
+        <Form.Item 
+          label={<Space><CheckCircleOutlined style={{ color: '#1677ff' }} />Status</Space>} 
+          name="status" 
+          initialValue={1}
+        >
           <Select options={STATUS_OPTIONS} />
         </Form.Item>
 

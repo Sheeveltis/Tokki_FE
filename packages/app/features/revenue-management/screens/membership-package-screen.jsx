@@ -2,7 +2,17 @@
 
 import React, { useState, useMemo } from 'react'
 import { Space, Typography, Tag, Modal, Form, Input, InputNumber, message, Tooltip, Select } from 'antd'
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons'
+import { 
+  EditOutlined, 
+  DeleteOutlined, 
+  PlusOutlined, 
+  FontSizeOutlined, 
+  IdcardOutlined, 
+  HistoryOutlined, 
+  DollarOutlined, 
+  CheckCircleOutlined, 
+  FileTextOutlined 
+} from '@ant-design/icons'
 import ManagementLayout from '../../../../components/layout/management-layout.jsx'
 import { useManagementFilters } from '../../back-office/hooks/use-management-filters.js'
 import { usePackagesQuery } from '../../back-office/api/useAdminQueries.js'
@@ -214,9 +224,9 @@ export function MembershipPackage() {
         okButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px' } }}
         cancelButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px' } }}
       >
-        <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ marginTop: 16 }}>
+        <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ marginTop: 16 }} requiredMark={false}>
           <Form.Item
-            label="Tên gói"
+            label={<Space><FontSizeOutlined style={{ color: '#1677ff' }} />Tên gói (Bắt buộc)</Space>}
             name="name"
             rules={[{ required: true, message: 'Vui lòng nhập tên gói' }]}
           >
@@ -225,7 +235,7 @@ export function MembershipPackage() {
 
           <Space style={{ width: '100%' }} size="large">
             <Form.Item
-              label="Loại gói"
+              label={<Space><IdcardOutlined style={{ color: '#1677ff' }} />Loại gói (Bắt buộc)</Space>}
               name="packageType"
               style={{ width: 260 }}
               rules={[{ required: true, message: 'Vui lòng chọn loại gói' }]}
@@ -238,7 +248,7 @@ export function MembershipPackage() {
             </Form.Item>
 
             <Form.Item
-              label="Thời hạn (ngày)"
+              label={<Space><HistoryOutlined style={{ color: '#1677ff' }} />Thời hạn (ngày) (Bắt buộc)</Space>}
               name="durationDays"
               style={{ width: 260 }}
               rules={[{ required: true, message: 'Vui lòng nhập thời hạn' }]}
@@ -253,7 +263,7 @@ export function MembershipPackage() {
           </Space>
 
           <Form.Item
-            label="Giá (VND)"
+            label={<Space><DollarOutlined style={{ color: '#1677ff' }} />Giá (VND) (Bắt buộc)</Space>}
             name="price"
             rules={[{ required: true, message: 'Vui lòng nhập giá' }]}
           >
@@ -268,7 +278,7 @@ export function MembershipPackage() {
           </Form.Item>
 
           <Form.Item
-            label="Trạng thái"
+            label={<Space><CheckCircleOutlined style={{ color: '#1677ff' }} />Trạng thái</Space>}
             name="isActive"
             valuePropName="checked"
           >
@@ -279,7 +289,7 @@ export function MembershipPackage() {
           </Form.Item>
 
           <Form.Item
-            label="Mô tả"
+            label={<Space><FileTextOutlined style={{ color: '#1677ff' }} />Mô tả (Bắt buộc)</Space>}
             name="description"
             rules={[{ required: true, message: 'Vui lòng nhập mô tả' }]}
           >

@@ -1,8 +1,14 @@
-'use client'
-
 import React, { useState, useEffect, useCallback } from 'react'
 import { Modal, Form, Input, InputNumber, Select, Radio, message, Button, Space, Row, Col, Divider } from 'antd'
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
+import { 
+  PlusOutlined, 
+  DeleteOutlined, 
+  FontSizeOutlined, 
+  AppstoreOutlined, 
+  StarOutlined, 
+  FieldTimeOutlined,
+  InfoCircleOutlined
+} from '@ant-design/icons'
 import { createExam } from '../../api/exam-management.js'
 import { fetchExamTemplates, fetchExamTemplate } from '../../../back-office/api/admin-index.js'
 
@@ -175,13 +181,16 @@ export function CreateExamModal({ open, onCancel, onSuccess }) {
         onFinish={handleSubmit}
         autoComplete="off"
         style={{ marginTop: 24 }}
+        requiredMark={false}
       >
         <div style={{ padding: '0 8px' }}>
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>1. Thông tin cơ bản</div>
+            <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <Space><InfoCircleOutlined />1. Thông tin cơ bản</Space>
+            </div>
 
             <Form.Item
-              label={<span style={{ fontWeight: 600, fontSize: 13 }}>Tiêu đề đề thi</span>}
+              label={<Space><FontSizeOutlined style={{ color: '#1677ff' }} />Tiêu đề đề thi (Bắt buộc)</Space>}
               name="title"
               rules={[
                 { required: true, message: 'Vui lòng nhập tiêu đề' },
@@ -193,7 +202,7 @@ export function CreateExamModal({ open, onCancel, onSuccess }) {
             </Form.Item>
 
             <Form.Item
-              label={<span style={{ fontWeight: 600, fontSize: 13 }}>Loại đề</span>}
+              label={<Space><StarOutlined style={{ color: '#1677ff' }} />Loại đề (Bắt buộc)</Space>}
               name="examType"
               rules={[{ required: true, message: 'Vui lòng chọn loại đề' }]}
               style={{ marginBottom: 12 }}
@@ -215,7 +224,7 @@ export function CreateExamModal({ open, onCancel, onSuccess }) {
 
             {examType && (
               <Form.Item
-                label={<span style={{ fontWeight: 600, fontSize: 13 }}>Mẫu đề</span>}
+                label={<Space><AppstoreOutlined style={{ color: '#1677ff' }} />Mẫu đề (Bắt buộc)</Space>}
                 name="examTemplateId"
                 rules={[{ required: true, message: 'Vui lòng chọn mẫu đề' }]}
                 style={{ marginBottom: 0 }}
@@ -262,7 +271,9 @@ export function CreateExamModal({ open, onCancel, onSuccess }) {
               alignItems: 'center',
               marginBottom: 8
             }}>
-              <div style={{ fontSize: 12, color: '#8c8c8c', textTransform: 'uppercase', letterSpacing: '0.05em' }}>2. Thời lượng kỹ năng</div>
+              <div style={{ fontSize: 12, color: '#8c8c8c', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <Space><FieldTimeOutlined />2. Thời lượng kỹ năng</Space>
+              </div>
               <span style={{ fontSize: '10px', color: '#bfbfbf' }}>(phút)</span>
             </div>
 
@@ -299,7 +310,7 @@ export function CreateExamModal({ open, onCancel, onSuccess }) {
                         >
                           <Option value="Listening">Listening</Option>
                           <Option value="Reading">Reading</Option>
-                          <Option value="Writting">Writting</Option>
+                          <Option value="Writing">Writing</Option>
                         </Select>
                       </Form.Item>
                       <Form.Item

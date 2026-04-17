@@ -1,7 +1,15 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Modal, Form, Input, Select, DatePicker, message, Spin } from 'antd'
+import { Modal, Form, Input, Select, DatePicker, message, Spin, Space } from 'antd'
+import { 
+  UserOutlined, 
+  MailOutlined, 
+  PhoneOutlined, 
+  CalendarOutlined, 
+  SafetyCertificateOutlined, 
+  CheckCircleOutlined 
+} from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { fetchUserDetail, updateUserProfile } from '../../../api/user-detail'
 
@@ -92,9 +100,10 @@ export function UserEditModal({ open, userId, onOk, onCancel }) {
           form={form}
           layout="vertical"
           style={{ marginTop: 16 }}
+          requiredMark={false}
         >
           <Form.Item
-            label="Họ và tên"
+            label={<Space><UserOutlined style={{ color: '#1677ff' }} />Họ và tên (Bắt buộc)</Space>}
             name="fullName"
             rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
           >
@@ -102,7 +111,7 @@ export function UserEditModal({ open, userId, onOk, onCancel }) {
           </Form.Item>
 
           <Form.Item
-            label="Email (Không thể sửa)"
+            label={<Space><MailOutlined style={{ color: '#1677ff' }} />Email (Không thể sửa)</Space>}
             name="email"
           >
             <Input disabled placeholder="Email của người dùng" />
@@ -110,14 +119,14 @@ export function UserEditModal({ open, userId, onOk, onCancel }) {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <Form.Item
-              label="Số điện thoại"
+              label={<Space><PhoneOutlined style={{ color: '#1677ff' }} />Số điện thoại</Space>}
               name="phoneNumber"
             >
               <Input placeholder="Nhập số điện thoại" />
             </Form.Item>
 
             <Form.Item
-              label="Ngày sinh"
+              label={<Space><CalendarOutlined style={{ color: '#1677ff' }} />Ngày sinh</Space>}
               name="dateOfBirth"
             >
               <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder="Chọn ngày sinh" />
@@ -126,7 +135,7 @@ export function UserEditModal({ open, userId, onOk, onCancel }) {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <Form.Item
-              label="Vai trò"
+              label={<Space><SafetyCertificateOutlined style={{ color: '#1677ff' }} />Vai trò (Bắt buộc)</Space>}
               name="role"
               rules={[{ required: true, message: 'Chọn vai trò' }]}
             >
@@ -139,7 +148,7 @@ export function UserEditModal({ open, userId, onOk, onCancel }) {
             </Form.Item>
 
             <Form.Item
-              label="Trạng thái"
+              label={<Space><CheckCircleOutlined style={{ color: '#1677ff' }} />Trạng thái (Bắt buộc)</Space>}
               name="status"
               rules={[{ required: true, message: 'Chọn trạng thái' }]}
             >

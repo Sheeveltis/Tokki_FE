@@ -1,8 +1,13 @@
-'use client'
-
 import React, { useState, useEffect, useCallback } from 'react'
 import { Modal, Form, Input, InputNumber, Select, message, Button, Space } from 'antd'
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
+import { 
+  PlusOutlined, 
+  DeleteOutlined, 
+  FontSizeOutlined, 
+  AppstoreOutlined, 
+  FieldTimeOutlined,
+  InfoCircleOutlined
+} from '@ant-design/icons'
 import { updateExamInfo } from '../../../api/exam-management.js'
 import { fetchExamTemplates, fetchExamTemplate } from '../../../../back-office/api/admin-index.js'
 
@@ -189,13 +194,16 @@ export function EditExamInfoModal({ open, onCancel, onSuccess, exam }) {
         onFinish={handleSubmit}
         autoComplete="off"
         style={{ marginTop: 24 }}
+        requiredMark={false}
       >
         <div style={{ padding: '0 8px' }}>
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>1. Thông tin cơ bản</div>
+            <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <Space><InfoCircleOutlined />1. Thông tin cơ bản</Space>
+            </div>
             
             <Form.Item
-              label={<span style={{ fontWeight: 600, fontSize: 13 }}>Tiêu đề đề thi</span>}
+              label={<Space><FontSizeOutlined style={{ color: '#1677ff' }} />Tiêu đề đề thi (Bắt buộc)</Space>}
               name="title"
               rules={[
                 { required: true, message: 'Vui lòng nhập tiêu đề' },
@@ -207,7 +215,7 @@ export function EditExamInfoModal({ open, onCancel, onSuccess, exam }) {
             </Form.Item>
 
             <Form.Item
-              label={<span style={{ fontWeight: 600, fontSize: 13 }}>Mẫu đề</span>}
+              label={<Space><AppstoreOutlined style={{ color: '#1677ff' }} />Mẫu đề (Bắt buộc)</Space>}
               name="examTemplateId"
               rules={[{ required: true, message: 'Vui lòng chọn mẫu đề' }]}
               style={{ marginBottom: 0 }}
@@ -253,7 +261,9 @@ export function EditExamInfoModal({ open, onCancel, onSuccess, exam }) {
               alignItems: 'center',
               marginBottom: 12 
             }}>
-              <div style={{ fontSize: 12, color: '#8c8c8c', textTransform: 'uppercase', letterSpacing: '0.05em' }}>2. Thời lượng kỹ năng</div>
+              <div style={{ fontSize: 12, color: '#8c8c8c', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <Space><FieldTimeOutlined />2. Thời lượng kỹ năng</Space>
+              </div>
               <span style={{ fontSize: '10px', color: '#bfbfbf' }}>(phút)</span>
             </div>
 

@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import { Modal, Form, Input, Select, message } from 'antd'
+import { Modal, Form, Input, Select, message, Space } from 'antd'
+import { 
+  FontSizeOutlined, 
+  TagOutlined, 
+  FileTextOutlined, 
+  StarOutlined, 
+  SafetyCertificateOutlined, 
+  LineChartOutlined, 
+  CheckCircleOutlined 
+} from '@ant-design/icons'
 import { updateQuestionType } from '../../../api/question-type-management'
 
 const { TextArea } = Input
@@ -68,9 +77,10 @@ export function EditQuestionTypeModal({ open, questionType, onCancel, onUpdate }
         form={form}
         layout="vertical"
         style={{ marginTop: 16 }}
+        requiredMark={false}
       >
         <Form.Item
-          label="Tên loại câu hỏi"
+          label={<Space><FontSizeOutlined style={{ color: '#1677ff' }} />Tên loại câu hỏi (Bắt buộc)</Space>}
           name="name"
           rules={[{ required: true, message: 'Vui lòng nhập tên loại câu hỏi' }]}
         >
@@ -78,7 +88,7 @@ export function EditQuestionTypeModal({ open, questionType, onCancel, onUpdate }
         </Form.Item>
 
         <Form.Item
-          label="Code"
+          label={<Space><TagOutlined style={{ color: '#1677ff' }} />Code (Bắt buộc)</Space>}
           name="code"
           rules={[{ required: true, message: 'Vui lòng nhập code' }]}
         >
@@ -86,7 +96,7 @@ export function EditQuestionTypeModal({ open, questionType, onCancel, onUpdate }
         </Form.Item>
 
         <Form.Item
-          label="Mô tả"
+          label={<Space><FileTextOutlined style={{ color: '#1677ff' }} />Mô tả</Space>}
           name="description"
         >
           <TextArea rows={3} placeholder="Mô tả loại câu hỏi" />
@@ -94,7 +104,7 @@ export function EditQuestionTypeModal({ open, questionType, onCancel, onUpdate }
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <Form.Item
-            label="Kỹ năng"
+            label={<Space><StarOutlined style={{ color: '#1677ff' }} />Kỹ năng</Space>}
             name="skill"
           >
             <Select disabled>
@@ -105,7 +115,7 @@ export function EditQuestionTypeModal({ open, questionType, onCancel, onUpdate }
           </Form.Item>
 
           <Form.Item
-            label="TOPIK Level"
+            label={<Space><SafetyCertificateOutlined style={{ color: '#1677ff' }} />TOPIK Level (Bắt buộc)</Space>}
             name="examType"
             rules={[{ required: true, message: 'Vui lòng chọn TOPIK level' }]}
           >
@@ -118,7 +128,7 @@ export function EditQuestionTypeModal({ open, questionType, onCancel, onUpdate }
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <Form.Item
-            label="Mức độ"
+            label={<Space><LineChartOutlined style={{ color: '#1677ff' }} />Mức độ (Bắt buộc)</Space>}
             name="difficulty"
             rules={[{ required: true, message: 'Vui lòng chọn mức độ' }]}
           >
@@ -131,7 +141,7 @@ export function EditQuestionTypeModal({ open, questionType, onCancel, onUpdate }
           </Form.Item>
 
           <Form.Item
-            label="Trạng thái"
+            label={<Space><CheckCircleOutlined style={{ color: '#1677ff' }} />Trạng thái (Bắt buộc)</Space>}
             name="status"
             rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
           >

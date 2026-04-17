@@ -1,8 +1,5 @@
 import React from 'react'
 import { View, Text, StyleSheet, ScrollView, Platform, Pressable } from 'react-native'
-import { Navbar } from 'components/navbar'
-import { QuickLevelTestButton } from '@tokki/app/features/study/components/quick-level-test-button.web'
-import { StudyStatsCards } from '@tokki/app/features/study/components/study-stats-cards.web'
 import { useRouter } from 'solito/navigation'
 
 /**

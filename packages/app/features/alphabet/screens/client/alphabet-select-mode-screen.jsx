@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Platform } from 'react-native'
-import { 
+import {
   AlphabetSelectModeLayout as WebLayout,
   AlphabetSelectModeMain as WebMain,
   AlphabetSelectModeLayoutMobile as MobileLayout,
@@ -27,7 +27,7 @@ export function AlphabetSelectModeScreen({
         onBackPress={onBackPress}
         onLettersPress={onLettersPress}
         onSyllablesPress={onSyllablesPress}
-              />
+      />
     </Layout>
   )
 }

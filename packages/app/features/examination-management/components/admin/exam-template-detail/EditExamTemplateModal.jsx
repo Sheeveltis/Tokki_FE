@@ -1,7 +1,10 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import { Modal, Form, Input, Select, message } from 'antd'
-// TODO: Thay thế bằng API thực tế khi có
-// import { updateExamTemplate } from '../../api'
+import { Modal, Form, Input, Select, message, Space } from 'antd'
+import { 
+  FontSizeOutlined, 
+  FileTextOutlined, 
+  StarOutlined 
+} from '@ant-design/icons'
 
 const { TextArea } = Input
 
@@ -46,9 +49,6 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
         examType: values.examType,
       }
 
-      // TODO: Thay bằng API call thực tế
-      // await updateExamTemplate(examTemplate.examTemplateId, payload)
-      
       if (onSuccess) {
         // Chờ screen cha gọi API update và tự hiển thị message.success / message.error
         await onSuccess(payload)
@@ -91,9 +91,10 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
         style={{ maxWidth: 600 }}
         preserve={false}
         validateTrigger="onSubmit"
+        requiredMark={false}
       >
         <Form.Item
-          label="Tên mẫu đề"
+          label={<Space><FontSizeOutlined style={{ color: '#1677ff' }} />Tên mẫu đề (Bắt buộc)</Space>}
           name="name"
           rules={[{ required: true, message: 'Vui lòng nhập tên mẫu đề' }]}
           validateTrigger="onSubmit"
@@ -102,7 +103,7 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
         </Form.Item>
 
         <Form.Item
-          label="Mô tả"
+          label={<Space><FileTextOutlined style={{ color: '#1677ff' }} />Mô tả</Space>}
           name="description"
           validateTrigger="onSubmit"
         >
@@ -113,7 +114,7 @@ function EditExamTemplateModal({ open, examTemplate, onCancel, onSuccess }) {
         </Form.Item>
 
         <Form.Item
-          label="Loại đề"
+          label={<Space><StarOutlined style={{ color: '#1677ff' }} />Loại đề (Bắt buộc)</Space>}
           name="examType"
           rules={[{ required: true, message: 'Vui lòng chọn loại đề' }]}
           validateTrigger="onSubmit"

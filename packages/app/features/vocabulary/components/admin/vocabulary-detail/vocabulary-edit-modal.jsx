@@ -1,7 +1,14 @@
 'use client'
 
 import React from 'react'
-import { Modal, Form, Input, Upload, message, Select } from 'antd'
+import { Modal, Form, Input, Upload, message, Select, Space } from 'antd'
+import { 
+  FontSizeOutlined, 
+  SoundOutlined, 
+  BookOutlined, 
+  PictureOutlined, 
+  CheckCircleOutlined 
+} from '@ant-design/icons'
 
 /**
  * Modal chỉnh sửa từ vựng
@@ -92,25 +99,36 @@ export function VocabularyEditModal({ open, loading, initialValues = {}, onCance
         body: { fontSize: 16 },
       }}
     >
-      <Form form={form} layout="vertical">
-        <Form.Item label="Từ" name="text" rules={[{ required: true, message: 'Vui lòng nhập từ' }]}>
+      <Form 
+        form={form} 
+        layout="vertical"
+        requiredMark={false}
+      >
+        <Form.Item 
+          label={<Space><FontSizeOutlined style={{ color: '#1677ff' }} />Từ (Bắt buộc)</Space>} 
+          name="text" 
+          rules={[{ required: true, message: 'Vui lòng nhập từ' }]}
+        >
           <Input placeholder="VD: 은행" size="large" style={{ fontSize: 16 }} />
         </Form.Item>
         <Form.Item
-          label="Phiên âm"
+          label={<Space><SoundOutlined style={{ color: '#1677ff' }} />Phiên âm (Bắt buộc)</Space>}
           name="pronunciation"
           rules={[{ required: true, message: 'Vui lòng nhập phiên âm' }]}
         >
           <Input placeholder="VD: eunhaeng" size="large" style={{ fontSize: 16 }} />
         </Form.Item>
         <Form.Item
-          label="Định nghĩa"
+          label={<Space><BookOutlined style={{ color: '#1677ff' }} />Định nghĩa (Bắt buộc)</Space>}
           name="definition"
           rules={[{ required: true, message: 'Vui lòng nhập nghĩa/định nghĩa' }]}
         >
           <Input placeholder="VD: Ngân hàng" size="large" style={{ fontSize: 16 }} />
         </Form.Item>
-        <Form.Item label="Ảnh minh họa" name="imgURL">
+        <Form.Item 
+          label={<Space><PictureOutlined style={{ color: '#1677ff' }} />Ảnh minh họa</Space>} 
+          name="imgURL"
+        >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <Upload.Dragger
               multiple={false}
@@ -135,7 +153,11 @@ export function VocabularyEditModal({ open, loading, initialValues = {}, onCance
             ) : null}
           </div>
         </Form.Item>
-        <Form.Item label="Trạng thái" name="status" rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}>
+        <Form.Item 
+          label={<Space><CheckCircleOutlined style={{ color: '#1677ff' }} />Trạng thái (Bắt buộc)</Space>} 
+          name="status" 
+          rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
+        >
           <Select size="large" style={{ fontSize: 16 }}>
             <Select.Option value={0}>Bản nháp</Select.Option>
             <Select.Option value={1}>Hoạt động</Select.Option>
