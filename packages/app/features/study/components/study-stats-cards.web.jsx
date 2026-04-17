@@ -75,20 +75,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     bottom: 0,
-    left: 0,
-    right: 0,
+    right: 12,
     justifyContent: 'center',
-    alignItems: 'center',
     zIndex: 0,
   },
   fireDark: {
-    opacity: 0.1,
+    opacity: 0.15,
     ...(Platform.OS === 'web' && {
       filter: 'grayscale(1)',
     }),
   },
   fireActive: {
-    opacity: 0.2,
+    opacity: 0.3,
   },
   streakLabel: {
     fontSize: 13,
