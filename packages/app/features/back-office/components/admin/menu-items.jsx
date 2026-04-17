@@ -48,14 +48,6 @@ export const adminMenuItems = [
     ],
   },
   {
-    key: 'pronunciation-parent',
-    icon: <CustomerServiceOutlined />,
-    label: 'Quản lý Phát âm',
-    children: [
-      { key: 'pronunciation-management', icon: <MessageOutlined />, label: 'Quy tắc phát âm' },
-    ],
-  },
-  {
     key: 'exam',
     icon: <FileDoneOutlined />,
     label: 'Quản lý Đề',
@@ -66,15 +58,6 @@ export const adminMenuItems = [
       { key: 'exam-template', icon: <FormOutlined />, label: 'Cấu trúc đề' },
       // { key: 'passage-management', icon: <FileTextOutlined />, label: 'Passage' },
       { key: 'exam-management', icon: <FileDoneOutlined />, label: 'Đề' },
-    ],
-  },
-  {
-    key: 'blog-parent',
-    icon: <FileTextOutlined />,
-    label: 'Quản lý Bài viết',
-    children: [
-      { key: 'blog', icon: <FileTextOutlined />, label: 'Bài viết' },
-      { key: 'blog-category', icon: <BookOutlined />, label: 'Danh mục' },
     ],
   },
   {

@@ -9,7 +9,7 @@ import { adminMenuItems } from './menu-items.jsx'
 
 const ThemeContext = createContext({
   themeMode: 'light',
-  toggleTheme: () => {},
+  toggleTheme: () => { },
 })
 
 export const useTheme = () => useContext(ThemeContext)
@@ -25,7 +25,7 @@ export const useTheme = () => useContext(ThemeContext)
 export function AdminLayout({
   screens = {},
   defaultKey = 'users-all',
-  onLogout = () => {},
+  onLogout = () => { },
   onNavigate,
   children,
 }) {
@@ -42,9 +42,9 @@ export function AdminLayout({
     const searchParams = new URLSearchParams(location.search)
     const tab = searchParams.get('tab')
     const pathname = location.pathname
-    
+
     let key = tab || defaultKey
-    
+
     // Nếu pathname là detail (VD: /admin/users/123), ánh xạ về tab tương ứng
     if (pathname.includes('/admin/users/')) key = 'users-all'
     if (pathname.includes('/admin/question-type/')) key = 'question-bank'
@@ -61,9 +61,9 @@ export function AdminLayout({
 
     // Tìm parent
     for (const item of adminMenuItems) {
-       if (item.children && item.children.some(child => child.key === key)) {
-         return { key, parents: [item.key] }
-       }
+      if (item.children && item.children.some(child => child.key === key)) {
+        return { key, parents: [item.key] }
+      }
     }
     return { key, parents: [] }
   }
@@ -145,12 +145,12 @@ export function AdminLayout({
     <ThemeContext.Provider
       value={{
         themeMode,
-        toggleTheme: () => {},
+        toggleTheme: () => { },
       }}
     >
-      <ConfigProvider 
-        theme={{ 
-          algorithm, 
+      <ConfigProvider
+        theme={{
+          algorithm,
           token: themeTokens,
           components: {
             Layout: {
@@ -163,10 +163,46 @@ export function AdminLayout({
               itemMarginInline: 8,
               itemSelectedBg: '#e6f4ff',
               itemSelectedColor: '#1677ff',
+              itemHoverBg: 'transparent',
             }
           }
         }}
       >
+        <style>
+          {`
+            /* Highlight màu xanh cho mục con đang chọn */
+            .ant-menu-item-selected {
+              background-color: #e6f4ff !important;
+              color: #1677ff !important;
+            }
+
+            /* Giữ mục cha (SubMenu) luôn ở trạng thái trung tính */
+            .ant-menu-submenu-title {
+              background-color: transparent !important;
+              color: rgba(0, 0, 0, 0.88) !important;
+            }
+            .ant-menu-submenu-title .ant-menu-item-icon,
+            .ant-menu-submenu-title .ant-menu-submenu-arrow {
+              color: rgba(0, 0, 0, 0.88) !important;
+            }
+
+            /* Không đổi màu mục cha kể cả khi con được chọn hoặc đang hover */
+            .ant-menu-submenu-selected > .ant-menu-submenu-title,
+            .ant-menu-submenu-title:hover {
+              color: rgba(0, 0, 0, 0.88) !important;
+              background-color: transparent !important;
+            }
+            .ant-menu-submenu-selected > .ant-menu-submenu-title .ant-menu-item-icon,
+            .ant-menu-submenu-title:hover .ant-menu-item-icon {
+              color: rgba(0, 0, 0, 0.88) !important;
+            }
+
+            /* Hiệu ứng hover nhẹ chỉ dành cho các item bên trong */
+            .ant-menu-item:not(.ant-menu-item-selected):hover {
+              background-color: rgba(0, 0, 0, 0.04) !important;
+            }
+          `}
+        </style>
         <App>
           <Layout style={{ height: '100vh', overflow: 'hidden' }}>
             <Layout.Sider
@@ -195,9 +231,9 @@ export function AdminLayout({
                   }}
                 >
                   {!collapsed && (
-                    <span style={{ 
-                      fontSize: 20, 
-                      fontWeight: 800, 
+                    <span style={{
+                      fontSize: 20,
+                      fontWeight: 800,
                       color: '#1677ff',
                       letterSpacing: '-0.5px'
                     }}>
@@ -211,7 +247,7 @@ export function AdminLayout({
                     style={{ fontSize: '16px', width: 40, height: 40 }}
                   />
                 </div>
-                
+
                 <div style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
                   <Menu
                     mode="inline"
@@ -251,7 +287,7 @@ export function AdminLayout({
                 </div>
               </div>
             </Layout.Sider>
-            
+
             <Layout style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               <Layout.Header
                 style={{
@@ -268,7 +304,7 @@ export function AdminLayout({
                     .flatMap((item) => [item, ...(item.children || [])])
                     .find((item) => item.key === selectedKey)?.label || 'Dashboard'}
                 </div>
-                
+
                 <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
                   <Popover
                     placement="bottomRight"
@@ -295,11 +331,11 @@ export function AdminLayout({
                     </Badge>
                   </Popover>
 
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 12, 
-                    padding: '4px 8px', 
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '4px 8px',
                     borderRadius: 32,
                     cursor: 'pointer',
                     border: '1px solid #f0f0f0'
@@ -309,11 +345,11 @@ export function AdminLayout({
                   </div>
                 </div>
               </Layout.Header>
-              
-              <Layout.Content 
-                style={{ 
-                  padding: '24px', 
-                  height: 'calc(100vh - 64px)', 
+
+              <Layout.Content
+                style={{
+                  padding: '24px',
+                  height: 'calc(100vh - 64px)',
                   backgroundColor: '#f7f9fc',
                   overflow: 'hidden' // Vô hiệu hóa scroll tổng của trang
                 }}
