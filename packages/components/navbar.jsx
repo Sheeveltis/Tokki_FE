@@ -440,7 +440,17 @@ export const Navbar = ({ position = 'fixed' }) => {
                     setMobileMenuOpen(false)
                   }}
                 >
-                  <NavItem {...item} compact />
+                  <IconRenderer 
+                    icon={item.icon} 
+                    size={24} 
+                    tint={isOnPage ? '#FFB300' : '#8D6E63'} 
+                  />
+                  <Text style={[
+                    styles.mobileMenuText,
+                    isOnPage && { color: '#FFB300', fontWeight: '800' }
+                  ]}>
+                    {item.label}
+                  </Text>
                 </TouchableOpacity>
               )
             })}
@@ -601,6 +611,12 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginTop: 2,
+  },
+  navIconWrapCompact: {
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    backgroundColor: 'transparent',
+    borderRadius: 0,
   },
   rightSection: {
     flexDirection: 'row',
@@ -857,5 +873,58 @@ const styles = StyleSheet.create({
   tabLabelActive: {
     color: '#FFB300',
     fontWeight: '800',
+  },
+  mobileDropdown: {
+    position: 'absolute',
+    top: HEADER_HEIGHT,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEDCC5',
+    paddingVertical: 8,
+    zIndex: 1000,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 12px rgba(93, 64, 55, 0.1)',
+    }),
+  },
+  mobileMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  mobileMenuItemInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  mobileMenuText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#5D4037',
+    fontFamily: 'Plus Jakarta Sans, sans-serif',
+  },
+  mobileLogoutText: {
+    color: '#D45A54',
+  },
+  mobileSeparator: {
+    height: 1,
+    backgroundColor: '#F0F0F0',
+    marginVertical: 8,
+    marginHorizontal: 16,
+  },
+  hamburgerBtn: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hamburgerText: {
+    fontSize: 28,
+    color: '#8D6E63',
   },
 })
