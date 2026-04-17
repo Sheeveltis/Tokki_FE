@@ -209,6 +209,31 @@ export function NativeNavigation() {
         }}
       />
       <Stack.Screen
+        name="matching-card-level"
+        component={MatchingCardLevelScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="matching-card-topic"
+        component={MatchingCardTopicScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="matching-card-rule"
+        component={MatchingCardRuleScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="matching-card-play"
+        component={MatchingCardScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="matching-card-result"
+        component={MatchingCardResultScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="wordle-rule"
         component={WordleRuleScreen}
         options={{

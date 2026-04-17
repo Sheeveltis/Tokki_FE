@@ -167,7 +167,7 @@ function PaymentSuccessRoute() {
 
 // Minigame Routes
 function MatchingCardPlayRoute() {
-  const { getQueryParam } = useRouteNavigation()
+  const { getQueryParam, navigate } = useRouteNavigation()
   const topicId = getQueryParam('topic')
   const topicName = getQueryParam('topicName') || undefined
   const levelId = getQueryParam('level') || 'medium'
@@ -182,7 +182,15 @@ function MatchingCardPlayRoute() {
     )
   }
 
-  return <MatchingCardScreen topicId={topicId} topicName={topicName} levelId={levelId} quantity={quantity} />
+  return (
+    <MatchingCardScreen
+      topicId={topicId}
+      topicName={topicName}
+      levelId={levelId}
+      quantity={quantity}
+      onBack={() => navigate('/minigame')}
+    />
+  )
 }
 
 function MatchingCardResultRoute() {
