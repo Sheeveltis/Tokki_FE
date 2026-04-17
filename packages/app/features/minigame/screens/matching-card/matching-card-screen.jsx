@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
-import { MatchingCardLayout } from '../../components/matching-card/matching-card-play/matching-card-play-layout.web'
+import { MatchingCardLayout } from '../../components/matching-card/matching-card-play/matching-card-play-layout'
 
 export function MatchingCardScreen({ topicId, topicName, levelId = 'medium', quantity, onBack }) {
   return (
