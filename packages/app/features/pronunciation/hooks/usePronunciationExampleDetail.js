@@ -88,18 +88,26 @@ export function usePronunciationExampleDetail(exampleId) {
     }
   }, [recording])
 
-  const playAudio = async () => {
+  const playAudio = async (rate = 1.0) => {
     if (!example?.audioUrl || isPlaying) return
     try {
       setIsPlaying(true)
       if (Platform.OS === 'web') {
         const audio = new window.Audio(example.audioUrl)
+        audio.playbackRate = rate
         audio.onended = () => setIsPlaying(false)
         audio.play()
       } else if (ExpoAudio) {
-        const { sound } = await ExpoAudio.Sound.createAsync({ uri: example.audioUrl })
-        await sound.playAsync()
-        sound.setOnPlaybackStatusUpdate((s) => s.didJustFinish && setIsPlaying(false))
+        const { sound } = await ExpoAudio.Sound.createAsync(
+          { uri: example.audioUrl },
+          { shouldPlay: true, rate: rate, shouldCorrectPitch: true }
+        )
+        sound.setOnPlaybackStatusUpdate((s) => {
+          if (s.didJustFinish) {
+            setIsPlaying(false)
+            sound.unloadAsync()
+          }
+        })
       }
     } catch (err) {
       console.error('Play audio error:', err)
