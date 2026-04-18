@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useRef } from 'react'
 import { Platform, Animated } from 'react-native'
 import { getPronunciationExampleById } from '../api'
+import { ENDPOINTS, API_BASE_URL, DOMAIN } from '../../../provider/api/endpoints'
 import { usePronunciationEvaluation } from '../api/usePronunciationEvaluation'
 
 // Conditionally import expo-av for native platforms
@@ -81,37 +82,79 @@ export function usePronunciationExampleDetail(exampleId) {
   useEffect(() => {
     return () => {
       if (recording && Platform.OS !== 'web') {
-             recording.stopAndUnloadAsync().catch(() => {})
+        recording.stopAndUnloadAsync().catch(() => { })
       }
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
-      if (audioContextRef.current) audioContextRef.current.close().catch(() => {})
+      if (audioContextRef.current) audioContextRef.current.close().catch(() => { })
     }
   }, [recording])
 
-  const playAudio = async (rate = 1.0) => {
-    if (!example?.audioUrl || isPlaying) return
-    try {
-      setIsPlaying(true)
-      if (Platform.OS === 'web') {
-        const audio = new window.Audio(example.audioUrl)
-        audio.playbackRate = rate
-        audio.onended = () => setIsPlaying(false)
-        audio.play()
-      } else if (ExpoAudio) {
-        const { sound } = await ExpoAudio.Sound.createAsync(
-          { uri: example.audioUrl },
-          { shouldPlay: true, rate: rate, shouldCorrectPitch: true }
-        )
-        sound.setOnPlaybackStatusUpdate((s) => {
-          if (s.didJustFinish) {
+  const playAudio = async (rate = 0.75) => {
+    if (isPlaying) return
+
+    const safeRate = Number.isFinite(Number(rate)) ? Number(rate) : 0.75
+
+    // Nếu có audioUrl: Ưu tiên phát file audio từ server
+    if (example?.audioUrl) {
+      try {
+        setIsPlaying(true)
+        const fullAudioUrl = example.audioUrl.startsWith('http') ? example.audioUrl : `${DOMAIN}${example.audioUrl}`
+
+        if (Platform.OS === 'web') {
+          const audio = new window.Audio(fullAudioUrl)
+          audio.playbackRate = safeRate
+
+          audio.onended = () => setIsPlaying(false)
+
+          audio.onerror = () => {
+            console.warn('Audio file error, fallback TTS')
             setIsPlaying(false)
-            sound.unloadAsync()
+            playTTS(example.targetScript, safeRate)
           }
-        })
+
+          audio.play()
+            .then(() => { })
+            .catch((err) => {
+              console.error('Play failed:', err)
+              setIsPlaying(false)
+              playTTS(example.targetScript, safeRate)
+            })
+        } else if (ExpoAudio) {
+          const { sound } = await ExpoAudio.Sound.createAsync(
+            { uri: fullAudioUrl },
+            { shouldPlay: true, rate: rate, shouldCorrectPitch: true }
+          )
+          sound.setOnPlaybackStatusUpdate((s) => {
+            if (s.didJustFinish) {
+              setIsPlaying(false)
+              sound.unloadAsync()
+            }
+          })
+        }
+        return
+      } catch (err) {
+        console.error('Play audio error, trying TTS:', err)
+        setIsPlaying(false)
       }
-    } catch (err) {
-      console.error('Play audio error:', err)
-      setIsPlaying(false)
+    }
+
+    // Nếu không có audioUrl hoặc bị lỗi: Sử dụng Text-to-Speech (TTS)
+    if (example?.targetScript) {
+      playTTS(example.targetScript, safeRate)
+    }
+  }
+
+  const playTTS = (text, safeRate) => {
+    if (Platform.OS === 'web' && 'speechSynthesis' in window) {
+      setIsPlaying(true)
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.lang = 'ko-KR' // Tiếng Hàn
+      utterance.rate = safeRate
+      utterance.onend = () => setIsPlaying(false)
+      utterance.onerror = () => setIsPlaying(false)
+      window.speechSynthesis.speak(utterance)
+    } else {
+      console.warn('TTS not supported on this platform')
     }
   }
 
@@ -138,7 +181,7 @@ export function usePronunciationExampleDetail(exampleId) {
         const analyser = audioContext.createAnalyser()
         analyser.fftSize = 256
         source.connect(analyser)
-        
+
         audioContextRef.current = audioContext
         analyserRef.current = analyser
 
@@ -156,8 +199,8 @@ export function usePronunciationExampleDetail(exampleId) {
         recorder.start()
         setMediaRecorder(recorder)
         setIsRecording(true)
-      } catch (err) { 
-        console.error('Start web recording error:', err) 
+      } catch (err) {
+        console.error('Start web recording error:', err)
       }
       return
     }
@@ -166,7 +209,7 @@ export function usePronunciationExampleDetail(exampleId) {
     try {
       await ExpoAudio.requestPermissionsAsync()
       await ExpoAudio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true })
-      
+
       const recordingOptions = {
         ...ExpoAudio.RecordingOptionsPresets.HIGH_QUALITY,
         android: {
@@ -180,7 +223,7 @@ export function usePronunciationExampleDetail(exampleId) {
       }
 
       const { recording } = await ExpoAudio.Recording.createAsync(recordingOptions)
-      
+
       recording.setOnRecordingStatusUpdate((status) => {
         if (status.isRecording && status.metering !== undefined) {
           // Map dB (-160 to 0) to 0-100 scale. Voice typically ranges -60 to 0.
@@ -191,8 +234,8 @@ export function usePronunciationExampleDetail(exampleId) {
 
       setRecording(recording)
       setIsRecording(true)
-    } catch (err) { 
-      console.error('Start native recording error:', err) 
+    } catch (err) {
+      console.error('Start native recording error:', err)
     }
   }
 
@@ -210,8 +253,8 @@ export function usePronunciationExampleDetail(exampleId) {
       const uri = recording.getURI()
       await evaluate(uri, exampleId)
       setRecording(null)
-    } catch (err) { 
-      console.error('Stop native recording error:', err) 
+    } catch (err) {
+      console.error('Stop native recording error:', err)
     }
   }
 

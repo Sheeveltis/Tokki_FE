@@ -22,6 +22,7 @@ export function PronunciationExampleList({ examples, onSelectExample }) {
           sortOrder={example.sortOrder}
           text={example.text || 'Không có nội dung'}
           subtitle="Chạm để bắt đầu luyện tập"
+          difficulty={example.difficulty}
           onPress={() => onSelectExample?.(example)}
         />
       ))}
