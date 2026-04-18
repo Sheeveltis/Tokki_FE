@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   scrollContent: {
-    paddingBottom: 0,
+    paddingBottom: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -596,6 +596,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 16,
     marginTop: 8,
+    paddingBottom: 20,
   },
   paginationButton: {
     paddingHorizontal: 16,
