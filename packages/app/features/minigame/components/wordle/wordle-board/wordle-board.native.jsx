@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'solito/navigation'
 import { WordleBoardContent } from './component/WordleBoardContent'
 import BackgroundImage from '../../../../../../assets/BackgroundSolite.jpg'
 import { getWordleTopSentences, toggleWordleSentenceLike } from '../../../api/wordle-level-api'
+import TitleBadge from '../../../../../../assets/TitleBadge.png'
 
 export function WordleBoardNative({ dailyWordleId: propDailyWordleId }) {
   const router = useRouter()
@@ -69,7 +70,10 @@ export function WordleBoardNative({ dailyWordleId: propDailyWordleId }) {
             <Text style={styles.backButtonText}>← Quay lại</Text>
           </Pressable>
 
-          <Text style={styles.title}>Bảng xếp hạng câu văn</Text>
+          <View style={styles.titleWrapper}>
+            <Image source={TitleBadge} style={styles.bannerImage} />
+            <Text style={styles.title}>Bảng xếp hạng</Text>
+          </View>
           <Text style={styles.subtitle}>Top những câu văn hay nhất</Text>
         </View>
 
@@ -123,12 +127,29 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1C1C1C',
   },
+  titleWrapper: {
+    width: 240,
+    height: 70,
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    marginBottom: 4,
+  },
+  bannerImage: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
   title: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '800',
-    color: '#1C1C1C',
+    color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: 6,
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
     fontFamily: Platform.select({
       web: 'Epilogue, sans-serif',
       default: undefined,
