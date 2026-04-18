@@ -38,6 +38,9 @@ export function MenuStudy({
     handleTopikRoadmapPress,
     aimLevel,
     streakData,
+    roadmapData,
+    gamificationData,
+    leaderboardData,
   } = useMenuStudy(router, levelId)
 
   // Chỉ sử dụng levelId từ props hoặc params, không tự động fallback về aimLevel
@@ -73,6 +76,9 @@ export function MenuStudy({
         onAlphabetPress={handleAlphabetPress}
         onTopikRoadmapPress={() => handleTopikRoadmapPress(currentLevel)}
         aimLevel={aimLevel}
+        roadmapData={roadmapData}
+        gamificationData={gamificationData}
+        leaderboardData={leaderboardData}
       />
     </Layout>
   )

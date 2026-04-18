@@ -324,6 +324,7 @@ export const ENDPOINTS = {
     GENERATE: '/RoadmapVer2/generate',
     PROGRESS: (jobId) => `/RoadmapVer2/progress/${encodeURIComponent(jobId)}`,
     CURRENT: '/Roadmap/current',
+    CURRENT_WEEK_PROGRESS: '/Roadmap/current-week-progress',
     TASK_DETAIL: (taskId) => `/Roadmap/task/${encodeURIComponent(taskId)}/detail`,
     COMPLETE: '/Roadmap/complete',
     NEXT_WEEK: '/RoadmapVer2/next-week',

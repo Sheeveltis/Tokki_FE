@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getMenuStudyRoute, isLoginRequiredModule } from './menuStudyRoutes'
 import { getAccountAimLevel, getMyStreak } from '@tokki/app/features/authentication/api'
+import { getCurrentWeekProgress, getGamificationProgress, getLeaderboardData } from '@tokki/app/features/study/api'
 
 /**
  * Hook xử lý logic cho MenuStudyScreen
@@ -14,6 +15,10 @@ export function useMenuStudy(router, levelId) {
     currentStreak: 0,
     isCompletedToday: false
   })
+  const [roadmapData, setRoadmapData] = useState(null)
+  const [gamificationData, setGamificationData] = useState(null)
+  const [leaderboardData, setLeaderboardData] = useState([])
+  const [loadingRoadmap, setLoadingRoadmap] = useState(true)
 
   useEffect(() => {
     const fetchAimLevel = async () => {
@@ -34,8 +39,26 @@ export function useMenuStudy(router, levelId) {
         })
       }
     }
+    const fetchRoadmap = async () => {
+      setLoadingRoadmap(true)
+      const data = await getCurrentWeekProgress()
+      setRoadmapData(data)
+      setLoadingRoadmap(false)
+    }
+    const fetchGamification = async () => {
+      const data = await getGamificationProgress()
+      if (data) setGamificationData(data)
+    }
+    const fetchLeaderboard = async () => {
+      const data = await getLeaderboardData()
+      setLeaderboardData(data)
+    }
+
     fetchAimLevel()
     fetchStreak()
+    fetchRoadmap()
+    fetchGamification()
+    fetchLeaderboard()
   }, [])
 
   const handleModulePress = (moduleId, itemLabel, overrideLevel) => {
@@ -75,6 +98,9 @@ export function useMenuStudy(router, levelId) {
     handleTopikRoadmapPress,
     aimLevel,
     streakData,
+    roadmapData,
+    gamificationData,
+    leaderboardData,
   }
 }
 
