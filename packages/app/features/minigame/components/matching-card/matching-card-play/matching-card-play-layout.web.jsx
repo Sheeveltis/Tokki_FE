@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { StyleSheet, View, Text, Pressable } from 'react-native'
+import { StyleSheet, View, Text, Pressable, Image } from 'react-native'
 import { useRouter, useSearchParams } from 'solito/navigation'
 import { MatchingCardHeader } from './matching-card-play-header'
 import { MatchingCardPlayBody } from './matching-card-play-body'
@@ -10,6 +10,7 @@ import ThemeMusic from '../../../../../../assets/sound-effect/solitare/theme.mp3
 import TapSound from '../../../../../../assets/sound-effect/solitare/tap.wav'
 import WinSound from '../../../../../../assets/sound-effect/solitare/win.mp3'
 import MenuBackground from '../../../../../../assets/menu2.png'
+import PlayBackground from '../../../../../../assets/BackgroundSolite.jpg'
 import confetti from 'canvas-confetti'
 
 const INITIAL_SECONDS = 600
@@ -28,6 +29,14 @@ const calculateScoreByTime = (currentSeconds, initialSeconds = INITIAL_SECONDS) 
   return Math.round(minScore + (scoreRange * timeRatio))
 }
 
+
+const normalizeImageSource = (src) => {
+  if (!src) return null
+  if (typeof src === 'number' || src.uri) return src
+  if (typeof src === 'object' && src.src) return { uri: src.src }
+  if (typeof src === 'string') return { uri: src }
+  return src
+}
 
 export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', quantity, onBack }) {
   const [flipped, setFlipped] = useState([])
@@ -365,24 +374,26 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
   return (
     <>
       <View style={styles.page}>
-        <View style={styles.headerRow}>
-          <View style={styles.backWrap}>{onBack ? <BackButton onPress={onBack} /> : null}</View>
-          <MatchingCardHeader
-            topicId={topicId}
-            topicName={topicName}
-            score={score}
-            onTimeUp={handleTimeUp}
-            onFinish={goToResult}
-            onTick={setSecondsLeft}
-            onBack={onBack}
-            onToggleSound={handleToggleSound}
-            isMuted={isMuted}
-            onMenu={handleMenuClick}
-            onGuide={handleHowToPlay}
-            staticMode={runTour}
-          />
-          <View style={styles.rankSpacer} />
-        </View>
+        {/* Background Image */}
+        <Image
+          source={normalizeImageSource(PlayBackground)}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        />
+        <MatchingCardHeader
+          topicId={topicId}
+          topicName={topicName}
+          score={score}
+          onTimeUp={handleTimeUp}
+          onFinish={goToResult}
+          onTick={setSecondsLeft}
+          onBack={onBack}
+          onToggleSound={handleToggleSound}
+          isMuted={isMuted}
+          onMenu={handleMenuClick}
+          onGuide={handleHowToPlay}
+          staticMode={runTour}
+        />
   
         {topicId && topicId !== '' && topicId !== 'life' ? (
           <MatchingCardPlayBody
@@ -411,10 +422,20 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     height: '100%',
-    backgroundColor: '#F3EEDC',
     paddingHorizontal: 20,
     paddingVertical: 12,
     gap: 12,
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: -1,
+    opacity: 1,
   },
   headerRow: {
     flexDirection: 'row',

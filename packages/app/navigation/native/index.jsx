@@ -35,93 +35,98 @@ import { WordleBoardScreen } from 'app/features/minigame/screens/wordle/wordle-b
 import { PronunciationRulesScreen } from 'app/features/pronunciation/screens/PronunciationRulesScreen'
 import { PronunciationExamplesScreen } from 'app/features/pronunciation/screens/PronunciationExamplesScreen'
 import { PronunciationExampleDetailScreen } from 'app/features/pronunciation/screens/PronunciationExampleDetailScreen'
+import MatchingCardLevelScreen from 'app/features/minigame/screens/matching-card/matching-card-level-screen'
+import MatchingCardTopicScreen from 'app/features/minigame/screens/matching-card/matching-card-topic-screen'
+import MatchingCardRuleScreen from 'app/features/minigame/screens/matching-card/matching-card-rule-screen'
+import MatchingCardScreen from 'app/features/minigame/screens/matching-card/matching-card-screen'
+import MatchingCardResultScreen from 'app/features/minigame/screens/matching-card/matching-card-result-screen'
 
 const Stack = createNativeStackNavigator()
 
 export function NativeNavigation() {
   return (
     <View style={styles.container}>
-      <Stack.Navigator 
-      initialRouteName="login"
-      screenListeners={{
-        state: (e) => {
-          console.log('Navigation state changed:', e.data?.state)
-        },
-      }}
-    >
-      <Stack.Screen
-        name="login"
-        component={LoginScreen}
-        options={{
-          headerShown: false, // Ẩn header mặc định
+      <Stack.Navigator
+        initialRouteName="login"
+        screenListeners={{
+          state: (e) => {
+            console.log('Navigation state changed:', e.data?.state)
+          },
         }}
-      />
-      <Stack.Screen
-        name="register"
-        component={RegisterScreen}
-        options={{
-          headerShown: false, // Ẩn header mặc định
-        }}
-      />
-      <Stack.Screen
-        name="forgot-password"
-        component={ForgotPasswordScreen}
-        options={{
-          headerShown: false, // Ẩn header mặc định
-        }}
-      />
-      <Stack.Screen
-        name="home"
-        component={HomeScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="user-detail"
-        component={DetailScreen}
-      />
-      <Stack.Screen
-        name="blog-detail"
-        component={BlogDetailScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="blog-list"
-        component={BlogListScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="payment-package"
-        component={PackageScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="premium-package"
-        component={PremiumScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="payment-detail"
-        component={PaymentScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="payment-success"
-        component={PaymentSuccessScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="payment-failed"
-        component={PaymentFailedScreen}
-        options={{ headerShown: false }}
-      />
-      {/* Roadmap screens disabled on native (web-only) */}
-      {/* <Stack.Screen
+      >
+        <Stack.Screen
+          name="login"
+          component={LoginScreen}
+          options={{
+            headerShown: false, // Ẩn header mặc định
+          }}
+        />
+        <Stack.Screen
+          name="register"
+          component={RegisterScreen}
+          options={{
+            headerShown: false, // Ẩn header mặc định
+          }}
+        />
+        <Stack.Screen
+          name="forgot-password"
+          component={ForgotPasswordScreen}
+          options={{
+            headerShown: false, // Ẩn header mặc định
+          }}
+        />
+        <Stack.Screen
+          name="home"
+          component={HomeScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="user-detail"
+          component={DetailScreen}
+        />
+        <Stack.Screen
+          name="blog-detail"
+          component={BlogDetailScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="blog-list"
+          component={BlogListScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="payment-package"
+          component={PackageScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="premium-package"
+          component={PremiumScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="payment-detail"
+          component={PaymentScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="payment-success"
+          component={PaymentSuccessScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="payment-failed"
+          component={PaymentFailedScreen}
+          options={{ headerShown: false }}
+        />
+        {/* Roadmap screens disabled on native (web-only) */}
+        {/* <Stack.Screen
         name="roadmap-info"
         component={RoadmapInfoScreen}
       />
@@ -137,119 +142,119 @@ export function NativeNavigation() {
         name="roadmap-test-result-detail"
         component={RoadmapTestResultDetailScreen}
       /> */}
-      <Stack.Screen
-        name="user-profile"
-        component={ProfileScreen}
-      />
-      <Stack.Screen
-        name="menu-mobile"
-        component={MenuMobileScreenWrapper}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="error"
-        component={ErrorScreen}
-      /> 
-      <Stack.Screen
-        name="flashcard-list"
-        component={FlashcardListScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="menu-study"
-        component={MenuStudyScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="flashcard-learn"
-        component={LearnScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="flashcard-first-learn"
-        component={FlashcardFirstLearnScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="flashcard-study"
-        component={FlashcardStudyScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="flashcard-test"
-        component={FlashcardTestScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="learned-vocabulary-list"
-        component={LearnedVocabularyListScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="minigame"
-        component={MinigameScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="wordle-rule"
-        component={WordleRuleScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="wordle-play"
-        component={WordlePlayScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="wordle-board"
-        component={WordleBoardScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="pronunciation-rules"
-        component={PronunciationRulesScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="pronunciation-examples"
-        component={PronunciationExamplesScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="pronunciation-example-detail"
-        component={PronunciationExampleDetailScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
+        <Stack.Screen
+          name="user-profile"
+          component={ProfileScreen}
+        />
+        <Stack.Screen
+          name="menu-mobile"
+          component={MenuMobileScreenWrapper}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="error"
+          component={ErrorScreen}
+        />
+        <Stack.Screen
+          name="flashcard-list"
+          component={FlashcardListScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="menu-study"
+          component={MenuStudyScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="flashcard-learn"
+          component={LearnScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="flashcard-first-learn"
+          component={FlashcardFirstLearnScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="flashcard-study"
+          component={FlashcardStudyScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="flashcard-test"
+          component={FlashcardTestScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="learned-vocabulary-list"
+          component={LearnedVocabularyListScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="minigame"
+          component={MinigameScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="wordle-rule"
+          component={WordleRuleScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="wordle-play"
+          component={WordlePlayScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="wordle-board"
+          component={WordleBoardScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="pronunciation-rules"
+          component={PronunciationRulesScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="pronunciation-examples"
+          component={PronunciationExamplesScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="pronunciation-example-detail"
+          component={PronunciationExampleDetailScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack.Navigator>
     </View>
   )

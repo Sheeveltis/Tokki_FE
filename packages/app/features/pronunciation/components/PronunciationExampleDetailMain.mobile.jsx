@@ -3,6 +3,7 @@ import { LoadingWithContainer } from '../../../../components/Loading'
 import {
   PronunciationFeedbackText,
   getScoreColor,
+  renderHtmlText,
 } from './PronunciationFeedbackText'
 
 import SoundIcon from '../../../../assets/icon/icon-mainflow/sound.svg'
@@ -48,7 +49,7 @@ export function PronunciationExampleDetailMain({
           </View>
         )}
         <View style={styles.actionRow}>
-          <Pressable onPress={onPlayAudio} style={styles.audioButtonWrapper}>
+          <Pressable onPress={() => onPlayAudio(0.75)} style={styles.audioButtonWrapper}>
             {isPlaying ? (
               <ActivityIndicator size="small" color="#FFF" />
             ) : (
@@ -109,6 +110,9 @@ export function PronunciationExampleDetailMain({
         <View style={styles.ruleBadge}>
           <Text style={styles.ruleTitleText}>Quy tắc phát âm</Text>
         </View>
+        <Text style={styles.ruleText}>
+          {renderHtmlText(example?.ruleContent || example?.ruleDescription, styles.ruleText, styles.ruleTextBold)}
+        </Text>
 
       </View>
     </View>

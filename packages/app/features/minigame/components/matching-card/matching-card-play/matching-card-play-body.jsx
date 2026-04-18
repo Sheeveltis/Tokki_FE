@@ -7,7 +7,7 @@ const shuffle = (list = []) => {
   const arr = [...list]
   for (let i = arr.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+      ;[arr[i], arr[j]] = [arr[j], arr[i]]
   }
   return arr
 }
@@ -51,7 +51,7 @@ export function MatchingCardPlayBody({ topicId, levelId, quantity: quantityProp,
         setCards([])
         return
       }
-      
+
       // Validate quantity - must be a valid number
       if (!quantity || quantity <= 0) {
         console.warn('[MatchingCardPlayBody] Invalid quantity:', quantity)
@@ -59,14 +59,14 @@ export function MatchingCardPlayBody({ topicId, levelId, quantity: quantityProp,
         setCards([])
         return
       }
-      
+
       setLoading(true)
       try {
-        console.log('[MatchingCardPlayBody] Fetching matching cards:', { 
-          topicId, 
-          quantity, 
+        console.log('[MatchingCardPlayBody] Fetching matching cards:', {
+          topicId,
+          quantity,
           levelId,
-          pairCount 
+          pairCount
         })
         const list = await getMatchingCards(topicId, quantity)
         if (!mounted) return
@@ -119,8 +119,8 @@ export function MatchingCardPlayBody({ topicId, levelId, quantity: quantityProp,
           levelConfig.size === 'large'
             ? styles.cardLarge
             : levelConfig.size === 'small'
-            ? styles.cardSmall
-            : styles.cardMedium
+              ? styles.cardSmall
+              : styles.cardMedium
         return (
           <MatchingCard
             key={card.id}
@@ -154,18 +154,18 @@ const styles = StyleSheet.create({
   cardLarge: {
     transform: [{ scale: 2.0 }],
     margin: 66.9,
-    width: 200,
-    height: 200,
+    width: 180,
+    height: 190,
   },
   cardMedium: {
     transform: [{ scale: 2.0 }],
-    margin: 24.9,
-    width: 170,
-    height: 170,
+    margin: 26,
+    width: 150,
+    height: 160,
   },
   cardSmall: {
     transform: [{ scale: 1.0 }],
-    margin: 6,
+    margin: 4,
   },
 })
 
