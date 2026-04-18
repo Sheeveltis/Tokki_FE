@@ -407,6 +407,33 @@ export const checkDailyTitles = async () => {
 }
 
 /**
+ * Cộng thêm XP cho người dùng
+ * @param {{ amount: number, source: number }} payload
+ * @returns {Promise<Object>} Response từ API
+ */
+export const addXP = async ({ amount, source }) => {
+  try {
+    console.log('[XP API] Đang cộng XP:', { amount, source, endpoint: ENDPOINTS.GAMIFICATION.ADD_XP })
+    const response = await apiClient.post(ENDPOINTS.GAMIFICATION.ADD_XP, {
+      amount,
+      source,
+    })
+    console.log('[XP API] Kết quả cộng XP:', response.data)
+    return response.data
+  } catch (error) {
+    console.error('Error adding XP:', error)
+    if (error.response?.data) {
+      return error.response.data
+    }
+    return {
+      isSuccess: false,
+      message: error.message || 'Không thể cộng XP',
+      statusCode: error.response?.status || 500,
+    }
+  }
+}
+
+/**
  * Lấy thông tin streak của người dùng
  * @returns {Promise<Object>} Response từ API
  */

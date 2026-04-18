@@ -10,6 +10,7 @@ import {
   MenuStudyLayoutMobile as MobileLayout,
   MenuStudyMainMobile as MobileMain
 } from './components'
+import { UnlockedTitlesModal } from '@tokki/app/features/authentication/components/login/unlocked-titles-modal'
 
 /**
  * MenuStudy: Trang menu học tập cho từng level
@@ -41,6 +42,9 @@ export function MenuStudy({
     roadmapData,
     gamificationData,
     leaderboardData,
+    unlockedTitles,
+    showTitlesModal,
+    setShowTitlesModal,
   } = useMenuStudy(router, levelId)
 
   // Chỉ sử dụng levelId từ props hoặc params, không tự động fallback về aimLevel
@@ -79,6 +83,12 @@ export function MenuStudy({
         roadmapData={roadmapData}
         gamificationData={gamificationData}
         leaderboardData={leaderboardData}
+      />
+
+      <UnlockedTitlesModal
+        visible={showTitlesModal}
+        titles={unlockedTitles}
+        onClose={() => setShowTitlesModal(false)}
       />
     </Layout>
   )

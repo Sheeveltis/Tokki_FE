@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getMenuStudyRoute, isLoginRequiredModule } from './menuStudyRoutes'
-import { getAccountAimLevel, getMyStreak } from '@tokki/app/features/authentication/api'
+import { getAccountAimLevel, getMyStreak, checkDailyTitles } from '@tokki/app/features/authentication/api'
 import { getCurrentWeekProgress, getGamificationProgress, getLeaderboardData } from '@tokki/app/features/study/api'
 
 /**
@@ -19,6 +19,8 @@ export function useMenuStudy(router, levelId) {
   const [gamificationData, setGamificationData] = useState(null)
   const [leaderboardData, setLeaderboardData] = useState([])
   const [loadingRoadmap, setLoadingRoadmap] = useState(true)
+  const [unlockedTitles, setUnlockedTitles] = useState([])
+  const [showTitlesModal, setShowTitlesModal] = useState(false)
 
   useEffect(() => {
     const fetchAimLevel = async () => {
@@ -53,12 +55,20 @@ export function useMenuStudy(router, levelId) {
       const data = await getLeaderboardData()
       setLeaderboardData(data)
     }
+    const checkTitles = async () => {
+      const result = await checkDailyTitles()
+      if (result && result.isSuccess && result.data && result.data.length > 0) {
+        setUnlockedTitles(result.data)
+        setShowTitlesModal(true)
+      }
+    }
 
     fetchAimLevel()
     fetchStreak()
     fetchRoadmap()
     fetchGamification()
     fetchLeaderboard()
+    checkTitles()
   }, [])
 
   const handleModulePress = (moduleId, itemLabel, overrideLevel) => {
@@ -101,6 +111,9 @@ export function useMenuStudy(router, levelId) {
     roadmapData,
     gamificationData,
     leaderboardData,
+    unlockedTitles,
+    showTitlesModal,
+    setShowTitlesModal,
   }
 }
 
