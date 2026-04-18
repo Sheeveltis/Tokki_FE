@@ -641,7 +641,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
             }
 
             return (
-              <div style={{ background: '#fff', borderRadius: 8 }}>
+              <div style={{ background: 'transparent' }}>
                 <div style={{ marginBottom: 16 }}>
                   <style>
                     {`
@@ -735,12 +735,9 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                   const skill = form.getFieldValue(['parts', partName, 'Skill'])
 
                   return (
-                    <div key={partKey} style={{ marginTop: 16 }}>
+                    <div key={partKey} style={{ marginTop: 0 }}>
                       <div style={{
-                        border: '1px solid #f0f0f0',
-                        borderRadius: '8px',
-                        padding: '20px 24px',
-                        background: '#fff'
+                        padding: '0px',
                       }}>
                         <Form.Item {...restPartField} name={[partName, 'Skill']} hidden>
                           <Input type="hidden" />
@@ -905,7 +902,7 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                                       bordered={false}
                                       rowKey="key"
                                       rowClassName={(record) => (!record.TemplatePartId || modifiedGroups.has(record.key)) ? 'modified-row' : ''}
-                                      scroll={{ y: 400 }} // Tăng nhẹ chiều cao
+                                      scroll={{ y: 550 }}
                                       style={{ marginBottom: 16 }}
                                     />
                                     {!isActiveTemplate && (
@@ -952,7 +949,17 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                 })()}
 
                 {!isActiveTemplate && (
-                  <div style={{ marginTop: 24, textAlign: 'right' }}>
+                  <div style={{
+                    position: 'sticky',
+                    bottom: 0, 
+                    backgroundColor: '#fff',
+                    padding: '16px 24px 24px 24px',
+                    textAlign: 'right',
+                    borderTop: '1px solid #f0f0f0',
+                    zIndex: 10,
+                    margin: '16px -24px -24px -24px', 
+                    borderRadius: '0 0 8px 8px'
+                  }}>
                     <Button
                       type="primary"
                       block
@@ -961,7 +968,6 @@ export default function ExamTemplatePartsForm({ examTemplateId, initialParts = [
                       size="large"
                       style={{
                         borderRadius: 8,
-                        // minWidth: '100px'
                       }}
                     >
                       Lưu

@@ -1,7 +1,8 @@
 'use client'
 
 import React from 'react'
-import { Modal, Form, Input } from 'antd'
+import { Modal, Form, Input, Space } from 'antd'
+import { FontSizeOutlined, TranslationOutlined } from '@ant-design/icons'
 
 const { TextArea } = Input
 
@@ -43,9 +44,9 @@ export function ExampleAddModal({ open, loading, onCancel, onSubmit }) {
         body: { fontSize: 16 },
       }}
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} layout="vertical" requiredMark={false}>
         <Form.Item
-          label="Câu mẫu"
+          label={<Space><FontSizeOutlined style={{ color: '#1677ff' }} />Câu mẫu (Bắt buộc)</Space>}
           name="sentence"
           rules={[{ required: true, message: 'Vui lòng nhập câu mẫu' }]}
         >
@@ -56,7 +57,7 @@ export function ExampleAddModal({ open, loading, onCancel, onSubmit }) {
             style={{ fontSize: 16 }}
           />
         </Form.Item>
-        <Form.Item label="Bản dịch" name="translation">
+        <Form.Item label={<Space><TranslationOutlined style={{ color: '#1677ff' }} />Bản dịch</Space>} name="translation">
           <TextArea
             placeholder="VD: Tôi đã đến ngân hàng để rút tiền"
             rows={3}

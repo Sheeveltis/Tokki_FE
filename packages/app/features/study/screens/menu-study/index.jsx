@@ -10,6 +10,7 @@ import {
   MenuStudyLayoutMobile as MobileLayout,
   MenuStudyMainMobile as MobileMain
 } from './components'
+import { UnlockedTitlesModal } from '@tokki/app/features/authentication/components/login/unlocked-titles-modal'
 
 /**
  * MenuStudy: Trang menu học tập cho từng level
@@ -37,13 +38,26 @@ export function MenuStudy({
     handleAlphabetPress,
     handleTopikRoadmapPress,
     aimLevel,
+    streakData,
+    roadmapData,
+    gamificationData,
+    leaderboardData,
+    unlockedTitles,
+    showTitlesModal,
+    setShowTitlesModal,
   } = useMenuStudy(router, levelId)
 
-  // Ưu tiên dùng level người dùng (aimLevel) từ API
-  const currentLevel = aimLevel || levelId
+  // Chỉ sử dụng levelId từ props hoặc params, không tự động fallback về aimLevel
+  const currentLevel = levelId
+
+  // Chỉ sử dụng levelId từ props hoặc params, không tự động fallback về aimLevel
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
+
+  // Dữ liệu streak ưu tiên từ API hook, sau đó mới đến props
+  const finalStreakDays = streakData?.currentStreak ?? streakDays
+  const isCompletedToday = streakData?.isCompletedToday ?? false
 
   return (
     <Layout
@@ -51,12 +65,14 @@ export function MenuStudy({
       onBackPress={onBackPress}
       onQuickTestPress={onQuickTestPress}
       lessonsLearned={lessonsLearned}
-      streakDays={streakDays}
+      streakDays={finalStreakDays}
+      isCompletedToday={isCompletedToday}
       aimLevel={aimLevel}
     >
       <Main
         levelId={currentLevel}
-        streakDays={streakDays}
+        streakDays={finalStreakDays}
+        isCompletedToday={isCompletedToday}
         lessonsLearned={lessonsLearned}
         onModulePress={(moduleId, label) => handleModulePress(moduleId, label, currentLevel)}
         showLoginRequest={showLoginRequest}
@@ -64,6 +80,15 @@ export function MenuStudy({
         onAlphabetPress={handleAlphabetPress}
         onTopikRoadmapPress={() => handleTopikRoadmapPress(currentLevel)}
         aimLevel={aimLevel}
+        roadmapData={roadmapData}
+        gamificationData={gamificationData}
+        leaderboardData={leaderboardData}
+      />
+
+      <UnlockedTitlesModal
+        visible={showTitlesModal}
+        titles={unlockedTitles}
+        onClose={() => setShowTitlesModal(false)}
       />
     </Layout>
   )

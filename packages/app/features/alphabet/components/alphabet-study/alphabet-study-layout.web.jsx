@@ -25,27 +25,21 @@ export function AlphabetStudyLayout({ children }) {
 
 const styles = StyleSheet.create({
   wrapper: {
-    flex: 1,
     backgroundColor: '#FAFAFA',
-    minHeight: Platform.OS === 'web' ? '100vh' : '100%',
   },
   mainContainer: {
-    flex: 1,
     alignItems: 'center',
   },
   mainWrapper: {
     width: '100%',
     maxWidth: 1400,
-    flex: 1,
     paddingVertical: 24,
     paddingHorizontal: 20,
     alignSelf: 'center',
   },
   dashboardContainer: {
-    flex: 1,
   },
   contentCard: {
-    flex: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     borderWidth: 1,
@@ -54,7 +48,6 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' && { boxShadow: '0 10px 40px rgba(0,0,0,0.03)' }),
   },
   contentCardScroll: {
-    flex: 1,
   },
   contentCardInner: {
     padding: 32,

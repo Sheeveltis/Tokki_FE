@@ -103,7 +103,6 @@ export function RoadmapGenerateLayout({
 
   return (
     <View style={styles.wrapper}>
-      <Navbar />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
           <View style={styles.backButtonContainer}>

@@ -142,12 +142,12 @@ function BlogPreviewRoute() {
 
 function PaymentDetailRoute() {
   const { navigate } = useRouteNavigation()
-  return <PackageScreen onBackPress={() => navigate('/')} />
+  return <PaymentScreen onBackPress={() => navigate('/')} onPaymentSuccess={() => navigate('/payment-success')} />
 }
 
 function PaymentPackageRoute() {
   const { navigate } = useRouteNavigation()
-  return <PaymentScreen onBackPress={() => navigate('/')} onPaymentSuccess={() => navigate('/payment-success')} />
+  return <PackageScreen onBackPress={() => navigate('/')} />
 }
 
 function PaymentPremiumRoute() {
@@ -167,7 +167,7 @@ function PaymentSuccessRoute() {
 
 // Minigame Routes
 function MatchingCardPlayRoute() {
-  const { getQueryParam } = useRouteNavigation()
+  const { getQueryParam, navigate } = useRouteNavigation()
   const topicId = getQueryParam('topic')
   const topicName = getQueryParam('topicName') || undefined
   const levelId = getQueryParam('level') || 'medium'
@@ -182,7 +182,15 @@ function MatchingCardPlayRoute() {
     )
   }
 
-  return <MatchingCardScreen topicId={topicId} topicName={topicName} levelId={levelId} quantity={quantity} />
+  return (
+    <MatchingCardScreen
+      topicId={topicId}
+      topicName={topicName}
+      levelId={levelId}
+      quantity={quantity}
+      onBack={() => navigate('/minigame')}
+    />
+  )
 }
 
 function MatchingCardResultRoute() {
@@ -368,12 +376,18 @@ export function PublicLayout() {
   const isFlashcardRoute = location.pathname.startsWith('/flashcard')
   const isProfileRoute = location.pathname.startsWith('/user-profile') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/users')
   const isBlogManagementRoute = location.pathname.startsWith('/blog/management') || location.pathname.startsWith('/blog/create') || location.pathname.startsWith('/blog/edit')
-  const shouldHideFooter = isRoadmapRoute || isStudyRoute || isFlashcardRoute || isProfileRoute || isBlogManagementRoute
+  const isPlayScreen =
+    location.pathname.startsWith('/minigame/matching-card/matching-card-play') ||
+    location.pathname.startsWith('/minigame/solitare/solitare-play') ||
+    location.pathname.startsWith('/minigame/wordle/wordle-play')
+  const isAlphabetRoute = location.pathname.startsWith('/alphabet')
+  const shouldHideFooter = isRoadmapRoute || isStudyRoute || isFlashcardRoute || isProfileRoute || isBlogManagementRoute || isPlayScreen || isAlphabetRoute
+
 
   // Hide Navbar for specific distraction-free screens
   const isPracticePage = location.pathname.includes('/roadmap/learning/practice') || location.pathname.includes('/roadmap/practice-test')
   const isTestPage = location.pathname === '/roadmap/test'
-  const shouldHideNavbar = isPracticePage || isTestPage
+  const shouldHideNavbar = isPracticePage || isTestPage || isPlayScreen
 
   return (
     <View style={{ flex: 1, height: shouldHideFooter ? '100vh' : undefined, minHeight: '100vh', backgroundColor: '#fff', overflow: shouldHideFooter ? 'auto' : 'visible' }}>

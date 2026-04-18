@@ -72,8 +72,9 @@ export function AlphabetSelectModeMain({
       description: 'Học cách ghép phụ âm và nguyên âm thành âm tiết hoàn chỉnh.',
       primaryColor: '#F1BE4B',
       icon: FolderIcon,
-      badge: 'Nâng cao',
-      onPress: onSyllablesPress
+      badge: 'Đang phát triển',
+      onPress: onSyllablesPress,
+      isComingSoon: true
     }
   ]
 
@@ -100,7 +101,7 @@ export function AlphabetSelectModeMain({
         {modes.map((mode) => (
           <Pressable
             key={mode.id}
-            onPress={mode.onPress}
+            onPress={mode.isComingSoon ? undefined : mode.onPress}
             style={({ pressed }) => [
               styles.moduleCard,
               pressed && { transform: [{ scale: 0.98 }] }
@@ -118,7 +119,7 @@ export function AlphabetSelectModeMain({
                   <Text style={[styles.moduleTitle, { color: mode.primaryColor }]}>{mode.title}</Text>
                   <Text style={styles.modeDescription}>{mode.description}</Text>
                 </View>
-                {renderIcon(ArrowIcon, { width: 16, height: 16, tintColor: mode.primaryColor, opacity: 0.4 })}
+                {!mode.isComingSoon && renderIcon(ArrowIcon, { width: 16, height: 16, tintColor: mode.primaryColor, opacity: 0.4 })}
               </View>
 
               <View style={styles.cardFooter}>

@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react'
 import { Image, Pressable, StyleSheet, Text, View, Platform, Animated } from 'react-native'
 import { normalizeImageSource } from '../../../../study/api'
 
-import BunnyFront from '../../../../../../assets/bunny/1.png'
-import CarrotImage from '../../../../../../assets/carrot.png'
+import FrontCard from '../../../../../../assets/FrontCard.png'
+import BackCard from '../../../../../../assets/BackCard.png'
 
 export function MatchingCard({
-  frontImage = BunnyFront,
+  frontImage = FrontCard,
   style,
   word,
   face = 'ko',
@@ -23,25 +23,25 @@ export function MatchingCard({
   const flipped = typeof flippedProp === 'boolean' ? flippedProp : false
 
   const avatarStyle =
-  size === 'large'
-    ? styles.avatarLarge
-    : size === 'small'
-    ? styles.avatarSmall
-    : styles.avatar
+    size === 'large'
+      ? styles.avatarLarge
+      : size === 'small'
+        ? styles.avatarSmall
+        : styles.avatar
 
-const wordStyle =
-  size === 'large'
-    ? styles.wordLarge
-    : size === 'small'
-    ? styles.wordSmall
-    : styles.word
+  const wordStyle =
+    size === 'large'
+      ? styles.wordLarge
+      : size === 'small'
+        ? styles.wordSmall
+        : styles.word
 
-const backImageStyle =
-  size === 'large'
-    ? styles.backImageLarge
-    : size === 'small'
-    ? styles.backImageSmall
-    : styles.backImage
+  const backImageStyle =
+    size === 'large'
+      ? styles.backImageLarge
+      : size === 'small'
+        ? styles.backImageSmall
+        : styles.backImage
   useEffect(() => {
     if (word) setCurrent(word)
   }, [word])
@@ -124,8 +124,8 @@ const backImageStyle =
             >
               <Image
                 source={normalizeImageSource(frontImage)}
-                style={avatarStyle}
-                resizeMode="contain"
+                style={styles.frontBackground}
+                resizeMode="cover"
               />
             </Animated.View>
 
@@ -138,6 +138,11 @@ const backImageStyle =
                 },
               ]}
             >
+              <Image
+                source={normalizeImageSource(BackCard)}
+                style={styles.backBackground}
+                resizeMode="cover"
+              />
               {face === 'vi' && imgUrl ? (
                 <View style={styles.backContent}>
                   <Image
@@ -157,12 +162,6 @@ const backImageStyle =
             </Animated.View>
           </View>
         </View>
-
-        <Image
-          source={normalizeImageSource(CarrotImage)}
-          style={styles.carrot}
-          resizeMode="contain"
-        />
       </Pressable>
     </Animated.View>
   )
@@ -171,23 +170,16 @@ const backImageStyle =
 const styles = StyleSheet.create({
   cardWrapper: {
     width: 130,
-    height: 150,
+    height: 140,
     margin: 6,
-    overflow: 'visible',
+    overflow: 'hidden',
   },
   card: {
     flex: 1,
     borderRadius: 18,
-    backgroundColor: '#FFF9EB',
-    borderWidth: 1,
-    borderColor: '#E3D9B5',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 4 },
-    overflow: 'visible',
+    overflow: 'hidden',
     ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
   },
   inner: {
@@ -196,7 +188,6 @@ const styles = StyleSheet.create({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
   },
   flipWrapper: {
     flex: 1,
@@ -220,19 +211,32 @@ const styles = StyleSheet.create({
   front: {
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+    borderRadius: 18,
   },
-  avatar: {
-    width: 90,
-    height: 90,
+  frontBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
   },
   back: {
-    backgroundColor: '#FFF9EB',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingHorizontal: 6,
-    paddingTop: 8,
-    paddingRight: 12,
+    overflow: 'hidden',
+    borderRadius: 18,
+  },
+  backBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
   },
   backContent: {
     flex: 1,
@@ -250,7 +254,7 @@ const styles = StyleSheet.create({
   word: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#1C1C1C',
+    color: '#FFFFFF',
     textAlign: 'center',
   },
   meaning: {
@@ -258,27 +262,8 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center',
   },
-  carrot: {
-    position: 'absolute',
-    width: 70,
-    height: 70,
-    top: -35,
-    right: -35,
-    zIndex: 10,
-  },
-  avatar: {
-    width: 90,
-    height: 90,
-  },
-  avatarLarge: {
-    width: 130,
-    height: 130,
-  },
-  avatarSmall: {
-    width: 72,
-    height: 72,
-  },
-  
+
+
   backImage: {
     width: 70,
     height: 70,
@@ -297,23 +282,23 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#F5F5F5',
   },
-  
+
   word: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#1C1C1C',
+    color: '#FFFFFF',
     textAlign: 'center',
   },
   wordLarge: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#1C1C1C',
+    color: '#FFFFFF',
     textAlign: 'center',
   },
   wordSmall: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#1C1C1C',
+    color: '#FFFFFF',
     textAlign: 'center',
   },
 })

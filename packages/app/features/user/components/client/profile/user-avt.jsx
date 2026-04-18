@@ -85,7 +85,7 @@ export function UserAvatarCard({ user = MOCK_USER, onAvatarPress, style }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Platform.OS === 'web' ? '#FFFFFF' : 'transparent',
     borderRadius: 24,
     padding: 24,
     alignItems: 'center',
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   avatarPressable: {
-    cursor: 'pointer',
+    cursor: Platform.OS === 'web' ? 'pointer' : 'default',
   },
   avatarWrap: {
     width: 140,

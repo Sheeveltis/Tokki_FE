@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { View, Text, StyleSheet, Image, ImageBackground, Pressable, Platform } from 'react-native'
 
 import { WordleGrid } from './components/WordleGrid'
@@ -9,14 +9,18 @@ import { WordleMenuPopup } from './components/WordleMenuPopup'
 import { HowToPlayTour } from './components/HowToPlayTour'
 import { useWordlePlayControl } from './useWordlePlayControl'
 
-import BackgroundImage from '../../../../../../assets/BackgroundSolite.jpg'
-import BannerSolitare from '../../../../../../assets/BannerSolitare.png'
+import BackgroundImage from '../../../../../../assets/BackgroundTokki.png'
+import TitleBadge from '../../../../../../assets/BannerWordle.png'
 import MenuIcon from '../../../../../../assets/menu-solitare.png'
+import BackgroundColumn from '../../../../../../assets/BackgroundColumn.png'
+import ButtonWood from '../../../../../../assets/ButtonWood.png'
+import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
 
 export function WordlePlayWeb(props) {
   const {
     WORD_LENGTH,
     MAX_GUESSES,
+    LEVEL,
     rows,
     gameState,
     targetWord,
@@ -37,6 +41,7 @@ export function WordlePlayWeb(props) {
     handleNavigateToBoard,
     handlePlayWordAudio,
   } = useWordlePlayControl(props)
+  const [isFlowFinished, setIsFlowFinished] = useState(false)
 
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof document === 'undefined') return
@@ -62,30 +67,51 @@ export function WordlePlayWeb(props) {
   return (
     <ImageBackground source={BackgroundImage} style={styles.container}>
       <View style={styles.overlay}>
-        <View style={styles.header}>
+        <View
+          style={[
+            styles.header,
+            gameState !== 'playing' && { zIndex: 1 },
+          ]}
+        >
           <View style={styles.headerLeft}>
-            <View style={styles.soundBox}>
-              <VolumeControl />
-            </View>
+            {!isFlowFinished && (
+              <Pressable onPress={handleQuit} style={styles.backButtonContainer}>
+                <Image source={ButtonWood} style={styles.backButtonBg} />
+                <View style={styles.backButtonContent}>
+                  <ArrowIcon width={18} height={18} fill="#FFF" />
+                  <Text style={styles.backButtonText}>Quay lại</Text>
+                </View>
+              </Pressable>
+            )}
           </View>
 
           <View style={styles.titleWrapper}>
-            <Image source={BannerSolitare} style={styles.bannerImage} />
+            <Image source={TitleBadge} style={styles.bannerImage} />
             <Text style={styles.titleText}>Wordle</Text>
           </View>
 
-          <View style={styles.headerRight}>
+          <View style={styles.headerRight} />
+        </View>
+
+        <ImageBackground
+          source={BackgroundColumn}
+          style={[
+            styles.controlsPanel,
+            gameState !== 'playing' && { zIndex: 1 },
+            isFlowFinished && { backgroundColor: 'transparent' },
+          ]}
+          imageStyle={[styles.controlsPanelImage, isFlowFinished && { opacity: 0 }]}
+        >
+          <VolumeControl />
+
+          {!isFlowFinished && (
             <Pressable style={styles.howToBtn} onPress={handleHowToPlay}>
               <Text style={styles.howToText}>Cách chơi</Text>
             </Pressable>
+          )}
+        </ImageBackground>
 
-            <Pressable nativeID="tour-menu" style={styles.menuBtn} onPress={handleMenuClick}>
-              <Image source={MenuIcon} style={styles.menuIcon} />
-            </Pressable>
-          </View>
-        </View>
-
-        <View style={styles.content}>
+        <View style={[styles.content, gameState !== 'playing' && { zIndex: 100 }]}>
           <View style={styles.gameLayout}>
             {gameState === 'won' && wordResult && (
               <View style={styles.wordInfoCard}>
@@ -114,18 +140,21 @@ export function WordlePlayWeb(props) {
               </View>
             )}
 
-            <View nativeID="tour-grid" style={styles.gridContainer}>
-              <WordleGrid
-                rows={gameState === 'won' ? [] : rows}
-                maxGuesses={gameState === 'won' ? 0 : MAX_GUESSES}
-                wordLength={WORD_LENGTH}
-                targetWord={targetWord}
-                gridCells={gridCells}
-                gameState={gameState}
-                activeColIndex={activeColIndex}
-                onCellClick={handleCellClick}
-              />
-            </View>
+            {gameState !== 'won' && (
+              <View nativeID="tour-grid" style={styles.gridContainer}>
+                <WordleGrid
+                  rows={gameState === 'won' ? [] : rows}
+                  maxGuesses={gameState === 'won' ? 0 : MAX_GUESSES}
+                  wordLength={WORD_LENGTH}
+                  level={LEVEL}
+                  targetWord={targetWord}
+                  gridCells={gridCells}
+                  gameState={gameState}
+                  activeColIndex={activeColIndex}
+                  onCellClick={handleCellClick}
+                />
+              </View>
+            )}
           </View>
 
           {gameState === 'playing' && (
@@ -137,8 +166,9 @@ export function WordlePlayWeb(props) {
           <WordleSentenceFlow
             gameState={gameState}
             dailyWordleId={props.dailyWordleId}
-            onNavigateToBoard={handleNavigateToBoard}
             onRestart={handleRestart}
+            onNavigateToBoard={handleNavigateToBoard}
+            onFlowFinished={setIsFlowFinished}
           />
         </View>
       </View>
@@ -170,7 +200,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
   },
   header: {
     flexDirection: 'row',
@@ -182,20 +212,45 @@ const styles = StyleSheet.create({
     width: '100%',
     zIndex: 10,
   },
+  headerSpacer: {
+    flex: 1,
+  },
   headerLeft: {
     flex: 1,
-    flexDirection: 'row',
+    alignItems: 'flex-start',
+    zIndex: 20,
+  },
+  headerRight: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  backButtonContainer: {
+    width: 130,
+    height: 46,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  soundBox: {
-    backgroundColor: '#fff7ea',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  backButtonBg: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+  },
+  backButtonContent: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.12)',
-    top: -20,
+    gap: 8,
+    paddingHorizontal: 10,
+  },
+  backButtonText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+    fontFamily: Platform.OS === 'web' ? 'Epilogue, sans-serif' : undefined,
   },
   titleWrapper: {
     flex: 2,
@@ -208,25 +263,33 @@ const styles = StyleSheet.create({
     width: 270,
     height: 150,
     resizeMode: 'contain',
+    top: 22,
   },
   titleText: {
     position: 'absolute',
     top: '58%',
     fontSize: 24,
     fontWeight: '800',
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    color: '#4e3e31ff',
+    textShadowColor: 'rgba(139, 111, 111, 0.3)',
     textShadowOffset: { width: 3, height: 3 },
     textShadowRadius: 2,
     fontFamily: Platform.OS === 'web' ? 'Epilogue, sans-serif' : undefined,
   },
-  headerRight: {
-    flex: 1,
-    flexDirection: 'row',
+  controlsPanel: {
+    position: 'absolute',
+    right: 20,
+    top: 20,
+    flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: 10,
-    top: -15,
+    justifyContent: 'center',
+    paddingVertical: 35,
+    paddingHorizontal: 25,
+    gap: 15,
+    zIndex: 20,
+  },
+  controlsPanelImage: {
+    resizeMode: 'stretch',
   },
   howToBtn: {
     backgroundColor: '#8B4513',
@@ -275,10 +338,14 @@ const styles = StyleSheet.create({
   wordInfoCard: {
     width: '100%',
     maxWidth: 440,
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 3,
+    borderColor: '#4CAF50',
+    marginTop: 20,
+    position: 'relative',
   },
   wordInfoWord: {
     fontSize: 24,

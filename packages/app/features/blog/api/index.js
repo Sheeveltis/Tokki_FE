@@ -339,6 +339,15 @@ export const saveBlog = async (payload) => {
 }
 
 /**
+ * Gửi duyệt bài viết
+ * @param {string} blogId 
+ */
+export const submitBlogForApproval = async (blogId) => {
+  const res = await apiClient.post(ENDPOINTS.BLOG.USER_SUBMIT_APPROVAL(blogId))
+  return res.data
+}
+
+/**
  * Upload ảnh blog lên Cloudinary
  * @param {File} file - File ảnh cần upload
  * @returns {Promise<string>} - URL của ảnh sau khi upload

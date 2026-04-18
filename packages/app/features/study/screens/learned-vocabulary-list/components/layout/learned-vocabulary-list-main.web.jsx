@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, StyleSheet, Text, TouchableOpacity, TextInput, Pressable, Platform, Image, ActivityIndicator } from 'react-native'
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Pressable, Platform, Image, ActivityIndicator, ScrollView } from 'react-native'
 import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
 import { studyStyles } from '@tokki/app/features/study/styles'
@@ -234,19 +234,31 @@ export function LearnedVocabularyListMain({
       )}
 
       {/* Main Content: List */}
-      <View style={styles.mainContent}>
-
+      <View style={[styles.mainContent, { flex: 1, overflow: 'hidden' }]}>
         {vocabularies.length > 0 ? (
           <>
-            <View style={styles.listGrid}>
-              {vocabularies.map((vocab) => (
-                <VocabCard key={vocab.id} vocab={vocab} />
-              ))}
-            </View>
+            <ScrollView
+              style={{ flex: 1 }}
+              contentContainerStyle={{ padding: 30, paddingBottom: 24, gap: 24, flexGrow: 1 }}
+              showsVerticalScrollIndicator={true}
+            >
+              <View style={styles.listGrid}>
+                {vocabularies.map((vocab) => (
+                  <VocabCard key={vocab.id} vocab={vocab} />
+                ))}
+              </View>
+            </ScrollView>
 
-            {/* Pagination */}
+            {/* Fixed Pagination */}
             {totalPages > 1 && (
-              <View style={styles.pagination}>
+              <View style={[styles.pagination, { 
+                marginTop: 0, 
+                paddingVertical: 16, 
+                paddingHorizontal: 30, 
+                borderTopWidth: 1, 
+                borderTopColor: '#F0F0F0',
+                backgroundColor: '#FFF'
+              }]}>
                 <TouchableOpacity
                   onPress={onPrevPage}
                   disabled={!canPrevPage}
@@ -267,7 +279,7 @@ export function LearnedVocabularyListMain({
           </>
         ) : (
           !loading && (
-            <View style={styles.emptyContainer}>
+            <View style={[styles.emptyContainer, { padding: 30 }]}>
               <Image source={RabbitWaitingImage} style={styles.emptyImage} resizeMode="contain" />
               <Text style={styles.emptyTitle}>Hiện chưa có từ vựng đã học</Text>
               <Text style={styles.emptySubtitle}>Bạn vui lòng học thêm bài mới rồi quay lại nhé</Text>
@@ -285,8 +297,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 1200,
     alignSelf: 'center',
-    padding: 24,
-    gap: 32,
+    gap: 16,
   },
   headerSection: {
     width: '100%',
@@ -423,7 +434,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   mainContent: {
-    gap: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
   },
   listGrid: {
     flexDirection: 'row',

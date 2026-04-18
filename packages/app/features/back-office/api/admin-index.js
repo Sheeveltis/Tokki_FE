@@ -275,11 +275,29 @@ export async function updateFeedbackStatus(feedbackId, newStatus) {
   }
 }
 
-// Membership Package Management APIs
+// Membership Package Management APIs (VipPackage)
 export async function fetchPackages() {
   try {
-    await delay()
-    return mockMembershipPackages
+    const res = await apiClient.get(ENDPOINTS.VIP_PACKAGE.GET_ALL)
+    const payload = res?.data
+    if (!payload?.isSuccess) {
+      throw new Error(payload?.message || 'Không thể tải danh sách gói thành viên')
+    }
+    
+    // Map data từ API về format component đang sử dụng
+    // API: { id, name, packageType, price, durationDays, description, isActive }
+    const items = Array.isArray(payload?.data) ? payload.data : []
+    return items.map(item => ({
+      ...item,
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      description: item.description,
+      status: item.isActive ? 'active' : 'inactive',
+      duration: `${item.durationDays} ngày`,
+      packageType: item.packageType,
+      features: [], // API chưa trả về features, để trống hoặc map nếu có
+    }))
   } catch (error) {
     handleApiError(error, 'Không thể tải danh sách gói thành viên')
   }
@@ -287,15 +305,22 @@ export async function fetchPackages() {
 
 export async function createPackage(payload) {
   try {
-    await delay()
-    if (!payload.name || !payload.price) {
-      throw { status: 400, message: apiErrors.invalidData }
+    // API Expects: { name, packageType, price, durationDays, description, isActive }
+    const apiPayload = {
+      name: payload.name,
+      packageType: payload.packageType || 'VIP',
+      price: payload.price,
+      durationDays: payload.durationDays || (payload.durationMonths * 30),
+      description: payload.description,
+      isActive: true,
     }
-    return {
-      id: `p${Date.now()}`,
-      ...payload,
-      status: 'active',
+
+    const res = await apiClient.post(ENDPOINTS.VIP_PACKAGE.GET_ALL, apiPayload)
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      throw new Error(responseData?.message || 'Không thể tạo gói thành viên mới')
     }
+    return responseData?.data
   } catch (error) {
     handleApiError(error, 'Không thể tạo gói thành viên mới')
   }
@@ -303,12 +328,21 @@ export async function createPackage(payload) {
 
 export async function updatePackage(id, payload) {
   try {
-    await delay()
-    if (!id) throw { status: 400 }
-    return {
-      id,
-      ...payload,
+    const apiPayload = {
+      name: payload.name,
+      packageType: payload.packageType || 'VIP',
+      price: payload.price,
+      durationDays: payload.durationDays || (payload.durationMonths * 30),
+      description: payload.description,
+      isActive: payload.status === 'active' || payload.isActive,
     }
+
+    const res = await apiClient.put(`${ENDPOINTS.VIP_PACKAGE.GET_ALL}/${id}`, apiPayload)
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      throw new Error(responseData?.message || 'Không thể cập nhật gói thành viên')
+    }
+    return responseData?.data
   } catch (error) {
     handleApiError(error, 'Không thể cập nhật gói thành viên')
   }
@@ -316,8 +350,11 @@ export async function updatePackage(id, payload) {
 
 export async function deletePackage(id) {
   try {
-    await delay()
-    if (!id) throw { status: 400 }
+    const res = await apiClient.delete(`${ENDPOINTS.VIP_PACKAGE.GET_ALL}/${id}`)
+    const responseData = res?.data
+    if (!responseData?.isSuccess) {
+      throw new Error(responseData?.message || 'Không thể xóa gói thành viên')
+    }
     return { id }
   } catch (error) {
     handleApiError(error, 'Không thể xóa gói thành viên')
@@ -363,6 +400,7 @@ export async function fetchExamTemplates(params = {}) {
       searchTerm = '',
       status = 1, // Mặc định là Published (1)
       type = null, // null = lấy tất cả
+      creatorFilter = null,
     } = params
 
     const queryParams = {
@@ -380,6 +418,10 @@ export async function fetchExamTemplates(params = {}) {
 
     if (type !== null && type !== undefined) {
       queryParams.Type = type
+    }
+
+    if (creatorFilter !== null && creatorFilter !== undefined) {
+      queryParams.CreatorFilter = creatorFilter
     }
 
     const res = await apiClient.get(ENDPOINTS.EXAM_TEMPLATES.ADMIN_LIST, {

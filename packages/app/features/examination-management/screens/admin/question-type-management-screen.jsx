@@ -3,12 +3,13 @@ import { useRouter } from 'solito/navigation'
 import { Modal, Form, Space, Select, Tooltip, Table, Tag, Button, Typography } from 'antd'
 import { PlusOutlined, FilterOutlined, EyeOutlined, DownloadOutlined, UploadOutlined, FileExcelOutlined, CheckCircleOutlined, CloseCircleOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin.jsx'
-import { fetchQuestionTypes, importQuestionTypes, exportQuestionTypes, downloadTemplateQuestionType } from '../../api/question-type-management.js'
+import { fetchQuestionTypes, importQuestionTypes, exportQuestionTypes, downloadTemplateQuestionType, updateQuestionType } from '../../api/question-type-management.js'
 import { QuestionTypeForm } from '../../components/admin/create-question-type/QuestionTypeForm.jsx'
 import { createQuestionType } from '../../api/create-question-type.js'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 import { getCurrentUserRole } from '../../../../provider/api/client.js'
 import { useManagementFilters } from '../../../back-office/hooks/use-management-filters.js'
+import { EditQuestionTypeModal } from '../../components/admin/question-type-management/EditQuestionTypeModal.jsx'
 
 const { Text } = Typography
 
@@ -29,6 +30,8 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
   const [data, setData] = useState({ items: [], total: 0 })
   const [loading, setLoading] = useState(false)
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingRecord, setEditingRecord] = useState(null)
   const [creating, setCreating] = useState(false)
 
   const [importing, setImporting] = useState(false)
@@ -165,7 +168,20 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
       dataIndex: 'name',
       key: 'name',
       width: '25%',
-      render: (text) => <Text strong style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>{text}</Text>
+      render: (text) => (
+        <span style={{
+          fontWeight: 600,
+          fontSize: 'clamp(13px, 1vw, 15px)',
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word'
+        }}>
+          {text}
+        </span>
+      )
     },
     {
       title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Kỹ năng</span>,
@@ -233,7 +249,8 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
               style={{ fontSize: 'clamp(18px, 1.4vw, 22px)', cursor: 'pointer', color: '#1890ff' }}
               onClick={(e) => {
                 e?.stopPropagation?.()
-                router.push(`${basePath}/question-type/${record.questionTypeId}`)
+                setEditingRecord(record)
+                setEditModalOpen(true)
               }}
             />
           </Tooltip>
@@ -362,6 +379,7 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
         <Form
           layout="vertical"
           form={form}
+          requiredMark={false}
           initialValues={{ isActive: true }}
           onFinish={async (values) => {
             try {
@@ -473,6 +491,19 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
           </div>
         )}
       </Modal>
+      <EditQuestionTypeModal
+        open={editModalOpen}
+        questionType={editingRecord}
+        onCancel={() => {
+          setEditModalOpen(false)
+          setEditingRecord(null)
+        }}
+        onUpdate={() => {
+          setEditModalOpen(false)
+          setEditingRecord(null)
+          loadData(filters)
+        }}
+      />
     </>
   )
 }

@@ -1,6 +1,11 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Modal, Form, Input, Select, message } from 'antd'
+import { Modal, Form, Input, Select, message, Space } from 'antd'
+import { 
+  FontSizeOutlined, 
+  FileTextOutlined, 
+  StarOutlined 
+} from '@ant-design/icons'
 import { createExamTemplate } from '../../../../back-office/api/admin-index.js'
 
 const { TextArea } = Input
@@ -90,9 +95,10 @@ function CreateExamTemplateModal({ open, onCancel, onSuccess }) {
         style={{ maxWidth: 600 }}
         preserve={false}
         validateTrigger="onSubmit"
+        requiredMark={false}
       >
         <Form.Item
-          label="Tên mẫu đề"
+          label={<Space><FontSizeOutlined style={{ color: '#1677ff' }} />Tên mẫu đề (Bắt buộc)</Space>}
           name="name"
           rules={[{ required: true, message: 'Vui lòng nhập tên mẫu đề' }]}
           validateTrigger="onSubmit"
@@ -101,7 +107,7 @@ function CreateExamTemplateModal({ open, onCancel, onSuccess }) {
         </Form.Item>
 
         <Form.Item
-          label="Mô tả"
+          label={<Space><FileTextOutlined style={{ color: '#1677ff' }} />Mô tả</Space>}
           name="description"
           validateTrigger="onSubmit"
         >
@@ -112,7 +118,7 @@ function CreateExamTemplateModal({ open, onCancel, onSuccess }) {
         </Form.Item>
 
         <Form.Item
-          label="Loại đề"
+          label={<Space><StarOutlined style={{ color: '#1677ff' }} />Loại đề (Bắt buộc)</Space>}
           name="examType"
           rules={[{ required: true, message: 'Vui lòng chọn loại đề' }]}
           validateTrigger="onSubmit"

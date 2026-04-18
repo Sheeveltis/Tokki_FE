@@ -17,8 +17,8 @@ export function MenuStudyScreen({
   const navigation = navigationProp || useNavigation()
   const route = routeProp || useRoute()
   
-  // Lấy levelId từ route params, mặc định là 1
-  const levelId = route?.params?.levelId || 1
+  // Lấy levelId từ route params
+  const levelId = route?.params?.levelId || null
 
   const {
     showLoginRequest,

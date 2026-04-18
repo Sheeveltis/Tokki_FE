@@ -9,6 +9,7 @@ import ManagementLayout from '../../../../../components/layout/management-layout
 import { useExamsAdmin } from '../../api/exam-hooks.js'
 import { deleteExam, importExams, exportExams } from '../../api/exam-management.js'
 import CreateExamModal from '../../components/admin/create-exam-modal.jsx'
+import { EditExamInfoModal } from '../../components/admin/exam-detail/edit-exam-info-modal.jsx'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { useManagementFilters } from '../../../back-office/hooks/use-management-filters.js'
@@ -49,16 +50,15 @@ export function ExamManagement({ initialData = null }) {
 
   const [filters, setFilters] = useManagementFilters({
     search: '',
-    status: undefined,
+    status: 1,
     type: undefined,
-    creatorFilter: 0,
-    sortBy: 0,
-    isDescending: true,
     page: 1,
     size: 20,
   })
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingRecord, setEditingRecord] = useState(null)
   const [importing, setImporting] = useState(false)
   const [exporting, setExporting] = useState(false)
   const fileInputRef = React.useRef(null)
@@ -113,17 +113,42 @@ export function ExamManagement({ initialData = null }) {
       title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Tiêu đề</span>,
       dataIndex: 'title',
       key: 'title',
-      ellipsis: true,
       width: '25%',
-      render: (text) => <span style={{ fontWeight: 600, fontSize: 'clamp(13px, 1vw, 15px)' }}>{text}</span>
+      render: (text) => (
+        <span style={{
+          fontWeight: 600,
+          fontSize: 'clamp(13px, 1vw, 15px)',
+          display: '-webkit-box',
+          WebkitLineClamp: 1, // Số hàng muốn hiển thị trước khi hiện dấu ...
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word'
+        }}>
+          {text}
+        </span>
+      )
     },
     {
       title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Cấu trúc đề</span>,
       dataIndex: 'examTemplateName',
       key: 'examTemplateName',
-      ellipsis: true,
       width: '25%',
-      render: (text) => <span style={{ color: '#595959', fontSize: 'clamp(12px, 0.9vw, 14px)' }}>{text}</span>
+      render: (text) => (
+        <span style={{
+          fontWeight: 600,
+          fontSize: 'clamp(13px, 1vw, 15px)',
+          display: '-webkit-box',
+          WebkitLineClamp: 1, // Số hàng muốn hiển thị trước khi hiện dấu ...
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word',
+          color: '#595959'
+        }}>
+          {text}
+        </span>
+      )
     },
     {
       title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Loại đề</span>,
@@ -182,7 +207,8 @@ export function ExamManagement({ initialData = null }) {
                 style={iconStyle}
                 onClick={(e) => {
                   e?.stopPropagation?.()
-                  router.push(`/admin/exams/${record.examId}`)
+                  setEditingRecord(record)
+                  setEditModalOpen(true)
                 }}
               />
             </Tooltip>
@@ -300,19 +326,6 @@ export function ExamManagement({ initialData = null }) {
     <Space wrap>
       <Select
         allowClear
-        placeholder="Tất cả nguồn"
-        suffixIcon={<FilterOutlined />}
-        style={{ width: 'clamp(140px, 12vw, 180px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
-        value={filters.creatorFilter}
-        onChange={(val) => handleFilterChange('creatorFilter', val)}
-      >
-        {Object.entries(CREATOR_FILTER_MAP).map(([val, label]) => (
-          <Option key={val} value={Number(val)}>{label}</Option>
-        ))}
-      </Select>
-
-      <Select
-        allowClear
         placeholder="Tất cả trạng thái"
         suffixIcon={<FilterOutlined />}
         style={{ width: 'clamp(140px, 12vw, 180px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
@@ -337,12 +350,14 @@ export function ExamManagement({ initialData = null }) {
       </Select>
 
       <Select
-        placeholder="Sắp xếp theo"
+        allowClear
+        placeholder="Tất cả nguồn"
+        suffixIcon={<FilterOutlined />}
         style={{ width: 'clamp(140px, 12vw, 180px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
-        value={filters.sortBy}
-        onChange={(val) => handleFilterChange('sortBy', val)}
+        value={filters.creatorFilter}
+        onChange={(val) => handleFilterChange('creatorFilter', val)}
       >
-        {Object.entries(SORT_BY_MAP).map(([val, label]) => (
+        {Object.entries(CREATOR_FILTER_MAP).map(([val, label]) => (
           <Option key={val} value={Number(val)}>{label}</Option>
         ))}
       </Select>
@@ -451,6 +466,20 @@ export function ExamManagement({ initialData = null }) {
         onSuccess={async (examId) => {
           await queryClient.invalidateQueries({ queryKey: ['exams', 'admin'] })
           router.push(`/admin/exams/${examId}`)
+        }}
+      />
+
+      <EditExamInfoModal
+        open={editModalOpen}
+        exam={editingRecord}
+        onCancel={() => {
+          setEditModalOpen(false)
+          setEditingRecord(null)
+        }}
+        onSuccess={async () => {
+          await queryClient.invalidateQueries({ queryKey: ['exams', 'admin'] })
+          setEditModalOpen(false)
+          setEditingRecord(null)
         }}
       />
 

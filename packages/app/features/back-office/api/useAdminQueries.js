@@ -91,11 +91,11 @@ export const useAIStatisticsQuery = (initialData = null) =>
   })
 
 export const useExamTemplatesQuery = (params = {}, initialData = null) => {
-  const { pageNumber = 1, pageSize = 10, searchTerm = '', status = 1, type = null } = params
+  const { pageNumber = 1, pageSize = 10, searchTerm = '', status = 1, type = null, creatorFilter = null } = params
   
   return useQuery({
-    queryKey: ['admin', 'exam-templates', pageNumber, pageSize, searchTerm, status, type],
-    queryFn: () => fetchExamTemplates({ pageNumber, pageSize, searchTerm, status, type }),
+    queryKey: ['admin', 'exam-templates', pageNumber, pageSize, searchTerm, status, type, creatorFilter],
+    queryFn: () => fetchExamTemplates({ pageNumber, pageSize, searchTerm, status, type, creatorFilter }),
     initialData: initialData || undefined,
     enabled: !initialData,
     ...commonOptions,

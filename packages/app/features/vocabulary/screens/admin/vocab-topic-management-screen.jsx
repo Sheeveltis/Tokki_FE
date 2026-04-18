@@ -37,8 +37,8 @@ export function FlashcardTopicManagement({ initialData = null }) {
 
   const currentPortal = getCurrentPortal()
 
-  // Mặc định status = 3 (Chờ phê duyệt) khi ở moderator portal
-  const defaultStatus = currentPortal === 'moderator' ? 3 : 1
+  // Mặc định status = 1 (Đang hoạt động) cho tất cả các portal
+  const defaultStatus = 1
 
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(!initialData)
@@ -359,18 +359,45 @@ export function FlashcardTopicManagement({ initialData = null }) {
       render: (_, __, index) =>
         (filters.page - 1) * filters.size + index + 1,
     },
-    { title: 'Tiêu đề', dataIndex: 'title', key: 'title', width: 200 },
+    { 
+      title: 'Tiêu đề', 
+      dataIndex: 'title', 
+      key: 'title', 
+      width: 200,
+      render: (text) => (
+        <span style={{
+          fontWeight: 600,
+          fontSize: 'clamp(13px, 1vw, 15px)',
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word'
+        }}>
+          {text}
+        </span>
+      )
+    },
     {
       title: 'Mô tả',
       dataIndex: 'subtitle',
       key: 'subtitle',
       width: 250,
-      render: (text) => {
-        if (text && text.length > 100) {
-          return `${text.substring(0, 100)}...`;
-        }
-        return text;
-      },
+      render: (text) => (
+        <span style={{
+          fontSize: 'clamp(12px, 0.9vw, 14px)',
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word',
+          color: '#595959'
+        }}>
+          {text}
+        </span>
+      ),
     },
     { title: 'Level', dataIndex: 'level', key: 'level', width: 100 },
     {

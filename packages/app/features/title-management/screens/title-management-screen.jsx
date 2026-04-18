@@ -50,7 +50,7 @@ export function TitleManagementScreen() {
 
   const [filters, setFilters] = useState({
     search: '',
-    status: null,
+    status: 1,
     requirementType: null,
     page: 1,
     size: 10
@@ -142,13 +142,39 @@ export function TitleManagementScreen() {
         dataIndex: 'name',
         key: 'name',
         width: '20%',
-        render: (val, record) => <Text strong style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>{val ?? record?.titleName ?? record?.TitleName ?? '-'}</Text>,
+        render: (val, record) => (
+          <span style={{
+            fontWeight: 600,
+            fontSize: 'clamp(13px, 1vw, 15px)',
+            display: '-webkit-box',
+            WebkitLineClamp: 1,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            wordBreak: 'break-word'
+          }}>
+            {val ?? record?.titleName ?? record?.TitleName ?? '-'}
+          </span>
+        ),
       },
       {
         title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Mô tả</span>,
         dataIndex: 'description',
         key: 'description',
-        render: (val) => <Text type="secondary" style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>{val || '-'}</Text>,
+        render: (val) => (
+          <span style={{
+            fontSize: 'clamp(13px, 1vw, 15px)',
+            display: '-webkit-box',
+            WebkitLineClamp: 1,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            wordBreak: 'break-word',
+            color: '#8c8c8c'
+          }}>
+            {val || '-'}
+          </span>
+        ),
       },
       {
         title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Điều kiện nhận</span>,

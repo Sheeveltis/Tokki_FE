@@ -16,8 +16,11 @@ import { WordleSentenceFlow } from './components/WordleSentenceFlow'
 import { WordleMenuPopup } from './components/WordleMenuPopup'
 import { useWordlePlayControl } from './useWordlePlayControl'
 
-import BackgroundImage from '../../../../../../assets/BackgroundSolite.png'
+import BackgroundImage from '../../../../../../assets/BackgroundSolite.jpg'
 import MenuIcon from '../../../../../../assets/menu-solitare.png'
+import TitleBadge from '../../../../../../assets/TitleBadge.png'
+import ButtonWood from '../../../../../../assets/ButtonWood.png'
+import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
 
 export function WordlePlayNative(props) {
   const {
@@ -48,12 +51,23 @@ export function WordlePlayNative(props) {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.overlay}>
           <View style={styles.header}>
-            <Text style={styles.title}>Wordle</Text>
-            {!!TOPIC_NAME && <Text style={styles.topic}>Chủ đề: {TOPIC_NAME}</Text>}
+            <View style={styles.headerLeft}>
+              <Pressable onPress={handleQuit} style={styles.backButtonContainer}>
+                <Image source={ButtonWood} style={styles.backButtonBg} />
+                <View style={styles.backButtonContent}>
+                  <ArrowIcon width={16} height={16} fill="#FFD700" />
+                  <Text style={styles.backButtonText}>Quay lại</Text>
+                </View>
+              </Pressable>
+            </View>
 
-            <Pressable style={styles.menuBtn} onPress={handleMenuClick}>
-              <Image source={MenuIcon} style={styles.menuIcon} />
-            </Pressable>
+            <View style={styles.titleWrapper}>
+              <Image source={TitleBadge} style={styles.bannerImage} />
+              <Text style={styles.title}>Wordle</Text>
+            </View>
+
+            <View style={styles.headerRight} />
+            {!!TOPIC_NAME && <Text style={styles.topic}>Chủ đề: {TOPIC_NAME}</Text>}
           </View>
 
           <ScrollView
@@ -85,26 +99,28 @@ export function WordlePlayNative(props) {
               </View>
             )}
 
-            <View style={styles.gameSection}>
-              <View style={styles.gridScaleWrap}>
-                <WordleGrid
-                  rows={gameState === 'won' ? [] : rows}
-                  maxGuesses={gameState === 'won' ? 0 : MAX_GUESSES}
-                  wordLength={WORD_LENGTH}
-                  targetWord={targetWord}
-                  gridCells={gridCells}
-                  gameState={gameState}
-                  activeColIndex={activeColIndex}
-                  onCellClick={handleCellClick}
-                />
-              </View>
-
-              {gameState === 'playing' && (
-                <View style={styles.keyboardWrap}>
-                  <WordleKeyboard rows={rows} onKeyPress={handleVirtualKey} compact />
+            {gameState !== 'won' && (
+              <View style={styles.gridSection}>
+                <View style={styles.gridScaleWrap}>
+                  <WordleGrid
+                    rows={gameState === 'won' ? [] : rows}
+                    maxGuesses={gameState === 'won' ? 0 : MAX_GUESSES}
+                    wordLength={WORD_LENGTH}
+                    targetWord={targetWord}
+                    gridCells={gridCells}
+                    gameState={gameState}
+                    activeColIndex={activeColIndex}
+                    onCellClick={handleCellClick}
+                  />
                 </View>
-              )}
-            </View>
+
+                {gameState === 'playing' && (
+                  <View style={styles.keyboardWrap}>
+                    <WordleKeyboard rows={rows} onKeyPress={handleVirtualKey} compact />
+                  </View>
+                )}
+              </View>
+            )}
 
             <View style={styles.sentenceFlowWrap}>
               <WordleSentenceFlow
@@ -142,27 +158,73 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 58,
+    minHeight: 110,
+    width: '100%',
+  },
+  headerLeft: {
+    position: 'absolute',
+    left: 14,
+    top: 50,
+    zIndex: 20,
+  },
+  headerRight: {
+    width: 120, // To balance the left section
+  },
+  backButtonContainer: {
+    width: 120,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backButtonBg: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+  },
+  backButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 8,
+  },
+  backButtonText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  titleWrapper: {
+    width: 200,
+    height: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  bannerImage: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
   },
   title: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '900',
-    color: '#3A2A1A',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   topic: {
     marginTop: 1,
     fontSize: 12,
     fontWeight: '600',
     color: '#5D4037',
-  },
-  menuBtn: {
     position: 'absolute',
-    right: 12,
-    top: 40,
-    width: 50,
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
+    bottom: -15,
   },
   menuIcon: {
     width: 34,
@@ -201,10 +263,12 @@ const styles = StyleSheet.create({
   },
   wordInfoCard: {
     width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.94)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     padding: 12,
-    marginBottom: 8,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: '#4CAF50',
   },
   wordInfoWord: {
     fontSize: 22,

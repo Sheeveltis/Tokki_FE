@@ -5,6 +5,10 @@ import { normalizeImageSource } from '../../../../study/api'
 
 import GameCardIcon from '../../../../../../assets/icon/icon-mainflow/game-card.svg'
 import CarrotImage from '../../../../../../assets/carrot.png'
+import ButtonWood from '../../../../../../assets/ButtonWood.png'
+import AlarmIcon from '../../../../../../assets/icon/icon-mainflow/alarm.svg'
+import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
+import TitleBadge from '../../../../../../assets/TitleBadge.png'
 import { FinishButton } from './finishbtn'
 
 const TOPIC_NAMES = {
@@ -69,11 +73,11 @@ export function MatchingCardHeader({
   useEffect(() => {
     onTimeUpRef.current = onTimeUp
   }, [onTimeUp])
-  
+
   useEffect(() => {
     onTickRef.current = onTick
   }, [onTick])
-  
+
   // Chỉ reset khi initialSeconds đổi thật sự
   useEffect(() => {
     setSeconds(initialSeconds)
@@ -81,26 +85,26 @@ export function MatchingCardHeader({
       onTickRef.current(initialSeconds)
     }
   }, [initialSeconds])
-  
+
   // Chỉ pause / resume timer, không reset seconds
   useEffect(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current)
       timerRef.current = null
     }
-  
+
     if (staticMode) {
       return
     }
-  
+
     timerRef.current = setInterval(() => {
       setSeconds((prev) => {
         const next = prev <= 1 ? 0 : prev - 1
-  
+
         if (typeof onTickRef.current === 'function') {
           onTickRef.current(next)
         }
-  
+
         if (next === 0) {
           clearInterval(timerRef.current)
           timerRef.current = null
@@ -108,11 +112,11 @@ export function MatchingCardHeader({
             onTimeUpRef.current()
           }
         }
-  
+
         return next
       })
     }, 1000)
-  
+
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current)
@@ -128,36 +132,49 @@ export function MatchingCardHeader({
   }, [seconds])
 
   return (
-    <View style={styles.container}>
-      <View style={styles.timeBox} nativeID="matching-card-timer">
-        <Text style={styles.label}>{formattedTime}</Text>
-      </View>
-
-      <View style={styles.topicBox} nativeID="matching-card-topic">
-        <Image source={normalizeImageSource(GameCardIcon)} style={styles.icon} resizeMode="contain" />
-        <Text style={styles.topicText}>{displayTopic}</Text>
-      </View>
-
-      <View style={styles.scoreBox} nativeID="matching-card-score">
-        <Text style={styles.label}>{score} Điểm</Text>
-        <Image source={normalizeImageSource(CarrotImage)} style={styles.carrot} resizeMode="contain" />
-        {showControls && (
-          <>
-            {typeof onBack === 'function' && (
-              <Pressable onPress={onBack} style={styles.backBtn}>
-                <Text style={styles.backText}>Quay lại</Text>
-              </Pressable>
-            )}
-          </>
+    <View style={styles.headerWrapper}>
+      {/* Left: Back Button */}
+      <View style={styles.leftSection}>
+        {typeof onBack === 'function' && (
+          <Pressable onPress={onBack} style={styles.backButtonContainer}>
+            <Image source={normalizeImageSource(ButtonWood)} style={styles.backButtonBg} />
+            <View style={styles.backButtonContent}>
+              <ArrowIcon width={18} height={18} fill="#FFD700" style={styles.backArrow} />
+              <Text style={styles.backButtonText}>Quay lại</Text>
+            </View>
+          </Pressable>
         )}
+      </View>
+
+      {/* Center: Main Header Elements */}
+      <View style={styles.centerSection}>
+        <View style={styles.timeBox} nativeID="matching-card-timer">
+          <View style={styles.timeContent}>
+            <AlarmIcon width={24} height={24} fill="#FF4D4D" />
+            <Text style={styles.label}>{formattedTime}</Text>
+          </View>
+        </View>
+
+        <View style={styles.topicBox} nativeID="matching-card-topic">
+          <Image source={normalizeImageSource(TitleBadge)} style={styles.topicBg} />
+          <View style={styles.topicContent}>
+            <Text style={styles.topicText}>{displayTopic}</Text>
+          </View>
+        </View>
+
+        <View style={styles.scoreBox} nativeID="matching-card-score">
+          <Image source={normalizeImageSource(ButtonWood)} style={styles.scoreBg} />
+          <View style={styles.scoreContent}>
+            <Text style={styles.scoreLabel}>{score} Điểm</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Right: Controls & Guide */}
+      <View style={styles.rightSection}>
         {typeof onGuide === 'function' && (
           <Pressable onPress={onGuide} style={styles.guideBtn}>
             <Text style={styles.guideText}>Cách chơi</Text>
-          </Pressable>
-        )}
-        {typeof onMenu === 'function' && (
-          <Pressable onPress={onMenu} style={styles.menuBtn} nativeID="matching-card-menu">
-            <Image source={MenuIcon} style={styles.menuIcon} />
           </Pressable>
         )}
         {typeof onToggleSound === 'function' && (
@@ -174,41 +191,129 @@ export function MatchingCardHeader({
 }
 
 const styles = StyleSheet.create({
-  container: {
+  headerWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 10,
-    backgroundColor: '#F5F0DD',
-    borderRadius: 12,
-    left: 110,
+    width: '100%',
+    paddingHorizontal: 16,
   },
-  timeBox: {
-    minWidth: 80,
-    right: 100,
+  leftSection: {
+    flex: 1,
+    alignItems: 'flex-start',
+
   },
-  topicBox: {
+  centerSection: {
+    flex: 3,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    bottom: 12,
+    gap: 40,
   },
-  scoreBox: {
+  rightSection: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  backButtonContainer: {
+    width: 140,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backButtonBg: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+  },
+  backButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+  },
+  backArrow: {
+    transform: [{ rotate: '0deg' }],
+  },
+  backButtonText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  timeBox: {
+    backgroundColor: 'rgba(245, 240, 221, 0.42)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 30,
+    minWidth: 100,
+  },
+  timeContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    minWidth: 80,
-    justifyContent: 'flex-end',
-    left: 100,
+  },
+  topicBox: {
+    width: 260,
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  topicBg: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    zIndex: -1,
+  },
+  topicContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  scoreBox: {
+    width: 120,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scoreBg: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    borderRadius: 15,
+  },
+  scoreContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
   },
   label: {
-    fontSize: 15,
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#432C0D',
+  },
+  scoreLabel: {
+    fontSize: 18,
     fontWeight: '800',
-    color: '#1C1C1C',
+    color: '#FFFFFF',
   },
   topicText: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#1C1C1C',
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   icon: {
     width: 28,
@@ -243,7 +348,7 @@ const styles = StyleSheet.create({
   menuBtn: {
     paddingHorizontal: 20,
     paddingVertical: 10,
-    
+
   },
   menuIcon: {
     width: 34,

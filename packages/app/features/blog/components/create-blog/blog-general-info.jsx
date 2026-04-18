@@ -14,6 +14,13 @@ export function BlogGeneralInfo() {
   const [thumbnailPreview, setThumbnailPreview] = useState(null)
 
   useEffect(() => {
+    const currentUrl = form.getFieldValue('thumbnailUrl')
+    if (currentUrl) {
+      setThumbnailPreview(currentUrl)
+    }
+  }, [form])
+
+  useEffect(() => {
     let mounted = true
     const fetchCategories = async () => {
       try {

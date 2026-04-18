@@ -31,76 +31,7 @@ export function RoadmapLearningLayout({
   const [isInfoModalVisible, setIsInfoModalVisible] = useState(false)
   const [isGeneratingNextWeek, setIsGeneratingNextWeek] = useState(false)
   const [progressData, setProgressData] = useState(null)
-
-  const handleGenerateNextWeek = async () => {
-    // 1. Xác định tuần mốc (tuần đã hoàn thành)
-    // Nếu tuần hiện tại đã có bài học (đang ở Day 7 chẳng hạn), thì dùng tuần này làm mốc để tạo tuần TIẾP THEO.
-    // Nếu tuần hiện tại đang trống (VD tuần 2 chưa có bài), thì dùng tuần TRƯỚC ĐÓ làm mốc để tạo nội dung cho chính tuần này.
-    const currentWeekInfo = weeks.find(w => w.weekIndex === activeWeekIndex)
-    const hasContent = Array.isArray(currentWeekInfo?.tasks) && currentWeekInfo.tasks.length > 0
-    
-    const referenceWeek = hasContent 
-      ? currentWeekInfo 
-      : weeks.find(w => w.weekIndex === (activeWeekIndex - 1))
-    
-    if (!referenceWeek?.roadmapWeekId) {
-       Alert.alert('Thông báo', 'Không tìm thấy thông tin tuần học tham chiếu để khởi tạo lộ trình.')
-       return
-    }
-
-    setIsGeneratingNextWeek(true)
-    setProgressData({ percent: 10, step: 'Đang bắt đầu phân tích lộ trình...', isCompleted: false })
-    
-    try {
-      // Tăng tiến trình giả lập để user cảm thấy app đang chạy
-      const progressInterval = setInterval(() => {
-        setProgressData(prev => {
-          if (prev && prev.percent < 85) return { ...prev, percent: prev.percent + 5 }
-          return prev
-        })
-      }, 2000)
-
-      // 2. Gọi API tạo tuần tiếp theo với finishedWeekId
-      const response = await apiClient.post(ENDPOINTS.ROADMAP.NEXT_WEEK, {
-        finishedWeekId: referenceWeek.roadmapWeekId
-      })
-
-      clearInterval(progressInterval)
-
-      if (response?.data) {
-        setProgressData({ percent: 100, step: 'Tạo tuần mới thành công!', isCompleted: true })
-        setTimeout(() => {
-          setIsGeneratingNextWeek(false)
-          onRetry?.() // Refresh roadmap data
-
-          // Nếu vừa xong một tuần có học (VD tuần 1), tự động nhảy sang tuần tiếp theo (tuần 2) vừa tạo
-          if (hasContent) {
-            handleWeekChange(activeWeekIndex + 1)
-          }
-        }, 1500)
-      } else {
-        setIsGeneratingNextWeek(false)
-      }
-    } catch (err) {
-      console.error('Failed to generate next week:', err)
-      const status = err.response?.status
-      const backendMessage = err.response?.data?.message
-      
-      if (status === 403) {
-        Alert.alert(
-          'Yêu cầu nâng cấp VIP',
-          'Tính năng tự động thiết kế lộ trình học tập nâng cao chỉ dành cho thành viên VIP. Bạn có muốn nâng cấp ngay không?',
-          [
-            { text: 'Để sau', style: 'cancel' },
-            { text: 'Nâng cấp ngay', onPress: () => router.push('/payment-package'), style: 'default' }
-          ]
-        )
-      } else {
-        Alert.alert('Thông báo', backendMessage || 'Không thể tạo tuần tiếp theo. Vui lòng thử lại.')
-      }
-      setIsGeneratingNextWeek(false)
-    }
-  }
+  const [isCancelling, setIsCancelling] = useState(false)
 
   // ĐỔI MỚI: Quản lý tuần hiện tại
   const [activeWeekIndex, setActiveWeekIndex] = useState(null)
@@ -119,7 +50,18 @@ export function RoadmapLearningLayout({
         }
       }
       const inProgress = weeks.find(w => w.status === 'InProgress')
-      setActiveWeekIndex(inProgress?.weekIndex || weeks[0].weekIndex)
+      if (inProgress) {
+        setActiveWeekIndex(inProgress.weekIndex)
+      } else {
+        const completedWeeks = weeks.filter(w => w.status === 'Completed')
+        if (completedWeeks.length > 0) {
+          const lastFinishedIndex = Math.max(...completedWeeks.map(w => w.weekIndex))
+          const nextWeek = weeks.find(w => w.weekIndex === lastFinishedIndex + 1)
+          setActiveWeekIndex(nextWeek ? nextWeek.weekIndex : lastFinishedIndex)
+        } else {
+          setActiveWeekIndex(weeks[0].weekIndex)
+        }
+      }
     }
   }, [weeks, initialWeekIndex, activeWeekIndex])
 
@@ -133,16 +75,165 @@ export function RoadmapLearningLayout({
     router.replace(`/roadmap/learning?week=${index}`, undefined, { shallow: true })
   }
 
+  const handleCancelRoadmap = async () => {
+    console.log('Cancel roadmap clicked')
+    const performCancel = async () => {
+      setIsCancelling(true)
+      try {
+        await apiClient.post(ENDPOINTS.ROADMAP.CANCEL)
+        if (Platform.OS === 'web') {
+          window.alert('Đã hủy lộ trình thành công.')
+        } else {
+          Alert.alert('Thành công', 'Đã hủy lộ trình thành công.')
+        }
+        router.push('/roadmap/info')
+      } catch (err) {
+        console.error('Failed to cancel roadmap:', err)
+        if (Platform.OS === 'web') {
+          window.alert('Không thể hủy lộ trình. Vui lòng thử lại sau.')
+        } else {
+          Alert.alert('Lỗi', 'Không thể hủy lộ trình. Vui lòng thử lại sau.')
+        }
+      } finally {
+        setIsCancelling(false)
+      }
+    }
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Bạn có chắc chắn muốn hủy lộ trình hiện tại? Tất cả các mục tiêu và tiến trình tuần này sẽ bị xóa.')) {
+        await performCancel()
+      }
+    } else {
+      Alert.alert(
+        'Xác nhận hủy',
+        'Bạn có chắc chắn muốn hủy lộ trình hiện tại? Tất cả các mục tiêu và tiến trình tuần này sẽ bị xóa.',
+        [
+          { text: 'Hủy bỏ', style: 'cancel' },
+          {
+            text: 'Xác nhận hủy',
+            style: 'destructive',
+            onPress: performCancel
+          }
+        ]
+      )
+    }
+  }
+
+  const pollIntervalRef = useRef(null)
+
+  const stopPolling = useCallback(() => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current)
+      pollIntervalRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    return () => stopPolling()
+  }, [stopPolling])
+
+  const pollProgress = useCallback(
+    async (jobId, shouldGoToNextWeek) => {
+      stopPolling()
+      pollIntervalRef.current = setInterval(async () => {
+        try {
+          const response = await apiClient.get(ENDPOINTS.ROADMAP.PROGRESS(jobId))
+          const data = response?.data
+          setProgressData(data)
+
+          if (data?.isCompleted) {
+            stopPolling()
+            setTimeout(() => {
+              setIsGeneratingNextWeek(false)
+              onRetry?.() // Refresh roadmap data
+              if (shouldGoToNextWeek) {
+                handleWeekChange(activeWeekIndex + 1)
+              }
+            }, 1500)
+          } else if (data?.isError) {
+            stopPolling()
+            setIsGeneratingNextWeek(false)
+            Alert.alert('Thông báo', data?.errorMessage || 'Có lỗi xảy ra trong quá trình tạo tuần mới.')
+          }
+        } catch (err) {
+          console.error('Progress polling error:', err)
+        }
+      }, 2000)
+    },
+    [stopPolling, onRetry, activeWeekIndex, handleWeekChange]
+  )
+
+  const handleGenerateNextWeek = async () => {
+    // 1. Xác định tuần mốc (tuần đã hoàn thành)
+    // Nếu tuần hiện tại đã có bài học (đang ở Day 7 chẳng hạn), thì dùng tuần này làm mốc để tạo tuần TIẾP THEO.
+    // Nếu tuần hiện tại đang trống (VD tuần 2 chưa có bài), thì dùng tuần TRƯỚC ĐÓ làm mốc để tạo nội dung cho chính tuần này.
+    const currentWeekInfo = weeks.find(w => w.weekIndex === activeWeekIndex)
+    const hasContent = Array.isArray(currentWeekInfo?.tasks) && currentWeekInfo.tasks.length > 0
+
+    const referenceWeek = hasContent
+      ? currentWeekInfo
+      : weeks.find(w => w.weekIndex === (activeWeekIndex - 1))
+
+    if (!referenceWeek?.roadmapWeekId) {
+      Alert.alert('Thông báo', 'Không tìm thấy thông tin tuần học tham chiếu để khởi tạo lộ trình.')
+      return
+    }
+
+    setIsGeneratingNextWeek(true)
+    setProgressData({ percent: 10, step: 'Đang bắt đầu phân tích lộ trình...', isCompleted: false })
+
+    try {
+      // 2. Gọi API tạo tuần tiếp theo với finishedWeekId
+      const response = await apiClient.post(ENDPOINTS.ROADMAP.NEXT_WEEK, {
+        finishedWeekId: referenceWeek.roadmapWeekId
+      })
+
+      const jobId = response?.data?.data
+      if (jobId) {
+        setProgressData({ percent: 0, step: 'Đang bắt đầu...', isCompleted: false })
+        pollProgress(jobId, hasContent)
+      } else {
+        setIsGeneratingNextWeek(false)
+      }
+    } catch (err) {
+      console.error('Failed to generate next week:', err)
+      const status = err.response?.status
+      const backendMessage = err.response?.data?.message
+
+      if (status === 403) {
+        Alert.alert(
+          'Yêu cầu nâng cấp VIP',
+          'Tính năng tự động thiết kế lộ trình học tập nâng cao chỉ dành cho thành viên VIP. Bạn có muốn nâng cấp ngay không?',
+          [
+            { text: 'Để sau', style: 'cancel' },
+            { text: 'Nâng cấp ngay', onPress: () => router.push('/payment-package'), style: 'default' }
+          ]
+        )
+      } else {
+        Alert.alert('Thông báo', backendMessage || 'Không thể tạo tuần tiếp theo. Vui lòng thử lại.')
+      }
+      setIsGeneratingNextWeek(false)
+    }
+  }
+
   const targetAim = roadmapData?.targetAim || 1
   const hasWriting = useMemo(() => targetAim >= 3, [targetAim])
   const phaseLabel = useMemo(() => getTopikPhaseByLevel(targetAim), [targetAim])
 
-  // Logic xác định tuần tối đa có thể xem (Tuần đang học + 1 tuần tiếp theo)
+  // Logic xác định tuần tối đa có thể xem (Chỉ cho xem tuần tiếp theo khi đã hoàn thành tuần trước)
   const maxViewableWeekIndex = useMemo(() => {
-    const inProgressIndex = weeks.find(w => w.status === 'InProgress')?.weekIndex
-    if (inProgressIndex !== undefined) return inProgressIndex + 1
+    // 1. Nếu có các tuần đã hoàn thành, tuần tối đa là tuần sau tuần hoàn thành cuối cùng
+    const completedWeeks = weeks.filter(w => w.status === 'Completed')
+    if (completedWeeks.length > 0) {
+      const lastFinishedIndex = Math.max(...completedWeeks.map(w => w.weekIndex))
+      return lastFinishedIndex + 1
+    }
 
-    // Nếu chưa có tuần nào in progress, cho phép xem tuần 1
+    // 2. Nếu không có tuần nào hoàn thành nhưng có tuần đang học, chỉ cho phép xem tuần đó
+    const inProgressIndex = weeks.find(w => w.status === 'InProgress')?.weekIndex
+    if (inProgressIndex !== undefined) return inProgressIndex
+
+    // 3. Nếu chưa có gì, mặc định là tuần đầu tiên
     if (weeks.length > 0) return weeks[0].weekIndex
     return 1
   }, [weeks])
@@ -156,6 +247,14 @@ export function RoadmapLearningLayout({
       total: tasks.length
     }
   }, [activeWeek])
+
+  const isActiveWeekNextToCreate = useMemo(() => {
+    if (!activeWeek) return false
+    const hasContent = Array.isArray(activeWeek.tasks) && activeWeek.tasks.length > 0
+    const isFinished = activeWeek.status === 'Completed'
+    const isInProgress = activeWeek.status === 'InProgress'
+    return !isFinished && !isInProgress && !hasContent && activeWeek.weekIndex === maxViewableWeekIndex
+  }, [activeWeek, maxViewableWeekIndex])
 
   if (isLoading) {
     return (
@@ -219,6 +318,14 @@ export function RoadmapLearningLayout({
 
               <View style={styles.headerActions}>
                 <Pressable
+                  onPress={handleCancelRoadmap}
+                  style={({ pressed }) => [styles.cancelIconButton, pressed && styles.cancelIconButtonPressed]}
+                  disabled={isCancelling}
+                >
+                  <Text style={styles.cancelBtnText}>Hủy lộ trình</Text>
+                </Pressable>
+
+                <Pressable
                   onPress={() => setIsHistoryModalVisible(true)}
                   style={({ pressed }) => [styles.historyIconButton, pressed && styles.historyIconButtonPressed]}
                 >
@@ -246,7 +353,11 @@ export function RoadmapLearningLayout({
 
                   const hasContent = Array.isArray(week.tasks) && week.tasks.length > 0
                   const isNextWeek = week.weekIndex <= maxViewableWeekIndex
-                  const isDisabled = !isFinished && !isInProgress && (!hasContent || !isNextWeek)
+
+                  // Tuần "Tiếp theo" để tạo (Chưa có nội dung và nằm trong phạm vi được phép xem)
+                  const isNextToCreate = !isFinished && !isInProgress && !hasContent && week.weekIndex === maxViewableWeekIndex
+
+                  const isDisabled = !isFinished && !isInProgress && !hasContent && !isNextToCreate
 
                   return (
                     <Pressable
@@ -271,6 +382,11 @@ export function RoadmapLearningLayout({
                         {isFinished && <Text style={styles.weekCheck}>✓</Text>}
                         {isInProgress && !isActive && <View style={styles.inProgressSmallDot} />}
                         {isDisabled && <View style={styles.lockIcon} />}
+                        {isNextToCreate && (
+                          <View style={styles.nextToCreateBadge}>
+                            <Text style={styles.nextToCreateText}>MỚI</Text>
+                          </View>
+                        )}
                       </View>
 
                       <View style={styles.sideWeekMiniProgress}>
@@ -299,11 +415,31 @@ export function RoadmapLearningLayout({
                     <View style={styles.weekFocusHeader}>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.weekFocusLabel}>NHIỆM VỤ TUẦN {activeWeekIndex}</Text>
-                        <Text style={styles.weekFocusGoal} numberOfLines={2}>{activeWeek?.focusGoal || 'Duy trì phong độ học tập ổn định'}</Text>
+                        <Text style={styles.weekFocusGoal} numberOfLines={2}>
+                          {isActiveWeekNextToCreate
+                            ? 'Vui lòng bấm tạo tuần tiếp theo'
+                            : (activeWeek?.focusGoal || 'Duy trì phong độ học tập ổn định')}
+                        </Text>
                       </View>
-                      <View style={[styles.statusBadge, activeWeek?.status === 'InProgress' ? styles.statusBadgeActive : (activeWeek?.status === 'Completed' ? styles.statusBadgeFinished : styles.statusBadgePending)]}>
-                        <Text style={[styles.statusBadgeText, activeWeek?.status === 'InProgress' ? styles.statusBadgeTextActive : (activeWeek?.status === 'Completed' ? styles.statusBadgeTextFinished : styles.statusBadgeTextPending)]}>
-                          {activeWeek?.status === 'InProgress' ? 'ĐANG HỌC' : (activeWeek?.status === 'Completed' ? 'ĐÃ XONG' : 'CHƯA ĐẾN')}
+                      <View style={[
+                        styles.statusBadge,
+                        activeWeek?.status === 'InProgress'
+                          ? styles.statusBadgeActive
+                          : (activeWeek?.status === 'Completed'
+                            ? styles.statusBadgeFinished
+                            : (isActiveWeekNextToCreate ? styles.statusBadgeActive : styles.statusBadgePending))
+                      ]}>
+                        <Text style={[
+                          styles.statusBadgeText,
+                          activeWeek?.status === 'InProgress'
+                            ? styles.statusBadgeTextActive
+                            : (activeWeek?.status === 'Completed'
+                              ? styles.statusBadgeTextFinished
+                              : (isActiveWeekNextToCreate ? styles.statusBadgeTextActive : styles.statusBadgeTextPending))
+                        ]}>
+                          {activeWeek?.status === 'InProgress'
+                            ? 'ĐANG HỌC'
+                            : (activeWeek?.status === 'Completed' ? 'ĐÃ XONG' : (isActiveWeekNextToCreate ? 'SẴN SÀNG' : 'CHƯA ĐẾN'))}
                         </Text>
                       </View>
                     </View>
@@ -344,8 +480,8 @@ export function RoadmapLearningLayout({
                         <Text style={styles.emptyWeekSubtitle}>
                           Hãy nhấn nút bên dưới để hệ thống thiết kế chương trình học cho tuần này dựa trên kết quả thi tuần trước của bạn nhé!
                         </Text>
-                        <RoadmapTestButton 
-                          title="Tạo tuần tiếp theo" 
+                        <RoadmapTestButton
+                          title="Tạo tuần tiếp theo"
                           onPress={handleGenerateNextWeek}
                           disabled={isGeneratingNextWeek}
                           style={styles.generateButton}
@@ -703,6 +839,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#D38E3F',
     transform: [{ scale: 0.96 }]
   },
+  cancelIconButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 100,
+    backgroundColor: '#FFF1F0',
+    borderWidth: 1,
+    borderColor: '#FFA39E',
+    marginRight: 10,
+    ...(Platform.OS === 'web' && { cursor: 'pointer', transition: 'all 0.15s ease' }),
+  },
+  cancelIconButtonPressed: {
+    backgroundColor: '#FFCCC7',
+    transform: [{ scale: 0.96 }]
+  },
+  cancelBtnText: {
+    color: '#F5222D',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   weekPillPressed: {
     transform: [{ scale: 0.98 }],
   },
@@ -716,6 +871,20 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: '#BBB',
+  },
+  nextToCreateBadge: {
+    backgroundColor: '#FFF8E1',
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#FFD54F',
+  },
+  nextToCreateText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#F57C00',
+    letterSpacing: 0.5,
   },
   weekFocusArea: {
     gap: 16,

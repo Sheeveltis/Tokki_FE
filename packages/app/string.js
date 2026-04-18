@@ -21,12 +21,25 @@ export const statusUser = {
 
 // Status labels for Payment
 export const statusPayment = {
+  Pending: 'Chờ thanh toán',
+  Paid: 'Đã thanh toán',
   pending: 'Chờ thanh toán',
   completed: 'Đã thanh toán',
   paid: 'Đã thanh toán',
   failed: 'Thất bại',
   refunded: 'Đã hoàn trả',
   cancelled: 'Đã hủy',
+};
+
+export const paymentStatusColors = {
+  Paid: 'green',
+  Pending: 'orange',
+  paid: 'green',
+  pending: 'orange',
+  completed: 'green',
+  failed: 'red',
+  refunded: 'purple',
+  cancelled: 'default',
 };
 
 // Status labels for Feedback

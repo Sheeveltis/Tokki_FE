@@ -84,17 +84,27 @@ export default function ManagementLayout({
   const paginationProps = tableProps?.pagination
 
   useEffect(() => {
-    // Đặt chiều cao cố định để giao diện ổn định, không bị nhảy theo nội dung hay resize linh hoạt
-    setTableScrollY(580)
+    const updateHeight = () => {
+      // Calculate height based on viewport, subtracting space for header and footer items
+      // 580 was the old fixed value, now we try to fit better
+      const vh = window.innerHeight
+      const calculatedHeight = Math.max(400, vh - 260) // Ensure at least 400px
+      setTableScrollY(calculatedHeight)
+    }
+
+    updateHeight()
+    window.addEventListener('resize', updateHeight)
+    return () => window.removeEventListener('resize', updateHeight)
   }, [])
 
   return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      gap: 20,
+      gap: 16,
       width: '100%',
-      height: '100%',
+      flex: 1,
+      minHeight: '100%',
       position: 'relative',
     }}>
       {/* HEADER SECTION */}
@@ -104,7 +114,7 @@ export default function ManagementLayout({
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '1rem',
-        paddingBottom: '0.5rem'
+        paddingBottom: '0.25rem'
       }}>
         <Space size="middle" style={{ flex: '1 1 auto', flexWrap: 'wrap', gap: '0.75rem' }}>
           {(onSearchChange || onSearchSubmit) && (
@@ -144,14 +154,17 @@ export default function ManagementLayout({
         boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
         overflow: 'hidden',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        flex: 1, // Đẩy box này chiếm toàn bộ không gian còn lại
+        minHeight: 0 // Quan trọng để flex child có thể nhỏ hơn nội dung
       }}>
         {/* CONTENT SECTION */}
         <div
           ref={tableWrapperRef}
           className="management-content-wrapper"
           style={{
-            height: tableScrollY,
+            flex: 1, // Để wrapper tự giãn theo không gian còn lại trong box
+            minHeight: 0,
             overflowY: viewMode === 'table' ? 'hidden' : 'auto',
             overflowX: 'auto',
             width: '100%',
@@ -161,7 +174,8 @@ export default function ManagementLayout({
             <ManagementTable
               {...tableProps}
               pagination={false}
-              scroll={{ ...tableProps?.scroll, x: 'max-content', y: tableScrollY }}
+              // Trừ đi khoảng 80px để chừa chỗ cho header, border và thanh cuộn ngang nếu có
+              scroll={{ ...tableProps?.scroll, x: 'max-content', y: tableScrollY - 70 }}
               size="middle"
             />
           ) : (
@@ -199,7 +213,7 @@ export default function ManagementLayout({
             display: 'flex',
             justifyContent: 'flex-end',
             alignItems: 'center',
-            padding: '16px 32px',
+            padding: '12px 24px 16px 24px', // Giảm bớt padding để khít hơn
             backgroundColor: '#fff',
             borderTop: '1px solid #f0f0f0',
             zIndex: 10,

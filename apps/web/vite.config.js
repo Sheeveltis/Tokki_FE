@@ -58,6 +58,10 @@ export default defineConfig({
       '@tanstack/react-query', 
       'react-native-web' 
     ],
+    exclude: [
+      'react-native',
+      'react-native-safe-area-context',
+    ],
   },
   define: {
     global: 'globalThis',

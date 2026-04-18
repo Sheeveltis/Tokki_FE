@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Image, StyleSheet, View, Text, Pressable, Platform } from 'react-native'
-import BackgroundImage from '../../../../../assets/background3.png'
 import CarrotImage from '../../../../../assets/carrot.png'
 import BunnyDeveloping from '../../../../../assets/bunny/9.png'
+import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
+import { StudyIcon } from '../../../study/components/study-icon.web'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -32,151 +33,127 @@ const GAME_TYPE_NAMES = {
  * }} props
  */
 export function MinigameGameCard({ game, onPress }) {
-  const gameTypeName = GAME_TYPE_NAMES[game.gameType] || game.gameName
-
-  const header = (
-    <View style={styles.headerContent}>
-      {game.isVip && (
-        <View style={styles.vipBadge}>
-          <Text style={styles.vipText}>VIP</Text>
-        </View>
-      )}
-      <Text style={styles.title}>{gameTypeName}</Text>
-    </View>
-  )
+  const [hovered, setHovered] = useState(false)
 
   const content = (
-    <View style={styles.wrapper}>
-      <Image source={normalizeImageSource(BackgroundImage)} style={styles.background} resizeMode="cover" />
+    <View style={styles.cardInner}>
+      <View style={styles.imageSection}>
+        <Image
+          source={normalizeImageSource(game.imgUrl || BunnyDeveloping)}
+          style={styles.gameImage}
+          resizeMode="cover"
+        />
+      </View>
 
-      <View style={styles.content}>
-        <View style={styles.headerBox}>{header}</View>
-
-        <View style={styles.body}>
-          {game.imgUrl ? (
-            <View style={styles.imageContainer}>
-              <Image
-                source={normalizeImageSource(game.imgUrl)}
-                style={styles.image}
-                resizeMode="contain"
-              />
-            </View>
-          ) : (
-            <View style={styles.imageContainer}>
-              <Image
-                source={normalizeImageSource(BunnyDeveloping)}
-                style={styles.image}
-                resizeMode="contain"
-              />
+      <View style={styles.contentSection}>
+        <View style={styles.headerRow}>
+          <Text style={styles.title} numberOfLines={1}>{game.gameName}</Text>
+          {game.isVip && (
+            <View style={styles.vipBadge}>
+              <Text style={styles.vipText}>VIP</Text>
             </View>
           )}
         </View>
 
-        <Image source={normalizeImageSource(CarrotImage)} style={[styles.carrot, styles.carrotTopRight]} />
-        <Image source={normalizeImageSource(CarrotImage)} style={[styles.carrot, styles.carrotMidLeft]} />
-        <Image source={normalizeImageSource(CarrotImage)} style={[styles.carrot, styles.carrotBottomRight]} />
+        <Text style={styles.description} numberOfLines={2}>
+          {game.description || 'Khám phá trò chơi để rèn luyện kỹ năng của bạn.'}
+        </Text>
       </View>
     </View>
   )
 
-  if (onPress) {
-    return (
-      <Pressable onPress={onPress} style={styles.pressable}>
-        {content}
-      </Pressable>
-    )
-  }
-
-  return content
+  return (
+    <Pressable
+      onPress={onPress}
+      onHoverIn={() => Platform.OS === 'web' && setHovered(true)}
+      onHoverOut={() => Platform.OS === 'web' && setHovered(false)}
+      style={({ pressed }) => [
+        styles.card,
+        (pressed || hovered) && styles.cardActive,
+        styles.pressable,
+      ]}
+    >
+      {content}
+    </Pressable>
+  )
 }
 
 const styles = StyleSheet.create({
   pressable: {
     width: '100%',
+    aspectRatio: 1, // Make it square
     ...(Platform.OS === 'web' && { cursor: 'pointer' }),
   },
-  wrapper: {
-    width: '100%',
-    maxWidth: 640,
-    borderRadius: 32,
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
     overflow: 'hidden',
-    alignSelf: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-  },
-  background: {
-    ...StyleSheet.absoluteFillObject,
     width: '100%',
     height: '100%',
-    opacity: 0.5,
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+    }),
   },
-  content: {
-    paddingVertical: 24,
-    paddingHorizontal: 32,
-    gap: 24,
+  cardActive: {
+    transform: [{ translateY: -6 }],
+    borderColor: '#F1BE4B50',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 12px 24px rgba(241, 190, 75, 0.12)',
+    }),
   },
-  headerBox: {
-    backgroundColor: '#F4EDE7',
-    borderRadius: 24,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+  cardInner: {
+    flex: 1,
+    flexDirection: 'column',
   },
-  headerContent: {
+  imageSection: {
+    flex: 2, // 2/3 of the card
+    backgroundColor: '#FEF7E6',
+    overflow: 'hidden',
+  },
+  gameImage: {
+    width: '100%',
+    height: '100%',
+  },
+  contentSection: {
+    flex: 1, // 1/3 of the card
+    padding: 16,
+    gap: 4,
+    justifyContent: 'center',
+  },
+  headerRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    fontFamily: 'Lexend, sans-serif',
+    flex: 1,
+  },
+  description: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#999', // Mờ chữ (faded)
+    fontFamily: 'Epilogue, sans-serif',
+    opacity: 0.8,
   },
   vipBadge: {
-    backgroundColor: '#FFD700',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    backgroundColor: '#FFD70033',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
   vipText: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '800',
     color: '#8B4513',
     fontFamily: 'Epilogue, sans-serif',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#1C1C1C',
-    fontFamily: 'Epilogue, sans-serif',
-    flex: 1,
-  },
-  body: {
-    marginTop: 8,
-  },
-  imageContainer: {
-    height: 220,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  carrot: {
-    position: 'absolute',
-    width: 64,
-    height: 64,
-    resizeMode: 'contain',
-  },
-  carrotTopRight: {
-    top: -10,
-    right: 20,
-  },
-  carrotMidLeft: {
-    top: 140,
-    left: 40,
-  },
-  carrotBottomRight: {
-    bottom: -8,
-    right: 80,
   },
 })
 

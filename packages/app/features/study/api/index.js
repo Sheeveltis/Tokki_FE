@@ -495,3 +495,57 @@ export const getSkillModules = async (levelId) => {
   return Promise.resolve([])
 }
 
+/**
+ * Lấy tiến độ lộ trình tuần hiện tại
+ * @returns {Promise<Object|null>}
+ */
+export const getCurrentWeekProgress = async () => {
+  try {
+    const res = await apiClient.get(ENDPOINTS.ROADMAP.CURRENT_WEEK_PROGRESS)
+    if (res?.data?.isSuccess) {
+      return res.data.data
+    }
+    return null
+  } catch (error) {
+    console.error('Error fetching current week progress:', error)
+    return null
+  }
+}
+
+/**
+ * Lấy thông tin cấp độ và kinh nghiệm của người dùng
+ * @returns {Promise<Object|null>}
+ */
+export const getGamificationProgress = async () => {
+  try {
+    const res = await apiClient.get(ENDPOINTS.GAMIFICATION.PROGRESS)
+    if (res?.data) {
+      return res.data
+    }
+    return null
+  } catch (error) {
+    console.error('Error fetching gamification progress:', error)
+    return null
+  }
+}
+
+/**
+ * Lấy danh sách bảng xếp hạng
+ * @param {number} timeFrame - 0: All time, 1: Weekly, 2: Monthly
+ * @param {number} top - Số lượng người dùng đứng đầu
+ * @returns {Promise<Array>}
+ */
+export const getLeaderboardData = async (timeFrame = 0, top = 20) => {
+  try {
+    const res = await apiClient.get(ENDPOINTS.LEADERBOARD.GET_ALL, {
+      params: { timeFrame, top }
+    })
+    if (res?.data?.isSuccess) {
+      return res.data.data
+    }
+    return []
+  } catch (error) {
+    console.error('Error fetching leaderboard data:', error)
+    return []
+  }
+}

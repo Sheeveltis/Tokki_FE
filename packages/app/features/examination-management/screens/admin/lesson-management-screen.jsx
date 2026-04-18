@@ -46,8 +46,43 @@ export function LessonManagement({ initialData = null }) {
   }, [data, filters.search])
 
   const columns = useMemo(() => [
-    { title: 'Tiêu đề', dataIndex: 'title', key: 'title' },
-    { title: 'Tác giả', dataIndex: 'author', key: 'author' },
+    { 
+      title: 'Tiêu đề', 
+      dataIndex: 'title', 
+      key: 'title',
+      render: (text) => (
+        <span style={{
+          fontWeight: 600,
+          fontSize: 'clamp(13px, 1vw, 15px)',
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word'
+        }}>
+          {text}
+        </span>
+      )
+    },
+    { 
+      title: 'Tác giả', 
+      dataIndex: 'author', 
+      key: 'author',
+      render: (text) => (
+        <span style={{
+          fontSize: 'clamp(12px, 0.9vw, 14px)',
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word'
+        }}>
+          {text}
+        </span>
+      )
+    },
     { title: 'Cập nhật', dataIndex: 'updatedAt', key: 'updatedAt' },
     {
       title: 'Xem',

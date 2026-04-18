@@ -56,11 +56,11 @@ export function useFlashcardList(initialLevelId) {
       try {
         const userId = getCurrentUserId()
         if (userId) {
-          const progress = await getProgress(userId)
-          // Ưu tiên aimLevel từ bảng gamification/profile
-          if (progress?.level) {
-            setSelectedLevel(progress.level)
-          }
+          // Bỏ logic tự động lấy level người dùng để tránh ép buộc level
+          // const progress = await getProgress(userId)
+          // if (progress?.level) {
+          //   setSelectedLevel(progress.level)
+          // }
         }
       } catch (err) {
         console.error('[useFlashcardList] Error loading user aimLevel:', err)

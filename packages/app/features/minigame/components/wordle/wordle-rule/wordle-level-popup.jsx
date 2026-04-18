@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, Pressable, Image } from 'react-native'
+import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native'
 
 import EasyBunny from '../../../../../../assets/bunny/14.png'
 // Tạm thời dùng cùng một hình bunny cho cả 3 mức độ (trong assets hiện chỉ có 14.png)
@@ -83,17 +83,19 @@ export function WordleLevelPopup({ loading, levelsData = [], onClose, onSelectLe
                 style={[
                   styles.levelItem,
                   isSelected && !isWon && !isOutOfAttempts && styles.levelItemSelected,
-                  (isWon || isOutOfAttempts) && styles.levelItemWon,
+                  (isWon || isOutOfAttempts) && styles.levelItemDisabled,
                 ]}
                 disabled={isDisabled}
                 onPress={() => handleLevelPress(level.id)}
               >
                 <View style={styles.levelLeft}>
-                  <Image
-                    source={normalizeImageSource(level.bunny)}
-                    style={[styles.bunny, isWon && styles.bunnyWon]}
-                    resizeMode="contain"
-                  />
+                  <View style={[styles.iconContainer, isSelected && !isWon && !isOutOfAttempts && styles.iconContainerActive]}>
+                    <Image
+                      source={normalizeImageSource(level.bunny)}
+                      style={[styles.bunny, isWon && styles.bunnyWon]}
+                      resizeMode="contain"
+                    />
+                  </View>
                 </View>
                 <View style={styles.levelTextWrapper}>
                   <Text style={[styles.levelLabel, isWon && styles.levelTextWon]}>
@@ -138,12 +140,12 @@ export function WordleLevelPopup({ loading, levelsData = [], onClose, onSelectLe
 
 const styles = StyleSheet.create({
   overlay: {
-    position: 'absolute',
+    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(250, 250, 250, 0.85)',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2000,
@@ -153,22 +155,23 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 480,
-    backgroundColor: '#FFF5E6',
-    borderRadius: 26,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 32,
     paddingVertical: 24,
     paddingHorizontal: 24,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    ...(Platform.OS === 'web' && { 
+      boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
+    }),
   },
   title: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#1C1C1C',
+    color: '#1A1A1A',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    fontFamily: 'Epilogue, sans-serif',
   },
   levelList: {
     gap: 16,
@@ -176,32 +179,52 @@ const styles = StyleSheet.create({
   levelItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 999,
-    backgroundColor: '#FFE9C4',
-    borderWidth: 2,
-    borderColor: '#FFE0B2',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    gap: 16,
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.2s ease',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+    }),
   },
   levelItemSelected: {
-    backgroundColor: '#FFA726',
-    borderColor: '#FB8C00',
+    backgroundColor: '#FEF7E6',
+    borderColor: '#F1BE4B',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 12px rgba(241, 190, 75, 0.15)',
+    }),
   },
-  levelItemWon: {
-    backgroundColor: '#E0E0E0',
-    borderColor: '#BDBDBD',
-    opacity: 0.5,
+  levelItemDisabled: {
+    backgroundColor: '#FAFAFA',
+    borderColor: '#F5F5F5',
+    opacity: 0.6,
   },
   bunnyWon: {
     opacity: 0.5,
   },
   levelTextWon: {
-    color: '#9E9E9E',
+    color: '#999',
   },
   levelLeft: {
-    width: 64,
+    width: 60,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  iconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 14,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  iconContainerActive: {
+    backgroundColor: '#FFFFFF',
   },
   bunny: {
     width: 48,
@@ -209,45 +232,47 @@ const styles = StyleSheet.create({
   },
   levelTextWrapper: {
     flex: 1,
-    paddingLeft: 8,
+    gap: 4,
   },
   levelLabel: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#3E2723',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
   },
   levelDesc: {
-    marginTop: 4,
     fontSize: 15,
-    color: '#4E342E',
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
   },
   footer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     marginTop: 24,
     gap: 12,
   },
   footerButton: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
     alignItems: 'center',
+    minWidth: 120,
   },
   cancelButton: {
-    backgroundColor: '#CFD8DC',
+    backgroundColor: '#F5F5F5',
   },
   confirmButton: {
-    backgroundColor: '#7CB342',
+    backgroundColor: '#F1BE4B',
   },
   cancelText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#37474F',
+    color: '#666',
   },
   confirmText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
   },
 })
 

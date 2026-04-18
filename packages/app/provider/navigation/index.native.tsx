@@ -17,9 +17,11 @@ export function NavigationProvider({
             screens: {
               home: '',
               'user-detail': 'users/:id',
+              'blog-list': 'blog',
+              'blog-detail': 'blog/:slug',
             },
           },
-        }),
+        } as const),
         []
       )}
     >

@@ -31,7 +31,7 @@ export function PassageList() {
   const [filters, setFilters] = useManagementFilters({
     search: '',
     mediaType: null,
-    status: null,
+    status: 1,
     page: 1,
     size: 50,
   })
@@ -97,7 +97,20 @@ export function PassageList() {
         dataIndex: 'title',
         key: 'title',
         width: 250,
-        render: (v) => <Text strong>{v || '-'}</Text>,
+        render: (v) => (
+          <span style={{
+            fontWeight: 600,
+            fontSize: 'clamp(13px, 1vw, 15px)',
+            display: '-webkit-box',
+            WebkitLineClamp: 1,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            wordBreak: 'break-word'
+          }}>
+            {v || '-'}
+          </span>
+        ),
       },
       {
         title: 'Nội dung',
@@ -120,7 +133,18 @@ export function PassageList() {
                   />
                 </div>
               ) : null}
-              <Text type="secondary">{(v || '').slice(0, 140)}{(v || '').length > 140 ? '…' : ''}</Text>
+              <span style={{
+                fontSize: 'clamp(12px, 0.9vw, 14px)',
+                display: '-webkit-box',
+                WebkitLineClamp: 1, // Số hàng muốn hiển thị trước khi hiện dấu ...
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                wordBreak: 'break-word',
+                color: '#595959'
+              }}>
+                {v || ''}
+              </span>
             </div>
           )
         },

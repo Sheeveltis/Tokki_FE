@@ -2,7 +2,15 @@
 
 import React, { useEffect, useState } from 'react'
 import { Modal, Form, Input, InputNumber, ColorPicker, Space, Upload, Button, Select, Typography, Row, Col, notification } from 'antd'
-import { InboxOutlined } from '@ant-design/icons'
+import { 
+  InboxOutlined, 
+  FontSizeOutlined, 
+  FileTextOutlined, 
+  AppstoreOutlined, 
+  OrderedListOutlined, 
+  BgColorsOutlined, 
+  PictureOutlined 
+} from '@ant-design/icons'
 import { createObjectUrl, revokeObjectUrl } from '../../examination-management/api/upload-utils'
 
 const { TextArea } = Input
@@ -93,6 +101,7 @@ export function CreateTitleModal({ open, onCancel, onSubmit, loading }) {
         form={form}
         layout="vertical"
         style={{ marginTop: 16 }}
+        requiredMark={false}
         initialValues={{ isSystemGiven: false, requirementType: 0, requirementQuantity: 0 }}
         onFinish={(values) => {
           const payload = {
@@ -111,21 +120,21 @@ export function CreateTitleModal({ open, onCancel, onSubmit, loading }) {
         <Row gutter={24}>
           <Col span={14}>
             <Form.Item
-              label={<span style={{ fontWeight: 600 }}>Tên danh hiệu</span>}
+              label={<Space><FontSizeOutlined style={{ color: '#1677ff' }} />Tên danh hiệu (Bắt buộc)</Space>}
               name="name"
               rules={[{ required: true, message: 'Vui lòng nhập tên danh hiệu' }]}
             >
               <Input placeholder="Ví dụ: Kẻ hủy diệt, Chiến thần..." size="large" style={{ borderRadius: 8 }} />
             </Form.Item>
 
-            <Form.Item label={<span style={{ fontWeight: 600 }}>Mô tả</span>} name="description">
+            <Form.Item label={<Space><FileTextOutlined style={{ color: '#1677ff' }} />Mô tả</Space>} name="description">
               <TextArea rows={3} placeholder="Nhập mô tả cho danh hiệu này..." size="large" style={{ borderRadius: 8 }} />
             </Form.Item>
 
             <Row gutter={12}>
               <Col span={12}>
                 <Form.Item
-                  label={<span style={{ fontWeight: 600 }}>Loại điều kiện</span>}
+                  label={<Space><AppstoreOutlined style={{ color: '#1677ff' }} />Loại điều kiện (Bắt buộc)</Space>}
                   name="requirementType"
                   rules={[{ required: true, message: 'Vui lòng chọn loại' }]}
                 >
@@ -142,11 +151,13 @@ export function CreateTitleModal({ open, onCancel, onSubmit, loading }) {
               <Col span={12}>
                 <Form.Item
                   label={
-                    <span style={{ fontWeight: 600 }}>
+                    <Space>
+                      <OrderedListOutlined style={{ color: '#1677ff' }} />
                       {requirementType === 0 ? 'Cấp độ yêu cầu' : 
                        requirementType === 1 ? 'XP yêu cầu' : 
                        requirementType === 4 ? 'Số ngày vắng mặt' : 'Số ngày yêu cầu'}
-                    </span>
+                      (Bắt buộc)
+                    </Space>
                   }
                   name="requirementQuantity"
                   rules={[{ required: true, message: 'Vui lòng nhập số lượng' }]}
@@ -161,7 +172,7 @@ export function CreateTitleModal({ open, onCancel, onSubmit, loading }) {
               </Col>
             </Row>
 
-            <Form.Item label={<span style={{ fontWeight: 600 }}>Màu sắc mã Hex</span>} name="colorHex">
+            <Form.Item label={<Space><BgColorsOutlined style={{ color: '#1677ff' }} />Màu sắc mã Hex</Space>} name="colorHex">
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                 <ColorPicker
                   showText
@@ -182,7 +193,7 @@ export function CreateTitleModal({ open, onCancel, onSubmit, loading }) {
           </Col>
 
           <Col span={10}>
-            <Form.Item label={<span style={{ fontWeight: 600 }}>Biểu tượng (Icon)</span>} required>
+            <Form.Item label={<Space><PictureOutlined style={{ color: '#1677ff' }} />Biểu tượng (Icon) (Bắt buộc)</Space>} required>
               <Dragger {...iconUploadProps} style={{ borderRadius: 12, padding: '24px 0', border: '2px dashed #d9d9d9', height: 200 }}>
                 <p className="ant-upload-drag-icon">
                   <InboxOutlined style={{ color: '#1890ff' }} />

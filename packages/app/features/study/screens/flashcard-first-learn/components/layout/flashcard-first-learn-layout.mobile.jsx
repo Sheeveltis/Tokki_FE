@@ -12,7 +12,7 @@ export function FlashcardFirstLearnLayout({ children }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F5F0DD',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'flex-start',
   },

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { StyleSheet, Text, View, ActivityIndicator } from 'react-native'
 import { getProgress } from '../../../api/profile'
-import { getCurrentUserId } from '../../../../../provider/api/client'
 
 /**
  * Component hiển thị thanh kinh nghiệm (EXP) của người dùng
  * @param {Object} props
  * @param {string} props.label - Label hiển thị (mặc định "Kinh nghiệm")
+ * @param {Object} props.progress - Dữ liệu progress truyền vào (optional)
  */
 export function UserExp({ label = 'Kinh nghiệm', progress }) {
   const [loading, setLoading] = useState(!progress)
@@ -26,33 +26,29 @@ export function UserExp({ label = 'Kinh nghiệm', progress }) {
         setProgressData(data)
       } catch (error) {
         console.error('[UserExp] Lỗi khi lấy thông tin progress:', error)
-        console.error('[UserExp] Error details:', error.response?.data || error.message)
       } finally {
         setLoading(false)
       }
     }
 
     fetchProgress()
-  }, [])
+  }, [progress])
 
-  // Set width trực tiếp từ progressPercentage, không dùng animation
-  // Ví dụ: progressPercentage = 54.95 -> width: '54.95%'
-  const progressWidth = progressData?.progressPercentage !== undefined 
-    ? `${progressData.progressPercentage}%` 
+  const progressWidth = progressData?.progressPercentage !== undefined
+    ? `${progressData.progressPercentage}%`
     : '0%'
 
   if (loading) {
     return (
       <View style={styles.card}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#FFDCAA" />
+          <ActivityIndicator size="small" color="#F1BE4B" />
           <Text style={styles.loadingText}>Đang tải...</Text>
         </View>
       </View>
     )
   }
 
-  // Không render nếu chưa có data từ API
   if (!progressData) {
     return (
       <View style={styles.card}>
@@ -60,10 +56,6 @@ export function UserExp({ label = 'Kinh nghiệm', progress }) {
       </View>
     )
   }
-
-  // Tính XP còn thiếu để lên cấp: maxXPOfLevel - xpInCurrentLevel
-  // Ví dụ: 182 - 100 = 82 XP
-  const xpNeeded = progressData.maxXPOfLevel - progressData.xpInCurrentLevel
 
   return (
     <View style={styles.card}>
@@ -83,6 +75,16 @@ export function UserExp({ label = 'Kinh nghiệm', progress }) {
         </View>
       </View>
 
+      <View style={styles.footer}>
+        <View style={styles.xpDetail}>
+          <Text style={styles.xpCurrent}>
+            {progressData.xpInCurrentLevel} <Text style={styles.xpTarget}>/ {progressData.maxXPOfLevel} XP</Text>
+          </Text>
+        </View>
+        <Text style={styles.xpNeeded}>
+          {progressData.maxXPOfLevel - progressData.xpInCurrentLevel} XP để lên cấp
+        </Text>
+      </View>
     </View>
   )
 }
@@ -150,14 +152,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 4,
   },
   xpDetail: {
-    fontFamily: 'Epilogue, sans-serif',
+    flexDirection: 'row',
+    alignItems: 'baseline',
   },
   xpCurrent: {
     fontSize: 15,
     fontWeight: '800',
     color: '#20130A',
+    fontFamily: 'Epilogue, sans-serif',
   },
   xpTarget: {
     fontSize: 13,
@@ -190,4 +195,3 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
   },
 })
-

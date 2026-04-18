@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Platform } from 'react-native'
 import { completeTopic, getFlashcardsForStudy, submitSpacedRepetitionWithCorrect } from '@tokki/app/features/study/api'
+import { awardXP } from '@tokki/app/features/minigame/api/api'
 
 // Import expo-av cho mobile (nếu có)
 let ExpoAudio = null
@@ -29,7 +30,6 @@ if (Platform.OS !== 'web') {
 }
 
 const STEPS = ['view', 'listen', 'meaning'] // 0,1,2
-const MAX_ATTEMPTS_PER_WORD = 2 // 1 lần học + 1 lần học lại ở cuối
 const BATCH_SIZE = 5 // Số từ vựng học mỗi lần
 
 export function useFlashcardFirstLearn(topicId) {
@@ -60,11 +60,12 @@ export function useFlashcardFirstLearn(topicId) {
   const soundRef = useRef(null)
 
   // Track số lần 1 từ đã xuất hiện trong queue (để tránh loop vô hạn)
-  const attemptsRef = useRef(new Map()) // key: vocabularyId, value: number
   const completedTopicRef = useRef(false)
   const completedInBatchRef = useRef(0) // Số từ đã hoàn thành đúng (meaning step) trong batch hiện tại
   const batchWordIdsRef = useRef(new Set()) // Set các vocabularyId trong batch hiện tại
   const prefetchInFlightRef = useRef(false)
+  const isSubmittingRef = useRef(false)
+  const submittedIdsRef = useRef(new Set()) // Track IDs already submitted to API in this session
 
   const current = queue[index] || null
   const total = queue.length
@@ -99,7 +100,7 @@ export function useFlashcardFirstLearn(topicId) {
       console.warn('[Audio] No audioUrl for current word')
       return
     }
-    
+
     if (Platform.OS === 'web') {
       // Web: sử dụng HTML5 Audio
       await cleanupAudio()
@@ -123,7 +124,7 @@ export function useFlashcardFirstLearn(topicId) {
         await cleanupAudio()
         const { sound } = await ExpoAudio.Sound.createAsync(
           { uri: current.audioUrl },
-          { 
+          {
             shouldPlay: true,
             volume: 1.0,
             isMuted: false,
@@ -131,14 +132,14 @@ export function useFlashcardFirstLearn(topicId) {
         )
         soundRef.current = sound
         const initialStatus = await sound.getStatusAsync()
-        
+
         if (initialStatus.error) {
           console.error('[Audio] Error in initial status:', initialStatus.error)
           await sound.unloadAsync()
           soundRef.current = null
           return
         }
-        
+
         sound.setOnPlaybackStatusUpdate((status) => {
           if (status.isLoaded) {
             if (status.didJustFinish) {
@@ -150,7 +151,7 @@ export function useFlashcardFirstLearn(topicId) {
             console.error('[Audio] Sound load error:', status.error)
           }
         })
-        
+
         // Đảm bảo sound được play
         setTimeout(async () => {
         }, 100)
@@ -174,7 +175,7 @@ export function useFlashcardFirstLearn(topicId) {
       setError(null)
       const data = await getFlashcardsForStudy(topicId, BATCH_SIZE)
       const base = Array.isArray(data) ? data : []
-      
+
       // Nếu không có từ vựng nào trả về, có nghĩa là đã học hết
       if (base.length === 0) {
         setHasMoreFlashcards(false)
@@ -201,11 +202,12 @@ export function useFlashcardFirstLearn(topicId) {
           setShowResult(false)
           setIsCorrect(false)
           setStepResults({ listen: null, meaning: null })
-          attemptsRef.current = new Map()
           completedTopicRef.current = false
           completedInBatchRef.current = 0
           setCompletedInBatch(0)
           batchWordIdsRef.current = new Set(base.map((item) => item.id))
+          submittedIdsRef.current = new Set() // Reset on new topic/batch fetch if needed, 
+          // though usually completedWords handles this, Ref is more immediate
         } else {
           // Fetch batch mới để tiếp tục học
           setQueue(base)
@@ -250,6 +252,8 @@ export function useFlashcardFirstLearn(topicId) {
     completedInBatchRef.current = 0
     setCompletedInBatch(0)
     batchWordIdsRef.current = new Set(base.map((item) => item.id))
+    // Xoá dòng reset submittedIdsRef để đảm bảo không bao giờ nộp đúp dù API trả về lại từ cũ trong batch mới
+    // submittedIdsRef.current = new Set() 
   }, [])
 
   useEffect(() => {
@@ -296,88 +300,155 @@ export function useFlashcardFirstLearn(topicId) {
   }
 
   const handleContinue = async () => {
-    if (currentStepKey === 'view') {
-      if (!hasFlippedOnce) return
-      // Bước 1: chỉ chuyển sang bước 2, không lưu tiến độ
-      // Bước 1: chỉ chuyển sang bước 2, tính là đã xong bước view cho từ này
-      if (current?.id) {
-        setCompletedTasks((prev) => {
-          const next = new Set(prev)
-          next.add(`${current.id}:0`)
-          return next
-        })
-      }
-      setStep(1)
-      resetForNextStep()
-      return
-    }
-    if (!showResult) return
+    if (isSubmittingRef.current) return
+    isSubmittingRef.current = true
 
-    if (currentStepKey === 'listen') {
-      // Bước 2: nếu sai → đưa về cuối ngay, không học bước 3
-      if (!isCorrect) {
-        // Không cộng tiến độ nếu sai
+    try {
+      if (currentStepKey === 'view') {
+        if (!hasFlippedOnce) return
+        // Bước 1: chỉ chuyển sang bước 2, không lưu tiến độ
+        // Bước 1: chỉ chuyển sang bước 2, tính là đã xong bước view cho từ này
         if (current?.id) {
-          const prev = attemptsRef.current.get(current.id) || 1
-          if (prev < MAX_ATTEMPTS_PER_WORD) {
-            attemptsRef.current.set(current.id, prev + 1)
+          setCompletedTasks((prev) => {
+            const next = new Set(prev)
+            next.add(`${current.id}:0`)
+            return next
+          })
+        }
+        setStep(1)
+        resetForNextStep()
+        return
+      }
+      if (!showResult) return
+
+      if (currentStepKey === 'listen') {
+        // Bước 2: nếu sai → đưa về cuối ngay, không học bước 3
+        if (!isCorrect) {
+          // Không cộng tiến độ nếu sai, đưa từ vựng về cuối queue để học lại
+          if (current) {
             setQueue((q) => [...q, current])
           }
+          // Chuyển sang từ tiếp theo
+          setIndex(index + 1)
+          setStep(0)
+          setIsFlipped(false)
+          setHasFlippedOnce(false)
+          setUserAnswer('')
+          setShowResult(false)
+          setIsCorrect(false)
+          setStepResults({ listen: null, meaning: null })
+          return
         }
-        // Chuyển sang từ tiếp theo, reset về bước 0
+        // Bước 2 đúng → chuyển sang bước 3, tính đã xong bước listen
+        if (current?.id) {
+          setCompletedTasks((prev) => {
+            const next = new Set(prev)
+            next.add(`${current.id}:1`)
+            return next
+          })
+        }
+        setStep(2)
+        resetForNextStep()
+        return
+      }
+
+      if (currentStepKey === 'meaning') {
+        // Step 3: meaning step -> finish word
+        // Bước 3: nếu sai → đưa về cuối
+        if (!isCorrect) {
+          // Không cộng tiến độ nếu sai, đưa từ vựng về cuối queue để học lại
+          if (current) {
+            setQueue((q) => [...q, current])
+          }
+          // Chuyển sang từ tiếp theo
+          setIndex(index + 1)
+          setStep(0)
+          setIsFlipped(false)
+          setHasFlippedOnce(false)
+          setUserAnswer('')
+          setShowResult(false)
+          setIsCorrect(false)
+          setStepResults({ listen: null, meaning: null })
+          return
+        }
+
+        // Bước 3 đúng → đánh dấu hoàn thành cả 3 bước
+        if (current?.id) {
+          // Kiểm tra Ref trước tiên để ngăn chặn nộp 2 lần ngay cả khi state chưa kịp update
+          const alreadySubmitted = submittedIdsRef.current.has(current.id)
+
+          setCompletedTasks((prev) => {
+            const next = new Set(prev)
+            next.add(`${current.id}:2`)
+            return next
+          })
+          setCompletedWords((prev) => new Set([...prev, current.id]))
+
+          // Chỉ đếm nếu từ này thuộc batch hiện tại (không phải từ bị đưa lại vào queue)
+          if (batchWordIdsRef.current.has(current.id)) {
+            completedInBatchRef.current += 1
+            setCompletedInBatch(completedInBatchRef.current)
+          }
+
+          // Gửi API với isCorrect: true khi hoàn thành đủ 3 bước đúng
+          // Chỉ nộp 1 lần duy nhất sau khi học đủ 3 step
+          if (!alreadySubmitted) {
+            submittedIdsRef.current.add(current.id)
+            try {
+              await submitSpacedRepetitionWithCorrect(current.id, true)
+            } catch (err) {
+              console.error('Error submit spaced repetition:', err)
+            }
+          }
+        }
+
+        // Chuyển sang từ tiếp theo
         const nextIndex = index + 1
+
+        // Kiểm tra xem đã hoàn thành đủ số từ trong batch hiện tại chưa
+        const batchSize = batchWordIdsRef.current.size
+        const hasCompletedCurrentBatch = completedInBatchRef.current >= batchSize
+
+        if (hasCompletedCurrentBatch) {
+          // Đã học xong batch hiện tại -> prefetch batch tiếp theo
+          if (!prefetchInFlightRef.current) {
+            prefetchInFlightRef.current = true
+            setIsCheckingNextBatch(true)
+            try {
+              const data = await getFlashcardsForStudy(topicId, BATCH_SIZE)
+              const next = Array.isArray(data) ? data : []
+              if (next.length === 0) {
+                setHasMoreFlashcards(false)
+                setAllWordsCompleted(true)
+                setNextBatch(null)
+                setShowContinueDialog(false)
+              } else {
+                setHasMoreFlashcards(true)
+                setAllWordsCompleted(false)
+                setNextBatch(next)
+                setShowContinueDialog(true)
+              }
+            } catch (err) {
+              console.error('Error prefetch next batch:', err)
+              setError(err.message || 'Không thể tải danh sách từ vựng tiếp theo')
+              setHasMoreFlashcards(false)
+              setNextBatch(null)
+              setShowContinueDialog(true)
+            } finally {
+              setIsCheckingNextBatch(false)
+              prefetchInFlightRef.current = false
+            }
+          }
+          return
+        }
+
         if (nextIndex < total) {
-          setIndex(nextIndex)
-        } else if (nextIndex < total + 1) {
-          // Edge case: nếu vừa append
           setIndex(nextIndex)
         } else {
           setIndex(nextIndex)
         }
-        setStep(0)
-        setIsFlipped(false)
-        setHasFlippedOnce(false)
-        setUserAnswer('')
-        setShowResult(false)
-        setIsCorrect(false)
-        setStepResults({ listen: null, meaning: null })
-        return
       }
-      // Bước 2 đúng → chuyển sang bước 3
-      // Bước 2 đúng → chuyển sang bước 3, tính đã xong bước listen
-      if (current?.id) {
-        setCompletedTasks((prev) => {
-          const next = new Set(prev)
-          next.add(`${current.id}:1`)
-          return next
-        })
-      }
-      setStep(2)
-      resetForNextStep()
-      return
-    }
 
-    // meaning step -> finish word
-    // Bước 3: nếu sai → đưa về cuối
-    if (!isCorrect) {
-      // Không cộng tiến độ nếu sai
-      if (current?.id) {
-        const prev = attemptsRef.current.get(current.id) || 1
-        if (prev < MAX_ATTEMPTS_PER_WORD) {
-          attemptsRef.current.set(current.id, prev + 1)
-          setQueue((q) => [...q, current])
-        }
-      }
-      // Chuyển sang từ tiếp theo, reset về bước 0
-      const nextIndex = index + 1
-      if (nextIndex < total) {
-        setIndex(nextIndex)
-      } else if (nextIndex < total + 1) {
-        // Edge case: nếu vừa append
-        setIndex(nextIndex)
-      } else {
-        setIndex(nextIndex)
-      }
       setStep(0)
       setIsFlipped(false)
       setHasFlippedOnce(false)
@@ -385,89 +456,9 @@ export function useFlashcardFirstLearn(topicId) {
       setShowResult(false)
       setIsCorrect(false)
       setStepResults({ listen: null, meaning: null })
-      return
+    } finally {
+      isSubmittingRef.current = false
     }
-
-    // Bước 3 đúng → đánh dấu hoàn thành cả 3 bước
-    if (current?.id) {
-      setCompletedTasks((prev) => {
-        const next = new Set(prev)
-        next.add(`${current.id}:2`)
-        return next
-      })
-      setCompletedWords((prev) => new Set([...prev, current.id]))
-      
-      // Chỉ đếm nếu từ này thuộc batch hiện tại (không phải từ bị đưa lại vào queue)
-      if (batchWordIdsRef.current.has(current.id)) {
-        completedInBatchRef.current += 1
-        setCompletedInBatch(completedInBatchRef.current)
-      }
-      
-      // Gửi API với isCorrect: true khi hoàn thành đủ 3 bước đúng
-      try {
-        await submitSpacedRepetitionWithCorrect(current.id, true)
-      } catch (err) {
-        console.error('Error submit spaced repetition:', err)
-      }
-    }
-
-    // Chuyển sang từ tiếp theo
-    const nextIndex = index + 1
-    
-    // Kiểm tra xem đã hoàn thành đủ số từ trong batch hiện tại chưa
-    // (thường là 5 từ, nhưng có thể ít hơn nếu API trả về ít hơn)
-    const batchSize = batchWordIdsRef.current.size
-    const hasCompletedCurrentBatch = completedInBatchRef.current >= batchSize
-    
-    if (hasCompletedCurrentBatch) {
-      // Đã học xong batch hiện tại -> prefetch batch tiếp theo trước khi hỏi người dùng
-      if (!prefetchInFlightRef.current) {
-        prefetchInFlightRef.current = true
-        setIsCheckingNextBatch(true)
-        try {
-          const data = await getFlashcardsForStudy(topicId, BATCH_SIZE)
-          const next = Array.isArray(data) ? data : []
-          if (next.length === 0) {
-            setHasMoreFlashcards(false)
-            setAllWordsCompleted(true)
-            setNextBatch(null)
-            setShowContinueDialog(false)
-          } else {
-            setHasMoreFlashcards(true)
-            setAllWordsCompleted(false)
-            setNextBatch(next)
-            setShowContinueDialog(true)
-          }
-        } catch (err) {
-          console.error('Error prefetch next batch:', err)
-          setError(err.message || 'Không thể tải danh sách từ vựng tiếp theo')
-          // vẫn cho user chọn dừng
-          setHasMoreFlashcards(false)
-          setNextBatch(null)
-          setShowContinueDialog(true)
-        } finally {
-          setIsCheckingNextBatch(false)
-          prefetchInFlightRef.current = false
-        }
-      }
-      return
-    }
-
-    if (nextIndex < total) {
-      setIndex(nextIndex)
-    } else {
-      // Đã học hết batch, nhưng chưa đủ 5 từ hoàn thành
-      // (có thể do có từ bị đưa về cuối queue)
-      setIndex(nextIndex)
-    }
-
-    setStep(0)
-    setIsFlipped(false)
-    setHasFlippedOnce(false)
-    setUserAnswer('')
-    setShowResult(false)
-    setIsCorrect(false)
-    setStepResults({ listen: null, meaning: null })
   }
 
   // Hàm xử lý khi người dùng chọn tiếp tục học
@@ -511,16 +502,16 @@ export function useFlashcardFirstLearn(topicId) {
     if (completedWords.size !== originalTotal) return
 
     completedTopicRef.current = true
-    ;(async () => {
-      try {
-        await completeTopic(topicId)
-        setIsTopicCompleted(true)
-      } catch (err) {
-        // nếu fail thì cho phép retry bằng cách mở lại flag
-        completedTopicRef.current = false
-        console.error('Error completeTopic:', err)
-      }
-    })()
+      ; (async () => {
+        try {
+          await completeTopic(topicId)
+          setIsTopicCompleted(true)
+        } catch (err) {
+          // nếu fail thì cho phép retry bằng cách mở lại flag
+          completedTopicRef.current = false
+          console.error('Error completeTopic:', err)
+        }
+      })()
   }, [completedWords.size, originalTotal, topicId])
 
   const handleFlipChange = (nextFlipped) => {

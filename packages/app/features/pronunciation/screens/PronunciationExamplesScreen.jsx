@@ -7,11 +7,13 @@ import { getPronunciationExamplesByRuleId } from '../api'
 import { PronunciationExampleList } from '../components'
 import { PronunciationLayout } from '../components/layout/PronunciationLayout'
 
-export function PronunciationExamplesScreen({ ruleId: ruleIdProp, ruleTitle: ruleTitleProp, onBackPress, onExamplePress }) {
+export function PronunciationExamplesScreen({ ruleId: ruleIdProp, ruleTitle: ruleTitleProp, ruleDescription: ruleDescriptionProp, ruleContent: ruleContentProp, onBackPress, onExamplePress }) {
   const navigation = Platform.OS !== 'web' ? useNavigation() : null
   const route = Platform.OS !== 'web' ? useRoute() : null
   const ruleId = ruleIdProp || route?.params?.ruleId
   const ruleTitle = ruleTitleProp || route?.params?.ruleTitle || 'Pronunciation Rule'
+  const ruleDescription = ruleDescriptionProp || route?.params?.ruleDescription || ''
+  const ruleContent = ruleContentProp || route?.params?.ruleContent || ''
 
   const [examples, setExamples] = useState([])
   const [loading, setLoading] = useState(true)
@@ -64,9 +66,13 @@ export function PronunciationExamplesScreen({ ruleId: ruleIdProp, ruleTitle: rul
   }
 
   return (
-    <PronunciationLayout onBackPress={handleBack}>
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>{ruleTitle}</Text>
+    <PronunciationLayout onBackPress={handleBack} title="Luyện tập phát âm">
+      <View style={styles.ruleTitleContainer}>
+        <Text style={styles.ruleKoreanTitle}>{ruleTitle}</Text>
+        {ruleDescription ? (
+          <Text style={styles.ruleVietNameseTitle}>{ruleDescription.toUpperCase()}</Text>
+        ) : null}
+        <View style={styles.titleDivider} />
       </View>
 
       {loading && (
@@ -98,8 +104,45 @@ export function PronunciationExamplesScreen({ ruleId: ruleIdProp, ruleTitle: rul
 export default PronunciationExamplesScreen
 
 const styles = StyleSheet.create({
-  titleContainer: { width: '100%', alignItems: 'center', marginTop: 12, marginBottom: 24 },
-  title: { fontSize: 36, fontWeight: '900', color: '#1F1F1F', fontFamily: 'Epilogue, sans-serif', textAlign: 'center' },
+  ruleTitleContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 32,
+    gap: 8,
+  },
+  ruleKoreanTitle: {
+    fontSize: 42,
+    fontWeight: '900',
+    color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+  },
+  ruleVietNameseTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#8B4513',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+    letterSpacing: 1.2,
+  },
+  titleDivider: {
+    width: 40,
+    height: 6,
+    backgroundColor: '#8B4513',
+    borderRadius: 3,
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  ruleContentText: {
+    fontSize: 14,
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    lineHeight: 20,
+    fontWeight: '500',
+  },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, minHeight: 220 },
   errorText: { fontSize: 14, color: '#ff4d4f', marginBottom: 12, textAlign: 'center' },
   retryButton: { backgroundColor: '#F1BE4B', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8 },

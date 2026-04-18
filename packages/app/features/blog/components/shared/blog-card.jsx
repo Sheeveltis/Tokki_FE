@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 20,
     overflow: 'hidden',
-    flexDirection: 'row', // Layout ngang: image trái, content phải
+    flexDirection: Platform.OS === 'web' ? 'row' : 'column', // Layout ngang trên web, dọc trên mobile
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -64,9 +64,9 @@ const styles = StyleSheet.create({
     minHeight: 200,
   },
   image: {
-    width: 200,
-    height: '100%',
-    minHeight: 200,
+    width: Platform.OS === 'web' ? 200 : '100%',
+    height: Platform.OS === 'web' ? '100%' : 150,
+    minHeight: Platform.OS === 'web' ? 200 : 150,
     flexShrink: 0,
   },
   content: {

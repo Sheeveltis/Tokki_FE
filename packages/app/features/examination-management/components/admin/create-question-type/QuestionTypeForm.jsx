@@ -1,7 +1,14 @@
-'use client'
-
 import React from 'react'
-import { Form, Input, Select, Switch } from 'antd'
+import { Form, Input, Select, Switch, Space } from 'antd'
+import { 
+  FontSizeOutlined, 
+  TagOutlined, 
+  FileTextOutlined, 
+  StarOutlined, 
+  SafetyCertificateOutlined, 
+  LineChartOutlined,
+  CheckCircleOutlined
+} from '@ant-design/icons'
 
 const { TextArea } = Input
 
@@ -9,7 +16,7 @@ export function QuestionTypeForm({ form }) {
   return (
     <>
       <Form.Item
-        label="Code"
+        label={<Space><TagOutlined style={{ color: '#1677ff' }} />Code (Bắt buộc)</Space>}
         name="code"
         rules={[
           { required: true, message: 'Vui lòng nhập code' },
@@ -20,7 +27,7 @@ export function QuestionTypeForm({ form }) {
       </Form.Item>
 
       <Form.Item
-        label="Tên loại câu hỏi"
+        label={<Space><FontSizeOutlined style={{ color: '#1677ff' }} />Tên loại câu hỏi (Bắt buộc)</Space>}
         name="name"
         rules={[{ required: true, message: 'Vui lòng nhập tên loại câu hỏi' }]}
       >
@@ -28,7 +35,7 @@ export function QuestionTypeForm({ form }) {
       </Form.Item>
 
       <Form.Item
-        label="Mô tả"
+        label={<Space><FileTextOutlined style={{ color: '#1677ff' }} />Mô tả (Bắt buộc)</Space>}
         name="description"
         rules={[{ required: true, message: 'Vui lòng nhập mô tả' }]}
       >
@@ -36,7 +43,7 @@ export function QuestionTypeForm({ form }) {
       </Form.Item>
 
       <Form.Item
-        label="Kỹ năng"
+        label={<Space><StarOutlined style={{ color: '#1677ff' }} />Kỹ năng (Bắt buộc)</Space>}
         name="skill"
         rules={[{ required: true, message: 'Vui lòng chọn kỹ năng' }]}
       >
@@ -52,7 +59,7 @@ export function QuestionTypeForm({ form }) {
       </Form.Item>
 
       <Form.Item
-        label="Độ khó"
+        label={<Space><LineChartOutlined style={{ color: '#1677ff' }} />Độ khó (Bắt buộc)</Space>}
         name="difficulty"
         rules={[{ required: true, message: 'Vui lòng chọn độ khó' }]}
       >
@@ -69,7 +76,7 @@ export function QuestionTypeForm({ form }) {
       </Form.Item>
 
       <Form.Item
-        label="TOPIK"
+        label={<Space><SafetyCertificateOutlined style={{ color: '#1677ff' }} />TOPIK (Bắt buộc)</Space>}
         name="examType"
         rules={[{ required: true, message: 'Vui lòng chọn TOPIK' }]}
       >
@@ -83,7 +90,12 @@ export function QuestionTypeForm({ form }) {
         />
       </Form.Item>
 
-      <Form.Item label="Trạng thái" name="isActive" valuePropName="checked" initialValue={true}>
+      <Form.Item 
+        label={<Space><CheckCircleOutlined style={{ color: '#1677ff' }} />Trạng thái</Space>} 
+        name="isActive" 
+        valuePropName="checked" 
+        initialValue={true}
+      >
         <Switch checkedChildren="Hoạt động" unCheckedChildren="Không hoạt động" />
       </Form.Item>
     </>

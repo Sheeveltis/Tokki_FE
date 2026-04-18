@@ -21,7 +21,7 @@ const MOBILE_DOMAIN = 'http://10.0.2.2:5031' // IP đặc biệt cho Android Emu
 const PREFIX = '/api'
 
 // Tự động chọn domain dựa trên platform
-const DOMAIN = Platform.OS === 'web' ? WEB_DOMAIN : MOBILE_DOMAIN
+export const DOMAIN = Platform.OS === 'web' ? WEB_DOMAIN : MOBILE_DOMAIN
 
 export const API_BASE_URL = `${DOMAIN}${PREFIX}`
 
@@ -36,6 +36,7 @@ export const ENDPOINTS = {
     ADMIN_LIST: '/Blog/admin',
     MY_BLOGS: '/Blog/user/my-blog',
     SAVE: '/Blog/user/save',
+    USER_SUBMIT_APPROVAL: (blogId) => `/Blog/user/submit-approval/${blogId}`,
     STAFF_SUBMIT_FOR_APPROVAL: (blogId) => `/Blog/staff/submit-for-approval/${blogId}`,
     MODERATOR_APPROVE: (blogId) => `/Blog/moderator/approve/${blogId}`,
     MODERATOR_REJECT: '/Blog/moderator/reject',
@@ -156,7 +157,8 @@ export const ENDPOINTS = {
   },
   PRONUNCIATION_RULES: {
     CREATE: '/PronunciationRules', // POST: Tạo pronunciation rule
-    GET_ALL: '/PronunciationRules', // GET: Lấy danh sách pronunciation rules
+    USER_GET_ALL: '/PronunciationRules/user/get-all', // GET: User lấy danh sách rules
+    ADMIN_GET_ALL: '/PronunciationRules/admin/get-all', // GET: Admin lấy danh sách rules
   },
   VOCABULARY: {
     ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
@@ -201,6 +203,13 @@ export const ENDPOINTS = {
     PACKAGES: '/Statistics/packages', // GET: Doanh thu theo gói thành viên
     CHART: (year) => `/Statistics/chart?year=${year}`, // GET: Biểu đồ doanh thu theo tháng (query: year)
   },
+  STATISTICS_PAYMENT: {
+    LIST: '/StatisticsPayment', // GET: Lịch sử thanh toán
+    OVERVIEW: '/StatisticsPayment/overview', // GET: Tổng quan doanh thu
+    CHART: (year) => `/StatisticsPayment/chart?year=${year}`, // GET: Biểu đồ doanh thu
+    PACKAGES_LOOKUP: '/StatisticsPayment/packages-lookup', // GET: Lookup gói cước
+    PACKAGE_DISTRIBUTION: '/StatisticsPayment/package-distribution', // GET: Phân bổ gói cước
+  },
   FAVORITES: {
     GET_ALL: '/Favorites/favorites',   // GET: Lấy danh sách từ vựng yêu thích (có pagination và search)
     ADD: '/Favorites',      // POST: Thêm vào danh sách yêu thích
@@ -216,8 +225,9 @@ export const ENDPOINTS = {
     PROGRESS: '/Gamification/progress',  // GET: Lấy thông tin progress (level, XP, streak, title) cho user hiện tại
     GAME_XP: '/Gamification/game-xp', // POST: Cộng XP theo amount cho account hiện tại
     ADD_XP: '/Gamification/add-xp', // POST: Cộng XP với amount và source (body: { amount, source })
+    MY_STREAK: '/Gamification/my-streak', // GET: Lấy thông tin streak của người dùng hiện tại
   },
-    TITLE: {
+  TITLE: {
     GET_ALL: '/Title/admin',  // GET: Lấy danh sách danh hiệu (admin)
     GET_BY_ID: (id) => `/Title/${id}`,  // GET: Lấy thông tin title theo ID
     CREATE: '/Title',  // POST: Tạo mới danh hiệu
@@ -321,12 +331,14 @@ export const ENDPOINTS = {
   ROADMAP: {
     DURATION_RECOMMENDATION: '/Roadmap/duration-recommendation',
     FEEDBACK: '/Roadmap/entrance-feedback',
-    GENERATE: '/Roadmap/generate',
-    PROGRESS: (jobId) => `/Roadmap/progress/${encodeURIComponent(jobId)}`,
+    GENERATE: '/RoadmapVer2/generate',
+    PROGRESS: (jobId) => `/RoadmapVer2/progress/${encodeURIComponent(jobId)}`,
     CURRENT: '/Roadmap/current',
+    CURRENT_WEEK_PROGRESS: '/Roadmap/current-week-progress',
     TASK_DETAIL: (taskId) => `/Roadmap/task/${encodeURIComponent(taskId)}/detail`,
     COMPLETE: '/Roadmap/complete',
-    NEXT_WEEK: '/Roadmap/next-week',
+    NEXT_WEEK: '/RoadmapVer2/next-week',
+    CANCEL: '/RoadmapVer2/cancel',
   },
   SYSTEM_CONFIGS: {
     GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,

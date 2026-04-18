@@ -94,7 +94,9 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderWidth: 3,
+    borderBottomWidth: Platform.OS === 'web' ? 3 : 6,
     borderColor: '#8D6E63', // Wooden frame color
+    borderBottomColor: '#6D4C41', // Darker wooden color for 3D effect
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
@@ -106,14 +108,17 @@ const styles = StyleSheet.create({
   cellGreen: {
     backgroundColor: '#81C784',
     borderColor: '#388E3C',
+    borderBottomColor: '#2E7D32',
   },
   cellYellow: {
     backgroundColor: '#FFF176',
     borderColor: '#FBC02D',
+    borderBottomColor: '#F9A825',
   },
   cellGray: {
     backgroundColor: '#CFD8DC',
     borderColor: '#90A4AE',
+    borderBottomColor: '#546E7A',
   },
   text: {
     fontSize: 24,

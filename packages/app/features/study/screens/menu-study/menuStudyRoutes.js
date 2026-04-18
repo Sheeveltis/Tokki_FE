@@ -14,10 +14,10 @@
 export function getMenuStudyRoute({ moduleId, itemLabel, levelId }) {
   // Mapping theo label chính xác từ UI mới
   if (itemLabel === 'Học từ vựng theo chủ đề') {
-    return `/flashcard?level=${levelId || 1}`
+    return levelId ? `/flashcard?level=${levelId}` : '/flashcard'
   }
   if (itemLabel === 'Minigame từ vựng') {
-    return `/minigame?level=${levelId || 1}`
+    return levelId ? `/minigame?level=${levelId}` : '/minigame'
   }
   if (itemLabel === 'Ôn tập từ vựng đã học') {
     return '/flashcard/learned'
@@ -32,10 +32,10 @@ export function getMenuStudyRoute({ moduleId, itemLabel, levelId }) {
     return '/roadmap/learning'
   }
   if (itemLabel === 'Học TOPIK theo dạng') {
-    return `/topik/types?level=${levelId || 1}`
+    return levelId ? `/topik/types?level=${levelId}` : '/topik/types'
   }
   if (itemLabel === 'Giải đề TOPIK') {
-    return `/topik/exams?level=${levelId || 1}`
+    return levelId ? `/topik/exams?level=${levelId}` : '/topik/exams'
   }
 
   // Fallback cho logic cũ nếu cần

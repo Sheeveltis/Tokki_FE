@@ -45,12 +45,8 @@ export function WordleRuleLayoutNative() {
         return
       }
 
-      const attemptCount = levelData.attemptCount ?? 0
-      const maxAttempts = levelData.maxAttempts ?? 0
-      const isOutOfAttempts = maxAttempts > 0 && attemptCount >= maxAttempts
-
-      if (levelData.isWon || isOutOfAttempts) {
-        console.log('[WordleRuleLayoutNative] Level already completed or out of attempts, cannot select')
+      if (levelData.isWon) {
+        console.log('[WordleRuleLayoutNative] Level already completed, cannot select')
         return
       }
 
@@ -59,9 +55,9 @@ export function WordleRuleLayoutNative() {
       }
       if (levelData.dailyWordleId) params.dailyWordleId = String(levelData.dailyWordleId)
       if (levelData.wordLength) params.wordLength = String(levelData.wordLength)
-      if (Number.isFinite(attemptCount)) params.attemptCount = String(attemptCount)
-      if (Number.isFinite(maxAttempts) && maxAttempts > 0) {
-        params.maxAttempts = String(maxAttempts)
+      if (Number.isFinite(levelData.attemptCount)) params.attemptCount = String(levelData.attemptCount)
+      if (Number.isFinite(levelData.maxAttempts) && levelData.maxAttempts > 0) {
+        params.maxAttempts = String(levelData.maxAttempts)
       }
 
       navigation.navigate('wordle-play', params)

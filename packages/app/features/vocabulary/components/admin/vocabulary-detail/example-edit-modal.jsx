@@ -1,7 +1,8 @@
 'use client'
 
 import React from 'react'
-import { Modal, Form, Input, Select } from 'antd'
+import { Modal, Form, Input, Select, Space } from 'antd'
+import { FontSizeOutlined, TranslationOutlined, CheckCircleOutlined } from '@ant-design/icons'
 
 const { TextArea } = Input
 
@@ -49,9 +50,9 @@ export function ExampleEditModal({ open, loading, initialValues = {}, onCancel, 
         body: { fontSize: 16 },
       }}
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} layout="vertical" requiredMark={false}>
         <Form.Item
-          label="Câu mẫu"
+          label={<Space><FontSizeOutlined style={{ color: '#1677ff' }} />Câu mẫu (Bắt buộc)</Space>}
           name="sentence"
           rules={[{ required: true, message: 'Vui lòng nhập câu mẫu' }]}
         >
@@ -62,7 +63,7 @@ export function ExampleEditModal({ open, loading, initialValues = {}, onCancel, 
             style={{ fontSize: 16 }}
           />
         </Form.Item>
-        <Form.Item label="Bản dịch" name="translation">
+        <Form.Item label={<Space><TranslationOutlined style={{ color: '#1677ff' }} />Bản dịch</Space>} name="translation">
           <TextArea
             placeholder="VD: Tôi đã đến ngân hàng để rút tiền"
             rows={3}
@@ -70,7 +71,11 @@ export function ExampleEditModal({ open, loading, initialValues = {}, onCancel, 
             style={{ fontSize: 16 }}
           />
         </Form.Item>
-        <Form.Item label="Trạng thái" name="status" rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}>
+        <Form.Item 
+          label={<Space><CheckCircleOutlined style={{ color: '#1677ff' }} />Trạng thái (Bắt buộc)</Space>} 
+          name="status" 
+          rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
+        >
           <Select size="large" style={{ fontSize: 16 }}>
             <Select.Option value={0}>Bản nháp</Select.Option>
             <Select.Option value={1}>Hoạt động</Select.Option>

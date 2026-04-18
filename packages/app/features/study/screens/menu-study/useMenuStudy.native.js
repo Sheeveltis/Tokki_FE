@@ -1,7 +1,4 @@
-import { useState, useEffect } from 'react'
-import { useNavigation } from '@react-navigation/native'
-import { getMenuStudyRoute, isLoginRequiredModule } from './menuStudyRoutes'
-import { getAccountAimLevel } from '@tokki/app/features/authentication/api'
+import { getAccountAimLevel, getMyStreak } from '@tokki/app/features/authentication/api'
 
 /**
  * Hook xử lý logic cho MenuStudyScreen (Native)
@@ -12,6 +9,10 @@ import { getAccountAimLevel } from '@tokki/app/features/authentication/api'
 export function useMenuStudy(navigation, levelId) {
   const [showLoginRequest, setShowLoginRequest] = useState(false)
   const [aimLevel, setAimLevel] = useState(null)
+  const [streakData, setStreakData] = useState({
+    currentStreak: 0,
+    isCompletedToday: false
+  })
 
   useEffect(() => {
     const fetchAimLevel = async () => {
@@ -20,7 +21,18 @@ export function useMenuStudy(navigation, levelId) {
         setAimLevel(result.data)
       }
     }
+    const fetchStreak = async () => {
+      const result = await getMyStreak()
+      if (result && (result.isSuccess || result.currentStreak !== undefined)) {
+        const data = result.data || result
+        setStreakData({
+          currentStreak: data.currentStreak ?? 0,
+          isCompletedToday: data.isCompletedToday ?? false
+        })
+      }
+    }
     fetchAimLevel()
+    fetchStreak()
   }, [])
 
   // Chuyển đổi route từ web sang React Navigation screen name

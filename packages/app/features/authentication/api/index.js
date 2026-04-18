@@ -13,6 +13,7 @@ import { ENDPOINTS, API_BASE_URL } from '../../../provider/api/endpoints'
 import axios from 'axios'
 import { apiErrors } from '../../../string.js'
 
+
 /**
  * Xác thực OTP cho email (đăng ký / xác thực email)
  * message: title, data (success) hoặc errors[].description (error) là description
@@ -400,6 +401,54 @@ export const checkDailyTitles = async () => {
     return {
       isSuccess: false,
       message: error.message || 'Không thể kiểm tra danh hiệu hàng ngày',
+      statusCode: error.response?.status || 500,
+    }
+  }
+}
+
+/**
+ * Cộng thêm XP cho người dùng
+ * @param {{ amount: number, source: number }} payload
+ * @returns {Promise<Object>} Response từ API
+ */
+export const addXP = async ({ amount, source }) => {
+  try {
+    console.log('[XP API] Đang cộng XP:', { amount, source, endpoint: ENDPOINTS.GAMIFICATION.ADD_XP })
+    const response = await apiClient.post(ENDPOINTS.GAMIFICATION.ADD_XP, {
+      amount,
+      source,
+    })
+    console.log('[XP API] Kết quả cộng XP:', response.data)
+    return response.data
+  } catch (error) {
+    console.error('Error adding XP:', error)
+    if (error.response?.data) {
+      return error.response.data
+    }
+    return {
+      isSuccess: false,
+      message: error.message || 'Không thể cộng XP',
+      statusCode: error.response?.status || 500,
+    }
+  }
+}
+
+/**
+ * Lấy thông tin streak của người dùng
+ * @returns {Promise<Object>} Response từ API
+ */
+export const getMyStreak = async () => {
+  try {
+    const response = await apiClient.get(ENDPOINTS.GAMIFICATION.MY_STREAK)
+    return response.data
+  } catch (error) {
+    if (error.response?.data) {
+      return error.response.data
+    }
+    return {
+      isSuccess: false,
+      data: null,
+      message: error.message || 'Không thể lấy thông tin streak',
       statusCode: error.response?.status || 500,
     }
   }

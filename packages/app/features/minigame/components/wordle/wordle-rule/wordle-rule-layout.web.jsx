@@ -44,12 +44,8 @@ export function WordleRuleLayoutWeb({ basePath = '/minigame/wordle' }) {
         return
       }
 
-      const attemptCount = levelData.attemptCount ?? 0
-      const maxAttempts = levelData.maxAttempts ?? 0
-      const isOutOfAttempts = maxAttempts > 0 && attemptCount >= maxAttempts
-
-      if (levelData.isWon || isOutOfAttempts) {
-        console.log('[WordleRuleLayoutWeb] Level already completed or out of attempts, cannot select')
+      if (levelData.isWon) {
+        console.log('[WordleRuleLayoutWeb] Level already completed, cannot select')
         return
       }
 
@@ -57,9 +53,9 @@ export function WordleRuleLayoutWeb({ basePath = '/minigame/wordle' }) {
       query.set('level', String(difficultyLevel))
       if (levelData.dailyWordleId) query.set('dailyWordleId', String(levelData.dailyWordleId))
       if (levelData.wordLength) query.set('wordLength', String(levelData.wordLength))
-      if (Number.isFinite(attemptCount)) query.set('attemptCount', String(attemptCount))
-      if (Number.isFinite(maxAttempts) && maxAttempts > 0) {
-        query.set('maxAttempts', String(maxAttempts))
+      if (Number.isFinite(levelData.attemptCount)) query.set('attemptCount', String(levelData.attemptCount))
+      if (Number.isFinite(levelData.maxAttempts) && levelData.maxAttempts > 0) {
+        query.set('maxAttempts', String(levelData.maxAttempts))
       }
 
       router.push(`${basePath}/wordle-play?${query.toString()}`)

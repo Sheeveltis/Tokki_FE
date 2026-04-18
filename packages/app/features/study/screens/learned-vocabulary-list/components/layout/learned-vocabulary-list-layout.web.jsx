@@ -16,6 +16,8 @@ export function LearnedVocabularyListLayout({
       title="Từ vựng đã học"
       subtitle="Xem lại danh sách các từ vựng bạn đã ghi nhớ để củng cố kiến thức."
       breadcrumbActive="Đã học"
+      transparentContent={true}
+      scrollable={false}
     >
       {children}
     </StudyLayoutSynchronized>

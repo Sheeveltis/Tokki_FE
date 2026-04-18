@@ -76,7 +76,7 @@ export function MenuMobileScreen() {
         </TouchableOpacity>
       )}
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

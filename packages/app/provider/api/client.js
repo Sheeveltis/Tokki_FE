@@ -168,8 +168,8 @@ const handleTokenExpired = async (options = {}) => {
   await clearAuthToken()
   await removeStorageItem('userId') // Token_key đã được xóa trong clearAuthToken
   
-  if (!options?.skipRedirect && Platform.OS === 'web' && typeof window !== 'undefined') {
-    const currentPath = window.location.pathname
+  if (!options?.skipRedirect && Platform.OS === 'web' && typeof window !== 'undefined' && window.location) {
+    const currentPath = window.location.pathname || ''
     if (currentPath === '/login' || currentPath === '/register') {
       isLoggingOut = false;
       return;
@@ -260,8 +260,8 @@ apiClient.interceptors.response.use(
 
     if (status === 404) {
       const token = getAuthToken()
-      const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
-      if (!token && (currentPath.startsWith('/admin') || currentPath.startsWith('/staff'))) {
+      const currentPath = (typeof window !== 'undefined' && window.location) ? window.location.pathname : ''
+      if (!token && (currentPath?.startsWith('/admin') || currentPath?.startsWith('/staff'))) {
         console.warn('404 error on protected route with null token. Possible sync issue.')
       }
     }

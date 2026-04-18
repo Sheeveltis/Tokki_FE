@@ -1,7 +1,19 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Modal, Form, Space, Input, InputNumber, Switch, Tooltip, Typography, Tag, Button, Select } from 'antd'
-import { EditOutlined, EyeOutlined, SearchOutlined, SaveOutlined, FilterOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons'
+import { 
+  EditOutlined, 
+  EyeOutlined, 
+  SearchOutlined, 
+  SaveOutlined, 
+  FilterOutlined, 
+  ReloadOutlined, 
+  PlusOutlined,
+  KeyOutlined,
+  AppstoreOutlined,
+  FileTextOutlined,
+  CheckCircleOutlined
+} from '@ant-design/icons'
 import { showAdminSuccess, showAdminError } from '../../../../components/HelperAdmin'
 import { fetchSystemConfigs, updateSystemConfig, createSystemConfig } from '../api/system-config'
 import ManagementLayout from '../../../../components/layout/management-layout'
@@ -13,7 +25,7 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
   const router = useRouter()
   const [filters, setFilters] = useManagementFilters({
     search: '',
-    isActive: undefined,
+    isActive: true,
     page: 1,
     size: 20,
   })
@@ -260,6 +272,7 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
         <Form
           layout="vertical"
           form={form}
+          requiredMark={false}
           onFinish={async (values) => {
             try {
               setSaving(true)
@@ -285,7 +298,7 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
           }}
         >
           <Form.Item
-            label="Khóa (Key)"
+            label={<Space><KeyOutlined style={{ color: '#1677ff' }} />Khóa (Key) (Bắt buộc)</Space>}
             name="key"
             rules={[{ required: true, message: 'Vui lòng nhập khóa (key)' }]}
           >
@@ -293,7 +306,7 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
           </Form.Item>
 
           <Form.Item
-            label="Loại dữ liệu"
+            label={<Space><AppstoreOutlined style={{ color: '#1677ff' }} />Loại dữ liệu (Bắt buộc)</Space>}
             name="dataType"
             rules={[{ required: true, message: 'Vui lòng chọn loại dữ liệu' }]}
           >
@@ -310,7 +323,7 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
               if (dataType === 'int') {
                 return (
                   <Form.Item
-                    label="Giá trị"
+                    label={<Space><EditOutlined style={{ color: '#1677ff' }} />Giá trị (Bắt buộc)</Space>}
                     name="value"
                     rules={[{ required: true, message: 'Vui lòng nhập giá trị số' }]}
                   >
@@ -321,7 +334,7 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
               if (dataType === 'boolean') {
                 return (
                   <Form.Item
-                    label="Giá trị"
+                    label={<Space><EditOutlined style={{ color: '#1677ff' }} />Giá trị</Space>}
                     name="value"
                     valuePropName="checked"
                   >
@@ -331,7 +344,7 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
               }
               return (
                 <Form.Item
-                  label="Giá trị"
+                  label={<Space><EditOutlined style={{ color: '#1677ff' }} />Giá trị (Bắt buộc)</Space>}
                   name="value"
                   rules={[{ required: true, message: 'Vui lòng nhập giá trị' }]}
                 >
@@ -341,11 +354,11 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
             }}
           </Form.Item>
 
-          <Form.Item label="Mô tả" name="description">
+          <Form.Item label={<Space><FileTextOutlined style={{ color: '#1677ff' }} />Mô tả</Space>} name="description">
             <Input.TextArea rows={3} placeholder="Mô tả chi tiết tác dụng của cấu hình này..." />
           </Form.Item>
 
-          <Form.Item label="Kích hoạt" name="isActive" valuePropName="checked">
+          <Form.Item label={<Space><CheckCircleOutlined style={{ color: '#1677ff' }} />Kích hoạt</Space>} name="isActive" valuePropName="checked">
             <Switch checkedChildren="Bật" unCheckedChildren="Tắt" />
           </Form.Item>
         </Form>
