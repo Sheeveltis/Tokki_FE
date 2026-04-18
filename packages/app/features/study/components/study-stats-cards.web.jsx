@@ -85,9 +85,6 @@ const styles = StyleSheet.create({
       filter: 'grayscale(1)',
     }),
   },
-  fireActive: {
-    opacity: 0.3,
-  },
   streakLabel: {
     fontSize: 13,
     fontWeight: '800',

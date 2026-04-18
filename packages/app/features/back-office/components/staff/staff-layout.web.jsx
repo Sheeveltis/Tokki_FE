@@ -221,10 +221,46 @@ export function StaffLayout({
               itemMarginInline: 8,
               itemSelectedBg: '#e6f4ff',
               itemSelectedColor: '#1677ff',
+              itemHoverBg: 'transparent',
             }
           }
         }}
       >
+        <style>
+          {`
+            /* Highlight màu xanh cho mục con đang chọn */
+            .ant-menu-item-selected {
+              background-color: #e6f4ff !important;
+              color: #1677ff !important;
+            }
+
+            /* Giữ mục cha (SubMenu) luôn ở trạng thái trung tính */
+            .ant-menu-submenu-title {
+              background-color: transparent !important;
+              color: rgba(0, 0, 0, 0.88) !important;
+            }
+            .ant-menu-submenu-title .ant-menu-item-icon,
+            .ant-menu-submenu-title .ant-menu-submenu-arrow {
+              color: rgba(0, 0, 0, 0.88) !important;
+            }
+
+            /* Không đổi màu mục cha kể cả khi con được chọn hoặc đang hover */
+            .ant-menu-submenu-selected > .ant-menu-submenu-title,
+            .ant-menu-submenu-title:hover {
+              color: rgba(0, 0, 0, 0.88) !important;
+              background-color: transparent !important;
+            }
+            .ant-menu-submenu-selected > .ant-menu-submenu-title .ant-menu-item-icon,
+            .ant-menu-submenu-title:hover .ant-menu-item-icon {
+              color: rgba(0, 0, 0, 0.88) !important;
+            }
+
+            /* Hiệu ứng hover nhẹ chỉ dành cho các item bên trong */
+            .ant-menu-item:not(.ant-menu-item-selected):hover {
+              background-color: rgba(0, 0, 0, 0.04) !important;
+            }
+          `}
+        </style>
         <App>
           <Layout style={{ height: '100vh', overflow: 'hidden' }}>
             <Layout.Sider
