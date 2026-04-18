@@ -200,6 +200,13 @@ export const ENDPOINTS = {
     PACKAGES: '/Statistics/packages', // GET: Doanh thu theo gói thành viên
     CHART: (year) => `/Statistics/chart?year=${year}`, // GET: Biểu đồ doanh thu theo tháng (query: year)
   },
+  STATISTICS_PAYMENT: {
+    LIST: '/StatisticsPayment', // GET: Lịch sử thanh toán
+    OVERVIEW: '/StatisticsPayment/overview', // GET: Tổng quan doanh thu
+    CHART: (year) => `/StatisticsPayment/chart?year=${year}`, // GET: Biểu đồ doanh thu
+    PACKAGES_LOOKUP: '/StatisticsPayment/packages-lookup', // GET: Lookup gói cước
+    PACKAGE_DISTRIBUTION: '/StatisticsPayment/package-distribution', // GET: Phân bổ gói cước
+  },
   FAVORITES: {
     GET_ALL: '/Favorites/favorites',   // GET: Lấy danh sách từ vựng yêu thích (có pagination và search)
     ADD: '/Favorites',      // POST: Thêm vào danh sách yêu thích

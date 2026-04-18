@@ -55,8 +55,6 @@ export const adminMenuItems = [
       { key: 'question-bank', icon: <QuestionCircleOutlined />, label: 'Bộ câu hỏi' },
       { key: 'exam-template', icon: <FormOutlined />, label: 'Cấu trúc đề' },
       // { key: 'passage-management', icon: <FileTextOutlined />, label: 'Passage' },
-      { key: 'exam-template', icon: <FormOutlined />, label: 'Cấu trúc đề' },
-      // { key: 'passage-management', icon: <FileTextOutlined />, label: 'Passage' },
       { key: 'exam-management', icon: <FileDoneOutlined />, label: 'Đề' },
     ],
   },
