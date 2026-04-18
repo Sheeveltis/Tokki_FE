@@ -50,7 +50,7 @@ export function ExamManagement({ initialData = null }) {
 
   const [filters, setFilters] = useManagementFilters({
     search: '',
-    status: undefined,
+    status: 1,
     type: undefined,
     page: 1,
     size: 20,

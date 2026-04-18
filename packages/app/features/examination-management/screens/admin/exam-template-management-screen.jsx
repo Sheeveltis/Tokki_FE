@@ -27,7 +27,7 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
 
   const [filters, setFilters] = useManagementFilters({
     search: '',
-    status: null, // Default status is All
+    status: 1, // Default status is Published (Active)
     type: null,
     creatorFilter: 2, // Default to Human (Người tạo)
     page: 1,
