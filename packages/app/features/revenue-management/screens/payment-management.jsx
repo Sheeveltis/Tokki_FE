@@ -30,7 +30,7 @@ const formatDate = (dateStr) => {
 
 export function PaymentManagement() {
   const [filters, setFilters] = useManagementFilters({
-    status: 'all',
+    status: 'Paid',
     hasTransaction: 'all',
     page: 1,
     size: 20,
@@ -107,7 +107,15 @@ export function PaymentManagement() {
         key: 'paymentId',
         width: 130,
         render: (text) => (
-          <Text code style={{ fontSize: '12px' }}>
+          <Text code style={{ 
+            fontSize: '12px',
+            display: '-webkit-box',
+            WebkitLineClamp: 1,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            wordBreak: 'break-word'
+          }}>
             {text}
           </Text>
         ),
@@ -117,14 +125,31 @@ export function PaymentManagement() {
         key: 'user',
         width: 200,
         render: (_, record) => (
-          <div>
-            <Text strong style={{ fontSize: '13px' }}>
+          <div style={{ maxWidth: '100%' }}>
+            <span style={{ 
+              fontWeight: 600, 
+              fontSize: '13px',
+              display: '-webkit-box',
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              wordBreak: 'break-word'
+            }}>
               {record.fullName}
-            </Text>
-            <br />
-            <Text type="secondary" style={{ fontSize: '12px' }}>
+            </span>
+            <span style={{ 
+              color: '#8c8c8c', 
+              fontSize: '12px',
+              display: '-webkit-box',
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              wordBreak: 'break-word'
+            }}>
               {record.userEmail}
-            </Text>
+            </span>
           </div>
         ),
       },
@@ -133,14 +158,30 @@ export function PaymentManagement() {
         key: 'bank',
         width: 200,
         render: (_, record) => (
-          <Space>
-            <BankOutlined style={{ color: '#1890ff' }} />
-            <div>
-              <Text style={{ fontSize: '13px' }}>{record.bankName}</Text>
-              <br />
-              <Text type="secondary" style={{ fontSize: '11px' }}>
+          <Space align="start" style={{ width: '100%' }}>
+            <BankOutlined style={{ color: '#1890ff', marginTop: 3 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ 
+                fontSize: '13px',
+                display: '-webkit-box',
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                wordBreak: 'break-word'
+              }}>{record.bankName}</span>
+              <span style={{ 
+                color: '#8c8c8c', 
+                fontSize: '11px',
+                display: '-webkit-box',
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                wordBreak: 'break-word'
+              }}>
                 {record.accountBankNumber}
-              </Text>
+              </span>
             </div>
           </Space>
         ),

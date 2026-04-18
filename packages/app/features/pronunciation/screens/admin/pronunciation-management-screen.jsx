@@ -49,13 +49,37 @@ export function PronunciationManagementScreen({ basePath = '/admin' }) {
       dataIndex: 'title',
       key: 'title',
       width: 250,
-      render: (text) => <span style={{ fontWeight: 600 }}>{text}</span>
+      render: (text) => (
+        <span style={{ 
+          fontWeight: 600,
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word'
+        }}>
+          {text}
+        </span>
+      )
     },
     {
       title: 'Mô tả',
       dataIndex: 'description',
       key: 'description',
-      ellipsis: true,
+      render: (text) => (
+        <span style={{ 
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word',
+          color: '#8c8c8c'
+        }}>
+          {text}
+        </span>
+      )
     },
     {
       title: 'Thứ tự',

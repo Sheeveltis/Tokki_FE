@@ -321,8 +321,32 @@ export function VocabularyManagement({ initialData = null }) {
       width: '30%',
       render: (_, record) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <span style={{ fontWeight: 'bold', fontSize: 'clamp(16px, 1.25vw, 20px)', color: '#262626' }}>{record.text}</span>
-          <span style={{ color: '#8c8c8c', fontSize: 'clamp(12px, 0.9vw, 14px)', fontWeight: 'normal' }}>{record.pronunciation}</span>
+          <span style={{ 
+            fontWeight: 600, 
+            fontSize: 'clamp(16px, 1.25vw, 20px)', 
+            color: '#262626',
+            display: '-webkit-box',
+            WebkitLineClamp: 1,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            wordBreak: 'break-word'
+          }}>
+            {record.text}
+          </span>
+          <span style={{ 
+            color: '#8c8c8c', 
+            fontSize: 'clamp(12px, 0.9vw, 14px)', 
+            fontWeight: 'normal',
+            display: '-webkit-box',
+            WebkitLineClamp: 1,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            wordBreak: 'break-word'
+          }}>
+            {record.pronunciation}
+          </span>
         </div>
       ),
     },
@@ -331,7 +355,19 @@ export function VocabularyManagement({ initialData = null }) {
       dataIndex: 'definition',
       key: 'definition',
       width: '25%',
-      render: (text) => <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>{text}</span>
+      render: (text) => (
+        <span style={{ 
+          fontSize: 'clamp(13px, 1vw, 15px)',
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word'
+        }}>
+          {text}
+        </span>
+      )
     },
     {
       title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Trạng thái</span>,

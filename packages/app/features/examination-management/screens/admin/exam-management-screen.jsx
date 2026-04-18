@@ -113,17 +113,42 @@ export function ExamManagement({ initialData = null }) {
       title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Tiêu đề</span>,
       dataIndex: 'title',
       key: 'title',
-      ellipsis: true,
       width: '25%',
-      render: (text) => <span style={{ fontWeight: 600, fontSize: 'clamp(13px, 1vw, 15px)' }}>{text}</span>
+      render: (text) => (
+        <span style={{
+          fontWeight: 600,
+          fontSize: 'clamp(13px, 1vw, 15px)',
+          display: '-webkit-box',
+          WebkitLineClamp: 1, // Số hàng muốn hiển thị trước khi hiện dấu ...
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word'
+        }}>
+          {text}
+        </span>
+      )
     },
     {
       title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Cấu trúc đề</span>,
       dataIndex: 'examTemplateName',
       key: 'examTemplateName',
-      ellipsis: true,
       width: '25%',
-      render: (text) => <span style={{ color: '#595959', fontSize: 'clamp(12px, 0.9vw, 14px)' }}>{text}</span>
+      render: (text) => (
+        <span style={{
+          fontWeight: 600,
+          fontSize: 'clamp(13px, 1vw, 15px)',
+          display: '-webkit-box',
+          WebkitLineClamp: 1, // Số hàng muốn hiển thị trước khi hiện dấu ...
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word',
+          color: '#595959'
+        }}>
+          {text}
+        </span>
+      )
     },
     {
       title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Loại đề</span>,

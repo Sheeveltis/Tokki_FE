@@ -25,7 +25,7 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
   const router = useRouter()
   const [filters, setFilters] = useManagementFilters({
     search: '',
-    isActive: undefined,
+    isActive: true,
     page: 1,
     size: 20,
   })
