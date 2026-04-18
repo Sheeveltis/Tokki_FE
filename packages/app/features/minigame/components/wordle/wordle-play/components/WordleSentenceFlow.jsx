@@ -3,13 +3,16 @@ import { View, Text, StyleSheet, Pressable, ActivityIndicator, Platform, ScrollV
 import { WordleInputBar } from './WordleInputBar'
 import { WordleFeedbackModal } from './WordleFeedbackModal'
 import { WordlePublishPopup } from './WordlePublishPopup'
+import { WordleLeaderboardModal } from './WordleLeaderboardModal'
 import { submitWordleSentence, publishWordleSentence } from '../../../../api/wordle-level-api'
+import { showSuccess } from '../../../../../../features/authentication/utils/notification'
 
 export function WordleSentenceFlow({
   gameState,
   dailyWordleId,
   onNavigateToBoard,
   onRestart,
+  onFlowFinished,
 }) {
   const [sentence, setSentence] = useState('')
   const [isSentenceSubmitted, setIsSentenceSubmitted] = useState(false)
@@ -21,6 +24,8 @@ export function WordleSentenceFlow({
   const [showNamePopup, setShowNamePopup] = useState(false)
   const [publishLoading, setPublishLoading] = useState(false)
   const [submissionId, setSubmissionId] = useState('')
+  const [isFlowFinished, setIsFlowFinished] = useState(false)
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
 
   // Reset toàn bộ state sentence khi restart game
   useEffect(() => {
@@ -35,6 +40,8 @@ export function WordleSentenceFlow({
       setShowNamePopup(false)
       setPublishLoading(false)
       setSubmissionId('')
+      setIsFlowFinished(false)
+      setShowLeaderboard(false)
     }
   }, [gameState])
 
@@ -42,6 +49,12 @@ export function WordleSentenceFlow({
     console.log('[WordleSentenceFlow] showFeedbackModal:', showFeedbackModal)
     console.log('[WordleSentenceFlow] feedbackData:', feedbackData)
   }, [showFeedbackModal, feedbackData])
+
+  useEffect(() => {
+    if (onFlowFinished) {
+      onFlowFinished(isFlowFinished)
+    }
+  }, [isFlowFinished, onFlowFinished])
 
   const handleSentenceSubmit = () => {
     if (!sentence.trim()) {
@@ -65,29 +78,30 @@ export function WordleSentenceFlow({
       setShowSubmitConfirm(false)
       return
     }
-  
+
     setShowSubmitConfirm(false)
     setFeedbackLoading(true)
-  
+
     try {
       const sentenceContent = sentence.trim().substring(0, 150)
       const response = await submitWordleSentence(dailyWordleId, sentenceContent)
-  
+
       const id = response?.submissionId || response?.data?.submissionId || response?.id
       console.log('[WordleSentenceFlow] Received submissionId:', id, 'from response:', response)
       if (id) setSubmissionId(id)
-  
+
       const feedbackPayload = {
         targetWord: response?.targetWord || '',
         meaningText: response?.meaning || '',
+        userSentence: sentenceContent,
         aiFeedback: response?.aiFeedback || {},
       }
-  
+
       setFeedbackData(feedbackPayload)
       setIsSentenceSubmitted(true)
-  
+
       setFeedbackLoading(false)
-  
+
       requestAnimationFrame(() => {
         setShowFeedbackModal(true)
       })
@@ -117,9 +131,7 @@ export function WordleSentenceFlow({
       return
     }
 
-    if (onNavigateToBoard) {
-      onNavigateToBoard()
-    }
+    setIsFlowFinished(true)
   }
 
   const handlePublishConfirm = async () => {
@@ -136,10 +148,7 @@ export function WordleSentenceFlow({
 
   const handlePublishCancel = () => {
     setShowPublishPopup(false)
-
-    if (onNavigateToBoard) {
-      onNavigateToBoard()
-    }
+    setIsFlowFinished(true)
   }
 
   const handleNameChoice = async (isAnonymous) => {
@@ -156,9 +165,9 @@ export function WordleSentenceFlow({
       const res = await publishWordleSentence(submissionId, true, isAnonymous)
       console.log('[WordleSentenceFlow] publishWordleSentence response:', res)
       setShowNamePopup(false)
-      if (onNavigateToBoard) {
-        onNavigateToBoard()
-      }
+      setIsFlowFinished(true)
+
+      showSuccess('Câu văn của bạn đã có ở Bảng Xếp Hạng rồi hãy đến đó để xem nhé <3')
     } catch (error) {
       console.error('[WordleSentenceFlow] Error publishing sentence with name option:', error)
     } finally {
@@ -167,7 +176,7 @@ export function WordleSentenceFlow({
   }
 
   return (
-    <View>
+    <View style={styles.container}>
       {/* InputBar - chỉ hiện khi đoán xong từ */}
       {gameState === 'won' && !isSentenceSubmitted && (
         <View style={styles.sentenceBox}>
@@ -236,7 +245,10 @@ export function WordleSentenceFlow({
       <WordleFeedbackModal
         visible={showFeedbackModal}
         loading={feedbackLoading}
-        data={feedbackData}
+        data={{
+          ...feedbackData,
+          userSentence: sentence,
+        }}
         onConfirm={handleFeedbackConfirm}
       />
 
@@ -301,32 +313,48 @@ export function WordleSentenceFlow({
         </View>
       </Modal>
 
-      {/* Result box */}
-      {(gameState === 'lost' || (gameState === 'won' && isSentenceSubmitted)) && (
+      {/* Result box - hiện sau khi đã submit câu văn hoặc flow đã xong */}
+      {(isSentenceSubmitted || isFlowFinished) && (
         <View style={styles.resultBox}>
           <Text style={styles.resultText}>
-            {gameState === 'won'
-              ? '🎉 Chúc mừng bạn đã hoàn thành thử thách!'
-              : '😢 Rất tiếc! Hãy thử lại lần sau!'}
+            🎉 Chúc mừng bạn đã hoàn thành thử thách!
           </Text>
-          {gameState === 'won' && (
-            <Text style={styles.finalSentence}>Câu văn của bạn: "{sentence}"</Text>
-          )}
+          <Text style={styles.userSentenceResult}>
+            Câu văn của bạn:{' '}
+            <Text style={styles.userSentenceBold}>"{sentence}"</Text>
+          </Text>
 
           <View style={styles.resultButtons}>
-            <Pressable style={styles.restartBtn} onPress={onRestart}>
-              <Text style={styles.restartText}>Chơi lại</Text>
-            </Pressable>
+            {!isFlowFinished && (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.restartButton,
+                  pressed && styles.confirmButtonPressed,
+                ]}
+                onPress={onRestart}
+              >
+                <Text style={styles.restartButtonText}>Chơi lại</Text>
+              </Pressable>
+            )}
 
             <Pressable
-              style={[styles.restartBtn, { backgroundColor: '#2196F3', marginTop: 12 }]}
-              onPress={onNavigateToBoard}
+              style={({ pressed }) => [
+                styles.boardButton,
+                pressed && styles.confirmButtonPressed,
+              ]}
+              onPress={() => setShowLeaderboard(true)}
             >
-              <Text style={styles.restartText}>Bảng xếp hạng</Text>
+              <Text style={styles.boardButtonText}>Bảng xếp hạng</Text>
             </Pressable>
           </View>
         </View>
       )}
+
+      <WordleLeaderboardModal
+        visible={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
+        dailyWordleId={dailyWordleId}
+      />
     </View>
   )
 }
@@ -334,8 +362,8 @@ export function WordleSentenceFlow({
 const styles = StyleSheet.create({
   sentenceBox: {
     backgroundColor: '#FFF9E3',
-    width: '100%',
-    maxWidth: 600,
+    width: '95%',
+    maxWidth: 500,
     padding: 24,
     borderRadius: 24,
     alignItems: 'center',
@@ -356,13 +384,14 @@ const styles = StyleSheet.create({
   resultBox: {
     backgroundColor: '#FFF9E3',
     padding: 24,
-    borderRadius: 24,
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#8D6E63',
-    marginTop: 20,
-    maxWidth: 600,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#D7CCC8',
     width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
+    marginTop: 20,
+    paddingBottom: 40,
     ...(Platform.OS === 'web' && {
       boxShadow: '0 8px 16px rgba(0,0,0,0.15)',
     }),
@@ -374,44 +403,57 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textAlign: 'center',
   },
-  finalSentence: {
-    fontSize: 16,
+  userSentenceResult: {
+    fontSize: 15,
+    color: '#4E342E',
     fontStyle: 'italic',
-    color: '#5D4037',
-    marginBottom: 20,
     textAlign: 'center',
-    paddingHorizontal: 10,
+    marginBottom: 20,
   },
-  restartBtn: {
+  userSentenceBold: {
+    fontWeight: '700',
+    fontStyle: 'italic',
+  },
+  restartButton: {
     backgroundColor: '#4CAF50',
-    paddingHorizontal: 30,
-    paddingVertical: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     borderRadius: 18,
-    minWidth: 200,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...(Platform.OS === 'web' && {
-      cursor: 'pointer',
-      boxShadow: '0 4px 0 #2E7D32, 0 4px 8px rgba(0,0,0,0.2)',
-    }),
+    marginBottom: 12,
   },
-  restartText: {
+  restartButtonText: {
     color: '#fff',
-    fontWeight: '900',
-    fontSize: 18,
-    ...Platform.select({
-      web: {
-        textShadow: '1px 1px 1px rgba(0,0,0,0.2)',
-      },
-      default: {
-        textShadowColor: 'rgba(0,0,0,0.2)',
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 1,
-      }
-    })
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  boardButton: {
+    backgroundColor: '#2196F3',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 18,
+  },
+  boardButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 16,
   },
   modalOverlay: {
-    flex: 1,
+    ...Platform.select({
+      web: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 10000,
+      },
+      default: {
+        flex: 1,
+        zIndex: 9999,
+      },
+    }),
     backgroundColor: 'rgba(0,0,0,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -508,7 +550,18 @@ const styles = StyleSheet.create({
     color: '#37474F',
   },
   loadingOverlay: {
-    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+    ...Platform.select({
+      web: {
+        position: 'fixed',
+        width: '100vw',
+        height: '100vh',
+        zIndex: 10000,
+      },
+      default: {
+        position: 'absolute',
+        zIndex: 9999,
+      },
+    }),
     top: 0,
     left: 0,
     right: 0,
@@ -516,7 +569,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 3300,
   },
   loadingCard: {
     backgroundColor: '#FFFFFF',

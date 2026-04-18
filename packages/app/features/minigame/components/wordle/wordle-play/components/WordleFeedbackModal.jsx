@@ -13,21 +13,30 @@ export function WordleFeedbackModal({ visible, loading, data, onConfirm }) {
   const naturalness = ai?.naturalness || {}
   const generalFeedback = ai?.generalFeedback || ''
   const correctedSentence = ai?.correctedSentence || ''
+  const userSentence = data?.userSentence || ''
+
+  const getColorForPercent = (percent) => {
+    if (percent <= 30) return '#D32F2F' // Red
+    if (percent <= 60) return '#F57C00' // Orange
+    if (percent <= 79) return '#FBC02D' // Yellow
+    return '#388E3C' // Green
+  }
 
   const renderProgressBar = ({ label, score = 0, maxScore = 100 }) => {
     const safeMax = maxScore > 0 ? maxScore : 100
     const percent = Math.max(0, Math.min(100, (score / safeMax) * 100))
+    const color = getColorForPercent(percent)
 
     return (
       <View style={styles.progressBlock}>
         <View style={styles.progressHeader}>
           <Text style={styles.progressLabel}>{label}</Text>
-          <Text style={styles.progressValue}>
+          <Text style={[styles.progressValue, { color }]}>
             {Math.round(score)} / {safeMax}
           </Text>
         </View>
         <View style={styles.progressBarBg}>
-          <View style={[styles.progressBarFill, { width: `${percent}%` }]} />
+          <View style={[styles.progressBarFill, { width: `${percent}%`, backgroundColor: color }]} />
         </View>
       </View>
     )
@@ -44,42 +53,44 @@ export function WordleFeedbackModal({ visible, loading, data, onConfirm }) {
           showsVerticalScrollIndicator
           nestedScrollEnabled
         >
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Keyword</Text>
-            <Text style={styles.sectionValue}>{targetWord || '—'}</Text>
+          <View style={styles.topRow}>
+            <View style={styles.sectionHalf}>
+              <Text style={styles.sectionLabel}>Keyword</Text>
+              <Text style={styles.sectionValue}>{targetWord || '—'}</Text>
+            </View>
+            <View style={styles.sectionHalf}>
+              <Text style={styles.sectionLabel}>Định nghĩa</Text>
+              <Text style={styles.sectionValue}>{meaningText || '—'}</Text>
+            </View>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Định nghĩa</Text>
-            <Text style={styles.sectionValue}>{meaningText || '—'}</Text>
+            <Text style={styles.sectionTitleUnique}>Câu của bạn</Text>
+            <Text style={styles.userSentenceText}>{userSentence || '—'}</Text>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Tổng điểm</Text>
-            {renderProgressBar({score: totalScore, maxScore: 100 })}
+            {renderProgressBar({ label: 'Tổng điểm', score: totalScore, maxScore: 100 })}
           </View>
-
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Từ vựng</Text>
             {renderProgressBar({
+              label: 'Từ vựng',
               score: Number(meaning.score ?? 0),
               maxScore: Number(meaning.maxScore ?? 100),
             })}
             {!!meaning.feedback && <Text style={styles.feedbackText}>{meaning.feedback}</Text>}
           </View>
-
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Ngữ pháp</Text>
             {renderProgressBar({
+              label: 'Ngữ pháp',
               score: Number(grammar.score ?? 0),
               maxScore: Number(grammar.maxScore ?? 100),
             })}
             {!!grammar.feedback && <Text style={styles.feedbackText}>{grammar.feedback}</Text>}
           </View>
-
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Độ tự nhiên</Text>
             {renderProgressBar({
+              label: 'Độ tự nhiên',
               score: Number(naturalness.score ?? 0),
               maxScore: Number(naturalness.maxScore ?? 100),
             })}
@@ -164,7 +175,7 @@ const styles = StyleSheet.create({
 
   card: {
     width: '100%',
-    maxWidth: 640,
+    maxWidth: 1000,
     maxHeight: Platform.OS === 'web' ? '90vh' : '88%',
 
     backgroundColor: '#FFF9E3',
@@ -202,11 +213,11 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     paddingBottom: 12,
-    gap: 12,
+    gap: 6,
   },
 
   section: {
-    marginBottom: 8,
+    marginBottom: 4,
   },
 
   sectionLabel: {
@@ -230,27 +241,51 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
 
+  sectionTitleUnique: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1B5E20',
+    marginBottom: 4,
+  },
+
+  userSentenceText: {
+    fontSize: 17,
+    color: '#8B4513',
+    fontStyle: 'italic',
+    fontWeight: '700',
+    lineHeight: 22,
+  },
+
+  topRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 8,
+  },
+
+  sectionHalf: {
+    flex: 1,
+  },
+
   progressBlock: {
-    marginBottom: 6,
+    marginBottom: 2,
   },
 
   progressHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 2,
   },
 
   progressLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#4CAF50',
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1B5E20',
   },
 
   progressValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#4CAF50',
+    fontSize: 14,
+    fontWeight: '900',
   },
 
   progressBarBg: {
