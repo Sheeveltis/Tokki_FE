@@ -29,7 +29,7 @@ const TOPIK_DETAILED_DATA = [
   { level: 'Cấp 6', target: '230/300', listening: '43/50 câu (86đ)', reading: '42/50 câu (84đ)', writing: '60/100đ', strategy: 'Phải đúng các câu cực khó (từ câu 40 trở đi).' },
 ]
 
-export function RoadmapInfo({ onStart, initialLevel = 1 }) {
+export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
   const [selectedLevel, setSelectedLevel] = useState(initialLevel)
   const [selectedSelfDeclaredLevel, setSelectedSelfDeclaredLevel] = useState(SELF_DECLARED_LEVELS[0].value)
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false)
@@ -123,15 +123,19 @@ export function RoadmapInfo({ onStart, initialLevel = 1 }) {
 
       <View style={styles.footerSection}>
         <Text style={styles.instruction}>Bắt đầu bài kiểm tra để kích hoạt lộ trình riêng cho bạn</Text>
-        <Pressable
-          onPress={openSelectionModal}
-          style={({ pressed }) => [
-            styles.startButton,
-            pressed && styles.startButtonPressed
-          ]}
-        >
-          <Text style={styles.startButtonText}>Bắt đầu ngay</Text>
-        </Pressable>
+        {startButton ? (
+          startButton(openSelectionModal)
+        ) : (
+          <Pressable
+            onPress={openSelectionModal}
+            style={({ pressed }) => [
+              styles.startButton,
+              pressed && styles.startButtonPressed
+            ]}
+          >
+            <Text style={styles.startButtonText}>Bắt đầu ngay</Text>
+          </Pressable>
+        )}
       </View>
 
       <Modal visible={isSelectionModalOpen} transparent animationType="fade" onRequestClose={closeSelectionModal}>
@@ -282,14 +286,14 @@ export function RoadmapInfo({ onStart, initialLevel = 1 }) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'transparent',
-    gap: 20,
+    gap: 16,
     width: '100%',
   },
   introCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    padding: 28,
-    gap: 12,
+    padding: 24,
+    gap: 8,
     borderWidth: 1,
     borderColor: '#F0F0F0',
     ...(Platform.OS === 'web' && {
@@ -358,8 +362,8 @@ const styles = StyleSheet.create({
     borderColor: '#F0F0F0',
     borderWidth: 1,
     borderRadius: 24,
-    padding: 24,
-    gap: 20,
+    padding: 20,
+    gap: 16,
     ...(Platform.OS === 'web' && {
       boxShadow: '0 10px 30px rgba(0,0,0,0.04)',
     }),
@@ -397,8 +401,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#F5F5F5',
-    padding: 16,
-    gap: 12,
+    padding: 12,
+    gap: 8,
   },
   selectedRequirement: {
     backgroundColor: '#FFF2CC',
@@ -458,8 +462,8 @@ const styles = StyleSheet.create({
   startButton: {
     backgroundColor: '#1A1A1A',
     borderRadius: 20,
-    paddingHorizontal: 32,
-    paddingVertical: 18,
+    paddingHorizontal: 28,
+    paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
