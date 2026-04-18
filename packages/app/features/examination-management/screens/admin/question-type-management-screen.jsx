@@ -168,7 +168,20 @@ export function QuestionTypeManagement({ basePath = '/admin' }) {
       dataIndex: 'name',
       key: 'name',
       width: '25%',
-      render: (text) => <Text strong style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>{text}</Text>
+      render: (text) => (
+        <span style={{
+          fontWeight: 600,
+          fontSize: 'clamp(13px, 1vw, 15px)',
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word'
+        }}>
+          {text}
+        </span>
+      )
     },
     {
       title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Kỹ năng</span>,

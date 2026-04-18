@@ -86,7 +86,7 @@ export function RoadmapLearningLayout({
         } else {
           Alert.alert('Thành công', 'Đã hủy lộ trình thành công.')
         }
-        router.push('/roadmap/test')
+        router.push('/roadmap/info')
       } catch (err) {
         console.error('Failed to cancel roadmap:', err)
         if (Platform.OS === 'web') {

@@ -51,7 +51,7 @@ export default function AccountManage({ basePath = '/admin' }) {
 
   const [filters, setFilters] = useManagementFilters({
     searchText: '',
-    status: null,
+    status: 1,
     role: null,
     vipStatus: null,
     page: 1,
@@ -213,14 +213,40 @@ export default function AccountManage({ basePath = '/admin' }) {
     {
       title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Họ tên</span>,
       dataIndex: 'fullName',
-      render: (_, r) => <span style={{ fontSize: 'clamp(13px, 1vw, 15px)', fontWeight: 500 }}>{r.fullName || r.name || ''}</span>,
       width: '20%',
+      render: (_, r) => (
+        <span style={{ 
+          fontSize: 'clamp(13px, 1vw, 15px)', 
+          fontWeight: 600,
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word'
+        }}>
+          {r.fullName || r.name || ''}
+        </span>
+      ),
     },
     {
       title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Email</span>,
       dataIndex: 'email',
-      render: (text) => <span style={{ fontSize: 'clamp(13px, 1vw, 15px)', color: '#595959', wordBreak: 'break-all' }}>{text}</span>,
       width: '25%',
+      render: (text) => (
+        <span style={{ 
+          fontSize: 'clamp(13px, 1vw, 15px)', 
+          color: '#595959', 
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-all'
+        }}>
+          {text}
+        </span>
+      ),
     },
     {
       title: <span style={{ fontSize: 'clamp(13px, 1vw, 15px)' }}>Vai trò</span>,

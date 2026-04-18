@@ -34,7 +34,7 @@ if (Platform.OS !== 'web') {
 }
 import { TextInput } from '../../../../../components/textInput'
 import { Button } from '../../../../../components/button'
-import { loginUser, loginWithGoogle, checkDailyTitles } from '../../api'
+import { loginUser, loginWithGoogle, checkDailyTitles, addXP } from '../../api'
 import { setAuthToken, clearAuthToken } from '../../../../provider/api/client'
 import { heartbeatService } from '../shared/heartbeat-service'
 import { showApiNotification } from '../../utils/notification'
@@ -204,12 +204,6 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
         // setAuthToken đã tự động mã hóa và lưu vào storage, không cần gọi setToken nữa
         await setAuthToken(token)
 
-        // Kiểm tra danh hiệu hàng ngày sau khi đăng nhập thành công
-        checkDailyTitles()
-
-        // Kiểm tra danh hiệu hàng ngày sau khi đăng nhập thành công
-        checkDailyTitles()
-
         // Lưu hoặc xóa thông tin ghi nhớ đăng nhập
         if (rememberMe) {
           await setStorageItem('rememberedEmail', email)
@@ -233,9 +227,10 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
         // Backend sẽ tự động cập nhật TotalXP và Streak sau khi nhận đủ số lần heartbeat
         heartbeatService.start()
 
-        // Chuyển trang sau khi hiển thị thông báo
-        // Native: chuyển đến menu-study (dùng React Navigation)
-        // Web: chuyển đến homepage (dùng solito router)
+        // Gọi API add-xp (500 XP, source 2)
+        addXP({ amount: 500, source: 2 })
+
+        // Chuyển trang ngay sau khi đăng nhập thành công
         setTimeout(() => {
           if (Platform.OS === 'web') {
             // Kiểm tra redirect query param
@@ -371,8 +366,8 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
 
               await setAuthToken(token)
               
-              // Kiểm tra danh hiệu hàng ngày sau khi đăng nhập thành công
-              checkDailyTitles()
+              // Gọi API add-xp (500 XP, source 2)
+              addXP({ amount: 500, source: 2 })
               heartbeatService.start()
 
               setTimeout(() => {
@@ -584,8 +579,8 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
 
       {/* Modal nhập OTP */}
       <InputOTP
-        visible={showOtpModal}
         email={forgotEmail}
+        visible={showOtpModal}
         onClose={() => setShowOtpModal(false)}
         onSuccess={handleOtpSuccess}
       />

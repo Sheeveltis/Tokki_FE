@@ -27,7 +27,7 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
 
   const [filters, setFilters] = useManagementFilters({
     search: '',
-    status: null, // Default status is All
+    status: 1, // Default status is Published (Active)
     type: null,
     creatorFilter: 2, // Default to Human (Người tạo)
     page: 1,
@@ -93,7 +93,20 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
       title: 'Tên mẫu đề',
       dataIndex: 'name',
       key: 'name',
-      render: (text, record) => text || record.Name || '-',
+      render: (text, record) => (
+        <span style={{
+          fontWeight: 600,
+          fontSize: 'clamp(13px, 1vw, 15px)',
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word'
+        }}>
+          {text || record.Name || '-'}
+        </span>
+      ),
       width: 250,
     },
     {
@@ -107,9 +120,21 @@ export function ExamTemplateManagement({ initialData = null, basePath = '/admin'
       title: 'Mô tả',
       dataIndex: 'description',
       key: 'description',
-      ellipsis: false,
-      render: (text, record) => text || record.Description || '-',
       width: 300,
+      render: (text, record) => (
+        <span style={{
+          fontSize: 'clamp(12px, 0.9vw, 14px)',
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word',
+          color: '#595959'
+        }}>
+          {text || record.Description || '-'}
+        </span>
+      ),
     },
     {
       title: 'Trạng thái',

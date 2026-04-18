@@ -201,6 +201,13 @@ export const ENDPOINTS = {
     PACKAGES: '/Statistics/packages', // GET: Doanh thu theo gói thành viên
     CHART: (year) => `/Statistics/chart?year=${year}`, // GET: Biểu đồ doanh thu theo tháng (query: year)
   },
+  STATISTICS_PAYMENT: {
+    LIST: '/StatisticsPayment', // GET: Lịch sử thanh toán
+    OVERVIEW: '/StatisticsPayment/overview', // GET: Tổng quan doanh thu
+    CHART: (year) => `/StatisticsPayment/chart?year=${year}`, // GET: Biểu đồ doanh thu
+    PACKAGES_LOOKUP: '/StatisticsPayment/packages-lookup', // GET: Lookup gói cước
+    PACKAGE_DISTRIBUTION: '/StatisticsPayment/package-distribution', // GET: Phân bổ gói cước
+  },
   FAVORITES: {
     GET_ALL: '/Favorites/favorites',   // GET: Lấy danh sách từ vựng yêu thích (có pagination và search)
     ADD: '/Favorites',      // POST: Thêm vào danh sách yêu thích
@@ -325,6 +332,7 @@ export const ENDPOINTS = {
     GENERATE: '/RoadmapVer2/generate',
     PROGRESS: (jobId) => `/RoadmapVer2/progress/${encodeURIComponent(jobId)}`,
     CURRENT: '/Roadmap/current',
+    CURRENT_WEEK_PROGRESS: '/Roadmap/current-week-progress',
     TASK_DETAIL: (taskId) => `/Roadmap/task/${encodeURIComponent(taskId)}/detail`,
     COMPLETE: '/Roadmap/complete',
     NEXT_WEEK: '/RoadmapVer2/next-week',

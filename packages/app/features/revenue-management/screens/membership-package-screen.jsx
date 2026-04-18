@@ -99,7 +99,20 @@ export function MembershipPackage() {
       title: 'Tên gói',
       dataIndex: 'name',
       key: 'name',
-      render: (text) => <Text strong style={{ fontSize: '14px' }}>{text}</Text>,
+      render: (text) => (
+        <span style={{
+          fontWeight: 600,
+          fontSize: '14px',
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word'
+        }}>
+          {text}
+        </span>
+      ),
     },
     {
       title: 'Loại gói',
@@ -129,8 +142,20 @@ export function MembershipPackage() {
       title: 'Mô tả',
       dataIndex: 'description',
       key: 'description',
-      ellipsis: true,
-      render: (text) => <Text type="secondary" style={{ fontSize: '13px' }}>{text}</Text>
+      render: (text) => (
+        <span style={{
+          fontSize: '13px',
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          wordBreak: 'break-word',
+          color: '#8c8c8c'
+        }}>
+          {text}
+        </span>
+      )
     },
     {
       title: 'Trạng thái',
