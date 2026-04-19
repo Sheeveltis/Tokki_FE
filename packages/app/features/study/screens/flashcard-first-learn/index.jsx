@@ -88,7 +88,7 @@ export function FlashcardFirstLearnScreen({
     handleStopLearning,
     completedInBatch,
     batchSize,
-  } = useFlashcardFirstLearn(topicId)
+  } = useFlashcardFirstLearn(topicId, mode === 'learn')
 
   // Cộng XP khi hoàn thành 1 tour 5 từ (hiện dialog hỏi tiếp tục)
   React.useEffect(() => {

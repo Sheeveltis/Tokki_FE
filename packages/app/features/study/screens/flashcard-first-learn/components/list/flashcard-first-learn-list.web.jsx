@@ -5,6 +5,7 @@ import { getFlashcardsByTopic } from '@tokki/app/features/study/api'
 import DefaultBunny from 'assets/bunny/14.png'
 import SoundIcon from 'assets/icon/icon-mainflow/sound.svg'
 import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
+import ButtonUI1 from 'components/decor/buttonUI1'
 
 const InfoIconSVG = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -71,12 +72,9 @@ const VocabCard = ({ vocab }) => {
 // Bắt chước nút "Học siêu cấp" nhưng là "Bắt đầu học"
 const StartLearningButton = ({ onPress }) => {
   return (
-    <TouchableOpacity
-      style={styles.startLearnButton}
-      onPress={onPress}
-    >
-      <Text style={styles.startLearnText}>🚀 Bắt đầu học</Text>
-    </TouchableOpacity>
+    <ButtonUI1 onClick={onPress}>
+      Bắt đầu
+    </ButtonUI1>
   )
 }
 

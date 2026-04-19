@@ -18,10 +18,12 @@ button.learn-more {
     min-width: 11rem;
     height: auto;
     transition: transform 0.3s ease;
-    background: #FFF8E1; /* Solid light background so it's not transparent */
+    background: #FFF8E1;
+    /* Solid light background so it's not transparent */
     border-radius: 1.625rem;
     overflow: hidden;
-    opacity: 1 !important; /* Explicitly set opacity to 1 */
+    opacity: 1 !important;
+    /* Explicitly set opacity to 1 */
 }
 
 button.learn-more:hover {
@@ -80,14 +82,15 @@ button.learn-more .button-text {
     padding: 0.75rem 0;
     margin: 0 0 0 1.85rem;
     color: #1E293B;
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1.6;
     text-align: center;
     text-transform: uppercase;
     white-space: nowrap;
     padding-left: 1.2rem;
     padding-right: 1.2rem;
-    z-index: 2; /* Ensure text is above the expanding circle */
+    z-index: 2;
+    /* Ensure text is above the expanding circle */
 }
 
 button:hover .circle {
