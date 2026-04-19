@@ -101,13 +101,20 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
                         key={`${q?.questionNo}`}
                         style={[
                           styles.questionChip,
-                          isActive && styles.questionChipActive,
                           isCorrect && styles.questionChipCorrect,
                           !isCorrect && q?.isCorrect === false && styles.questionChipIncorrect,
+                          isActive && styles.questionChipActive,
                         ]}
                         onPress={() => setSelectedQuestionNo(q?.questionNo)}
                       >
-                        <Text style={[styles.questionChipText, isActive && styles.questionChipTextActive]}>
+                        <Text
+                          style={[
+                            styles.questionChipText,
+                            isCorrect && styles.questionChipTextCorrect,
+                            !isCorrect && q?.isCorrect === false && styles.questionChipTextIncorrect,
+                            isActive && styles.questionChipTextActive,
+                          ]}
+                        >
                           {q?.questionNo}
                         </Text>
                       </TouchableOpacity>
@@ -122,13 +129,39 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
                 ) : (
                   <>
                     {(() => {
-                      const group = selectedQuestion?.group || null
+                      const q = selectedQuestion
+                      if (!q) return null
+
+                      const group = q.group || null
                       const sharedMediaType = (group?.sharedMediaType || '').toLowerCase()
                       const sharedMediaUrl = group?.sharedMediaUrl || null
                       const sharedPassageContent = group?.sharedPassageContent || null
+                      const isWritingQuestion = typeof q?.answerContent === 'string' || !!q?.aiAnalysis
+                      const hasOptions = Array.isArray(q?.options) && q.options.length > 0
+                      const selected = q?.selectedOptionId
+                      const correct = q?.correctOptionId
+                      const isCorrect = !!q?.isCorrect
 
                       return (
-                        <>
+                        <View style={styles.questionCard}>
+                          {/* Question Header at the very top */}
+                          <View style={styles.questionHeaderRow}>
+                            <Text style={styles.questionNo}>Câu {q?.questionNo}</Text>
+                            {isWritingQuestion ? (
+                              <Text style={styles.writingScoreChip}>Điểm: {q?.score ?? 0}</Text>
+                            ) : (
+                              <Text
+                                style={[
+                                  styles.questionResult,
+                                  isCorrect ? styles.questionResultOk : styles.questionResultBad,
+                                ]}
+                              >
+                                {isCorrect ? 'Đúng' : 'Sai'}
+                              </Text>
+                            )}
+                          </View>
+
+                          {/* Shared Group Content (Passage, Media) */}
                           {sharedPassageContent ? (
                             <View style={styles.groupPassageBox}>
                               <Text style={styles.groupPassageText}>{String(sharedPassageContent)}</Text>
@@ -146,38 +179,11 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
                               <img src={sharedMediaUrl} alt="Media" style={styles.groupMediaImage} />
                             </View>
                           ) : null}
-                        </>
-                      )
-                    })()}
 
-                    {(() => {
-                      const q = selectedQuestion
-                      const isWritingQuestion = typeof q?.answerContent === 'string' || !!q?.aiAnalysis
-                      const hasOptions = Array.isArray(q?.options) && q.options.length > 0
-                      const selected = q?.selectedOptionId
-                      const correct = q?.correctOptionId
-                      const isCorrect = !!q?.isCorrect
-
-                      return (
-                        <View style={styles.questionCard}>
-                          <View style={styles.questionHeaderRow}>
-                            <Text style={styles.questionNo}>Câu {q?.questionNo}</Text>
-                            {isWritingQuestion ? (
-                              <Text style={styles.writingScoreChip}>Điểm: {q?.score ?? 0}</Text>
-                            ) : (
-                              <Text
-                                style={[
-                                  styles.questionResult,
-                                  isCorrect ? styles.questionResultOk : styles.questionResultBad,
-                                ]}
-                              >
-                                {isCorrect ? 'Đúng' : 'Sai'}
-                              </Text>
-                            )}
-                          </View>
-
+                          {/* Question Specific Content */}
                           {!!q?.content && <Text style={styles.questionContent}>{String(q.content)}</Text>}
 
+                          {/* Options */}
                           {hasOptions && (
                             <View style={styles.optionsList}>
                               {[...(q?.options || [])]
@@ -211,6 +217,7 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
                             </View>
                           )}
 
+                          {/* Writing Analysis and AI Feedback */}
                           {isWritingQuestion && (
                             <View style={styles.writingBox}>
                               <View style={styles.writingMetaRow}>
@@ -234,7 +241,6 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
                                 <View style={styles.aiBox}>
                                   <Text style={styles.aiTitle}>Phân tích AI ({q?.aiAnalysis?.totalScore ?? 0}đ)</Text>
                                   
-                                  {/* For Fill-in-the-blanks type (questions 51, 52) */}
                                   {Array.isArray(q?.aiAnalysis?.results) ? (
                                     q.aiAnalysis.results.map((res, idx) => (
                                       <View key={idx} style={[styles.aiSection, idx > 0 && { marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F0E6D2' }]}>
@@ -296,6 +302,7 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
                             </View>
                           )}
 
+                          {/* Explanation Box */}
                           {!!q?.explanation && (
                             <View style={styles.explanationBox}>
                               <Text style={styles.explanationTitle}>Giải thích:</Text>
@@ -436,11 +443,17 @@ const styles = StyleSheet.create({
   },
   questionChipText: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#6B7280',
+    fontWeight: '800',
+    color: '#4B5563',
   },
   questionChipTextActive: {
     color: '#FFFFFF',
+  },
+  questionChipTextCorrect: {
+    color: '#10B981',
+  },
+  questionChipTextIncorrect: {
+    color: '#EF4444',
   },
   questionDetailScroll: {
     flex: 1,
@@ -606,24 +619,28 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   explanationBox: {
-    marginTop: 16,
-    padding: 16,
-    backgroundColor: '#F0F9FF',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#E0F2FE',
-    gap: 8,
+    marginTop: 24,
+    padding: 24,
+    backgroundColor: '#FEFCE8',
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: '#F1BE4B',
+    gap: 12,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 10px 30px rgba(241, 190, 75, 0.08)',
+    }),
   },
   explanationTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#0369A1',
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#B45309',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   explanationText: {
-    fontSize: 14,
-    lineHeight: 22,
-    color: '#4B5563',
+    fontSize: 15,
+    lineHeight: 24,
+    color: '#374151',
+    fontWeight: '500',
   },
 })
