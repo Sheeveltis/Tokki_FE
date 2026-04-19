@@ -19,7 +19,7 @@ const MOBILE_DOMAIN = 'http://10.0.2.2:5031' // IP đặc biệt cho Android Emu
 const PREFIX = '/api'
 
 // Tự động chọn domain dựa trên platform
-const DOMAIN = Platform.OS === 'web' ? WEB_DOMAIN : MOBILE_DOMAIN
+export const DOMAIN = Platform.OS === 'web' ? WEB_DOMAIN : MOBILE_DOMAIN
 
 export const API_BASE_URL = `${DOMAIN}${PREFIX}`
 
@@ -155,7 +155,8 @@ export const ENDPOINTS = {
   },
   PRONUNCIATION_RULES: {
     CREATE: '/PronunciationRules', // POST: Tạo pronunciation rule
-    GET_ALL: '/PronunciationRules', // GET: Lấy danh sách pronunciation rules
+    USER_GET_ALL: '/PronunciationRules/user/get-all', // GET: User lấy danh sách rules
+    ADMIN_GET_ALL: '/PronunciationRules/admin/get-all', // GET: Admin lấy danh sách rules
   },
   VOCABULARY: {
     ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
@@ -224,7 +225,7 @@ export const ENDPOINTS = {
     ADD_XP: '/Gamification/add-xp', // POST: Cộng XP với amount và source (body: { amount, source })
     MY_STREAK: '/Gamification/my-streak', // GET: Lấy thông tin streak của người dùng hiện tại
   },
-    TITLE: {
+  TITLE: {
     GET_ALL: '/Title/admin',  // GET: Lấy danh sách danh hiệu (admin)
     GET_BY_ID: (id) => `/Title/${id}`,  // GET: Lấy thông tin title theo ID
     CREATE: '/Title',  // POST: Tạo mới danh hiệu

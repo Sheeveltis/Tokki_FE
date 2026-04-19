@@ -11,7 +11,7 @@ export function PronunciationRuleCard({ rule, onPress }) {
   // Nếu không tách được, cứ hiển thị title (Korean) và description (Vietnamese)
   const title = rule.title || 'Quy tắc'
   const subtitle = rule.description || 'Pronunciation Rule'
-  const progress = rule.progress || 0 // Mặc định 0 nếu API chưa có
+  const progress = rule.progressPercent || 0 // Sử dụng progressPercent từ API
 
   return (
     <Pressable

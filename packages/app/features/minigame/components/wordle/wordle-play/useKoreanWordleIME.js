@@ -91,7 +91,7 @@ export function useKoreanWordleIME({ wordLength, maxGuesses = 6, onSubmitRow }) 
 
   // Bàn phím vật lý: chỉ nhận jamo, hangul syllable, backspace, enter, arrows
   const handlePhysicalKeyDown = useCallback(
-    (e) => {
+    (e, isComposingFromCaller) => {
       if (!e) return
 
       // chặn các tổ hợp Ctrl / Meta để không phá shortcut trình duyệt
@@ -219,8 +219,10 @@ export function useKoreanWordleIME({ wordLength, maxGuesses = 6, onSubmitRow }) 
     (text, { phase, startCol } = {}) => {
       if (!text) return
   
-      // chỉ lấy hangul syllables
-      const syllables = Array.from(text).filter((ch) => isHangulSyllable(ch))
+      // nhận cả syllables và jamo rời
+      const syllables = Array.from(text).filter(
+        (ch) => isHangulSyllable(ch) || isJamoConsonant(ch) || isJamoVowel(ch)
+      )
       if (syllables.length === 0) return
   
       // baseCol của lượt composition: chỉ set 1 lần khi bắt đầu composing
@@ -232,8 +234,12 @@ export function useKoreanWordleIME({ wordLength, maxGuesses = 6, onSubmitRow }) 
   
           // nếu bắt đầu một lượt composing mới
           if (composingLenRef.current === 0) {
-            composingBaseColRef.current =
-              typeof startCol === 'number' ? startCol : prev.activeColIndex
+            const isRowEmpty = prev.cells.every((c) => !c.L && !c.V && !c.T)
+            composingBaseColRef.current = isRowEmpty
+              ? 0
+              : typeof startCol === 'number'
+              ? startCol
+              : prev.activeColIndex
           }
   
           const baseCol = composingBaseColRef.current
@@ -250,8 +256,15 @@ export function useKoreanWordleIME({ wordLength, maxGuesses = 6, onSubmitRow }) 
   
           // preview syllables
           for (let i = 0; i < nextLen; i++) {
-            const dec = decomposeSyllableChar(syllables[i])
-            cells[baseCol + i] = { L: dec.L, V: dec.V, T: dec.T }
+            const ch = syllables[i]
+            if (isHangulSyllable(ch)) {
+              const dec = decomposeSyllableChar(ch)
+              cells[baseCol + i] = { L: dec.L, V: dec.V, T: dec.T }
+            } else if (isJamoConsonant(ch)) {
+              cells[baseCol + i] = { L: ch, V: null, T: null }
+            } else if (isJamoVowel(ch)) {
+              cells[baseCol + i] = { L: 'ㅇ', V: ch, T: null }
+            }
           }
   
           composingLenRef.current = nextLen
@@ -265,10 +278,15 @@ export function useKoreanWordleIME({ wordLength, maxGuesses = 6, onSubmitRow }) 
       setRowStateWithRef((prev) => {
         const cells = prev.cells.map((c) => ({ ...c }))
   
+        const isRowEmptyCurrent = prev.cells.every((c) => !c.L && !c.V && !c.T)
         const baseCol =
           composingLenRef.current > 0
             ? composingBaseColRef.current
-            : (typeof startCol === 'number' ? startCol : prev.activeColIndex)
+            : isRowEmptyCurrent
+            ? 0
+            : typeof startCol === 'number'
+            ? startCol
+            : prev.activeColIndex
   
         const nextLen = Math.min(syllables.length, wordLength - baseCol)
   
@@ -283,8 +301,15 @@ export function useKoreanWordleIME({ wordLength, maxGuesses = 6, onSubmitRow }) 
   
         // commit syllables
         for (let i = 0; i < nextLen; i++) {
-          const dec = decomposeSyllableChar(syllables[i])
-          cells[baseCol + i] = { L: dec.L, V: dec.V, T: dec.T }
+          const ch = syllables[i]
+          if (isHangulSyllable(ch)) {
+            const dec = decomposeSyllableChar(ch)
+            cells[baseCol + i] = { L: dec.L, V: dec.V, T: dec.T }
+          } else if (isJamoConsonant(ch)) {
+            cells[baseCol + i] = { L: ch, V: null, T: null }
+          } else if (isJamoVowel(ch)) {
+            cells[baseCol + i] = { L: 'ㅇ', V: ch, T: null }
+          }
         }
   
         composingLenRef.current = 0

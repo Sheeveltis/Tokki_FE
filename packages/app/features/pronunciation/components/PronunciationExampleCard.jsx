@@ -1,17 +1,25 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native'
 
-/**
- * PronunciationExampleCard: Card hiển thị ví dụ phát âm với phân cấp thị giác rõ nét
- */
+const getDifficultyStyles = (level) => {
+  switch (level) {
+    case 'Easy': return { bg: '#E8F5E9', text: '#4CAF50', label: 'Dễ' }
+    case 'Medium': return { bg: '#FFF8E1', text: '#FFB800', label: 'Trung bình' }
+    case 'Hard': return { bg: '#FFEBEE', text: '#F44336', label: 'Khó' }
+    default: return { bg: '#F5F5F5', text: '#94A3B8', label: level }
+  }
+}
+
 export function PronunciationExampleCard({ 
   text, 
   sortOrder, 
   onPress,
   subtitle = 'Chạm để bắt đầu luyện tập',
-  isCompleted = false // Giả định prop này để hiển thị checkmark
+  isCompleted = false,
+  difficulty = 'Medium'
 }) {
   const [hovered, setHovered] = useState(false)
+  const diffStyle = getDifficultyStyles(difficulty)
 
   return (
     <View style={styles.container}>
@@ -29,11 +37,11 @@ export function PronunciationExampleCard({
             styles.numberBox,
             isCompleted && styles.completedBox,
           ]}>
-             {isCompleted ? (
-               <View style={styles.checkmark} />
-             ) : (
-               <Text style={styles.numberText}>{sortOrder}</Text>
-             )}
+            {isCompleted ? (
+              <View style={styles.checkmark} />
+            ) : (
+              <Text style={styles.numberText}>{sortOrder}</Text>
+            )}
           </View>
         </View>
 
@@ -41,12 +49,17 @@ export function PronunciationExampleCard({
           <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
             {text}
           </Text>
-          <Text style={styles.subtitle}>{subtitle}</Text>
+          <View style={styles.bottomRow}>
+            <View style={[styles.diffBadge, { backgroundColor: diffStyle.bg }]}>
+              <Text style={[styles.diffText, { color: diffStyle.text }]}>{diffStyle.label}</Text>
+            </View>
+            <Text style={styles.subtitle}>{subtitle}</Text>
+          </View>
         </View>
 
         <View style={styles.right}>
           <View style={[styles.playIconCircle, { backgroundColor: isCompleted ? '#FF7E5F' : '#F5F5F5' }]}>
-             <View style={[styles.playArrow, { borderLeftColor: isCompleted ? '#FFF' : '#4B5563' }]} />
+            <View style={[styles.playArrow, { borderLeftColor: isCompleted ? '#FFF' : '#4B5563' }]} />
           </View>
         </View>
       </Pressable>
@@ -118,11 +131,27 @@ const styles = StyleSheet.create({
     lineHeight: 26,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#8E9AAF',
     fontFamily: 'Epilogue, sans-serif',
     fontWeight: '500',
-    fontStyle: 'italic',
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  diffBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  diffText: {
+    fontSize: 11,
+    fontWeight: '900',
+    fontFamily: 'Epilogue, sans-serif',
+    textTransform: 'uppercase',
   },
   right: {
     marginLeft: 8,

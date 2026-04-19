@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from 'solito/navigation'
 
 import { WordleBoardContent } from './component/WordleBoardContent'
 import BackgroundImage from '../../../../../../assets/BackgroundSolite.jpg'
-import BannerSolitare from '../../../../../../assets/BannerSolitare.png'
+import TitleBadge from '../../../../../../assets/TitleBadge.png'
 import BoardBackgroundImage from '../../../../../../assets/wordle-board.png'
 import { getWordleTopSentences, toggleWordleSentenceLike } from '../../../api/wordle-level-api'
 
@@ -84,7 +84,7 @@ export function WordleBoardWeb({ dailyWordleId: propDailyWordleId }) {
           </View>
 
           <View style={styles.titleWrapper}>
-            <Image source={BannerSolitare} style={styles.bannerImage} />
+            <Image source={TitleBadge} style={styles.bannerImage} />
             <Text style={styles.titleText}>Bảng xếp hạng</Text>
           </View>
 

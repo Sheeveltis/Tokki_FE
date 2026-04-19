@@ -377,22 +377,24 @@ export function reduceRowState(state, input, wordLength) {
   }
 
   if (input === 'BACKSPACE') {
-    // if current cell has something → backspace here
-    let { cell, emptied } = backspaceCell(nextCells[col])
-    nextCells[col] = cell
+    const current = nextCells[col]
+    const isAlreadyEmpty = !current.L && !current.V && !current.T
 
-    if (!emptied) {
+    if (!isAlreadyEmpty) {
+      // Nếu ô hiện tại không trống -> chỉ xóa 1 thành phần trong ô này
+      let { cell } = backspaceCell(current)
+      nextCells[col] = cell
+      return { cells: nextCells, activeColIndex: col }
+    } else {
+      // Nếu ô hiện tại đã trống -> lùi sang trái và xóa ở ô đó
+      if (col > 0) {
+        col -= 1
+        let { cell } = backspaceCell(nextCells[col])
+        nextCells[col] = cell
+      }
+      clampCol()
       return { cells: nextCells, activeColIndex: col }
     }
-
-    // current became empty → move left and continue if possible
-    if (col > 0) {
-      col -= 1
-      const res = backspaceCell(nextCells[col])
-      nextCells[col] = res.cell
-    }
-    clampCol()
-    return { cells: nextCells, activeColIndex: col }
   }
 
   if (input === 'ENTER') {
@@ -410,6 +412,12 @@ export function reduceRowState(state, input, wordLength) {
   if (!isJamoConsonant(ch) && !isJamoVowel(ch)) {
     // ignore anything not a jamo
     return { cells: nextCells, activeColIndex: col }
+  }
+
+  // Nếu toàn bộ hàng đang trống -> ép buộc bắt đầu từ ô đầu tiên
+  const isRowEmpty = cells.every((c) => !c.L && !c.V && !c.T)
+  if (isRowEmpty) {
+    col = 0
   }
 
   let current = nextCells[col]

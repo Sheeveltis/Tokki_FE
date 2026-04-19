@@ -35,10 +35,13 @@ const extractData = (response) => {
   return payload
 }
 
-export const getPronunciationRules = async () => {
+export const getPronunciationRules = async (role = 'user') => {
   try {
-    // Sử dụng API_BASE_URL trực tiếp kết hợp endpoint để đảm bảo URL theo chuẩn api/PronunciationRules
-    const res = await apiClient.get(`${API_BASE_URL}${ENDPOINTS.PRONUNCIATION_RULES.GET_ALL}`)
+    const endpoint = role === 'admin' 
+      ? ENDPOINTS.PRONUNCIATION_RULES.ADMIN_GET_ALL 
+      : ENDPOINTS.PRONUNCIATION_RULES.USER_GET_ALL
+
+    const res = await apiClient.get(`${API_BASE_URL}${endpoint}`)
     const data = extractData(res)
 
     if (!Array.isArray(data)) {
@@ -55,6 +58,7 @@ export const getPronunciationRules = async () => {
         description: item?.description || '',
         content: item?.content || '',
         sortOrder: item?.sortOrder || 0,
+        progressPercent: item?.progressPercent || 0,
         _raw: item,
       }))
   } catch (error) {
@@ -87,6 +91,8 @@ export const getPronunciationExamplesByRuleId = async (ruleId) => {
     return data.map((item) => ({
       id: item.exampleId,
       text: item.rawScript || item.targetScript || '',
+      difficulty: item.difficulty || 'Medium',
+      audioUrl: item.audioUrl || null,
       sortOrder: item.sortOrder || 0
     }))
   } catch (error) {
@@ -111,6 +117,7 @@ export const getPronunciationExampleById = async (exampleId) => {
       phoneticScript: item.phoneticScript || '',
       meaning: item.meaning || '',
       audioUrl: item.audioUrl || null,
+      difficulty: item.difficulty || 'Medium',
       ruleName: item.ruleName || '',
       ruleDescription: item.ruleDescription || '',
       ruleContent: item.ruleContent || '',

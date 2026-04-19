@@ -65,6 +65,17 @@ export function PronunciationExampleDetailMain({
 
         <Text style={styles.targetDescription}>{example.meaning}</Text>
         {example.phoneticScript && <Text style={styles.targetPhonetic}>[{example.phoneticScript}]</Text>}
+        
+        <View style={[
+          styles.diffBadgeDetail, 
+          example.difficulty === 'Easy' && { backgroundColor: '#4CAF50' },
+          example.difficulty === 'Medium' && { backgroundColor: '#FFB800' },
+          example.difficulty === 'Hard' && { backgroundColor: '#F44336' }
+        ]}>
+          <Text style={styles.diffTextDetail}>
+            {example.difficulty === 'Easy' ? 'Dễ' : example.difficulty === 'Medium' ? 'Trung bình' : 'Khó'}
+          </Text>
+        </View>
       </View>
 
       {result?.aiFeedback && (
@@ -164,6 +175,23 @@ const styles = StyleSheet.create({
     marginTop: 6,
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  diffBadgeDetail: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignSelf: 'center',
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  diffTextDetail: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#FFF',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
 
   actionRow: { width: '100%', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 20 },

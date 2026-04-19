@@ -130,7 +130,7 @@ export function useWordlePlayControl({
       if (tagName === 'input' || tagName === 'textarea') return
       if (target?.isContentEditable) return
   
-      handlePhysicalKeyDown(e)
+      handlePhysicalKeyDown(e, composingRef.current)
     }
   
     window.addEventListener('keydown', handleWindowKeyDown)
@@ -200,10 +200,9 @@ export function useWordlePlayControl({
   const handleHiddenInputKeyDown = useCallback(
     (e) => {
       if (gameState !== 'playing') return
-      if (composingRef.current || e?.isComposing) return
-      if (e.ctrlKey || e.metaKey || e.altKey) return
-
       const key = e?.key
+      if ((composingRef.current || e?.isComposing) && key !== 'Backspace') return
+      if (e.ctrlKey || e.metaKey || e.altKey) return
 
       if (
         key === 'Backspace' ||
@@ -216,7 +215,7 @@ export function useWordlePlayControl({
         e.preventDefault?.()
       }
 
-      handlePhysicalKeyDown(e)
+      handlePhysicalKeyDown(e, composingRef.current || e?.isComposing)
       clearHiddenImeInput()
     },
     [gameState, handlePhysicalKeyDown, clearHiddenImeInput]

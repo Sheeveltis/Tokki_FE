@@ -16,7 +16,7 @@ export function PronunciationManagementScreen({ basePath = '/admin' }) {
   const fetchRules = async () => {
     try {
       setLoading(true)
-      const data = await getPronunciationRules()
+      const data = await getPronunciationRules('admin')
       setRules(data)
     } catch (error) {
       message.error(error.message || 'Không thể tải danh sách quy tắc phát âm')

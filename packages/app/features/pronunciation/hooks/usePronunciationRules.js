@@ -14,7 +14,7 @@ export function usePronunciationRules() {
     try {
       setLoading(true)
       setError(null)
-      const data = await getPronunciationRules()
+      const data = await getPronunciationRules('user')
       setRules(Array.isArray(data) ? data : [])
     } catch (e) {
       console.error('Error fetching pronunciation rules:', e)
