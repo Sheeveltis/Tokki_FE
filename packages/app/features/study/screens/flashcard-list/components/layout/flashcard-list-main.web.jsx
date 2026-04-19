@@ -226,63 +226,75 @@ export function FlashcardListMain({
         </View>
 
         <View style={styles.rightActions}>
-          <View style={styles.viewModeToggle}>
-            <TouchableOpacity
-              onPress={() => setViewMode('card')}
-              style={[styles.toggleBtn, viewMode === 'card' && styles.toggleBtnActive]}
-            >
-              <Text style={[styles.toggleBtnText, viewMode === 'card' && styles.toggleBtnTextActive]}>Thẻ</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setViewMode('table')}
-              style={[styles.toggleBtn, viewMode === 'table' && styles.toggleBtnActive]}
-            >
-              <Text style={[styles.toggleBtnText, viewMode === 'table' && styles.toggleBtnTextActive]}>Bảng</Text>
-            </TouchableOpacity>
-          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+            <View style={styles.viewModeToggle}>
+              <TouchableOpacity
+                onPress={() => setViewMode('card')}
+                style={[styles.toggleBtn, viewMode === 'card' && styles.toggleBtnActive]}
+              >
+                <Text style={[styles.toggleBtnText, viewMode === 'card' && styles.toggleBtnTextActive]}>Thẻ</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setViewMode('table')}
+                style={[styles.toggleBtn, viewMode === 'table' && styles.toggleBtnActive]}
+              >
+                <Text style={[styles.toggleBtnText, viewMode === 'table' && styles.toggleBtnTextActive]}>Bảng</Text>
+              </TouchableOpacity>
+            </View>
 
-          <View style={styles.searchContainer}>
-            <View style={styles.searchInputWrapper}>
-              <StudyIcon source={SearchIcon} width={18} height={18} tintColor="#999" />
-              <TextInput
-                value={searchTerm}
-                placeholder="Tìm kiếm..."
-                onChangeText={onSearchChange}
-                onSubmitEditing={onSearchSubmit}
-                style={styles.searchInput}
-                placeholderTextColor="#999"
-                editable={!loading}
-              />
+            <View style={styles.searchContainer}>
+              <View style={styles.searchInputWrapper}>
+                <StudyIcon source={SearchIcon} width={18} height={18} tintColor="#999" />
+                <TextInput
+                  value={searchTerm}
+                  placeholder="Tìm kiếm..."
+                  onChangeText={onSearchChange}
+                  onSubmitEditing={onSearchSubmit}
+                  style={styles.searchInput}
+                  placeholderTextColor="#999"
+                  editable={!loading}
+                />
+              </View>
             </View>
           </View>
         </View>
       </View>
 
-      <View style={styles.contentWrap}>
-        {error && topics.length === 0 ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
-              <Text style={styles.retryButtonText}>Thử lại</Text>
-            </TouchableOpacity>
-          </View>
-        ) : topics.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconCircle}>
-              <StudyIcon source={SearchIcon} width={40} height={40} tintColor="#CCC" />
+      <ScrollView
+        style={styles.contentScroll}
+        contentContainerStyle={styles.contentScrollInner}
+        showsVerticalScrollIndicator={true}
+      >
+        <View style={styles.contentWrap}>
+          {error && topics.length === 0 ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
+                <Text style={styles.retryButtonText}>Thử lại</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.emptyTitle}>Không tìm thấy chủ đề nào</Text>
-            <Text style={styles.emptySubtitle}>Thử đổi từ khóa hoặc mức độ TOPIK khác xem sao nhé!</Text>
-            <TouchableOpacity style={styles.clearSearchBtn} onPress={() => onSearchChange('')}>
-              <Text style={styles.clearSearchBtnText}>Xóa bộ lọc</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          viewMode === 'card' ? renderGridView() : renderTableView()
-        )}
-      </View>
+          ) : topics.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <View style={styles.emptyIconCircle}>
+                <StudyIcon source={SearchIcon} width={40} height={40} tintColor="#CCC" />
+              </View>
+              <Text style={styles.emptyTitle}>Không tìm thấy chủ đề nào</Text>
+              <Text style={styles.emptySubtitle}>Thử đổi từ khóa hoặc mức độ TOPIK khác xem sao nhé!</Text>
+              <TouchableOpacity style={styles.clearSearchBtn} onPress={() => onSearchChange('')}>
+                <Text style={styles.clearSearchBtnText}>Xóa bộ lọc</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            viewMode === 'card' ? renderGridView() : renderTableView()
+          )}
+        </View>
+      </ScrollView>
 
-      {renderPagination()}
+      {totalPages > 1 && (
+        <View style={styles.paginationSticky}>
+          {renderPagination()}
+        </View>
+      )}
     </View>
   )
 }
@@ -305,8 +317,13 @@ function PageButton({ page, active, onPress }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    gap: 32,
-    paddingBottom: 40,
+    overflow: 'hidden',
+  },
+  contentScroll: {
+    flex: 1,
+  },
+  contentScrollInner: {
+    paddingBottom: 20,
   },
   loadingContainer: {
     padding: 100,
@@ -318,6 +335,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 20,
     flexWrap: 'wrap',
+    marginBottom: 16,
   },
   levelSelector: {
     flexDirection: 'row',
@@ -416,15 +434,13 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' && {
       display: 'grid',
       gridTemplateColumns: 'repeat(2, 1fr)',
-      gap: '24px',
+      gap: '12px',
     }),
   },
   gridLoading: {
     opacity: 0.5,
   },
   gridItem: {
-    // React Native fallback if grid not supported
-    marginBottom: 20,
   },
   // Table Styles
   tableWrapper: {
@@ -498,17 +514,17 @@ const styles = StyleSheet.create({
     borderColor: '#F5F5F5',
     marginBottom: 16,
     alignItems: 'center',
-    ...(Platform.OS === 'web' && { 
-        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)', 
-        cursor: 'pointer' 
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+      cursor: 'pointer'
     }),
   },
   listItemHover: {
     borderColor: '#F1BE4B40',
     backgroundColor: '#FAFAFA',
-    ...(Platform.OS === 'web' && { 
-        boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
-        transform: 'translateX(6px)'
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
+      transform: 'translateX(6px)'
     }),
   },
   listItemActive: {
@@ -582,10 +598,20 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#1A1A1A',
   },
+  paginationSticky: {
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    backgroundColor: '#FFFFFF',
+    marginTop: 'auto',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 -10px 25px rgba(0,0,0,0.03)',
+      zIndex: 10,
+    }),
+  },
   paginationSection: {
     alignItems: 'center',
-    gap: 12,
-    marginTop: 20,
+    gap: 8,
   },
   paginationWrapper: {
     flexDirection: 'row',
