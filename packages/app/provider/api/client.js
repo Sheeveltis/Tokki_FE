@@ -13,8 +13,11 @@ import {
 import { setStorageItem, getStorageItem, removeStorageItem, dispatchStorageEvent } from '../../helpers/storage'
 
 const TOKEN_KEY = 'token'
+const AVATAR_KEY = 'avatarUrl'
 let inMemoryToken = null
+let inMemoryAvatar = null
 let storageCache = null
+let avatarCache = null
 let isLoggingOut = false // Cờ chặn gọi hàm redirect nhiều lần
 let isRefreshing = false
 let failedQueue = []
@@ -48,7 +51,13 @@ export const setAuthToken = async (token) => {
 export const clearAuthToken = async () => {
   inMemoryToken = null
   storageCache = null
+  inMemoryAvatar = null
+  avatarCache = null
   await setAuthToken(null)
+  await removeStorageItem(AVATAR_KEY)
+  if (Platform.OS === 'web') {
+    dispatchStorageEvent('avatar-changed')
+  }
 }
 
 // Kiểm tra nhanh xem token có đúng định dạng JWT không (bắt đầu bằng eyJ)
@@ -99,6 +108,36 @@ export const getAuthTokenAsync = async () => {
       storageCache = decryptedToken
       return decryptedToken
     }
+  }
+  return null
+}
+
+export const getCurrentUserAvatar = () => {
+  if (inMemoryAvatar) return inMemoryAvatar
+  if (avatarCache) return avatarCache
+
+  if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
+    const stored = window.localStorage.getItem(AVATAR_KEY)
+    if (stored) {
+      const value = stored === 'default-avatar' ? null : stored
+      inMemoryAvatar = value
+      avatarCache = value
+      return value
+    }
+  }
+  return null
+}
+
+export const getCurrentUserAvatarAsync = async () => {
+  if (inMemoryAvatar) return inMemoryAvatar
+  if (avatarCache) return avatarCache
+
+  const stored = await getStorageItem(AVATAR_KEY)
+  if (stored) {
+    const value = stored === 'default-avatar' ? null : stored
+    inMemoryAvatar = value
+    avatarCache = value
+    return value
   }
   return null
 }

@@ -215,20 +215,22 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
         }
 
         // TODO: Lưu thông tin user vào context / storage nếu cần
-        console.log('Đăng nhập thành công:', {
-          token,
-          fullName,
-          role,
-          avatarUrl,
-        })
+        if (avatarUrl) {
+          await setStorageItem('avatarUrl', avatarUrl)
+          dispatchStorageEvent('avatar-changed')
+        }
+
+        // console.log('Đăng nhập thành công:', {
+        //   token,
+        //   fullName,
+        //   role,
+        //   avatarUrl,
+        // })
 
         // Bắt đầu heartbeat service sau khi login thành công
         // Service sẽ tự động gửi heartbeat mỗi 300 giây
         // Backend sẽ tự động cập nhật TotalXP và Streak sau khi nhận đủ số lần heartbeat
         heartbeatService.start()
-
-        // Gọi API add-xp (500 XP, source 2)
-        addXP({ amount: 500, source: 2 })
 
         // Chuyển trang ngay sau khi đăng nhập thành công
         setTimeout(() => {
@@ -365,9 +367,12 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
               }
 
               await setAuthToken(token)
+
+              if (avatarUrl) {
+                await setStorageItem('avatarUrl', avatarUrl)
+                dispatchStorageEvent('avatar-changed')
+              }
               
-              // Gọi API add-xp (500 XP, source 2)
-              addXP({ amount: 500, source: 2 })
               heartbeatService.start()
 
               setTimeout(() => {

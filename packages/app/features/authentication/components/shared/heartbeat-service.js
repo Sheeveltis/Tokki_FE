@@ -32,7 +32,7 @@ class HeartbeatService {
     // Clear interval cũ nếu có (phòng trường hợp)
     this.stop()
 
-    console.log('[HeartbeatService] Bắt đầu heartbeat service...')
+    // console.log('[HeartbeatService] Bắt đầu heartbeat service...')
     this.isRunning = true
     this.callCount = 0
 
@@ -44,7 +44,7 @@ class HeartbeatService {
       this.sendHeartbeat()
     }, this.intervalDuration)
 
-    console.log(`[HeartbeatService] Heartbeat interval đã được khởi động (mỗi ${this.intervalDuration / 1000} giây)`)
+    // console.log(`[HeartbeatService] Heartbeat interval đã được khởi động (mỗi ${this.intervalDuration / 1000} giây)`)
   }
 
   /**
@@ -55,7 +55,7 @@ class HeartbeatService {
       clearInterval(this.intervalRef)
       this.intervalRef = null
       this.isRunning = false
-      console.log('[HeartbeatService] Heartbeat interval đã dừng')
+      // console.log('[HeartbeatService] Heartbeat interval đã dừng')
     }
   }
 
@@ -74,7 +74,7 @@ class HeartbeatService {
       }
 
       this.callCount++
-      console.log(`[HeartbeatService] Gửi heartbeat lần thứ ${this.callCount}...`, { userId })
+      // console.log(`[HeartbeatService] Gửi heartbeat lần thứ ${this.callCount}...`, { userId })
 
       const result = await sendHeartbeat(userId, 300)
       
@@ -84,7 +84,7 @@ class HeartbeatService {
                        (result?.addedSeconds !== undefined && result?.addedSeconds !== null)
       
       if (isSuccess) {
-        console.log(`[HeartbeatService] Heartbeat lần ${this.callCount} thành công`, result)
+        // console.log(`[HeartbeatService] Heartbeat lần ${this.callCount} thành công`, result)
         // Backend sẽ tự động cập nhật TotalXP và Streak sau khi nhận đủ số lần heartbeat
         // Frontend không cần làm gì thêm ở đây
       } else {
