@@ -637,9 +637,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontWeight: '500',
   },
-  resultsWrapper: {
-    width: '100%',
-  },
   resultsMeta: {
     marginBottom: 20,
     paddingLeft: 4,

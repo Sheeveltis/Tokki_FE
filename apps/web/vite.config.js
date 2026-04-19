@@ -14,6 +14,11 @@ export default defineConfig({
       include: '**/*.svg',
     })
   ],
+  esbuild: {
+    loader: 'jsx',
+    include: /.*\.jsx?$/,
+    exclude: [],
+  },
   resolve: {
     alias: {
       // react-native on web

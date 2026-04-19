@@ -433,9 +433,6 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
   },
-  title: {
-    ...studyStyles.pageTitle,
-  },
   headerButtons: {
     flexDirection: 'row',
     alignItems: 'center',

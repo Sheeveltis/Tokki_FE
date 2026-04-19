@@ -714,10 +714,6 @@ const styles = StyleSheet.create({
     borderRadius: 1.5,
     overflow: 'hidden',
   },
-  sideWeekMiniProgressBar: {
-    height: '100%',
-    borderRadius: 1.5,
-  },
   contentCard: {
     flex: 1,
     height: '100%',
