@@ -6,7 +6,9 @@ import svgr from 'vite-plugin-svgr'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      include: /.*\.[tj]sx?$/,
+    }),
     svgr({
       svgrOptions: {
         exportType: 'default',
@@ -15,8 +17,8 @@ export default defineConfig({
     })
   ],
   esbuild: {
-    loader: 'jsx',
-    include: /.*\.jsx?$/,
+    loader: 'tsx',
+    include: /.*\.[tj]sx?$/,
     exclude: [],
   },
   resolve: {

@@ -264,12 +264,7 @@ const styles = StyleSheet.create({
   },
 
 
-  backImage: {
-    width: 70,
-    height: 70,
-    borderRadius: 8,
-    backgroundColor: '#F5F5F5',
-  },
+
   backImageLarge: {
     width: 95,
     height: 95,
@@ -283,12 +278,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
   },
 
-  word: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    textAlign: 'center',
-  },
+
   wordLarge: {
     fontSize: 24,
     fontWeight: '800',

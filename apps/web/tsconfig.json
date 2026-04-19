@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@tokki/app/*": ["../../packages/app/*"]
+    }
+  },
+  "include": ["src", "../../packages/app"]
+}
