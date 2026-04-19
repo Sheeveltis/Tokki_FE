@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Platform } from 'react-native'
+import { useRouter } from 'solito/navigation'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { useLearnedVocabularyList } from './useLearnedVocabularyList'
 import { 
@@ -28,7 +29,8 @@ export function LearnedVocabularyListScreen({
   const navigation = navigationProp || (Platform.OS !== 'web' ? useNavigation() : null)
   const route = routeProp || (Platform.OS !== 'web' ? useRoute() : null)
 
-  const [mode, setMode] = useState('list') // 'list' | 'practice'
+  const { replace, query } = useRouter()
+  const [mode, setMode] = useState(Platform.OS === 'web' && query?.hideNavbar === 'true' ? 'practice' : 'list')
   const [practiceCount, setPracticeCount] = useState(20) // Số lượng từ muốn học
   
   const {
@@ -82,8 +84,24 @@ export function LearnedVocabularyListScreen({
 
   // Handler khi nhấn bắt đầu luyện tập
   const handleStartPractice = async () => {
-    await fetchPracticeVocabularies(practiceCount)
+    // Set mode trước để transition nhanh trên UI
     setMode('practice')
+    
+    // Load dữ liệu
+    await fetchPracticeVocabularies(practiceCount)
+    
+    // Update URL trên web để hiển thị distraction-free (ẩn navbar)
+    if (Platform.OS === 'web') {
+      replace('/flashcard/learned?hideNavbar=true', undefined, { shallow: true })
+    }
+  }
+
+  // Handler khi thoát chế độ luyện tập
+  const handleExitPractice = () => {
+    setMode('list')
+    if (Platform.OS === 'web') {
+      replace('/flashcard/learned', undefined, { shallow: true })
+    }
   }
 
   // Nếu đang ở chế độ practice, hiển thị component practice
@@ -92,14 +110,14 @@ export function LearnedVocabularyListScreen({
     return (
       <PracticeLayout
         levelId={route?.params?.levelId || 1}
-        onBackPress={() => setMode('list')}
+        onBackPress={handleExitPractice}
       >
         <LearnedVocabularyPracticeMode
           vocabularies={practiceVocabularies}
           loading={practiceLoading}
-          onBack={() => setMode('list')}
+          onBack={handleExitPractice}
           onPracticeComplete={() => {
-            setMode('list')
+            handleExitPractice()
             fetchVocabularies() // Refresh danh sách sau khi học
           }}
         />

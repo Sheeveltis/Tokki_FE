@@ -34,6 +34,35 @@ const GROUP_SIZE = 5
  * - Mỗi nhóm học 2 lần: lần đầu random chế độ, lần sau chế độ còn lại
  * - Sau khi học xong một nhóm mới, quay lại nhóm trước học chế độ còn lại
  */
+
+/**
+ * CloseButton: Nút X với hiệu ứng hover
+ */
+const CloseButton = ({ onPress, style }) => {
+  const [isHovered, setIsHovered] = React.useState(false)
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      {...(Platform.OS === 'web' && {
+        onMouseEnter: () => setIsHovered(true),
+        onMouseLeave: () => setIsHovered(false),
+      })}
+      style={[
+        styles.closeButton,
+        isHovered && styles.closeButtonHover,
+        style
+      ]}
+    >
+      <Text style={[
+        styles.closeButtonIcon,
+        isHovered && styles.closeButtonIconHover
+      ]}>✕</Text>
+    </TouchableOpacity>
+  )
+}
+
 export function LearnedVocabularyPracticeMode({
   vocabularies = [],
   loading = false,
@@ -50,7 +79,7 @@ export function LearnedVocabularyPracticeMode({
   const [failedVocabIds, setFailedVocabIds] = useState(new Set()) // Track vocab IDs that were wrong
   const [failedVocabList, setFailedVocabList] = useState([]) // For summary screen
   const [isFinished, setIsFinished] = useState(false) // Toggle summary screen
-  
+
   const audioRef = useRef(null)
   const soundRef = useRef(null)
   const soundEffectRef = useRef(null)
@@ -60,7 +89,7 @@ export function LearnedVocabularyPracticeMode({
   useEffect(() => {
     if (Platform.OS === 'web') return
     if (!ExpoAudioMode) return
-    
+
     const setupAudio = async () => {
       try {
         // Set audio mode trước
@@ -76,7 +105,7 @@ export function LearnedVocabularyPracticeMode({
         console.warn('Failed to set audio mode:', e)
       }
     }
-    
+
     setupAudio()
   }, [])
 
@@ -133,7 +162,7 @@ export function LearnedVocabularyPracticeMode({
   // Tạo queue học tập: Một danh sách bẹt gồm các tasks { vocab, mode }
   const practiceQueue = useMemo(() => {
     if (groups.length === 0) return []
-    
+
     // Tạo các Passes cho mỗi nhóm
     const groupPasses = groups.map((group, groupIndex) => {
       // Mỗi từ trong nhóm sẽ có 1 mode ngẫu nhiên cho pass đầu
@@ -141,7 +170,7 @@ export function LearnedVocabularyPracticeMode({
         vocab,
         mode: Math.random() < 0.5 ? 'meaning' : 'listen'
       }))
-      
+
       // Pass 2 là mode ngược lại
       const pass2Tasks = pass1Tasks.map(task => ({
         vocab: task.vocab,
@@ -166,23 +195,23 @@ export function LearnedVocabularyPracticeMode({
 
     // Lồng ghép (interweave) các passes theo logic: G0P1, G1P1, G0P2, G2P1, G1P2, G3P1, G2P2...
     const finalQueue = []
-    
+
     // Thực hiện interweave giống logic cũ nhưng ở mức task bẹt
     for (let i = 0; i < groups.length; i++) {
       // Lần đầu học nhóm này
       finalQueue.push(...groupPasses[i].pass1)
-      
+
       // Nếu không phải nhóm đầu tiên, xen kẽ nhóm trước đó học lần 2
       if (i > 0) {
-        finalQueue.push(...groupPasses[i-1].pass2)
+        finalQueue.push(...groupPasses[i - 1].pass2)
       }
     }
-    
+
     // Thêm lượt học cuối cùng cho nhóm cuối cùng
     if (groups.length > 0) {
       finalQueue.push(...groupPasses[groups.length - 1].pass2)
     }
-    
+
     return finalQueue
   }, [groups])
 
@@ -190,11 +219,11 @@ export function LearnedVocabularyPracticeMode({
   const currentTask = practiceQueue[currentQueueIndex]
   const currentVocab = currentTask?.vocab
   const currentMode = currentTask?.mode || 'meaning'
-  
+
   // Tính tổng số từ cần học (mỗi từ học 2 lần)
   const totalVocabCount = vocabularies.length * 2
   const completedCount = currentQueueIndex
-  
+
   const progress = totalVocabCount > 0 ? (completedCount / totalVocabCount) * 100 : 0
   const animatedProgress = useRef(new Animated.Value(progress)).current
   useEffect(() => {
@@ -266,7 +295,7 @@ export function LearnedVocabularyPracticeMode({
           console.log('[Audio] Creating sound with URI:', currentVocab.audioUrl)
           const { sound } = await ExpoAudio.Sound.createAsync(
             { uri: currentVocab.audioUrl },
-            { 
+            {
               shouldPlay: true,
               volume: 1.0,
               isMuted: false,
@@ -274,7 +303,7 @@ export function LearnedVocabularyPracticeMode({
           )
           soundRef.current = sound
           console.log('[Audio] Sound created, setting up status listener')
-          
+
           // Kiểm tra status ngay sau khi tạo
           const initialStatus = await sound.getStatusAsync()
           console.log('[Audio] Initial status:', {
@@ -283,14 +312,14 @@ export function LearnedVocabularyPracticeMode({
             error: initialStatus.error,
             durationMillis: initialStatus.durationMillis,
           })
-          
+
           if (initialStatus.error) {
             console.error('[Audio] Error in initial status:', initialStatus.error)
             await sound.unloadAsync()
             soundRef.current = null
             return
           }
-          
+
           sound.setOnPlaybackStatusUpdate((status) => {
             if (status.isLoaded) {
               if (status.didJustFinish) {
@@ -306,7 +335,7 @@ export function LearnedVocabularyPracticeMode({
               soundRef.current = null
             }
           })
-          
+
           // Đảm bảo sound được play
           setTimeout(async () => {
             try {
@@ -324,7 +353,7 @@ export function LearnedVocabularyPracticeMode({
               console.error('[Audio] Error ensuring audio plays:', playErr)
             }
           }, 100)
-          
+
           console.log('[Audio] Audio started playing on mobile')
         } catch (err) {
           console.error('[Audio] Error playing audio on mobile:', err)
@@ -381,12 +410,12 @@ export function LearnedVocabularyPracticeMode({
           }
           // expo-av cần require() trực tiếp hoặc uri
           // soundFile có thể là number (require result) hoặc object với uri
-          const soundSource = typeof soundFile === 'number' 
-            ? soundFile 
+          const soundSource = typeof soundFile === 'number'
+            ? soundFile
             : (soundFile.uri ? { uri: soundFile.uri } : soundFile)
           const { sound } = await ExpoAudio.Sound.createAsync(
             soundSource,
-            { 
+            {
               shouldPlay: true,
               volume: 1.0,
               isMuted: false,
@@ -452,7 +481,7 @@ export function LearnedVocabularyPracticeMode({
     if (correct && currentVocab?.id && !xpAwardedIds.has(currentVocab.id)) {
       const now = new Date()
       const nextReviewAt = currentVocab.nextReviewAt ? new Date(currentVocab.nextReviewAt) : null
-      
+
       // Nếu không có nextReviewAt hoặc nextReviewAt <= now thì được coi là đúng hạn
       if (!nextReviewAt || nextReviewAt <= now) {
         awardXP(5).catch((err) => {
@@ -462,13 +491,21 @@ export function LearnedVocabularyPracticeMode({
       }
     }
 
-    submitAnswer(correct)
-  }, [currentVocab, userAnswer, hasAnswered, playSoundEffect, xpAwardedIds, submitAnswer])
+    // Chỉ nộp true nếu đây là lần cuối cùng từ này xuất hiện trong queue và người dùng trả lời đúng
+    // Nếu sai thì nộp false ngay lập tức
+    const isLastStepForThisVocab = !practiceQueue.slice(currentQueueIndex + 1).some(task => task.vocab?.id === currentVocab.id)
+
+    if (!correct) {
+      submitAnswer(false)
+    } else if (isLastStepForThisVocab) {
+      submitAnswer(true)
+    }
+  }, [currentVocab, userAnswer, hasAnswered, practiceQueue, currentQueueIndex, playSoundEffect, xpAwardedIds, submitAnswer])
 
   // Chuyển từ tiếp theo hoặc nhóm tiếp theo
   const handleNext = useCallback(() => {
     let nextIndex = currentQueueIndex + 1
-    
+
     // Tìm index tiếp theo mà từ vựng đó chưa bị sai trước đó
     while (nextIndex < practiceQueue.length) {
       const nextTask = practiceQueue[nextIndex]
@@ -528,15 +565,15 @@ export function LearnedVocabularyPracticeMode({
     if (!SoundIcon) {
       return null
     }
-    
+
     try {
       // Kiểm tra xem có phải là React component không (SVG component)
       const isReactComponent = SoundIcon && (
-        (typeof SoundIcon === 'function') || 
+        (typeof SoundIcon === 'function') ||
         (typeof SoundIcon === 'object' && SoundIcon.$$typeof) ||
         (typeof SoundIcon === 'object' && SoundIcon.default && (typeof SoundIcon.default === 'function' || SoundIcon.default.$$typeof))
       )
-      
+
       if (isReactComponent) {
         // Render như React component (SVG)
         const Component = typeof SoundIcon === 'function' ? SoundIcon : (SoundIcon.default || SoundIcon)
@@ -546,13 +583,13 @@ export function LearnedVocabularyPracticeMode({
           </View>
         )
       }
-      
+
       // Fallback: thử dùng Image với normalizeImageSource
       const iconSource = normalizeImageSource(SoundIcon)
       if (iconSource) {
         return <Image source={iconSource} style={{ width: size, height: size }} resizeMode="contain" />
       }
-      
+
       return null
     } catch (error) {
       console.error('Error rendering SoundIcon:', error)
@@ -578,7 +615,7 @@ export function LearnedVocabularyPracticeMode({
 
         <View style={styles.summaryContainer}>
           <Text style={styles.summaryTitle}>Kết quả luyện tập</Text>
-          
+
           <View style={styles.statsGrid}>
             <View style={[styles.statItem, { backgroundColor: '#E8F5E9' }]}>
               <Text style={[styles.statValue, { color: '#4CAF50' }]}>{correctCount}</Text>
@@ -600,18 +637,18 @@ export function LearnedVocabularyPracticeMode({
                       <Text style={styles.failedItemWord}>{vocab.word}</Text>
                       <Text style={styles.failedItemMeaning}>{vocab.meaning}</Text>
                     </View>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.audioButtonSmallest}
                       onPress={async () => {
                         // Play audio for this vocab
                         if (vocab.audioUrl) {
-                           if (Platform.OS === 'web') {
-                             const audio = new Audio(vocab.audioUrl)
-                             audio.play()
-                           } else if (ExpoAudio) {
-                             const { sound } = await ExpoAudio.Sound.createAsync({ uri: vocab.audioUrl }, { shouldPlay: true })
-                             await sound.playAsync()
-                           }
+                          if (Platform.OS === 'web') {
+                            const audio = new Audio(vocab.audioUrl)
+                            audio.play()
+                          } else if (ExpoAudio) {
+                            const { sound } = await ExpoAudio.Sound.createAsync({ uri: vocab.audioUrl }, { shouldPlay: true })
+                            await sound.playAsync()
+                          }
                         }
                       }}
                     >
@@ -637,14 +674,8 @@ export function LearnedVocabularyPracticeMode({
   if (loading) {
     return (
       <View style={styles.container}>
-        <View style={styles.headerTop}>
-          <NavigationPill
-            label="Quay lại"
-            icon={ArrowIcon}
-            iconStyle={{ transform: [{ scaleX: -1 }] }}
-            onPress={onBack}
-            textStyle={{ fontWeight: '700' }}
-          />
+        <View style={styles.headerRow}>
+          <CloseButton onPress={onBack} style={styles.absoluteCloseButton} />
         </View>
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>Đang tải dữ liệu...</Text>
@@ -656,14 +687,8 @@ export function LearnedVocabularyPracticeMode({
   if (!currentTask || !currentVocab) {
     return (
       <View style={styles.container}>
-        <View style={styles.headerTop}>
-          <NavigationPill
-            label="Quay lại"
-            icon={ArrowIcon}
-            iconStyle={{ transform: [{ scaleX: -1 }] }}
-            onPress={onBack}
-            textStyle={{ fontWeight: '700' }}
-          />
+        <View style={styles.headerRow}>
+          <CloseButton onPress={onBack} style={styles.absoluteCloseButton} />
         </View>
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>Không có từ vựng để học</Text>
@@ -674,23 +699,16 @@ export function LearnedVocabularyPracticeMode({
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerTop}>
-        <NavigationPill
-          label="Quay lại"
-          icon={ArrowIcon}
-          iconStyle={{ transform: [{ scaleX: -1 }] }}
-          onPress={onBack}
-          textStyle={{ fontWeight: '700' }}
-        />
-      </View>
-
-      <View style={styles.progressContainer}>
-        <View style={styles.progressBar}>
-          <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
+      <View style={styles.headerRow}>
+        <View style={styles.headerProgressSection}>
+          <View style={styles.progressBar}>
+            <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
+          </View>
+          <Text style={styles.progressText}>
+            Tiến độ hoàn thành: <Text style={{ color: '#1A1A1A', fontWeight: '800' }}>{Math.round(progress)}%</Text>
+          </Text>
         </View>
-        <Text style={styles.progressText}>
-          Tiến độ hoàn thành: <Text style={{ color: '#1A1A1A', fontWeight: '800' }}>{Math.round(progress)}%</Text>
-        </Text>
+        <CloseButton onPress={onBack} style={styles.absoluteCloseButton} />
       </View>
 
       <View style={styles.practiceContainer}>
@@ -770,8 +788,8 @@ export function LearnedVocabularyPracticeMode({
             <View style={styles.resultHeader}>
               {isCorrect ? (
                 <View style={styles.resultCorrect}>
-                  <Image 
-                    source={normalizeImageSource(CheckedIcon)} 
+                  <Image
+                    source={normalizeImageSource(CheckedIcon)}
                     style={styles.resultIconImageCorrect}
                     resizeMode="contain"
                     tintColor="#4CAF50"
@@ -780,8 +798,8 @@ export function LearnedVocabularyPracticeMode({
                 </View>
               ) : (
                 <View style={styles.resultWrong}>
-                  <Image 
-                    source={normalizeImageSource(IncorrectIcon)} 
+                  <Image
+                    source={normalizeImageSource(IncorrectIcon)}
                     style={styles.resultIconImageWrong}
                     resizeMode="contain"
                     tintColor="#F44336"
@@ -857,6 +875,26 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingTop: 16,
   },
+  headerRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 16,
+    marginBottom: 8,
+    position: 'relative',
+    minHeight: 56,
+  },
+  headerProgressSection: {
+    width: '100%',
+    maxWidth: 600,
+    gap: 6,
+  },
+  absoluteCloseButton: {
+    position: 'absolute',
+    right: 0,
+    top: 10,
+  },
   progressContainer: {
     width: '100%',
     maxWidth: 600,
@@ -892,12 +930,14 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingTop: 40,
+    paddingTop: 20,
+    paddingBottom: 40,
     flex: 1,
   },
   questionContainer: {
     width: '100%',
-    maxWidth: 600,
+    maxWidth: 550,
+    paddingHorizontal: 20,
     alignItems: 'center',
     gap: 20,
   },
@@ -1024,13 +1064,14 @@ const styles = StyleSheet.create({
   },
   resultContainer: {
     width: '100%',
-    maxWidth: 600,
+    maxWidth: 550,
+    paddingHorizontal: 20,
     alignItems: 'center',
-    gap: 20,
+    gap: 24,
   },
   resultHeader: {
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
     marginBottom: 8,
   },
   resultCorrect: {
@@ -1091,24 +1132,23 @@ const styles = StyleSheet.create({
   },
   flashcard: {
     width: '100%',
-    maxWidth: 600,
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 20,
+    borderRadius: 24,
+    padding: 24,
     borderWidth: 2,
     borderColor: '#F1BE4B',
-    gap: 16,
+    gap: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 8,
   },
   flashcardImage: {
     width: '100%',
-    height: 200,
-    borderRadius: 12,
-    backgroundColor: '#F0F0F0',
+    aspectRatio: 1.8,
+    borderRadius: 16,
+    backgroundColor: '#F8F9FA',
   },
   flashcardContent: {
     gap: 12,
@@ -1279,5 +1319,30 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  closeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.2s ease',
+      cursor: 'pointer',
+    }),
+  },
+  closeButtonHover: {
+    backgroundColor: '#FFEBEE',
+  },
+  closeButtonIcon: {
+    fontSize: 20,
+    color: '#666',
+    fontWeight: '600',
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  closeButtonIconHover: {
+    color: '#F44336',
   },
 })
