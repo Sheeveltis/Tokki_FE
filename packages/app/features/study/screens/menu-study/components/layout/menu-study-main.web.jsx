@@ -33,6 +33,8 @@ import {
 } from '@ant-design/icons'
 import { SKILL_MODULES } from '@tokki/app/features/study/mockData'
 import { LoginRequest } from 'components/loginRequest'
+import ButtonUI1 from 'components/decor/buttonUI1'
+
 import BunnyDecoration from 'assets/bunny/12.png'
 
 const { Title, Text } = Typography
@@ -250,7 +252,7 @@ export function MenuStudyMain({
           {/* Banner Section */}
           <section className="main-banner">
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '24px', position: 'relative', zIndex: 1, width: '100%' }}>
-              <div style={{ flex: 1, minWidth: '300px' }}>
+              <div style={{ flex: 1, minWidth: '300px', position: 'relative', zIndex: 2 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px', marginBottom: '24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <div className="banner-mascot">
@@ -266,9 +268,9 @@ export function MenuStudyMain({
                     </div>
                   </div>
 
-                  <Button className="learn-now-btn" onClick={() => onTopikRoadmapPress?.(levelId)}>
-                    {hasRoadmap ? 'HỌC NGAY' : 'TẠO LỘ TRÌNH HỌC NGAY'} <RightOutlined style={{ fontSize: 14 }} />
-                  </Button>
+                  <ButtonUI1 onClick={() => onTopikRoadmapPress?.(levelId)}>
+                    {hasRoadmap ? 'HỌC NGAY' : 'TẠO LỘ TRÌNH'}
+                  </ButtonUI1>
                 </div>
 
                 {hasRoadmap && (
@@ -301,7 +303,7 @@ export function MenuStudyMain({
                 )}
               </div>
 
-              <div className="banner-decoration" style={{ opacity: 0.15, position: 'absolute', right: 0, bottom: -10, pointerEvents: 'none' }}>
+              <div className="banner-decoration" style={{ opacity: 0.15, position: 'absolute', right: 0, bottom: -10, pointerEvents: 'none', zIndex: 0 }}>
                 <img src={BunnyDecoration?.src || BunnyDecoration} style={{ width: 140, height: 140, objectFit: 'contain' }} alt="" />
               </div>
             </div>
