@@ -215,7 +215,8 @@ export const ENDPOINTS = {
   },
   SPACED_REPETITION: {
     SUBMIT: '/SpacedRepetition/submit',  // POST: Submit kết quả học tập (body: { vocabularyId, isCorrect } hoặc { vocabularyId, quality })
-    GET_LEARNED: '/SpacedRepetition/vocab-for-review',  // GET: Lấy danh sách từ vựng đã học (query: limit)
+    GET_LEARNED: '/SpacedRepetition/vocab-for-review',  // GET: Lấy danh sách từ vựng cho practice (query: limit)
+    GET_REVIEW_PAGINATED: '/SpacedRepetition/vocab-for-review-paginated', // GET: Lấy danh sách từ vựng để review có paging (query: pageIndex, pageSize)
     COMPLETE_TOPIC: '/SpacedRepetition/complete-topic', // POST: Hoàn thành tiến độ học topic
   },
   GAMIFICATION: {

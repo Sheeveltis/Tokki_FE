@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { View, StyleSheet, Text, TouchableOpacity, TextInput, Platform, Image, Animated } from 'react-native'
-import { submitSpacedRepetition } from '@tokki/app/features/study/api'
+import { submitSpacedRepetitionWithCorrect } from '@tokki/app/features/study/api'
 import { awardXP } from '@tokki/app/features/minigame/api/api'
 import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
@@ -36,6 +36,7 @@ const GROUP_SIZE = 5
  */
 export function LearnedVocabularyPracticeMode({
   vocabularies = [],
+  loading = false,
   onBack,
   onPracticeComplete,
 }) {
@@ -46,6 +47,9 @@ export function LearnedVocabularyPracticeMode({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasAnswered, setHasAnswered] = useState(false)
   const [xpAwardedIds, setXpAwardedIds] = useState(new Set()) // Track vocab IDs that already received XP in this session
+  const [failedVocabIds, setFailedVocabIds] = useState(new Set()) // Track vocab IDs that were wrong
+  const [failedVocabList, setFailedVocabList] = useState([]) // For summary screen
+  const [isFinished, setIsFinished] = useState(false) // Toggle summary screen
   
   const audioRef = useRef(null)
   const soundRef = useRef(null)
@@ -403,6 +407,20 @@ export function LearnedVocabularyPracticeMode({
     }
   }, [])
 
+  // Submit kết quả
+  const submitAnswer = useCallback(async (isCorrectResult) => {
+    if (!currentVocab || isSubmitting) return
+
+    try {
+      setIsSubmitting(true)
+      await submitSpacedRepetitionWithCorrect(currentVocab.id, isCorrectResult)
+    } catch (error) {
+      console.error('Error submitting spaced repetition:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [currentVocab, isSubmitting])
+
   // Kiểm tra đáp án
   const checkAnswer = useCallback(() => {
     if (!currentVocab || hasAnswered || !userAnswer.trim()) return
@@ -420,9 +438,15 @@ export function LearnedVocabularyPracticeMode({
       playSoundEffect(Platform.OS === 'web' ? normalizeImageSource(CorrectSound) : CorrectSound)
     } else {
       playSoundEffect(Platform.OS === 'web' ? normalizeImageSource(WrongSound) : WrongSound)
+      // Thêm vào danh sách sai và đánh dấu để bỏ qua các step sau
+      setFailedVocabIds((prev) => new Set([...prev, currentVocab.id]))
+      setFailedVocabList((prev) => {
+        if (!prev.find(v => v.id === currentVocab.id)) {
+          return [...prev, currentVocab]
+        }
+        return prev
+      })
     }
-
-    submitAnswer(correct ? 2 : 0)
 
     // Cộng XP nếu đúng và đúng hạn
     if (correct && currentVocab?.id && !xpAwardedIds.has(currentVocab.id)) {
@@ -437,31 +461,30 @@ export function LearnedVocabularyPracticeMode({
         setXpAwardedIds((prev) => new Set([...prev, currentVocab.id]))
       }
     }
-  }, [currentVocab, userAnswer, hasAnswered, playSoundEffect, xpAwardedIds])
 
-  // Submit kết quả
-  const submitAnswer = useCallback(async (quality) => {
-    if (!currentVocab || isSubmitting) return
-
-    try {
-      setIsSubmitting(true)
-      await submitSpacedRepetition(currentVocab.id, quality)
-    } catch (error) {
-      console.error('Error submitting spaced repetition:', error)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }, [currentVocab, isSubmitting])
+    submitAnswer(correct)
+  }, [currentVocab, userAnswer, hasAnswered, playSoundEffect, xpAwardedIds, submitAnswer])
 
   // Chuyển từ tiếp theo hoặc nhóm tiếp theo
   const handleNext = useCallback(() => {
-    if (currentQueueIndex < practiceQueue.length - 1) {
-      setCurrentQueueIndex((prev) => prev + 1)
+    let nextIndex = currentQueueIndex + 1
+    
+    // Tìm index tiếp theo mà từ vựng đó chưa bị sai trước đó
+    while (nextIndex < practiceQueue.length) {
+      const nextTask = practiceQueue[nextIndex]
+      if (!failedVocabIds.has(nextTask.vocab?.id)) {
+        break
+      }
+      nextIndex++
+    }
+
+    if (nextIndex < practiceQueue.length) {
+      setCurrentQueueIndex(nextIndex)
     } else {
       // Hoàn thành tất cả
-      onPracticeComplete?.()
+      setIsFinished(true)
     }
-  }, [currentQueueIndex, practiceQueue.length, onPracticeComplete])
+  }, [currentQueueIndex, practiceQueue, failedVocabIds])
 
   // Phím tắt Enter (Web only)
   useEffect(() => {
@@ -535,6 +558,99 @@ export function LearnedVocabularyPracticeMode({
       console.error('Error rendering SoundIcon:', error)
       return null
     }
+  }
+
+  if (isFinished) {
+    const correctCount = vocabularies.length - failedVocabList.length
+    const totalCount = vocabularies.length
+
+    return (
+      <View style={styles.container}>
+        <View style={styles.headerTop}>
+          <NavigationPill
+            label="Hoàn thành"
+            icon={ArrowIcon}
+            iconStyle={{ transform: [{ scaleX: -1 }] }}
+            onPress={onPracticeComplete}
+            textStyle={{ fontWeight: '700' }}
+          />
+        </View>
+
+        <View style={styles.summaryContainer}>
+          <Text style={styles.summaryTitle}>Kết quả luyện tập</Text>
+          
+          <View style={styles.statsGrid}>
+            <View style={[styles.statItem, { backgroundColor: '#E8F5E9' }]}>
+              <Text style={[styles.statValue, { color: '#4CAF50' }]}>{correctCount}</Text>
+              <Text style={styles.statLabel}>Chính xác</Text>
+            </View>
+            <View style={[styles.statItem, { backgroundColor: '#FFEBEE' }]}>
+              <Text style={[styles.statValue, { color: '#F44336' }]}>{failedVocabList.length}</Text>
+              <Text style={styles.statLabel}>Cần ôn lại</Text>
+            </View>
+          </View>
+
+          {failedVocabList.length > 0 && (
+            <View style={styles.failedListSection}>
+              <Text style={styles.sectionTitle}>Danh sách từ vựng cần lưu ý:</Text>
+              <View style={styles.failedList}>
+                {failedVocabList.map((vocab) => (
+                  <View key={vocab.id} style={styles.failedItem}>
+                    <View style={styles.failedItemInfo}>
+                      <Text style={styles.failedItemWord}>{vocab.word}</Text>
+                      <Text style={styles.failedItemMeaning}>{vocab.meaning}</Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={styles.audioButtonSmallest}
+                      onPress={async () => {
+                        // Play audio for this vocab
+                        if (vocab.audioUrl) {
+                           if (Platform.OS === 'web') {
+                             const audio = new Audio(vocab.audioUrl)
+                             audio.play()
+                           } else if (ExpoAudio) {
+                             const { sound } = await ExpoAudio.Sound.createAsync({ uri: vocab.audioUrl }, { shouldPlay: true })
+                             await sound.playAsync()
+                           }
+                        }
+                      }}
+                    >
+                      {renderSoundIcon(18)}
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={[styles.nextButton, { marginTop: 24 }]}
+            onPress={onPracticeComplete}
+          >
+            <Text style={styles.nextButtonText}>Xong</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    )
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.headerTop}>
+          <NavigationPill
+            label="Quay lại"
+            icon={ArrowIcon}
+            iconStyle={{ transform: [{ scaleX: -1 }] }}
+            onPress={onBack}
+            textStyle={{ fontWeight: '700' }}
+          />
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>Đang tải dữ liệu...</Text>
+        </View>
+      </View>
+    )
   }
 
   if (!currentTask || !currentVocab) {
@@ -738,16 +854,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     gap: 12,
-    marginBottom: 16,
-    paddingTop: 24,
+    marginBottom: 12,
+    paddingTop: 16,
   },
   progressContainer: {
     width: '100%',
-    maxWidth: '80vh',
+    maxWidth: 600,
     alignSelf: 'center',
-    marginTop: 8,
-    marginBottom: 20,
-    gap: 10,
+    marginTop: 4,
+    marginBottom: 16,
+    gap: 8,
   },
   progressBar: {
     width: '100%',
@@ -775,7 +891,8 @@ const styles = StyleSheet.create({
   practiceContainer: {
     width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 40,
     flex: 1,
   },
   questionContainer: {
@@ -1075,5 +1192,92 @@ const styles = StyleSheet.create({
     color: '#666',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
+  },
+  summaryContainer: {
+    width: '100%',
+    maxWidth: 600,
+    alignItems: 'center',
+    paddingTop: 20,
+    gap: 24,
+  },
+  summaryTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: 16,
+    justifyContent: 'center',
+  },
+  statItem: {
+    flex: 1,
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  statValue: {
+    fontSize: 32,
+    fontWeight: '800',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  statLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  failedListSection: {
+    width: '100%',
+    gap: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  failedList: {
+    width: '100%',
+    gap: 10,
+  },
+  failedItem: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  failedItemInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  failedItemWord: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1F1F1F',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  failedItemMeaning: {
+    fontSize: 16,
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  audioButtonSmallest: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 })

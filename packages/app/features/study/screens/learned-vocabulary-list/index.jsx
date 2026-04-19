@@ -37,19 +37,21 @@ export function LearnedVocabularyListScreen({
     isInitialLoading,
     error,
     fetchVocabularies,
+    practiceVocabularies,
+    practiceLoading,
+    fetchPracticeVocabularies,
     searchTerm,
     handleSearchChange,
     handleSearchSubmit,
     pageNumber,
     pageSize,
     totalPages,
+    totalCount,
     canNextPage,
     canPrevPage,
     handlePrevPage,
     handleNextPage,
-    reviewVocabularies,
     reviewCount,
-    allVocabularies, // Cần thêm để lấy tất cả từ vựng
   } = useLearnedVocabularyList()
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
@@ -68,8 +70,8 @@ export function LearnedVocabularyListScreen({
     }
   }
 
-  // Tính maxPracticeCount dựa trên số lượng từ vựng có sẵn
-  const maxPracticeCount = reviewVocabularies.length > 0 ? reviewVocabularies.length : allVocabularies.length
+  // Tính maxPracticeCount dựa trên tổng số từ vựng (totalCount từ API)
+  const maxPracticeCount = totalCount || 100 // Fallback nếu chưa có totalCount
 
   // Điều chỉnh practiceCount nếu vượt quá maxPracticeCount
   useEffect(() => {
@@ -78,11 +80,10 @@ export function LearnedVocabularyListScreen({
     }
   }, [maxPracticeCount])
 
-  // Lấy số lượng từ vựng để practice dựa trên lựa chọn của người dùng
-  const getPracticeVocabularies = () => {
-    const sourceVocabularies = reviewVocabularies.length > 0 ? reviewVocabularies : allVocabularies
-    // Lấy số lượng từ đã chọn (tối đa là số lượng có sẵn)
-    return sourceVocabularies.slice(0, Math.min(practiceCount, sourceVocabularies.length))
+  // Handler khi nhấn bắt đầu luyện tập
+  const handleStartPractice = async () => {
+    await fetchPracticeVocabularies(practiceCount)
+    setMode('practice')
   }
 
   // Nếu đang ở chế độ practice, hiển thị component practice
@@ -94,7 +95,8 @@ export function LearnedVocabularyListScreen({
         onBackPress={() => setMode('list')}
       >
         <LearnedVocabularyPracticeMode
-          vocabularies={getPracticeVocabularies()}
+          vocabularies={practiceVocabularies}
+          loading={practiceLoading}
           onBack={() => setMode('list')}
           onPracticeComplete={() => {
             setMode('list')
@@ -116,7 +118,7 @@ export function LearnedVocabularyListScreen({
       <Main
         title={title}
         vocabularies={vocabularies}
-        loading={loading}
+        loading={loading || practiceLoading}
         isInitialLoading={isInitialLoading}
         error={error}
         searchTerm={searchTerm}
@@ -135,7 +137,7 @@ export function LearnedVocabularyListScreen({
         practiceCount={practiceCount}
         onPracticeCountChange={setPracticeCount}
         maxPracticeCount={maxPracticeCount}
-        onStartPractice={() => setMode('practice')}
+        onStartPractice={handleStartPractice}
       />
     </Layout>
   )

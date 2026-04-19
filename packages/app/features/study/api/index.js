@@ -417,12 +417,81 @@ export const completeTopic = async (topicId) => {
 }
 
 /**
- * Lấy danh sách từ vựng đã học
+ * Lấy danh sách từ vựng đã học có phân trang (dùng cho hiển thị danh sách)
  * @param {Object} [options]
- * @param {number} [options.limit=100] - Số lượng từ vựng tối đa
- * @returns {Promise<Array>} Danh sách từ vựng đã học
+ * @param {number} [options.pageIndex=1]
+ * @param {number} [options.pageSize=30]
+ * @returns {Promise<Object>} Object chứa mảng items và thông tin phân trang
  */
-export const getLearnedVocabularies = async ({ limit = 100 } = {}) => {
+export const getLearnedVocabulariesPaginated = async ({ pageIndex = 1, pageSize = 30 } = {}) => {
+  try {
+    const params = {
+      pageIndex,
+      pageSize,
+    }
+
+    const res = await apiClient.get(ENDPOINTS.SPACED_REPETITION.GET_REVIEW_PAGINATED, { params })
+    const payload = res?.data
+
+    if (!payload?.isSuccess) {
+      const message =
+        payload?.message ||
+        (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
+        'Không thể tải danh sách từ vựng từ server'
+      throw new Error(message)
+    }
+
+    const pagingData = payload?.data
+    const items = Array.isArray(pagingData?.items) ? pagingData.items : []
+
+    return {
+      items: items.map((item) => ({
+        id: item.vocabularyId,
+        userVocabProgressId: item.userVocabProgressId,
+        word: item.text,
+        meaning: item.definition,
+        pronunciation: item.pronunciation || null,
+        imageUrl: item.imageUrl || null,
+        audioUrl: item.audioUrl || null,
+        boxLevel: item.boxLevel || 1,
+        streak: item.streak || 0,
+        nextReviewAt: item.nextReviewAt || null,
+        _raw: item,
+      })),
+      totalPages: pagingData?.totalPages || 1,
+      totalCount: pagingData?.totalCount || 0,
+      pageIndex: pagingData?.pageIndex || pageIndex,
+      pageSize: pagingData?.pageSize || pageSize,
+    }
+  } catch (error) {
+    console.error('Error fetching paginated learned vocabularies:', error)
+    // Fallback về mock data
+    try {
+      const { getMockLearnedVocabularies } = await import('@tokki/app/features/vocabulary/mockData')
+      const mockData = getMockLearnedVocabularies()
+      const startIndex = (pageIndex - 1) * pageSize
+      const paginated = mockData.slice(startIndex, startIndex + pageSize)
+      
+      return {
+        items: paginated,
+        totalPages: Math.ceil(mockData.length / pageSize),
+        totalCount: mockData.length,
+        pageIndex,
+        pageSize,
+      }
+    } catch (mockError) {
+      throw error
+    }
+  }
+}
+
+/**
+ * Lấy danh sách từ vựng cho practice (không phân trang, có limit)
+ * @param {Object} [options]
+ * @param {number} [options.limit=10] - Số lượng từ vựng tối đa
+ * @returns {Promise<Array>} Danh sách từ vựng đã học cho practice
+ */
+export const getLearnedVocabularies = async ({ limit = 10 } = {}) => {
   try {
     const params = {
       limit,
@@ -435,7 +504,7 @@ export const getLearnedVocabularies = async ({ limit = 100 } = {}) => {
       const message =
         payload?.message ||
         (Array.isArray(payload?.errors) && payload.errors[0]?.description) ||
-        'Không thể tải danh sách từ vựng đã học'
+        'Không thể tải danh sách từ vựng cho practice'
       throw new Error(message)
     }
 
@@ -457,29 +526,15 @@ export const getLearnedVocabularies = async ({ limit = 100 } = {}) => {
       _raw: item,
     }))
   } catch (error) {
-    console.error('Error fetching learned vocabularies:', error)
-    // Fallback về mock data khi có lỗi (để test trên mobile khi chưa có backend)
-    console.warn('Using mock data for learned vocabularies')
+    console.error('Error fetching learned vocabularies for practice:', error)
+    // Fallback về mock data
     try {
       const { getMockLearnedVocabularies } = await import('@tokki/app/features/vocabulary/mockData')
       const mockData = getMockLearnedVocabularies()
-      if (mockData && mockData.length > 0) {
-        // Trả về số lượng theo limit
-        return mockData.slice(0, limit)
-      }
+      return mockData.slice(0, limit)
     } catch (mockError) {
-      console.error('Error loading mock data:', mockError)
+      throw error
     }
-    
-    if (error?.response?.data) {
-      const data = error.response.data
-      const message =
-        data?.message ||
-        (Array.isArray(data?.errors) && data.errors[0]?.description) ||
-        'Không thể tải danh sách từ vựng đã học'
-      throw new Error(message)
-    }
-    throw error
   }
 }
 
@@ -495,21 +550,37 @@ export const getSkillModules = async (levelId) => {
   return Promise.resolve([])
 }
 
+let roadmapProgressPromise = null
+
 /**
  * Lấy tiến độ lộ trình tuần hiện tại
  * @returns {Promise<Object|null>}
  */
 export const getCurrentWeekProgress = async () => {
-  try {
-    const res = await apiClient.get(ENDPOINTS.ROADMAP.CURRENT_WEEK_PROGRESS)
-    if (res?.data?.isSuccess) {
-      return res.data.data
+  if (roadmapProgressPromise) return roadmapProgressPromise
+
+  roadmapProgressPromise = (async () => {
+    try {
+      const res = await apiClient.get(ENDPOINTS.ROADMAP.CURRENT_WEEK_PROGRESS)
+      if (res?.data?.isSuccess) {
+        return res.data.data
+      }
+      return null
+    } catch (error) {
+      // Chỉ log lỗi nếu không phải là 404 (404 có nghĩa là chưa có lộ trình, là bình thường)
+      if (error?.response?.status !== 404) {
+        console.error('Error fetching current week progress:', error)
+      }
+      return null
+    } finally {
+      // Xóa promise sau một thời gian ngắn để cho phép fetch lại khi cần (ví dụ khi chuyển trang)
+      setTimeout(() => {
+        roadmapProgressPromise = null
+      }, 5000)
     }
-    return null
-  } catch (error) {
-    console.error('Error fetching current week progress:', error)
-    return null
-  }
+  })()
+
+  return roadmapProgressPromise
 }
 
 /**

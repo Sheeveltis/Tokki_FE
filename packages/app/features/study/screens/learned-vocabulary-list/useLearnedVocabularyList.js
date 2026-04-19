@@ -1,103 +1,75 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { getLearnedVocabularies } from '@tokki/app/features/study/api'
+import { getLearnedVocabulariesPaginated, getLearnedVocabularies } from '@tokki/app/features/study/api'
 
 /**
  * Hook xử lý logic cho LearnedVocabularyListScreen
  */
 export function useLearnedVocabularyList() {
-  const [allVocabularies, setAllVocabularies] = useState([]) // Tất cả từ vựng từ API
+  const [vocabularies, setVocabularies] = useState([]) // Từ vựng hiển thị ở trang hiện tại
+  const [allVocabularies, setAllVocabularies] = useState([]) // Tất cả từ vựng (dùng để tính reviewCount nếu cần hoặc fallback)
   const [loading, setLoading] = useState(true)
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
 
   const [pageNumber, setPageNumber] = useState(1)
-  const pageSize = 20
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const pageSize = 30
 
-  // Fetch learned vocabularies từ API (chỉ fetch một lần, không pagination)
+  // Fetch paginated learned vocabularies từ API
   const fetchVocabularies = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      // Lấy tối đa 1000 từ vựng (có thể tăng nếu cần)
-      const data = await getLearnedVocabularies({ limit: 1000 })
-      setAllVocabularies(Array.isArray(data) ? data : [])
-      setIsInitialLoading(false) // Đánh dấu đã load lần đầu xong
+      
+      const response = await getLearnedVocabulariesPaginated({ 
+        pageIndex: pageNumber, 
+        pageSize 
+      })
+      
+      setVocabularies(response.items)
+      setTotalPages(response.totalPages)
+      setTotalCount(response.totalCount)
+      
+      if (isInitialLoading) {
+        setIsInitialLoading(false)
+      }
     } catch (err) {
       console.error('Error fetching learned vocabularies:', err)
       setError(err.message || 'Không thể tải danh sách từ vựng đã học')
-      setAllVocabularies([])
+      setVocabularies([])
       setIsInitialLoading(false)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [pageNumber, pageSize, isInitialLoading])
 
-  // Load data khi component mount
+  // Load data khi pageNumber thay đổi
   useEffect(() => {
     fetchVocabularies()
   }, [fetchVocabularies])
 
-  // Lọc từ vựng cần review (dựa trên nextReviewAt)
-  const { reviewVocabularies, reviewCount } = useMemo(() => {
-    const now = new Date()
-    const needReview = allVocabularies.filter((vocab) => {
-      if (!vocab.nextReviewAt) return false
-      const reviewDate = new Date(vocab.nextReviewAt)
-      return reviewDate <= now
-    })
-    
-    // Sắp xếp theo độ ưu tiên: nextReviewAt sớm nhất trước, sau đó là boxLevel thấp nhất
-    needReview.sort((a, b) => {
-      const dateA = new Date(a.nextReviewAt || 0)
-      const dateB = new Date(b.nextReviewAt || 0)
-      if (dateA.getTime() !== dateB.getTime()) {
-        return dateA.getTime() - dateB.getTime()
-      }
-      return (a.boxLevel || 1) - (b.boxLevel || 1)
-    })
+  // Filter local cho searchTerm (vẫn giữ local filter cho mượt, nhưng lý tưởng nên có server search)
+  const filteredVocabularies = useMemo(() => {
+    if (!searchTerm.trim()) return vocabularies
 
-    return {
-      reviewVocabularies: needReview,
-      reviewCount: needReview.length,
-    }
-  }, [allVocabularies])
-
-  // Filter và paginate vocabularies dựa trên searchTerm
-  const { vocabularies, totalPages } = useMemo(() => {
-    let filtered = allVocabularies
-
-    // Filter theo searchTerm (tìm trong word và meaning)
-    if (searchTerm.trim()) {
-      const lowerSearchTerm = searchTerm.toLowerCase().trim()
-      filtered = allVocabularies.filter(
-        (vocab) =>
-          vocab.word?.toLowerCase().includes(lowerSearchTerm) ||
-          vocab.meaning?.toLowerCase().includes(lowerSearchTerm) ||
-          vocab.pronunciation?.toLowerCase().includes(lowerSearchTerm)
-      )
-    }
-
-    // Pagination
-    const totalPages = Math.ceil(filtered.length / pageSize)
-    const startIndex = (pageNumber - 1) * pageSize
-    const endIndex = startIndex + pageSize
-    const paginated = filtered.slice(startIndex, endIndex)
-
-    return {
-      vocabularies: paginated,
-      totalPages,
-    }
-  }, [allVocabularies, searchTerm, pageNumber, pageSize])
+    const lowerSearchTerm = searchTerm.toLowerCase().trim()
+    return vocabularies.filter(
+      (vocab) =>
+        vocab.word?.toLowerCase().includes(lowerSearchTerm) ||
+        vocab.meaning?.toLowerCase().includes(lowerSearchTerm) ||
+        vocab.pronunciation?.toLowerCase().includes(lowerSearchTerm)
+    )
+  }, [vocabularies, searchTerm])
 
   const handleSearchChange = (value) => {
     setSearchTerm(value)
-    setPageNumber(1) // Reset về trang đầu khi search
+    // Nếu muốn server search thì reset pageNumber ở đây
   }
 
   const handleSearchSubmit = () => {
-    // Không cần làm gì thêm, search đã được xử lý trong useMemo
-    setPageNumber(1)
+    // Implement server search nếu backend hỗ trợ
   }
 
   const canNextPage = pageNumber < totalPages
@@ -115,25 +87,47 @@ export function useLearnedVocabularyList() {
     }
   }
 
+  const [practiceVocabularies, setPracticeVocabularies] = useState([])
+  const [practiceLoading, setPracticeLoading] = useState(false)
+
+  // Fetch vocabularies cho practice mode
+  const fetchPracticeVocabularies = useCallback(async (limit) => {
+    try {
+      setPracticeLoading(true)
+      const data = await getLearnedVocabularies({ limit })
+      setPracticeVocabularies(data)
+      return data
+    } catch (err) {
+      console.error('Error fetching practice vocabularies:', err)
+      return []
+    } finally {
+      setPracticeLoading(false)
+    }
+  }, [])
+
   return {
-    vocabularies,
-    allVocabularies, // Export để có thể lấy tất cả từ vựng
+    vocabularies: filteredVocabularies,
+    allVocabularies, // Giữ lại cho tương thích ngược nếu cần
     loading,
     isInitialLoading,
     error,
     fetchVocabularies,
+    practiceVocabularies,
+    practiceLoading,
+    fetchPracticeVocabularies,
     searchTerm,
     handleSearchChange,
     handleSearchSubmit,
     pageNumber,
     pageSize,
     totalPages,
+    totalCount,
     canNextPage,
     canPrevPage,
     handlePrevPage,
     handleNextPage,
-    reviewVocabularies,
-    reviewCount,
+    reviewVocabularies: [], // Sẽ fetch riêng khi start practice
+    reviewCount: totalCount, // Giả định reviewCount là tổng số từ đã học (hoặc backend nên trả về riêng)
   }
 }
 
