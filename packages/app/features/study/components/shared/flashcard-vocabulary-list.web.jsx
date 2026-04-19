@@ -1,18 +1,115 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native'
+import { View, Text, StyleSheet, Pressable, Platform, Image } from 'react-native'
+import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
+import SoundIcon from 'assets/icon/icon-mainflow/sound.svg'
+import StarIcon from 'assets/icon/icon-mainflow/star.svg'
+import DictionaryIcon from 'assets/icon/navigate-app/dictionary.svg'
+import DefaultBunny from 'assets/bunny/14.png'
 
 /**
- * FlashcardVocabularyList: Hiển thị danh sách các từ vựng trong chủ đề
+ * VocabCard: Thành phần hiển thị từ vựng dưới dạng card
+ */
+const VocabCard = ({ 
+  flashcard, 
+  isFavorite, 
+  onSelect,
+  onPlaySound,
+  onToggleFavorite
+}) => {
+  const [isHovered, setIsHovered] = useState(false)
+
+  const handlePlayAudio = (e) => {
+    e.stopPropagation()
+    if (flashcard.audioUrl) {
+      const audio = new Audio(flashcard.audioUrl)
+      audio.play()
+    }
+    // Cũng gọi handlePlaySound từ props nếu cần đồng bộ state
+    onPlaySound?.()
+  }
+
+  return (
+    <View
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={[
+        styles.vocabCard,
+        isHovered && styles.vocabCardHover
+      ]}
+    >
+      <Pressable 
+        onPress={onSelect}
+        style={styles.cardPressable}
+      >
+        <View style={styles.vocabImageWrapper}>
+          <Image
+            source={flashcard.imageUrl ? { uri: flashcard.imageUrl } : DefaultBunny}
+            style={styles.vocabImage}
+            resizeMode="cover"
+          />
+        </View>
+
+        <View style={styles.vocabInfo}>
+          <View style={styles.vocabHeaderLine}>
+            <Text style={styles.vocabWord}>{flashcard.word}</Text>
+            <View style={styles.cardActions}>
+              {flashcard.audioUrl && (
+                <Pressable onPress={handlePlayAudio} style={styles.audioBtn}>
+                  <StudyIcon source={SoundIcon} width={18} height={18} tintColor="#F1BE4B" />
+                </Pressable>
+              )}
+              <Pressable 
+                onPress={(e) => {
+                  e.stopPropagation()
+                  const url = `https://dict.naver.com/search.nhn?query=${encodeURIComponent(flashcard.word)}`
+                  window.open(url, '_blank')
+                }} 
+                style={styles.dictionaryBtn}
+              >
+                <StudyIcon 
+                  source={DictionaryIcon} 
+                  width={18} 
+                  height={18} 
+                  tintColor="#F1BE4B" 
+                />
+              </Pressable>
+              <Pressable 
+                onPress={(e) => {
+                  e.stopPropagation()
+                  onToggleFavorite?.()
+                }} 
+                style={[styles.favoriteBtn, isFavorite && styles.favoriteBtnActive]}
+              >
+                <StudyIcon 
+                  source={StarIcon} 
+                  width={18} 
+                  height={18} 
+                  tintColor={isFavorite ? "#FFF" : "#F1BE4B"} 
+                />
+              </Pressable>
+            </View>
+          </View>
+
+          {flashcard.pronunciation && (
+            <Text style={styles.vocabPronunciation}>/{flashcard.pronunciation}/</Text>
+          )}
+
+          <Text style={styles.vocabMeaning} numberOfLines={2}>{flashcard.meaning}</Text>
+        </View>
+      </Pressable>
+    </View>
+  )
+}
+
+/**
+ * FlashcardVocabularyList: Hiển thị danh sách các từ vựng dưới dạng lưới card
  */
 export function FlashcardVocabularyList({
   flashcards = [],
-  currentIndex = 0,
   favorites = new Set(),
   onSelectFlashcard,
   onToggleFavorite,
 }) {
-  const [hoveredIndex, setHoveredIndex] = useState(null)
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -20,47 +117,17 @@ export function FlashcardVocabularyList({
         <Text style={styles.countText}>{flashcards.length} từ</Text>
       </View>
 
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {flashcards.map((flashcard, index) => {
-          const isActive = index === currentIndex
-          const isFavorite = favorites.has(index)
-
-          return (
-            <Pressable
-              key={index}
-              onPress={() => onSelectFlashcard?.(index)}
-              onHoverIn={() => Platform.OS === 'web' && setHoveredIndex(index)}
-              onHoverOut={() => Platform.OS === 'web' && setHoveredIndex(null)}
-              style={({ pressed }) => [
-                styles.vocabItem,
-                isActive && styles.vocabItemActive,
-                (pressed || hoveredIndex === index) && styles.vocabItemHovered,
-              ]}
-            >
-              <View style={styles.vocabContent}>
-                <View style={styles.vocabText}>
-                  <Text style={[styles.word, isActive && styles.wordActive]}>
-                    {flashcard.word}
-                  </Text>
-                  <Text style={[styles.meaning, isActive && styles.meaningActive]}>
-                    {flashcard.meaning}
-                  </Text>
-                </View>
-                {isFavorite && (
-                  <View style={styles.favoriteBadge}>
-                    <Text style={styles.favoriteText}>★</Text>
-                  </View>
-                )}
-              </View>
-              {isActive && <View style={styles.activeIndicator} />}
-            </Pressable>
-          )
-        })}
-      </ScrollView>
+      <View style={styles.listGrid}>
+        {flashcards.map((flashcard, index) => (
+          <VocabCard 
+            key={index} 
+            flashcard={flashcard} 
+            isFavorite={favorites.has(index)}
+            onSelect={() => onSelectFlashcard?.(index)}
+            onToggleFavorite={() => onToggleFavorite?.(index)}
+          />
+        ))}
+      </View>
     </View>
   )
 }
@@ -68,26 +135,20 @@ export function FlashcardVocabularyList({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#F4B8AF',
-    overflow: 'hidden',
-    maxHeight: 400,
+    marginTop: 0,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#F5F0DD',
-    borderBottomWidth: 2,
-    borderBottomColor: '#F4B8AF',
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
   headerText: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '800',
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
   },
@@ -96,80 +157,118 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#666',
     fontFamily: 'Epilogue, sans-serif',
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
   },
-  scrollView: {
-    maxHeight: 350,
+  listGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 20,
+    justifyContent: 'flex-start',
   },
-  scrollContent: {
-    paddingVertical: 8,
-  },
-  vocabItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-    position: 'relative',
+  vocabCard: {
+    width: 'calc(33.333% - 14px)',
+    minWidth: 280,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    overflow: 'hidden',
     ...(Platform.OS === 'web' && {
-      cursor: 'pointer',
-      transitionProperty: 'background-color',
-      transitionDuration: '150ms',
+      transition: 'all 0.25s ease',
     }),
   },
-  vocabItemActive: {
-    backgroundColor: '#FFF4E6',
+  vocabCardHover: {
+    transform: [{ translateY: -5 }],
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    borderColor: '#F1BE4B50',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 12px 30px rgba(0,0,0,0.06)',
+    }),
   },
-  vocabItemHovered: {
-    backgroundColor: '#FDF5E6',
-  },
-  vocabContent: {
+  cardPressable: {
+    padding: 16,
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 16,
+    width: '100%',
   },
-  vocabText: {
+  vocabImageWrapper: {
+    width: 80,
+    height: 80,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#F9F9F9',
+  },
+  vocabImage: {
+    width: '100%',
+    height: '100%',
+  },
+  vocabInfo: {
     flex: 1,
     gap: 4,
+    justifyContent: 'center',
   },
-  word: {
+  vocabHeaderLine: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  vocabWord: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
   },
-  wordActive: {
-    color: '#F1BE4B',
+  cardActions: {
+    flexDirection: 'row',
+    gap: 8,
   },
-  meaning: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#666',
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  meaningActive: {
-    color: '#333',
-    fontWeight: '600',
-  },
-  favoriteBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#F1BE4B',
+  audioBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFF9EB',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 8,
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+    }),
   },
-  favoriteText: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    fontWeight: '700',
+  dictionaryBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+    }),
   },
-  activeIndicator: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 4,
+  favoriteBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+    }),
+  },
+  favoriteBtnActive: {
     backgroundColor: '#F1BE4B',
+    borderColor: '#F1BE4B',
   },
 })
+
 
