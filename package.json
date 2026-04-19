@@ -13,12 +13,6 @@
   },
   "packageManager": "npm@10.2.0",
   "eslintConfig": {
-    "extends": "next",
-    "settings": {
-      "next": {
-        "rootDir": "apps/web/"
-      }
-    },
     "root": true
   },
   "prettier": {
