@@ -11,6 +11,7 @@ import { RoadmapTestButton } from '../roadmap-test/roadmap-test-button'
 import { apiClient } from '../../../../provider/api/client'
 import { ENDPOINTS } from '../../../../provider/api/endpoints'
 import { Alert } from 'react-native'
+import { HistoryOutlined } from '@ant-design/icons'
 
 const getTopikPhaseByLevel = (level) => {
   if (level === 1 || level === 2) return 'TOPIK I'
@@ -36,6 +37,11 @@ export function RoadmapLearningLayout({
   // ĐỔI MỚI: Quản lý tuần hiện tại
   const [activeWeekIndex, setActiveWeekIndex] = useState(null)
   const [hoveredWeekIndex, setHoveredWeekIndex] = useState(null)
+  const [isHoveredHistory, setIsHoveredHistory] = useState(false)
+  const [isHoveredCancel, setIsHoveredCancel] = useState(false)
+  const [isHoveredInfo, setIsHoveredInfo] = useState(false)
+  const [hoveredWeekTop, setHoveredWeekTop] = useState(0)
+  const sidebarRef = useRef(null)
 
   const weeks = useMemo(() => roadmapData?.weeks || [], [roadmapData])
 
@@ -222,19 +228,31 @@ export function RoadmapLearningLayout({
 
   // Logic xác định tuần tối đa có thể xem (Chỉ cho xem tuần tiếp theo khi đã hoàn thành tuần trước)
   const maxViewableWeekIndex = useMemo(() => {
-    // 1. Nếu có các tuần đã hoàn thành, tuần tối đa là tuần sau tuần hoàn thành cuối cùng
+    // 1. Nếu có các tuần đã hoàn thành (theo status backend), 
+    // tuần tối đa ít nhất là tuần sau tuần hoàn thành cuối cùng
     const completedWeeks = weeks.filter(w => w.status === 'Completed')
+    let baseIndex = 0
     if (completedWeeks.length > 0) {
-      const lastFinishedIndex = Math.max(...completedWeeks.map(w => w.weekIndex))
-      return lastFinishedIndex + 1
+      baseIndex = Math.max(...completedWeeks.map(w => w.weekIndex))
     }
 
-    // 2. Nếu không có tuần nào hoàn thành nhưng có tuần đang học, chỉ cho phép xem tuần đó
-    const inProgressIndex = weeks.find(w => w.status === 'InProgress')?.weekIndex
-    if (inProgressIndex !== undefined) return inProgressIndex
+    // 2. Kiểm tra tuần đang học: Nếu đã hoàn thành bài tập của Ngày 7 (Bài kiểm tra tuần) 
+    // thì cho phép mở khóa tuần tiếp theo để người dùng nhấn "Tạo"
+    const inProgressWeek = weeks.find(w => w.status === 'InProgress')
+    if (inProgressWeek) {
+      const tasks = inProgressWeek.tasks || []
+      const day7Tasks = tasks.filter(t => t.dayIndex === 7)
+      const isDay7Done = day7Tasks.length > 0 && day7Tasks.every(t => t.isCompleted)
 
-    // 3. Nếu chưa có gì, mặc định là tuần đầu tiên
-    if (weeks.length > 0) return weeks[0].weekIndex
+      if (isDay7Done) {
+        baseIndex = Math.max(baseIndex, inProgressWeek.weekIndex)
+      } else {
+        baseIndex = Math.max(baseIndex, inProgressWeek.weekIndex - 1)
+      }
+    }
+
+    // Kết quả là tuần sau mốc đã hoàn thành
+    if (weeks.length > 0) return Math.max(weeks[0].weekIndex, baseIndex + 1)
     return 1
   }, [weeks])
 
@@ -306,12 +324,22 @@ export function RoadmapLearningLayout({
                 </View>
                 <View style={styles.heroTitleRow}>
                   <Text style={styles.mainTitle}>Chương trình học tập của bạn</Text>
-                  <Pressable
-                    onPress={() => setIsInfoModalVisible(true)}
-                    style={({ pressed }) => [styles.infoIconWrapper, pressed && styles.infoIconPressed]}
-                  >
-                    <Text style={styles.infoIconText}>i</Text>
-                  </Pressable>
+                  <View style={styles.infoBtnContainer}>
+                    <Pressable
+                      onPress={() => setIsInfoModalVisible(true)}
+                      onHoverIn={() => Platform.OS === 'web' && setIsHoveredInfo(true)}
+                      onHoverOut={() => Platform.OS === 'web' && setIsHoveredInfo(false)}
+                      style={({ pressed }) => [styles.infoIconWrapper, pressed && styles.infoIconPressed]}
+                    >
+                      <Text style={styles.infoIconText}>i</Text>
+                    </Pressable>
+                    {isHoveredInfo && (
+                      <View style={styles.infoTooltip}>
+                        <View style={styles.tooltipArrow} />
+                        <Text style={styles.infoTooltipText}>Xem thông tin tiêu điểm tuần này</Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
                 <Text style={styles.subtitle}>Thiết kế dựa trên kết quả đầu vào. Hãy chinh phục mục tiêu mỗi ngày!</Text>
               </View>
@@ -319,7 +347,13 @@ export function RoadmapLearningLayout({
               <View style={styles.headerActions}>
                 <Pressable
                   onPress={handleCancelRoadmap}
-                  style={({ pressed }) => [styles.cancelIconButton, pressed && styles.cancelIconButtonPressed]}
+                  onHoverIn={() => Platform.OS === 'web' && setIsHoveredCancel(true)}
+                  onHoverOut={() => Platform.OS === 'web' && setIsHoveredCancel(false)}
+                  style={({ pressed }) => [
+                    styles.cancelIconButton,
+                    isHoveredCancel && styles.cancelIconButtonHovered,
+                    pressed && styles.cancelIconButtonPressed
+                  ]}
                   disabled={isCancelling}
                 >
                   <Text style={styles.cancelBtnText}>Hủy lộ trình</Text>
@@ -327,19 +361,89 @@ export function RoadmapLearningLayout({
 
                 <Pressable
                   onPress={() => setIsHistoryModalVisible(true)}
-                  style={({ pressed }) => [styles.historyIconButton, pressed && styles.historyIconButtonPressed]}
+                  onHoverIn={() => Platform.OS === 'web' && setIsHoveredHistory(true)}
+                  onHoverOut={() => Platform.OS === 'web' && setIsHoveredHistory(false)}
+                  style={({ pressed }) => [
+                    styles.historyIconButton,
+                    isHoveredHistory && styles.historyIconButtonHovered,
+                    pressed && styles.historyIconButtonPressed
+                  ]}
                 >
-                  <HistoryIcon width={20} height={20} />
-                  <Text style={styles.historyBtnText}>Lịch sử bài làm</Text>
+                  <HistoryOutlined style={{ color: isHoveredHistory ? '#FFF' : '#F4A950', fontSize: 18 }} />
+                  <Text style={[styles.historyBtnText, isHoveredHistory && styles.historyBtnTextHovered]}>Lịch sử bài làm</Text>
                 </Pressable>
               </View>
             </View>
           </View>
 
           {/* Main Dashboard - Sidebar Layout */}
-          <View style={styles.dashboardContainer}>
-            {/* Sidebar bên trái: Danh sách các tuần */}
-            <View style={styles.weekSidebar}>
+          <View style={[styles.dashboardContainer, { flexDirection: 'row-reverse' }]}>
+            {/* Content Card bên phải (nhưng đứng trước trong DOM để sidebar đè lên) */}
+            <View style={styles.contentCard}>
+              <View style={styles.contentCardInner}>
+                {/* Tóm tắt tuần đang chọn */}
+                <View style={styles.weekFocusArea}>
+                  <View style={styles.weekFocusHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.weekFocusLabel}>NHIỆM VỤ TUẦN {activeWeekIndex}</Text>
+                      <Text style={styles.weekFocusGoal} numberOfLines={2}>
+                        {isActiveWeekNextToCreate
+                          ? 'Vui lòng bấm tạo tuần tiếp theo'
+                          : (activeWeek?.focusGoal || 'Duy trì phong độ học tập ổn định')}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.weekStatsRow}>
+                    <View style={styles.statBox}>
+                      <Text style={styles.statVal}>
+                        {activeWeek?.progressPercent != null
+                          ? activeWeek.progressPercent
+                          : Math.floor((weekStats.completed / (weekStats.total || 1)) * 100)}%
+                      </Text>
+                      <Text style={styles.statLabel}>Hoàn thành tuần</Text>
+                    </View>
+                    <View style={styles.statDivider} />
+                    <View style={styles.statBox}>
+                      <Text style={styles.statVal}>{weekStats.completed}/{weekStats.total}</Text>
+                      <Text style={styles.statLabel}>Tiến độ tuần</Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={styles.cardDivider} />
+
+                <View style={styles.listWrapper}>
+                  {activeWeek?.tasks?.length > 0 ? (
+                    <RoadmapLearningDayList
+                      hasWriting={hasWriting}
+                      targetAim={targetAim}
+                      weeks={weeks}
+                      activeWeek={activeWeek}
+                      initialDayIndex={initialDayIndex}
+                      onGenerateNextWeek={handleGenerateNextWeek}
+                      isNextWeekEmpty={!weeks.find(w => w.weekIndex === activeWeekIndex + 1) || (weeks.find(w => w.weekIndex === activeWeekIndex + 1)?.tasks?.length || 0) === 0}
+                    />
+                  ) : (
+                    <View style={styles.emptyWeekContainer}>
+                      <Text style={styles.emptyWeekTitle}>Tuần {activeWeekIndex} chưa có nội dung</Text>
+                      <Text style={styles.emptyWeekSubtitle}>
+                        Hãy nhấn nút bên dưới để hệ thống thiết kế chương trình học cho tuần này dựa trên kết quả thi tuần trước của bạn nhé!
+                      </Text>
+                      <RoadmapTestButton
+                        title="Tạo tuần tiếp theo"
+                        onPress={handleGenerateNextWeek}
+                        disabled={isGeneratingNextWeek}
+                        style={styles.generateButton}
+                      />
+                    </View>
+                  )}
+                </View>
+              </View>
+            </View>
+
+            {/* Sidebar bên trái (nhưng đứng sau trong DOM để đè lên content card) */}
+            <View style={styles.weekSidebar} ref={sidebarRef}>
               <Text style={styles.sidebarTitle}>LỘ TRÌNH 13 TUẦN</Text>
               <ScrollView
                 showsVerticalScrollIndicator={false}
@@ -363,20 +467,36 @@ export function RoadmapLearningLayout({
                     <Pressable
                       key={week.weekIndex}
                       onPress={() => !isDisabled && handleWeekChange(week.weekIndex)}
-                      onHoverIn={() => Platform.OS === 'web' && !isDisabled && setHoveredWeekIndex(week.weekIndex)}
+                      onHoverIn={(e) => {
+                        if (Platform.OS === 'web') {
+                          setHoveredWeekIndex(week.weekIndex)
+                          if (e.currentTarget && sidebarRef.current) {
+                            const rect = e.currentTarget.getBoundingClientRect()
+                            const parentRect = sidebarRef.current.getBoundingClientRect()
+                            setHoveredWeekTop(rect.top - parentRect.top)
+                          }
+                        }
+                      }}
                       onHoverOut={() => Platform.OS === 'web' && setHoveredWeekIndex(null)}
-                      disabled={isDisabled}
+                      disabled={false} // Allow hover on disabled weeks to show tooltip
                       style={({ pressed }) => [
                         styles.sideWeekPill,
                         isActive && styles.sideWeekPillActive,
+                        isNextToCreate && styles.sideWeekPillNextToCreate,
                         !isActive && !isDisabled && hoveredWeekIndex === week.weekIndex && styles.sideWeekPillHovered,
+                        !isActive && isDisabled && hoveredWeekIndex === week.weekIndex && { zIndex: 20 },
                         isFinished && styles.sideWeekPillFinished,
                         isDisabled && styles.sideWeekPillDisabled,
                         pressed && !isDisabled && styles.weekPillPressed,
                       ]}
                     >
                       <View style={styles.sideWeekHeader}>
-                        <Text style={[styles.sideWeekText, isActive && styles.sideWeekTextActive, isDisabled && styles.sideWeekTextDisabled]}>
+                        <Text style={[
+                          styles.sideWeekText, 
+                          isActive && styles.sideWeekTextActive, 
+                          isNextToCreate && styles.sideWeekTextNext,
+                          isDisabled && styles.sideWeekTextDisabled
+                        ]}>
                           Tuần {week.weekIndex}
                         </Text>
                         {isFinished && <Text style={styles.weekCheck}>✓</Text>}
@@ -404,93 +524,30 @@ export function RoadmapLearningLayout({
                   )
                 })}
               </ScrollView>
-            </View>
 
-            {/* Content Card bên phải */}
-            <View style={styles.contentCard}>
-              <ScrollView style={styles.contentCardScroll} showsVerticalScrollIndicator={false}>
-                <View style={styles.contentCardInner}>
-                  {/* Tóm tắt tuần đang chọn */}
-                  <View style={styles.weekFocusArea}>
-                    <View style={styles.weekFocusHeader}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.weekFocusLabel}>NHIỆM VỤ TUẦN {activeWeekIndex}</Text>
-                        <Text style={styles.weekFocusGoal} numberOfLines={2}>
-                          {isActiveWeekNextToCreate
-                            ? 'Vui lòng bấm tạo tuần tiếp theo'
-                            : (activeWeek?.focusGoal || 'Duy trì phong độ học tập ổn định')}
+              {/* Tooltip rendered OUTSIDE the ScrollView to avoid clipping */}
+              {Platform.OS === 'web' && hoveredWeekIndex !== null && (
+                (() => {
+                  const week = weeks.find(w => w.weekIndex === hoveredWeekIndex)
+                  const isFinished = week?.status === 'Completed'
+                  const isInProgress = week?.status === 'InProgress'
+                  const hasContent = Array.isArray(week?.tasks) && week.tasks.length > 0
+                  const isNextToCreate = !isFinished && !isInProgress && !hasContent && week?.weekIndex === maxViewableWeekIndex
+                  const isActuallyDisabled = !isFinished && !isInProgress && !hasContent && !isNextToCreate
+
+                  if (isActuallyDisabled) {
+                    return (
+                      <View style={[styles.lockedTooltip, { top: hoveredWeekTop }]}>
+                        <View style={styles.tooltipArrowLeft} />
+                        <Text style={styles.lockedTooltipText}>
+                          Hiện tại chưa mở khóa, vui lòng hoàn thành bài kiểm tra cuối tuần hiện tại để mở khóa
                         </Text>
                       </View>
-                      <View style={[
-                        styles.statusBadge,
-                        activeWeek?.status === 'InProgress'
-                          ? styles.statusBadgeActive
-                          : (activeWeek?.status === 'Completed'
-                            ? styles.statusBadgeFinished
-                            : (isActiveWeekNextToCreate ? styles.statusBadgeActive : styles.statusBadgePending))
-                      ]}>
-                        <Text style={[
-                          styles.statusBadgeText,
-                          activeWeek?.status === 'InProgress'
-                            ? styles.statusBadgeTextActive
-                            : (activeWeek?.status === 'Completed'
-                              ? styles.statusBadgeTextFinished
-                              : (isActiveWeekNextToCreate ? styles.statusBadgeTextActive : styles.statusBadgeTextPending))
-                        ]}>
-                          {activeWeek?.status === 'InProgress'
-                            ? 'ĐANG HỌC'
-                            : (activeWeek?.status === 'Completed' ? 'ĐÃ XONG' : (isActiveWeekNextToCreate ? 'SẴN SÀNG' : 'CHƯA ĐẾN'))}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.weekStatsRow}>
-                      <View style={styles.statBox}>
-                        <Text style={styles.statVal}>
-                          {activeWeek?.progressPercent != null
-                            ? activeWeek.progressPercent
-                            : Math.floor((weekStats.completed / (weekStats.total || 1)) * 100)}%
-                        </Text>
-                        <Text style={styles.statLabel}>Hoàn thành tuần</Text>
-                      </View>
-                      <View style={styles.statDivider} />
-                      <View style={styles.statBox}>
-                        <Text style={styles.statVal}>{weekStats.completed}/{weekStats.total}</Text>
-                        <Text style={styles.statLabel}>Tiến độ tuần</Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  <View style={styles.cardDivider} />
-
-                  <View style={styles.listWrapper}>
-                    {activeWeek?.tasks?.length > 0 ? (
-                      <RoadmapLearningDayList
-                        hasWriting={hasWriting}
-                        targetAim={targetAim}
-                        weeks={weeks}
-                        activeWeek={activeWeek}
-                        initialDayIndex={initialDayIndex}
-                        onGenerateNextWeek={handleGenerateNextWeek}
-                        isNextWeekEmpty={!weeks.find(w => w.weekIndex === activeWeekIndex + 1) || (weeks.find(w => w.weekIndex === activeWeekIndex + 1)?.tasks?.length || 0) === 0}
-                      />
-                    ) : (
-                      <View style={styles.emptyWeekContainer}>
-                        <Text style={styles.emptyWeekTitle}>Tuần {activeWeekIndex} chưa có nội dung</Text>
-                        <Text style={styles.emptyWeekSubtitle}>
-                          Hãy nhấn nút bên dưới để hệ thống thiết kế chương trình học cho tuần này dựa trên kết quả thi tuần trước của bạn nhé!
-                        </Text>
-                        <RoadmapTestButton
-                          title="Tạo tuần tiếp theo"
-                          onPress={handleGenerateNextWeek}
-                          disabled={isGeneratingNextWeek}
-                          style={styles.generateButton}
-                        />
-                      </View>
-                    )}
-                  </View>
-                </View>
-              </ScrollView>
+                    )
+                  }
+                  return null
+                })()
+              )}
             </View>
           </View>
         </View>
@@ -630,54 +687,83 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 24,
     flex: 1,
-    overflow: 'hidden',
     paddingBottom: 10,
+    zIndex: 1,
+    position: 'relative',
   },
   weekSidebar: {
     width: 250,
     height: '100%',
+    zIndex: 100,
+    ...(Platform.OS === 'web' && { overflow: 'visible', position: 'relative' }),
   },
   sidebarTitle: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#999',
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#444',
     letterSpacing: 1.5,
     paddingHorizontal: 12,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sidebarScroll: {
     flex: 1,
+    ...(Platform.OS === 'web' && { overflow: 'visible', zIndex: 100, position: 'relative' }),
   },
   sidebarContent: {
-    gap: 10,
-    paddingBottom: 20,
+    gap: 12,
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 24,
+    ...(Platform.OS === 'web' && { overflow: 'visible' }),
   },
   sideWeekPill: {
     padding: 16,
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#EAEAEA',
+    borderWidth: 1.5,
+    borderColor: '#F0F0F0',
     gap: 8,
-    ...(Platform.OS === 'web' && { cursor: 'pointer', transition: 'all 0.15s ease' }),
+    position: 'relative',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+      overflow: 'visible'
+    }),
   },
   sideWeekPillActive: {
     borderColor: '#F4A950',
     backgroundColor: '#FFFFFF',
-    ...(Platform.OS === 'web' && { boxShadow: '0 4px 12px rgba(244,169,80,0.1)' }),
+    borderWidth: 1.5,
+    zIndex: 10,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 10px 25px rgba(244,169,80,0.15)',
+      transform: [{ scale: 1.02 }],
+    }),
   },
   sideWeekPillHovered: {
     borderColor: '#F4A950',
     backgroundColor: '#FFFDF5',
+    zIndex: 20,
   },
   sideWeekPillFinished: {
     backgroundColor: '#F1F9F1',
     borderColor: '#C8E6C9',
   },
   sideWeekPillDisabled: {
-    backgroundColor: '#F9F9F9',
+    backgroundColor: '#FAFAFA',
     borderColor: '#EEEEEE',
-    opacity: 0.5,
+    opacity: 0.8,
+  },
+  sideWeekPillNextToCreate: {
+    borderColor: '#4A90E2',
+    backgroundColor: '#F0F7FF',
+    borderStyle: 'dashed',
+    borderWidth: 2,
+    opacity: 1,
+    ...(Platform.OS === 'web' && { 
+       boxShadow: '0 4px 12px rgba(74,144,226,0.1)',
+    }),
   },
   sideWeekHeader: {
     flexDirection: 'row',
@@ -688,12 +774,15 @@ const styles = StyleSheet.create({
   sideWeekText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#666',
+    color: '#333',
     fontFamily: 'Epilogue, sans-serif',
   },
   sideWeekTextActive: {
     color: '#1A1A1A',
-    fontWeight: '800',
+    fontWeight: '700',
+  },
+  sideWeekTextNext: {
+    color: '#2C5282',
   },
   sideWeekTextDisabled: {
     color: '#BBB',
@@ -726,7 +815,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F0F0F0',
     overflow: 'hidden',
-    ...(Platform.OS === 'web' && { boxShadow: '0 10px 40px rgba(0,0,0,0.03)' }),
+    zIndex: 0,
+    ...(Platform.OS === 'web' && { boxShadow: '0 10px 40px rgba(0,0,0,0.03)', position: 'relative' }),
   },
   contentCardScroll: {
     flex: 1,
@@ -734,6 +824,7 @@ const styles = StyleSheet.create({
   contentCardInner: {
     padding: 32,
     gap: 0,
+    flex: 1,
   },
   headerTop: {
     flexDirection: 'row',
@@ -783,7 +874,7 @@ const styles = StyleSheet.create({
   },
   mainTitle: {
     fontSize: 32,
-    fontWeight: '900',
+    fontWeight: '800',
     color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
     lineHeight: 40,
@@ -800,12 +891,52 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...(Platform.OS === 'web' && { boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }),
   },
+  infoBtnContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoTooltip: {
+    position: 'absolute',
+    left: '100%',
+    marginLeft: 12,
+    backgroundColor: '#333',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    width: 220,
+    zIndex: 100,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      animation: 'fadeIn 0.2s ease-out'
+    }),
+  },
+  tooltipArrow: {
+    position: 'absolute',
+    left: -6,
+    top: '50%',
+    marginTop: -6,
+    width: 0,
+    height: 0,
+    borderTopWidth: 6,
+    borderTopColor: 'transparent',
+    borderBottomWidth: 6,
+    borderBottomColor: 'transparent',
+    borderRightWidth: 6,
+    borderRightColor: '#333',
+  },
+  infoTooltipText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '500',
+    lineHeight: 16,
+  },
   infoIconPressed: {
     backgroundColor: '#F5F5F5',
   },
   infoIconText: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#999',
   },
   subtitle: {
@@ -815,6 +946,45 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
     maxWidth: 600,
     lineHeight: 22,
+  },
+  lockedTooltip: {
+    position: 'absolute',
+    left: '100%',
+    marginLeft: 15,
+    top: 5,
+    backgroundColor: '#333333',
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    width: 300,
+    zIndex: 9999,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+      animation: 'fadeIn 0.2s ease-out',
+      pointerEvents: 'none'
+    }),
+  },
+  lockedTooltipText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    lineHeight: 22,
+    fontWeight: '100',
+    textAlign: 'left',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  tooltipArrowLeft: {
+    position: 'absolute',
+    left: -8,
+    top: '50%',
+    marginTop: -8,
+    width: 0,
+    height: 0,
+    borderTopWidth: 8,
+    borderTopColor: 'transparent',
+    borderBottomWidth: 8,
+    borderBottomColor: 'transparent',
+    borderRightWidth: 8,
+    borderRightColor: '#333333',
   },
   headerActions: {
     flexDirection: 'row',
@@ -827,34 +997,52 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 100,
-    backgroundColor: '#F4A950',
-    ...(Platform.OS === 'web' && { boxShadow: '0 8px 24px rgba(244,169,80,0.2)' }),
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#F4A950',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+      boxShadow: '0 4px 12px rgba(244,169,80,0.1)',
+    }),
   },
   historyBtnText: {
-    color: '#FFF',
+    color: '#F4A950',
     fontSize: 14,
     fontWeight: '700',
   },
+  historyIconButtonHovered: {
+    backgroundColor: '#F4A950',
+    borderColor: '#F4A950',
+    boxShadow: '0 8px 16px rgba(244,169,80,0.25)',
+  },
+  historyBtnTextHovered: {
+    color: '#FFFFFF',
+  },
   historyIconButtonPressed: {
-    backgroundColor: '#D38E3F',
+    backgroundColor: '#FFF8F0',
     transform: [{ scale: 0.96 }]
   },
   cancelIconButton: {
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 100,
-    backgroundColor: '#FFF1F0',
+    backgroundColor: '#F5F5F5',
     borderWidth: 1,
-    borderColor: '#FFA39E',
+    borderColor: '#E0E0E0',
     marginRight: 10,
-    ...(Platform.OS === 'web' && { cursor: 'pointer', transition: 'all 0.15s ease' }),
+    ...(Platform.OS === 'web' && { cursor: 'pointer', transition: 'all 0.1s ease' }),
+  },
+  cancelIconButtonHovered: {
+    backgroundColor: '#FFF1F0',
+    borderColor: '#FFA39E',
   },
   cancelIconButtonPressed: {
-    backgroundColor: '#FFCCC7',
+    backgroundColor: '#EEEEEE',
     transform: [{ scale: 0.96 }]
   },
   cancelBtnText: {
-    color: '#F5222D',
+    color: '#888',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -873,17 +1061,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#BBB',
   },
   nextToCreateBadge: {
-    backgroundColor: '#FFF8E1',
+    backgroundColor: '#EBF8FF',
     paddingVertical: 2,
     paddingHorizontal: 6,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#FFD54F',
+    borderColor: '#90CDF4',
   },
   nextToCreateText: {
     fontSize: 9,
     fontWeight: '900',
-    color: '#F57C00',
+    color: '#2B6CB0',
     letterSpacing: 0.5,
   },
   weekFocusArea: {
@@ -906,45 +1094,13 @@ const styles = StyleSheet.create({
   },
   weekFocusGoal: {
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
     lineHeight: 28,
     letterSpacing: -0.5,
   },
-  statusBadge: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-    marginTop: 4,
-    borderWidth: 1,
-  },
-  statusBadgeActive: {
-    backgroundColor: '#FFF8F0',
-    borderColor: '#F4A950',
-  },
-  statusBadgeFinished: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#A5D6A7',
-  },
-  statusBadgePending: {
-    backgroundColor: '#F5F5F5',
-    borderColor: '#EEE',
-  },
-  statusBadgeText: {
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-  },
-  statusBadgeTextActive: {
-    color: '#D38E3F',
-  },
-  statusBadgeTextFinished: {
-    color: '#388E3C',
-  },
-  statusBadgeTextPending: {
-    color: '#999',
-  },
+
   weekStatsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -956,7 +1112,7 @@ const styles = StyleSheet.create({
   },
   statVal: {
     fontSize: 26,
-    fontWeight: '900',
+    fontWeight: '800',
     color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
   },

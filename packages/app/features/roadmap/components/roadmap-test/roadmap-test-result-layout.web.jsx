@@ -172,6 +172,7 @@ export function RoadmapTestResultLayout({
   isGraded = false,
   gradingProgress = null,
   isEntrance = false,
+  isRoadmapTask = false,
   onNavigateToGenerate,
 }) {
   const router = useRouter()
@@ -327,6 +328,20 @@ export function RoadmapTestResultLayout({
                   styles.actionButton,
                   styles.actionButtonPrimary,
                   !isGraded && styles.actionButtonDisabled
+                ]}
+                hoverStyle={!isGraded ? null : styles.actionButtonPrimaryHover}
+                textStyle={styles.actionButtonPrimaryText}
+              />
+            )}
+            {!isEntrance && isRoadmapTask && (
+              <RoadmapTestButton
+                title={isGraded ? 'Quay lại lộ trình' : 'Đang chờ chấm điểm...'}
+                onPress={() => router.push('/roadmap/learning')}
+                disabled={!isGraded}
+                style={[
+                  styles.actionButton,
+                  styles.actionButtonPrimary,
+                  !isGraded && styles.actionButtonDisabled,
                 ]}
                 hoverStyle={!isGraded ? null : styles.actionButtonPrimaryHover}
                 textStyle={styles.actionButtonPrimaryText}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Image, Pressable, StyleSheet, Text, View, Platform } from 'react-native'
+import { CheckOutlined, CheckCircleFilled } from '@ant-design/icons'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -38,9 +39,39 @@ export function RoadmapLearningLessonCard({
   tone = 'primary',
   variant = 'default', // 'default' | 'header'
 }) {
+  const isPrimary = tone === 'primary' && !isCompleted
+  const isSecondary = tone === 'secondary' && !isCompleted
+  const isTrial = tone === 'trial' && !isCompleted
+
   const cardBaseStyle = isCompleted ? styles.completedCard : styles.incompleteCard
-  const actionButtonStyle = isCompleted ? styles.completedActionButton : styles.incompleteActionButton
-  const iconCircleStyle = isCompleted ? styles.completedIconCircle : styles.incompleteIconCircle
+
+  const actionButtonStyle = isCompleted
+    ? styles.completedActionButton
+    : isPrimary
+      ? styles.primaryActionButton
+      : isSecondary
+        ? styles.secondaryActionButton
+        : isTrial
+          ? styles.trialActionButton
+          : styles.incompleteActionButton
+
+  const actionLabelStyle = isCompleted
+    ? styles.completedActionLabel
+    : isPrimary
+      ? styles.primaryActionLabel
+      : isSecondary
+        ? styles.secondaryActionLabel
+        : isTrial
+          ? styles.trialActionLabel
+          : null
+
+  const titleStyle = null
+  const subtitleStyle = null
+
+  const iconCircleStyle = isCompleted
+    ? styles.completedIconCircle
+    : styles.incompleteIconCircle
+
   const [isHovered, setIsHovered] = useState(false)
 
   // Header variant: không hover xám, không onPress riêng (để click pass cho DayItem)
@@ -51,18 +82,22 @@ export function RoadmapLearningLessonCard({
           <View style={[styles.iconCircle, iconCircleStyle]}>{renderIcon(icon)}</View>
           <View style={styles.texts}>
             <View style={styles.titleRow}>
-              <Text style={[styles.title, isHovered && styles.titleHovered]} numberOfLines={2}>{title}</Text>
+              <Text style={[styles.title, isHovered && styles.titleHovered, titleStyle]} numberOfLines={2}>{title}</Text>
               {isCompleted && (
                 <View style={styles.checkWrapper}>
                   <Text style={styles.checkIcon}>✓</Text>
                 </View>
               )}
             </View>
-            {!!subtitle && <Text style={[styles.subtitle, isHovered && styles.subtitleHovered]}>{subtitle}</Text>}
+            {!!subtitle && <Text style={[styles.subtitle, isHovered && styles.subtitleHovered, subtitleStyle]}>{subtitle}</Text>}
           </View>
         </View>
         <View style={[styles.actionButton, actionButtonStyle, styles.headerActionButton]}>
-          <Text style={[styles.actionLabel, isCompleted && styles.completedActionLabel]}>{actionLabel}</Text>
+          {isCompleted ? (
+            <CheckOutlined style={{ color: '#2F855A', fontSize: 18 }} />
+          ) : (
+            <Text style={[styles.actionLabel, actionLabelStyle]}>{actionLabel}</Text>
+          )}
         </View>
       </View>
     )
@@ -86,18 +121,27 @@ export function RoadmapLearningLessonCard({
         <View style={[styles.iconCircle, iconCircleStyle]}>{renderIcon(icon)}</View>
         <View style={styles.texts}>
           <View style={styles.titleRow}>
-            <Text style={styles.title} numberOfLines={2}>{title}</Text>
+            <Text style={[styles.title, titleStyle]} numberOfLines={2}>{title}</Text>
+            {tone === 'trial' && !isCompleted && (
+              <View style={styles.importantBadge}>
+                <Text style={styles.importantBadgeText}>Quan trọng</Text>
+              </View>
+            )}
             {isCompleted && (
-              <View style={styles.checkWrapper}>
-                <Text style={styles.checkIcon}>✓</Text>
+              <View style={styles.completedBadge}>
+                <Text style={styles.completedBadgeText}>Đã hoàn thành</Text>
               </View>
             )}
           </View>
-          {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+          {!!subtitle && <Text style={[styles.subtitle, subtitleStyle]}>{subtitle}</Text>}
         </View>
       </View>
       <View style={[styles.actionButton, actionButtonStyle, isHovered && styles.actionButtonHovered]}>
-        <Text style={[styles.actionLabel, isCompleted && styles.completedActionLabel, isHovered && styles.actionLabelHovered]}>{actionLabel}</Text>
+        {isCompleted ? (
+          <CheckCircleFilled style={{ color: '#48BB78', fontSize: 24 }} />
+        ) : (
+          <Text style={[styles.actionLabel, actionLabelStyle, isHovered && styles.actionLabelHovered]}>{actionLabel}</Text>
+        )}
       </View>
     </Pressable>
   )
@@ -126,22 +170,60 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   containerHovered: {
-    backgroundColor: '#F4A950',
+    backgroundColor: '#FFFCF8',
     borderColor: '#F4A950',
-    transform: [{ translateY: -2 }],
-    ...(Platform.OS === 'web' && { boxShadow: '0 12px 24px rgba(244,169,80,0.25)' }),
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 12px rgba(244,169,80,0.08)',
+    }),
   },
   actionButtonHovered: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderColor: 'transparent',
+    transform: [{ scale: 1.05 }],
   },
   actionLabelHovered: {
-    color: '#FFFFFF',
+    color: undefined,
+  },
+  primaryActionButton: {
+    backgroundColor: '#FFF8F0',
+    borderColor: '#FFE8CC',
+    borderWidth: 1,
+  },
+  primaryActionLabel: {
+    color: '#D38E3F',
+  },
+  secondaryActionButton: {
+    backgroundColor: '#F0FFF4',
+    borderColor: '#C6F6D5',
+    borderWidth: 1,
+  },
+  secondaryActionLabel: {
+    color: '#38A169',
+  },
+  trialActionButton: {
+    backgroundColor: '#F0F7FF',
+    borderColor: '#B9E6FE',
+    borderWidth: 1,
+  },
+  trialActionLabel: {
+    color: '#007AFF',
+  },
+  importantBadge: {
+    backgroundColor: '#FF4D4F',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginLeft: 4,
+  },
+  importantBadgeText: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   completedCard: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#48BB78',
-    borderWidth: 1.5,
+    backgroundColor: '#F9FFF9',
+    borderColor: '#C2E9C2',
+    borderWidth: 1,
   },
   incompleteCard: {
     backgroundColor: '#FFFFFF',
@@ -149,8 +231,24 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' && { boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }),
   },
   completedActionButton: {
-    backgroundColor: '#48BB78',
-    borderColor: '#48BB78',
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+    paddingHorizontal: 0,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  completedBadge: {
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginLeft: 4,
+  },
+  completedBadgeText: {
+    color: '#2E7D32',
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
   },
   incompleteActionButton: {
     backgroundColor: '#FFFFFF',
@@ -213,13 +311,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '600',
     color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
     lineHeight: 22,
   },
   titleHovered: {
-    color: '#FFFFFF',
+    color: '#1A1A1A',
   },
   subtitle: {
     fontSize: 13,
@@ -228,7 +326,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
   },
   subtitleHovered: {
-    color: 'rgba(255,255,255,0.8)',
+    color: '#666',
   },
   actionButton: {
     paddingVertical: 8,
@@ -243,7 +341,7 @@ const styles = StyleSheet.create({
   },
   actionLabel: {
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
   },

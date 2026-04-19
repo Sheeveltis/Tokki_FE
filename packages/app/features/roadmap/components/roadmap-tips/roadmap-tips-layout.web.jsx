@@ -72,14 +72,7 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                   <View style={styles.heroSection}>
                     <View style={styles.headerTop}>
                       <View style={styles.headerText}>
-                        <View style={styles.badgeRow}>
-                          <View style={[styles.phaseBadge, isCompleted && styles.phaseBadgeCompleted]}>
-                            <Text style={[styles.phaseBadgeText, isCompleted && styles.phaseBadgeTextCompleted]}>{skill || 'Chung'}</Text>
-                          </View>
-                          <View style={styles.levelBadge}>
-                            <Text style={styles.levelBadgeText}>LEVEL {level}</Text>
-                          </View>
-                        </View>
+
 
                         <View style={styles.titleRow}>
                           <Text style={styles.mainTitle}>{title}</Text>
@@ -109,7 +102,7 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                     </View>
                   </View>
 
-                  <View style={styles.cardDivider} />
+
 
                   {/* Main Content Card */}
                   <View style={styles.articleContent}>
@@ -121,14 +114,28 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                     <View style={styles.actionDivider} />
 
                     {taskType === 'LearnTheory' && (
-                      <View style={styles.theoryActionBox}>
-                        <Text style={styles.actionPrompt}>Bạn đã nắm vững lý thuyết này chưa?</Text>
+                      <View style={[styles.theoryActionBox, isCompleted && styles.theoryActionBoxCompleted]}>
+                        <Text style={styles.actionPrompt}>
+                          {isCompleted ? 'Tuyệt vời! Bạn đã hoàn thành bài học này.' : 'Bạn đã nắm vững lý thuyết này chưa?'}
+                        </Text>
                         <RoadmapTestButton
-                          title={isCompleted ? 'Bạn đã học bài này' : 'Xác nhận đã học xong'}
                           onPress={onComplete}
                           disabled={isCompleted}
                           style={[styles.theoryButton, isCompleted && styles.theoryButtonCompleted]}
-                        />
+                          hoverStyle={[styles.theoryButtonHover, isCompleted && styles.theoryButtonCompletedHover]}
+                          textStyle={[styles.theoryButtonText, isCompleted && styles.theoryButtonTextCompleted]}
+                        >
+                          {isCompleted ? (
+                            <>
+                              <View style={styles.miniCheckBadge}>
+                                <Text style={styles.miniCheckIcon}>✓</Text>
+                              </View>
+                              <Text style={styles.theoryButtonTextCompleted}>Bạn đã học bài này</Text>
+                            </>
+                          ) : (
+                            <Text style={styles.theoryButtonText}>Xác nhận đã học xong</Text>
+                          )}
+                        </RoadmapTestButton>
                       </View>
                     )}
 
@@ -174,6 +181,8 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                               }
                             }}
                             style={styles.startBtn}
+                            textStyle={styles.startBtnText}
+                            hoverStyle={styles.startBtnHover}
                           />
                         </View>
                       </View>
@@ -209,23 +218,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAFAFA',
     ...(Platform.OS === 'web' && {
       height: '100%',
-      overflow: 'hidden',
+      overflowY: 'auto',
     }),
   },
   mainContainer: {
     flex: 1,
     alignItems: 'center',
-    overflow: 'hidden',
   },
   mainWrapper: {
     width: '95%',
     maxWidth: 1400,
-    flex: 1,
     paddingTop: 24,
-    paddingBottom: 24,
+    paddingBottom: 48,
     gap: 20,
     alignSelf: 'center',
-    overflow: 'hidden',
   },
   topNavigation: {
     flexDirection: 'row',
@@ -253,13 +259,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   dashboardContainer: {
-    flex: 1,
-    overflow: 'hidden',
-    paddingBottom: 10,
+    width: '100%',
   },
   contentCard: {
-    flex: 1,
-    height: '100%',
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     borderWidth: 1,
@@ -271,11 +273,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentCardInner: {
-    padding: 32,
+    paddingVertical: 24,
+    paddingHorizontal: 32,
     gap: 0,
   },
   heroSection: {
-    gap: 12,
+    gap: 0,
   },
   headerTop: {
     flexDirection: 'row',
@@ -285,7 +288,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
-    gap: 8,
+    gap: 4,
   },
   badgeRow: {
     flexDirection: 'row',
@@ -396,35 +399,91 @@ const styles = StyleSheet.create({
     marginVertical: 24,
   },
   articleContent: {
-    minHeight: 200,
+    minHeight: 80,
   },
   bottomActions: {
-    marginTop: 32,
+    marginTop: 16,
   },
   actionDivider: {
     height: 1,
     backgroundColor: '#F0F0F0',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   theoryActionBox: {
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    backgroundColor: '#FFF8F0',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#FFE8CC',
+    marginTop: 12,
+  },
+  theoryActionBoxCompleted: {
+    backgroundColor: '#F6FCF6',
+    borderColor: '#E2F2E2',
   },
   actionPrompt: {
-    fontSize: 15,
-    color: '#666',
-    fontWeight: '500',
+    fontSize: 16,
+    color: '#1A1A1A',
+    fontWeight: '700',
     fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
   },
   theoryButton: {
-    minWidth: 240,
+    minWidth: 260,
+    backgroundColor: '#F4A950',
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 0,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 8px 20px rgba(244, 169, 80, 0.2)',
+      transition: 'all 0.2s ease',
+    }),
+  },
+  theoryButtonHover: {
+    backgroundColor: '#FFB861',
+    transform: [{ translateY: -2 }],
+    ...(Platform.OS === 'web' && { boxShadow: '0 12px 24px rgba(244, 169, 80, 0.3)' }),
+  },
+  theoryButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '800',
   },
   theoryButtonCompleted: {
-    backgroundColor: '#E8F5E9',
-    opacity: 0.8,
+    backgroundColor: '#FFFFFF',
+    borderColor: '#48BB78',
+    borderWidth: 1.5,
+    opacity: 1,
+    ...(Platform.OS === 'web' && { transition: 'all 0.2s ease' }),
+  },
+  theoryButtonCompletedHover: {
+    backgroundColor: '#F0FFF4',
+    transform: [{ scale: 1.02 }],
+  },
+  theoryButtonTextCompleted: {
+    color: '#2E7D32',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  miniCheckBadge: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#48BB78',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  miniCheckIcon: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   practiceActionBox: {
-    gap: 24,
+    gap: 16,
   },
   selectionGroup: {
     gap: 12,
@@ -467,6 +526,23 @@ const styles = StyleSheet.create({
   },
   startBtn: {
     paddingVertical: 14,
+    backgroundColor: '#F4A950',
+    borderRadius: 16,
+    borderWidth: 0,
+    ...(Platform.OS === 'web' && { 
+      boxShadow: '0 8px 20px rgba(244, 169, 80, 0.25)',
+      transition: 'all 0.2s ease',
+    }),
+  },
+  startBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  startBtnHover: {
+    backgroundColor: '#FFB861',
+    transform: [{ scale: 1.02 }],
+    ...(Platform.OS === 'web' && { boxShadow: '0 12px 24px rgba(244, 169, 80, 0.35)' }),
   },
   nextShortcut: {
     flexDirection: 'row',
@@ -475,10 +551,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1BE4B',
     padding: 24,
     borderRadius: 24,
-    marginTop: 40,
+    marginTop: 24,
     borderWidth: 1,
     borderColor: '#E2B03A',
-    ...(Platform.OS === 'web' && { 
+    ...(Platform.OS === 'web' && {
       boxShadow: '0 12px 30px rgba(241, 190, 75, 0.25)',
       transition: 'all 0.2s ease',
     }),
