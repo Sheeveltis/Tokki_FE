@@ -81,9 +81,15 @@ const VocabCard = ({ vocab }) => {
         <View style={styles.vocabHeaderLine}>
           <Text style={styles.vocabWord}>{vocab.word}</Text>
           {vocab.audioUrl && (
-            <TouchableOpacity onPress={() => playAudio(vocab.audioUrl)} style={styles.audioBtn}>
+            <Pressable 
+              onPress={() => playAudio(vocab.audioUrl)} 
+              style={({ hovered }) => [
+                styles.audioBtn,
+                hovered && styles.audioBtnHover
+              ]}
+            >
               <SoundIcon />
-            </TouchableOpacity>
+            </Pressable>
           )}
         </View>
 
@@ -152,9 +158,15 @@ export function LearnedVocabularyListMain({
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
+        <Pressable 
+          style={({ hovered }) => [
+            styles.retryButton,
+            hovered && styles.retryButtonHover
+          ]} 
+          onPress={onRetry}
+        >
           <Text style={styles.retryButtonText}>Thử lại</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     )
   }
@@ -165,12 +177,15 @@ export function LearnedVocabularyListMain({
       {/* Hero Practice Banner */}
       {vocabularies.length > 0 && (
         <View style={styles.heroBanner}>
-          <TouchableOpacity
-            style={styles.heroInfoBtn}
+          <Pressable
+            style={({ hovered }) => [
+              styles.heroInfoBtn,
+              hovered && styles.heroInfoBtnHover
+            ]}
             onPress={() => setShowInstructions(!showInstructions)}
           >
             <InfoIcon />
-          </TouchableOpacity>
+          </Pressable>
 
           <View style={styles.heroContent}>
             <View style={styles.heroVisual}>
@@ -259,21 +274,29 @@ export function LearnedVocabularyListMain({
                 borderTopColor: '#F0F0F0',
                 backgroundColor: '#FFF'
               }]}>
-                <TouchableOpacity
+                <Pressable
                   onPress={onPrevPage}
                   disabled={!canPrevPage}
-                  style={[styles.pageBtn, !canPrevPage && styles.pageBtnDisabled]}
+                  style={({ hovered }) => [
+                    styles.pageBtn,
+                    !canPrevPage && styles.pageBtnDisabled,
+                    canPrevPage && hovered && styles.pageBtnHover
+                  ]}
                 >
                   <Text style={styles.pageBtnText}>Trước</Text>
-                </TouchableOpacity>
+                </Pressable>
                 <Text style={styles.pageInfo}>Trang {pageNumber} / {totalPages}</Text>
-                <TouchableOpacity
+                <Pressable
                   onPress={onNextPage}
                   disabled={!canNextPage}
-                  style={[styles.pageBtn, !canNextPage && styles.pageBtnDisabled]}
+                  style={({ hovered }) => [
+                    styles.pageBtn,
+                    !canNextPage && styles.pageBtnDisabled,
+                    canNextPage && hovered && styles.pageBtnHover
+                  ]}
                 >
                   <Text style={styles.pageBtnText}>Tiếp</Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
             )}
           </>
@@ -327,6 +350,12 @@ const styles = StyleSheet.create({
     zIndex: 20,
     borderWidth: 1,
     borderColor: '#EFEFEF',
+    transition: 'all 0.2s ease',
+  },
+  heroInfoBtnHover: {
+    backgroundColor: '#F1BE4B',
+    borderColor: '#F1BE4B',
+    transform: 'scale(1.1)',
   },
   heroInstructions: {
     marginTop: 20,
@@ -501,6 +530,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF9EB',
     alignItems: 'center',
     justifyContent: 'center',
+    transition: 'all 0.2s ease',
+  },
+  audioBtnHover: {
+    backgroundColor: '#F1BE4B30',
+    transform: 'scale(1.15)',
   },
   vocabPronunciation: {
     fontSize: 13,
@@ -572,6 +606,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E0E0E0',
+    transition: 'all 0.2s ease',
+  },
+  pageBtnHover: {
+    backgroundColor: '#F1BE4B',
+    borderColor: '#F1BE4B',
+    transform: 'translateY(-2px)',
   },
   pageBtnDisabled: {
     opacity: 0.5,
@@ -599,6 +639,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
+    transition: 'all 0.2s ease',
+  },
+  retryButtonHover: {
+    backgroundColor: '#E5AF30',
+    transform: 'translateY(-2px)',
+    shadowColor: '#F1BE4B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   retryButtonText: {
     fontWeight: '700',

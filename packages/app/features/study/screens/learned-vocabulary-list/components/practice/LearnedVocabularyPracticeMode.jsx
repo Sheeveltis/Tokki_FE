@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { View, StyleSheet, Text, TouchableOpacity, TextInput, Platform, Image, Animated } from 'react-native'
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Platform, Image, Animated, Pressable } from 'react-native'
 import { submitSpacedRepetitionWithCorrect } from '@tokki/app/features/study/api'
 import { awardXP } from '@tokki/app/features/minigame/api/api'
 import { NavigationPill } from 'components/navigation-pill'
@@ -660,12 +660,16 @@ export function LearnedVocabularyPracticeMode({
             </View>
           )}
 
-          <TouchableOpacity
-            style={[styles.nextButton, { marginTop: 24 }]}
+          <Pressable
+            style={({ hovered }) => [
+              styles.nextButton,
+              { marginTop: 24 },
+              hovered && styles.nextButtonHover
+            ]}
             onPress={onPracticeComplete}
           >
             <Text style={styles.nextButtonText}>Xong</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     )
@@ -735,13 +739,17 @@ export function LearnedVocabularyPracticeMode({
                   autoFocus
                 />
                 {!hasAnswered && (
-                  <TouchableOpacity
-                    style={[styles.submitButton, !userAnswer.trim() && styles.submitButtonDisabled]}
+                  <Pressable
+                    style={({ hovered }) => [
+                      styles.submitButton,
+                      !userAnswer.trim() && styles.submitButtonDisabled,
+                      userAnswer.trim() && hovered && styles.submitButtonHover
+                    ]}
                     onPress={checkAnswer}
                     disabled={!userAnswer.trim()}
                   >
                     <Text style={styles.submitButtonText}>Kiểm tra</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 )}
               </View>
             )}
@@ -750,12 +758,15 @@ export function LearnedVocabularyPracticeMode({
               <View style={styles.questionContainer}>
                 <Text style={styles.instructionText}>Nghe và viết lại</Text>
                 <View style={styles.audioButtonsContainer}>
-                  <TouchableOpacity
-                    style={styles.audioButton}
+                  <Pressable
+                    style={({ hovered }) => [
+                      styles.audioButton,
+                      hovered && styles.audioButtonHover
+                    ]}
                     onPress={handlePlaySound}
                   >
                     {renderSoundIcon(40)}
-                  </TouchableOpacity>
+                  </Pressable>
                 </View>
                 <TextInput
                   ref={inputRef}
@@ -772,13 +783,17 @@ export function LearnedVocabularyPracticeMode({
                   autoFocus
                 />
                 {!hasAnswered && (
-                  <TouchableOpacity
-                    style={[styles.submitButton, !userAnswer.trim() && styles.submitButtonDisabled]}
+                  <Pressable
+                    style={({ hovered }) => [
+                      styles.submitButton,
+                      !userAnswer.trim() && styles.submitButtonDisabled,
+                      userAnswer.trim() && hovered && styles.submitButtonHover
+                    ]}
                     onPress={checkAnswer}
                     disabled={!userAnswer.trim()}
                   >
                     <Text style={styles.submitButtonText}>Kiểm tra</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 )}
               </View>
             )}
@@ -819,12 +834,15 @@ export function LearnedVocabularyPracticeMode({
               )}
               <View style={styles.flashcardContent}>
                 <View style={styles.flashcardHeader}>
-                  <TouchableOpacity
-                    style={styles.audioButtonSmall}
+                  <Pressable
+                    style={({ hovered }) => [
+                      styles.audioButtonSmall,
+                      hovered && styles.audioButtonSmallHover
+                    ]}
                     onPress={handlePlaySound}
                   >
                     {renderSoundIcon(24)}
-                  </TouchableOpacity>
+                  </Pressable>
                   <Text style={styles.flashcardWord}>{currentVocab.word}</Text>
                 </View>
                 {currentVocab.pronunciation && (
@@ -842,8 +860,11 @@ export function LearnedVocabularyPracticeMode({
               </View>
             </View>
 
-            <TouchableOpacity
-              style={styles.nextButton}
+            <Pressable
+              style={({ hovered }) => [
+                styles.nextButton,
+                hovered && styles.nextButtonHover
+              ]}
               onPress={handleNext}
             >
               <Text style={styles.nextButtonText}>
@@ -851,7 +872,7 @@ export function LearnedVocabularyPracticeMode({
                   ? 'Tiếp tục'
                   : 'Hoàn thành'}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         )}
       </View>
@@ -929,9 +950,9 @@ const styles = StyleSheet.create({
   practiceContainer: {
     width: '100%',
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: 20,
-    paddingBottom: 40,
+    justifyContent: 'center',
+    paddingTop: 0,
+    paddingBottom: 60,
     flex: 1,
   },
   questionContainer: {
@@ -991,7 +1012,12 @@ const styles = StyleSheet.create({
     elevation: 5,
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
+      transition: 'all 0.2s ease',
     }),
+  },
+  audioButtonHover: {
+    backgroundColor: '#E5AF30',
+    transform: 'scale(1.05)',
   },
   audioButtonSmall: {
     width: 50,
@@ -1004,7 +1030,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
+      transition: 'all 0.2s ease',
     }),
+  },
+  audioButtonSmallHover: {
+    borderColor: '#F1BE4B',
+    transform: 'scale(1.1)',
   },
   answerInput: {
     width: '100%',
@@ -1048,7 +1079,13 @@ const styles = StyleSheet.create({
     elevation: 4,
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
+      transition: 'all 0.2s ease',
     }),
+  },
+  submitButtonHover: {
+    backgroundColor: '#E5AF30',
+    transform: 'translateY(-2px)',
+    shadowOpacity: 0.4,
   },
   submitButtonDisabled: {
     opacity: 0.5,
@@ -1212,7 +1249,13 @@ const styles = StyleSheet.create({
     elevation: 4,
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
+      transition: 'all 0.2s ease',
     }),
+  },
+  nextButtonHover: {
+    backgroundColor: '#43A047',
+    transform: 'translateY(-2px)',
+    shadowOpacity: 0.4,
   },
   nextButtonText: {
     fontSize: 16,
@@ -1237,7 +1280,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 600,
     alignItems: 'center',
-    paddingTop: 20,
+    justifyContent: 'center',
+    paddingBottom: 40,
+    flex: 1,
     gap: 24,
   },
   summaryTitle: {
