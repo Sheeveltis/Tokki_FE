@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Pressable, Image, Platform, Animated } from 'react-native'
 import { normalizeImageSource } from '@tokki/app/features/study/api'
-import BunnyWithCarrot from 'assets/bunny/14.png'
 import BackgroundPattern from 'assets/background1.png'
 
 import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
@@ -12,7 +11,6 @@ import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
 export function TopikBanner({
   title,
   levelId,
-  bunnyImage = BunnyWithCarrot,
   backgroundPattern = BackgroundPattern,
   onPress,
   aimLevel,
@@ -84,11 +82,6 @@ export function TopikBanner({
 
       <View style={styles.content}>
         <View style={styles.leftSection}>
-          <Image
-            source={normalizeImageSource(bunnyImage)}
-            style={[styles.bunny, isHovered && { transform: [{ scale: 1.05 }] }]}
-            resizeMode="contain"
-          />
             <View style={styles.textContainer}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                 {renderTitle()}
@@ -176,11 +169,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 32,
-  },
-  bunny: {
-    width: 72,
-    height: 72,
-    ...(Platform.OS === 'web' && { transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }),
   },
   textContainer: {
     gap: 8,
