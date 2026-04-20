@@ -307,14 +307,11 @@ export function AlphabetStudyMain({
             ) : isDrawing ? (
               <View style={styles.drawingContainer}>
                 <View style={styles.drawingHeader}>
-                  <TouchableOpacity style={styles.backToDetailButton} onPress={() => setIsDrawing(false)}>
-                    <ArrowLeftOutlined />
-                    <Text style={styles.backToDetailText}>Quay lại</Text>
-                  </TouchableOpacity>
-                  <View style={styles.drawingTitleContainer}>
+                  <View style={styles.drawingTitleAbsolute}>
                     <Text style={styles.drawingTitle}>Tập vẽ chữ "{current?.word}"</Text>
                     <Text style={styles.strokeCountText}>Nét: {strokeCount}/{selectedStrokeData?.totalStrokes || 1}</Text>
                   </View>
+                  <View style={{ width: 40 }} /> {/* Left spacer */}
                   <CloseButton 
                     onPress={() => setIsModalVisible(false)}
                   />
@@ -364,13 +361,10 @@ export function AlphabetStudyMain({
             ) : isTyping ? (
               <View style={styles.drawingContainer}>
                 <View style={styles.drawingHeader}>
-                  <TouchableOpacity style={styles.backToDetailButton} onPress={() => setIsTyping(false)}>
-                    <ArrowLeftOutlined />
-                    <Text style={styles.backToDetailText}>Quay lại</Text>
-                  </TouchableOpacity>
-                  <View style={styles.drawingTitleContainer}>
+                  <View style={styles.drawingTitleAbsolute}>
                     <Text style={styles.drawingTitle}>Tập gõ chữ "{current?.word}"</Text>
                   </View>
+                  <View style={{ width: 40 }} /> {/* Left spacer */}
                   <CloseButton 
                     onPress={() => setIsModalVisible(false)}
                   />
@@ -386,19 +380,21 @@ export function AlphabetStudyMain({
             ) : (
               <View style={styles.drawingContainer}>
                 <View style={styles.drawingHeader}>
-                  <TouchableOpacity style={styles.backToDetailButton} onPress={() => { setIsModalVisible(false); setIsSentenceMode(false); }}>
-                    <ArrowLeftOutlined />
-                    <Text style={styles.backToDetailText}>Thoát</Text>
-                  </TouchableOpacity>
-                  <View style={styles.drawingTitleContainer}>
+                  <View style={styles.drawingTitleAbsolute}>
                     <Text style={styles.drawingTitle}>Luyện gõ câu ngẫu nhiên</Text>
                   </View>
-                  <TouchableOpacity 
-                    style={[styles.backToDetailButton, { backgroundColor: '#4CAF50' }]}
-                    onPress={handleNextSentence}
-                  >
-                    <Text style={[styles.backToDetailText, { color: '#fff' }]}>Câu tiếp</Text>
-                  </TouchableOpacity>
+                  <View style={{ width: 40 }} /> {/* Left spacer */}
+                  <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                    <TouchableOpacity 
+                      style={[styles.backToDetailButton, { backgroundColor: '#4CAF50' }]}
+                      onPress={handleNextSentence}
+                    >
+                      <Text style={[styles.backToDetailText, { color: '#fff' }]}>Câu tiếp</Text>
+                    </TouchableOpacity>
+                    <CloseButton 
+                      onPress={() => { setIsModalVisible(false); setIsSentenceMode(false); }}
+                    />
+                  </View>
                 </View>
 
                 <TypingPractice 
@@ -546,6 +542,14 @@ const styles = StyleSheet.create({
   },
   drawingTitleContainer: {
     alignItems: 'center',
+  },
+  drawingTitleAbsolute: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: -1,
   },
   backToDetailButton: {
     flexDirection: 'row',

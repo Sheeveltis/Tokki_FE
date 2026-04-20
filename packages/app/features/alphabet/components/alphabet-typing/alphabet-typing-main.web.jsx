@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native'
 import { NavigationPill } from '../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
@@ -12,6 +12,31 @@ import {
   InstructionsBox,
   PaginationControls,
 } from '../../api/alphabet-typing-index'
+
+const CloseButton = ({ onPress, style }) => {
+  const [isHovered, setIsHovered] = useState(false)
+  
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      {...(Platform.OS === 'web' && {
+        onMouseEnter: () => setIsHovered(true),
+        onMouseLeave: () => setIsHovered(false),
+      })}
+      style={[
+        styles.closeButton,
+        isHovered && styles.closeButtonHover,
+        style
+      ]}
+    >
+      <Text style={[
+        styles.closeButtonIcon,
+        isHovered && styles.closeButtonIconHover
+      ]}>✕</Text>
+    </TouchableOpacity>
+  )
+}
 
 /**
  * AlphabetTypingMain (Web): Nội dung chính của trang tập đánh chữ cái Hàn Quốc trên web
@@ -38,14 +63,7 @@ export function AlphabetTypingMain({
     <>
       {/* Header */}
       <View style={styles.header}>
-        <NavigationPill
-          label="Trở lại"
-          to={undefined}
-          icon={ArrowIcon}
-          iconStyle={{ transform: [{ scaleX: -1 }], tintColor: '#1A1A1A' }}
-          onPress={onBackPress}
-          textStyle={{ fontWeight: '700' }}
-        />
+        <View style={{ width: 40 }} /> {/* Spacer */}
         <View style={styles.headerRight}>
           {/* Help Icon */}
           <TouchableOpacity
@@ -56,6 +74,8 @@ export function AlphabetTypingMain({
           </TouchableOpacity>
           {/* Score */}
           <ScoreDisplay score={score} attempts={attempts} />
+          {/* Close Button */}
+          <CloseButton onPress={onBackPress} />
         </View>
       </View>
 
@@ -130,6 +150,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1F1F1F',
     fontFamily: 'Epilogue, sans-serif',
+  },
+  closeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  closeButtonHover: {
+    backgroundColor: '#FFEBEE',
+  },
+  closeButtonIcon: {
+    fontSize: 18,
+    color: '#666',
+    fontWeight: 'bold',
+  },
+  closeButtonIconHover: {
+    color: '#F44336',
   },
   instructionsContainer: {
     width: '100%',
