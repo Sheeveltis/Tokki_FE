@@ -2,14 +2,14 @@ import React, { useState, useRef, useEffect } from 'react'
 import { View, Text, StyleSheet, Platform, Modal, TouchableOpacity } from 'react-native'
 import { NavigationPill } from '../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
-import { 
-  SoundOutlined, 
-  EditOutlined, 
-  HighlightOutlined, 
-  PlayCircleOutlined, 
-  DeleteOutlined, 
-  UndoOutlined, 
-  ArrowLeftOutlined, 
+import {
+  SoundOutlined,
+  EditOutlined,
+  HighlightOutlined,
+  PlayCircleOutlined,
+  DeleteOutlined,
+  UndoOutlined,
+  ArrowLeftOutlined,
   TrophyOutlined,
   CloseOutlined
 } from '@ant-design/icons'
@@ -28,7 +28,7 @@ import ButtonUI2 from 'components/decor/buttonUI2'
  */
 const CloseButton = ({ onPress, style }) => {
   const [isHovered, setIsHovered] = useState(false)
-  
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -192,7 +192,7 @@ export function AlphabetStudyMain({
 
   const handleStroke = (path, isEraser) => {
     if (isEraser || !selectedStrokeData || !canvasSize.width || !canvasSize.height || !path || path.paths.length < 3) return
-    
+
     const expectedStrokes = selectedStrokeData.totalStrokes || selectedStrokeData.strokes?.length || 1
     if (finalScore !== null || strokeCount >= expectedStrokes) return
 
@@ -258,7 +258,7 @@ export function AlphabetStudyMain({
 
       {/* Alphabet Table view */}
       <View style={styles.tableContainer}>
-        <AlphabetTable 
+        <AlphabetTable
           data={data}
           onSelectLetter={handleSelectLetter}
         />
@@ -273,24 +273,24 @@ export function AlphabetStudyMain({
       >
         <View style={styles.modalOverlay}>
           <View style={[
-            styles.modalContent, 
+            styles.modalContent,
             (isDrawing || isTyping || isSentenceMode) && styles.modalContentDrawing
           ]}>
             {!isDrawing && !isTyping && !isSentenceMode ? (
               <>
-                <CloseButton 
-                  style={styles.modalCloseIcon} 
+                <CloseButton
+                  style={styles.modalCloseIcon}
                   onPress={() => setIsModalVisible(false)}
                 />
-                
+
                 {/* Display selected letter */}
                 {current && (
                   <View style={styles.wordInfoContainer}>
-                     <Text style={styles.koreanWord}>{current.word}</Text>
-                     <Text style={styles.meaningText}>{current.pronunciation || current.meaning}</Text>
-                     <TouchableOpacity onPress={handlePlaySound} style={styles.soundButton}>
-                       <SoundOutlined style={{ fontSize: 24, color: '#D32F2F' }} />
-                     </TouchableOpacity>
+                    <Text style={styles.koreanWord}>{current.word}</Text>
+                    <Text style={styles.meaningText}>{current.pronunciation || current.meaning}</Text>
+                    <TouchableOpacity onPress={handlePlaySound} style={styles.soundButton}>
+                      <SoundOutlined style={{ fontSize: 24, color: '#D32F2F' }} />
+                    </TouchableOpacity>
                   </View>
                 )}
 
@@ -312,7 +312,7 @@ export function AlphabetStudyMain({
                     <Text style={styles.strokeCountText}>Nét: {strokeCount}/{selectedStrokeData?.totalStrokes || 1}</Text>
                   </View>
                   <View style={{ width: 40 }} /> {/* Left spacer */}
-                  <CloseButton 
+                  <CloseButton
                     onPress={() => setIsModalVisible(false)}
                   />
                 </View>
@@ -330,12 +330,12 @@ export function AlphabetStudyMain({
                   <ReactSketchCanvas
                     ref={canvasRef}
                     style={styles.canvas}
-                    strokeWidth={16}
+                    strokeWidth={12}
                     strokeColor="#000"
                     canvasColor="transparent"
                     onStroke={handleStroke}
                   />
-                  
+
                   {finalScore !== null && (
                     <View style={styles.scoreOverlay}>
                       <TrophyOutlined style={styles.scoreIcon} />
@@ -348,13 +348,9 @@ export function AlphabetStudyMain({
                 </View>
 
                 <View style={styles.drawingActions}>
-                  <TouchableOpacity style={styles.drawingActionButton} onPress={handleUndo}>
-                    <UndoOutlined />
-                    <Text>Hoàn tác</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.drawingActionButton, styles.clearBtn]} onPress={handleClear}>
-                    <DeleteOutlined />
-                    <Text>Xoá tất cả</Text>
+                  <TouchableOpacity style={styles.tryAgainButton} onPress={handleClear}>
+                    <UndoOutlined style={{ fontSize: 20 }} />
+                    <Text style={styles.tryAgainText}>Thử lại</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -365,16 +361,16 @@ export function AlphabetStudyMain({
                     <Text style={styles.drawingTitle}>Tập gõ chữ "{current?.word}"</Text>
                   </View>
                   <View style={{ width: 40 }} /> {/* Left spacer */}
-                  <CloseButton 
+                  <CloseButton
                     onPress={() => setIsModalVisible(false)}
                   />
                 </View>
 
-                <TypingPractice 
-                  targetWord={current?.word} 
+                <TypingPractice
+                  targetWord={current?.word}
                   onComplete={() => {
                     // Could add a completion message or effect
-                  }} 
+                  }}
                 />
               </View>
             ) : (
@@ -385,21 +381,21 @@ export function AlphabetStudyMain({
                   </View>
                   <View style={{ width: 40 }} /> {/* Left spacer */}
                   <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={[styles.backToDetailButton, { backgroundColor: '#4CAF50' }]}
                       onPress={handleNextSentence}
                     >
                       <Text style={[styles.backToDetailText, { color: '#fff' }]}>Câu tiếp</Text>
                     </TouchableOpacity>
-                    <CloseButton 
+                    <CloseButton
                       onPress={() => { setIsModalVisible(false); setIsSentenceMode(false); }}
                     />
                   </View>
                 </View>
 
-                <TypingPractice 
-                  targetWord={currentSentence} 
-                  onComplete={handleNextSentence} 
+                <TypingPractice
+                  targetWord={currentSentence}
+                  onComplete={handleNextSentence}
                 />
               </View>
             )}
@@ -575,6 +571,7 @@ const styles = StyleSheet.create({
   },
   canvasBox: {
     width: '100%',
+    maxWidth: 600,
     aspectRatio: 1,
     backgroundColor: '#fff',
     borderRadius: 16,
@@ -582,6 +579,7 @@ const styles = StyleSheet.create({
     borderColor: '#eee',
     position: 'relative',
     overflow: 'hidden',
+    alignSelf: 'center',
   },
   canvas: {
     flex: 1,
@@ -616,22 +614,30 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   drawingActions: {
-    flexDirection: 'row',
-    gap: 16,
     width: '100%',
+    flexDirection: 'row',
     justifyContent: 'center',
+    gap: 16,
   },
-  drawingActionButton: {
+  tryAgainButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
     paddingVertical: 12,
-    paddingHorizontal: 20,
-    backgroundColor: '#f1f1f1',
-    borderRadius: 12,
+    paddingHorizontal: 32,
+    backgroundColor: '#F1BE4B',
+    borderRadius: 99,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    cursor: 'pointer',
   },
-  clearBtn: {
-    backgroundColor: '#FFF0F0',
+  tryAgainText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1A1A1A',
   },
 })
 
