@@ -35,7 +35,7 @@ if (Platform.OS !== 'web') {
 import { TextInput } from '../../../../../components/textInput'
 import { Button } from '../../../../../components/button'
 import { loginUser, loginWithGoogle, checkDailyTitles, addXP } from '../../api'
-import { setAuthToken, clearAuthToken } from '../../../../provider/api/client'
+import { setAuthToken, clearAuthToken, setCurrentUserAvatar } from '../../../../provider/api/client'
 import { heartbeatService } from '../shared/heartbeat-service'
 import { showApiNotification } from '../../utils/notification'
 import { encryptToken, decryptToken } from '../../../../helpers/token-encryption'
@@ -214,11 +214,8 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
           await removeStorageItem('rememberedPassword')
         }
 
-        // TODO: Lưu thông tin user vào context / storage nếu cần
-        if (avatarUrl) {
-          await setStorageItem('avatarUrl', avatarUrl)
-          dispatchStorageEvent('avatar-changed')
-        }
+        // Luôn cập nhật avatar (hoặc xóa avatar cũ nếu avatarUrl null)
+        await setCurrentUserAvatar(avatarUrl)
 
         // console.log('Đăng nhập thành công:', {
         //   token,
@@ -368,10 +365,8 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
 
               await setAuthToken(token)
 
-              if (avatarUrl) {
-                await setStorageItem('avatarUrl', avatarUrl)
-                dispatchStorageEvent('avatar-changed')
-              }
+              // Luôn cập nhật avatar
+              await setCurrentUserAvatar(avatarUrl)
               
               heartbeatService.start()
 

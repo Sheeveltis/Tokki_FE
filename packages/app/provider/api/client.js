@@ -47,17 +47,28 @@ export const setAuthToken = async (token) => {
   dispatchStorageEvent('token-changed')
 }
 
+export const setCurrentUserAvatar = async (avatarUrl) => {
+  const value = avatarUrl === 'default-avatar' || !avatarUrl ? null : avatarUrl
+  inMemoryAvatar = value
+  avatarCache = value
+  
+  if (value) {
+    await setStorageItem(AVATAR_KEY, value)
+  } else {
+    await removeStorageItem(AVATAR_KEY)
+  }
+  
+  if (Platform.OS === 'web') {
+    dispatchStorageEvent('avatar-changed')
+  }
+}
+
 // THAY ĐỔI: Thêm async/await để đảm bảo dọn dẹp xong mới đi tiếp
 export const clearAuthToken = async () => {
   inMemoryToken = null
   storageCache = null
-  inMemoryAvatar = null
-  avatarCache = null
   await setAuthToken(null)
-  await removeStorageItem(AVATAR_KEY)
-  if (Platform.OS === 'web') {
-    dispatchStorageEvent('avatar-changed')
-  }
+  await setCurrentUserAvatar(null)
 }
 
 // Kiểm tra nhanh xem token có đúng định dạng JWT không (bắt đầu bằng eyJ)

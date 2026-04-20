@@ -7,7 +7,7 @@ import { CheckOutlined } from '@ant-design/icons'
 import { TextInput } from '../../../../../components/textInput'
 import { Button } from '../../../../../components/button'
 import { loginAdmin } from '../../api'
-import { setAuthToken, clearAuthToken } from '../../../../provider/api/client'
+import { setAuthToken, clearAuthToken, setCurrentUserAvatar } from '../../../../provider/api/client'
 import { encryptToken, decryptToken } from '../../../../helpers/token-encryption'
 import { setStorageItem, getStorageItem, removeStorageItem, dispatchStorageEvent } from '../../../../helpers/storage'
 import { HelperAdmin } from '../../../../../components/HelperAdmin'
@@ -133,13 +133,8 @@ export function AdminLoginForm() {
           // Lưu token để dùng cho các request authorize
           await setAuthToken(token)
 
-          if (avatarUrl) {
-            await setStorageItem('avatarUrl', avatarUrl)
-            // Admin form usually on web, dispatch event
-            if (Platform.OS === 'web') {
-              dispatchStorageEvent('avatar-changed')
-            }
-          }
+          // Luôn cập nhật avatar
+          await setCurrentUserAvatar(avatarUrl)
   
           // Lưu hoặc xóa thông tin ghi nhớ đăng nhập
           if (rememberMe) {
