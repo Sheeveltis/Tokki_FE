@@ -6,6 +6,8 @@ import { normalizeImageSource } from '../../../study/api'
 import BunnyStudy from '../../../../../assets/bunny/14.png'
 import LightbulbIcon from '../../../../../assets/icon/icon-roadmap/lightbulb-minimalistic-svgrepo-com.svg'
 import FolderIcon from '../../../../../assets/icon/icon-mainflow/folder.svg'
+import LockIcon from '../../../../../assets/icon/icon-mainflow/lock.svg'
+
 
 // Helper function để render icon - hỗ trợ cả SVG component và Image source
 const renderIcon = (icon, style, resizeMode = 'contain') => {
@@ -119,7 +121,12 @@ export function AlphabetSelectModeMain({
                   <Text style={[styles.moduleTitle, { color: mode.primaryColor }]}>{mode.title}</Text>
                   <Text style={styles.modeDescription}>{mode.description}</Text>
                 </View>
-                {!mode.isComingSoon && renderIcon(ArrowIcon, { width: 16, height: 16, tintColor: mode.primaryColor, opacity: 0.4 })}
+                {mode.isComingSoon ? (
+                  renderIcon(LockIcon, { width: 16, height: 16, tintColor: '#999' })
+                ) : (
+                  renderIcon(ArrowIcon, { width: 16, height: 16, tintColor: mode.primaryColor, opacity: 0.4 })
+                )}
+
               </View>
 
               <View style={styles.cardFooter}>
