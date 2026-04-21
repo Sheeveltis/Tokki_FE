@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { View, StyleSheet, Text, TouchableOpacity, TextInput, Platform, Modal, Image as RNImage, Animated } from 'react-native'
 import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
 import { normalizeImageSource } from '@tokki/app/features/study/api'
@@ -40,6 +40,26 @@ const CloseButton = ({ onPress, style }) => {
   )
 }
 
+const CORRECT_MESSAGES = [
+  'Bạn giỏi quá!',
+  'Xuất sắc!',
+  'Đỉnh cao luôn!',
+  'Thật là tuyệt vời!',
+  'Tuyệt vời quá!',
+  'Bạn làm tốt lắm!',
+  'Làm tốt lắm!',
+]
+
+const WRONG_MESSAGES = [
+  'Cố lên!',
+  'Ai cũng có lần đầu mà!',
+  'Đừng bỏ cuộc!',
+  'Lần sau sẽ đúng thôi!',
+  'Học từ cái sai nhé!',
+  'Tiếp tục cố gắng nào!',
+  'Sai một chút không sao!',
+]
+
 export function FlashcardFirstLearnMain({
   title,
   current,
@@ -70,6 +90,17 @@ export function FlashcardFirstLearnMain({
   completedInBatch = 0,
   batchSize = 5,
 }) {
+  const [randomMessage, setRandomMessage] = useState('')
+  const [isNextHovered, setIsNextHovered] = useState(false)
+
+  useEffect(() => {
+    if (showResult) {
+      const messages = isCorrect ? CORRECT_MESSAGES : WRONG_MESSAGES
+      const randomIndex = Math.floor(Math.random() * messages.length)
+      setRandomMessage(messages[randomIndex])
+    }
+  }, [showResult, isCorrect])
+
   // Phím tắt Enter để tiếp tục (web only)
   useEffect(() => {
     if (Platform.OS !== 'web') return
@@ -362,12 +393,24 @@ export function FlashcardFirstLearnMain({
 
         {(currentStepKey === 'view' || showResult) && (
           <TouchableOpacity
-            style={[styles.nextButton, !canContinue && styles.nextButtonDisabled]}
+            style={[
+              styles.nextButton,
+              !canContinue && styles.nextButtonDisabled,
+              showResult && isCorrect && styles.nextButtonCorrect,
+              showResult && !isCorrect && styles.nextButtonWrong,
+              isNextHovered && canContinue && styles.nextButtonHover,
+            ]}
             onPress={onContinue}
             disabled={!canContinue}
+            {...(Platform.OS === 'web' && {
+              onMouseEnter: () => setIsNextHovered(true),
+              onMouseLeave: () => setIsNextHovered(false),
+            })}
           >
             <Text style={styles.nextText}>
-              {currentStepKey === 'meaning' && showResult && currentIndex + 1 === total ? 'Hoàn thành' : 'Tiếp tục'}
+              {currentStepKey === 'meaning' && showResult && currentIndex + 1 === total
+                ? 'Hoàn thành'
+                : (showResult ? (randomMessage || 'Tiếp tục') : 'Tiếp tục')}
             </Text>
           </TouchableOpacity>
         )}
@@ -742,8 +785,21 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 18,
     borderRadius: 14,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#F1BE4B',
     ...(Platform.OS === 'web' && { cursor: 'pointer' }),
+  },
+  nextButtonCorrect: {
+    backgroundColor: '#2FB96B',
+  },
+  nextButtonWrong: {
+    backgroundColor: '#CF4B4B',
+  },
+  nextButtonHover: {
+    ...(Platform.OS === 'web' && {
+      transform: 'scale(1.05)',
+      filter: 'brightness(1.1)',
+      boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
+    }),
   },
   nextButtonDisabled: {
     opacity: 0.6,

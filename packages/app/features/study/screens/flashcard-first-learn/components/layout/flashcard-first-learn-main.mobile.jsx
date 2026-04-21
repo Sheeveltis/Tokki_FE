@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image, Modal, Dimensions, Platform, Animated } from 'react-native'
 import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
@@ -94,6 +94,26 @@ const CloseButton = ({ onPress, style }) => {
   )
 }
 
+const CORRECT_MESSAGES = [
+  'Bạn giỏi quá!',
+  'Xuất sắc!',
+  'Đỉnh cao luôn!',
+  'Thật là tuyệt vời!',
+  'Tuyệt vời quá!',
+  'Bạn làm tốt lắm!',
+  'Làm tốt lắm!',
+]
+
+const WRONG_MESSAGES = [
+  'Cố lên!',
+  'Ai cũng có lần đầu mà!',
+  'Đừng bỏ cuộc!',
+  'Lần sau sẽ đúng thôi!',
+  'Học từ cái sai nhé!',
+  'Tiếp tục cố gắng nào!',
+  'Sai một chút không sao!',
+]
+
 export function FlashcardFirstLearnMain({
   title,
   current,
@@ -124,6 +144,16 @@ export function FlashcardFirstLearnMain({
   completedInBatch = 0,
   batchSize = 5,
 }) {
+  const [randomMessage, setRandomMessage] = useState('')
+
+  useEffect(() => {
+    if (showResult) {
+      const messages = isCorrect ? CORRECT_MESSAGES : WRONG_MESSAGES
+      const randomIndex = Math.floor(Math.random() * messages.length)
+      setRandomMessage(messages[randomIndex])
+    }
+  }, [showResult, isCorrect])
+
   // SFX đúng/sai sau khi bấm "Kiểm tra" (chỉ bước 2 & 3, mobile)
   const lastSfxKeyRef = useRef('')
   const lastIsCorrectRef = useRef(null)
@@ -611,12 +641,19 @@ export function FlashcardFirstLearnMain({
 
       {(currentStepKey === 'view' || showResult) && (
         <TouchableOpacity
-          style={[styles.nextButton, !canContinue && styles.nextButtonDisabled]}
+          style={[
+            styles.nextButton,
+            !canContinue && styles.nextButtonDisabled,
+            showResult && isCorrect && styles.nextButtonCorrect,
+            showResult && !isCorrect && styles.nextButtonWrong,
+          ]}
           onPress={onContinue}
           disabled={!canContinue}
         >
           <Text style={styles.nextText}>
-            {currentStepKey === 'meaning' && showResult && currentIndex + 1 === total ? 'Hoàn thành' : 'Tiếp tục'}
+            {currentStepKey === 'meaning' && showResult && currentIndex + 1 === total
+              ? 'Hoàn thành'
+              : (showResult ? (randomMessage || 'Tiếp tục') : 'Tiếp tục')}
           </Text>
         </TouchableOpacity>
       )}
@@ -925,10 +962,16 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#F1BE4B',
     alignSelf: 'center',
     minWidth: 200,
     alignItems: 'center',
+  },
+  nextButtonCorrect: {
+    backgroundColor: '#23ac38',
+  },
+  nextButtonWrong: {
+    backgroundColor: '#eb5757',
   },
   nextButtonDisabled: {
     opacity: 0.6,
