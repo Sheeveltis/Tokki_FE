@@ -168,15 +168,12 @@ const loginInternal = async ({ email, password, rememberMe = false, endpoint }) 
       }
     }
 
-    // Gọi API
-    console.log('[Login API] Calling:', endpoint)
-    console.log('[Login API] Payload:', { email, password: '***', rememberMe })
     const response = await apiClient.post(endpoint, {
       email,
       password,
       rememberMe,
     })
-    console.log('[Login API] Response:', response.data)
+    // console.log('[Login API] Response:', response.data)
 
     // Trả về response từ API (đã được format sẵn)
     return response.data
@@ -185,7 +182,7 @@ const loginInternal = async ({ email, password, rememberMe = false, endpoint }) 
     console.error('[Login API] Error response:', error.response)
     console.error('[Login API] Error status:', error.response?.status)
     console.error('[Login API] Error data:', error.response?.data)
-    
+
     // Nếu backend có trả về body chuẩn thì ưu tiên dùng luôn
     if (error.response?.data) {
       return error.response.data
@@ -365,12 +362,12 @@ export const sendHeartbeat = async (userId, durationInSeconds = 300) => {
       return { isSuccess: false, message: 'UserId không được để trống' }
     }
 
-    console.log('[Heartbeat API] Đang gửi heartbeat:', { userId, durationInSeconds, endpoint: ENDPOINTS.GAMIFICATION.HEARTBEAT })
+    // console.log('[Heartbeat API] Đang gửi heartbeat:', { userId, durationInSeconds, endpoint: ENDPOINTS.GAMIFICATION.HEARTBEAT })
     const response = await apiClient.post(ENDPOINTS.GAMIFICATION.HEARTBEAT, {
       userId,
       durationInSeconds,
     })
-    console.log('[Heartbeat API] Heartbeat đã được gửi thành công:', response.data)
+    // console.log('[Heartbeat API] Heartbeat đã được gửi thành công:', response.data)
     return response.data
   } catch (error) {
     // Không throw error để tránh làm gián đoạn flow chính
@@ -389,9 +386,9 @@ export const sendHeartbeat = async (userId, durationInSeconds = 300) => {
  */
 export const checkDailyTitles = async () => {
   try {
-    console.log('[Title API] Đang kiểm tra danh hiệu hàng ngày:', { endpoint: ENDPOINTS.TITLE.CHECK_DAILY_TITLES })
+    // console.log('[Title API] Đang kiểm tra danh hiệu hàng ngày:', { endpoint: ENDPOINTS.TITLE.CHECK_DAILY_TITLES })
     const response = await apiClient.post(ENDPOINTS.TITLE.CHECK_DAILY_TITLES, {})
-    console.log('[Title API] Kết quả kiểm tra danh hiệu:', response.data)
+    // console.log('[Title API] Kết quả kiểm tra danh hiệu:', response.data)
     return response.data
   } catch (error) {
     console.error('Error checking daily titles:', error)
@@ -413,12 +410,12 @@ export const checkDailyTitles = async () => {
  */
 export const addXP = async ({ amount, source }) => {
   try {
-    console.log('[XP API] Đang cộng XP:', { amount, source, endpoint: ENDPOINTS.GAMIFICATION.ADD_XP })
+    // console.log('[XP API] Đang cộng XP:', { amount, source, endpoint: ENDPOINTS.GAMIFICATION.ADD_XP })
     const response = await apiClient.post(ENDPOINTS.GAMIFICATION.ADD_XP, {
       amount,
       source,
     })
-    console.log('[XP API] Kết quả cộng XP:', response.data)
+    // console.log('[XP API] Kết quả cộng XP:', response.data)
     return response.data
   } catch (error) {
     console.error('Error adding XP:', error)

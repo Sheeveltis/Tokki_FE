@@ -4,6 +4,7 @@ import { Image, StyleSheet, View, ScrollView } from 'react-native'
 import { Navbar } from '../../../../../components/navbar'
 import BunnyImage from '../../../../../assets/bunny/1.png'
 import { RoadmapInfo } from './roadmap-info'
+import ButtonUI from '../../../../../components/decor/buttonUI'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -23,7 +24,11 @@ export function RoadmapInfoLayout({ onStart, initialLevel }) {
         </View>
 
         <View style={styles.infoSection}>
-          <RoadmapInfo onStart={onStart} initialLevel={initialLevel} />
+          <RoadmapInfo
+            onStart={onStart}
+            initialLevel={initialLevel}
+            startButton={(onPress) => <ButtonUI onClick={onPress}>Bắt đầu ngay</ButtonUI>}
+          />
         </View>
       </View>
     </ScrollView>
@@ -36,18 +41,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAF9F6', // More sophisticated off-white
   },
   scrollContent: {
-    paddingTop: 40,
-    paddingBottom: 80,
+    paddingTop: 20,
+    paddingBottom: 20,
     paddingHorizontal: 20,
     alignItems: 'center',
-    minHeight: '100vh',
   },
 
   contentRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 80,
+    gap: 60,
     maxWidth: 1400,
     width: '100%',
     // paddingVertical: 60,

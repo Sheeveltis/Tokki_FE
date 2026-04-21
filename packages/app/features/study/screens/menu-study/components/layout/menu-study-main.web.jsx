@@ -33,7 +33,8 @@ import {
 } from '@ant-design/icons'
 import { SKILL_MODULES } from '@tokki/app/features/study/mockData'
 import { LoginRequest } from 'components/loginRequest'
-import BunnyDecoration from 'assets/bunny/12.png'
+import ButtonUI1 from 'components/decor/buttonUI1'
+
 
 const { Title, Text } = Typography
 
@@ -250,12 +251,9 @@ export function MenuStudyMain({
           {/* Banner Section */}
           <section className="main-banner">
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '24px', position: 'relative', zIndex: 1, width: '100%' }}>
-              <div style={{ flex: 1, minWidth: '300px' }}>
+              <div style={{ flex: 1, minWidth: '300px', position: 'relative', zIndex: 2 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px', marginBottom: '24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div className="banner-mascot">
-                      <img src="https://api.dicebear.com/7.x/bottts/svg?seed=bunny" style={{ width: 32, height: 32 }} alt="Mascot" />
-                    </div>
                     <div>
                       <Title level={4} style={{ margin: 0, textTransform: 'uppercase', fontWeight: 900, color: '#1E293B', fontSize: '18px' }}>
                         {hasRoadmap ? `Lộ trình tuần ${roadmapData.weekIndex}` : 'Chưa có lộ trình học'}
@@ -266,9 +264,9 @@ export function MenuStudyMain({
                     </div>
                   </div>
 
-                  <Button className="learn-now-btn" onClick={() => onTopikRoadmapPress?.(levelId)}>
-                    {hasRoadmap ? 'HỌC NGAY' : 'TẠO LỘ TRÌNH HỌC NGAY'} <RightOutlined style={{ fontSize: 14 }} />
-                  </Button>
+                  <ButtonUI1 onClick={() => onTopikRoadmapPress?.(levelId)}>
+                    {hasRoadmap ? 'HỌC NGAY' : 'TẠO LỘ TRÌNH'}
+                  </ButtonUI1>
                 </div>
 
                 {hasRoadmap && (
@@ -282,28 +280,25 @@ export function MenuStudyMain({
                       </div>
                       <Text style={{ fontSize: '16px', fontWeight: 900, color: '#FFB300' }}>{progressPercent}%</Text>
                     </div>
-                    <Progress 
-                      percent={progressPercent} 
-                      strokeColor={{ '0%': '#FFD54F', '100%': '#FFB300' }} 
-                      showInfo={false} 
-                      strokeWidth={12} 
-                      strokeLinecap="round" 
+                    <Progress
+                      percent={progressPercent}
+                      strokeColor={{ '0%': '#FFD54F', '100%': '#FFB300' }}
+                      showInfo={false}
+                      strokeWidth={12}
+                      strokeLinecap="round"
                     />
                   </div>
                 )}
 
                 {!hasRoadmap && (
-                  <div style={{ marginBottom: '24px' }}>
-                    <Text style={{ color: '#64748B', display: 'block', maxWidth: '400px' }}>
+                  <div>
+                    <Text style={{ color: '#64748B', maxWidth: '400px' }}>
                       AI sẽ giúp bạn thiết kế một lộ trình học tập tối ưu, phù hợp với trình độ và mục tiêu riêng của bạn.
                     </Text>
                   </div>
                 )}
               </div>
 
-              <div className="banner-decoration" style={{ opacity: 0.15, position: 'absolute', right: 0, bottom: -10, pointerEvents: 'none' }}>
-                <img src={BunnyDecoration?.src || BunnyDecoration} style={{ width: 140, height: 140, objectFit: 'contain' }} alt="" />
-              </div>
             </div>
           </section>
 

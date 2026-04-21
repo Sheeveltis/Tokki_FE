@@ -25,10 +25,13 @@ export function RoadmapGenerateLayout({
   isGeneratingRoadmap = false,
   generateError = null,
   progressData = null,
+  isEntrance = false,
+  selfDeclaredLevel = 0,
 }) {
   const router = useRouter()
   const [selectedDuration, setSelectedDuration] = useState(null)
   const [expandedSection, setExpandedSection] = useState(null)
+  const [confirmBackVisible, setConfirmBackVisible] = useState(false)
 
   const [detailModalVisible, setDetailModalVisible] = useState(false)
   const [detailSection, setDetailSection] = useState(null)
@@ -99,7 +102,15 @@ export function RoadmapGenerateLayout({
     })
   }
 
+  const handleBack = () => {
+    setConfirmBackVisible(true)
+  }
 
+  const confirmNavigateBack = () => {
+    setConfirmBackVisible(false)
+    const query = `userExamId=${encodeURIComponent(userExamId)}&level=${level}&isEntrance=${isEntrance ? '1' : '0'}&selfDeclaredLevel=${selfDeclaredLevel}`
+    router.push(`/roadmap/test/result?${query}`)
+  }
 
   return (
     <View style={styles.wrapper}>
@@ -110,7 +121,7 @@ export function RoadmapGenerateLayout({
               label="Quay lại"
               to={undefined}
               icon={ArrowIcon}
-              onPress={() => router.push(`/roadmap/test/result?userExamId=${encodeURIComponent(userExamId)}`)}
+              onPress={handleBack}
               textStyle={{ fontWeight: '700' }}
               iconStyle={{ transform: [{ scaleX: -1 }] }}
             />
@@ -277,6 +288,37 @@ export function RoadmapGenerateLayout({
             <View style={styles.progressFooter}>
               <Text style={styles.progressPercent}>{progressData?.percent || 0}%</Text>
               <Text style={styles.progressNote}>Có thể mất khoảng 1 phút. Vui lòng không đóng trang này.</Text>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Confirmation Modal for Back */}
+      <Modal
+        visible={confirmBackVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConfirmBackVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmModal}>
+            <Text style={styles.confirmTitle}>Dừng tạo lộ trình?</Text>
+            <Text style={styles.confirmMessage}>
+              Bạn có chắc chắn muốn ngưng tạo lộ trình học tập không? Các thông tin đề xuất sẽ không được lưu lại.
+            </Text>
+            <View style={styles.confirmActions}>
+              <Pressable
+                onPress={() => setConfirmBackVisible(false)}
+                style={styles.cancelBtn}
+              >
+                <Text style={styles.cancelBtnText}>Tiếp tục</Text>
+              </Pressable>
+              <Pressable
+                onPress={confirmNavigateBack}
+                style={styles.confirmBtn}
+              >
+                <Text style={styles.confirmBtnText}>Dừng tạo</Text>
+              </Pressable>
             </View>
           </View>
         </View>
@@ -673,5 +715,58 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '500',
     fontStyle: 'italic',
+  },
+  confirmModal: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 32,
+    padding: 32,
+    width: '100%',
+    maxWidth: 440,
+    alignItems: 'center',
+    gap: 20,
+    boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+  },
+  confirmTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+  },
+  confirmMessage: {
+    fontSize: 15,
+    color: '#666',
+    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  confirmActions: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  cancelBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+  },
+  cancelBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#666',
+  },
+  confirmBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: '#F1BE4B',
+    alignItems: 'center',
+  },
+  confirmBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 })

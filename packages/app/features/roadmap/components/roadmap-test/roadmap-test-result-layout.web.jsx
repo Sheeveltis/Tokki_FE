@@ -172,6 +172,7 @@ export function RoadmapTestResultLayout({
   isGraded = false,
   gradingProgress = null,
   isEntrance = false,
+  isRoadmapTask = false,
   onNavigateToGenerate,
 }) {
   const router = useRouter()
@@ -332,6 +333,20 @@ export function RoadmapTestResultLayout({
                 textStyle={styles.actionButtonPrimaryText}
               />
             )}
+            {!isEntrance && isRoadmapTask && (
+              <RoadmapTestButton
+                title={isGraded ? 'Quay lại lộ trình' : 'Đang chờ chấm điểm...'}
+                onPress={() => router.push('/roadmap/learning')}
+                disabled={!isGraded}
+                style={[
+                  styles.actionButton,
+                  styles.actionButtonPrimary,
+                  !isGraded && styles.actionButtonDisabled,
+                ]}
+                hoverStyle={!isGraded ? null : styles.actionButtonPrimaryHover}
+                textStyle={styles.actionButtonPrimaryText}
+              />
+            )}
             <View style={styles.secondaryActionsRow}>
               <RoadmapTestButton
                 title="Quay lại trang chủ"
@@ -383,7 +398,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
     paddingHorizontal: 24,
     alignItems: 'center',
-    paddingBottom: 100,
+    paddingBottom: 60,
   },
   backButtonContainer: {
     alignSelf: 'flex-start',
@@ -392,7 +407,7 @@ const styles = StyleSheet.create({
   content: {
     width: '100%',
     maxWidth: 1200,
-    gap: 32,
+    gap: 24,
   },
   centerContent: {
     flex: 1,
@@ -724,7 +739,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 16,
     alignItems: 'center',
-    marginTop: 40,
+    marginTop: 0,
   },
   secondaryActionsRow: {
     flexDirection: 'row',

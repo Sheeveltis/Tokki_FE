@@ -109,6 +109,17 @@ export const getBlogUserDetail = async (id) => {
 }
 
 /**
+ * Lấy chi tiết blog cho admin
+ */
+export const getBlogAdminDetail = async (id) => {
+  // Admin có thể dùng chung getBlogById hoặc một endpoint riêng nếu có
+  // Ở đây chúng ta dùng getBlogById ( /Blog/{id} )
+  const res = await apiClient.get(ENDPOINTS.BLOG.GET_BY_ID(id))
+  const response = res.data
+  return parseBlogDetailResponse(response)
+}
+
+/**
  * Lấy blog theo slug
  * Tự động extract ID từ slug (phần cuối cùng) và gọi getBlogById
  * @param {string} slug - Slug của blog (ví dụ: "10-quy-tac-bat-di-bat-dich-abc123")
@@ -344,6 +355,22 @@ export const saveBlog = async (payload) => {
  */
 export const submitBlogForApproval = async (blogId) => {
   const res = await apiClient.post(ENDPOINTS.BLOG.USER_SUBMIT_APPROVAL(blogId))
+  return res.data
+}
+
+/**
+ * Lưu bài viết (Tạo mới hoặc cập nhật - dành cho Admin)
+ */
+export const saveBlogAdmin = async (payload) => {
+  const res = await apiClient.post(ENDPOINTS.BLOG.ADMIN_SAVE, payload)
+  return res.data
+}
+
+/**
+ * Gửi duyệt bài viết (Dành cho Admin)
+ */
+export const submitBlogForApprovalAdmin = async (blogId) => {
+  const res = await apiClient.post(ENDPOINTS.BLOG.ADMIN_SUBMIT_APPROVAL(blogId))
   return res.data
 }
 

@@ -267,6 +267,7 @@ export function RoadmapTestResultScreen() {
       isGraded={isGraded}
       gradingProgress={gradingProgress}
       isEntrance={isEntrance}
+      isRoadmapTask={!!taskId}
       onNavigateToGenerate={() => {
         const query = `userExamId=${encodeURIComponent(userExamId)}&level=${targetAim}&selfDeclaredLevel=${selfDeclaredLevel}&isEntrance=1`
         router.push(`/roadmap/test/result/generate?${query}`)

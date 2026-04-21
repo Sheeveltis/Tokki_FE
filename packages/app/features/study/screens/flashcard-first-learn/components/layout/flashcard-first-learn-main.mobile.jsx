@@ -76,6 +76,24 @@ if (Platform.OS !== 'web') {
   }
 }
 
+/**
+ * CloseButton: Nút X
+ */
+const CloseButton = ({ onPress, style }) => {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      style={[
+        styles.closeButton,
+        style
+      ]}
+    >
+      <Text style={styles.closeButtonIcon}>✕</Text>
+    </TouchableOpacity>
+  )
+}
+
 export function FlashcardFirstLearnMain({
   title,
   current,
@@ -532,14 +550,8 @@ export function FlashcardFirstLearnMain({
   if (error && (!current || total === 0)) {
     return (
       <>
-        <View style={styles.headerTop}>
-          <NavigationPill
-            label="Quay lại"
-            icon={ArrowIcon}
-            iconStyle={{ transform: [{ scaleX: -1 }] }}
-            onPress={onBackPress}
-            textStyle={{ fontWeight: '700' }}
-          />
+        <View style={styles.headerRow}>
+          <CloseButton onPress={onBackPress} style={styles.absoluteCloseButton} />
         </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
@@ -556,14 +568,8 @@ export function FlashcardFirstLearnMain({
     if (allWordsCompleted) {
       return (
         <>
-          <View style={styles.headerTop}>
-            <NavigationPill
-              label="Quay lại"
-              icon={ArrowIcon}
-              iconStyle={{ transform: [{ scaleX: -1 }] }}
-              onPress={onBackPress}
-              textStyle={{ fontWeight: '700' }}
-            />
+          <View style={styles.headerRow}>
+            <CloseButton onPress={onBackPress} style={styles.absoluteCloseButton} />
           </View>
           <View style={styles.emptyContainer}>
             <Text style={styles.completedText}>Bạn đã học hết từ vựng!</Text>
@@ -575,14 +581,8 @@ export function FlashcardFirstLearnMain({
 
     return (
       <>
-        <View style={styles.headerTop}>
-          <NavigationPill
-            label="Quay lại"
-            icon={ArrowIcon}
-            iconStyle={{ transform: [{ scaleX: -1 }] }}
-            onPress={onBackPress}
-            textStyle={{ fontWeight: '700' }}
-          />
+        <View style={styles.headerRow}>
+          <CloseButton onPress={onBackPress} style={styles.absoluteCloseButton} />
         </View>
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>Chưa có từ vựng nào</Text>
@@ -593,23 +593,16 @@ export function FlashcardFirstLearnMain({
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerTop}>
-        <NavigationPill
-          label="Quay lại"
-          icon={ArrowIcon}
-          iconStyle={{ transform: [{ scaleX: -1 }] }}
-          onPress={onBackPress}
-          textStyle={{ fontWeight: '700' }}
-        />
-      </View>
-
-      <View style={styles.progressBarContainer}>
-        <View style={styles.progressBar}>
-          <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
+      <View style={styles.headerRow}>
+        <View style={styles.headerProgressSection}>
+          <View style={styles.progressBar}>
+            <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
+          </View>
+          <Text style={styles.progressText}>
+            Tiến độ hoàn thành: <Text style={{ color: '#1A1A1A', fontWeight: '900' }}>{progress}%</Text>
+          </Text>
         </View>
-        <Text style={styles.progressText}>
-          Tiến độ hoàn thành: <Text style={{ color: '#1A1A1A', fontWeight: '900' }}>{progress}%</Text>
-        </Text>
+        <CloseButton onPress={onBackPress} style={styles.absoluteCloseButton} />
       </View>
 
       <View style={styles.stepContainer}>
@@ -699,15 +692,52 @@ const styles = StyleSheet.create({
     width: '100%',
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 16,
     paddingHorizontal: 16,
     minHeight: 0,
   },
   progressText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: '#999',
     fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+  },
+  headerRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    marginBottom: 10,
+    position: 'relative',
+    minHeight: 50,
+  },
+  headerProgressSection: {
+    width: '100%',
+    maxWidth: 300,
+    gap: 4,
+  },
+  absoluteCloseButton: {
+    position: 'absolute',
+    right: 16,
+    top: 10,
+  },
+  closeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeButtonIcon: {
+    fontSize: 18,
+    color: '#666',
+    fontWeight: '600',
+    lineHeight: 18,
     textAlign: 'center',
   },
   progressBarContainer: {
@@ -718,7 +748,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     width: '100%',
-    height: 15,
+    height: 12,
     borderRadius: 999,
     backgroundColor: '#E0E0E0',
     overflow: 'hidden',
@@ -777,16 +807,20 @@ const styles = StyleSheet.create({
   },
   cardBox: {
     width: '100%',
-    height: 360,
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
     backgroundColor: '#FFF7EB',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 20,
     borderWidth: 2,
     borderColor: '#F1BE4B',
   },
-  cardImage: { width: '100%', height: 220, borderRadius: 12, backgroundColor: '#F5F5F5' },
+  cardImage: { 
+    width: '100%', 
+    aspectRatio: 1.5, 
+    borderRadius: 12, 
+    backgroundColor: '#F5F5F5' 
+  },
   cardWord: { fontSize: 24, fontWeight: '800', color: '#1F1F1F', textTransform: 'capitalize' },
   cardPronun: { fontSize: 15, color: '#666', fontStyle: 'italic' },
   cardMeaning: { fontSize: 16, color: '#1F1F1F', textAlign: 'center' },
@@ -798,12 +832,13 @@ const styles = StyleSheet.create({
   },
   practiceBox: {
     width: '100%',
-    height: 360,
+    minHeight: 300,
     alignItems: 'center',
-    gap: 14,
+    justifyContent: 'center',
+    gap: 16,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 20,
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
@@ -851,12 +886,12 @@ const styles = StyleSheet.create({
   submitText: { fontSize: 15, fontWeight: '800', color: '#1F1F1F' },
   resultBox: {
     width: '100%',
-    height: 480, // Tăng chiều cao một chút để icon không bị chen chúc
+    minHeight: 400,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    borderRadius: 12,
-    padding: 16,
+    gap: 12,
+    borderRadius: 16,
+    padding: 24,
     backgroundColor: '#FFFFFF',
     borderWidth: 4,
   },

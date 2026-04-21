@@ -35,7 +35,7 @@ if (Platform.OS !== 'web') {
 import { TextInput } from '../../../../../components/textInput'
 import { Button } from '../../../../../components/button'
 import { loginUser, loginWithGoogle, checkDailyTitles, addXP } from '../../api'
-import { setAuthToken, clearAuthToken } from '../../../../provider/api/client'
+import { setAuthToken, clearAuthToken, setCurrentUserAvatar } from '../../../../provider/api/client'
 import { heartbeatService } from '../shared/heartbeat-service'
 import { showApiNotification } from '../../utils/notification'
 import { encryptToken, decryptToken } from '../../../../helpers/token-encryption'
@@ -214,21 +214,20 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
           await removeStorageItem('rememberedPassword')
         }
 
-        // TODO: Lưu thông tin user vào context / storage nếu cần
-        console.log('Đăng nhập thành công:', {
-          token,
-          fullName,
-          role,
-          avatarUrl,
-        })
+        // Luôn cập nhật avatar (hoặc xóa avatar cũ nếu avatarUrl null)
+        await setCurrentUserAvatar(avatarUrl)
+
+        // console.log('Đăng nhập thành công:', {
+        //   token,
+        //   fullName,
+        //   role,
+        //   avatarUrl,
+        // })
 
         // Bắt đầu heartbeat service sau khi login thành công
         // Service sẽ tự động gửi heartbeat mỗi 300 giây
         // Backend sẽ tự động cập nhật TotalXP và Streak sau khi nhận đủ số lần heartbeat
         heartbeatService.start()
-
-        // Gọi API add-xp (500 XP, source 2)
-        addXP({ amount: 500, source: 2 })
 
         // Chuyển trang ngay sau khi đăng nhập thành công
         setTimeout(() => {
@@ -365,9 +364,10 @@ export function LoginPanel({ onPressSignUp, onPressGoogle, navigation: navigatio
               }
 
               await setAuthToken(token)
+
+              // Luôn cập nhật avatar
+              await setCurrentUserAvatar(avatarUrl)
               
-              // Gọi API add-xp (500 XP, source 2)
-              addXP({ amount: 500, source: 2 })
               heartbeatService.start()
 
               setTimeout(() => {

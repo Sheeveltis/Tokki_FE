@@ -29,7 +29,13 @@ export function StudyLayoutSynchronized({
           {/* Top Bar Navigation */}
           <View style={styles.topNavigation}>
             <View style={styles.breadcrumb}>
-              <Pressable onPress={onBackPress} style={styles.breadcrumbItem}>
+              <Pressable 
+                onPress={onBackPress} 
+                style={({ hovered }) => [
+                  styles.breadcrumbItem,
+                  hovered && styles.breadcrumbItemHover
+                ]}
+              >
                 <Text style={styles.breadcrumbText}>{breadcrumbPrefix}</Text>
               </Pressable>
               <Text style={styles.breadcrumbDivider}>/</Text>
@@ -138,7 +144,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   breadcrumbItem: {
-    ...(Platform.OS === 'web' && { cursor: 'pointer' }),
+    ...(Platform.OS === 'web' && { 
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+    }),
+  },
+  breadcrumbItemHover: {
+    transform: 'translateX(-4px)',
+    opacity: 0.7,
   },
   breadcrumbText: {
     fontSize: 13,

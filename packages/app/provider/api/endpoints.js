@@ -36,7 +36,9 @@ export const ENDPOINTS = {
     ADMIN_LIST: '/Blog/admin',
     MY_BLOGS: '/Blog/user/my-blog',
     SAVE: '/Blog/user/save',
+    ADMIN_SAVE: '/Blog/admin/save',
     USER_SUBMIT_APPROVAL: (blogId) => `/Blog/user/submit-approval/${blogId}`,
+    ADMIN_SUBMIT_APPROVAL: (blogId) => `/Blog/admin/submit-approval/${blogId}`,
     STAFF_SUBMIT_FOR_APPROVAL: (blogId) => `/Blog/staff/submit-for-approval/${blogId}`,
     MODERATOR_APPROVE: (blogId) => `/Blog/moderator/approve/${blogId}`,
     MODERATOR_REJECT: '/Blog/moderator/reject',
@@ -217,7 +219,8 @@ export const ENDPOINTS = {
   },
   SPACED_REPETITION: {
     SUBMIT: '/SpacedRepetition/submit',  // POST: Submit kết quả học tập (body: { vocabularyId, isCorrect } hoặc { vocabularyId, quality })
-    GET_LEARNED: '/SpacedRepetition/vocab-for-review',  // GET: Lấy danh sách từ vựng đã học (query: limit)
+    GET_LEARNED: '/SpacedRepetition/vocab-for-review',  // GET: Lấy danh sách từ vựng cho practice (query: limit)
+    GET_REVIEW_PAGINATED: '/SpacedRepetition/vocab-for-review-paginated', // GET: Lấy danh sách từ vựng để review có paging (query: pageIndex, pageSize)
     COMPLETE_TOPIC: '/SpacedRepetition/complete-topic', // POST: Hoàn thành tiến độ học topic
   },
   GAMIFICATION: {

@@ -7,6 +7,8 @@ import BunnyStudy from '../../../../../assets/bunny/14.png'
 import BunnySyllable from '../../../../../assets/bunny/13.png'
 import LightbulbIcon from '../../../../../assets/icon/icon-roadmap/lightbulb-minimalistic-svgrepo-com.svg'
 import FolderIcon from '../../../../../assets/icon/icon-mainflow/folder.svg'
+import LockIcon from '../../../../../assets/icon/icon-mainflow/lock.svg'
+
 
 // Helper function để render icon - hỗ trợ cả SVG component và Image source
 const renderIcon = (icon, style, resizeMode = 'contain') => {
@@ -160,15 +162,20 @@ export function AlphabetSelectModeMain({
               <View
                 style={[
                   styles.itemButton,
-                  { backgroundColor: mode.primaryColor },
-                  hoveredCard === mode.id && {
+                  { backgroundColor: mode.isComingSoon ? '#E0E0E0' : mode.primaryColor },
+                  !mode.isComingSoon && hoveredCard === mode.id && {
                     boxShadow: `0 8px 24px ${mode.primaryColor}50`,
                   }
                 ]}
               >
-                <Text style={styles.itemLabel}>{mode.isComingSoon ? 'Sắp ra mắt' : 'Học ngay'}</Text>
-                <View style={styles.arrowIconBg}>
-                  {renderIcon(ArrowIcon, { width: 12, height: 12, tintColor: mode.primaryColor })}
+                <Text style={[styles.itemLabel, mode.isComingSoon && { color: '#999' }]}>
+                  {mode.isComingSoon ? 'Sắp ra mắt' : 'Học ngay'}
+                </Text>
+                <View style={[styles.arrowIconBg, mode.isComingSoon && { backgroundColor: '#F0F0F0' }]}>
+                  {renderIcon(
+                    mode.isComingSoon ? LockIcon : ArrowIcon,
+                    { width: 12, height: 12, tintColor: mode.isComingSoon ? '#999' : mode.primaryColor }
+                  )}
                 </View>
               </View>
             </View>
