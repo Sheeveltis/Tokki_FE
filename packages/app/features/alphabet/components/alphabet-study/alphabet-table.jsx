@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform, Pressable } from 'react-native';
 
-const AlphabetCell = ({ item, onSelectLetter }) => {
+const AlphabetCell = ({ item, onSelectLetter, themeColor }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   if (item.isEmpty) {
@@ -12,7 +12,7 @@ const AlphabetCell = ({ item, onSelectLetter }) => {
     <Pressable
       style={[
         styles.cell,
-        isHovered && styles.cellHovered
+        isHovered && { backgroundColor: themeColor + '10' }
       ]}
       onPress={() => onSelectLetter(item.idx)}
       {...Platform.select({
@@ -21,17 +21,18 @@ const AlphabetCell = ({ item, onSelectLetter }) => {
           onHoverOut: () => setIsHovered(false),
           onMouseEnter: () => setIsHovered(true),
           onMouseLeave: () => setIsHovered(false),
+          cursor: 'pointer',
         }
       })}
     >
-      <Text style={[styles.koreanText, isHovered && styles.textHovered]}>{item.word}</Text>
-      <Text style={[styles.romanText, isHovered && styles.textHovered]}>{item.pronunciation}</Text>
+      <Text style={[styles.koreanText, isHovered && { color: themeColor }]}>{item.word}</Text>
+      <Text style={[styles.romanText, isHovered && { color: themeColor }]}>{item.pronunciation}</Text>
     </Pressable>
   );
 };
 
 export function AlphabetTable({ data, onSelectLetter }) {
-  const padRow = (rowItems, totalCols = 11) => {
+  const padRow = (rowItems, totalCols = 13) => {
     const padded = [...rowItems];
     let keyIdx = 0;
     while (padded.length < totalCols) {
@@ -45,57 +46,57 @@ export function AlphabetTable({ data, onSelectLetter }) {
   const consRow1 = padRow(data.filter(d => d.type === 'consonant' && d.row === 1).map((d) => ({...d, idx: data.indexOf(d)})));
   const consRow2 = padRow(data.filter(d => d.type === 'consonant' && d.row === 2).map((d) => ({...d, idx: data.indexOf(d)})));
 
-  const renderVerticalTitle = (title) => {
+  const renderTitle = (title, color) => {
     return (
-      <View style={styles.verticalTitleWrapper}>
-        {title.split(' ').map((word, wordIdx) => (
-          <View key={wordIdx} style={{ marginBottom: 8 }}>
-            {word.split('').map((char, charIdx) => (
-              <Text key={charIdx} style={styles.sectionTitleText}>{char}</Text>
-            ))}
-          </View>
-        ))}
+      <View style={styles.titleContainer}>
+        <Text style={[styles.sideHeaderText, { color }]}>{title}</Text>
       </View>
     );
   };
 
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={true} style={styles.scrollWrapper} contentContainerStyle={styles.scrollContent}>
-      <View style={styles.container}>
-        {/* NGUYÊN ÂM */}
-        <View style={styles.sectionRow}>
-          <View style={styles.sectionTitleContainer}>
-            {renderVerticalTitle('NGUYÊN ÂM')}
-          </View>
-          <View style={styles.table}>
-            <View style={styles.row}>
-              {vowelsRow1.map((item, i) => (
-                <AlphabetCell key={item.word || item.fallbackKey || i} item={item} onSelectLetter={onSelectLetter} />
-              ))}
+      <View style={styles.mainContainer}>
+        {/* VOWELS SECTION */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionHeading}>BẢNG NGUYÊN ÂM (VOWELS)</Text>
+          <View style={[styles.tableBlock, styles.vowelsTableBorder]}>
+            <View style={[styles.sideHeader, styles.vowelsSideBg]}>
+              {renderTitle('NGUYÊN ÂM', '#D32F2F')}
             </View>
-            <View style={styles.row}>
-              {vowelsRow2.map((item, i) => (
-                <AlphabetCell key={item.word || item.fallbackKey || i} item={item} onSelectLetter={onSelectLetter} />
-              ))}
+            <View style={styles.tableGrid}>
+              <View style={styles.row}>
+                {vowelsRow1.map((item, i) => (
+                  <AlphabetCell key={item.word || item.fallbackKey || i} item={item} onSelectLetter={onSelectLetter} themeColor="#D32F2F" />
+                ))}
+              </View>
+              <View style={[styles.row, { borderBottomWidth: 0 }]}>
+                {vowelsRow2.map((item, i) => (
+                  <AlphabetCell key={item.word || item.fallbackKey || i} item={item} onSelectLetter={onSelectLetter} themeColor="#D32F2F" />
+                ))}
+              </View>
             </View>
           </View>
         </View>
 
-        {/* PHỤ ÂM */}
-        <View style={styles.sectionRow}>
-          <View style={styles.sectionTitleContainer}>
-             {renderVerticalTitle('PHỤ ÂM')}
-          </View>
-          <View style={styles.table}>
-            <View style={styles.row}>
-              {consRow1.map((item, i) => (
-                <AlphabetCell key={item.word || item.fallbackKey || i} item={item} onSelectLetter={onSelectLetter} />
-              ))}
+        {/* CONSONANTS SECTION */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionHeading}>BẢNG PHỤ ÂM (CONSONANTS)</Text>
+          <View style={[styles.tableBlock, styles.consTableBorder]}>
+            <View style={[styles.sideHeader, styles.consSideBg]}>
+              {renderTitle('PHỤ ÂM', '#1976D2')}
             </View>
-            <View style={styles.row}>
-              {consRow2.map((item, i) => (
-                <AlphabetCell key={item.word || item.fallbackKey || i} item={item} onSelectLetter={onSelectLetter} />
-              ))}
+            <View style={styles.tableGrid}>
+              <View style={styles.row}>
+                {consRow1.map((item, i) => (
+                  <AlphabetCell key={item.word || item.fallbackKey || i} item={item} onSelectLetter={onSelectLetter} themeColor="#1976D2" />
+                ))}
+              </View>
+              <View style={[styles.row, { borderBottomWidth: 0 }]}>
+                {consRow2.map((item, i) => (
+                  <AlphabetCell key={item.word || item.fallbackKey || i} item={item} onSelectLetter={onSelectLetter} themeColor="#1976D2" />
+                ))}
+              </View>
             </View>
           </View>
         </View>
@@ -107,83 +108,106 @@ export function AlphabetTable({ data, onSelectLetter }) {
 const styles = StyleSheet.create({
   scrollWrapper: {
     width: '100%',
-    marginTop: 10,
+    marginTop: 20,
     marginBottom: 40,
   },
   scrollContent: {
     flexGrow: 1,
+    paddingHorizontal: 20,
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  container: {
-    borderWidth: 2,
-    borderColor: '#D32F2F',
-    backgroundColor: '#fff',
+  mainContainer: {
     width: '100%',
     maxWidth: 1200,
-    minWidth: 800,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
+    alignSelf: 'center',
+    paddingHorizontal: 10,
   },
-  sectionRow: {
+  sectionContainer: {
+    marginBottom: 40,
+    width: '100%',
+  },
+  sectionHeading: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#94A3B8',
+    marginBottom: 16,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  tableBlock: {
     flexDirection: 'row',
-    borderBottomWidth: 2,
-    borderBottomColor: '#D32F2F',
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
-  sectionTitleContainer: {
-    width: 60,
+  vowelsTableBorder: {
+    borderColor: '#FEE2E2',
+  },
+  consTableBorder: {
+    borderColor: '#E0F2FE',
+  },
+  sideHeader: {
+    width: 45,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRightWidth: 2,
-    borderRightColor: '#D32F2F',
-    backgroundColor: '#fafafa',
+    borderRightWidth: 1,
+    borderRightColor: '#F1F5F9',
   },
-  verticalTitleWrapper: {
+  vowelsSideBg: {
+    backgroundColor: '#FFF5F5',
+  },
+  consSideBg: {
+    backgroundColor: '#F0F9FF',
+  },
+  titleContainer: {
+    width: 200, // Fixed width for rotation reference
+    height: 45,
+    justifyContent: 'center',
     alignItems: 'center',
+    transform: [{ rotate: '-90deg' }],
   },
-  sectionTitleText: {
-    fontWeight: '900',
-    fontSize: 16,
-    color: '#333',
+  sideHeaderText: {
+    fontWeight: '800',
+    fontSize: 14,
     textAlign: 'center',
+    width: 200,
+    letterSpacing: 1,
   },
-  table: {
+  tableGrid: {
     flex: 1,
   },
   row: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#efefef',
+    borderBottomColor: '#F1F5F9',
     width: '100%',
   },
   cell: {
     flex: 1,
-    aspectRatio: 1.1, // controls height relative to fluid width
+    aspectRatio: 1,
     borderRightWidth: 1,
-    borderRightColor: '#efefef',
+    borderRightColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 2,
-    ...(Platform.OS === 'web' && { transition: 'background-color 0.2s ease' }),
-  },
-  cellHovered: {
-    backgroundColor: '#FFF0F0', // light red tint overlay
-    cursor: 'pointer',
+    padding: 6,
+    ...(Platform.OS === 'web' && { transition: 'all 0.2s ease-in-out' }),
   },
   koreanText: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#1a1a1a',
-    fontFamily: Platform.OS === 'web' ? 'system-ui, sans-serif' : undefined,
+    fontSize: 28,
+    fontWeight: '600',
+    color: '#1E293B',
+    fontFamily: Platform.OS === 'web' ? 'Pretendard, system-ui, -apple-system, sans-serif' : undefined,
   },
   romanText: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 4,
+    fontSize: 13,
+    color: '#94A3B8',
+    marginTop: 2,
+    fontWeight: '400',
   },
-  textHovered: {
-    color: '#D32F2F',
-  }
 });
