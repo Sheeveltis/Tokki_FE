@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { View, StyleSheet, Text, TouchableOpacity, TextInput, Platform, Modal, Image as RNImage, Animated } from 'react-native'
 import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
 import { normalizeImageSource } from '@tokki/app/features/study/api'
@@ -40,6 +40,26 @@ const CloseButton = ({ onPress, style }) => {
   )
 }
 
+const CORRECT_MESSAGES = [
+  'Bạn giỏi quá!',
+  'Xuất sắc!',
+  'Đỉnh cao luôn!',
+  'Thật là tuyệt vời!',
+  'Tuyệt vời quá!',
+  'Bạn làm tốt lắm!',
+  'Làm tốt lắm!',
+]
+
+const WRONG_MESSAGES = [
+  'Cố lên!',
+  'Ai cũng có lần đầu mà!',
+  'Đừng bỏ cuộc!',
+  'Lần sau sẽ đúng thôi!',
+  'Học từ cái sai nhé!',
+  'Tiếp tục cố gắng nào!',
+  'Sai một chút không sao!',
+]
+
 export function FlashcardFirstLearnMain({
   title,
   current,
@@ -70,6 +90,17 @@ export function FlashcardFirstLearnMain({
   completedInBatch = 0,
   batchSize = 5,
 }) {
+  const [randomMessage, setRandomMessage] = useState('')
+  const [isNextHovered, setIsNextHovered] = useState(false)
+
+  useEffect(() => {
+    if (showResult) {
+      const messages = isCorrect ? CORRECT_MESSAGES : WRONG_MESSAGES
+      const randomIndex = Math.floor(Math.random() * messages.length)
+      setRandomMessage(messages[randomIndex])
+    }
+  }, [showResult, isCorrect])
+
   // Phím tắt Enter để tiếp tục (web only)
   useEffect(() => {
     if (Platform.OS !== 'web') return
@@ -258,8 +289,8 @@ export function FlashcardFirstLearnMain({
         <Animated.View style={[styles.resultIconWrapper, { transform: [{ scale: iconScale }] }]}>
           <StudyIcon
             source={isCorrect ? CorrectIcon : WarnIcon}
-            width={64}
-            height={64}
+            width={Platform.OS === 'web' ? 'min(64px, 8vh)' : 64}
+            height={Platform.OS === 'web' ? 'min(64px, 8vh)' : 64}
             tintColor={isCorrect ? '#2FB96B' : '#CF4B4B'}
           />
         </Animated.View>
@@ -362,12 +393,24 @@ export function FlashcardFirstLearnMain({
 
         {(currentStepKey === 'view' || showResult) && (
           <TouchableOpacity
-            style={[styles.nextButton, !canContinue && styles.nextButtonDisabled]}
+            style={[
+              styles.nextButton,
+              !canContinue && styles.nextButtonDisabled,
+              showResult && isCorrect && styles.nextButtonCorrect,
+              showResult && !isCorrect && styles.nextButtonWrong,
+              isNextHovered && canContinue && styles.nextButtonHover,
+            ]}
             onPress={onContinue}
             disabled={!canContinue}
+            {...(Platform.OS === 'web' && {
+              onMouseEnter: () => setIsNextHovered(true),
+              onMouseLeave: () => setIsNextHovered(false),
+            })}
           >
             <Text style={styles.nextText}>
-              {currentStepKey === 'meaning' && showResult && currentIndex + 1 === total ? 'Hoàn thành' : 'Tiếp tục'}
+              {currentStepKey === 'meaning' && showResult && currentIndex + 1 === total
+                ? 'Hoàn thành'
+                : (showResult ? (randomMessage || 'Tiếp tục') : 'Tiếp tục')}
             </Text>
           </TouchableOpacity>
         )}
@@ -418,7 +461,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     paddingBottom: 20,
-    paddingTop: 20,
+    paddingTop: 10,
   },
   contentArea: {
     flex: 1,
@@ -469,7 +512,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,
-    marginBottom: 20,
+    marginBottom: 5,
     position: 'relative',
     minHeight: 56,
   },
@@ -577,23 +620,24 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: '100%',
+    maxHeight: '35vh',
     aspectRatio: 1.8,
     borderRadius: 16,
     backgroundColor: '#F5F5F5',
   },
   cardWord: {
-    fontSize: 28,
+    fontSize: Platform.OS === 'web' ? 'min(28px, 4vh)' : 28,
     fontWeight: '800',
     color: '#1F1F1F',
     textTransform: 'capitalize',
   },
   cardPronun: {
-    fontSize: 16,
+    fontSize: Platform.OS === 'web' ? 'min(16px, 2.5vh)' : 16,
     color: '#666',
     fontStyle: 'italic',
   },
   cardMeaning: {
-    fontSize: 18,
+    fontSize: Platform.OS === 'web' ? 'min(18px, 3vh)' : 18,
     color: '#1F1F1F',
     textAlign: 'center',
   },
@@ -683,14 +727,19 @@ const styles = StyleSheet.create({
   resultBox: {
     width: '100%',
     maxWidth: 600,
-    minHeight: 450,
-    gap: 20,
+    maxHeight: '75vh',
+    minHeight: 350,
+    gap: Platform.OS === 'web' ? 'max(10px, 1.5vh)' : 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 24,
-    padding: 40,
+    padding: Platform.OS === 'web' ? 'min(24px, 3vh)' : 24,
+    paddingTop: 20,
     backgroundColor: '#FFFFFF',
     borderWidth: 4,
+    ...(Platform.OS === 'web' && {
+      overflowY: 'auto',
+    }),
   },
   resultBoxCorrect: {
     borderColor: '#2FB96B',
@@ -720,8 +769,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#CF4B4B',
   },
-  wrongLabel: { fontSize: 13, fontWeight: '700', color: '#CF4B4B' },
-  wrongText: { fontSize: 16, fontWeight: '700', color: '#CF4B4B' },
+  wrongLabel: { fontSize: Platform.OS === 'web' ? 'min(13px, 2vh)' : 13, fontWeight: '700', color: '#CF4B4B' },
+  wrongText: { fontSize: Platform.OS === 'web' ? 'min(16px, 2.5vh)' : 16, fontWeight: '700', color: '#CF4B4B' },
   stepContainer: {
     width: '100%',
     alignItems: 'center',
@@ -736,8 +785,21 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 18,
     borderRadius: 14,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#F1BE4B',
     ...(Platform.OS === 'web' && { cursor: 'pointer' }),
+  },
+  nextButtonCorrect: {
+    backgroundColor: '#2FB96B',
+  },
+  nextButtonWrong: {
+    backgroundColor: '#CF4B4B',
+  },
+  nextButtonHover: {
+    ...(Platform.OS === 'web' && {
+      transform: 'scale(1.05)',
+      filter: 'brightness(1.1)',
+      boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
+    }),
   },
   nextButtonDisabled: {
     opacity: 0.6,
