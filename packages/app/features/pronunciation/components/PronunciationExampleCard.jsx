@@ -29,6 +29,7 @@ export function PronunciationExampleCard({
         onHoverOut={() => Platform.OS === 'web' && setHovered(false)}
         style={({ pressed }) => [
           styles.card,
+          isCompleted && styles.cardCompleted,
           (pressed || hovered) && styles.cardActive,
         ]}
       >
@@ -87,6 +88,10 @@ const styles = StyleSheet.create({
   cardActive: {
     transform: [{ scale: 0.99 }],
     backgroundColor: '#FBFBFB',
+  },
+  cardCompleted: {
+    borderLeftWidth: 6,
+    borderLeftColor: '#8B4513',
   },
   left: {
     marginRight: 16,

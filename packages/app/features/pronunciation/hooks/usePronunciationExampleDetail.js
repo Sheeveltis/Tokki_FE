@@ -99,23 +99,29 @@ export function usePronunciationExampleDetail(exampleId) {
       try {
         setIsPlaying(true)
         const fullAudioUrl = example.audioUrl.startsWith('http') ? example.audioUrl : `${DOMAIN}${example.audioUrl}`
+        console.log('DEBUG: Playing pronunciation audio from URL:', fullAudioUrl)
 
         if (Platform.OS === 'web') {
           const audio = new window.Audio(fullAudioUrl)
           audio.playbackRate = safeRate
 
-          audio.onended = () => setIsPlaying(false)
+          audio.onended = () => {
+            console.log('DEBUG: Audio playback ended')
+            setIsPlaying(false)
+          }
 
-          audio.onerror = () => {
-            console.warn('Audio file error, fallback TTS')
+          audio.onerror = (e) => {
+            console.warn('DEBUG: Audio file error, falling back to TTS', e)
             setIsPlaying(false)
             playTTS(example.targetScript, safeRate)
           }
 
           audio.play()
-            .then(() => { })
+            .then(() => {
+              console.log('DEBUG: Audio playback started success')
+            })
             .catch((err) => {
-              console.error('Play failed:', err)
+              console.error('DEBUG: Play failed:', err)
               setIsPlaying(false)
               playTTS(example.targetScript, safeRate)
             })
@@ -133,13 +139,17 @@ export function usePronunciationExampleDetail(exampleId) {
         }
         return
       } catch (err) {
-        console.error('Play audio error, trying TTS:', err)
+        console.error('DEBUG: Play audio error, trying TTS:', err)
         setIsPlaying(false)
+        if (example?.targetScript) {
+          playTTS(example.targetScript, safeRate)
+        }
       }
     }
 
     // Nếu không có audioUrl hoặc bị lỗi: Sử dụng Text-to-Speech (TTS)
     if (example?.targetScript) {
+      console.log('DEBUG: Playing pronunciation via TTS (Fallback/No URL)')
       playTTS(example.targetScript, safeRate)
     }
   }

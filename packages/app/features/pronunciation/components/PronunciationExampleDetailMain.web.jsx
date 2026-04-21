@@ -52,11 +52,19 @@ export function PronunciationExampleDetailMain({
           </View>
         )}
         <View style={styles.actionRow}>
-          <Pressable onPress={onPlayAudio} style={styles.audioButtonWrapper}>
-            {isPlaying ? (
-              <ActivityIndicator size="small" color="#FFF" />
-            ) : (
-              <SoundIcon width={32} height={32} />
+          <Pressable 
+            onPress={onPlayAudio} 
+            style={({ pressed }) => [
+              styles.audioButtonWrapper,
+              isPlaying && styles.audioButtonPlaying,
+              pressed && { transform: [{ scale: 0.95 }] }
+            ]}
+          >
+            <SoundIcon width={32} height={32} />
+            {isPlaying && (
+              <View style={styles.playingIndicatorOverlay}>
+                <ActivityIndicator size="small" color="#FFF" />
+              </View>
             )}
           </Pressable>
         </View>
@@ -175,6 +183,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+  },
+  audioButtonPlaying: {
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  playingIndicatorOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(142, 172, 101, 0.2)',
+    borderRadius: 32,
   },
   scoreCircle: {
     position: 'absolute',
