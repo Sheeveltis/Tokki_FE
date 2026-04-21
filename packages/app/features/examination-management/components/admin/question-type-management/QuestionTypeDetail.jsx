@@ -1,4 +1,7 @@
-import { Card, Space, Typography, Spin, Alert, Modal, Button, Tabs, Divider, notification, message } from 'antd'
+import React, { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'solito/navigation'
+import { showAdminSuccess, showAdminError } from '../../../../../../components/HelperAdmin.jsx'
+import { Card, Space, Typography, Spin, Alert, Modal, Button, Tabs, Divider, notification, message, Descriptions, Tag } from 'antd'
 import {
   ArrowLeftOutlined,
   EditOutlined,
@@ -13,11 +16,9 @@ import {
 import { fetchQuestionBanksPaged } from '../../../api/question-bank-management.js'
 import { deleteQuestionType, fetchQuestionTypeById } from '../../../api/question-type-management.js'
 
-import QuestionTypeInfoCard from './QuestionTypeInfoCard'
 import QuestionListSection from './QuestionListSection'
 import QuestionTypeHeaderActions from './QuestionTypeHeaderActions'
 import { EditQuestionTypeModal } from './EditQuestionTypeModal'
-import { CreateQuestionModal } from './CreateQuestionModal'
 
 const { Title, Text } = Typography
 
@@ -38,8 +39,7 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
   const [loadingPending, setLoadingPending] = useState(false)
   
   const [error, setError] = useState('')
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [isCreateQuestionModalOpen, setIsCreateQuestionModalOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
 
   const [deleting, setDeleting] = useState(false)
   const [pageNumber, setPageNumber] = useState(1)
@@ -60,7 +60,6 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
           fetchQuestionTypeById(questionTypeId),
           fetchQuestionBanksPaged({ QuestionTypeId: questionTypeId, PageNumber: 1, PageSize: PAGE_SIZE }),
           fetchQuestionBanksPaged({ QuestionTypeId: questionTypeId, Status: PENDING_STATUS, PageNumber: 1, PageSize: PAGE_SIZE }),
-          fetchQuestionBanksPaged({ QuestionTypeId: questionTypeId, Status: PENDING_STATUS, PageNumber: 1, PageSize: PAGE_SIZE }),
         ])
 
         if (!mounted) return
@@ -69,10 +68,7 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
         setTotalQuestions(paged?.total ?? (paged?.items?.length || 0))
         setPendingQuestions(pagedPending?.items || [])
         setTotalPending(pagedPending?.total ?? (pagedPending?.items?.length || 0))
-        setPendingQuestions(pagedPending?.items || [])
-        setTotalPending(pagedPending?.total ?? (pagedPending?.items?.length || 0))
         setPageNumber(1)
-        setPendingPageNumber(1)
         setPendingPageNumber(1)
       } catch (err) {
         if (!mounted) return
@@ -108,7 +104,6 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
       if (!questionTypeId) return
       try {
         setLoadingList(true)
-        setLoadingList(true)
         const status = filters.status !== null && filters.status !== undefined ? filters.status : undefined
         const searchTerm = filters.search?.trim() ? filters.search.trim() : undefined
         const paged = await fetchQuestionBanksPaged({
@@ -124,10 +119,8 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
       } catch (err) {
         if (!mounted) return
         messageApi.error(err?.message || 'Không thể tải danh sách câu hỏi')
-        messageApi.error(err?.message || 'Không thể tải danh sách câu hỏi')
       } finally {
         if (!mounted) return
-        setLoadingList(false)
         setLoadingList(false)
       }
     }
@@ -138,36 +131,6 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
       mounted = false
     }
   }, [questionTypeId, filters.status, filters.search, pageNumber])
-
-  // Load pending questions
-  useEffect(() => {
-    let mounted = true
-    const loadPending = async () => {
-      if (!questionTypeId) return
-      try {
-        setLoadingPending(true)
-        const searchTerm = pendingFilters.search?.trim() ? pendingFilters.search.trim() : undefined
-        const paged = await fetchQuestionBanksPaged({
-          QuestionTypeId: questionTypeId,
-          Status: PENDING_STATUS,
-          SearchTerm: searchTerm,
-          PageNumber: pendingPageNumber,
-          PageSize: PAGE_SIZE,
-        })
-        if (!mounted) return
-        setPendingQuestions(paged?.items || [])
-        setTotalPending(paged?.total ?? (paged?.items?.length || 0))
-      } catch (err) {
-        if (!mounted) return
-        messageApi.error(err?.message || 'Không thể tải danh sách chờ duyệt')
-      } finally {
-        if (!mounted) return
-        setLoadingPending(false)
-      }
-    }
-    loadPending()
-    return () => { mounted = false }
-  }, [questionTypeId, pendingFilters.search, pendingPageNumber])
 
   // Load pending questions
   useEffect(() => {
@@ -236,8 +199,44 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
     )
   }
 
+  const skillEnumMap = {
+    1: { label: 'Nghe' },
+    2: { label: 'Đọc' },
+    3: { label: 'Viết' },
+  }
+
+  const examTypeLabelMap = {
+    1: 'TOPIK I',
+    2: 'TOPIK II',
+  }
+
+  const difficultyLabelMap = {
+    1: 'Dễ',
+    2: 'Trung bình',
+    3: 'Khó',
+    4: 'Rất khó',
+  }
+
+  const infoItems = [
+    { label: 'Tên bộ câu hỏi', value: questionType?.name },
+    { label: 'Mã bộ câu hỏi', value: questionType?.code, isCode: true },
+    { label: 'Kỹ năng', value: skillEnumMap[questionType?.skill]?.label },
+    { label: 'Loại đề', value: examTypeLabelMap[questionType?.examType] },
+    { label: 'Mức độ', value: difficultyLabelMap[questionType?.difficulty] },
+    { label: 'Trạng thái', value: questionType?.isActive ? 'Đã xuất bản' : 'Tạm ẩn' },
+    { label: 'Mô tả', value: questionType?.description || 'Chưa có mô tả', span: 2 },
+  ]
+
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: 24, width: '100%' }}>
+      {contextHolder}
+      
+      {/* Header section similar to reference */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+        <div>
+          <Title level={3} style={{ margin: 0, fontWeight: 700 }}>Chi tiết bộ câu hỏi</Title>
+          <Text type="secondary" style={{ fontSize: 13 }}>ID: {questionTypeId}</Text>
+        </div>
         <QuestionTypeHeaderActions
           questionTypeId={questionTypeId}
           onBack={() => router.back()}
@@ -250,7 +249,6 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
               showAdminSuccess('Đã xóa loại câu hỏi thành công')
               router.push(`${basePath}?tab=question-bank`)
             } catch (err) {
-              // message từ backend đã được map qua handleApiError
               showAdminError(err?.message || 'Xóa loại câu hỏi thất bại')
             } finally {
               setDeleting(false)
@@ -278,81 +276,128 @@ export function QuestionTypeDetailScreen({ basePath = '/admin', layout = 'admin'
             }
           }}
         />
-
-        <QuestionTypeInfoCard
-          questionType={questionType}
-          isEditing={isEditing}
-          onCancelEdit={() => setIsEditing(false)}
-          onUpdate={async () => {
-            setIsEditing(false)
-            // Reload question type data
-            try {
-              const qt = await fetchQuestionTypeById(questionTypeId)
-              setQuestionType(qt)
-            } catch (err) {
-              showAdminError('Không thể tải lại dữ liệu')
-            }
-          }}
-        />
-
-        <QuestionListSection
-          title="Danh sách câu hỏi"
-          total={totalQuestions}
-          filters={filters}
-          onFilterChange={(next) => {
-            setPageNumber(1)
-            setFilters(next)
-          }}
-          onSearchChange={setSearch}
-          data={allQuestions}
-          loading={loading}
-          pagination={{
-            current: pageNumber,
-            pageSize: PAGE_SIZE,
-            total: totalQuestions,
-            onChange: (page) => setPageNumber(page),
-          }}
-          onRefresh={async () => {
-            try {
-              const status = filters.status !== null && filters.status !== undefined ? filters.status : undefined
-              const searchTerm = filters.search?.trim() ? filters.search.trim() : undefined
-              const paged = await fetchQuestionBanksPaged({
-                QuestionTypeId: questionTypeId,
-                Status: status,
-                SearchTerm: searchTerm,
-                PageNumber: pageNumber,
-                PageSize: PAGE_SIZE,
-              })
-              setAllQuestions(paged?.items || [])
-              setTotalQuestions(paged?.total ?? (paged?.items?.length || 0))
-            } catch (err) {
-              showAdminError(err?.message || 'Không thể tải lại danh sách câu hỏi')
-            }
-          }}
-          onDeleted={async () => {
-            try {
-              const status = filters.status !== null && filters.status !== undefined ? filters.status : undefined
-              const searchTerm = filters.search?.trim() ? filters.search.trim() : undefined
-              const paged = await fetchQuestionBanksPaged({
-                QuestionTypeId: questionTypeId,
-                Status: status,
-                SearchTerm: searchTerm,
-                PageNumber: pageNumber,
-                PageSize: PAGE_SIZE,
-              })
-              setAllQuestions(paged?.items || [])
-              setTotalQuestions(paged?.total ?? (paged?.items?.length || 0))
-            } catch (err) {
-              showAdminError(err?.message || 'Không thể tải lại danh sách câu hỏi')
-            }
-          }}
-        />
-
-        {/* Pagination handled inside QuestionCardList via props */} 
       </div>
-  )
 
-  return detailContent
+      <Card styles={{ body: { padding: '0 24px 24px 24px' } }} variant="borderless" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: 12 }}>
+        <Tabs 
+          defaultActiveKey="info" 
+          size="large"
+          items={[
+            {
+              key: 'info',
+              label: (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <InfoCircleOutlined />
+                  Thông tin cơ bản
+                </span>
+              ),
+              children: (
+                <div style={{ paddingTop: 16 }}>
+                  <Descriptions column={2} bordered size="middle" labelStyle={{ backgroundColor: '#fafafa', fontWeight: 600, width: '20%' }}>
+                    {infoItems.map((item, idx) => (
+                      <Descriptions.Item key={idx} label={item.label} span={item.span || 1}>
+                        {item.label === 'Trạng thái' ? (
+                          <Space>
+                            <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: questionType?.isActive ? '#52c41a' : '#bfbfbf' }} />
+                            <Text style={{ color: questionType?.isActive ? '#52c41a' : '#8c8c8c', fontWeight: 600 }}>{item.value}</Text>
+                          </Space>
+                        ) : item.label === 'Loại đề' ? (
+                          <Tag color="blue">{item.value}</Tag>
+                        ) : (
+                          <Text style={{ fontWeight: item.isCode ? 400 : 500 }}>{item.value || '-'}</Text>
+                        )}
+                      </Descriptions.Item>
+                    ))}
+                  </Descriptions>
+                </div>
+              )
+            },
+            {
+              key: 'questions',
+              label: (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <UnorderedListOutlined />
+                  Danh sách câu hỏi
+                </span>
+              ),
+              children: (
+                <div style={{ paddingTop: 16 }}>
+                  <QuestionListSection
+                    title="Danh sách câu hỏi"
+                    total={totalQuestions}
+                    filters={filters}
+                    onFilterChange={(next) => {
+                      setPageNumber(1)
+                      setFilters(next)
+                    }}
+                    onSearchChange={setSearch}
+                    data={allQuestions}
+                    loading={loading}
+                    pagination={{
+                      current: pageNumber,
+                      pageSize: PAGE_SIZE,
+                      total: totalQuestions,
+                      onChange: (page) => setPageNumber(page),
+                    }}
+                    onRefresh={async () => {
+                      try {
+                        const status = filters.status !== null && filters.status !== undefined ? filters.status : undefined
+                        const searchTerm = filters.search?.trim() ? filters.search.trim() : undefined
+                        const paged = await fetchQuestionBanksPaged({
+                          QuestionTypeId: questionTypeId,
+                          Status: status,
+                          SearchTerm: searchTerm,
+                          PageNumber: pageNumber,
+                          PageSize: PAGE_SIZE,
+                        })
+                        setAllQuestions(paged?.items || [])
+                        setTotalQuestions(paged?.total ?? (paged?.items?.length || 0))
+                      } catch (err) {
+                        showAdminError(err?.message || 'Không thể tải lại danh sách câu hỏi')
+                      }
+                    }}
+                    onDeleted={async () => {
+                      try {
+                        const status = filters.status !== null && filters.status !== undefined ? filters.status : undefined
+                        const searchTerm = filters.search?.trim() ? filters.search.trim() : undefined
+                        const paged = await fetchQuestionBanksPaged({
+                          QuestionTypeId: questionTypeId,
+                          Status: status,
+                          SearchTerm: searchTerm,
+                          PageNumber: pageNumber,
+                          PageSize: PAGE_SIZE,
+                        })
+                        setAllQuestions(paged?.items || [])
+                        setTotalQuestions(paged?.total ?? (paged?.items?.length || 0))
+                      } catch (err) {
+                        showAdminError(err?.message || 'Không thể tải lại danh sách câu hỏi')
+                      }
+                    }}
+                  />
+                </div>
+              )
+            }
+          ]} 
+        />
+      </Card>
+      
+      {/* Edit Modal (used when editing from info card) */}
+      <EditQuestionTypeModal
+        open={isEditing}
+        questionType={questionType}
+        onCancel={() => setIsEditing(false)}
+        onUpdate={async () => {
+          setIsEditing(false)
+          try {
+            const qt = await fetchQuestionTypeById(questionTypeId)
+            setQuestionType(qt)
+          } catch (err) {
+            showAdminError('Không thể tải lại dữ liệu')
+          }
+        }}
+      />
+    </div>
+  )
 }
 
 export default QuestionTypeDetailScreen

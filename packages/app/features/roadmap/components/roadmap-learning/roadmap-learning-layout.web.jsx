@@ -34,6 +34,21 @@ export function RoadmapLearningLayout({
   const [isGeneratingNextWeek, setIsGeneratingNextWeek] = useState(false)
   const [progressData, setProgressData] = useState(null)
   const [isCancelling, setIsCancelling] = useState(false)
+  const [currentUserRole, setCurrentUserRole] = useState(null)
+  const [isVipModalVisible, setIsVipModalVisible] = useState(false)
+
+  const fetchUserRole = useCallback(async () => {
+    try {
+      const response = await apiClient.get(ENDPOINTS.ACCOUNT.CURRENT_ROLE)
+      setCurrentUserRole(response?.data?.role)
+    } catch (err) {
+      console.error('Failed to fetch user role:', err)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchUserRole()
+  }, [fetchUserRole])
 
   // ĐỔI MỚI: Quản lý tuần hiện tại
   const [activeWeekIndex, setActiveWeekIndex] = useState(null)
@@ -171,6 +186,34 @@ export function RoadmapLearningLayout({
   )
 
   const handleGenerateNextWeek = async () => {
+    // Kiểm tra quyền (Role 1 hoặc 3 mới được tạo tiếp)
+    let role = currentUserRole
+    if (role === null || role === undefined) {
+      try {
+        const response = await apiClient.get(ENDPOINTS.ACCOUNT.CURRENT_ROLE)
+        role = response?.data?.role
+        setCurrentUserRole(role)
+      } catch (err) {
+        console.error('Failed to verify user role:', err)
+      }
+    }
+
+    if (role !== 1 && role !== 3) {
+      if (Platform.OS === 'web') {
+        setIsVipModalVisible(true)
+      } else {
+        Alert.alert(
+          'Yêu cầu nâng cấp VIP',
+          'Vui lòng nâng cấp VIP để tạo tiếp lộ trình học tập.',
+          [
+            { text: 'Để sau', style: 'cancel' },
+            { text: 'Nâng cấp ngay', onPress: () => router.push('/payment-package'), style: 'default' }
+          ]
+        )
+      }
+      return
+    }
+
     // 1. Xác định tuần mốc (tuần đã hoàn thành)
     // Nếu tuần hiện tại đã có bài học (đang ở Day 7 chẳng hạn), thì dùng tuần này làm mốc để tạo tuần TIẾP THEO.
     // Nếu tuần hiện tại đang trống (VD tuần 2 chưa có bài), thì dùng tuần TRƯỚC ĐÓ làm mốc để tạo nội dung cho chính tuần này.
@@ -208,14 +251,18 @@ export function RoadmapLearningLayout({
       const backendMessage = err.response?.data?.message
 
       if (status === 403) {
-        Alert.alert(
-          'Yêu cầu nâng cấp VIP',
-          'Tính năng tự động thiết kế lộ trình học tập nâng cao chỉ dành cho thành viên VIP. Bạn có muốn nâng cấp ngay không?',
-          [
-            { text: 'Để sau', style: 'cancel' },
-            { text: 'Nâng cấp ngay', onPress: () => router.push('/payment-package'), style: 'default' }
-          ]
-        )
+        if (Platform.OS === 'web') {
+          setIsVipModalVisible(true)
+        } else {
+          Alert.alert(
+            'Yêu cầu nâng cấp VIP',
+            'Tính năng tự động thiết kế lộ trình học tập nâng cao chỉ dành cho thành viên VIP. Bạn có muốn nâng cấp ngay không?',
+            [
+              { text: 'Để sau', style: 'cancel' },
+              { text: 'Nâng cấp ngay', onPress: () => router.push('/payment-package'), style: 'default' }
+            ]
+          )
+        }
       } else {
         Alert.alert('Thông báo', backendMessage || 'Không thể tạo tuần tiếp theo. Vui lòng thử lại.')
       }
@@ -596,6 +643,42 @@ export function RoadmapLearningLayout({
                 </View>
               )}
             </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* VIP Upgrade Modal */}
+      <Modal visible={isVipModalVisible} transparent animationType="fade" onRequestClose={() => setIsVipModalVisible(false)}>
+        <Pressable style={styles.modalOverlay} onPress={() => setIsVipModalVisible(false)}>
+          <Pressable style={styles.vipModalContent} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.vipIconContainer}>
+              <Text style={styles.vipIcon}>👑</Text>
+            </View>
+            
+            <Text style={styles.vipModalTitle}>Yêu cầu nâng cấp VIP</Text>
+            <Text style={styles.vipModalText}>
+              Tính năng thiết kế lộ trình học tập nâng cao bằng AI chỉ dành cho thành viên VIP. 
+              Hãy nâng cấp ngay để tiếp tục hành trình chinh phục mục tiêu của bạn!
+            </Text>
+
+            <View style={styles.vipModalActions}>
+              <Pressable 
+                onPress={() => setIsVipModalVisible(false)} 
+                style={({ pressed }) => [styles.vipCancelBtn, pressed && styles.vipBtnPressed]}
+              >
+                <Text style={styles.vipCancelBtnText}>Để sau</Text>
+              </Pressable>
+              
+              <Pressable 
+                onPress={() => {
+                  setIsVipModalVisible(false)
+                  router.push('/payment-package')
+                }} 
+                style={({ pressed }) => [styles.vipUpgradeBtn, pressed && styles.vipBtnPressed]}
+              >
+                <Text style={styles.vipUpgradeBtnText}>Nâng cấp ngay</Text>
+              </Pressable>
+            </View>
           </Pressable>
         </Pressable>
       </Modal>
@@ -1357,5 +1440,76 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '500',
     fontStyle: 'italic',
+  },
+  vipModalContent: {
+    width: '90%',
+    maxWidth: 400,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 32,
+    padding: 32,
+    alignItems: 'center',
+    ...(Platform.OS === 'web' && { boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }),
+  },
+  vipIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#FFF9EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  vipIcon: {
+    fontSize: 40,
+  },
+  vipModalTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  vipModalText: {
+    fontSize: 15,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 32,
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  vipModalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  vipCancelBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+  },
+  vipCancelBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#666',
+  },
+  vipUpgradeBtn: {
+    flex: 1.5,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: '#F4A950',
+    alignItems: 'center',
+    ...(Platform.OS === 'web' && { boxShadow: '0 4px 12px rgba(244,169,80,0.25)' }),
+  },
+  vipUpgradeBtnText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  vipBtnPressed: {
+    transform: [{ scale: 0.97 }],
+    opacity: 0.9,
   },
 })

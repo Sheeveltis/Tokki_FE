@@ -1,12 +1,8 @@
 import { useState, useEffect } from 'react'
 import { StyleSheet, View, Text, Platform, Pressable, ScrollView, ActivityIndicator, Modal, Image } from 'react-native'
 import { useRouter } from 'solito/navigation'
-import { Navbar } from '../../../../../components/navbar'
-import { NavigationPill } from '../../../../../components/navigation-pill'
-import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
 import { apiClient } from '../../../../provider/api/client'
 import { ENDPOINTS } from '../../../../provider/api/endpoints'
-import { RoadmapTestButton } from '../roadmap-test/roadmap-test-button'
 
 export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 10 }) {
   const router = useRouter()
@@ -18,6 +14,12 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
   const [answers, setAnswers] = useState({})
   const [confirmVisible, setConfirmVisible] = useState(false)
   const [isFinished, setIsFinished] = useState(false)
+
+  // Hover states for web
+  const [exitHovered, setExitHovered] = useState(false)
+  const [prevHovered, setPrevHovered] = useState(false)
+  const [nextHovered, setNextHovered] = useState(false)
+  const [hoveredOptionId, setHoveredOptionId] = useState(null)
 
   useEffect(() => {
     let isMounted = true
@@ -41,15 +43,20 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
         const payload = response?.data?.data || []
         const loadedQuestions = []
 
-        payload.forEach((group) => {
-          (group.questions || []).forEach((q) => {
-            loadedQuestions.push({
-              ...q,
-              sharedMediaUrl: group.sharedMediaUrl,
-              sharedMediaType: group.sharedMediaType,
-              sharedPassageContent: group.sharedPassageContent,
+        payload.forEach((item) => {
+          if (item.questions && Array.isArray(item.questions)) {
+            item.questions.forEach((q) => {
+              loadedQuestions.push({
+                ...q,
+                sharedMediaUrl: item.sharedMediaUrl,
+                sharedMediaType: item.sharedMediaType,
+                sharedPassageContent: item.sharedPassageContent,
+              })
             })
-          })
+          } else {
+            // Trường hợp dữ liệu trả về flat array (câu hỏi trực tiếp)
+            loadedQuestions.push(item)
+          }
         })
 
         if (loadedQuestions.length === 0) {
@@ -75,6 +82,15 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
   const renderHtmlText = (value, style) => {
     if (!value) return null
     if (Platform.OS === 'web') {
+      // Unescape HTML entities so tags like <u> work correctly
+      const unescapedValue = String(value || '')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'")
+        .replace(/&#39;/g, "'")
+
       return (
         <span
           style={{
@@ -84,7 +100,7 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
             wordBreak: 'break-word',
             fontFamily: 'inherit'
           }}
-          dangerouslySetInnerHTML={{ __html: String(value || '') }}
+          dangerouslySetInnerHTML={{ __html: unescapedValue }}
         />
       )
     }
@@ -175,22 +191,19 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
         {/* Header Navigation - Synchronized with Roadmap Dashboard */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Pressable onPress={handleExitPress} style={({ pressed }) => [styles.exitButton, pressed && styles.actionButtonPressed]}>
+            <Pressable 
+              onPress={handleExitPress} 
+              onMouseEnter={() => setExitHovered(true)}
+              onMouseLeave={() => setExitHovered(false)}
+              style={({ pressed }) => [
+                styles.exitButton, 
+                exitHovered && styles.exitButtonHovered,
+                pressed && styles.actionButtonPressed
+              ]}
+            >
               <Text style={styles.exitIcon}>×</Text>
               <Text style={styles.exitText}>Thoát</Text>
             </Pressable>
-            <View style={styles.headerDivider} />
-            <View style={styles.breadcrumb}>
-              <Text style={styles.breadcrumbText}>Học tập</Text>
-              <Text style={styles.breadcrumbDivider}>/</Text>
-              <Pressable onPress={() => router.push('/roadmap/learning')}>
-                <Text style={styles.breadcrumbText}>Lộ trình cá nhân</Text>
-              </Pressable>
-              <Text style={styles.breadcrumbDivider}>/</Text>
-              <Text style={[styles.breadcrumbText, styles.breadcrumbActive]}>
-                {currentQuestion?.options?.length > 0 ? 'Luyện tập (Trắc nghiệm)' : 'Luyện tập (Viết)'}
-              </Text>
-            </View>
           </View>
 
           <View style={styles.progressTracker}>
@@ -235,7 +248,7 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
           ) : (
             <View style={styles.testLayout}>
               {/* Left Column: Passage or Image */}
-              {(currentQuestion.sharedPassageContent || (currentQuestion.sharedMediaUrl && currentQuestion.sharedMediaType === 'Image')) && (
+              {(currentQuestion.sharedPassageContent || (currentQuestion.sharedMediaUrl && (currentQuestion.sharedMediaType === 'Image' || currentQuestion.sharedMediaType === 'Audio'))) && (
                 <View style={styles.passageColumn}>
                   <View style={styles.columnHeader}>
                     <View style={styles.columnTitleBadge}>
@@ -252,6 +265,10 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
                           style={styles.sharedImage}
                           resizeMode="contain"
                         />
+                      ) : currentQuestion.sharedMediaType === 'Audio' ? (
+                        <View style={styles.audioWrapper}>
+                          <audio controls src={currentQuestion.sharedMediaUrl} style={{ width: '100%' }} />
+                        </View>
                       ) : (
                         renderHtmlText(currentQuestion.sharedPassageContent, styles.passageText)
                       )}
@@ -266,7 +283,7 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
                   <View style={styles.questionHeader}>
                     <View style={[styles.questionBadge, { backgroundColor: isAnswered ? (isCorrect ? '#E8F5E9' : '#FFEBEE') : '#F5F5F5' }]}>
                       <Text style={[styles.questionBadgeText, { color: isAnswered ? (isCorrect ? '#2E7D32' : '#C62828') : '#888' }]}>
-                        {currentQuestion.options?.length > 0 ? `CÂU HỎI ${currentIndex + 1}` : 'BÀI VIẾT'}
+                        {currentQuestion.options?.length > 0 ? `Câu hỏi ${currentIndex + 1}` : 'Bài viết'}
                       </Text>
                     </View>
                   </View>
@@ -278,9 +295,15 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
                       </View>
                     ) : null}
 
+                    {currentQuestion.mediaUrl ? (
+                      <View style={styles.questionAudioWrapper}>
+                        <audio controls src={currentQuestion.mediaUrl} style={{ width: '101%', height: 45 }} />
+                      </View>
+                    ) : null}
+
                     <View style={styles.optionsWrapper}>
                       {currentQuestion.options?.length > 0 ? (
-                        (currentQuestion.options || []).map((option) => {
+                        (currentQuestion.options || []).map((option, idx) => {
                           const isThisSelected = option.optionId === selectedOptionId
                           const isThisCorrect = option.optionId === currentQuestion.correctOptionId
 
@@ -310,14 +333,17 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
                             <Pressable
                               key={option.optionId}
                               onPress={() => handleSelectOption(option.optionId)}
+                              onMouseEnter={() => !isAnswered && setHoveredOptionId(option.optionId)}
+                              onMouseLeave={() => setHoveredOptionId(null)}
                               style={({ pressed }) => [
                                 styles.optionBase,
+                                hoveredOptionId === option.optionId && !isAnswered && styles.optionHovered,
                                 extraOptionStyle,
                                 pressed && !isAnswered && styles.optionPressed,
                               ]}
                             >
                               <View style={[styles.optionCircleBase, extraCircleStyle]}>
-                                <Text style={[styles.optionLabelBase, extraLabelStyle]}>{option.keyOption}</Text>
+                                <Text style={[styles.optionLabelBase, extraLabelStyle]}>{idx + 1}</Text>
                               </View>
 
                               <View style={styles.optionContent}>
@@ -363,6 +389,20 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
                         </View>
                       )}
                     </View>
+
+                    {isAnswered && (currentQuestion.explain || currentQuestion.explanation) && (
+                      <View style={styles.explanationCard}>
+                        <View style={styles.explanationHeader}>
+                          <View style={styles.explanationIconContainer}>
+                            <Text style={styles.explanationIcon}>💡</Text>
+                          </View>
+                          <Text style={styles.explanationTitle}>Giải thích</Text>
+                        </View>
+                        <View style={styles.explanationBody}>
+                          {renderHtmlText(currentQuestion.explain || currentQuestion.explanation, styles.explanationText)}
+                        </View>
+                      </View>
+                    )}
                   </View>
                 </ScrollView>
               </View>
@@ -375,9 +415,12 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
           <View style={styles.footer}>
             <Pressable
               onPress={handlePrev}
+              onMouseEnter={() => setPrevHovered(true)}
+              onMouseLeave={() => setPrevHovered(false)}
               disabled={currentIndex === 0}
               style={({ pressed }) => [
                 styles.navBtnPrev,
+                prevHovered && currentIndex !== 0 && styles.navBtnPrevHovered,
                 currentIndex === 0 && styles.navBtnDisabled,
                 pressed && styles.actionButtonPressed
               ]}
@@ -393,8 +436,11 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
 
             <Pressable
               onPress={handleNext}
+              onMouseEnter={() => setNextHovered(true)}
+              onMouseLeave={() => setNextHovered(false)}
               style={({ pressed }) => [
                 styles.navBtnNext,
+                nextHovered && styles.navBtnNextHovered,
                 pressed && styles.actionButtonPressed
               ]}
             >
@@ -520,6 +566,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     backgroundColor: '#F9F9F9',
+    transition: 'all 0.2s ease',
+  },
+  exitButtonHovered: {
+    backgroundColor: '#F0F0F0',
+    transform: [{ scale: 1.02 }],
   },
   exitIcon: {
     fontSize: 22,
@@ -682,9 +733,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   questionBadgeText: {
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 0.5,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   questionBody: {
     gap: 32,
@@ -693,10 +744,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   questionText: {
-    fontSize: 24,
-    fontWeight: '800',
+    fontSize: 22,
+    fontWeight: '600',
     color: '#1A1A1A',
-    lineHeight: 34,
+    lineHeight: 32,
     fontFamily: 'Epilogue, sans-serif',
   },
   optionsWrapper: {
@@ -712,9 +763,15 @@ const styles = StyleSheet.create({
     borderColor: '#EEEEEE',
     gap: 18,
     ...(Platform.OS === 'web' && {
-      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
       cursor: 'pointer',
     }),
+  },
+  optionHovered: {
+    borderColor: '#FFCF6C',
+    backgroundColor: '#FFFBF5',
+    transform: [{ translateY: -2 }],
+    ...(Platform.OS === 'web' && { boxShadow: '0 8px 24px rgba(255, 207, 108, 0.15)' }),
   },
   optionPressed: {
     transform: [{ scale: 0.98 }],
@@ -781,6 +838,8 @@ const styles = StyleSheet.create({
   },
   optionImg: {
     maxWidth: '100%',
+    maxHeight: 180,
+    objectFit: 'contain',
     borderRadius: 12,
   },
   ansStatusBadge: {
@@ -828,6 +887,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 16,
     backgroundColor: '#F5F5F5',
+    transition: 'all 0.2s ease',
+  },
+  navBtnPrevHovered: {
+    backgroundColor: '#EEEEEE',
+    transform: [{ translateX: -3 }],
   },
   navBtnDisabled: {
     opacity: 0.3,
@@ -847,13 +911,19 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   navBtnNext: {
-     backgroundColor: '#1A1A1A',
+    backgroundColor: '#1A1A1A',
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 16,
     minWidth: 180,
     alignItems: 'center',
+    transition: 'all 0.25s ease',
     ...(Platform.OS === 'web' && { boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }),
+  },
+  navBtnNextHovered: {
+    backgroundColor: '#333333',
+    transform: [{ translateY: -3 }],
+    ...(Platform.OS === 'web' && { boxShadow: '0 12px 32px rgba(0,0,0,0.2)' }),
   },
   navBtnTextNext: {
     fontSize: 15,
@@ -988,6 +1058,69 @@ const styles = StyleSheet.create({
     color: '#F4A950',
     fontWeight: '700',
     textDecorationLine: 'underline',
+  },
+  audioWrapper: {
+    padding: 16,
+    backgroundColor: '#F9F9F9',
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  questionAudioWrapper: {
+    padding: 12,
+    backgroundColor: '#FFF8F0',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#FFECC8',
+    marginBottom: 8,
+  },
+  explanationCard: {
+    marginTop: 16,
+    padding: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#FFF8E1',
+    gap: 16,
+    ...(Platform.OS === 'web' && { 
+      boxShadow: '0 12px 32px rgba(255, 193, 7, 0.08)',
+    }),
+  },
+  explanationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  explanationIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: '#FFF8E1',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  explanationIcon: {
+    fontSize: 16,
+  },
+  explanationTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FF9800',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  explanationBody: {
+    backgroundColor: '#FFFDE7',
+    padding: 20,
+    borderRadius: 18,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FFC107',
+  },
+  explanationText: {
+    fontSize: 16,
+    color: '#5D4037',
+    lineHeight: 26,
+    fontWeight: '600',
+    fontFamily: 'Epilogue, sans-serif',
   },
 })
 

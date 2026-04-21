@@ -211,6 +211,32 @@ const startExam = async (examId = DEFAULT_EXAM_ID, isShuffle = true) => {
   return startExamOncePromise
 }
 
+// Đảm bảo chỉ gọi API next-skill đúng 1 lần cho mỗi lượt chuyển phần
+let nextSkillOncePromise = null
+let nextSkillCacheKey = null
+
+const nextSkill = async (userExamId, sectionKey) => {
+  if (!userExamId || !sectionKey) return null
+  const cacheKey = `${userExamId}:${sectionKey}`
+  if (nextSkillOncePromise && nextSkillCacheKey === cacheKey) {
+    return nextSkillOncePromise
+  }
+
+  nextSkillCacheKey = cacheKey
+  nextSkillOncePromise = (async () => {
+    try {
+      const response = await apiClient.put(ENDPOINTS.USER_EXAM.NEXT_SKILL(userExamId))
+      return response?.data?.data || response?.data || null
+    } catch (error) {
+      nextSkillOncePromise = null
+      nextSkillCacheKey = null
+      throw error
+    }
+  })()
+
+  return nextSkillOncePromise
+}
+
 // Bước 2: Lấy chi tiết bài thi đang làm dở từ userExamId
 const getExamDetailInProgress = async (userExamId) => {
   if (!userExamId) return null
@@ -423,6 +449,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
   const [toastMessage, setToastMessage] = useState('')
   const [toastType, setToastType] = useState('success')
   const [markedQuestions, setMarkedQuestions] = useState({}) // { [sectionKey]: { [questionNo]: boolean } }
+  const submittingRef = useRef(false)
 
   const handleToggleMark = (questionNum) => {
     if (!activeSectionKey) return
@@ -546,13 +573,13 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
           Alert.alert(
             'Không thể tải đề thi',
             'Đã có lỗi xảy ra khi lấy thông tin bài kiểm tra. Vui lòng thử lại sau.',
-            [{ text: 'Đồng ý', onPress: () => router.push(`/roadmap/learning?level=${level}`) }]
+            [{ text: 'Đồng ý', onPress: () => router.push(isEntrance ? '/roadmap/info' : '/roadmap/learning') }]
           )
           
           // Sau 2 giây nếu chưa chuyển trang thì tự động chuyển (đề phòng Alert bị chặn hoặc không gọi onPress)
           setTimeout(() => {
             if (isMounted) {
-              router.push(`/roadmap/learning?level=${level}`)
+              router.push(isEntrance ? '/roadmap/info' : '/roadmap/learning')
             }
           }, 2000)
         }
@@ -829,12 +856,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
   }
 
   const handleSubmit = async (isAuto = false) => {
-    if (isSubmitting) return
-
-    // If auto-submit, we don't clear the timer here (it's already 0)
-    if (isAuto !== true) {
-      // timeRemainingSeconds logic handled below
-    }
+    if (submittingRef.current || isSubmitting) return
 
     if (!userExamId) {
       if (isAuto !== true) {
@@ -847,17 +869,18 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     const activeSectionIndexSnapshot = activeSectionIndex
     const isLastSkill = activeSectionIndexSnapshot === sections.length - 1
 
-    if (isAuto !== true) {
-      const confirmText = isLastSkill
-        ? 'Bạn có chắc chắn muốn nộp bài? Sau khi nộp, bạn sẽ không thể chỉnh sửa đáp án.'
-        : `Bạn có chắc chắn muốn nộp phần thi ${activeSectionSnapshot?.label || ''} và chuyển sang phần tiếp theo?`
-      
-      const confirmed = await confirmSubmit(confirmText)
-      if (!confirmed) return
-    }
-
-    setIsSubmitting(true)
+    submittingRef.current = true
     try {
+      if (isAuto !== true) {
+        const confirmText = isLastSkill
+          ? 'Bạn có chắc chắn muốn nộp bài? Sau khi nộp, bạn sẽ không thể chỉnh sửa đáp án.'
+          : `Bạn có chắc chắn muốn nộp phần thi ${activeSectionSnapshot?.label || ''} và chuyển sang phần tiếp theo?`
+        
+        const confirmed = await confirmSubmit(confirmText)
+        if (!confirmed) return
+      }
+
+      setIsSubmitting(true)
       // 0) Sync tất cả đáp án (MCQ + Writing) trước khi submit/next-skill
       await syncAllAnswersBeforeSubmit()
 
@@ -895,8 +918,8 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
 
         startExamOncePromise = null
       } else {
-        // Gọi next-skill API
-        await apiClient.put(ENDPOINTS.USER_EXAM.NEXT_SKILL(userExamId))
+        // Gọi next-skill API thông qua helper để đảm bảo chỉ gọi 1 lần
+        await nextSkill(userExamId, activeSectionSnapshot?.key)
 
         // Chuyển phần tiếp theo
         const nextSection = sections[activeSectionIndexSnapshot + 1]
@@ -909,6 +932,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
       const errorMsg = isLastSkill ? 'Không thể nộp bài. Vui lòng thử lại.' : 'Không thể chuyển phần. Vui lòng thử lại.'
       Alert.alert('Lỗi', errorMsg)
     } finally {
+      submittingRef.current = false
       setIsSubmitting(false)
     }
   }
@@ -938,7 +962,8 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
   }
 
   const handleConfirmSectionChange = async () => {
-    if (pendingSectionKey && !isSubmitting) {
+    if (pendingSectionKey && !submittingRef.current && !isSubmitting) {
+      submittingRef.current = true
       setIsSubmitting(true)
       try {
         // Sync answers before switching via manual tab
@@ -946,7 +971,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
 
         // Call next-skill API if transitioning forward
         if (userExamId) {
-          await apiClient.put(ENDPOINTS.USER_EXAM.NEXT_SKILL(userExamId))
+          await nextSkill(userExamId, activeSectionKey)
         }
 
         performSectionSwitch(pendingSectionKey)
@@ -956,6 +981,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         setToastType('error')
         setToastVisible(true)
       } finally {
+        submittingRef.current = false
         setIsSubmitting(false)
         setSectionConfirmVisible(false)
         setPendingSectionKey(null)
@@ -993,8 +1019,8 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     const confirmed = await confirmBack()
     if (!confirmed) return
 
-    // Navigate to learning page with current level
-    router.push(`/roadmap/learning?level=${level}`)
+    // Navigate back: entrance tests go to info, others go to learning
+    router.push(isEntrance ? '/roadmap/info' : '/roadmap/learning')
   }
 
   const activeSectionIndex = sections.findIndex((s) => s.key === activeSectionKey)
