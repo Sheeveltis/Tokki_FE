@@ -99,7 +99,7 @@ export function usePronunciationExampleDetail(exampleId) {
       try {
         setIsPlaying(true)
         const fullAudioUrl = example.audioUrl.startsWith('http') ? example.audioUrl : `${DOMAIN}${example.audioUrl}`
-        console.log('DEBUG: Playing pronunciation audio from URL:', fullAudioUrl)
+        console.log(`DEBUG: [${Platform.OS}] Playing pronunciation audio from URL:`, fullAudioUrl)
 
         if (Platform.OS === 'web') {
           const audio = new window.Audio(fullAudioUrl)
@@ -128,7 +128,7 @@ export function usePronunciationExampleDetail(exampleId) {
         } else if (ExpoAudio) {
           const { sound } = await ExpoAudio.Sound.createAsync(
             { uri: fullAudioUrl },
-            { shouldPlay: true, rate: rate, shouldCorrectPitch: true }
+            { shouldPlay: true, rate: safeRate, shouldCorrectPitch: true }
           )
           sound.setOnPlaybackStatusUpdate((s) => {
             if (s.didJustFinish) {
@@ -182,6 +182,7 @@ export function usePronunciationExampleDetail(exampleId) {
           setAudioLevel(0)
           const blob = new Blob(chunks, { type: 'audio/m4a' })
           await evaluate(blob, exampleId)
+          await fetchDetail() // Refresh local data (learned status, etc)
           stream.getTracks().forEach(t => t.stop())
         }
 
@@ -262,6 +263,7 @@ export function usePronunciationExampleDetail(exampleId) {
       setAudioLevel(0)
       const uri = recording.getURI()
       await evaluate(uri, exampleId)
+      await fetchDetail() // Refresh local data
       setRecording(null)
     } catch (err) {
       console.error('Stop native recording error:', err)

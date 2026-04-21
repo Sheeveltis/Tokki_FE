@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { Platform } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { usePronunciationRules } from '../hooks/usePronunciationRules'
 import { PronunciationLayout } from '../components/layout/PronunciationLayout'
 import { PronunciationRulesMain as WebMain } from '../components/PronunciationRulesMain.web'
@@ -22,6 +22,14 @@ export function PronunciationRulesScreen({ onBackPress, onRulePress }) {
     filteredRules,
     fetchRules,
   } = usePronunciationRules()
+
+  if (Platform.OS !== 'web') {
+    useFocusEffect(
+      useCallback(() => {
+        fetchRules()
+      }, [fetchRules])
+    )
+  }
 
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
 

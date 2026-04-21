@@ -141,7 +141,7 @@ export function PronunciationExampleDetailMain({
 const styles = StyleSheet.create({
   titleContainer: { width: '100%', alignItems: 'center', marginBottom: 24 },
   title: { fontSize: 36, fontWeight: '900', color: '#1F1F1F', fontFamily: 'Epilogue, sans-serif', textAlign: 'center' },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, minHeight: 400 },
+  centered: { width: '100%', flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, minHeight: 400 },
 
   contentWrapper: {
     flex: 1,
