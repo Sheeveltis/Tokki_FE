@@ -23,6 +23,7 @@ export function PronunciationExampleList({ examples, onSelectExample }) {
           text={example.text || 'Không có nội dung'}
           subtitle="Chạm để bắt đầu luyện tập"
           difficulty={example.difficulty}
+          isCompleted={example.isLearned}
           onPress={() => onSelectExample?.(example)}
         />
       ))}

@@ -53,14 +53,14 @@ export function WordleFeedbackModal({ visible, loading, data, onConfirm }) {
           showsVerticalScrollIndicator
           nestedScrollEnabled
         >
-          <View style={styles.topRow}>
-            <View style={styles.sectionHalf}>
-              <Text style={styles.sectionLabel}>Keyword</Text>
-              <Text style={styles.sectionValue}>{targetWord || '—'}</Text>
-            </View>
-            <View style={styles.sectionHalf}>
-              <Text style={styles.sectionLabel}>Định nghĩa</Text>
-              <Text style={styles.sectionValue}>{meaningText || '—'}</Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Keyword</Text>
+            <View style={styles.keywordBadge}>
+              <Text style={styles.sectionValueCombined}>
+                <Text style={styles.keywordText}>{targetWord || '—'}</Text>
+                <Text style={styles.definitionDivider}> : </Text>
+                <Text style={styles.definitionText}>{meaningText || '—'}</Text>
+              </Text>
             </View>
           </View>
 
@@ -223,8 +223,8 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#757575',
-    marginBottom: 2,
+    color: '#11560dff',
+    marginBottom: 5,
     textTransform: 'uppercase',
   },
 
@@ -256,14 +256,33 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  topRow: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 8,
+  keywordBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#ffecc8ff',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#D7CCC8',
   },
-
-  sectionHalf: {
-    flex: 1,
+  sectionValueCombined: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  keywordText: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#247f2aff',
+  },
+  definitionDivider: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000000ff',
+  },
+  definitionText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#4E342E',
   },
 
   progressBlock: {

@@ -14,7 +14,7 @@ import { Platform } from 'react-native'
 const WEB_DOMAIN = 'https://localhost:5031'
 // Cho Android Emulator: dùng 10.0.2.2 để truy cập localhost của máy host
 // Cho Device thật: thay bằng IP thật của máy (ví dụ: http://116.106.201.3:5031)
-const MOBILE_DOMAIN = 'http://10.0.2.2:5031' // IP đặc biệt cho Android Emulator
+const MOBILE_DOMAIN = 'https://tokki-api.site' // IP đặc biệt cho Android Emulator
 
 const PREFIX = '/api'
 
@@ -152,13 +152,14 @@ export const ENDPOINTS = {
     EVALUATE: '/Pronunciation/evaluate', // POST: Đánh giá phát âm
   },
   PRONUNCIATION_EXAMPLE: {
-    GET_BY_RULE_ID: (ruleId) => `/PronunciationExample/rules/${ruleId}/examples`, // GET: Lấy danh sách ví dụ theo rule
+    GET_BY_RULE_ID: (ruleId) => `/PronunciationExample?pronunciationRuleId=${ruleId}&pageSize=100`, // GET: Lấy danh sách ví dụ theo rule
     GET_BY_ID: (exampleId) => `/PronunciationExample/${exampleId}`, // GET: Lấy chi tiết ví dụ
   },
   PRONUNCIATION_RULES: {
     CREATE: '/PronunciationRules', // POST: Tạo pronunciation rule
     USER_GET_ALL: '/PronunciationRules/user/get-all', // GET: User lấy danh sách rules
     ADMIN_GET_ALL: '/PronunciationRules/admin/get-all', // GET: Admin lấy danh sách rules
+    DELETE: (id) => `/PronunciationRules/${id}`, // DELETE: Xóa rule
   },
   VOCABULARY: {
     ADMIN_GET_ALL: '/Vocabulary/admin/get-all',

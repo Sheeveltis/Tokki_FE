@@ -118,6 +118,9 @@ export function WordleSentenceFlow({
   const MIN_PUBLIC_SCORE = 60
 
   const handleFeedbackConfirm = () => {
+    setIsFlowFinished(true)
+    if (onFlowFinished) onFlowFinished(true)
+
     if (!feedbackData?.aiFeedback) {
       setShowFeedbackModal(false)
       return
@@ -130,8 +133,6 @@ export function WordleSentenceFlow({
       setShowPublishPopup(true)
       return
     }
-
-    setIsFlowFinished(true)
   }
 
   const handlePublishConfirm = async () => {
@@ -325,7 +326,7 @@ export function WordleSentenceFlow({
           </Text>
 
           <View style={styles.resultButtons}>
-            {!isFlowFinished && (
+            {!isFlowFinished && !showPublishPopup && !showNamePopup && (
               <Pressable
                 style={({ pressed }) => [
                   styles.restartButton,
@@ -362,8 +363,8 @@ export function WordleSentenceFlow({
 const styles = StyleSheet.create({
   sentenceBox: {
     backgroundColor: '#FFF9E3',
-    width: '95%',
-    maxWidth: 500,
+    width: '100%',
+    maxWidth: 800,
     padding: 24,
     borderRadius: 24,
     alignItems: 'center',
@@ -375,7 +376,7 @@ const styles = StyleSheet.create({
     }),
   },
   sentenceTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '900',
     color: '#8B4513',
     marginBottom: 10,
@@ -388,23 +389,24 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#D7CCC8',
     width: '100%',
-    maxWidth: 600,
+    maxWidth: 800,
     alignSelf: 'center',
     marginTop: 20,
-    paddingBottom: 40,
+    marginBottom: 10,
+    paddingBottom: 20,
     ...(Platform.OS === 'web' && {
       boxShadow: '0 8px 16px rgba(0,0,0,0.15)',
     }),
   },
   resultText: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '900',
     color: '#388E3C',
     marginBottom: 15,
     textAlign: 'center',
   },
   userSentenceResult: {
-    fontSize: 15,
+    fontSize: 13,
     color: '#4E342E',
     fontStyle: 'italic',
     textAlign: 'center',
