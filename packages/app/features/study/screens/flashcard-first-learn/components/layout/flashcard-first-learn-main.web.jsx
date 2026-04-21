@@ -258,8 +258,8 @@ export function FlashcardFirstLearnMain({
         <Animated.View style={[styles.resultIconWrapper, { transform: [{ scale: iconScale }] }]}>
           <StudyIcon
             source={isCorrect ? CorrectIcon : WarnIcon}
-            width={64}
-            height={64}
+            width={Platform.OS === 'web' ? 'min(64px, 8vh)' : 64}
+            height={Platform.OS === 'web' ? 'min(64px, 8vh)' : 64}
             tintColor={isCorrect ? '#2FB96B' : '#CF4B4B'}
           />
         </Animated.View>
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     paddingBottom: 20,
-    paddingTop: 20,
+    paddingTop: 10,
   },
   contentArea: {
     flex: 1,
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,
-    marginBottom: 20,
+    marginBottom: 5,
     position: 'relative',
     minHeight: 56,
   },
@@ -577,23 +577,24 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: '100%',
+    maxHeight: '35vh',
     aspectRatio: 1.8,
     borderRadius: 16,
     backgroundColor: '#F5F5F5',
   },
   cardWord: {
-    fontSize: 28,
+    fontSize: Platform.OS === 'web' ? 'min(28px, 4vh)' : 28,
     fontWeight: '800',
     color: '#1F1F1F',
     textTransform: 'capitalize',
   },
   cardPronun: {
-    fontSize: 16,
+    fontSize: Platform.OS === 'web' ? 'min(16px, 2.5vh)' : 16,
     color: '#666',
     fontStyle: 'italic',
   },
   cardMeaning: {
-    fontSize: 18,
+    fontSize: Platform.OS === 'web' ? 'min(18px, 3vh)' : 18,
     color: '#1F1F1F',
     textAlign: 'center',
   },
@@ -683,14 +684,19 @@ const styles = StyleSheet.create({
   resultBox: {
     width: '100%',
     maxWidth: 600,
-    minHeight: 450,
-    gap: 20,
+    maxHeight: '75vh',
+    minHeight: 350,
+    gap: Platform.OS === 'web' ? 'max(10px, 1.5vh)' : 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 24,
-    padding: 40,
+    padding: Platform.OS === 'web' ? 'min(24px, 3vh)' : 24,
+    paddingTop: 20,
     backgroundColor: '#FFFFFF',
     borderWidth: 4,
+    ...(Platform.OS === 'web' && {
+      overflowY: 'auto',
+    }),
   },
   resultBoxCorrect: {
     borderColor: '#2FB96B',
@@ -720,8 +726,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#CF4B4B',
   },
-  wrongLabel: { fontSize: 13, fontWeight: '700', color: '#CF4B4B' },
-  wrongText: { fontSize: 16, fontWeight: '700', color: '#CF4B4B' },
+  wrongLabel: { fontSize: Platform.OS === 'web' ? 'min(13px, 2vh)' : 13, fontWeight: '700', color: '#CF4B4B' },
+  wrongText: { fontSize: Platform.OS === 'web' ? 'min(16px, 2.5vh)' : 16, fontWeight: '700', color: '#CF4B4B' },
   stepContainer: {
     width: '100%',
     alignItems: 'center',
