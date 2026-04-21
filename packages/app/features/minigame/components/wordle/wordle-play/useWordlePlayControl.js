@@ -412,23 +412,38 @@ export function useWordlePlayControl({
     router.back()
   }, [router])
 
+  const handleGoHome = useCallback(() => {
+    setShowMenuPopup(false)
+    router.push('/')
+  }, [router])
+
   const handleHowToPlay = useCallback(() => {
     setShowMenuPopup(false)
-    requestAnimationFrame?.(() => {
-      setTourRun(true)
-    })
-  }, [])
+    if (isWeb) {
+      requestAnimationFrame?.(() => {
+        setTourRun(true)
+      })
+    } else {
+      // Trên Native, chuyển hướng sang màn hình hướng dẫn
+      router.push('/minigame/wordle/wordle-rule')
+    }
+  }, [isWeb, router])
 
   const handlePlayWordAudio = useCallback(() => {
-    if (!isWeb) return
     const url = wordResult?.audioUrl
-    if (!url || typeof Audio === 'undefined') return
+    if (!url) return
 
-    try {
-      const audio = new Audio(url)
-      audio.play().catch((err) => console.log('[useWordlePlayControl] play word audio error:', err))
-    } catch (e) {
-      console.error('[useWordlePlayControl] Failed to create audio element:', e)
+    if (isWeb) {
+      if (typeof Audio === 'undefined') return
+      try {
+        const audio = new Audio(url)
+        audio.play().catch((err) => console.log('[useWordlePlayControl] play word audio error:', err))
+      } catch (e) {
+        console.error('[useWordlePlayControl] Failed to create audio element:', e)
+      }
+    } else {
+      // Native audio handling? Assuming there's a global sound player or something,
+      // but the original code only handled web. For now focus on HowToPlay.
     }
   }, [isWeb, wordResult])
 
@@ -534,6 +549,7 @@ export function useWordlePlayControl({
     handleMenuClick,
     handleContinue,
     handleQuit,
+    handleGoHome,
     handleHowToPlay,
     handleRestart,
     handleNavigateToBoard,

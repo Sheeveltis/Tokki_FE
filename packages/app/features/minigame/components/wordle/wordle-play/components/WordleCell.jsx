@@ -42,7 +42,7 @@ export function WordleCell({ feedback }) {
 
   return (
     <View style={styles.wrapper}>
-      <View style={styles.dotsRow}>
+      <View nativeID="tour-feedback-dots" style={styles.dotsRow}>
         {dots.map((dot) => {
           const status = dot.status
           const isGreen = status === 'green'

@@ -6,6 +6,7 @@ export const HOW_TO_PLAY_TOUR_SELECTORS = {
   grid: '#tour-grid',
   keyboard: '#tour-keyboard',
   feedbackDots: '#tour-feedback-dots',
+  controlsPanel: '#tour-controls-panel',
 }
 
 export const HOW_TO_PLAY_TOUR_STORAGE_KEY = 'tokki_wordle_how_to_play_seen_v1'
@@ -53,8 +54,8 @@ export function HowToPlayTour({ run, setRun, onEnded }) {
   const steps = useMemo(
     () => [
       {
-        target: HOW_TO_PLAY_TOUR_SELECTORS.menu,
-        content: 'Đây là menu. Bạn có thể xem lại “Cách chơi” hoặc thoát game từ đây.',
+        target: HOW_TO_PLAY_TOUR_SELECTORS.controlsPanel,
+        content: 'Bạn có thể điều chỉnh âm thanh và xem lại cách chơi tại đây.',
         placement: 'bottom',
         disableBeacon: true,
       },
@@ -169,11 +170,11 @@ export function HowToPlayTour({ run, setRun, onEnded }) {
             <ul style={{ paddingLeft: 20, margin: 0 }}>
               <li style={{ marginBottom: 4 }}>
                 Khi xuất hiện chấm màu vàng, điều đó có nghĩa là tại nguyên âm hoặc phụ âm cuối đó có
-                2 kí tự (ví dụ ㅘ hoặc ㄶ đều được tính là 1 kí tự).
+                2 kí tự (ví dụ ㅘ hoặc ㄶ đều được tính là 1 kí tự)
               </li>
               <li>
                 Nếu bạn chỉ nhập 2 kí tự (ví dụ 가) mà dấu chấm số 3 có màu xanh thì có nghĩa là ô đó
-                không có phụ âm cuối.
+                không có phụ âm cuối
               </li>
               <li>
                 Nhớ tắt Unikey và hãy dùng bàn phím hangul để nhập từ nhé
