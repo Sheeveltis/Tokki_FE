@@ -63,6 +63,9 @@ export function CreateBlogScreen() {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewData, setPreviewData] = useState(null)
 
+  // Theo dõi giá trị shortDescription để cập nhật số ký tự
+  const shortDescriptionValue = Form.useWatch('shortDescription', form)
+
   // Fetch initial data
   useEffect(() => {
     let mounted = true
@@ -229,13 +232,14 @@ export function CreateBlogScreen() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <Space align="center" size="middle">
              <Button
-                type="text"
                 icon={<ArrowLeftOutlined />}
                 onClick={() => router.push('/admin?tab=blog')}
-                style={{ borderRadius: '50%', width: 40, height: 40 }}
-              />
+                style={BUTTON_STYLE}
+              >
+                Quay lại
+              </Button>
               <Title level={4} style={{ margin: 0 }}>
-                {isEdit ? 'Chỉnh sửa' : 'Tạo mới'} bài viết
+                {isEdit ? 'Chỉnh sửa bài viết' : 'Tạo bài viết mới'}
               </Title>
           </Space>
           
@@ -336,11 +340,14 @@ export function CreateBlogScreen() {
 
                   {/* Short Description */}
                   <Form.Item
-                    label={<div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                      <Text strong style={{ fontSize: 13, color: '#8c8c8c', textTransform: 'uppercase' }}>Mô tả ngắn</Text>
-                      <Text type="secondary" style={{ fontSize: 12 }}>{form.getFieldValue('shortDescription')?.length || 0}/300</Text>
-                    </div>}
+                    label={
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', width: '100%', marginBottom: 0 }}>
+                        <Text strong style={{ fontSize: 13, color: '#8c8c8c', textTransform: 'uppercase' }}>Mô tả ngắn</Text>
+                        <Text type="secondary" style={{ fontSize: 12, fontWeight: 400 }}>{shortDescriptionValue?.length || 0}/300</Text>
+                      </div>
+                    }
                     name="shortDescription"
+                    className="description-field"
                     rules={[{ required: true, message: 'Vui lòng nhập mô tả' }]}
                   >
                     <TextArea 
@@ -372,13 +379,19 @@ export function CreateBlogScreen() {
                     <li>Tiêu đề nên súc tích, dưới 70 ký tự.</li>
                     <li>Ảnh bìa đẹp giúp tăng tỉ lệ click (CTR).</li>
                     <li>Nội dung nên có ít nhất 1 hình ảnh minh họa.</li>
-                    <li>Sử dụng các Heading để bài viết rõ ràng.</li>
+                    <li>Đảm bảo các thẻ tag liên quan đến nội dung.</li>
                   </ul>
                 </Card>
               </Space>
             </Col>
           </Row>
         </Form>
+
+        <style dangerouslySetInnerHTML={{ __html: `
+          .description-field .ant-form-item-label { width: 100%; }
+          .description-field .ant-form-item-label > label { width: 100%; display: flex !important; justify-content: space-between; }
+          .description-field .ant-form-item-label > label::after { display: none !important; }
+        `}} />
 
         <BlogPreviewModal
           open={previewOpen}

@@ -15,6 +15,7 @@ import MenuIcon from '../../../../../../assets/menu-solitare.png'
 import BackgroundColumn from '../../../../../../assets/BackgroundColumn.png'
 import ButtonWood from '../../../../../../assets/ButtonWood.png'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
+import HomeIcon from '../../../../../../assets/icon/navigate-app/home.svg'
 
 export function WordlePlayWeb(props) {
   const {
@@ -40,6 +41,7 @@ export function WordlePlayWeb(props) {
     handleRestart,
     handleNavigateToBoard,
     handlePlayWordAudio,
+    handleGoHome,
   } = useWordlePlayControl(props)
   const [isFlowFinished, setIsFlowFinished] = useState(false)
 
@@ -74,12 +76,23 @@ export function WordlePlayWeb(props) {
           ]}
         >
           <View style={styles.headerLeft}>
-            {!isFlowFinished && (
+            {!isFlowFinished ? (
               <Pressable onPress={handleQuit} style={styles.backButtonContainer}>
                 <Image source={ButtonWood} style={styles.backButtonBg} />
                 <View style={styles.backButtonContent}>
                   <ArrowIcon width={18} height={18} fill="#FFF" />
                   <Text style={styles.backButtonText}>Quay lại</Text>
+                </View>
+              </Pressable>
+            ) : (
+              <Pressable
+                onPress={handleGoHome}
+                style={styles.backButtonContainer}
+              >
+                <Image source={ButtonWood} style={styles.backButtonBg} />
+                <View style={styles.backButtonContent}>
+                  <HomeIcon width={22} height={22} fill="#FFF" />
+                  <Text style={styles.backButtonText}>Trang Chủ</Text>
                 </View>
               </Pressable>
             )}
@@ -90,39 +103,44 @@ export function WordlePlayWeb(props) {
             <Text style={styles.titleText}>Wordle</Text>
           </View>
 
-          <View style={styles.headerRight} />
+          <View style={styles.headerRight}>
+            {gameState === 'playing' && (
+              <Pressable onPress={handleMenuClick} style={styles.menuBtn} nativeID="tour-menu">
+                <Image source={MenuIcon} style={styles.menuIcon} />
+              </Pressable>
+            )}
+          </View>
         </View>
 
-        <ImageBackground
-          source={BackgroundColumn}
-          style={[
-            styles.controlsPanel,
-            gameState !== 'playing' && { zIndex: 1 },
-            isFlowFinished && { backgroundColor: 'transparent' },
-          ]}
-          imageStyle={[styles.controlsPanelImage, isFlowFinished && { opacity: 0 }]}
-        >
-          <VolumeControl />
+        {gameState === 'playing' && (
+          <ImageBackground
+            source={BackgroundColumn}
+            nativeID="tour-controls-panel"
+            style={[styles.controlsPanel]}
+            imageStyle={[styles.controlsPanelImage]}
+          >
+            <VolumeControl />
 
-          {!isFlowFinished && (
-            <Pressable style={styles.howToBtn} onPress={handleHowToPlay}>
+            <Pressable
+              style={styles.howToBtn}
+              onPress={handleHowToPlay}
+              nativeID="tour-how-to-btn"
+            >
               <Text style={styles.howToText}>Cách chơi</Text>
             </Pressable>
-          )}
-        </ImageBackground>
+          </ImageBackground>
+        )}
 
         <View style={[styles.content, gameState !== 'playing' && { zIndex: 100 }]}>
           <View style={styles.gameLayout}>
             {gameState === 'won' && wordResult && (
               <View style={styles.wordInfoCard}>
-                <Text style={styles.wordInfoWord}>{wordResult.word || targetWord}</Text>
-
-                {!!wordResult.definition && (
-                  <>
-                    <Text style={styles.wordInfoLabel}>Định nghĩa</Text>
+                <View style={styles.wordInfoRow}>
+                  <Text style={styles.wordInfoWord}>{wordResult.word || targetWord}</Text>
+                  {!!wordResult.definition && (
                     <Text style={styles.wordInfoDefinition}>{wordResult.definition}</Text>
-                  </>
-                )}
+                  )}
+                </View>
 
                 {!!wordResult.imageUrl && (
                   <Image
@@ -184,7 +202,13 @@ export function WordlePlayWeb(props) {
         />
       )}
 
-      {showMenuPopup && <WordleMenuPopup onContinue={handleContinue} onQuit={handleQuit} />}
+      {showMenuPopup && (
+        <WordleMenuPopup
+          onContinue={handleContinue}
+          onQuit={handleQuit}
+          onHowToPlay={handleHowToPlay}
+        />
+      )}
     </ImageBackground>
   )
 }
@@ -199,8 +223,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   overlay: {
-    flex: 1,
+    minHeight: '100%',
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    paddingBottom: 100,
   },
   header: {
     flexDirection: 'row',
@@ -235,6 +260,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 8,
+    color: '#FFFFFF',
   },
   backButtonContent: {
     flexDirection: 'row',
@@ -244,8 +270,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   backButtonText: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: 14,
+    fontWeight: '700',
     color: '#FFFFFF',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
@@ -257,17 +283,17 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -60,
+    marginTop: -55,
   },
   bannerImage: {
     width: 270,
     height: 150,
     resizeMode: 'contain',
-    top: 22,
+    top: 15,
   },
   titleText: {
     position: 'absolute',
-    top: '58%',
+    top: '53%',
     fontSize: 24,
     fontWeight: '800',
     color: '#4e3e31ff',
@@ -317,9 +343,9 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: -10,
+    justifyContent: 'center',
     paddingBottom: 50,
+    width: '100%',
   },
   gameLayout: {
     width: '100%',
@@ -347,24 +373,23 @@ const styles = StyleSheet.create({
     marginTop: 20,
     position: 'relative',
   },
+  wordInfoRow: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
   wordInfoWord: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '800',
     color: '#2E7D32',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  wordInfoLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#6D4C41',
     marginBottom: 4,
   },
   wordInfoDefinition: {
-    fontSize: 15,
+    fontSize: 18,
     color: '#3E2723',
-    marginBottom: 10,
-    lineHeight: 22,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   wordInfoImage: {
     width: '100%',

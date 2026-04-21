@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ import MenuIcon from '../../../../../../assets/menu-solitare.png'
 import TitleBadge from '../../../../../../assets/TitleBadge.png'
 import ButtonWood from '../../../../../../assets/ButtonWood.png'
 import ArrowIcon from '../../../../../../assets/icon/icon-mainflow/arrow.svg'
+import HomeIcon from '../../../../../../assets/icon/navigate-app/home.svg'
 
 export function WordlePlayNative(props) {
   const {
@@ -42,7 +43,9 @@ export function WordlePlayNative(props) {
     handleRestart,
     handleNavigateToBoard,
     handlePlayWordAudio,
+    handleHowToPlay,
   } = useWordlePlayControl(props)
+  const [isFlowFinished, setIsFlowFinished] = useState(false)
 
   const renderWordInfo = gameState === 'won' && wordResult
 
@@ -52,13 +55,26 @@ export function WordlePlayNative(props) {
         <View style={styles.overlay}>
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <Pressable onPress={handleQuit} style={styles.backButtonContainer}>
-                <Image source={ButtonWood} style={styles.backButtonBg} />
-                <View style={styles.backButtonContent}>
-                  <ArrowIcon width={16} height={16} fill="#FFD700" />
-                  <Text style={styles.backButtonText}>Quay lại</Text>
-                </View>
-              </Pressable>
+              {!isFlowFinished ? (
+                <Pressable onPress={handleQuit} style={styles.backButtonContainer}>
+                  <Image source={ButtonWood} style={styles.backButtonBg} />
+                  <View style={styles.backButtonContent}>
+                    <ArrowIcon width={16} height={16} fill="#FFD700" />
+                    <Text style={styles.backButtonText}>Quay lại</Text>
+                  </View>
+                </Pressable>
+              ) : (
+                <Pressable
+                  onPress={handleGoHome}
+                  style={styles.backButtonContainer}
+                >
+                  <Image source={ButtonWood} style={styles.backButtonBg} />
+                  <View style={styles.backButtonContent}>
+                    <HomeIcon width={20} height={20} fill="#FFF" />
+                    <Text style={styles.backButtonText}>Trang Chủ</Text>
+                  </View>
+                </Pressable>
+              )}
             </View>
 
             <View style={styles.titleWrapper}>
@@ -66,7 +82,13 @@ export function WordlePlayNative(props) {
               <Text style={styles.title}>Wordle</Text>
             </View>
 
-            <View style={styles.headerRight} />
+            <View style={styles.headerRight}>
+              {gameState === 'playing' && (
+                <Pressable onPress={handleMenuClick} style={styles.menuBtn}>
+                  <Image source={MenuIcon} style={styles.menuIcon} />
+                </Pressable>
+              )}
+            </View>
             {!!TOPIC_NAME && <Text style={styles.topic}>Chủ đề: {TOPIC_NAME}</Text>}
           </View>
 
@@ -77,11 +99,12 @@ export function WordlePlayNative(props) {
           >
             {renderWordInfo && (
               <View style={styles.wordInfoCard}>
-                <Text style={styles.wordInfoWord}>{wordResult.word || targetWord}</Text>
-
-                {!!wordResult.definition && (
-                  <Text style={styles.wordInfoDefinition}>{wordResult.definition}</Text>
-                )}
+                <View style={styles.wordInfoRow}>
+                  <Text style={styles.wordInfoWord}>{wordResult.word || targetWord}</Text>
+                  {!!wordResult.definition && (
+                    <Text style={styles.wordInfoDefinition}>{wordResult.definition}</Text>
+                  )}
+                </View>
 
                 {!!wordResult.imageUrl && (
                   <Image
@@ -128,12 +151,19 @@ export function WordlePlayNative(props) {
                 dailyWordleId={props.dailyWordleId}
                 onNavigateToBoard={handleNavigateToBoard}
                 onRestart={handleRestart}
+                onFlowFinished={setIsFlowFinished}
               />
             </View>
           </ScrollView>
         </View>
 
-        {showMenuPopup && <WordleMenuPopup onContinue={handleContinue} onQuit={handleQuit} />}
+        {showMenuPopup && (
+          <WordleMenuPopup
+            onContinue={handleContinue}
+            onQuit={handleQuit}
+            onHowToPlay={handleHowToPlay}
+          />
+        )}
       </SafeAreaView>
     </ImageBackground>
   )
@@ -168,7 +198,21 @@ const styles = StyleSheet.create({
     zIndex: 20,
   },
   headerRight: {
-    width: 120, // To balance the left section
+    position: 'absolute',
+    right: 14,
+    top: 50,
+    zIndex: 20,
+  },
+  menuBtn: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuIcon: {
+    width: 34,
+    height: 34,
+    resizeMode: 'contain',
   },
   backButtonContainer: {
     width: 120,
@@ -270,18 +314,22 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#4CAF50',
   },
+  wordInfoRow: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
   wordInfoWord: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: '800',
     color: '#2E7D32',
-    textAlign: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   wordInfoDefinition: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#3E2723',
-    lineHeight: 20,
-    marginBottom: 8,
+    fontWeight: '600',
     textAlign: 'center',
   },
   wordInfoImage: {

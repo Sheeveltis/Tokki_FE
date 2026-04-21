@@ -35,7 +35,10 @@ import {
   InfoCircleOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
-  SwapOutlined
+  SwapOutlined,
+  FolderOpenOutlined,
+  MessageOutlined,
+  CloseCircleOutlined
 } from '@ant-design/icons'
 import { getBlogById, deleteBlog, updateBlog } from '../../api'
 import { getCurrentUserId, getCurrentUserRole } from '../../../../provider/api/client.js'
@@ -159,14 +162,34 @@ export function ViewBlogScreen() {
 
   const statusMenuItems = useMemo(() => {
     if (!blogData) return []
-    return Object.entries(BLOG_STATUS)
-      .filter(([status]) => parseInt(status) !== blogData.status)
-      .map(([status, info]) => ({
-        key: status,
-        label: info.label,
-        icon: info.icon,
-        onClick: () => handleStatusChange(parseInt(status))
-      }))
+    
+    let allowedStatusKeys = []
+    const currentStatus = blogData.status
+
+    // Appy specific rules requested by USER
+    if (currentStatus === 4) { // Chờ phê duyệt
+      allowedStatusKeys = [1, 5] // Đã xuất bản, Đã từ chối
+    } else if (currentStatus === 1) { // Đã xuất bản
+      allowedStatusKeys = [2, 0] // Đã ẩn, Nháp
+    } else if (currentStatus === 0) { // Nháp
+      allowedStatusKeys = [4, 1] // Gửi duyệt, Xuất bản
+    } else if (currentStatus === 2) { // Đã ẩn
+      allowedStatusKeys = [1, 0] // Xuất bản, Nháp
+    } else if (currentStatus === 5) { // Đã từ chối
+      allowedStatusKeys = [0]    // Về nháp để sửa
+    } else {
+      // Mặc định cho các trạng thái khác (như Lưu trữ)
+      allowedStatusKeys = Object.keys(BLOG_STATUS)
+        .map(Number)
+        .filter(s => s !== currentStatus)
+    }
+
+    return allowedStatusKeys.map(status => ({
+      key: status.toString(),
+      label: BLOG_STATUS[status]?.label,
+      icon: BLOG_STATUS[status]?.icon,
+      onClick: () => handleStatusChange(status)
+    }))
   }, [blogData])
 
   if (loading) {
@@ -275,11 +298,46 @@ export function ViewBlogScreen() {
               Chỉnh sửa
             </Button>
           )}
-          <Dropdown menu={{ items: statusMenuItems }} trigger={['click']}>
-            <Button icon={<SwapOutlined />} style={BUTTON_STYLE}>
-              Trạng thái
-            </Button>
-          </Dropdown>
+          {blogData.status === 4 ? (
+            <>
+              <Popconfirm
+                title="Xác nhận duyệt và xuất bản bài viết?"
+                onConfirm={() => handleStatusChange(1)}
+                okText="Duyệt bài"
+                cancelText="Hủy"
+                okButtonProps={{ loading: updating }}
+              >
+                <Button 
+                  type="primary" 
+                  icon={<CheckCircleOutlined />} 
+                  style={{ ...BUTTON_STYLE, backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+                >
+                  Duyệt bài viết
+                </Button>
+              </Popconfirm>
+              <Popconfirm
+                title="Xác nhận từ chối bài viết?"
+                onConfirm={() => handleStatusChange(5)}
+                okText="Từ chối"
+                cancelText="Hủy"
+                okButtonProps={{ danger: true, loading: updating }}
+              >
+                <Button 
+                  danger 
+                  icon={<CloseCircleOutlined />} 
+                  style={BUTTON_STYLE}
+                >
+                  Từ chối duyệt
+                </Button>
+              </Popconfirm>
+            </>
+          ) : (
+            <Dropdown menu={{ items: statusMenuItems }} trigger={['click']}>
+              <Button icon={<SwapOutlined />} style={BUTTON_STYLE}>
+                Trạng thái
+              </Button>
+            </Dropdown>
+          )}
           {canDelete() && (
             <Popconfirm
               title="Xác nhận xóa bài viết?"
@@ -307,45 +365,84 @@ export function ViewBlogScreen() {
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
           {[
-            { label: 'Lượt xem', value: blogData.viewCount, suffix: 'lượt', icon: <EyeOutlined style={{ color: ICON_THEME_COLOR }} />, border: '#91d5ff', bgColor: '#e6f7ff' },
-            { label: 'Bình luận', value: '-', suffix: 'lượt', icon: <CommentOutlined style={{ color: ICON_THEME_COLOR }} />, border: '#ffe58f', bgColor: '#fffbe6' },
-            { label: 'Danh mục', value: blogData.categoryName, suffix: '', icon: <GlobalOutlined style={{ color: ICON_THEME_COLOR }} />, border: '#ffadd2', bgColor: '#fff0f6' },
-            { label: 'Ngày đăng', value: new Date(blogData.createdAt).toLocaleDateString('vi-VN'), suffix: '', icon: <CalendarOutlined style={{ color: ICON_THEME_COLOR }} />, border: '#b7eb8f', bgColor: '#f6ffed' },
+            { 
+              label: 'LƯỢT XEM', 
+              value: blogData.viewCount, 
+              suffix: 'lượt', 
+              icon: <EyeOutlined style={{ color: '#1890ff' }} />, 
+              bgColor: '#e6f7ff' 
+            },
+            { 
+              label: 'BÌNH LUẬN', 
+              value: '-', 
+              suffix: '', 
+              icon: <MessageOutlined style={{ color: '#fa8c16' }} />, 
+              bgColor: '#fff7e6' 
+            },
+            { 
+              label: 'DANH MỤC', 
+              value: blogData.categoryName, 
+              suffix: '', 
+              icon: <FolderOpenOutlined style={{ color: '#722ed1' }} />, 
+              bgColor: '#f9f0ff' 
+            },
+            { 
+              label: 'NGÀY ĐĂNG', 
+              value: new Date(blogData.createdAt).toLocaleDateString('vi-VN'), 
+              suffix: '', 
+              icon: <CalendarOutlined style={{ color: '#52c41a' }} />, 
+              bgColor: '#f6ffed' 
+            },
           ].map((item, idx) => (
             <div key={idx} style={{ flex: '1 1 200px' }}>
               <Card
                 style={{
-                  borderRadius: 8,
-                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                  borderBottom: `2px solid ${item.border}`,
+                  borderRadius: 16,
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                  border: '1px solid #f0f0f0',
                   height: '100%'
                 }}
-                bodyStyle={{ padding: 16 }}
+                bodyStyle={{ padding: 24 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div
                     style={{
-                      width: 48, height: 48, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 20, flexShrink: 0,
+                      width: 40, 
+                      height: 40, 
+                      borderRadius: 10, 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      fontSize: 18, 
                       backgroundColor: item.bgColor,
                     }}
                   >
                     {item.icon}
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                  <div>
                     <Text
                       type="secondary"
                       style={{
-                        display: 'block', marginBottom: 4, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap'
+                        display: 'block', 
+                        marginBottom: 8, 
+                        fontSize: 12, 
+                        fontWeight: 600,
+                        letterSpacing: '0.05em',
+                        color: '#8c8c8c'
                       }}
                     >
                       {item.label}
                     </Text>
-                    <Statistic
-                      value={item.value}
-                      suffix={<span style={{ fontSize: 13, marginLeft: 4 }}>{item.suffix}</span>}
-                      valueStyle={{ fontSize: 20, fontWeight: 'bold', color: '#262626' }}
-                    />
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 22, fontWeight: 700, color: '#262626', lineHeight: 1.2 }}>
+                        {item.value}
+                      </span>
+                      {item.suffix && (
+                        <span style={{ fontSize: 13, color: '#bfbfbf' }}>
+                          {item.suffix}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Card>

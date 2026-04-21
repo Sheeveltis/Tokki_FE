@@ -4,6 +4,7 @@ import { useRouter } from 'solito/navigation'
 import { Navbar } from '../../../../../components/navbar'
 import { NavigationPill } from '../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
+import LockIcon from '../../../../../assets/icon/icon-mainflow/lock.svg'
 import { RoadmapLearningDayList } from './roadmap-learning-day-list'
 import { RoadmapExamHistoryModal } from './roadmap-exam-history-modal.web'
 import HistoryIcon from '../../../../../assets/icon/icon-roadmap/history.svg'
@@ -492,8 +493,8 @@ export function RoadmapLearningLayout({
                     >
                       <View style={styles.sideWeekHeader}>
                         <Text style={[
-                          styles.sideWeekText, 
-                          isActive && styles.sideWeekTextActive, 
+                          styles.sideWeekText,
+                          isActive && styles.sideWeekTextActive,
                           isNextToCreate && styles.sideWeekTextNext,
                           isDisabled && styles.sideWeekTextDisabled
                         ]}>
@@ -501,7 +502,7 @@ export function RoadmapLearningLayout({
                         </Text>
                         {isFinished && <Text style={styles.weekCheck}>✓</Text>}
                         {isInProgress && !isActive && <View style={styles.inProgressSmallDot} />}
-                        {isDisabled && <View style={styles.lockIcon} />}
+                        {isDisabled && <LockIcon width={24} height={24} color="#D1D1D1" />}
                         {isNextToCreate && (
                           <View style={styles.nextToCreateBadge}>
                             <Text style={styles.nextToCreateText}>MỚI</Text>
@@ -761,8 +762,8 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderWidth: 2,
     opacity: 1,
-    ...(Platform.OS === 'web' && { 
-       boxShadow: '0 4px 12px rgba(74,144,226,0.1)',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 12px rgba(74,144,226,0.1)',
     }),
   },
   sideWeekHeader: {
@@ -1049,12 +1050,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#4CAF50',
     fontWeight: '900',
-  },
-  lockIcon: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#BBB',
   },
   nextToCreateBadge: {
     backgroundColor: '#EBF8FF',

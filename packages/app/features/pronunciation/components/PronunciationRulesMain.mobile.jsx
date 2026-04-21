@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#D8C39A',
     borderRadius: 2,
   },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, minHeight: 220 },
+  centered: { width: '100%', flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, minHeight: 220 },
   errorText: { fontSize: 14, color: '#ff4d4f', marginBottom: 12, textAlign: 'center' },
   retryButton: { backgroundColor: '#F1BE4B', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8 },
   retryText: { fontSize: 14, fontWeight: '700', color: '#1F1F1F' },

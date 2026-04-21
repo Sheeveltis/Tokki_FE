@@ -3,6 +3,7 @@ import { View, Platform } from 'react-native'
 import { apiClient } from '../api/client'
 import { ENDPOINTS } from '../api/endpoints'
 import { XpNotification } from '../../../components/xp-notification'
+import { UnlockedTitlesModal } from '../../features/authentication/components/login/unlocked-titles-modal'
 
 /**
  * Nguồn cộng XP (Enum mapping từ backend)
@@ -55,6 +56,10 @@ export const XpProvider = ({ children }: { children: React.ReactNode }) => {
     newLevel: 0,
   })
   
+  // State cho danh hiệu mới mở khóa
+  const [unlockedTitles, setUnlockedTitles] = useState([])
+  const [showTitlesModal, setShowTitlesModal] = useState(false)
+
   const timerRef = useRef<any>(null)
 
   /**
@@ -108,6 +113,17 @@ export const XpProvider = ({ children }: { children: React.ReactNode }) => {
           isLevelUp: res.data.data.isLevelUp,
           newLevel: res.data.data.newLevel,
         }))
+
+        // 3. Kiểm tra danh hiệu cấp độ mới (theo yêu cầu người dùng: mỗi lần cộng XP đều check)
+        try {
+          const titleRes = await apiClient.post(ENDPOINTS.TITLE.CHECK_LEVEL_TITLES)
+          if (titleRes.data && titleRes.data.isSuccess && titleRes.data.data && titleRes.data.data.length > 0) {
+            setUnlockedTitles(titleRes.data.data)
+            setShowTitlesModal(true)
+          }
+        } catch (titleErr) {
+          console.error('[Title Check Error]:', titleErr)
+        }
       }
     } catch (err) {
       console.error('[XP Error Handling]:', err)
@@ -122,6 +138,11 @@ export const XpProvider = ({ children }: { children: React.ReactNode }) => {
         visible={notification.visible} 
         isLevelUp={notification.isLevelUp}
         newLevel={notification.newLevel}
+      />
+      <UnlockedTitlesModal 
+        visible={showTitlesModal} 
+        titles={unlockedTitles} 
+        onClose={() => setShowTitlesModal(false)} 
       />
     </XpContext.Provider>
   )

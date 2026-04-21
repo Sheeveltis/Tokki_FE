@@ -4,13 +4,14 @@ import MenuBackground from '../../../../../../../assets/menu2.png'
 
 const IS_WEB = Platform.OS === 'web'
 
-export function WordleMenuPopup({ onContinue, onQuit }) {
+export function WordleMenuPopup({ onContinue, onQuit, onHowToPlay }) {
   return (
     <View style={styles.overlay}>
       <ImageBackground
         source={MenuBackground}
         style={IS_WEB ? styles.popupWeb : styles.popupMobile}
         imageStyle={IS_WEB ? styles.popupImageWeb : styles.popupImageMobile}
+        nativeID="tour-menu"
       >
         <View style={IS_WEB ? styles.buttonsContainerWeb : styles.buttonsContainerMobile}>
           <Pressable
@@ -22,6 +23,18 @@ export function WordleMenuPopup({ onContinue, onQuit }) {
           >
             <Text style={IS_WEB ? styles.buttonTextWeb : styles.buttonTextMobile}>
               Tiếp tục
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [
+              IS_WEB ? styles.buttonWeb : styles.buttonMobile,
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={onHowToPlay}
+          >
+            <Text style={IS_WEB ? styles.buttonTextWeb : styles.buttonTextMobile}>
+              Cách chơi
             </Text>
           </Pressable>
 

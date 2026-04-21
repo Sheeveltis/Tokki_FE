@@ -49,11 +49,19 @@ export function PronunciationExampleDetailMain({
           </View>
         )}
         <View style={styles.actionRow}>
-          <Pressable onPress={() => onPlayAudio(0.75)} style={styles.audioButtonWrapper}>
-            {isPlaying ? (
-              <ActivityIndicator size="small" color="#FFF" />
-            ) : (
-              <SoundIcon width={32} height={32} />
+          <Pressable 
+            onPress={() => onPlayAudio(0.75)} 
+            style={({ pressed }) => [
+              styles.audioButtonWrapper,
+              isPlaying && styles.audioButtonPlaying,
+              pressed && { transform: [{ scale: 0.95 }] }
+            ]}
+          >
+            <SoundIcon width={32} height={32} />
+            {isPlaying && (
+              <View style={styles.playingIndicatorOverlay}>
+                <ActivityIndicator size="small" color="#FFF" />
+              </View>
             )}
           </Pressable>
         </View>
@@ -133,7 +141,7 @@ export function PronunciationExampleDetailMain({
 const styles = StyleSheet.create({
   titleContainer: { width: '100%', alignItems: 'center', marginBottom: 24 },
   title: { fontSize: 36, fontWeight: '900', color: '#1F1F1F', fontFamily: 'Epilogue, sans-serif', textAlign: 'center' },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, minHeight: 400 },
+  centered: { width: '100%', flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, minHeight: 400 },
 
   contentWrapper: {
     flex: 1,
@@ -202,6 +210,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+  },
+  audioButtonPlaying: {
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  playingIndicatorOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(175, 197, 139, 0.2)',
+    borderRadius: 28,
   },
   scoreCircle: {
     position: 'absolute',

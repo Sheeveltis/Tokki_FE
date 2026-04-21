@@ -1,9 +1,6 @@
 import React from 'react'
 import { View, ScrollView, StyleSheet, Platform } from 'react-native'
-import { Navbar } from '../../../../../components/navbar'
-import { Footer } from '../../../../../components/footer'
 import BubbleChat from '../../api/bubble-chat-index'
-import { AppShow } from '../../../../../components/appShow'
 
 /**
  * LandingLayout (Web): Bố cục trang Landing Page toàn màn hình

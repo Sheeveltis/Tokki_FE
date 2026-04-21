@@ -14,9 +14,7 @@ import { Platform } from 'react-native'
 const WEB_DOMAIN = 'https://tokki-api.site'
 // Cho Android Emulator: dùng 10.0.2.2 để truy cập localhost của máy host
 // Cho Device thật: thay bằng IP thật của máy (ví dụ: http://116.106.201.3:5031)
-
 const MOBILE_DOMAIN = 'https://tokki-api.site' // IP đặc biệt cho Android Emulator
-
 
 const PREFIX = '/api'
 
@@ -154,13 +152,14 @@ export const ENDPOINTS = {
     EVALUATE: '/Pronunciation/evaluate', // POST: Đánh giá phát âm
   },
   PRONUNCIATION_EXAMPLE: {
-    GET_BY_RULE_ID: (ruleId) => `/PronunciationExample/rules/${ruleId}/examples`, // GET: Lấy danh sách ví dụ theo rule
+    GET_BY_RULE_ID: (ruleId) => `/PronunciationExample?pronunciationRuleId=${ruleId}&pageSize=100`, // GET: Lấy danh sách ví dụ theo rule
     GET_BY_ID: (exampleId) => `/PronunciationExample/${exampleId}`, // GET: Lấy chi tiết ví dụ
   },
   PRONUNCIATION_RULES: {
     CREATE: '/PronunciationRules', // POST: Tạo pronunciation rule
     USER_GET_ALL: '/PronunciationRules/user/get-all', // GET: User lấy danh sách rules
     ADMIN_GET_ALL: '/PronunciationRules/admin/get-all', // GET: Admin lấy danh sách rules
+    DELETE: (id) => `/PronunciationRules/${id}`, // DELETE: Xóa rule
   },
   VOCABULARY: {
     ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
@@ -237,6 +236,7 @@ export const ENDPOINTS = {
     UPDATE: (id) => `/Title/${id}`,  // PUT: Cập nhật danh hiệu
     DELETE: (id) => `/Title/${id}`,  // DELETE: Xóa danh hiệu
     CHECK_DAILY_TITLES: '/Title/user/check-daily-titles', // POST: Kiểm tra và mở khóa danh hiệu hàng ngày
+    CHECK_LEVEL_TITLES: '/Title/user/check-level-titles', // POST: Kiểm tra danh hiệu theo level
     MY_TITLES: '/Title/my-titles', // GET: Lấy danh sách danh hiệu của tôi (query: pageNumber, pageSize)
     EQUIP: '/Title/equip', // PUT: Trang bị danh hiệu
     IMPORT: '/Title/import',

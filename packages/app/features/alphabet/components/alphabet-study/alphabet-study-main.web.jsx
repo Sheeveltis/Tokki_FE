@@ -104,6 +104,7 @@ export function AlphabetStudyMain({
   const [currentSentence, setCurrentSentence] = useState('')
   const canvasRef = useRef(null)
   const canvasBoxRef = useRef(null)
+  const audioRef = useRef(null)
 
   const selectedStrokeData = alphabetStrokesData.find(s => s.word === current?.word)
   const normalizedStrokes = selectedStrokeData?.strokes
@@ -113,14 +114,49 @@ export function AlphabetStudyMain({
     ? selectedStrokeData.strokes.map(s => s.guide)
     : []
 
+  const handlePlaySound = (customAudio) => {
+    // Ensure customAudio is a string URL, otherwise fallback to current?.audio
+    const audioUrl = typeof customAudio === 'string' ? customAudio : current?.audio;
+    
+    const playSpeechFallback = () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window && current?.word) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(current.word);
+        utterance.lang = 'ko-KR';
+        window.speechSynthesis.speak(utterance);
+      }
+    };
+
+    if (audioUrl) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      
+      audio.play().catch(e => {
+        console.warn('Audio play failed, using fallback:', e);
+        playSpeechFallback();
+      });
+    } else {
+      playSpeechFallback();
+    }
+  };
+
   const handleSelectLetter = (index) => {
-    onSelectFlashcard(index)
-    setIsModalVisible(true)
-    setIsDrawing(false)
-    setIsTyping(false)
-    setIsSentenceMode(false)
-    resetDrawing()
-  }
+    onSelectFlashcard(index);
+    const selectedItem = data[index];
+    if (selectedItem?.audio) {
+      handlePlaySound(selectedItem.audio);
+    }
+    setIsModalVisible(true);
+    setIsDrawing(false);
+    setIsTyping(false);
+    setIsSentenceMode(false);
+    resetDrawing();
+  };
 
   const startSentenceTyping = () => {
     const randomIdx = Math.floor(Math.random() * PRACTICE_SENTENCES.length)
@@ -141,15 +177,6 @@ export function AlphabetStudyMain({
     setStrokeScores([])
     setFinalScore(null)
     canvasRef.current?.clearCanvas()
-  }
-
-  const handlePlaySound = () => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window && current?.word) {
-      window.speechSynthesis.cancel()
-      const utterance = new SpeechSynthesisUtterance(current.word)
-      utterance.lang = 'ko-KR'
-      window.speechSynthesis.speak(utterance)
-    }
   }
 
   const handleClear = () => {
@@ -240,6 +267,9 @@ export function AlphabetStudyMain({
     <View style={styles.container}>
       {/* Header with back and title */}
       <View style={styles.header}>
+        <View style={styles.titleAbsolute}>
+          <Text style={styles.title}>BẢNG CHỮ CÁI TIẾNG HÀN</Text>
+        </View>
         <NavigationPill
           label="Quay lại"
           to={undefined}
@@ -248,7 +278,6 @@ export function AlphabetStudyMain({
           onPress={onBackPress}
           textStyle={{ fontWeight: '700' }}
         />
-        <Text style={styles.title}>BẢNG CHỮ CÁI TIẾNG HÀN</Text>
         <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
           <ButtonUI2 onClick={startSentenceTyping}>
             Luyện gõ câu
@@ -417,6 +446,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    position: 'relative',
+    minHeight: 60,
+  },
+  titleAbsolute: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: -1,
   },
   title: {
     fontSize: 24,
