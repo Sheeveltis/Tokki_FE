@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react'
-import { Typography, Card, Table, Tag, Button, Space, message, Descriptions, Divider, Input } from 'antd'
-import { ArrowLeftOutlined, SoundOutlined, SearchOutlined } from '@ant-design/icons'
+import { Typography, Card, Table, Tag, Button, Space, message, Descriptions, Divider, Input, Tabs } from 'antd'
+import { 
+  ArrowLeftOutlined, 
+  SoundOutlined, 
+  SearchOutlined, 
+  InfoCircleOutlined, 
+  UnorderedListOutlined,
+  EditOutlined,
+  DeleteOutlined
+} from '@ant-design/icons'
 import { apiClient } from '../../../../../provider/api/client'
-import { API_BASE_URL } from '../../../../../provider/api/endpoints'
 
 const { Title, Text } = Typography
 
-export default function PronunciationRuleDetail({ rule, onBack }) {
+export default function PronunciationRuleDetail({ rule, onBack, onEdit, onDelete }) {
   const [examples, setExamples] = useState([])
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -15,7 +22,6 @@ export default function PronunciationRuleDetail({ rule, onBack }) {
     if (!rule?.id) return
     try {
       setLoading(true)
-      // Sử dụng đường dẫn tương đối vì apiClient đã có baseURL là API_BASE_URL (/api)
       const response = await apiClient.get(`/PronunciationExample`, {
         params: {
           PronunciationRuleId: rule.id,
@@ -92,62 +98,159 @@ export default function PronunciationRuleDetail({ rule, onBack }) {
     }
   ]
 
+  const tabItems = [
+    {
+      key: 'basic-info',
+      label: (
+        <Space>
+          <InfoCircleOutlined />
+          <span style={{ fontWeight: 500 }}>Thông tin cơ bản</span>
+        </Space>
+      ),
+      children: (
+        <div style={{ padding: 24 }}>
+          <Card
+            title={<Text strong style={{ fontSize: 18 }}>Thông tin cơ bản</Text>}
+            variant="outlined"
+            style={{ width: '100%', borderRadius: 12 }}
+            styles={{ body: { padding: 24 } }}
+          >
+            <Descriptions 
+              column={1} 
+              bordered 
+              size="middle"
+              labelStyle={{
+                width: 160,
+                fontWeight: 600,
+                backgroundColor: '#fafafa',
+                fontSize: 14,
+              }}
+              contentStyle={{
+                fontSize: 14,
+                backgroundColor: '#fff',
+              }}
+            >
+              <Descriptions.Item label="Tên quy tắc">
+                <Text strong style={{ fontSize: 16, color: '#1890ff' }}>{rule?.title}</Text>
+              </Descriptions.Item>
+              <Descriptions.Item label="Mô tả">
+                <div style={{ color: '#434343', lineHeight: 1.6 }}>{rule?.description}</div>
+              </Descriptions.Item>
+              <Descriptions.Item label="Nội dung chi tiết">
+                <div 
+                  style={{ color: '#434343', lineHeight: 1.6 }}
+                  dangerouslySetInnerHTML={{ __html: rule?._raw?.content || rule?.content }} 
+                />
+              </Descriptions.Item>
+              <Descriptions.Item label="Thứ tự hiển thị">
+                <Tag color="blue" style={{ borderRadius: 4 }}>{rule?.sortOrder}</Tag>
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
+        </div>
+      )
+    },
+    {
+      key: 'examples',
+      label: (
+        <Space>
+          <UnorderedListOutlined />
+          <span style={{ fontWeight: 500 }}>Danh sách ví dụ</span>
+        </Space>
+      ),
+      children: (
+        <div style={{ padding: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+            <Input
+              placeholder="Tìm trong ví dụ..."
+              prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+              style={{ width: 300, borderRadius: 20 }}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              allowClear
+            />
+          </div>
+          <Table
+            dataSource={examples}
+            columns={columns}
+            loading={loading}
+            rowKey="exampleId"
+            pagination={{ pageSize: 10 }}
+            style={{ 
+              background: '#fff', 
+              borderRadius: 12, 
+              overflow: 'hidden',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+            }}
+          />
+        </div>
+      )
+    }
+  ]
+
   return (
-    <div style={{ padding: '4px' }}>
-      <Button 
-        type="link" 
-        icon={<ArrowLeftOutlined />} 
-        onClick={onBack}
-        style={{ marginBottom: 16, paddingLeft: 0 }}
-      >
-        Quay lại danh sách
-      </Button>
+    <div style={{ padding: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <Title level={3} style={{ marginBottom: 4, marginTop: 0 }}>
+            Chi tiết quy tắc phát âm
+          </Title>
+          <Text type="secondary" style={{ fontSize: 14 }}>ID: {rule?.id}</Text>
+        </div>
+        
+        <Space size="small" wrap>
+          <Button 
+            icon={<ArrowLeftOutlined />} 
+            onClick={onBack}
+            style={{ 
+              borderRadius: 20, 
+              height: 40, 
+              padding: '0 20px', 
+              fontWeight: 600 
+            }}
+          >
+            Quay lại
+          </Button>
 
-      <Card 
-        title={<Title level={4} style={{ margin: 0 }}>Chi tiết quy tắc: {rule?.title}</Title>}
-        variant="outlined"
-        style={{ marginBottom: 24, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
-      >
-        <Descriptions column={1} bordered size="small">
-          <Descriptions.Item label="Tên quy tắc">
-            <Text strong>{rule?.title}</Text>
-          </Descriptions.Item>
-          <Descriptions.Item label="Mô tả">
-            {rule?.description}
-          </Descriptions.Item>
-          <Descriptions.Item label="Nội dung chi tiết">
-            <div dangerouslySetInnerHTML={{ __html: rule?._raw?.content || rule?.content }} />
-          </Descriptions.Item>
-          <Descriptions.Item label="Thứ tự hiển thị">
-            <Tag color="blue">{rule?.sortOrder}</Tag>
-          </Descriptions.Item>
-        </Descriptions>
-      </Card>
+          <Divider orientation="vertical" style={{ height: 24, margin: '0 12px', borderLeft: '2px solid #e8e8e8' }} />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={4} style={{ margin: 0 }}>Danh sách ví dụ</Title>
-        <Input
-          placeholder="Tìm trong ví dụ..."
-          prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-          style={{ width: 300, borderRadius: 20 }}
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          allowClear
+          <Button
+            type="primary"
+            icon={<EditOutlined />}
+            onClick={onEdit}
+            style={{
+              borderRadius: 20,
+              height: 40,
+              padding: '0 20px',
+              fontWeight: 600
+            }}
+          >
+            Chỉnh sửa
+          </Button>
+
+          <Button
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => onDelete?.(rule)}
+            style={{
+              borderRadius: 20,
+              height: 40,
+              padding: '0 20px',
+              fontWeight: 600
+            }}
+          >
+            Xóa
+          </Button>
+        </Space>
+      </div>
+
+      <div style={{ background: '#fff', borderRadius: 8, boxShadow: '0 1px 2px rgba(0,0,0,0.05)', border: '1px solid #f0f0f0', overflow: 'hidden' }}>
+        <Tabs
+          defaultActiveKey="basic-info"
+          tabBarStyle={{ padding: '4px 24px 0', borderBottom: '1px solid #f0f0f0', background: '#ffffff', margin: 0 }}
+          items={tabItems}
         />
       </div>
-      <Table
-        dataSource={examples}
-        columns={columns}
-        loading={loading}
-        rowKey="exampleId"
-        pagination={{ pageSize: 10 }}
-        style={{ 
-          background: '#fff', 
-          borderRadius: 12, 
-          overflow: 'hidden',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-        }}
-      />
     </div>
   )
 }

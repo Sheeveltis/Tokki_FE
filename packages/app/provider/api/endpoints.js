@@ -150,13 +150,14 @@ export const ENDPOINTS = {
     EVALUATE: '/Pronunciation/evaluate', // POST: Đánh giá phát âm
   },
   PRONUNCIATION_EXAMPLE: {
-    GET_BY_RULE_ID: (ruleId) => `/PronunciationExample/rules/${ruleId}/examples`, // GET: Lấy danh sách ví dụ theo rule
+    GET_BY_RULE_ID: (ruleId) => `/PronunciationExample?pronunciationRuleId=${ruleId}&pageSize=100`, // GET: Lấy danh sách ví dụ theo rule
     GET_BY_ID: (exampleId) => `/PronunciationExample/${exampleId}`, // GET: Lấy chi tiết ví dụ
   },
   PRONUNCIATION_RULES: {
     CREATE: '/PronunciationRules', // POST: Tạo pronunciation rule
     USER_GET_ALL: '/PronunciationRules/user/get-all', // GET: User lấy danh sách rules
     ADMIN_GET_ALL: '/PronunciationRules/admin/get-all', // GET: Admin lấy danh sách rules
+    DELETE: (id) => `/PronunciationRules/${id}`, // DELETE: Xóa rule
   },
   VOCABULARY: {
     ADMIN_GET_ALL: '/Vocabulary/admin/get-all',

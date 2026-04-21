@@ -76,6 +76,15 @@ export const createPronunciationRule = async (payload) => {
   }
 }
 
+export const deletePronunciationRule = async (id) => {
+  try {
+    const res = await apiClient.delete(`${API_BASE_URL}${ENDPOINTS.PRONUNCIATION_RULES.DELETE(id)}`)
+    return extractData(res)
+  } catch (error) {
+    throw new Error(extractErrorMessage(error, 'Không thể xóa quy tắc phát âm'))
+  }
+}
+
 export const getPronunciationExamplesByRuleId = async (ruleId) => {
   if (!ruleId) return []
 
@@ -93,7 +102,8 @@ export const getPronunciationExamplesByRuleId = async (ruleId) => {
       text: item.rawScript || item.targetScript || '',
       difficulty: item.difficulty || 'Medium',
       audioUrl: item.audioUrl || null,
-      sortOrder: item.sortOrder || 0
+      sortOrder: item.sortOrder || 0,
+      isLearned: item.isLearned || item.IsLearned || false
     }))
   } catch (error) {
     console.error('Error in getPronunciationExamplesByRuleId:', error)
@@ -121,6 +131,7 @@ export const getPronunciationExampleById = async (exampleId) => {
       ruleName: item.ruleName || '',
       ruleDescription: item.ruleDescription || '',
       ruleContent: item.ruleContent || '',
+      isLearned: item.isLearned || false,
       _raw: item,
     }
   } catch (error) {
