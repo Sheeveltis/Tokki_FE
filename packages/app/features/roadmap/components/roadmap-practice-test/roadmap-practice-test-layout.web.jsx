@@ -82,6 +82,15 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
   const renderHtmlText = (value, style) => {
     if (!value) return null
     if (Platform.OS === 'web') {
+      // Unescape HTML entities so tags like <u> work correctly
+      const unescapedValue = String(value || '')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'")
+        .replace(/&#39;/g, "'")
+
       return (
         <span
           style={{
@@ -91,7 +100,7 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
             wordBreak: 'break-word',
             fontFamily: 'inherit'
           }}
-          dangerouslySetInnerHTML={{ __html: String(value || '') }}
+          dangerouslySetInnerHTML={{ __html: unescapedValue }}
         />
       )
     }
@@ -380,6 +389,20 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
                         </View>
                       )}
                     </View>
+
+                    {isAnswered && (currentQuestion.explain || currentQuestion.explanation) && (
+                      <View style={styles.explanationCard}>
+                        <View style={styles.explanationHeader}>
+                          <View style={styles.explanationIconContainer}>
+                            <Text style={styles.explanationIcon}>💡</Text>
+                          </View>
+                          <Text style={styles.explanationTitle}>Giải thích</Text>
+                        </View>
+                        <View style={styles.explanationBody}>
+                          {renderHtmlText(currentQuestion.explain || currentQuestion.explanation, styles.explanationText)}
+                        </View>
+                      </View>
+                    )}
                   </View>
                 </ScrollView>
               </View>
@@ -1049,6 +1072,55 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FFECC8',
     marginBottom: 8,
+  },
+  explanationCard: {
+    marginTop: 16,
+    padding: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#FFF8E1',
+    gap: 16,
+    ...(Platform.OS === 'web' && { 
+      boxShadow: '0 12px 32px rgba(255, 193, 7, 0.08)',
+    }),
+  },
+  explanationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  explanationIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: '#FFF8E1',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  explanationIcon: {
+    fontSize: 16,
+  },
+  explanationTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FF9800',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  explanationBody: {
+    backgroundColor: '#FFFDE7',
+    padding: 20,
+    borderRadius: 18,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FFC107',
+  },
+  explanationText: {
+    fontSize: 16,
+    color: '#5D4037',
+    lineHeight: 26,
+    fontWeight: '600',
+    fontFamily: 'Epilogue, sans-serif',
   },
 })
 

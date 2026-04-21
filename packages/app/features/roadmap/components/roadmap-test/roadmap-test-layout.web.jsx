@@ -546,13 +546,13 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
           Alert.alert(
             'Không thể tải đề thi',
             'Đã có lỗi xảy ra khi lấy thông tin bài kiểm tra. Vui lòng thử lại sau.',
-            [{ text: 'Đồng ý', onPress: () => router.push(`/roadmap/learning?level=${level}`) }]
+            [{ text: 'Đồng ý', onPress: () => router.push(isEntrance ? '/roadmap/info' : '/roadmap/learning') }]
           )
           
           // Sau 2 giây nếu chưa chuyển trang thì tự động chuyển (đề phòng Alert bị chặn hoặc không gọi onPress)
           setTimeout(() => {
             if (isMounted) {
-              router.push(`/roadmap/learning?level=${level}`)
+              router.push(isEntrance ? '/roadmap/info' : '/roadmap/learning')
             }
           }, 2000)
         }
@@ -993,8 +993,8 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     const confirmed = await confirmBack()
     if (!confirmed) return
 
-    // Navigate to learning page with current level
-    router.push(`/roadmap/learning?level=${level}`)
+    // Navigate back: entrance tests go to info, others go to learning
+    router.push(isEntrance ? '/roadmap/info' : '/roadmap/learning')
   }
 
   const activeSectionIndex = sections.findIndex((s) => s.key === activeSectionKey)
