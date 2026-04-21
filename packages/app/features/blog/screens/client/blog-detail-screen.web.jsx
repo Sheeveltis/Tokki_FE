@@ -97,7 +97,18 @@ export function BlogDetailScreen() {
     }
 
     fetchData()
-    window.scrollTo(0, 0)
+    // Đảm bảo cuộn lên đầu trang triệt để khi chuyển bài viết
+    const performScroll = () => {
+      window.scrollTo(0, 0)
+      if (document.documentElement) document.documentElement.scrollTop = 0
+      if (document.body) document.body.scrollTop = 0
+      const container = document.getElementById('main-layout-container')
+      if (container) container.scrollTop = 0
+    }
+    
+    performScroll()
+    const timeouts = [10, 100, 300, 600, 1000].map(d => setTimeout(performScroll, d))
+    return () => timeouts.forEach(t => clearTimeout(t))
   }, [slug])
 
   // Render content dựa trên state

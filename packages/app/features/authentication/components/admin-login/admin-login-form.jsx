@@ -7,9 +7,9 @@ import { CheckOutlined } from '@ant-design/icons'
 import { TextInput } from '../../../../../components/textInput'
 import { Button } from '../../../../../components/button'
 import { loginAdmin } from '../../api'
-import { setAuthToken, clearAuthToken } from '../../../../provider/api/client'
+import { setAuthToken, clearAuthToken, setCurrentUserAvatar } from '../../../../provider/api/client'
 import { encryptToken, decryptToken } from '../../../../helpers/token-encryption'
-import { setStorageItem, getStorageItem, removeStorageItem } from '../../../../helpers/storage'
+import { setStorageItem, getStorageItem, removeStorageItem, dispatchStorageEvent } from '../../../../helpers/storage'
 import { HelperAdmin } from '../../../../../components/HelperAdmin'
 import LogoImage from '../../../../../assets/logo-text.png'
 
@@ -111,42 +111,46 @@ export function AdminLoginForm() {
       setApiResponse(response)
 
       // Xử lý khi đăng nhập thành công
-      if (response.isSuccess && response.data) {
-        const { token, role } = response.data
+        if (response.isSuccess && response.data) {
+          const { token, role, avatarUrl } = response.data
+  
+          console.log('Login response:', { role, allowedRoles, isAllowed: allowedRoles.includes(role) })
+  
+          // Kiểm tra role có được phép truy cập admin panel không
+          if (!allowedRoles.includes(role)) {
+            await clearAuthToken()
+            const msg = 'Bạn không có quyền truy cập trang quản trị. Chỉ Admin, Staff và Moderator mới được phép.'
+            setError(msg)
+            setNotifyResponse({
+              isSuccess: false,
+              message: msg,
+              statusCode: 403,
+            })
+            setLoading(false)
+            return
+          }
+  
+          // Lưu token để dùng cho các request authorize
+          await setAuthToken(token)
 
-        console.log('Login response:', { role, allowedRoles, isAllowed: allowedRoles.includes(role) })
-
-        // Kiểm tra role có được phép truy cập admin panel không
-        if (!allowedRoles.includes(role)) {
-          await clearAuthToken()
-          const msg = 'Bạn không có quyền truy cập trang quản trị. Chỉ Admin, Staff và Moderator mới được phép.'
-          setError(msg)
-          setNotifyResponse({
-            isSuccess: false,
-            message: msg,
-            statusCode: 403,
-          })
-          setLoading(false)
-          return
-        }
-
-        // Lưu token để dùng cho các request authorize
-        await setAuthToken(token)
-
-        // Lưu hoặc xóa thông tin ghi nhớ đăng nhập
-        if (rememberMe) {
-          await setStorageItem('admin_rememberedEmail', email)
-          const encryptedPassword = encryptToken(password)
-          await setStorageItem('admin_rememberedPassword', encryptedPassword)
-        } else {
-          await removeStorageItem('admin_rememberedEmail')
-          await removeStorageItem('admin_rememberedPassword')
-        }
-
-        console.log('Đăng nhập thành công:', {
-          email,
-          role,
-        })
+          // Luôn cập nhật avatar
+          await setCurrentUserAvatar(avatarUrl)
+  
+          // Lưu hoặc xóa thông tin ghi nhớ đăng nhập
+          if (rememberMe) {
+            await setStorageItem('admin_rememberedEmail', email)
+            const encryptedPassword = encryptToken(password)
+            await setStorageItem('admin_rememberedPassword', encryptedPassword)
+          } else {
+            await removeStorageItem('admin_rememberedEmail')
+            await removeStorageItem('admin_rememberedPassword')
+          }
+  
+          // console.log('Đăng nhập thành công:', {
+          //   email,
+          //   role,
+          //   avatarUrl
+          // })
 
         // Đợi một chút để đảm bảo token đã được lưu vào storage
         await new Promise((resolve) => setTimeout(resolve, 100))

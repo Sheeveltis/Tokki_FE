@@ -32,7 +32,7 @@ if (Platform.OS !== 'web') {
 const STEPS = ['view', 'listen', 'meaning'] // 0,1,2
 const BATCH_SIZE = 5 // Số từ vựng học mỗi lần
 
-export function useFlashcardFirstLearn(topicId) {
+export function useFlashcardFirstLearn(topicId, enabled = true) {
   // Queue học: danh sách gốc + các từ cần học lại được append xuống cuối
   const [queue, setQueue] = useState([])
   const [originalTotal, setOriginalTotal] = useState(0) // Tổng số từ ban đầu trong batch hiện tại
@@ -257,18 +257,20 @@ export function useFlashcardFirstLearn(topicId) {
   }, [])
 
   useEffect(() => {
-    fetchFlashcards()
+    if (enabled) {
+      fetchFlashcards()
+    }
     return cleanupAudio
-  }, [fetchFlashcards, cleanupAudio])
+  }, [fetchFlashcards, cleanupAudio, enabled])
 
   // Auto play when entering any step
   useEffect(() => {
-    if (!current) return
+    if (!current || !enabled) return
     const timer = setTimeout(() => {
       playAudio()
     }, 200)
     return () => clearTimeout(timer)
-  }, [current, step, playAudio])
+  }, [current, step, playAudio, enabled])
 
   const resetForNextStep = () => {
     setUserAnswer('')

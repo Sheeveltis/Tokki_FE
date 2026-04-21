@@ -2,7 +2,17 @@ import React, { useState, useRef, useEffect } from 'react'
 import { View, Text, StyleSheet, Platform, Modal, TouchableOpacity } from 'react-native'
 import { NavigationPill } from '../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
-import { SoundOutlined, EditOutlined, HighlightOutlined, PlayCircleOutlined, DeleteOutlined, UndoOutlined, ArrowLeftOutlined, TrophyOutlined } from '@ant-design/icons'
+import {
+  SoundOutlined,
+  EditOutlined,
+  HighlightOutlined,
+  PlayCircleOutlined,
+  DeleteOutlined,
+  UndoOutlined,
+  ArrowLeftOutlined,
+  TrophyOutlined,
+  CloseOutlined
+} from '@ant-design/icons'
 import { FlashcardActionButton } from '../../../study/components/shared'
 import { AlphabetTable } from './alphabet-table'
 import { AlphabetGuideInfo } from './alphabet-guide-info'
@@ -10,6 +20,36 @@ import { ReactSketchCanvas } from 'react-sketch-canvas'
 import alphabetStrokesData from '../../api/alphabet-strokes.json'
 import { GuideStrokes } from '../alphabet-drawing/GuideStrokes'
 import { TypingPractice } from '../alphabet-typing/TypingPractice'
+import ButtonUI from 'components/decor/buttonUI'
+import ButtonUI2 from 'components/decor/buttonUI2'
+
+/**
+ * CloseButton: Nút X với hiệu ứng hover, đồng bộ với phong cách client
+ */
+const CloseButton = ({ onPress, style }) => {
+  const [isHovered, setIsHovered] = useState(false)
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      {...(Platform.OS === 'web' && {
+        onMouseEnter: () => setIsHovered(true),
+        onMouseLeave: () => setIsHovered(false),
+      })}
+      style={[
+        styles.closeButton,
+        isHovered && styles.closeButtonHover,
+        style
+      ]}
+    >
+      <Text style={[
+        styles.closeButtonIcon,
+        isHovered && styles.closeButtonIconHover
+      ]}>✕</Text>
+    </TouchableOpacity>
+  )
+}
 
 /**
  * AlphabetStudyMain (Web): Nội dung chính của trang học chữ cái Hàn Quốc trên web
@@ -64,6 +104,7 @@ export function AlphabetStudyMain({
   const [currentSentence, setCurrentSentence] = useState('')
   const canvasRef = useRef(null)
   const canvasBoxRef = useRef(null)
+  const audioRef = useRef(null)
 
   const selectedStrokeData = alphabetStrokesData.find(s => s.word === current?.word)
   const normalizedStrokes = selectedStrokeData?.strokes
@@ -73,14 +114,49 @@ export function AlphabetStudyMain({
     ? selectedStrokeData.strokes.map(s => s.guide)
     : []
 
+  const handlePlaySound = (customAudio) => {
+    // Ensure customAudio is a string URL, otherwise fallback to current?.audio
+    const audioUrl = typeof customAudio === 'string' ? customAudio : current?.audio;
+    
+    const playSpeechFallback = () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window && current?.word) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(current.word);
+        utterance.lang = 'ko-KR';
+        window.speechSynthesis.speak(utterance);
+      }
+    };
+
+    if (audioUrl) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      
+      audio.play().catch(e => {
+        console.warn('Audio play failed, using fallback:', e);
+        playSpeechFallback();
+      });
+    } else {
+      playSpeechFallback();
+    }
+  };
+
   const handleSelectLetter = (index) => {
-    onSelectFlashcard(index)
-    setIsModalVisible(true)
-    setIsDrawing(false)
-    setIsTyping(false)
-    setIsSentenceMode(false)
-    resetDrawing()
-  }
+    onSelectFlashcard(index);
+    const selectedItem = data[index];
+    if (selectedItem?.audio) {
+      handlePlaySound(selectedItem.audio);
+    }
+    setIsModalVisible(true);
+    setIsDrawing(false);
+    setIsTyping(false);
+    setIsSentenceMode(false);
+    resetDrawing();
+  };
 
   const startSentenceTyping = () => {
     const randomIdx = Math.floor(Math.random() * PRACTICE_SENTENCES.length)
@@ -101,15 +177,6 @@ export function AlphabetStudyMain({
     setStrokeScores([])
     setFinalScore(null)
     canvasRef.current?.clearCanvas()
-  }
-
-  const handlePlaySound = () => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window && current?.word) {
-      window.speechSynthesis.cancel()
-      const utterance = new SpeechSynthesisUtterance(current.word)
-      utterance.lang = 'ko-KR'
-      window.speechSynthesis.speak(utterance)
-    }
   }
 
   const handleClear = () => {
@@ -152,7 +219,7 @@ export function AlphabetStudyMain({
 
   const handleStroke = (path, isEraser) => {
     if (isEraser || !selectedStrokeData || !canvasSize.width || !canvasSize.height || !path || path.paths.length < 3) return
-    
+
     const expectedStrokes = selectedStrokeData.totalStrokes || selectedStrokeData.strokes?.length || 1
     if (finalScore !== null || strokeCount >= expectedStrokes) return
 
@@ -200,23 +267,27 @@ export function AlphabetStudyMain({
     <View style={styles.container}>
       {/* Header with back and title */}
       <View style={styles.header}>
+        <View style={styles.titleAbsolute}>
+          <Text style={styles.title}>BẢNG CHỮ CÁI TIẾNG HÀN</Text>
+        </View>
         <NavigationPill
-          label="Trở lại"
+          label="Quay lại"
           to={undefined}
           icon={ArrowIcon}
           iconStyle={{ transform: [{ scaleX: -1 }], tintColor: '#1A1A1A' }}
           onPress={onBackPress}
           textStyle={{ fontWeight: '700' }}
         />
-        <Text style={styles.title}>BẢNG CHỮ CÁI TIẾNG HÀN</Text>
-        <View style={{ flexDirection: 'row', gap: 12 }}>
-          <FlashcardActionButton title="Luyện gõ câu" icon={EditOutlined} onPress={startSentenceTyping} />
+        <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+          <ButtonUI2 onClick={startSentenceTyping}>
+            Luyện gõ câu
+          </ButtonUI2>
         </View>
       </View>
 
       {/* Alphabet Table view */}
       <View style={styles.tableContainer}>
-        <AlphabetTable 
+        <AlphabetTable
           data={data}
           onSelectLetter={handleSelectLetter}
         />
@@ -231,52 +302,48 @@ export function AlphabetStudyMain({
       >
         <View style={styles.modalOverlay}>
           <View style={[
-            styles.modalContent, 
+            styles.modalContent,
             (isDrawing || isTyping || isSentenceMode) && styles.modalContentDrawing
           ]}>
             {!isDrawing && !isTyping && !isSentenceMode ? (
               <>
-                <TouchableOpacity 
-                  style={styles.closeButton} 
+                <CloseButton
+                  style={styles.modalCloseIcon}
                   onPress={() => setIsModalVisible(false)}
-                >
-                  <Text style={styles.closeButtonText}>Đóng ✕</Text>
-                </TouchableOpacity>
-                
+                />
+
                 {/* Display selected letter */}
                 {current && (
                   <View style={styles.wordInfoContainer}>
-                     <Text style={styles.koreanWord}>{current.word}</Text>
-                     <Text style={styles.meaningText}>{current.pronunciation || current.meaning}</Text>
-                     <TouchableOpacity onPress={handlePlaySound} style={styles.soundButton}>
-                       <SoundOutlined style={{ fontSize: 24, color: '#D32F2F' }} />
-                     </TouchableOpacity>
+                    <Text style={styles.koreanWord}>{current.word}</Text>
+                    <Text style={styles.meaningText}>{current.pronunciation || current.meaning}</Text>
+                    <TouchableOpacity onPress={handlePlaySound} style={styles.soundButton}>
+                      <SoundOutlined style={{ fontSize: 24, color: '#D32F2F' }} />
+                    </TouchableOpacity>
                   </View>
                 )}
 
                 {/* Action buttons */}
-                <View style={styles.actions}>
-                  <FlashcardActionButton title="Tập đánh chữ" icon={EditOutlined} onPress={() => setIsTyping(true)} />
-                  <FlashcardActionButton title="Vẽ chữ" icon={HighlightOutlined} onPress={() => setIsDrawing(true)} />
+                <View style={[styles.actions, { alignItems: 'center' }]}>
+                  <ButtonUI2 onClick={() => setIsTyping(true)} style={{ transform: [{ scale: 0.8 }] }}>
+                    Tập đánh chữ
+                  </ButtonUI2>
+                  <ButtonUI onClick={() => setIsDrawing(true)} type="C">
+                    Vẽ chữ
+                  </ButtonUI>
                 </View>
               </>
             ) : isDrawing ? (
               <View style={styles.drawingContainer}>
                 <View style={styles.drawingHeader}>
-                  <TouchableOpacity style={styles.backToDetailButton} onPress={() => setIsDrawing(false)}>
-                    <ArrowLeftOutlined />
-                    <Text style={styles.backToDetailText}>Quay lại</Text>
-                  </TouchableOpacity>
-                  <View style={styles.drawingTitleContainer}>
+                  <View style={styles.drawingTitleAbsolute}>
                     <Text style={styles.drawingTitle}>Tập vẽ chữ "{current?.word}"</Text>
                     <Text style={styles.strokeCountText}>Nét: {strokeCount}/{selectedStrokeData?.totalStrokes || 1}</Text>
                   </View>
-                  <TouchableOpacity 
-                    style={styles.closeButton} 
+                  <View style={{ width: 40 }} /> {/* Left spacer */}
+                  <CloseButton
                     onPress={() => setIsModalVisible(false)}
-                  >
-                    <Text style={styles.closeButtonText}>✕</Text>
-                  </TouchableOpacity>
+                  />
                 </View>
 
                 <View style={styles.canvasBox} ref={canvasBoxRef}>
@@ -292,12 +359,12 @@ export function AlphabetStudyMain({
                   <ReactSketchCanvas
                     ref={canvasRef}
                     style={styles.canvas}
-                    strokeWidth={16}
+                    strokeWidth={12}
                     strokeColor="#000"
                     canvasColor="transparent"
                     onStroke={handleStroke}
                   />
-                  
+
                   {finalScore !== null && (
                     <View style={styles.scoreOverlay}>
                       <TrophyOutlined style={styles.scoreIcon} />
@@ -310,62 +377,54 @@ export function AlphabetStudyMain({
                 </View>
 
                 <View style={styles.drawingActions}>
-                  <TouchableOpacity style={styles.drawingActionButton} onPress={handleUndo}>
-                    <UndoOutlined />
-                    <Text>Hoàn tác</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.drawingActionButton, styles.clearBtn]} onPress={handleClear}>
-                    <DeleteOutlined />
-                    <Text>Xoá tất cả</Text>
+                  <TouchableOpacity style={styles.tryAgainButton} onPress={handleClear}>
+                    <UndoOutlined style={{ fontSize: 20 }} />
+                    <Text style={styles.tryAgainText}>Thử lại</Text>
                   </TouchableOpacity>
                 </View>
               </View>
             ) : isTyping ? (
               <View style={styles.drawingContainer}>
                 <View style={styles.drawingHeader}>
-                  <TouchableOpacity style={styles.backToDetailButton} onPress={() => setIsTyping(false)}>
-                    <ArrowLeftOutlined />
-                    <Text style={styles.backToDetailText}>Quay lại</Text>
-                  </TouchableOpacity>
-                  <View style={styles.drawingTitleContainer}>
+                  <View style={styles.drawingTitleAbsolute}>
                     <Text style={styles.drawingTitle}>Tập gõ chữ "{current?.word}"</Text>
                   </View>
-                  <TouchableOpacity 
-                    style={styles.closeButton} 
+                  <View style={{ width: 40 }} /> {/* Left spacer */}
+                  <CloseButton
                     onPress={() => setIsModalVisible(false)}
-                  >
-                    <Text style={styles.closeButtonText}>✕</Text>
-                  </TouchableOpacity>
+                  />
                 </View>
 
-                <TypingPractice 
-                  targetWord={current?.word} 
+                <TypingPractice
+                  targetWord={current?.word}
                   onComplete={() => {
                     // Could add a completion message or effect
-                  }} 
+                  }}
                 />
               </View>
             ) : (
               <View style={styles.drawingContainer}>
                 <View style={styles.drawingHeader}>
-                  <TouchableOpacity style={styles.backToDetailButton} onPress={() => { setIsModalVisible(false); setIsSentenceMode(false); }}>
-                    <ArrowLeftOutlined />
-                    <Text style={styles.backToDetailText}>Thoát</Text>
-                  </TouchableOpacity>
-                  <View style={styles.drawingTitleContainer}>
+                  <View style={styles.drawingTitleAbsolute}>
                     <Text style={styles.drawingTitle}>Luyện gõ câu ngẫu nhiên</Text>
                   </View>
-                  <TouchableOpacity 
-                    style={[styles.backToDetailButton, { backgroundColor: '#4CAF50' }]}
-                    onPress={handleNextSentence}
-                  >
-                    <Text style={[styles.backToDetailText, { color: '#fff' }]}>Câu tiếp</Text>
-                  </TouchableOpacity>
+                  <View style={{ width: 40 }} /> {/* Left spacer */}
+                  <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                    <TouchableOpacity
+                      style={[styles.backToDetailButton, { backgroundColor: '#4CAF50' }]}
+                      onPress={handleNextSentence}
+                    >
+                      <Text style={[styles.backToDetailText, { color: '#fff' }]}>Câu tiếp</Text>
+                    </TouchableOpacity>
+                    <CloseButton
+                      onPress={() => { setIsModalVisible(false); setIsSentenceMode(false); }}
+                    />
+                  </View>
                 </View>
 
-                <TypingPractice 
-                  targetWord={currentSentence} 
-                  onComplete={handleNextSentence} 
+                <TypingPractice
+                  targetWord={currentSentence}
+                  onComplete={handleNextSentence}
                 />
               </View>
             )}
@@ -387,6 +446,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    position: 'relative',
+    minHeight: 60,
+  },
+  titleAbsolute: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: -1,
   },
   title: {
     fontSize: 24,
@@ -431,15 +500,35 @@ const styles = StyleSheet.create({
     overflow: 'auto', // for web scrolling
   },
   closeButton: {
-    alignSelf: 'flex-end',
-    padding: 10,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.2s ease',
+      cursor: 'pointer',
+    }),
   },
-  closeButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+  closeButtonHover: {
+    backgroundColor: '#FFEBEE',
+  },
+  closeButtonIcon: {
+    fontSize: 20,
+    color: '#666',
+    fontWeight: '600',
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  closeButtonIconHover: {
+    color: '#F44336',
+  },
+  modalCloseIcon: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 10,
   },
   actions: {
     flexDirection: 'row',
@@ -489,6 +578,14 @@ const styles = StyleSheet.create({
   drawingTitleContainer: {
     alignItems: 'center',
   },
+  drawingTitleAbsolute: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: -1,
+  },
   backToDetailButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -513,6 +610,7 @@ const styles = StyleSheet.create({
   },
   canvasBox: {
     width: '100%',
+    maxWidth: 600,
     aspectRatio: 1,
     backgroundColor: '#fff',
     borderRadius: 16,
@@ -520,6 +618,7 @@ const styles = StyleSheet.create({
     borderColor: '#eee',
     position: 'relative',
     overflow: 'hidden',
+    alignSelf: 'center',
   },
   canvas: {
     flex: 1,
@@ -554,22 +653,30 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   drawingActions: {
-    flexDirection: 'row',
-    gap: 16,
     width: '100%',
+    flexDirection: 'row',
     justifyContent: 'center',
+    gap: 16,
   },
-  drawingActionButton: {
+  tryAgainButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
     paddingVertical: 12,
-    paddingHorizontal: 20,
-    backgroundColor: '#f1f1f1',
-    borderRadius: 12,
+    paddingHorizontal: 32,
+    backgroundColor: '#F1BE4B',
+    borderRadius: 99,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    cursor: 'pointer',
   },
-  clearBtn: {
-    backgroundColor: '#FFF0F0',
+  tryAgainText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1A1A1A',
   },
 })
 

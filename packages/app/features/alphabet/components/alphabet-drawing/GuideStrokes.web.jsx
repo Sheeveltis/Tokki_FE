@@ -6,7 +6,7 @@ import React from 'react'
 export function GuideStrokes({ strokes, guides, width, height, show }) {
   if (!show || !strokes || !width || !height) return null
 
-  const toleranceZoneWidth = 14 // vùng cho phép màu xanh nhạt
+  const toleranceZoneWidth = 10 // vùng cho phép màu xanh nhạt
 
   const guideLines = (guides || [])
     .map((g) => {
@@ -29,7 +29,7 @@ export function GuideStrokes({ strokes, guides, width, height, show }) {
           points="${arrowPoints}"
           fill="none"
           stroke="#D4060A"
-          stroke-width="2"
+          stroke-width="1"
           stroke-dasharray="4 4"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -39,16 +39,16 @@ export function GuideStrokes({ strokes, guides, width, height, show }) {
         <circle
           cx="${nx * width}"
           cy="${ny * height}"
-          r="10"
+          r="8"
           fill="#FFFFFF"
           stroke="#D4060A"
-          stroke-width="2"
+          stroke-width="1.5"
         />
         <text
           x="${nx * width}"
           y="${ny * height + 4}"
           text-anchor="middle"
-          font-size="12"
+          font-size="10"
           font-weight="700"
           fill="#D4060A"
         >
@@ -74,14 +74,14 @@ export function GuideStrokes({ strokes, guides, width, height, show }) {
           stroke-width="${toleranceZoneWidth}"
           stroke-linecap="round"
           stroke-linejoin="round"
-          opacity="0.25"
+          opacity="0.5"
         />
         <!-- Guide stroke chính (nét xám dày) -->
         <polyline
           points="${points}"
           fill="none"
           stroke="#E0E0E0"
-          stroke-width="36"
+          stroke-width="30"
           stroke-dasharray="none"
           stroke-linecap="round"
           stroke-linejoin="round"

@@ -329,7 +329,7 @@ export function AlphabetDrawingMain({ onBackPress }) {
           <ReactSketchCanvas
             ref={canvasRef}
             style={styles.canvas}
-            strokeWidth={18}
+            strokeWidth={12}
             strokeColor={strokeColor}
             canvasColor="transparent"
             withTimestamp={false}
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
   },
   canvasBox: {
     width: '100%',
-    maxWidth: 600,
+    maxWidth: 450,
     aspectRatio: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,

@@ -170,6 +170,8 @@ export function RoadmapGenerateScreen() {
       isGeneratingRoadmap={isGeneratingRoadmap}
       generateError={generateError}
       progressData={progressData}
+      isEntrance={isEntrance}
+      selfDeclaredLevel={selfDeclaredLevel}
     />
   )
 }

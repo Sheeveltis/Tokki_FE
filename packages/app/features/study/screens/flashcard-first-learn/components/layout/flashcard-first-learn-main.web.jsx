@@ -12,6 +12,34 @@ import CorrectSfx from 'assets/sound-effect/correct.wav'
 import WrongSfx from 'assets/sound-effect/wrong.wav'
 import DoneSfx from 'assets/sound-effect/done.wav'
 
+/**
+ * CloseButton: Nút X với hiệu ứng hover
+ */
+const CloseButton = ({ onPress, style }) => {
+  const [isHovered, setIsHovered] = React.useState(false)
+  
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      {...(Platform.OS === 'web' && {
+        onMouseEnter: () => setIsHovered(true),
+        onMouseLeave: () => setIsHovered(false),
+      })}
+      style={[
+        styles.closeButton,
+        isHovered && styles.closeButtonHover,
+        style
+      ]}
+    >
+      <Text style={[
+        styles.closeButtonIcon,
+        isHovered && styles.closeButtonIconHover
+      ]}>✕</Text>
+    </TouchableOpacity>
+  )
+}
+
 export function FlashcardFirstLearnMain({
   title,
   current,
@@ -315,8 +343,8 @@ export function FlashcardFirstLearnMain({
 
   return (
     <View style={styles.mainWrapper}>
-      <View style={styles.statsRow}>
-        <View style={styles.progressSection}>
+      <View style={styles.headerRow}>
+        <View style={styles.headerProgressSection}>
           <View style={styles.progressBar}>
             <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
           </View>
@@ -324,6 +352,7 @@ export function FlashcardFirstLearnMain({
             Tiến độ hoàn thành: <Text style={{ color: '#1A1A1A', fontWeight: '800' }}>{progress}%</Text>
           </Text>
         </View>
+        <CloseButton onPress={onBackPress} style={styles.absoluteCloseButton} />
       </View>
 
       <View style={styles.contentArea}>
@@ -399,12 +428,12 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     width: '100%',
-    maxWidth: '80vh',
+    maxWidth: 720,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
-    paddingHorizontal: 4,
+    marginBottom: 24,
+    paddingHorizontal: 16,
   },
   progressSection: {
     flex: 1,
@@ -432,6 +461,52 @@ const styles = StyleSheet.create({
     color: '#999',
     fontFamily: 'Epilogue, sans-serif',
     textAlign: 'center',
+  },
+  headerRow: {
+    width: '100%',
+    maxWidth: 800,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 20,
+    position: 'relative',
+    minHeight: 56,
+  },
+  headerProgressSection: {
+    width: '100%',
+    maxWidth: 600,
+    gap: 6,
+  },
+  absoluteCloseButton: {
+    position: 'absolute',
+    right: 0,
+    top: 5,
+  },
+  closeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.2s ease',
+      cursor: 'pointer',
+    }),
+  },
+  closeButtonHover: {
+    backgroundColor: '#FFEBEE',
+  },
+  closeButtonIcon: {
+    fontSize: 20,
+    color: '#666',
+    fontWeight: '600',
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  closeButtonIconHover: {
+    color: '#F44336',
   },
   flipCardWrapper: {
     width: '100%',
@@ -487,20 +562,23 @@ const styles = StyleSheet.create({
   },
   cardBox: {
     width: '100%',
-    height: '50%',
-    maxWidth: 720,
+    maxWidth: 600,
     alignItems: 'center',
-    gap: 12,
+    gap: 20,
     backgroundColor: '#FFF7EB',
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 24,
+    padding: 32,
     borderWidth: 2,
     borderColor: '#F1BE4B',
+    shadowColor: '#F1BE4B',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
   },
   cardImage: {
-    width: 320,
-    height: 220,
-    borderRadius: 12,
+    width: '100%',
+    aspectRatio: 1.8,
+    borderRadius: 16,
     backgroundColor: '#F5F5F5',
   },
   cardWord: {
@@ -525,18 +603,20 @@ const styles = StyleSheet.create({
   },
   practiceBox: {
     width: '100%',
-    maxWidth: 720,
-    height: 'auto',
-    minHeight: '50vh',
-    maxHeight: '70vh',
+    maxWidth: 600,
+    minHeight: 400,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 20,
+    gap: 24,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 32,
+    borderRadius: 24,
+    padding: 40,
     borderWidth: 1,
     borderColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
   },
   stepTitle: {
     fontSize: 22,
@@ -602,15 +682,13 @@ const styles = StyleSheet.create({
   },
   resultBox: {
     width: '100%',
-    maxWidth: 720,
-    height: 'auto',
-    minHeight: '50vh',
-    maxHeight: '70vh',
-    gap: 16,
+    maxWidth: 600,
+    minHeight: 450,
+    gap: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 16,
-    padding: 32,
+    borderRadius: 24,
+    padding: 40,
     backgroundColor: '#FFFFFF',
     borderWidth: 4,
   },
@@ -647,7 +725,8 @@ const styles = StyleSheet.create({
   stepContainer: {
     width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 10,
   },
   resultTextOnColor: {
     color: '#FFFFFF',

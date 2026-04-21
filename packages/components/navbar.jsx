@@ -12,7 +12,7 @@ import {
   ScrollView,
 } from 'react-native'
 import { colors } from '../app/color'
-import { getAuthToken, clearAuthToken, getCurrentUserId } from '../app/provider/api/client'
+import { getAuthToken, clearAuthToken, getCurrentUserId, getCurrentUserAvatar } from '../app/provider/api/client'
 import { useNotifications, NotificationReadFilter } from '../app/provider/notification'
 import { MessageModal } from './MessageModal'
 
@@ -127,6 +127,7 @@ export const Navbar = ({ position = 'fixed' }) => {
   const isMobile = width < 920
 
   const [hasToken, setHasToken] = useState(null)
+  const [userAvatar, setUserAvatar] = useState(null)
   const [authChecked, setAuthChecked] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -136,6 +137,7 @@ export const Navbar = ({ position = 'fixed' }) => {
   useEffect(() => {
     const check = () => {
       setHasToken(!!getAuthToken())
+      setUserAvatar(getCurrentUserAvatar())
       setAuthChecked(true)
     }
     check()
@@ -143,9 +145,11 @@ export const Navbar = ({ position = 'fixed' }) => {
     if (Platform.OS !== 'web') return
 
     window.addEventListener('token-changed', check)
+    window.addEventListener('avatar-changed', check)
     window.addEventListener('storage', check)
     return () => {
       window.removeEventListener('token-changed', check)
+      window.removeEventListener('avatar-changed', check)
       window.removeEventListener('storage', check)
     }
   }, [])
@@ -170,8 +174,8 @@ export const Navbar = ({ position = 'fixed' }) => {
         ? { position: position || 'fixed', top: 0, left: 0, right: 0, zIndex: 999 }
         : { position: position || 'absolute', top: 0, left: 0, right: 0, zIndex: 999 }
 
-  const handleLogout = () => {
-    clearAuthToken()
+  const handleLogout = async () => {
+    await clearAuthToken()
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       window.dispatchEvent(new Event('token-changed'))
     }
@@ -391,7 +395,15 @@ export const Navbar = ({ position = 'fixed' }) => {
                       styles={{ root: { paddingTop: 10 } }}
                     >
                       <Pressable style={({ pressed }) => [styles.userIconBtn, pressed && styles.iconActionPressed]}>
-                        <UserOutlined style={{ fontSize: 20, color: '#FFFFFF' }} />
+                        {userAvatar ? (
+                          <Image 
+                            source={{ uri: userAvatar }} 
+                            style={styles.avatarImage} 
+                            resizeMode="cover" 
+                          />
+                        ) : (
+                          <UserOutlined style={{ fontSize: 20, color: '#FFFFFF' }} />
+                        )}
                       </Pressable>
                     </Dropdown>
                   ) : (
@@ -400,7 +412,7 @@ export const Navbar = ({ position = 'fixed' }) => {
                       style={({ pressed }) => [styles.iconActionBtn, pressed && styles.iconActionPressed]}
                     >
                       <Image 
-                        source={UserIcon} 
+                        source={userAvatar ? { uri: userAvatar } : UserIcon} 
                         style={[styles.avatar, isMobile && styles.avatarMobile]} 
                         resizeMode="cover" 
                       />
@@ -645,9 +657,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#EEDCC5', 
+    overflow: 'hidden',
     ...(Platform.OS === 'web' && {
       transition: 'all 0.2s ease',
     }),
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
   },
   badge: {
     position: 'absolute',

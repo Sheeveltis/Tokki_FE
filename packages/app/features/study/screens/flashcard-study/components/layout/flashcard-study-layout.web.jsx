@@ -63,6 +63,11 @@ export function FlashcardStudyLayout({
       subtitle="Luyện tập từ vựng thông qua các thẻ flashcard sinh động để ghi nhớ lâu hơn."
       breadcrumbActive="Luyện tập"
       headerActions={headerActions}
+      transparentContent={true}
+      contentContainerStyle={{
+        paddingHorizontal: 0,
+        paddingTop: 0,
+      }}
     >
       {children}
     </StudyLayoutSynchronized>

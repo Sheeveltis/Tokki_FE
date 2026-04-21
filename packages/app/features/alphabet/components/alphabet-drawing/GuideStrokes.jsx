@@ -8,7 +8,7 @@ import { View, StyleSheet } from 'react-native'
 export function GuideStrokes({ strokes, guides, width, height, show }) {
   if (!show || !strokes || !width || !height) return null
 
-  const toleranceZoneWidth = 14
+  const toleranceZoneWidth = 10
 
   return (
     <View style={[StyleSheet.absoluteFill, { pointerEvents: 'none', zIndex: 1 }]}>
@@ -50,7 +50,7 @@ export function GuideStrokes({ strokes, guides, width, height, show }) {
                 points={points}
                 fill="none"
                 stroke="#E0E0E0"
-                strokeWidth={36}
+                strokeWidth={24}
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 opacity={0.5}
@@ -77,7 +77,7 @@ export function GuideStrokes({ strokes, guides, width, height, show }) {
                 points={arrowPoints}
                 fill="none"
                 stroke="#D4060A"
-                strokeWidth="2"
+                strokeWidth="1.5"
                 strokeDasharray="4 4"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -86,16 +86,16 @@ export function GuideStrokes({ strokes, guides, width, height, show }) {
               <Circle
                 cx={nx * width}
                 cy={ny * height}
-                r="10"
+                r="8"
                 fill="#FFFFFF"
                 stroke="#D4060A"
-                strokeWidth="2"
+                strokeWidth="1.5"
               />
               <Text
                 x={nx * width}
                 y={ny * height + 4}
                 textAnchor="middle"
-                fontSize="12"
+                fontSize="10"
                 fontWeight="700"
                 fill="#D4060A"
                 alignmentBaseline="middle"

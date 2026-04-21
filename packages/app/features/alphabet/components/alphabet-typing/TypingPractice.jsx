@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Platform, ScrollView } from 'react-native'
+import { RedoOutlined } from '@ant-design/icons'
 
 const ROWS = [
   ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
@@ -55,8 +56,8 @@ const KEY_FINGERS = {
 const isShiftRequired = (key) => key && key === key.toUpperCase() && key !== key.toLowerCase();
 
 const HANGUL_COMPOSITION = {
-  'hk': 'ㅘ', 'ho': 'ㅙ', 'hl': 'ㅚ', 
-  'nj': 'ㅝ', 'np': 'ㅞ', 'nl': 'ㅟ', 
+  'hk': 'ㅘ', 'ho': 'ㅙ', 'hl': 'ㅚ',
+  'nj': 'ㅝ', 'np': 'ㅞ', 'nl': 'ㅟ',
   'ml': 'ㅢ'
 }
 
@@ -65,12 +66,12 @@ export function TypingPractice({ targetWord, onComplete }) {
   const [pressedKeys, setPressedKeys] = useState([])
   const [currentInput, setCurrentInput] = useState('')
   const [sentenceInput, setSentenceInput] = useState('')
-  
+
   const targetKeys = targetWord?.split('').reduce((acc, char) => {
     const keys = KOREAN_KEYBOARD_MAP[char] || []
     return [...acc, ...keys]
   }, []) || []
-  
+
   const currentTargetKeyIndex = pressedKeys.length
   const currentTargetKey = !isSentenceMode ? targetKeys[currentTargetKeyIndex] : null
   const shiftRequired = !isSentenceMode && isShiftRequired(currentTargetKey)
@@ -104,48 +105,67 @@ export function TypingPractice({ targetWord, onComplete }) {
     if (!currentTargetKey) return
 
     if (key === currentTargetKey) {
-        const nextPressed = [...pressedKeys, key]
-        setPressedKeys(nextPressed)
-        
-        let inputStr = nextPressed.map(k => KEY_LABELS[k] || k).join('')
-        const compositeKey = nextPressed.join('')
-        if (HANGUL_COMPOSITION[compositeKey]) {
-            inputStr = HANGUL_COMPOSITION[compositeKey]
-        }
-        setCurrentInput(inputStr)
+      const nextPressed = [...pressedKeys, key]
+      setPressedKeys(nextPressed)
 
-        if (nextPressed.length === targetKeys.length) {
-          setTimeout(() => {
-            onComplete && onComplete()
-          }, 500)
-        }
+      let inputStr = nextPressed.map(k => KEY_LABELS[k] || k).join('')
+      const compositeKey = nextPressed.join('')
+      if (HANGUL_COMPOSITION[compositeKey]) {
+        inputStr = HANGUL_COMPOSITION[compositeKey]
+      }
+      setCurrentInput(inputStr)
+
+      if (nextPressed.length === targetKeys.length) {
+        setTimeout(() => {
+          onComplete && onComplete()
+        }, 500)
+      }
     }
   }
 
   const handleSentenceInputChange = (text) => {
     setSentenceInput(text)
-    if (text.trim() === targetWord.trim()) {
+    if (text.length > 0 && text.trim() === targetWord.trim()) {
       setTimeout(() => {
         onComplete && onComplete()
       }, 500)
     }
   }
 
+  const handleReset = () => {
+    setPressedKeys([])
+    setCurrentInput('')
+    setSentenceInput('')
+  }
+
+  const isFinished = isSentenceMode
+    ? (sentenceInput.length > 0 && sentenceInput.trim() === targetWord.trim())
+    : (pressedKeys.length > 0 && pressedKeys.length === targetKeys.length)
+
+  useEffect(() => {
+    if (isFinished) {
+      const timer = setTimeout(() => {
+        handleReset()
+      }, 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [isFinished])
+
   const renderKey = (keyChar) => {
     const isShifted = shiftRequired;
     const displayChar = isShifted && KEY_LABELS[keyChar.toUpperCase()] ? keyChar.toUpperCase() : keyChar;
     const label = KEY_LABELS[displayChar] || displayChar.toUpperCase()
-    
+
     // In sentence mode, we don't guide (highlight) the next key
     const isTarget = !isSentenceMode && displayChar === currentTargetKey
     const fingerType = KEY_FINGERS[displayChar]
     const fingerColor = FINGER_COLORS[fingerType]
 
     return (
-      <View 
-        key={keyChar} 
+      <View
+        key={keyChar}
         style={[
-          styles.key, 
+          styles.key,
           isTarget && styles.targetKey,
           isTarget && { borderColor: fingerColor, borderWidth: 3 }
         ]}
@@ -153,7 +173,7 @@ export function TypingPractice({ targetWord, onComplete }) {
         <Text style={[styles.keyLabel, isTarget && styles.targetKeyLabel]}>{label}</Text>
         <Text style={styles.subLabel}>{displayChar.toUpperCase()}</Text>
         {isTarget && (
-            <View style={[styles.fingerIndicator, { backgroundColor: fingerColor }]} />
+          <View style={[styles.fingerIndicator, { backgroundColor: fingerColor }]} />
         )}
       </View>
     )
@@ -166,10 +186,10 @@ export function TypingPractice({ targetWord, onComplete }) {
         color = input[i] === char ? '#4CAF50' : '#D32F2F'
       }
       return (
-        <Text 
-          key={i} 
+        <Text
+          key={i}
           style={[
-            isTarget ? styles.targetWordBig : styles.inputTextFree, 
+            isTarget ? styles.targetWordBig : styles.inputTextFree,
             { color }
           ]}
         >
@@ -191,73 +211,87 @@ export function TypingPractice({ targetWord, onComplete }) {
   }
 
   return (
-    <ScrollView 
-      style={{ width: '100%' }} 
+    <ScrollView
+      style={{ width: '100%' }}
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
     >
       {/* 1. Target word at the top */}
       <View style={styles.targetSection}>
         <View style={styles.targetDisplay}>
-            <Text style={styles.labelSmall}>Mục tiêu</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' }}>
-                {isSentenceMode ? renderSentenceWithFeedback(targetWord, sentenceInput, true) : (
-                  <Text style={styles.targetWordBig}>{targetWord}</Text>
-                )}
-              </View>
-              {shiftRequired && (
-                  <View style={styles.shiftBadge}>
-                      <Text style={styles.shiftBadgeText}>+SHIFT</Text>
-                  </View>
+          <Text style={styles.labelSmall}>Mục tiêu</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' }}>
+              {isSentenceMode ? renderSentenceWithFeedback(targetWord, sentenceInput, true) : (
+                <Text style={styles.targetWordBig}>{targetWord}</Text>
               )}
             </View>
+            {shiftRequired && (
+              <View style={styles.shiftBadge}>
+                <Text style={styles.shiftBadgeText}>+SHIFT</Text>
+              </View>
+            )}
+          </View>
         </View>
       </View>
 
       {/* 2. Input directly under the target */}
       <View style={styles.inputSection}>
-        <View style={[styles.inputDisplay, isSentenceMode && { flexDirection: 'column', flex: 1 }]}>
+        {/* Left slot for label */}
+        <View style={styles.sideSlot}>
           <Text style={styles.labelSmall}>Bạn gõ</Text>
-          <View style={[styles.inputOutline, isSentenceMode && styles.inputOutlineLarge]}>
-              {isSentenceMode ? (
-                <>
-                  <View style={styles.sentenceFeedbackContainer}>
-                    {renderTypedContent(targetWord, sentenceInput)}
-                  </View>
-                  <TextInput
-                    style={styles.hiddenInput}
-                    value={sentenceInput}
-                    onChangeText={handleSentenceInputChange}
-                    autoFocus={true}
-                    multiline={targetWord.length > 20}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    placeholder={sentenceInput.length === 0 ? "Bắt đầu gõ..." : ""}
-                  />
-                </>
-              ) : (
-                <Text style={styles.inputText}>{currentInput || '_'}</Text>
-              )}
+        </View>
+
+        {/* Center slot for input box */}
+        <View style={styles.centerSlot}>
+          <View style={[styles.inputOutline, isSentenceMode && styles.inputOutlineLarge, isFinished && styles.inputOutlineFinished]}>
+            {isSentenceMode ? (
+              <>
+                <View style={styles.sentenceFeedbackContainer}>
+                  {renderTypedContent(targetWord, sentenceInput)}
+                </View>
+                <TextInput
+                  style={styles.hiddenInput}
+                  value={sentenceInput}
+                  onChangeText={handleSentenceInputChange}
+                  autoFocus={true}
+                  multiline={targetWord.length > 20}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  placeholder={sentenceInput.length === 0 ? "Bắt đầu gõ..." : ""}
+                />
+              </>
+            ) : (
+              <Text style={[styles.inputText, isFinished && styles.inputTextFinished]}>{currentInput || '_'}</Text>
+            )}
+
+            {isFinished && (
+              <View style={styles.praiseContainer}>
+                <Text style={styles.praiseText}>Làm tốt lắm</Text>
+              </View>
+            )}
           </View>
         </View>
 
-        {!isSentenceMode && (
-          <View style={styles.guideContainer}>
-            <Text style={styles.guideText}>
+        {/* Right slot for guide */}
+        <View style={styles.sideSlot}>
+          {!isSentenceMode && (
+            <View style={styles.guideContainer}>
+              <Text style={styles.guideText}>
                 {shiftRequired ? (
-                    <>Giữ <Text style={styles.highlightText}>Shift</Text> + <Text style={styles.highlightText}>{KEY_LABELS[currentTargetKey]}</Text></>
+                  <>Giữ <Text style={styles.highlightText}>Shift</Text> + <Text style={styles.highlightText}>{KEY_LABELS[currentTargetKey]}</Text></>
                 ) : (
-                    <>Bấm phím <Text style={styles.highlightText}>{KEY_LABELS[currentTargetKey] || currentTargetKey?.toUpperCase()}</Text></>
+                  <>Bấm phím <Text style={styles.highlightText}>{KEY_LABELS[currentTargetKey] || currentTargetKey?.toUpperCase()}</Text></>
                 )}
-            </Text>
-            <View style={styles.progressDots}>
+              </Text>
+              <View style={styles.progressDots}>
                 {targetKeys.map((_, i) => (
-                    <View key={i} style={[styles.dot, i < pressedKeys.length && styles.dotActive]} />
+                  <View key={i} style={[styles.dot, i < pressedKeys.length && styles.dotActive]} />
                 ))}
+              </View>
             </View>
-          </View>
-        )}
+          )}
+        </View>
       </View>
 
       {/* 3. Keyboard at the bottom as a visual reference only */}
@@ -266,7 +300,7 @@ export function TypingPractice({ targetWord, onComplete }) {
         <View style={styles.row}>
           {ROWS[0].map(renderKey)}
         </View>
-        
+
         {/* Row 2 */}
         <View style={[styles.row, { paddingLeft: '2%' }]}>
           {ROWS[1].map(renderKey)}
@@ -275,7 +309,7 @@ export function TypingPractice({ targetWord, onComplete }) {
         {/* Row 3 */}
         <View style={[styles.row, { paddingLeft: '4.5%' }]}>
           <View style={[
-            styles.key, 
+            styles.key,
             styles.shiftKey,
             shiftRequired && styles.targetKey,
             shiftRequired && { borderColor: FINGER_COLORS[KEY_FINGERS['Shift']], borderWidth: 3 }
@@ -284,20 +318,20 @@ export function TypingPractice({ targetWord, onComplete }) {
           </View>
           {ROWS[2].map(renderKey)}
           <View style={[
-            styles.key, 
+            styles.key,
             styles.shiftKey,
             shiftRequired && styles.targetKey,
             shiftRequired && { borderColor: FINGER_COLORS[KEY_FINGERS['Shift']], borderWidth: 3 }
           ]}>
-             <Text style={[styles.shiftLabel, shiftRequired && styles.targetKeyLabel]}>Shift</Text>
+            <Text style={[styles.shiftLabel, shiftRequired && styles.targetKeyLabel]}>Shift</Text>
           </View>
         </View>
 
         {/* Space Row */}
         <View style={[styles.row, { justifyContent: 'center', marginTop: 4 }]}>
-          <View 
+          <View
             style={[
-              styles.key, 
+              styles.key,
               styles.spaceKey,
               currentTargetKey === ' ' && styles.targetKey,
               currentTargetKey === ' ' && { borderColor: FINGER_COLORS['right-index'], borderWidth: 3 }
@@ -315,7 +349,7 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     alignItems: 'center',
-    paddingBottom: 10,
+    paddingBottom: 0,
     gap: 16,
   },
   targetSection: {
@@ -337,7 +371,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     gap: 12,
     backgroundColor: '#fff',
     padding: 16,
@@ -358,6 +392,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 15,
+  },
+  sideSlot: {
+    flex: 1,
+    minWidth: 80,
+  },
+  centerSlot: {
+    flex: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   labelSmall: {
     fontSize: 11,
@@ -422,18 +465,19 @@ const styles = StyleSheet.create({
     outlineStyle: 'none', // for web
   },
   keyboard: {
-    backgroundColor: '#f8f9fa',
-    padding: 12,
-    borderRadius: 20,
-    gap: 8,
+    backgroundColor: '#FAF9F6',
+    padding: 24,
+    borderRadius: 32,
+    gap: 14,
     width: '100%',
-    maxWidth: 620,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
+    maxWidth: 850,
+    borderWidth: 2,
+    borderColor: '#EEDCC5',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 15,
+    marginTop: 20,
   },
   row: {
     flexDirection: 'row',
@@ -442,24 +486,24 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   key: {
-    width: 42,
-    height: 50,
+    width: 62,
+    height: 75,
     backgroundColor: '#fff',
-    borderRadius: 10,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowRadius: 6,
+    elevation: 3,
     position: 'relative',
-    borderWidth: 1,
-    borderColor: '#eee',
+    borderWidth: 1.5,
+    borderColor: '#F0F0F0',
   },
   shiftKey: {
-    width: 70,
-    backgroundColor: '#f5f5f5',
+    width: 100,
+    backgroundColor: '#F9FAFB',
   },
   shiftLabel: {
     fontSize: 12,
@@ -470,13 +514,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFBEB',
   },
   keyLabel: {
-    fontSize: 20,
-    fontWeight: '800',
+    fontSize: 32,
+    fontWeight: '900',
     color: '#1A1A1A',
   },
   targetKeyLabel: {
     color: '#D32F2F',
-    fontSize: 22,
+    fontSize: 36,
   },
   subLabel: {
     fontSize: 9,
@@ -519,7 +563,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.1 }],
   },
   highlightText: {
-    fontWeight: '900', 
+    fontWeight: '900',
     color: '#D32F2F',
     fontSize: 18,
   },
@@ -536,8 +580,60 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '900',
   },
+  inputOutlineFinished: {
+    borderColor: '#4CAF50',
+    backgroundColor: '#F1F8E9',
+  },
+  inputTextFinished: {
+    color: '#4CAF50',
+  },
+  inlineResetBtn: {
+    position: 'absolute',
+    right: 15,
+    top: '50%',
+    transform: [{ translateY: -20 }],
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1.5,
+    borderColor: '#4CAF50',
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  inlineResetText: {
+    color: '#4CAF50',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  praiseContainer: {
+    position: 'absolute',
+    // right: 15,
+    top: '50%',
+    transform: [{ translateY: -20 }],
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  praiseText: {
+    color: '#fff',
+    fontWeight: '900',
+    fontSize: 16,
+  },
   spaceKey: {
-    width: 240,
+    width: 420,
     backgroundColor: '#fff',
   },
   spaceLabel: {

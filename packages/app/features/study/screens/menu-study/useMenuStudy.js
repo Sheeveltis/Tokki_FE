@@ -3,6 +3,13 @@ import { getMenuStudyRoute, isLoginRequiredModule } from './menuStudyRoutes'
 import { getAccountAimLevel, getMyStreak, checkDailyTitles } from '@tokki/app/features/authentication/api'
 import { getCurrentWeekProgress, getGamificationProgress, getLeaderboardData } from '@tokki/app/features/study/api'
 
+// Biến global trong module để theo dõi việc check danh hiệu trong 1 phiên chạy app
+let hasCheckedDailyTitlesInSession = false
+
+export const resetTitlesCheck = () => {
+  hasCheckedDailyTitlesInSession = false
+}
+
 /**
  * Hook xử lý logic cho MenuStudyScreen
  * @param {import('next/navigation').AppRouterInstance} router
@@ -56,10 +63,18 @@ export function useMenuStudy(router, levelId) {
       setLeaderboardData(data)
     }
     const checkTitles = async () => {
+      // Chỉ kiểm tra 1 lần mỗi khi load app (session) để tránh hiện đi hiện lại khi chuyển trang
+      if (hasCheckedDailyTitlesInSession) {
+        return
+      }
+
       const result = await checkDailyTitles()
       if (result && result.isSuccess && result.data && result.data.length > 0) {
         setUnlockedTitles(result.data)
         setShowTitlesModal(true)
+        
+        // Đánh dấu đã hiện trong session này
+        hasCheckedDailyTitlesInSession = true
       }
     }
 

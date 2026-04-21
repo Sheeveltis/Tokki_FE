@@ -385,9 +385,11 @@ export function PublicLayout() {
 
 
   // Hide Navbar for specific distraction-free screens
+  const query = new URLSearchParams(location.search)
+  const hideNavbarParam = query.get('hideNavbar') === 'true'
   const isPracticePage = location.pathname.includes('/roadmap/learning/practice') || location.pathname.includes('/roadmap/practice-test')
   const isTestPage = location.pathname === '/roadmap/test'
-  const shouldHideNavbar = isPracticePage || isTestPage || isPlayScreen
+  const shouldHideNavbar = isPracticePage || isTestPage || isPlayScreen || hideNavbarParam
 
   return (
     <View style={{ flex: 1, height: shouldHideFooter ? '100vh' : undefined, minHeight: '100vh', backgroundColor: '#fff', overflow: shouldHideFooter ? 'auto' : 'visible' }}>

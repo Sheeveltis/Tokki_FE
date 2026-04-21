@@ -48,6 +48,8 @@ export function FlashcardListLayout({
       title="Flashcard học tập"
       breadcrumbActive="Flashcard"
       headerActions={headerActions}
+      scrollable={false}
+      contentContainerStyle={{ paddingBottom: 0 }}
     >
       {children}
     </StudyLayoutSynchronized>
