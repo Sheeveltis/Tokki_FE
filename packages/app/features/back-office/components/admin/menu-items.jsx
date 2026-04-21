@@ -67,17 +67,17 @@ export const adminMenuItems = [
       { key: 'blog-category', icon: <BookOutlined />, label: 'Danh mục' },
     ],
   },
-  {
-    key: 'customer-service',
-    icon: <CustomerServiceOutlined />,
-    label: 'Chăm sóc khách hàng',
-    children: [
-      { key: 'chat-support', icon: <MessageOutlined />, label: 'Khung chat' },
-      { key: 'auto-email', icon: <MailOutlined />, label: 'Gửi mail tự động' },
-      { key: 'manual-email', icon: <MailOutlined />, label: 'Gửi mail thủ công' },
-      { key: 'feedback-inbox', icon: <InboxOutlined />, label: 'Hòm thư feedback' },
-    ],
-  },
+  // {
+  //   key: 'customer-service',
+  //   icon: <CustomerServiceOutlined />,
+  //   label: 'Chăm sóc khách hàng',
+  //   children: [
+  //     { key: 'chat-support', icon: <MessageOutlined />, label: 'Khung chat' },
+  //     { key: 'auto-email', icon: <MailOutlined />, label: 'Gửi mail tự động' },
+  //     { key: 'manual-email', icon: <MailOutlined />, label: 'Gửi mail thủ công' },
+  //     { key: 'feedback-inbox', icon: <InboxOutlined />, label: 'Hòm thư feedback' },
+  //   ],
+  // },
   {
     key: 'revenue',
     icon: <DollarOutlined />,
