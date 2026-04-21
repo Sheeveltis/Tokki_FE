@@ -7,6 +7,7 @@ import {
   TrophyOutlined,
   CrownFilled
 } from '@ant-design/icons'
+import BunnyImage from 'assets/bunny/11.png'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -158,10 +159,12 @@ export const LandingPage = ({
           box-shadow: 0 20px 40px rgba(93, 64, 55, 0.1), inset 0 4px 20px rgba(93, 64, 55, 0.05);
         }
 
-        .mascot-emoji {
-          font-size: 160px;
+        .mascot-image {
+          width: 280px;
+          height: auto;
           user-select: none;
           animation: bounce 3s infinite;
+          object-fit: contain;
         }
 
         @keyframes bounce {
@@ -221,7 +224,7 @@ export const LandingPage = ({
         @media (max-width: 768px) {
           .hero-container { padding: 40px 24px; border-radius: 2rem; margin-top: 20px; }
           .mascot-container { width: 280px; height: 280px; margin-top: 20px; }
-          .mascot-emoji { font-size: 100px; }
+          .mascot-image { width: 200px; }
           .section-padding { padding: 40px 20px; }
           .main-title { font-size: 2.5rem; }
         }
@@ -274,7 +277,7 @@ export const LandingPage = ({
                 transition={{ duration: 0.8, delay: 0.2 }}
                 className="mascot-container"
               >
-                <div className="mascot-emoji">🐰</div>
+                <img src={BunnyImage} className="mascot-image" alt="Tokki Mascot" />
                 
                 <div className="floating-badge badge-1">
                   <Text strong style={{ color: '#FFB300', fontSize: 18 }}>Top 1! 🏆</Text>
