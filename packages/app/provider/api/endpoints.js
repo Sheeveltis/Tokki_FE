@@ -11,11 +11,11 @@ import { Platform } from 'react-native'
  * - Device thật: dùng IP thật của máy (ví dụ: 116.106.201.3 hoặc 192.168.x.x)
  * - Để lấy IP của máy: Windows (ipconfig) hoặc Mac/Linux (ifconfig)
  */
-const WEB_DOMAIN = 'https://tokki-be-hneqd2a3dfhmfnhq.koreacentral-01.azurewebsites.net'
+const WEB_DOMAIN = 'https://tokki-api.site'
 // Cho Android Emulator: dùng 10.0.2.2 để truy cập localhost của máy host
 // Cho Device thật: thay bằng IP thật của máy (ví dụ: http://116.106.201.3:5031)
 
-const MOBILE_DOMAIN = 'http://10.0.2.2:5031' // IP đặc biệt cho Android Emulator
+const MOBILE_DOMAIN = 'https://tokki-api.site' // IP đặc biệt cho Android Emulator
 
 
 const PREFIX = '/api'
