@@ -1,15 +1,20 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { StyleSheet, View, Text, ScrollView, Pressable, Platform, Image } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { Navbar } from '../../../../../components/navbar'
 import { RoadmapTestButton } from './roadmap-test-button'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
 import { NavigationPill } from '../../../../../components/navigation-pill'
+import ButtonUI from '../../../../../components/decor/buttonUI'
 import {
   InfoCircleOutlined,
-  OrderedListOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
+  CheckCircleFilled,
+  CustomerServiceOutlined,
+  ReadOutlined,
+  EditOutlined,
+  StarFilled,
 } from '@ant-design/icons'
 import { Modal } from 'react-native'
 import { RoadmapTestResultDetailView } from './roadmap-test-result-detail-view'
@@ -138,48 +143,47 @@ export function RoadmapGenerateLayout({
             {/* Left Column: AI Feedback & Issues */}
             <View style={styles.leftColumn}>
               <View style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <InfoCircleOutlined style={styles.cardIcon} />
-                  <Text style={styles.cardTitle}>Phản hồi từ AI</Text>
+                <View style={styles.cardHeaderNew}>
+                  <View style={styles.yellowBar} />
+                  <Text style={styles.cardTitleNew}>Kỹ năng cần cải thiện</Text>
                 </View>
-                <Text style={styles.feedbackText}>
-                  {feedbackData?.aiFeedback || 'Hệ thống đang phân tích bài làm của bạn để đưa ra lời khuyên phù hợp nhất.'}
-                </Text>
-              </View>
 
-              <View style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <OrderedListOutlined style={styles.cardIcon} />
-                  <Text style={styles.cardTitle}>Cần cải thiện</Text>
-                </View>
-                <View style={styles.issueList}>
-                  <IssueSection
+                <View style={styles.skillList}>
+                  <SkillProgressItem
+                    icon={<CustomerServiceOutlined />}
                     title="Nghe"
-                    sectionKey="listening"
-                    userExamId={userExamId}
-                    issues={feedbackData?.listeningIssues}
-                    isExpanded={expandedSection === 'listening'}
-                    onToggle={() => setExpandedSection(expandedSection === 'listening' ? null : 'listening')}
+                    count={feedbackData?.listeningIssues?.length || 0}
+                    color="#4A84F6"
+                    bg="#EFF4FF"
+                    total={feedbackData?.listeningTotal || (level <= 2 ? 14 : 20)}
                     onOpenDetail={() => fetchDetail('listening')}
                   />
-                  <IssueSection
+                  <SkillProgressItem
+                    icon={<ReadOutlined />}
                     title="Đọc"
-                    sectionKey="reading"
-                    userExamId={userExamId}
-                    issues={feedbackData?.readingIssues}
-                    isExpanded={expandedSection === 'reading'}
-                    onToggle={() => setExpandedSection(expandedSection === 'reading' ? null : 'reading')}
+                    count={feedbackData?.readingIssues?.length || 0}
+                    color="#F68B4A"
+                    bg="#FFF4EF"
+                    total={feedbackData?.readingTotal || (level <= 2 ? 17 : 20)}
                     onOpenDetail={() => fetchDetail('reading')}
                   />
-                  <IssueSection
-                    title="Viết"
-                    sectionKey="writing"
-                    userExamId={userExamId}
-                    issues={feedbackData?.writingIssues}
-                    isExpanded={expandedSection === 'writing'}
-                    onToggle={() => setExpandedSection(expandedSection === 'writing' ? null : 'writing')}
-                    onOpenDetail={() => fetchDetail('writing')}
-                  />
+                  {Number(level) > 2 && (
+                    <SkillProgressItem
+                      icon={<EditOutlined />}
+                      title="Viết"
+                      count={feedbackData?.writingIssues?.length || 0}
+                      color="#4CAF50"
+                      bg="#F0F9F0"
+                      onOpenDetail={() => fetchDetail('writing')}
+                    />
+                  )}
+                </View>
+
+                <View style={styles.aiRecommendationBox}>
+                  <InfoCircleOutlined style={styles.aiRecIcon} />
+                  <Text style={styles.aiRecText}>
+                    Dựa trên {(feedbackData?.listeningIssues?.length || 0) + (feedbackData?.readingIssues?.length || 0) + (feedbackData?.writingIssues?.length || 0)} dạng câu cần cải thiện, chúng tôi đề xuất dành tối thiểu <Text style={{ fontWeight: '700' }}>{durationOptions.find(opt => opt.recommended)?.days || 90} ngày</Text> để đạt hiệu quả cao nhất cho mục tiêu TOPIK {level || 1}.
+                  </Text>
                 </View>
               </View>
             </View>
@@ -187,45 +191,48 @@ export function RoadmapGenerateLayout({
             {/* Right Column: Duration Selection */}
             <View style={styles.rightColumn}>
               <View style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <ClockCircleOutlined style={styles.cardIcon} />
-                  <Text style={styles.cardTitle}>Thời gian học</Text>
+                <View style={styles.cardHeaderNew}>
+                  <Text style={styles.cardTitleNew}>Thời gian học</Text>
                 </View>
-                <Text style={styles.cardSubtitle}>
-                  Hãy chọn thời gian bạn muốn dành ra để đạt được mục tiêu TOPIK {level || 1}.
-                </Text>
 
-                <View style={styles.durationOptions}>
+                <View style={styles.durationOptionsNew}>
                   {durationOptions.map((option) => (
                     <Pressable
                       key={option.days}
                       onPress={() => setSelectedDuration(option.days)}
                       style={({ pressed, hovered }) => [
-                        styles.durationOption,
-                        selectedDuration === option.days && styles.durationOptionActive,
+                        styles.durationOptionCard,
+                        selectedDuration === option.days && styles.durationOptionCardActive,
                         option.available === false && styles.durationOptionDisabled,
                         hovered && option.available !== false && styles.durationOptionHover,
                         pressed && option.available !== false && styles.durationOptionPressed,
                       ]}
                       disabled={option.available === false}
                     >
-                      <View style={styles.durationOptionHeader}>
-                        <View style={styles.durationOptionTitle}>
-                          <ClockCircleOutlined style={styles.durationOptionIcon} />
-                          <Text
-                            style={[
-                              styles.durationOptionDays,
-                              selectedDuration === option.days && styles.durationOptionDaysActive,
-                            ]}
-                          >
-                            {option.days} ngày
+                      <View style={[styles.durationLeftBox, selectedDuration === option.days && styles.durationLeftBoxActive]}>
+                        <Text style={[styles.durationDaysNumber, selectedDuration === option.days && styles.durationDaysNumberActive]}>{option.days}</Text>
+                        <Text style={[styles.durationDaysText, selectedDuration === option.days && styles.durationDaysTextActive]}>NGÀY</Text>
+                      </View>
+                      <View style={styles.durationMiddleBox}>
+                        <View style={styles.durationTitleRow}>
+                          <Text style={[styles.durationTitleText, selectedDuration === option.days && styles.durationTitleTextActive]}>
+                            Lựa chọn {option.days} ngày
                           </Text>
+                          {option.recommended && (
+                            <View style={styles.recommendedBadgeNew}>
+                              <Text style={styles.recommendedBadgeTextNew}>KHUYẾN NGHỊ</Text>
+                            </View>
+                          )}
                         </View>
-                        {option.recommended && (
-                          <Text style={styles.durationBadge}>Khuyến nghị</Text>
+                        <Text style={styles.durationDescText}>{option.reason}</Text>
+                      </View>
+                      <View style={styles.durationRightBox}>
+                        {selectedDuration === option.days ? (
+                          <CheckCircleFilled style={styles.durationRadioActiveIcon} />
+                        ) : (
+                          <View style={styles.durationRadioInactive} />
                         )}
                       </View>
-                      <Text style={styles.durationReason}>{option.reason}</Text>
                     </Pressable>
                   ))}
                 </View>
@@ -234,12 +241,21 @@ export function RoadmapGenerateLayout({
                   <Text style={styles.errorTextSmall}>{generateError}</Text>
                 )}
 
-                <RoadmapTestButton
-                  title={isGeneratingRoadmap ? 'Đang tạo lộ trình...' : 'Tạo lộ trình ngay'}
-                  onPress={handleCreateRoadmap}
-                  disabled={!selectedDuration || isGeneratingRoadmap}
-                  style={styles.submitButton}
-                />
+                <View style={styles.actionFooter}>
+                  <Pressable style={styles.aiInfoLink}>
+                    <StarFilled style={styles.aiInfoStar} />
+                    <Text style={styles.aiInfoText}>Tìm hiểu về Tooki tạo lộ trình cho bạn</Text>
+                  </Pressable>
+                  <ButtonUI
+                    type="C"
+                    onClick={handleCreateRoadmap}
+                    disabled={!selectedDuration || isGeneratingRoadmap}
+                  >
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {isGeneratingRoadmap ? 'Đang tạo...' : 'Tạo'}
+                    </span>
+                  </ButtonUI>
+                </View>
               </View>
             </View>
           </View>
@@ -327,40 +343,31 @@ export function RoadmapGenerateLayout({
   )
 }
 
-function IssueSection({ title, sectionKey, userExamId, issues, isExpanded, onToggle, onOpenDetail }) {
+function SkillProgressItem({ icon, title, count, color, bg, onOpenDetail }) {
   return (
-    <View style={styles.issueSection}>
-      <Pressable
-        onPress={onToggle}
-        style={[styles.issueHeaderRow, isExpanded && styles.issueHeaderRowActive]}
-      >
-        <OrderedListOutlined style={styles.issueHeaderIcon} />
-        <Text style={styles.issueSectionTitle}>{title}</Text>
-        <Pressable
-          onPress={(e) => {
-            e.stopPropagation()
-            onOpenDetail?.()
-          }}
-          style={styles.issueDetailLink}
-        >
-          <Text style={styles.issueDetailLinkText}>Chi tiết</Text>
-        </Pressable>
-      </Pressable>
-      {isExpanded && (
-        <View style={styles.issueItems}>
-          {issues?.length ? (
-            issues.map((item) => (
-              <View key={item.questionTypeId} style={styles.issueItem}>
-                <Text style={styles.issueCode}>{item.code}</Text>
-                <Text style={styles.issueName}>{item.name}</Text>
-              </View>
-            ))
-          ) : (
-            <Text style={styles.issueEmptyText}>Tuyệt vời! Không có lỗi nào được phát hiện trong phần này.</Text>
-          )}
+    <Pressable
+      style={({ pressed, hovered }) => [
+        styles.skillItemWrapper,
+        hovered && { opacity: 0.9 },
+        pressed && { opacity: 0.7 }
+      ]}
+      onPress={onOpenDetail}
+    >
+      <View style={styles.skillItemFullRow}>
+        <View style={[styles.skillIconBox, { backgroundColor: bg }]}>
+          {React.cloneElement(icon, { style: { color: color, fontSize: 20 } })}
         </View>
-      )}
-    </View>
+        <View style={styles.skillItemInfo}>
+          <Text style={styles.skillItemTitle}>{title}</Text>
+          <Text style={styles.skillItemCount}>{count} dạng bài yếu</Text>
+        </View>
+        {count > 0 && (
+          <View style={styles.skillDetailBtn}>
+            <Text style={styles.skillDetailBtnText}>Chi tiết</Text>
+          </View>
+        )}
+      </View>
+    </Pressable>
   )
 }
 
@@ -409,11 +416,11 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   leftColumn: {
-    flex: 1.2,
+    flex: 1,
     gap: 24,
   },
   rightColumn: {
-    flex: 0.8,
+    flex: 1.3,
     gap: 24,
   },
   card: {
@@ -768,5 +775,232 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  cardHeaderNew: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 8,
+  },
+  yellowBar: {
+    width: 6,
+    height: 24,
+    backgroundColor: '#FFC800',
+    borderRadius: 3,
+  },
+  cardTitleNew: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  skillList: {
+    gap: 20,
+    marginTop: 8,
+  },
+  skillItemWrapper: {
+    gap: 8,
+  },
+  skillItemFullRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  skillIconBox: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  skillItemInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  skillItemTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1A1A1A',
+  },
+  skillItemCount: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    fontWeight: '500',
+  },
+  skillProgressBarBg: {
+    height: 6,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 3,
+    width: '100%',
+    overflow: 'hidden',
+  },
+  skillProgressBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  skillDetailBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  skillDetailBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#6B7280',
+  },
+  aiRecommendationBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 16,
+    padding: 16,
+    backgroundColor: '#F5F8FF',
+    borderRadius: 16,
+    gap: 12,
+  },
+  aiRecIcon: {
+    fontSize: 20,
+    color: '#4A84F6',
+    marginTop: 2,
+  },
+  aiRecText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#4A5568',
+    lineHeight: 22,
+  },
+  durationOptionsNew: {
+    gap: 16,
+    marginTop: 8,
+  },
+  durationOptionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+    backgroundColor: '#FFFFFF',
+    gap: 16,
+  },
+  durationOptionCardActive: {
+    borderColor: '#FFC800',
+    backgroundColor: '#FFFEF5',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 20px rgba(255, 200, 0, 0.1)',
+    }),
+  },
+  durationOptionDisabled: {
+    opacity: 0.5,
+  },
+  durationOptionHover: {
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F9FAFB',
+  },
+  durationOptionPressed: {
+    opacity: 0.9,
+  },
+  durationLeftBox: {
+    width: 64,
+    height: 64,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 4,
+  },
+  durationLeftBoxActive: {
+    backgroundColor: '#FFC800',
+  },
+  durationDaysNumber: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#9CA3AF',
+  },
+  durationDaysNumberActive: {
+    color: '#1A1A1A',
+  },
+  durationDaysText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#9CA3AF',
+    marginTop: -2,
+  },
+  durationDaysTextActive: {
+    color: '#1A1A1A',
+  },
+  durationMiddleBox: {
+    flex: 1,
+    gap: 6,
+  },
+  durationTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  durationTitleText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#6B7280',
+  },
+  durationTitleTextActive: {
+    color: '#1A1A1A',
+  },
+  recommendedBadgeNew: {
+    backgroundColor: '#13151A',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  recommendedBadgeTextNew: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  durationDescText: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  durationRightBox: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  durationRadioInactive: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+  },
+  durationRadioActiveIcon: {
+    fontSize: 24,
+    color: '#FFC800',
+  },
+  actionFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 0,
+    paddingTop: 0,
+  },
+  aiInfoLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  aiInfoStar: {
+    color: '#9CA3AF',
+    fontSize: 16,
+  },
+  aiInfoText: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textDecorationLine: 'underline',
+    fontWeight: '600',
   },
 })
