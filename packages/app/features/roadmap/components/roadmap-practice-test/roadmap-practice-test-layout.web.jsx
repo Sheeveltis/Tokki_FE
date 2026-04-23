@@ -283,7 +283,7 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
                   <View style={styles.questionHeader}>
                     <View style={[styles.questionBadge, { backgroundColor: isAnswered ? (isCorrect ? '#E8F5E9' : '#FFEBEE') : '#F5F5F5' }]}>
                       <Text style={[styles.questionBadgeText, { color: isAnswered ? (isCorrect ? '#2E7D32' : '#C62828') : '#888' }]}>
-                        {currentQuestion.options?.length > 0 ? `CÂU HỎI ${currentIndex + 1}` : 'BÀI VIẾT'}
+                        {currentQuestion.options?.length > 0 ? `Câu hỏi ${currentIndex + 1}` : 'Bài viết'}
                       </Text>
                     </View>
                   </View>
@@ -303,7 +303,7 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
 
                     <View style={styles.optionsWrapper}>
                       {currentQuestion.options?.length > 0 ? (
-                        (currentQuestion.options || []).map((option) => {
+                        (currentQuestion.options || []).map((option, idx) => {
                           const isThisSelected = option.optionId === selectedOptionId
                           const isThisCorrect = option.optionId === currentQuestion.correctOptionId
 
@@ -343,7 +343,7 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
                               ]}
                             >
                               <View style={[styles.optionCircleBase, extraCircleStyle]}>
-                                <Text style={[styles.optionLabelBase, extraLabelStyle]}>{option.keyOption}</Text>
+                                <Text style={[styles.optionLabelBase, extraLabelStyle]}>{idx + 1}</Text>
                               </View>
 
                               <View style={styles.optionContent}>
@@ -733,9 +733,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   questionBadgeText: {
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 0.5,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   questionBody: {
     gap: 32,
@@ -744,10 +744,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   questionText: {
-    fontSize: 24,
-    fontWeight: '800',
+    fontSize: 22,
+    fontWeight: '600',
     color: '#1A1A1A',
-    lineHeight: 34,
+    lineHeight: 32,
     fontFamily: 'Epilogue, sans-serif',
   },
   optionsWrapper: {
