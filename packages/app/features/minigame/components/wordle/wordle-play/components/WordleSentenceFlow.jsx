@@ -370,7 +370,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 3,
     borderColor: '#8D6E63',
-    marginTop: 20,
     ...(Platform.OS === 'web' && {
       boxShadow: '0 8px 16px rgba(0,0,0,0.15)',
     }),
@@ -392,8 +391,6 @@ const styles = StyleSheet.create({
     maxWidth: 800,
     alignSelf: 'center',
     marginTop: 20,
-    marginBottom: 10,
-    paddingBottom: 20,
     ...(Platform.OS === 'web' && {
       boxShadow: '0 8px 16px rgba(0,0,0,0.15)',
     }),

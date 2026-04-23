@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
-    overflow: 'auto',
+    overflow: 'hidden',
   },
   overlay: {
     minHeight: '100%',
@@ -260,6 +260,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 8,
+    color: '#FFFFFF',
   },
   backButtonContent: {
     flexDirection: 'row',
@@ -269,8 +270,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   backButtonText: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: 14,
+    fontWeight: '700',
     color: '#FFFFFF',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
