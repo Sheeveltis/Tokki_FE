@@ -333,14 +333,14 @@ export const ENDPOINTS = {
   ROADMAP: {
     DURATION_RECOMMENDATION: '/Roadmap/duration-recommendation',
     FEEDBACK: '/Roadmap/entrance-feedback',
-    GENERATE: '/RoadmapVer2/generate',
-    PROGRESS: (jobId) => `/RoadmapVer2/progress/${encodeURIComponent(jobId)}`,
+    GENERATE: '/Roadmap/generate',
+    PROGRESS: (jobId) => `/Roadmap/progress/${encodeURIComponent(jobId)}`,
     CURRENT: '/Roadmap/current',
     CURRENT_WEEK_PROGRESS: '/Roadmap/current-week-progress',
     TASK_DETAIL: (taskId) => `/Roadmap/task/${encodeURIComponent(taskId)}/detail`,
     COMPLETE: '/Roadmap/complete',
-    NEXT_WEEK: '/RoadmapVer2/next-week',
-    CANCEL: '/RoadmapVer2/cancel',
+    NEXT_WEEK: '/Roadmap/next-week',
+    CANCEL: '/Roadmap/cancel',
   },
   SYSTEM_CONFIGS: {
     GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,
