@@ -8,12 +8,10 @@ import {
   Image,
   ScrollView,
   Platform,
-  Dimensions,
   Animated,
 } from 'react-native'
 import confetti from 'canvas-confetti'
 
-const { width } = Dimensions.get('window')
 
 /**
  * UnlockedTitlesModal: Modal premium hiển thị danh sách các danh hiệu vừa mở khóa
@@ -23,7 +21,7 @@ export const UnlockedTitlesModal = ({ visible, titles, onClose }) => {
   const scaleAnim = useRef(new Animated.Value(0.9)).current
   // Sử dụng một Animated.Value chung cho các item để đơn giản hóa và đảm bảo hiển thị
   const listFadeAnim = useRef(new Animated.Value(0)).current
-  
+
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {

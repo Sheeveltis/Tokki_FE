@@ -108,6 +108,7 @@ export const ENDPOINTS = {
     FORGOT_PASSWORD_RESET: '/Account/forgot-password/reset',
     PROFILE: '/Account/profile',
     ME: '/Account/me',
+    CURRENT_ROLE: '/Account/current-role',
     AIM_LEVEL: '/Account/me/aim-level',
     GET_ALL: '/Account/get-all',
     DETAIL: (id) => `/Account/detail/${id}`,
@@ -236,6 +237,7 @@ export const ENDPOINTS = {
     UPDATE: (id) => `/Title/${id}`,  // PUT: Cập nhật danh hiệu
     DELETE: (id) => `/Title/${id}`,  // DELETE: Xóa danh hiệu
     CHECK_DAILY_TITLES: '/Title/user/check-daily-titles', // POST: Kiểm tra và mở khóa danh hiệu hàng ngày
+    CHECK_LEVEL_TITLES: '/Title/user/check-level-titles', // POST: Kiểm tra danh hiệu theo level
     MY_TITLES: '/Title/my-titles', // GET: Lấy danh sách danh hiệu của tôi (query: pageNumber, pageSize)
     EQUIP: '/Title/equip', // PUT: Trang bị danh hiệu
     IMPORT: '/Title/import',

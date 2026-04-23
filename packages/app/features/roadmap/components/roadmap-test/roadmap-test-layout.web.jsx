@@ -490,16 +490,16 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         const restoredAnswers = restoreAnswersFromSections(mappedSections)
 
         setSections(mappedSections)
-        
+
         // Respect currentSkill from backend if available, or find first section with time remaining
         const skillRemaining = examData.skillTimeRemaining || {}
         const backendCurrentSkill = (examData.currentSkill || '').toLowerCase()
         let initialSection = mappedSections.find(s => s.key === backendCurrentSkill)
-        
+
         if (!initialSection) {
           initialSection = mappedSections.find(s => (skillRemaining[s.key] || 0) > 0)
         }
-        
+
         if (!initialSection) initialSection = mappedSections[0]
 
         setActiveSectionKey(initialSection?.key || null)
@@ -525,7 +525,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
 
         const initialSectionKey = initialSection?.key || null
         const currentSkillSeconds = initialSectionKey ? (skillRemaining[initialSectionKey] || 0) : totalSeconds
-        
+
         setTimeRemainingSeconds(currentSkillSeconds)
         setTimeRemaining(formatTime(currentSkillSeconds))
         const activeSectionQuestion = initialSection?.questions?.[0]
@@ -541,18 +541,18 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         )
       } catch (error) {
         console.error('Failed to load exam:', error)
-        
+
         if (isMounted) {
           Alert.alert(
             'Không thể tải đề thi',
             'Đã có lỗi xảy ra khi lấy thông tin bài kiểm tra. Vui lòng thử lại sau.',
-            [{ text: 'Đồng ý', onPress: () => router.push(`/roadmap/learning?level=${level}`) }]
+            [{ text: 'Đồng ý', onPress: () => router.push(isEntrance ? '/roadmap/info' : '/roadmap/learning') }]
           )
-          
+
           // Sau 2 giây nếu chưa chuyển trang thì tự động chuyển (đề phòng Alert bị chặn hoặc không gọi onPress)
           setTimeout(() => {
             if (isMounted) {
-              router.push(`/roadmap/learning?level=${level}`)
+              router.push(isEntrance ? '/roadmap/info' : '/roadmap/learning')
             }
           }, 2000)
         }
@@ -851,7 +851,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
       const confirmText = isLastSkill
         ? 'Bạn có chắc chắn muốn nộp bài? Sau khi nộp, bạn sẽ không thể chỉnh sửa đáp án.'
         : `Bạn có chắc chắn muốn nộp phần thi ${activeSectionSnapshot?.label || ''} và chuyển sang phần tiếp theo?`
-      
+
       const confirmed = await confirmSubmit(confirmText)
       if (!confirmed) return
     }
@@ -993,8 +993,8 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     const confirmed = await confirmBack()
     if (!confirmed) return
 
-    // Navigate to learning page with current level
-    router.push(`/roadmap/learning?level=${level}`)
+    // Navigate back: entrance tests go to info, others go to learning
+    router.push(isEntrance ? '/roadmap/info' : '/roadmap/learning')
   }
 
   const activeSectionIndex = sections.findIndex((s) => s.key === activeSectionKey)
@@ -1004,7 +1004,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     sectionQuestions[currentQuestionIndex] ||
     sectionQuestions.find((q) => q.questionNumber === currentQuestion) ||
     sectionQuestions[0]
-  
+
   const isLastSection = activeSectionIndex === sections.length - 1 && sections.length > 0
 
 
@@ -1112,15 +1112,15 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
                           selectedAnswer={(answers[activeSectionKey] || {})[q.questionNumber]}
                           onAnswerSelect={(val) => handleAnswerSelect(q.questionNumber, val)}
                           onAnswerChange={(val) => {
-                             if (q.type === 'writing') {
-                               setAnswers((prev) => ({
-                                 ...prev,
-                                 [activeSectionKey]: {
-                                   ...(prev[activeSectionKey] || {}),
-                                   [q.questionNumber]: val,
-                                 },
-                               }))
-                             }
+                            if (q.type === 'writing') {
+                              setAnswers((prev) => ({
+                                ...prev,
+                                [activeSectionKey]: {
+                                  ...(prev[activeSectionKey] || {}),
+                                  [q.questionNumber]: val,
+                                },
+                              }))
+                            }
                           }}
                           isMarked={(markedQuestions[activeSectionKey] || {})[q.questionNumber]}
                           onToggleMark={() => handleToggleMark(q.questionNumber)}
@@ -1244,7 +1244,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
           <View style={styles.confirmModal}>
             <Text style={styles.confirmTitle}>Xác nhận chuyển phần thi</Text>
             <Text style={styles.confirmMessage}>
-              Bạn có chắc chắn muốn kết thúc phần thi {activeSection?.label || 'này'} và chuyển sang phần thi tiếp theo? 
+              Bạn có chắc chắn muốn kết thúc phần thi {activeSection?.label || 'này'} và chuyển sang phần thi tiếp theo?
               Một khi đã chuyển, bạn sẽ không thể quay lại để sửa đáp án của phần cũ.
             </Text>
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 import { Platform } from 'react-native'
+import { useRouter } from 'solito/navigation'
 import { useFlashcardFirstLearn } from './useFlashcardFirstLearn'
 import {
   FlashcardFirstLearnLayout as WebLayout,
@@ -30,6 +31,8 @@ export function FlashcardFirstLearnScreen({
   route: routeProp,
   navigation: navigationProp,
 }) {
+  const { replace, query } = useRouter()
+  
   // Lấy route và navigation từ hooks nếu không có trong props
   // Chỉ sử dụng hooks trên mobile để tránh lỗi trên web
   let route = routeProp
@@ -47,7 +50,7 @@ export function FlashcardFirstLearnScreen({
   // Lấy topicId từ route params hoặc props
   const topicId = route?.params?.topicId || topicIdProp
 
-  const [mode, setMode] = useState('list') // 'list' | 'learn'
+  const [mode, setMode] = useState(Platform.OS === 'web' && query?.hideNavbar === 'true' ? 'learn' : 'list') // 'list' | 'learn'
 
   const { addXp } = useXp()
 
@@ -59,6 +62,24 @@ export function FlashcardFirstLearnScreen({
       navigation.goBack()
     }
   }
+
+  // Chuyển sang chế độ học
+  const handleStartLearning = () => {
+    setMode('learn')
+    // Update URL trên web để hiển thị distraction-free (ẩn navbar)
+    if (Platform.OS === 'web') {
+      replace(`/flashcard/learn?topic=${topicId}&hideNavbar=true`, undefined, { shallow: true })
+    }
+  }
+
+  // Thoát chế độ học quay về danh sách
+  const handleExitLearning = () => {
+    setMode('list')
+    if (Platform.OS === 'web') {
+      replace(`/flashcard/learn?topic=${topicId}`, undefined, { shallow: true })
+    }
+  }
+
   const {
     flashcards,
     current,
@@ -133,14 +154,14 @@ export function FlashcardFirstLearnScreen({
   return (
     <Layout
       levelId={route?.params?.levelId || 1}
-      onBackPress={mode === 'learn' ? () => setMode('list') : handleBackPress}
+      onBackPress={mode === 'learn' ? handleExitLearning : handleBackPress}
       lessonsLearned={30}
       streakDays={30}
     >
       {mode === 'list' ? (
         <List 
           topicId={topicId}
-          onStartLearning={() => setMode('learn')}
+          onStartLearning={handleStartLearning}
         />
       ) : (
         <Main
@@ -160,7 +181,7 @@ export function FlashcardFirstLearnScreen({
           onSubmit={handleSubmit}
           onContinue={handleContinue}
           canContinue={canContinue}
-          onBackPress={handleBackPress}
+          onBackPress={handleExitLearning}
           onRetry={fetchFlashcards}
           onPlaySound={playAudio}
           progress={progress}
@@ -180,5 +201,6 @@ export function FlashcardFirstLearnScreen({
 }
 
 export default FlashcardFirstLearnScreen
+
 
 
