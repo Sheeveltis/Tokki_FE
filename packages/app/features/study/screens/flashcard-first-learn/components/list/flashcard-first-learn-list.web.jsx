@@ -6,6 +6,8 @@ import DefaultBunny from 'assets/bunny/14.png'
 import SoundIcon from 'assets/icon/icon-mainflow/sound.svg'
 import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
 import ButtonUI1 from 'components/decor/buttonUI1'
+import { GuidelineModal } from 'components/GuidelineModal'
+import { FLASHCARD_GUIDELINE } from '@tokki/app/features/study/guideline-data'
 
 const HeartIconSVG = ({ filled }) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill={filled ? "#EF4444" : "none"} xmlns="http://www.w3.org/2000/svg">
@@ -298,18 +300,12 @@ export function FlashcardFirstLearnList({
             </View>
           </View>
 
-          {showInstructions && (
-            <View style={styles.heroInstructions}>
-              <View style={styles.infoDivider} />
-              <Text style={styles.heroInstrTitle}>Phương pháp học Flashcard</Text>
-              <Text style={styles.heroInstrText}>
-                Từ vựng sẽ được chia thành các nhóm nhỏ để bạn dễ dàng ghi nhớ.{'\n'}
-                • <Text style={{ fontWeight: '700' }}>Bước 1:</Text> Nhìn thẻ flashcard, xem hình ảnh và nghe phát âm.{'\n'}
-                • <Text style={{ fontWeight: '700' }}>Bước 2:</Text> Nghe và gõ lại từ vựng.{'\n'}
-                • <Text style={{ fontWeight: '700' }}>Bước 3:</Text> Nhìn nghĩa tiếng Việt và gõ lại từ tiếng Anh tương ứng.
-              </Text>
-            </View>
-          )}
+          <GuidelineModal
+            visible={showInstructions}
+            steps={FLASHCARD_GUIDELINE}
+            onClose={() => setShowInstructions(false)}
+            primaryColor="#F1BE4B"
+          />
         </View>
       )}
 
