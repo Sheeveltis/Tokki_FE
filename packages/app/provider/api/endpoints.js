@@ -358,4 +358,7 @@ export const ENDPOINTS = {
   ENUMS: {
     LOOKUP: (type) => `/enums/lookup/${type}`,
   },
+  TOPIK_LEVEL_CONFIG: {
+    GET_ALL: (pageNumber = 1, pageSize = 20) => `/TopikLevelConfig?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+  },
 }
