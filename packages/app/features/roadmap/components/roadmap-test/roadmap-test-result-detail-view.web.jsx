@@ -94,15 +94,18 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
                 <Text style={styles.questionPickerTitle}>Chọn câu</Text>
                 <View style={styles.questionPickerList}>
                   {allQuestions.map((q) => {
+                    const isWritingQ = typeof q?.answerContent === 'string' || !!q?.aiAnalysis || section === 'writing'
                     const isCorrect = !!q?.isCorrect
                     const isActive = q?.questionNo === selectedQuestionNo
+                    const showStatus = !isWritingQ
+
                     return (
                       <TouchableOpacity
                         key={`${q?.questionNo}`}
                         style={[
                           styles.questionChip,
-                          isCorrect && styles.questionChipCorrect,
-                          !isCorrect && q?.isCorrect === false && styles.questionChipIncorrect,
+                          showStatus && isCorrect && styles.questionChipCorrect,
+                          showStatus && !isCorrect && q?.isCorrect === false && styles.questionChipIncorrect,
                           isActive && styles.questionChipActive,
                         ]}
                         onPress={() => setSelectedQuestionNo(q?.questionNo)}
@@ -110,8 +113,8 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
                         <Text
                           style={[
                             styles.questionChipText,
-                            isCorrect && styles.questionChipTextCorrect,
-                            !isCorrect && q?.isCorrect === false && styles.questionChipTextIncorrect,
+                            showStatus && isCorrect && styles.questionChipTextCorrect,
+                            showStatus && !isCorrect && q?.isCorrect === false && styles.questionChipTextIncorrect,
                             isActive && styles.questionChipTextActive,
                           ]}
                         >
@@ -246,13 +249,15 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
                                       <View key={idx} style={[styles.aiSection, idx > 0 && { marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F0E6D2' }]}>
                                         <View style={styles.blankHeader}>
                                           <Text style={styles.blankTitle}>Ô {res.blank_id}:</Text>
-                                          <Text style={[
-                                            styles.evaluationBadge, 
-                                            res.evaluation === 'correct' ? styles.evalCorrect : 
-                                            res.evaluation === 'partial' ? styles.evalPartial : styles.evalIncorrect
-                                          ]}>
-                                            {res.evaluation === 'correct' ? 'Đúng' : res.evaluation === 'partial' ? 'Một phần' : 'Sai'}
-                                          </Text>
+                                          {section !== 'writing' && (
+                                            <Text style={[
+                                              styles.evaluationBadge, 
+                                              res.evaluation === 'correct' ? styles.evalCorrect : 
+                                              res.evaluation === 'partial' ? styles.evalPartial : styles.evalIncorrect
+                                            ]}>
+                                              {res.evaluation === 'correct' ? 'Đúng' : res.evaluation === 'partial' ? 'Một phần' : 'Sai'}
+                                            </Text>
+                                          )}
                                         </View>
                                         <Text style={styles.aiFeedback}><Text style={{ fontWeight: '700' }}>Câu trả lời: </Text>{res.user_answer || '(Trống)'}</Text>
                                         <Text style={styles.aiFeedback}><Text style={{ fontWeight: '700' }}>Nhận xét: </Text>{res.feedback}</Text>
@@ -289,7 +294,7 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
                                       )}
                                       {q.aiAnalysis.polishedVersion && (
                                         <View style={styles.aiSection}>
-                                          <Text style={styles.aiSectionTitle}>Bản sửa tham khảo</Text>
+                                          <Text style={styles.aiSectionTitle}>Đáp án tham khảo</Text>
                                           <View style={styles.polishedBox}>
                                             <Text style={styles.polishedText}>{q.aiAnalysis.polishedVersion}</Text>
                                           </View>

@@ -4,9 +4,10 @@ import { NavigationPill } from 'components/navigation-pill'
 import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
 import { studyStyles } from '@tokki/app/features/study/styles'
 import { LoadingWithContainer } from 'components/Loading'
-import { normalizeImageSource } from '@tokki/app/features/study/api'
 import RabbitWaitingImage from 'assets/bunny/2.png'
 import { LearnedSuperButton } from '../../../../components/learned-super-button.web'
+import { GuidelineModal } from 'components/GuidelineModal'
+import { LEARNED_VOCAB_GUIDELINE } from '@tokki/app/features/study/guideline-data'
 
 
 const SoundIcon = ({ color = "#F1BE4B" }) => (
@@ -232,19 +233,13 @@ export function LearnedVocabularyListMain({
             </View>
           </View>
 
-          {/* Collapsible Instructions Inside Banner */}
-          {showInstructions && (
-            <View style={styles.heroInstructions}>
-              <View style={styles.infoDivider} />
-              <Text style={styles.heroInstrTitle}>Phương pháp lặp lại ngắt quãng (Spaced Repetition)</Text>
-              <Text style={styles.heroInstrText}>
-                Hệ thống Tokki sẽ tự động sắp xếp các từ vựng cần ôn tập dựa trên mức độ ghi nhớ của bạn. {'\n'}
-                • <Text style={{ fontWeight: '700' }}>Cấp 1-2:</Text> Từ mới hoặc hay quên, cần ôn tập thường xuyên.{'\n'}
-                • <Text style={{ fontWeight: '700' }}>Cấp 3-4:</Text> Đã nhớ khá tốt, thời gian giãn cách ôn tập lâu hơn.{'\n'}
-                • <Text style={{ fontWeight: '700' }}>Cấp 5:</Text> Đã ghi nhớ bền vững, gần như không bao giờ quên.
-              </Text>
-            </View>
-          )}
+          {/* Instructions Modal */}
+          <GuidelineModal
+            visible={showInstructions}
+            steps={LEARNED_VOCAB_GUIDELINE}
+            onClose={() => setShowInstructions(false)}
+            primaryColor="#F1BE4B"
+          />
         </View>
       )}
 

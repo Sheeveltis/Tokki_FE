@@ -381,7 +381,8 @@ export function PublicLayout() {
     location.pathname.startsWith('/minigame/solitare/solitare-play') ||
     location.pathname.startsWith('/minigame/wordle/wordle-play')
   const isAlphabetRoute = location.pathname.startsWith('/alphabet')
-  const shouldHideFooter = isRoadmapRoute || isStudyRoute || isFlashcardRoute || isProfileRoute || isBlogManagementRoute || isPlayScreen || isAlphabetRoute
+  const isTopikRoute = location.pathname.startsWith('/topik')
+  const shouldHideFooter = isRoadmapRoute || isStudyRoute || isFlashcardRoute || isProfileRoute || isBlogManagementRoute || isPlayScreen || isAlphabetRoute || isTopikRoute
 
 
   // Hide Navbar for specific distraction-free screens
@@ -389,7 +390,12 @@ export function PublicLayout() {
   const hideNavbarParam = query.get('hideNavbar') === 'true'
   const isPracticePage = location.pathname.includes('/roadmap/learning/practice') || location.pathname.includes('/roadmap/practice-test')
   const isTestPage = location.pathname === '/roadmap/test'
-  const shouldHideNavbar = isPracticePage || isTestPage || isPlayScreen || hideNavbarParam
+  const isFlashcardStudyPage = location.pathname.startsWith('/flashcard/study') || 
+                               location.pathname.startsWith('/flashcard/learn') || 
+                               location.pathname.startsWith('/flashcard/favorites') || 
+                               location.pathname.startsWith('/flashcard/quiz') || 
+                               location.pathname.startsWith('/flashcard/test')
+  const shouldHideNavbar = isPracticePage || isTestPage || isPlayScreen || hideNavbarParam || isFlashcardStudyPage
 
   return (
     <View style={{ flex: 1, height: shouldHideFooter ? '100vh' : undefined, minHeight: '100vh', backgroundColor: '#fff', overflow: shouldHideFooter ? 'auto' : 'visible' }}>

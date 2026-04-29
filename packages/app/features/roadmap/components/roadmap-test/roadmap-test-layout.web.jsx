@@ -353,6 +353,18 @@ const mapExamToSections = (examData) => {
     buildSection('reading', 'Đọc', part.reading, 'text'),
   ].filter(Boolean)
 
+  // Linh hoạt sắp xếp thứ tự các phần thi theo thứ tự trả về từ skillDurations / skillTimeRemaining
+  const orderingKeys = Object.keys(examData.skillDurations || examData.skillTimeRemaining || {})
+  if (orderingKeys.length > 0) {
+    sections.sort((a, b) => {
+      const idxA = orderingKeys.findIndex((k) => k.toLowerCase() === a.key.toLowerCase())
+      const idxB = orderingKeys.findIndex((k) => k.toLowerCase() === b.key.toLowerCase())
+      const posA = idxA >= 0 ? idxA : 999
+      const posB = idxB >= 0 ? idxB : 999
+      return posA - posB
+    })
+  }
+
   return sections
 }
 

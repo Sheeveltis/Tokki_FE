@@ -29,6 +29,10 @@ import SoundIcon from '../assets/icon/icon-mainflow/sound.svg'
  *   onToggleFavorite?: () => void; - Callback khi click vào star
  *   onPlaySound?: () => void; - Callback khi click vào icon sound
  *   footer?: React.ReactNode; - Nội dung hiển thị ở cuối thẻ (cho cả 2 mặt)
+ *   pronunciation?: string; - Phiên âm hiển thị ở mặt trước
+ *   exampleSentence?: string; - Câu ví dụ hiển thị ở mặt sau
+ *   exampleTranslation?: string; - Dịch nghĩa câu ví dụ
+ *   exampleImage?: string | { uri: string }; - Hình ảnh ví dụ
  *   className?: string; - Custom className
  *   style?: React.CSSProperties; - Custom styles
  * }} props
@@ -54,6 +58,11 @@ export function FlipCard({
   onToggleFavorite,
   onPlaySound,
   footer,
+  pronunciation,
+  exampleSentence,
+  exampleTranslation,
+  exampleImage,
+  _raw,
   className = '',
   style,
 }) {
@@ -158,29 +167,106 @@ export function FlipCard({
       if (isWeb) {
         // Web version với HTML elements
         return {
-          // Mặt trước: chỉ hiển thị từ (word)
+          // Mặt trước: hiển thị từ (word) + phiên âm (pronunciation)
           front: (
             <div style={{ 
               display: 'flex', 
               flexDirection: 'column', 
               alignItems: 'center', 
               justifyContent: 'center',
-              padding: '40px 20px 80px 20px',
+              padding: '40px 20px',
               width: '100%',
               height: '100%',
               boxSizing: 'border-box',
+              background: `linear-gradient(135deg, ${frontColor} 0%, ${frontColor}dd 100%)`,
             }}>
-              {word && (
+              <div style={{
+                position: 'absolute',
+                top: '20px',
+                left: '20px',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(4px)',
+                fontSize: '12px',
+                fontWeight: '800',
+                letterSpacing: '1px',
+                textTransform: 'uppercase',
+              }}>
+                Tiếng Hàn
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
+                {word && (
+                  <p style={{ 
+                    margin: 0, 
+                    fontSize: '64px', 
+                    fontWeight: '900',
+                    textAlign: 'center',
+                    wordBreak: 'break-word',
+                    color: '#FFFFFF',
+                    textShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    fontFamily: 'Epilogue, sans-serif',
+                  }}>
+                    {word}
+                  </p>
+                )}
+                {onPlaySound && (
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPlaySound();
+                    }}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      border: 'none',
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      backdropFilter: 'blur(8px)',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M11 5L6 9H2V15H6L11 19V5Z" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M19.07 4.93C20.9447 6.80528 21.9979 9.34836 21.9979 12C21.9979 14.6516 20.9447 17.1947 19.07 19.07" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M15.54 8.46C16.4771 9.39764 17.0039 10.6692 17.0039 11.995C17.0039 13.3208 16.4771 14.5924 15.54 15.53" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+
+              {pronunciation && (
                 <p style={{ 
-                  margin: 0, 
-                  fontSize: '28px', 
-                  fontWeight: '700',
+                  margin: '12px 0 0 0', 
+                  fontSize: '24px', 
+                  fontWeight: '600',
+                  color: 'rgba(255, 255, 255, 0.9)',
                   textAlign: 'center',
-                  wordBreak: 'break-word',
+                  fontFamily: 'Epilogue, sans-serif',
                 }}>
-                  {word}
+                  [{pronunciation}]
                 </p>
               )}
+
+              <div style={{
+                position: 'absolute',
+                bottom: '80px',
+                fontSize: '12px',
+                fontWeight: '700',
+                color: 'rgba(255, 255, 255, 0.6)',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+              }}>
+                Nhấn Space hoặc chạm vào thẻ để xem nghĩa
+              </div>
+
               {footer && (
                 <div style={{ position: 'absolute', bottom: '20px', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 5 }}>
                   {footer}
@@ -188,55 +274,164 @@ export function FlipCard({
               )}
             </div>
           ),
-          // Mặt sau: hình + nghĩa
+          // Mặt sau: định nghĩa + ví dụ
           back: (
             <div style={{ 
               display: 'flex', 
               flexDirection: 'column',
               alignItems: 'center', 
               justifyContent: 'center',
-              padding: '40px 20px 100px 20px',
+              padding: '40px',
               width: '100%',
               height: '100%',
               boxSizing: 'border-box',
+              backgroundColor: '#FFFFFF',
+              color: '#1A1A1A',
+              textAlign: 'center',
             }}>
-              {image && (
-                <div style={{ 
-                  marginBottom: meaning ? '24px' : '0',
-                  width: '100%',
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minHeight: 0,
-                }}>
-                  {typeof image === 'string' || (image && image.uri) ? (
-                    <img 
-                      src={imageSrc} 
-                      alt={word || 'Flashcard'} 
-                      style={{ 
-                        maxWidth: '100%', 
-                        maxHeight: '100%', 
-                        objectFit: 'contain',
-                        borderRadius: '8px',
-                      }} 
-                    />
-                  ) : (
-                    image
-                  )}
-                </div>
-              )}
-              {meaning && (
-                <p style={{ 
+              <div style={{
+                fontSize: '14px',
+                fontWeight: '800',
+                color: '#999',
+                letterSpacing: '1px',
+                textTransform: 'uppercase',
+                marginBottom: '16px',
+              }}>
+                Định nghĩa
+              </div>
+
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                alignItems: 'center', 
+                justifyContent: 'center',
+                width: '100%',
+                gap: '24px',
+                marginBottom: '32px',
+              }}>
+                <h2 style={{ 
                   margin: 0, 
-                  fontSize: '24px', 
-                  fontWeight: '600',
-                  textAlign: 'center',
-                  wordBreak: 'break-word',
+                  fontSize: '32px', 
+                  fontWeight: '900',
+                  color: '#1A1A1A',
+                  fontFamily: 'Epilogue, sans-serif',
                 }}>
                   {meaning}
-                </p>
+                </h2>
+              </div>
+
+              {image && (
+                <div style={{ 
+                  width: '100%', 
+                  display: 'flex',
+                  justifyContent: 'center',
+                  marginBottom: '32px',
+                }}>
+                  <div style={{
+                    maxWidth: '100%',
+                    maxHeight: '300px',
+                    borderRadius: '20px',
+                    overflow: 'hidden',
+                    backgroundColor: '#F9FAFB',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                  }}>
+                    <img 
+                      src={typeof image === 'string' ? image : image.uri} 
+                      style={{ 
+                        maxWidth: '100%', 
+                        maxHeight: '300px', 
+                        display: 'block',
+                        objectFit: 'contain' 
+                      }} 
+                      alt="Vocabulary"
+                    />
+                  </div>
+                </div>
               )}
+
+              {/* Example Section */}
+              {(() => {
+                const exSentence = exampleSentence || (Array.isArray(_raw?.examples) && _raw.examples[0]?.sentence) || _raw?.exampleSentence;
+                const exTranslation = exampleTranslation || (Array.isArray(_raw?.examples) && _raw.examples[0]?.translation) || _raw?.exampleTranslation;
+                const exImage = exampleImage || (Array.isArray(_raw?.examples) && _raw.examples[0]?.imgURL) || _raw?.exampleImgURL;
+
+                if (!exSentence && !exImage) return null;
+
+                return (
+                  <div style={{ 
+                    width: '100%',
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px',
+                    padding: '24px',
+                    backgroundColor: '#F8FAFB',
+                    borderRadius: '24px',
+                    border: '1px solid #F0F2F5',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}>
+                    <div style={{
+                      fontSize: '13px',
+                      fontWeight: '800',
+                      color: colors.primary || '#79964E',
+                      textTransform: 'uppercase',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '4px', backgroundColor: colors.primary || '#79964E' }} />
+                      Ví dụ minh họa
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+                      {exImage && (
+                        <div style={{ 
+                          width: '120px', 
+                          height: '120px', 
+                          borderRadius: '16px',
+                          overflow: 'hidden',
+                          flexShrink: 0,
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                        }}>
+                          <img 
+                            src={typeof exImage === 'string' ? exImage : exImage.uri} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                            alt="Example"
+                          />
+                        </div>
+                      )}
+
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {exSentence && (
+                          <p style={{ 
+                            margin: 0, 
+                            fontSize: '20px', 
+                            fontWeight: '700',
+                            color: '#1A1A1A',
+                            lineHeight: '1.4',
+                            fontFamily: 'Epilogue, sans-serif',
+                          }}>
+                            {exSentence}
+                          </p>
+                        )}
+                        {exTranslation && (
+                          <p style={{ 
+                            margin: 0, 
+                            fontSize: '16px', 
+                            color: '#666',
+                            fontWeight: '500',
+                            fontFamily: 'Epilogue, sans-serif',
+                          }}>
+                            {exTranslation}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {footer && (
                 <div style={{ position: 'absolute', bottom: '20px', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 5 }}>
                   {footer}
@@ -248,7 +443,7 @@ export function FlipCard({
       } else {
         // React Native version
         return {
-          // Mặt trước: chỉ hiển thị từ (word)
+          // Mặt trước
           front: (
             <View style={{ 
               flex: 1,
@@ -258,60 +453,60 @@ export function FlipCard({
               padding: 20,
               width: '100%',
               height: '100%',
+              backgroundColor: frontColor,
             }}>
               {word && (
                 <Text style={{ 
-                  fontSize: 28, 
-                  fontWeight: '700',
+                  fontSize: 48, 
+                  fontWeight: '900',
                   textAlign: 'center',
+                  color: '#FFF',
                 }}>
                   {word}
                 </Text>
               )}
+              {pronunciation && (
+                <Text style={{ 
+                  fontSize: 18, 
+                  fontWeight: '600',
+                  color: 'rgba(255,255,255,0.8)',
+                  marginTop: 10,
+                }}>
+                  [{pronunciation}]
+                </Text>
+              )}
             </View>
           ),
-          // Mặt sau: hình + nghĩa
+          // Mặt sau
           back: (
             <View style={{ 
               flex: 1,
               flexDirection: 'column',
-              alignItems: 'center', 
+              alignItems: 'flex-start', 
               justifyContent: 'center',
-              padding: 20,
+              padding: 30,
               width: '100%',
               height: '100%',
+              backgroundColor: '#FFF',
             }}>
-              {image && (
-                <View style={{ 
-                  marginBottom: meaning ? 16 : 0,
-                  maxWidth: '80%',
-                  maxHeight: '60%',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  {typeof image === 'string' || (image && image.uri) ? (
-                    <Image 
-                      source={{ uri: imageSrc }} 
-                      style={{ 
-                        width: 400, 
-                        height: 300, 
-                        resizeMode: 'cover',
-                        borderRadius: 8,
-                      }} 
-                    />
-                  ) : (
-                    image
-                  )}
+              <Text style={{ fontSize: 14, fontWeight: '800', color: '#999', marginBottom: 10 }}>ĐỊNH NGHĨA</Text>
+              
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 20 }}>
+                <Text style={{ fontSize: 32, fontWeight: '900', color: '#1A1A1A', flex: 1 }}>{meaning}</Text>
+                {image && (
+                  <Image 
+                    source={typeof image === 'string' ? { uri: image } : image} 
+                    style={{ width: 80, height: 80, borderRadius: 12, backgroundColor: '#F5F5F5' }} 
+                    resizeMode="cover"
+                  />
+                )}
+              </View>
+              
+              {exampleSentence && (
+                <View style={{ padding: 15, backgroundColor: '#F5F5F5', borderRadius: 15, width: '100%' }}>
+                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#79964E', marginBottom: 5 }}>VÍ DỤ:</Text>
+                  <Text style={{ fontSize: 16, fontWeight: '700', fontStyle: 'italic' }}>"{exampleSentence}"</Text>
                 </View>
-              )}
-              {meaning && (
-                <Text style={{ 
-                  fontSize: 24, 
-                  fontWeight: '600',
-                  textAlign: 'center',
-                }}>
-                  {meaning}
-                </Text>
               )}
             </View>
           ),
@@ -336,6 +531,7 @@ export function FlipCard({
   const isWeb = Platform.OS === 'web'
 
   // Render sound icon nếu có
+  // Render sound icon nếu có
   const renderSoundIcon = () => {
     // Hiển thị icon sound khi có onPlaySound
     if (!onPlaySound) return null
@@ -350,25 +546,27 @@ export function FlipCard({
     if (isWeb) {
       const soundStyle = {
         position: 'absolute',
-        top: '8px',
-        right: starIcon && onToggleFavorite ? '52px' : '8px',
+        top: '12px',
+        right: onToggleFavorite ? '64px' : '12px',
         zIndex: 10,
         cursor: 'pointer',
         padding: '8px',
-        borderRadius: '20px',
+        borderRadius: '50%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         width: '44px',
         height: '44px',
-        transition: 'opacity 0.2s',
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        backdropFilter: 'blur(8px)',
+        transition: 'all 0.2s ease',
       }
 
       const iconStyle = {
-        width: '28px',
-        height: '28px',
-        filter: 'opacity(0.5)',
-        transition: 'filter 0.2s',
+        width: '24px',
+        height: '24px',
+        filter: 'brightness(0) invert(1)',
+        transition: 'all 0.2s',
       }
 
       return (
@@ -382,16 +580,12 @@ export function FlipCard({
           }}
           onMouseDown={(e) => e.stopPropagation()}
           onMouseEnter={(e) => { 
-            const img = e.currentTarget.querySelector('img')
-            if (img) {
-              img.style.filter = 'opacity(1)'
-            }
+            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.25)';
+            e.currentTarget.style.transform = 'scale(1.1)';
           }}
           onMouseLeave={(e) => { 
-            const img = e.currentTarget.querySelector('img')
-            if (img) {
-              img.style.filter = 'opacity(0.5)'
-            }
+            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+            e.currentTarget.style.transform = 'scale(1)';
           }}
         >
           <img 
@@ -403,46 +597,23 @@ export function FlipCard({
       )
     } else {
       // React Native version
-      // Đảm bảo soundSrc được xử lý đúng
-      const imageSource = typeof soundSrc === 'string' 
-        ? { uri: soundSrc }
-        : typeof soundSrc === 'number'
-        ? soundSrc
-        : soundSrc
-        
       return (
-        <Pressable
+        <Pressable 
+          onPress={onPlaySound}
           style={{
             position: 'absolute',
-            top: 8,
-            right: starIcon && onToggleFavorite ? 52 : 8,
-            zIndex: 10,
-            padding: 8,
-            borderRadius: 20,
-            alignItems: 'center',
-            justifyContent: 'center',
+            top: 10,
+            right: onToggleFavorite ? 60 : 10,
+            zIndex: 15,
             width: 44,
             height: 44,
+            borderRadius: 22,
+            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
-          onPress={(e) => {
-            if (e?.stopPropagation) {
-              e.stopPropagation()
-            }
-            if (onPlaySound) {
-              onPlaySound()
-            }
-          }}
-          onStartShouldSetResponder={() => true}
-          onMoveShouldSetResponder={() => true}
         >
-          <Image
-            source={imageSource}
-            style={{
-              width: 28,
-              height: 28,
-              opacity: 0.5,
-            }}
-          />
+          <Text style={{ fontSize: 24, color: '#FFF' }}>🔊</Text>
         </Pressable>
       )
     }
@@ -450,142 +621,83 @@ export function FlipCard({
 
   // Render star icon nếu có
   const renderStarIcon = () => {
-    if (!starIcon || !onToggleFavorite) return null
+    if (!onToggleFavorite) return null
 
     if (isWeb) {
       const starStyle = {
         position: 'absolute',
-        top: '8px',
-        right: '8px',
+        top: '12px',
+        right: '12px',
         zIndex: 10,
         cursor: 'pointer',
         padding: '8px',
-        borderRadius: '20px',
+        borderRadius: '50%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         width: '44px',
         height: '44px',
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        backdropFilter: 'blur(8px)',
+        transition: 'all 0.2s ease',
       }
 
-      const iconStyle = {
-        width: '28px',
-        height: '28px',
-        transition: 'filter 0.2s',
-      }
+      // Default Heart Icon SVG if starIcon not provided
+      const HeartIcon = (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill={isFavorite ? "#EF4444" : "none"} xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" 
+            stroke={isFavorite ? "#EF4444" : "#FFFFFF"} 
+            strokeWidth="2.5" 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+          />
+        </svg>
+      )
 
-      // Nếu starIcon là React component hoặc element
-      if (React.isValidElement(starIcon)) {
-        return (
-          <div 
-            style={starStyle} 
-            onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            {React.cloneElement(starIcon, { 
-              style: { 
-                ...iconStyle, 
-                filter: isFavorite 
-                  ? 'brightness(0) saturate(100%) invert(85%) sepia(50%) saturate(2000%) hue-rotate(5deg) brightness(1.1)' 
-                  : 'opacity(0.5)',
-                ...starIcon.props?.style 
-              } 
-            })}
-          </div>
-        )
-      }
-
-      // Nếu starIcon là string (URL) hoặc object
-      const starSrc = typeof starIcon === 'string' ? starIcon : (starIcon?.src || starIcon?.uri)
-      if (starSrc) {
-        return (
-          <div 
-            style={starStyle} 
-            onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <img 
-              src={starSrc} 
-              alt="Favorite" 
-              style={{
-                ...iconStyle,
-                filter: isFavorite 
-                  ? 'brightness(0) saturate(100%) invert(85%) sepia(50%) saturate(2000%) hue-rotate(5deg) brightness(1.1)' 
-                  : 'opacity(0.5)',
-              }}
-            />
-          </div>
-        )
-      }
+      return (
+        <div 
+          style={starStyle} 
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onMouseEnter={(e) => { 
+            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.25)';
+            e.currentTarget.style.transform = 'scale(1.1)';
+          }}
+          onMouseLeave={(e) => { 
+            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+        >
+          {React.isValidElement(starIcon) ? starIcon : HeartIcon}
+        </div>
+      )
     } else {
       // React Native version
-      // Xử lý nhiều trường hợp: string, object với uri/src, hoặc React component
-      let starSrc = null
-      
-      if (typeof starIcon === 'string') {
-        starSrc = starIcon
-      } else if (starIcon && typeof starIcon === 'object') {
-        // Nếu là object có uri hoặc src
-        starSrc = starIcon.uri || starIcon.src
-        // Nếu normalizeImageSource đã trả về { uri: '...' }
-        if (!starSrc && starIcon.uri) {
-          starSrc = starIcon.uri
-        }
-      }
-      
-      // Nếu không tìm thấy src, thử kiểm tra xem có phải là React component không
-      if (!starSrc && React.isValidElement(starIcon)) {
-        // Nếu là React component, không thể render trực tiếp trên React Native
-        // Cần convert sang Image với source
-        return null
-      }
-      
-      if (starSrc) {
-        // Đảm bảo starSrc là string hoặc number (require)
-        const imageSource = typeof starSrc === 'string' 
-          ? { uri: starSrc }
-          : typeof starSrc === 'number'
-          ? starSrc
-          : starSrc
-          
-        return (
-          <Pressable
-            style={{
-              position: 'absolute',
-              top: 8,
-              right: 8,
-              zIndex: 10,
-              padding: 8,
-              borderRadius: 20,
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 44,
-              height: 44,
-            }}
-            onPress={(e) => {
-              if (e?.stopPropagation) {
-                e.stopPropagation()
-              }
-              onToggleFavorite()
-            }}
-            onStartShouldSetResponder={() => true}
-            onMoveShouldSetResponder={() => true}
-          >
-            <Image
-              source={imageSource}
-              style={{
-                width: 28,
-                height: 28,
-                opacity: isFavorite ? 1 : 0.5,
-                tintColor: isFavorite ? '#F1BE4B' : undefined,
-              }}
-            />
-          </Pressable>
-        )
-      }
+      return (
+        <Pressable
+          style={{
+            position: 'absolute',
+            top: 10,
+            right: 10,
+            zIndex: 15,
+            width: 44,
+            height: 44,
+            borderRadius: 22,
+            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          onPress={(e) => {
+            if (e?.stopPropagation) e.stopPropagation()
+            onToggleFavorite()
+          }}
+        >
+          <Text style={{ fontSize: 24, color: isFavorite ? '#EF4444' : '#FFF' }}>
+            {isFavorite ? '❤️' : '🤍'}
+          </Text>
+        </Pressable>
+      )
     }
-
-    return null
   }
 
   if (isWeb) {
