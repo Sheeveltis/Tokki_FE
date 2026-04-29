@@ -390,7 +390,12 @@ export function PublicLayout() {
   const hideNavbarParam = query.get('hideNavbar') === 'true'
   const isPracticePage = location.pathname.includes('/roadmap/learning/practice') || location.pathname.includes('/roadmap/practice-test')
   const isTestPage = location.pathname === '/roadmap/test'
-  const shouldHideNavbar = isPracticePage || isTestPage || isPlayScreen || hideNavbarParam
+  const isFlashcardStudyPage = location.pathname.startsWith('/flashcard/study') || 
+                               location.pathname.startsWith('/flashcard/learn') || 
+                               location.pathname.startsWith('/flashcard/favorites') || 
+                               location.pathname.startsWith('/flashcard/quiz') || 
+                               location.pathname.startsWith('/flashcard/test')
+  const shouldHideNavbar = isPracticePage || isTestPage || isPlayScreen || hideNavbarParam || isFlashcardStudyPage
 
   return (
     <View style={{ flex: 1, height: shouldHideFooter ? '100vh' : undefined, minHeight: '100vh', backgroundColor: '#fff', overflow: shouldHideFooter ? 'auto' : 'visible' }}>

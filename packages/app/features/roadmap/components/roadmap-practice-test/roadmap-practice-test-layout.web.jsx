@@ -66,7 +66,17 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
         if (loadedQuestions.length === 0) {
           setError('Không có câu hỏi luyện tập cho phần này.')
         } else {
-          setQuestions(loadedQuestions)
+          // Đảm bảo mỗi câu hỏi đều có correctOptionId (trường hợp virtual quiz trả về trong options)
+          const finalQuestions = loadedQuestions.map(q => {
+            if (!q.correctOptionId && Array.isArray(q.options)) {
+              const correctOpt = q.options.find(opt => opt.isCorrect === true || opt.status === true)
+              if (correctOpt) {
+                return { ...q, correctOptionId: correctOpt.optionId }
+              }
+            }
+            return q
+          })
+          setQuestions(finalQuestions)
         }
       } catch (err) {
         console.error('Failed to load practice questions:', err)
@@ -140,7 +150,8 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
     } else if (!isFinished) {
       const total = questions.length
       const correct = questions.reduce((acc, q, idx) => {
-        return acc + (answers[idx] === q.correctOptionId ? 1 : 0)
+        const userAnswer = answers[idx]
+        return acc + (userAnswer !== undefined && userAnswer === q.correctOptionId ? 1 : 0)
       }, 0)
 
       const passPercentValue = total > 0 ? (correct / total) * 100 : 0
@@ -183,7 +194,8 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
   const isCorrect = isAnswered && selectedOptionId === currentQuestion?.correctOptionId
 
   const correctCount = questions.reduce((acc, q, idx) => {
-    return acc + (answers[idx] === q.correctOptionId ? 1 : 0)
+    const userAnswer = answers[idx]
+    return acc + (userAnswer !== undefined && userAnswer === q.correctOptionId ? 1 : 0)
   }, 0)
   const totalQuestions = questions.length
   const passPercent = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0
