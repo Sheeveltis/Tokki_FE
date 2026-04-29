@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { Modal, Form, Input, InputNumber, Upload, message, Select, Row, Col, Space } from 'antd'
+import { useEnumConfig } from '@tokki/app/hooks/useEnumConfig'
 import { 
   FontSizeOutlined, 
   FileTextOutlined, 
@@ -20,6 +21,9 @@ export function FlashcardTopicEditModal({ open, loading, initialValues = {}, onC
   const [previewUrl, setPreviewUrl] = React.useState(initialValues?.imgUrl || initialValues?.imgURL || '')
   const [selectedFile, setSelectedFile] = React.useState(null)
 
+  const { data: enumLevels } = useEnumConfig(open ? 1 : null, 1, 100)
+  const levelOptions = React.useMemo(() => enumLevels?.map(item => ({ value: Number(item.value), label: item.label })) || [], [enumLevels])
+
   // Sync initial values when open changes
   React.useEffect(() => {
     if (open) {
@@ -31,11 +35,6 @@ export function FlashcardTopicEditModal({ open, loading, initialValues = {}, onC
         imgUrl: initialValues?.imgUrl || initialValues?.imgURL || '',
       })
       setPreviewUrl(initialValues?.imgUrl || initialValues?.imgURL || '')
-      setSelectedFile(null)
-    } else {
-      // Reset form when modal closes
-      form.resetFields()
-      setPreviewUrl('')
       setSelectedFile(null)
     }
   }, [open, initialValues, form])
@@ -94,7 +93,7 @@ export function FlashcardTopicEditModal({ open, loading, initialValues = {}, onC
       confirmLoading={loading}
       okButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
       cancelButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
-      destroyOnClose
+      destroyOnHidden
       centered
       styles={{
         header: { fontSize: 18 },
@@ -123,12 +122,18 @@ export function FlashcardTopicEditModal({ open, loading, initialValues = {}, onC
         <Row gutter={12}>
           <Col span={12}>
             <Form.Item
-              label={<Space><LineChartOutlined style={{ color: '#1677ff' }} />Level (Bắt buộc)</Space>}
+              label={<Space><LineChartOutlined style={{ color: '#1677ff' }} />Phân loại (Bắt buộc)</Space>}
               name="level"
-              rules={[{ required: true, message: 'Vui lòng nhập level' }]}
+              rules={[{ required: true, message: 'Vui lòng chọn phân loại' }]}
               style={{ marginBottom: 12 }}
             >
-              <InputNumber min={1} max={10} placeholder="1" style={{ width: '100%' }} />
+              <Select placeholder="Chọn phân loại" style={{ width: '100%' }}>
+                {levelOptions.map((lvl) => (
+                  <Select.Option key={lvl.value} value={lvl.value}>
+                    {lvl.label}
+                  </Select.Option>
+                ))}
+              </Select>
             </Form.Item>
           </Col>
 
