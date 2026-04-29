@@ -4,7 +4,7 @@ import { useRouter } from 'solito/navigation'
 import { apiClient } from '../../../../provider/api/client'
 import { ENDPOINTS } from '../../../../provider/api/endpoints'
 
-export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 10 }) {
+export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 10, mode }) {
   const router = useRouter()
   const [questions, setQuestions] = useState([])
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -35,7 +35,9 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
       setError(null)
 
       try {
-        const url = ENDPOINTS.USER_EXAM.PRACTICE_QUESTIONS(questionTypeId, quantity)
+        const url = mode === 'virtual'
+          ? ENDPOINTS.ROADMAP.VIRTUAL_QUIZ(questionTypeId, quantity)
+          : ENDPOINTS.USER_EXAM.PRACTICE_QUESTIONS(questionTypeId, quantity)
         const response = await apiClient.get(url)
 
         if (!isMounted) return
@@ -55,6 +57,8 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
             })
           } else {
             // Trường hợp dữ liệu trả về flat array (câu hỏi trực tiếp)
+            // Lưu ý: virtual quiz có thể dùng field khác cho đáp án đúng, 
+            // nhưng logic bên dưới dùng correctOptionId.
             loadedQuestions.push(item)
           }
         })
@@ -248,7 +252,7 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
           ) : (
             <View style={styles.testLayout}>
               {/* Left Column: Passage or Image */}
-              {(currentQuestion.sharedPassageContent || (currentQuestion.sharedMediaUrl && (currentQuestion.sharedMediaType === 'Image' || currentQuestion.sharedMediaType === 'Audio'))) && (
+              {(currentQuestion.sharedPassageContent || currentQuestion.passageContent || (currentQuestion.sharedMediaUrl && (currentQuestion.sharedMediaType === 'Image' || currentQuestion.sharedMediaType === 'Audio'))) && (
                 <View style={styles.passageColumn}>
                   <View style={styles.columnHeader}>
                     <View style={styles.columnTitleBadge}>
@@ -270,7 +274,7 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
                           <audio controls src={currentQuestion.sharedMediaUrl} style={{ width: '100%' }} />
                         </View>
                       ) : (
-                        renderHtmlText(currentQuestion.sharedPassageContent, styles.passageText)
+                        renderHtmlText(currentQuestion.sharedPassageContent || currentQuestion.passageContent, styles.passageText)
                       )}
                     </View>
                   </ScrollView>
@@ -278,7 +282,7 @@ export function RoadmapPracticeTestLayout({ questionTypeId, taskId, quantity = 1
               )}
 
               {/* Right Column: Question & Answers / Writing Input */}
-              <View style={[styles.questionColumn, !(currentQuestion.sharedPassageContent || (currentQuestion.sharedMediaUrl && currentQuestion.sharedMediaType === 'Image')) && styles.fullWidthColumn]}>
+              <View style={[styles.questionColumn, !(currentQuestion.sharedPassageContent || currentQuestion.passageContent || (currentQuestion.sharedMediaUrl && currentQuestion.sharedMediaType === 'Image')) && styles.fullWidthColumn]}>
                 <ScrollView contentContainerStyle={styles.questionScrollContent} showsVerticalScrollIndicator={false}>
                   <View style={styles.questionHeader}>
                     <View style={[styles.questionBadge, { backgroundColor: isAnswered ? (isCorrect ? '#E8F5E9' : '#FFEBEE') : '#F5F5F5' }]}>

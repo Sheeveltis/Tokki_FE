@@ -44,6 +44,7 @@ export const ENDPOINTS = {
   },
   QUESTION_TYPE: {
     GET_ALL: '/QuestionType/admin',
+    USER_GET_ALL: '/QuestionType/user',
     GET_BY_ID: (id) => `/QuestionType/${id}`,
     CREATE: '/QuestionType',
     UPDATE: (id) => `/QuestionType/${id}`,
@@ -343,6 +344,7 @@ export const ENDPOINTS = {
     COMPLETE: '/Roadmap/complete',
     NEXT_WEEK: '/Roadmap/next-week',
     CANCEL: '/Roadmap/cancel',
+    VIRTUAL_QUIZ: (typeId, count = 5) => `/Roadmap/virtual-quiz/${encodeURIComponent(typeId)}?count=${count}`,
   },
   SYSTEM_CONFIGS: {
     GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,
