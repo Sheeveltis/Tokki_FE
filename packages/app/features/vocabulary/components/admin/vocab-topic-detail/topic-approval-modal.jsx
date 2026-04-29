@@ -26,9 +26,6 @@ export function TopicApprovalModal({ open, loading, onCancel, onSubmit, initialA
         rejectionReason: '',
       })
       setApprovalType(type)
-    } else {
-      form.resetFields()
-      setApprovalType('approve')
     }
   }, [open, form, initialApprovalType])
 
@@ -88,7 +85,7 @@ export function TopicApprovalModal({ open, loading, onCancel, onSubmit, initialA
           fontWeight: 600,
         },
       }}
-      destroyOnClose
+      destroyOnHidden
       centered
       styles={{
         header: { 
