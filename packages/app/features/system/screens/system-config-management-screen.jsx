@@ -22,9 +22,9 @@ import {
   EyeOutlined
 } from '@ant-design/icons'
 import { showAdminSuccess, showAdminError } from '../../../../components/HelperAdmin'
-import { fetchSystemConfigs, updateSystemConfig, createSystemConfig } from '../api/system-config'
 import ManagementLayout from '../../../../components/layout/management-layout'
 import { useManagementFilters } from '../../back-office/hooks/use-management-filters'
+import { Segmented } from 'antd'
 
 // Import tách nhỏ components
 import { SYSTEM_CONFIG_TYPES } from '../constants/config-types.jsx'
@@ -32,6 +32,12 @@ import ConfigFormModal from '../components/config-form-modal'
 import ConfigViewModal from '../components/config-view-modal'
 import ConfigTypeItem from '../components/config-type-item'
 import ConfigListHeader from '../components/config-list-header'
+import TopikConfigTable from '../components/topik-config-table'
+import TopikConfigModal from '../components/topik-config-modal'
+import TopikConfigView from '../components/topik-config-view'
+
+import { fetchSystemConfigs, updateSystemConfig, createSystemConfig } from '../api/system-config'
+import { fetchTopikConfigs, createTopikConfig, updateTopikConfig } from '../api/topik-config'
 
 const { Text, Title } = Typography
 
@@ -55,6 +61,14 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
   const [viewingConfig, setViewingConfig] = useState(null)
 
   const [form] = Form.useForm()
+  const [activeSubTab, setActiveSubTab] = useState('general') // 'general' or 'topik'
+  const [topikData, setTopikData] = useState([])
+  const [topikLoading, setTopikLoading] = useState(false)
+  const [topikModalOpen, setTopikModalOpen] = useState(false)
+  const [topikViewOpen, setTopikViewOpen] = useState(false)
+  const [editingTopik, setEditingTopik] = useState(null)
+  const [viewingTopik, setViewingTopik] = useState(null)
+  const [topikForm] = Form.useForm()
 
   const activeType = useMemo(() => 
     SYSTEM_CONFIG_TYPES.find(t => t.value === filters.configType) || SYSTEM_CONFIG_TYPES[0]
@@ -83,8 +97,23 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
   }, [])
 
   useEffect(() => {
-    loadData(filters)
-  }, [filters.page, filters.size, filters.search, filters.isActive, filters.configType, loadData])
+    if (filters.configType === 6 && activeSubTab === 'topik') {
+      const loadTopikData = async () => {
+        try {
+          setTopikLoading(true)
+          const result = await fetchTopikConfigs()
+          setTopikData(result?.items || result || [])
+        } catch (err) {
+          showAdminError('Không thể tải cấu hình TOPIK')
+        } finally {
+          setTopikLoading(false)
+        }
+      }
+      loadTopikData()
+    } else {
+      loadData(filters)
+    }
+  }, [filters.page, filters.size, filters.search, filters.isActive, filters.configType, activeSubTab, loadData])
 
   const handleFilterChange = useCallback((key, value) => {
     setFilters(prev => ({ ...prev, [key]: value, page: 1 }))
@@ -126,24 +155,25 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
   }, [form, filters.configType])
 
   const handleFormFinish = async (values) => {
+    // ... (rest of standard config finish)
+  }
+
+  const handleTopikFormFinish = async (values) => {
     try {
       setSaving(true)
-      const payload = {
-        ...editingConfig,
-        ...values,
-        value: String(values.value)
-      }
-      if (isEdit) {
-        await updateSystemConfig(payload)
-        showAdminSuccess('Đã cập nhật cấu hình thành công')
+      if (editingTopik) {
+        await updateTopikConfig(editingTopik.topikLevelConfigID, values)
+        showAdminSuccess('Đã cập nhật cấu hình TOPIK thành công')
       } else {
-        await createSystemConfig(payload)
-        showAdminSuccess('Đã tạo mới cấu hình thành công')
+        await createTopikConfig(values)
+        showAdminSuccess('Đã tạo mới cấu hình TOPIK thành công')
       }
-      setModalOpen(false)
-      loadData(filters)
+      setTopikModalOpen(false)
+      // Reload topik data
+      const result = await fetchTopikConfigs()
+      setTopikData(result?.items || result || [])
     } catch (err) {
-      showAdminError(err?.message || (isEdit ? 'Cập nhật thất bại' : 'Tạo mới thất bại'))
+      showAdminError(err?.message || 'Thao tác thất bại')
     } finally {
       setSaving(false)
     }
@@ -334,45 +364,73 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
                 </div>
 
                 <div style={{ flex: 1, minHeight: 0 }}> {/* Container cho ManagementLayout để nó tự scroll */}
-                  <ManagementLayout
-                    scrollOffset={520}
-                    searchPlaceholder="Tìm kiếm theo khóa (key)..."
-                    searchValue={filters.search}
-                    onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
-                    onSearchSubmit={() => handleFilterChange('search', filters.search)}
-                    extraFilters={
-                      <Space>
-                        <Select
-                          placeholder="Trạng thái"
-                          value={filters.isActive}
-                          onChange={val => handleFilterChange('isActive', val)}
-                          options={[
-                            { label: 'Tất cả trạng thái', value: undefined },
-                            { label: 'Đang hoạt động', value: true },
-                            { label: 'Đang tắt', value: false },
-                          ]}
-                          style={{ width: 160 }}
-                        />
-                        <Button icon={<ReloadOutlined />} onClick={() => loadData(filters)} />
-                      </Space>
-                    }
-                    tableProps={{
-                      columns,
-                      dataSource: data.items,
-                      loading,
-                      rowKey: "key",
-                      pagination: {
-                        current: filters.page,
-                        pageSize: filters.size,
-                        total: data.total,
-                        showSizeChanger: true,
-                        showTotal: (total) => `Tổng cộng ${total} cấu hình`,
-                        onChange: handlePaginationChange,
-                      }
-                    }}
-                  />
+                  {filters.configType === 6 && (
+                    <div style={{ marginBottom: 16 }}>
+                      <Segmented 
+                        options={[
+                          { label: 'Tham số chung', value: 'general' },
+                          { label: 'Cấu hình cấp độ TOPIK', value: 'topik' },
+                        ]} 
+                        value={activeSubTab}
+                        onChange={setActiveSubTab}
+                      />
+                    </div>
+                  )}
 
-                  {data.items.length === 0 && !loading && (
+                  {activeSubTab === 'topik' && filters.configType === 6 ? (
+                    <TopikConfigTable 
+                      data={topikData}
+                      loading={topikLoading}
+                      onEdit={(record) => {
+                        setEditingTopik(record)
+                        setTopikModalOpen(true)
+                      }}
+                      onView={(record) => {
+                        setViewingTopik(record)
+                        setTopikViewOpen(true)
+                      }}
+                    />
+                  ) : (
+                    <ManagementLayout
+                      scrollOffset={520}
+                      searchPlaceholder="Tìm kiếm theo khóa (key)..."
+                      searchValue={filters.search}
+                      onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
+                      onSearchSubmit={() => handleFilterChange('search', filters.search)}
+                      extraFilters={
+                        <Space>
+                          <Select
+                            placeholder="Trạng thái"
+                            value={filters.isActive}
+                            onChange={val => handleFilterChange('isActive', val)}
+                            options={[
+                              { label: 'Tất cả trạng thái', value: undefined },
+                              { label: 'Đang hoạt động', value: true },
+                              { label: 'Đang tắt', value: false },
+                            ]}
+                            style={{ width: 160 }}
+                          />
+                          <Button icon={<ReloadOutlined />} onClick={() => loadData(filters)} />
+                        </Space>
+                      }
+                      tableProps={{
+                        columns,
+                        dataSource: data.items,
+                        loading,
+                        rowKey: "key",
+                        pagination: {
+                          current: filters.page,
+                          pageSize: filters.size,
+                          total: data.total,
+                          showSizeChanger: true,
+                          showTotal: (total) => `Tổng cộng ${total} cấu hình`,
+                          onChange: handlePaginationChange,
+                        }
+                      }}
+                    />
+                  )}
+
+                  {((activeSubTab === 'general' && data.items.length === 0) || (activeSubTab === 'topik' && topikData.length === 0)) && !loading && !topikLoading && (
                     <div style={{ padding: '80px 0' }}>
                       <Empty
                         image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -405,6 +463,21 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
         open={viewModalOpen}
         onCancel={() => setViewModalOpen(false)}
         config={viewingConfig}
+      />
+      
+      <TopikConfigModal
+        open={topikModalOpen}
+        onCancel={() => setTopikModalOpen(false)}
+        onFinish={handleTopikFormFinish}
+        saving={saving}
+        config={editingTopik}
+        form={topikForm}
+      />
+
+      <TopikConfigView
+        open={topikViewOpen}
+        onCancel={() => setTopikViewOpen(false)}
+        config={viewingTopik}
       />
     </div>
   )
