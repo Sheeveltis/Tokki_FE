@@ -1,162 +1,134 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet, Platform } from 'react-native'
+import { UserOutlined, CreditCardOutlined, BankOutlined, FileTextOutlined, CopyOutlined } from '@ant-design/icons'
 
-/**
- * Information Banking Component
- * - Displays bank account information
- * - Shows account holder, account number, bank, and transfer content
- *
- * @param {{
- *   paymentId?: string;
- *   style?: any;
- * }} props
- */
 export const InformationBanking = ({ paymentId, style }) => {
   return (
     <View style={[styles.container, style]}>
-      {/* Title */}
-      <Text style={styles.title}>Thông tin tài khoản</Text>
+      <Text style={styles.title}>Thông tin chuyển khoản</Text>
 
-      {/* Account Information Cards */}
       <View style={styles.cardsContainer}>
         {/* Chủ tài khoản */}
         <View style={styles.card}>
-          <View style={styles.iconContainer}>
-            <View style={styles.personIcon} />
+          <View style={[styles.iconWrapper, { backgroundColor: '#E8F5E9' }]}>
+            <UserOutlined style={{ fontSize: 18, color: '#4CAF50' }} />
           </View>
           <View style={styles.cardContent}>
-            <Text style={styles.label}>CHỦ TÀI KHOẢN</Text>
+            <Text style={styles.label}>Chủ tài khoản</Text>
             <Text style={styles.value}>TANG NGOC TRANG ANH</Text>
           </View>
         </View>
 
         {/* Số tài khoản */}
         <View style={styles.card}>
-          <View style={styles.iconContainer}>
-            <View style={styles.cardIcon} />
+          <View style={[styles.iconWrapper, { backgroundColor: '#E3F2FD' }]}>
+            <CreditCardOutlined style={{ fontSize: 18, color: '#2196F3' }} />
           </View>
           <View style={styles.cardContent}>
-            <Text style={styles.label}>SỐ TÀI KHOẢN</Text>
+            <Text style={styles.label}>Số tài khoản</Text>
             <Text style={styles.accountNumber}>0037100025583005</Text>
           </View>
+          <CopyOutlined style={{ color: '#999', fontSize: 16 }} />
         </View>
 
         {/* Ngân hàng */}
         <View style={styles.card}>
-          <View style={styles.iconContainer}>
-            <View style={styles.bankIcon} />
+          <View style={[styles.iconWrapper, { backgroundColor: '#FFF3E0' }]}>
+            <BankOutlined style={{ fontSize: 18, color: '#FF9800' }} />
           </View>
           <View style={styles.cardContent}>
-            <Text style={styles.label}>NGÂN HÀNG</Text>
-            <Text style={styles.value}>OCB</Text>
+            <Text style={styles.label}>Ngân hàng</Text>
+            <Text style={styles.value}>OCB (Ngân hàng Phương Đông)</Text>
           </View>
         </View>
 
         {/* Nội dung chuyển tiền */}
-        <View style={styles.card}>
-          <View style={styles.iconContainer}>
-            <View style={styles.documentIcon} />
+        <View style={[styles.card, styles.highlightCard]}>
+          <View style={[styles.iconWrapper, { backgroundColor: '#FFF0F3' }]}>
+            <FileTextOutlined style={{ fontSize: 18, color: '#FF4D6D' }} />
           </View>
           <View style={styles.cardContent}>
-            <Text style={styles.label}>NỘI DUNG CHUYỂN TIỀN</Text>
-            <Text style={styles.value}>{paymentId || '---'}</Text>
+            <Text style={styles.label}>Nội dung chuyển tiền</Text>
+            <Text style={[styles.value, { color: '#FF4D6D', fontWeight: '800' }]}>{paymentId || '---'}</Text>
           </View>
+          <CopyOutlined style={{ color: '#FF4D6D', fontSize: 16 }} />
         </View>
       </View>
+
+      <Text style={styles.note}>
+        * Lưu ý: Hãy nhập đúng nội dung chuyển tiền để hệ thống tự động kích hoạt gói của bạn.
+      </Text>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'transparent',
-    padding: 24,
-    borderRadius: 16,
     width: '100%',
   },
   title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#222',
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1A1A1A',
     fontFamily: 'Lexend, sans-serif',
-    textAlign: 'center',
     marginBottom: 24,
+    textAlign: 'center',
   },
   cardsContainer: {
     gap: 16,
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    backgroundColor: '#F8F9FB',
+    borderRadius: 20,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E8EBF1',
   },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    marginRight: 16,
+  highlightCard: {
+    backgroundColor: '#FFF0F3',
+    borderColor: '#FFD1DC',
+  },
+  iconWrapper: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  personIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#222',
-  },
-  cardIcon: {
-    width: 24,
-    height: 18,
-    borderRadius: 4,
-    backgroundColor: '#222',
-    borderWidth: 1,
-    borderColor: '#222',
-  },
-  bankIcon: {
-    width: 24,
-    height: 24,
-    backgroundColor: '#222',
-    borderRadius: 4,
-    position: 'relative',
-  },
-  documentIcon: {
-    width: 20,
-    height: 24,
-    backgroundColor: 'transparent',
-    borderWidth: 1.5,
-    borderColor: '#222',
-    borderRadius: 2,
+    marginRight: 16,
   },
   cardContent: {
     flex: 1,
   },
   label: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#222',
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#666',
     fontFamily: 'Epilogue, sans-serif',
     marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   value: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#DC143C',
+    color: '#1A1A1A',
     fontFamily: 'Lexend, sans-serif',
-    textTransform: 'uppercase',
   },
   accountNumber: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#222',
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1A1A1A',
     fontFamily: 'Lexend, sans-serif',
+    letterSpacing: 0.5,
+  },
+  note: {
+    marginTop: 24,
+    fontSize: 13,
+    color: '#888',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    lineHeight: 18,
   },
 })
 
