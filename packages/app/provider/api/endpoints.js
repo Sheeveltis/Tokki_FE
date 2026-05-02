@@ -132,6 +132,7 @@ export const ENDPOINTS = {
     REQUEST_SUPPORT: '/Chat/support/request',
     GET_PENDING_SUPPORT: '/Chat/support/pending',
     JOIN_SUPPORT: (roomId) => `/Chat/support/${roomId}/join`,
+    CLOSE_SUPPORT: (roomId) => `/Chat/support/${roomId}/close`,
     GET_HISTORY: (roomId) => `/Chat/${roomId}/history`,
   },
   TOPIC: {
@@ -161,7 +162,12 @@ export const ENDPOINTS = {
     CREATE: '/PronunciationRules', // POST: Tạo pronunciation rule
     USER_GET_ALL: '/PronunciationRules/user/get-all', // GET: User lấy danh sách rules
     ADMIN_GET_ALL: '/PronunciationRules/admin/get-all', // GET: Admin lấy danh sách rules
+    UPDATE: (id) => `/PronunciationRules/${id}`, // PUT: Cập nhật rule
     DELETE: (id) => `/PronunciationRules/${id}`, // DELETE: Xóa rule
+    REORDER: '/PronunciationRules/reorder', // POST: Đổi vị trí
+    IMPORT_EXCEL: '/PronunciationRules/import-excel', // POST: Import từ Excel
+    EXPORT_EXCEL: '/PronunciationRules/export-excel', // GET: Export ra Excel
+    IMPORT_TEMPLATE: '/PronunciationRules/import-template', // GET: Tải template mẫu
   },
   VOCABULARY: {
     ADMIN_GET_ALL: '/Vocabulary/admin/get-all',

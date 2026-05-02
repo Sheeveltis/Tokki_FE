@@ -5,36 +5,7 @@
  */
 
 import { Platform } from 'react-native'
-
-/**
- * Base64 decode - hỗ trợ cả web và React Native
- */
-const base64Decode = (str) => {
-  try {
-    // Web: sử dụng atob
-    if (Platform.OS === 'web' && typeof atob !== 'undefined') {
-      return atob(str)
-    }
-    
-    // React Native/Node: sử dụng Buffer
-    if (typeof Buffer !== 'undefined') {
-      return Buffer.from(str, 'base64').toString('utf-8')
-    }
-    
-    // Fallback: sử dụng base64-js nếu có
-    try {
-      const base64js = require('base64-js')
-      const bytes = base64js.toByteArray(str)
-      return new TextDecoder().decode(bytes)
-    } catch {
-      console.warn('Base64 decoding not available')
-      return null
-    }
-  } catch (error) {
-    console.error('Error in base64Decode:', error)
-    return null
-  }
-}
+import { jwtDecode } from 'jwt-decode'
 
 /**
  * Decode JWT token và trả về payload (không verify signature)
@@ -45,26 +16,9 @@ export const decodeJWT = (token) => {
   if (!token) return null
 
   try {
-    // JWT có format: header.payload.signature
-    const parts = token.split('.')
-    if (parts.length !== 3) {
-      console.warn('Invalid JWT format')
-      return null
-    }
-
-    // Lấy payload (phần thứ 2)
-    const payload = parts[1]
-
-    // Base64 decode payload
-    const decodedPayload = base64Decode(payload)
-    if (!decodedPayload) {
-      return null
-    }
-
-    // Parse JSON payload
-    return JSON.parse(decodedPayload)
+    return jwtDecode(token)
   } catch (error) {
-    console.error('Error decoding JWT:', error)
+    console.error('Error decoding JWT with jwt-decode:', error)
     return null
   }
 }

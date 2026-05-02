@@ -62,3 +62,16 @@ export const joinSupport = async (roomId) => {
     throw error
   }
 }
+
+/**
+ * Đóng phòng chat (Staff kết thúc hỗ trợ)
+ */
+export const closeSupport = async (roomId) => {
+  try {
+    const res = await apiClient.put(ENDPOINTS.LIVE_CHAT.CLOSE_SUPPORT(roomId))
+    return res?.data?.data || res?.data
+  } catch (error) {
+    console.error("Error closing support room:", error)
+    throw error
+  }
+}

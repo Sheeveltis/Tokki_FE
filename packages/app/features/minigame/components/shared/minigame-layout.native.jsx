@@ -11,6 +11,7 @@ import SolitareLevelPopup from '../solitare/solitare-level/solitare-level-popup'
 import MatchingCardTopicPopup from '../matching-card/matching-card-topic/matching-card-topic-popup'
 import { MatchingCardLevelPopup } from '../matching-card/matching-card-level/matching-card-level-popup'
 import { LoginRequest } from '../../../../../components/loginRequest'
+import { NavbarMobile } from '../../../../../components/navbar-mobile'
 
 export function MinigameLayout() {
   const navigation = useNavigation()
@@ -42,19 +43,13 @@ export function MinigameLayout() {
     onNavigate: (screenName, params) => navigation.navigate(screenName, params),
   })
 
+  // Chỉ hiển thị game Wordle (gameType === 3) trên mobile
+  const mobileGames = games.filter(game => game.gameType === 3)
+
   return (
     <View style={styles.page}>
       <View style={styles.container}>
-        <View style={styles.headerRow}>
-          <NavigationPill
-            label="Quay lại"
-            icon={ArrowIcon}
-            onPress={() => navigation.goBack()}
-            style={styles.backPill}
-            textStyle={styles.backPillText}
-            iconStyle={styles.backPillIcon}
-          />
-        </View>
+        {/* Header row removed */}
 
         <MinigameBanner />
 
@@ -73,11 +68,28 @@ export function MinigameLayout() {
           </View>
         ) : (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.cardsContainer}>
-            {games.map((game, index) => (
+            {mobileGames.map((game, index) => (
               <View key={game.gameId || index} style={styles.cardItem}>
                 <MinigameGameCard game={game} onPress={() => handleGamePress(game)} />
               </View>
             ))}
+
+            {/* Ô hiển thị tính năng đang được cập nhật thêm */}
+            <View style={styles.cardItem}>
+              <View style={[styles.comingSoonCard, styles.card]}>
+                <View style={styles.cardInner}>
+                  <View style={styles.imageSection}>
+                    <View style={styles.comingSoonOverlay}>
+                      <Text style={styles.comingSoonEmoji}>🚀</Text>
+                    </View>
+                  </View>
+                  <View style={styles.contentSection}>
+                    <Text style={styles.comingSoonTitle}>Sắp ra mắt</Text>
+                    <Text style={styles.comingSoonDesc}>Tính năng đang được cập nhật thêm...</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
           </ScrollView>
         )}
       </View>
@@ -121,6 +133,8 @@ export function MinigameLayout() {
           <LoginRequest onClose={() => setShowLoginRequest(false)} />
         </View>
       )}
+
+      <NavbarMobile />
     </View>
   )
 }
@@ -128,13 +142,13 @@ export function MinigameLayout() {
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    backgroundColor: '#FFD7D0',
+    backgroundColor: '#FAFAFA',
   },
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 20,
+    paddingTop: 50, // Tăng padding top
+    paddingBottom: 80, // Để không bị navbar che
     gap: 14,
   },
   headerRow: {
@@ -157,7 +171,8 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   cardItem: {
-    width: '100%',
+    width: '90%', // Thu nhỏ thêm nữa
+    alignSelf: 'center',
   },
   stateContainer: {
     flex: 1,
@@ -181,6 +196,56 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.35)',
     zIndex: 2000,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    overflow: 'hidden',
+  },
+  cardInner: {
+    flex: 1,
+    flexDirection: 'column',
+    height: 260, // Đồng bộ chiều cao với game card
+  },
+  imageSection: {
+    flex: 1.2, // Giảm tỷ lệ hình ảnh
+    backgroundColor: '#F8F9FA',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  contentSection: {
+    flex: 1,
+    padding: 16,
+    gap: 4,
+    justifyContent: 'center',
+  },
+  comingSoonCard: {
+    opacity: 0.8,
+    borderStyle: 'dashed',
+    borderColor: '#CCC',
+  },
+  comingSoonOverlay: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#F0F0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  comingSoonEmoji: {
+    fontSize: 48,
+  },
+  comingSoonTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#999',
+    fontFamily: 'Lexend, sans-serif',
+  },
+  comingSoonDesc: {
+    fontSize: 13,
+    color: '#AAA',
+    fontFamily: 'Epilogue, sans-serif',
   },
 })
 

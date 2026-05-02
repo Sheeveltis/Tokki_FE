@@ -90,16 +90,16 @@ export function StaffLayout({
       ],
     },
 
-    // {
-    //   key: 'customer-service',
-    //   icon: <CustomerServiceOutlined />,
-    //   label: 'Chăm sóc khách hàng',
-    //   children: [
-    //     { key: 'chat-support', icon: <MessageOutlined />, label: 'Khung chat' },
-    //     { key: 'auto-email', icon: <MailOutlined />, label: 'Gửi mail tự động' },
-    //     { key: 'feedback-inbox', icon: <InboxOutlined />, label: 'Hòm thư feedback' },
-    //   ],
-    // },
+    {
+      key: 'customer-service',
+      icon: <CustomerServiceOutlined />,
+      label: 'Chăm sóc khách hàng',
+      children: [
+        { key: 'chat-support', icon: <MessageOutlined />, label: 'Khung chat' },
+        // { key: 'auto-email', icon: <MailOutlined />, label: 'Gửi mail tự động' },
+        // { key: 'feedback-inbox', icon: <InboxOutlined />, label: 'Hòm thư feedback' },
+      ],
+    },
     // { key: 'settings', icon: <SettingOutlined />, label: 'Cài đặt' },
   ], [])
 

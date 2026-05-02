@@ -10,9 +10,9 @@ import {
 import { ReactQuillWrapper } from '../../../../blog/components/create-blog/react-quill-wrapper.jsx'
 
 /**
- * Modal tạo mới quy tắc phát âm
+ * Modal chỉnh sửa quy tắc phát âm
  */
-export function PronunciationRuleCreateModal({ open, loading, onCancel, onSubmit }) {
+export function PronunciationRuleEditModal({ open, loading, rule, onCancel, onSubmit }) {
   const [form] = Form.useForm()
 
   const quillModules = {
@@ -21,17 +21,27 @@ export function PronunciationRuleCreateModal({ open, loading, onCancel, onSubmit
     ],
   }
 
-  // Reset form khi modal đóng
+  // Điền dữ liệu vào form khi rule thay đổi hoặc modal mở
   React.useEffect(() => {
-    if (!open) {
+    if (open && rule) {
+      form.setFieldsValue({
+        ruleName: rule.title || rule.ruleName,
+        description: rule.description,
+        content: rule.content || rule._raw?.content,
+      })
+    } else if (!open) {
       form.resetFields()
     }
-  }, [open, form])
+  }, [open, rule, form])
 
   const handleOk = async () => {
     try {
       const values = await form.validateFields()
-      onSubmit?.(values)
+      const payload = {
+        pronunciationRuleId: rule.id,
+        ...values
+      }
+      onSubmit?.(payload)
     } catch (err) {
       // ignore validation errors
     }
@@ -39,11 +49,11 @@ export function PronunciationRuleCreateModal({ open, loading, onCancel, onSubmit
 
   return (
     <Modal
-      title="Thêm quy tắc phát âm"
+      title="Chỉnh sửa quy tắc phát âm"
       open={open}
       onCancel={onCancel}
       onOk={handleOk}
-      okText="Tạo"
+      okText="Lưu"
       cancelText="Hủy"
       confirmLoading={loading}
       okButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
@@ -97,4 +107,4 @@ export function PronunciationRuleCreateModal({ open, loading, onCancel, onSubmit
   )
 }
 
-export default PronunciationRuleCreateModal
+export default PronunciationRuleEditModal

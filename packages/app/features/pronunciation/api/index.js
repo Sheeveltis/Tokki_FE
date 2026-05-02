@@ -1,75 +1,57 @@
 import { apiClient } from '../../../provider/api/client'
 import { ENDPOINTS, API_BASE_URL } from '../../../provider/api/endpoints'
-import axios from 'axios'
 
-const extractErrorMessage = (error, fallbackMessage) => {
-  const data = error?.response?.data
-  return (
-    data?.message ||
-    (Array.isArray(data?.errors) && data.errors[0]?.description) ||
-    error?.message ||
-    fallbackMessage
-  )
+const extractData = (res) => res.data?.data || res.data
+
+const extractErrorMessage = (error, fallback) => {
+  return error.response?.data?.message || 
+         (Array.isArray(error.response?.data?.errors) && error.response.data.errors[0]?.description) ||
+         error.message || 
+         fallback
 }
 
-const extractData = (response) => {
-  const payload = response?.data
-  
-  // Nếu payload có isSuccess = false, throw error luôn để catch block xử lý
-  if (payload && typeof payload === 'object' && payload.isSuccess === false) {
-    const errorMsg = payload.message || (Array.isArray(payload.errors) && payload.errors[0]?.description) || 'API Error'
-    throw new Error(errorMsg)
-  }
+export const getPronunciationRules = async (role = 'user', params = {}) => {
+  const endpoint = role === 'admin' 
+    ? ENDPOINTS.PRONUNCIATION_RULES.ADMIN_GET_ALL 
+    : ENDPOINTS.PRONUNCIATION_RULES.USER_GET_ALL
 
-  // Nếu có bọc trong data
-  if (payload && typeof payload === 'object' && 'data' in payload) {
-    const data = payload.data
-    // Hỗ trợ paginated response (data.items)
-    if (data && typeof data === 'object' && 'items' in data) {
-      return data.items
-    }
-    return data
-  }
-  
-  // Trả về payload nếu không có bọc data
-  return payload
-}
-
-export const getPronunciationRules = async (role = 'user') => {
   try {
-    const endpoint = role === 'admin' 
-      ? ENDPOINTS.PRONUNCIATION_RULES.ADMIN_GET_ALL 
-      : ENDPOINTS.PRONUNCIATION_RULES.USER_GET_ALL
-
-    const res = await apiClient.get(`${API_BASE_URL}${endpoint}`)
+    const res = await apiClient.get(endpoint, { 
+      params: typeof params === 'object' ? params : {} 
+    })
     const data = extractData(res)
 
-    if (!Array.isArray(data)) {
-      console.warn('DEBUG: PronunciationRules API did not return an array after extraction:', data)
-      return []
+    // Map data để tương thích với component (admin dùng ruleName, user có thể dùng title)
+    if (Array.isArray(data)) {
+      return data.map(item => ({
+        ...item,
+        id: item.id || item.pronunciationRuleId,
+        title: item.title || item.ruleName,
+        description: item.description || item.ruleDescription
+      }))
+    }
+
+    if (data && typeof data === 'object' && Array.isArray(data.items)) {
+      return {
+        ...data,
+        items: data.items.map(item => ({
+          ...item,
+          id: item.id || item.pronunciationRuleId,
+          title: item.title || item.ruleName,
+          description: item.description || item.ruleDescription
+        }))
+      }
     }
 
     return data
-      .slice()
-      .sort((a, b) => (a?.sortOrder || 0) - (b?.sortOrder || 0))
-      .map((item) => ({
-        id: item?.pronunciationRuleId || item?.ruleId || item?.id,
-        title: item?.ruleName || item?.name || 'Pronunciation Rule',
-        description: item?.description || '',
-        content: item?.content || '',
-        sortOrder: item?.sortOrder || 0,
-        progressPercent: item?.progressPercent || 0,
-        _raw: item,
-      }))
   } catch (error) {
-    console.error('Error in getPronunciationRules:', error)
     throw new Error(extractErrorMessage(error, 'Không thể tải danh sách quy tắc phát âm'))
   }
 }
 
 export const createPronunciationRule = async (payload) => {
   try {
-    const res = await apiClient.post(`${API_BASE_URL}${ENDPOINTS.PRONUNCIATION_RULES.CREATE}`, payload)
+    const res = await apiClient.post(ENDPOINTS.PRONUNCIATION_RULES.CREATE, payload)
     return extractData(res)
   } catch (error) {
     throw new Error(extractErrorMessage(error, 'Không thể tạo quy tắc phát âm'))
@@ -78,10 +60,41 @@ export const createPronunciationRule = async (payload) => {
 
 export const deletePronunciationRule = async (id) => {
   try {
-    const res = await apiClient.delete(`${API_BASE_URL}${ENDPOINTS.PRONUNCIATION_RULES.DELETE(id)}`)
+    const res = await apiClient.delete(ENDPOINTS.PRONUNCIATION_RULES.DELETE(id))
     return extractData(res)
   } catch (error) {
     throw new Error(extractErrorMessage(error, 'Không thể xóa quy tắc phát âm'))
+  }
+}
+
+export const reorderPronunciationRule = async (pronunciationRuleId, newSortOrder) => {
+  try {
+    const res = await apiClient.post(ENDPOINTS.PRONUNCIATION_RULES.REORDER, {
+      pronunciationRuleId,
+      newSortOrder
+    })
+    return extractData(res)
+  } catch (error) {
+    throw new Error(extractErrorMessage(error, 'Không thể thay đổi vị trí quy tắc'))
+  }
+}
+
+export const getPronunciationExamples = async (incomingParams) => {
+  try {
+    const rawParams = typeof incomingParams === 'object' ? incomingParams : {}
+    const ruleId = rawParams.pronunciationRuleId || rawParams.PronunciationRuleId
+    
+    const params = {
+      pronunciationRuleId: ruleId,
+      pageNumber: rawParams.pageNumber || rawParams.PageNumber || 1,
+      pageSize: rawParams.pageSize || rawParams.PageSize || 100,
+      searchTerm: rawParams.searchTerm || rawParams.SearchTerm
+    }
+
+    const res = await apiClient.get(ENDPOINTS.PRONUNCIATION_EXAMPLE.GET_BY_RULE_ID(ruleId), { params })
+    return extractData(res)
+  } catch (error) {
+    throw new Error(extractErrorMessage(error, 'Không thể tải danh sách ví dụ'))
   }
 }
 
@@ -89,15 +102,20 @@ export const getPronunciationExamplesByRuleId = async (ruleId) => {
   if (!ruleId) return []
 
   try {
-    const res = await apiClient.get(`${API_BASE_URL}${ENDPOINTS.PRONUNCIATION_EXAMPLE.GET_BY_RULE_ID(ruleId)}`)
+    const res = await apiClient.get(ENDPOINTS.PRONUNCIATION_EXAMPLE.GET_BY_RULE_ID(ruleId))
     const data = extractData(res)
 
-    if (!Array.isArray(data)) {
-      console.warn('DEBUG: PronunciationExamples API did not return an array after extraction:', data)
+    let items = []
+    if (Array.isArray(data)) {
+      items = data
+    } else if (data && typeof data === 'object' && Array.isArray(data.items)) {
+      items = data.items
+    } else {
+      console.warn('DEBUG: PronunciationExamples API did not return an array or items:', data)
       return []
     }
 
-    return data.map((item) => ({
+    return items.map((item) => ({
       id: item.exampleId,
       text: item.rawScript || item.targetScript || '',
       difficulty: item.difficulty || 'Medium',
@@ -111,11 +129,55 @@ export const getPronunciationExamplesByRuleId = async (ruleId) => {
   }
 }
 
+export const updatePronunciationRule = async (id, payload) => {
+  try {
+    const res = await apiClient.put(ENDPOINTS.PRONUNCIATION_RULES.UPDATE(id), payload)
+    return extractData(res)
+  } catch (error) {
+    throw new Error(extractErrorMessage(error, 'Không thể cập nhật quy tắc phát âm'))
+  }
+}
+
+export const importPronunciationRulesFromExcel = async (file) => {
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await apiClient.post(ENDPOINTS.PRONUNCIATION_RULES.IMPORT_EXCEL, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    return extractData(res)
+  } catch (error) {
+    throw new Error(extractErrorMessage(error, 'Không thể import quy tắc phát âm'))
+  }
+}
+
+export const exportPronunciationRulesToExcel = async () => {
+  try {
+    const response = await apiClient.get(ENDPOINTS.PRONUNCIATION_RULES.EXPORT_EXCEL, {
+      responseType: 'blob'
+    })
+    return response.data
+  } catch (error) {
+    throw new Error(extractErrorMessage(error, 'Không thể xuất dữ liệu quy tắc phát âm'))
+  }
+}
+
+export const downloadPronunciationTemplate = async () => {
+  try {
+    const response = await apiClient.get(ENDPOINTS.PRONUNCIATION_RULES.IMPORT_TEMPLATE, {
+      responseType: 'blob'
+    })
+    return response.data
+  } catch (error) {
+    throw new Error(extractErrorMessage(error, 'Không thể tải template mẫu'))
+  }
+}
+
 export const getPronunciationExampleById = async (exampleId) => {
   if (!exampleId) return null
 
   try {
-    const res = await apiClient.get(`${API_BASE_URL}${ENDPOINTS.PRONUNCIATION_EXAMPLE.GET_BY_ID(exampleId)}`)
+    const res = await apiClient.get(ENDPOINTS.PRONUNCIATION_EXAMPLE.GET_BY_ID(exampleId))
     const item = extractData(res)
 
     if (!item) return null
@@ -142,7 +204,7 @@ export const getPronunciationExampleById = async (exampleId) => {
 export const evaluatePronunciation = async (formData) => {
   try {
     // Sử dụng API_BASE_URL trực tiếp để đảm bảo Domain được đính kèm như yêu cầu
-    const res = await apiClient.post(`${API_BASE_URL}${ENDPOINTS.PRONUNCIATION.EVALUATE}`, formData, {
+    const res = await apiClient.post(ENDPOINTS.PRONUNCIATION.EVALUATE, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       timeout: 60000, // Tăng timeout lên 60s cho AI đánh giá
     })

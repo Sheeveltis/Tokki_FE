@@ -22,6 +22,7 @@ export function ChatSupportLayout({
   loading,
   loadingJoin,
   onSelectRoom,
+  onCloseRoom,
 }) {
   return (
     <div style={styles.root}>
@@ -36,7 +37,7 @@ export function ChatSupportLayout({
       </div>
 
       <div style={styles.rightCol}>
-        <ChatWindow room={selectedRoom} loadingJoin={loadingJoin} />
+        <ChatWindow room={selectedRoom} loadingJoin={loadingJoin} onCloseRoom={onCloseRoom} />
       </div>
     </div>
   )

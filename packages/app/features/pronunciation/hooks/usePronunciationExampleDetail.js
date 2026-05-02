@@ -89,10 +89,10 @@ export function usePronunciationExampleDetail(exampleId) {
     }
   }, [recording])
 
-  const playAudio = async (rate = 0.75) => {
+  const playAudio = async (rate = 0.9) => {
     if (isPlaying) return
 
-    const safeRate = Number.isFinite(Number(rate)) ? Number(rate) : 0.75
+    const safeRate = Number.isFinite(Number(rate)) ? Number(rate) : 0.9
 
     // Nếu có audioUrl: Ưu tiên phát file audio từ server
     if (example?.audioUrl) {
