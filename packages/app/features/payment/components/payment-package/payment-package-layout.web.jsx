@@ -1,49 +1,29 @@
 import React from 'react'
-import { View, ScrollView, StyleSheet } from 'react-native'
-import { Navbar } from '../../../../../components/navbar'
-import { Footer } from '../../../../../components/footer'
+import { View, ScrollView, StyleSheet, Text } from 'react-native'
 import { Card as PackageFree } from './package-free'
 import { Card as PackagePremium } from './package-premium-background'
-import { BackButton } from '../../../../../components/backBtn'
-import { ViewDetailPackageButton } from './view-detail-package-btn'
 
 export function PaymentPackageLayout() {
   return (
     <View style={styles.root}>
-      {/* Nội dung chính */}
       <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>
+            Nâng cấp trải nghiệm <Text style={styles.highlight}>học tập</Text>
+          </Text>
+          <Text style={styles.subtitle}>
+            Chọn gói dịch vụ phù hợp để bứt phá điểm số TOPIK ngay hôm nay cùng bạn Thỏ!
+          </Text>
+        </View>
+
         <View style={styles.wrapper}>
-          {/* Container cho 2 cards */}
           <View style={styles.cardsContainer}>
-            {/* Card Free bên trái */}
-            <View style={styles.leftCard}>
-              <PackageFree
-                title="GÓI MIỄN PHÍ"
-                subtitle="Bạn sẽ nhận được quyền lợi gì ?"
-                benefits={[
-                  'Giải đề TOPIK tối đa 2 đề/ngày',
-                  'Chơi Minigame tối đa 5 lần/ngày',
-                  'Bị giới hạn số lần sử dụng AI trong một ngày',
-                  'Sử dụng được hệ thống Flashcard',
-                ]}
-                priceLabel="Miễn phí"
-              />
-              {/* Nút Quay lại */}
-              <View style={styles.buttonContainerLeft}>
-                <BackButton />
-              </View>
+            <View style={styles.cardWrapper}>
+              <PackageFree />
             </View>
 
-            {/* Gạch đen chia cách */}
-            <View style={styles.divider} />
-
-            {/* Card Premium bên phải */}
-            <View style={styles.rightCard}>
+            <View style={styles.cardWrapper}>
               <PackagePremium />
-              {/* Nút Xem chi tiết các gói */}
-              <View style={styles.buttonContainerRight}>
-                <ViewDetailPackageButton />
-              </View>
             </View>
           </View>
         </View>
@@ -60,49 +40,46 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFDF9',
     alignItems: 'center',
-    paddingVertical: 40,
+    paddingVertical: 30, // Reduced from 60
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 20, // Reduced from 40
+  },
+  title: {
+    fontSize: 40, // Reduced from 48
+    fontWeight: '900',
+    color: '#1A1A1A',
+    fontFamily: 'Lexend, sans-serif',
+    marginBottom: 8,
+  },
+  highlight: {
+    color: '#F9A825',
+    borderBottomWidth: 4,
+    borderBottomColor: '#F9A825',
+  },
+  subtitle: {
+    fontSize: 16, // Reduced from 18
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+    lineHeight: 24,
   },
   wrapper: {
     width: '100%',
-    maxWidth: 1200,
+    maxWidth: 1100,
     paddingHorizontal: 16,
   },
   cardsContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'stretch',
     justifyContent: 'center',
-    gap: 0,
+    gap: 30,
   },
-  leftCard: {
+  cardWrapper: {
     flex: 1,
-    alignItems: 'center',
-    paddingRight: 20,
-  },
-  rightCard: {
-    flex: 1,
-    alignItems: 'center',
-    paddingLeft: 20,
-  },
-  divider: {
-    width: 2,
-    height: 540,
-    backgroundColor: '#000',
-    marginHorizontal: 20,
-    alignSelf: 'center',
-  },
-  buttonContainerLeft: {
-    marginTop: 24,
-    alignItems: 'flex-start',
-    left: 80,
-    width: '100%',
-  },
-  buttonContainerRight: {
-    marginTop: 24,
-    alignItems: 'flex-end',
-    right: 75,
-    width: '100%',
+    maxWidth: 480,
   },
 })
-
