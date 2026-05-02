@@ -56,6 +56,10 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
 
   const [form] = Form.useForm()
 
+  const activeType = useMemo(() => 
+    SYSTEM_CONFIG_TYPES.find(t => t.value === filters.configType) || SYSTEM_CONFIG_TYPES[0]
+  , [filters.configType])
+
   const loadData = useCallback(async (currentFilters) => {
     try {
       setLoading(true)
@@ -310,6 +314,7 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
           onChange={(key) => handleFilterChange('configType', Number(key))}
           style={{ height: '100%', width: '100%', flex: 1 }}
           className="system-config-tabs"
+          destroyInactiveTabPane
           items={SYSTEM_CONFIG_TYPES.map(type => ({
             key: String(type.value),
             label: <ConfigTypeItem type={type} isActive={filters.configType === type.value} />,
@@ -323,8 +328,8 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
               }}>
                 <div style={{ padding: '24px 0', borderBottom: '1px solid #f0f0f0', marginBottom: 24 }}>
                   <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
-                    <span style={{ color: type.color, marginRight: 12 }}>{type.icon}</span>
-                    {type.fullLabel}
+                    <span style={{ color: activeType.color, marginRight: 12 }}>{activeType.icon}</span>
+                    {activeType.fullLabel}
                   </Title>
                 </div>
 
