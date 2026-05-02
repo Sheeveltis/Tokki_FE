@@ -30,11 +30,11 @@ import DictionaryIcon from '../assets/icon/navigate-app/dictionary.svg'
 import UserIcon from '../assets/user.png'
 import LogoutIcon from '../assets/icon/icon-mainflow/logout.svg'
 import StarIcon from '../assets/icon/icon-mainflow/star.svg'
-import { 
-  BellOutlined, 
-  UserOutlined, 
-  LogoutOutlined, 
-  InfoCircleOutlined, 
+import {
+  BellOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  InfoCircleOutlined,
   FileTextOutlined,
   CheckCircleOutlined,
   MessageOutlined,
@@ -93,10 +93,10 @@ const NavItem = ({ icon, label, tint, path, compact = false }) => {
           ]
         }}
       >
-        <IconRenderer 
-          icon={icon} 
-          size={isWeb && !compact ? 24 : 28} 
-          tint={isOnPage ? '#FFB300' : isHighlighted ? '#5D4037' : '#8D6E63'} 
+        <IconRenderer
+          icon={icon}
+          size={isWeb && !compact ? 24 : 28}
+          tint={isOnPage ? '#FFB300' : isHighlighted ? '#5D4037' : '#8D6E63'}
         />
         {isWeb && !compact && (
           <Text
@@ -162,7 +162,7 @@ export const Navbar = ({ position = 'fixed' }) => {
       { label: 'Từ vựng', icon: FlashcardIcon, path: '/flashcard', tint: colors.background },
       { label: 'Từ điển', icon: DictionaryIcon, path: '/dictionary', tint: colors.neutralBlack },
       { label: 'Blog', icon: BlogIcon, path: '/blog', tint: colors.DarkPink },
-      { label: 'Xếp hạng', icon: LeaderboardIcon, path: '/leaderboard', tint: colors.LightGreen },
+      // { label: 'Xếp hạng', icon: LeaderboardIcon, path: '/leaderboard', tint: colors.LightGreen },
     ],
     []
   )
@@ -210,16 +210,16 @@ export const Navbar = ({ position = 'fixed' }) => {
         <Image source={BackgroundImage} style={styles.bgImage} resizeMode="cover" />
 
         <View style={[styles.headerInner, isMobile && styles.headerInnerMobile]}>
-          <TouchableOpacity 
-            style={styles.logoButton} 
+          <TouchableOpacity
+            style={styles.logoButton}
             onPress={() => router.push('/homepage')}
             activeOpacity={0.7}
           >
             <View style={[styles.logoIconContainer, isMobile && styles.logoIconMobile]}>
-              <Image 
-                source={LogoNewIcon} 
-                style={styles.logoIconImage} 
-                resizeMode="contain" 
+              <Image
+                source={LogoNewIcon}
+                style={styles.logoIconImage}
+                resizeMode="contain"
               />
             </View>
             <Text style={[styles.logoText, isMobile && styles.logoTextMobile]}>Tokki</Text>
@@ -265,7 +265,7 @@ export const Navbar = ({ position = 'fixed' }) => {
                               { label: 'Chưa đọc', value: NotificationReadFilter.Unread },
                               { label: 'Đã đọc', value: NotificationReadFilter.Read }
                             ].map(tab => (
-                              <TouchableOpacity 
+                              <TouchableOpacity
                                 key={tab.value}
                                 onPress={() => {
                                   setNotiFilter(tab.value)
@@ -279,7 +279,7 @@ export const Navbar = ({ position = 'fixed' }) => {
                               </TouchableOpacity>
                             ))}
                           </View>
-                          
+
                           <ScrollView style={styles.notiList} showsVerticalScrollIndicator={true}>
                             {notifications.length > 0 ? (
                               notifications.map((noti) => {
@@ -296,8 +296,8 @@ export const Navbar = ({ position = 'fixed' }) => {
                                 })()
 
                                 return (
-                                  <TouchableOpacity 
-                                    key={noti.id} 
+                                  <TouchableOpacity
+                                    key={noti.id}
                                     onPress={() => {
                                       markAsRead(noti.id)
                                     }}
@@ -319,8 +319,8 @@ export const Navbar = ({ position = 'fixed' }) => {
                                       <View style={styles.notiItemFooter}>
                                         <ClockCircleOutlined style={{ fontSize: 10, color: '#BDBDBD', marginRight: 4 }} />
                                         <Text style={styles.notiItemTime}>
-                                          {new Date(noti.createdAt).toLocaleString('vi-VN', { 
-                                            hour: '2-digit', 
+                                          {new Date(noti.createdAt).toLocaleString('vi-VN', {
+                                            hour: '2-digit',
                                             minute: '2-digit',
                                             day: '2-digit',
                                             month: '2-digit'
@@ -333,12 +333,12 @@ export const Navbar = ({ position = 'fixed' }) => {
                               })
                             ) : (
                               <View style={styles.emptyNoti}>
-                                <View style={{ 
-                                  width: 64, 
-                                  height: 64, 
-                                  borderRadius: 32, 
-                                  backgroundColor: '#FAF9F6', 
-                                  alignItems: 'center', 
+                                <View style={{
+                                  width: 64,
+                                  height: 64,
+                                  borderRadius: 32,
+                                  backgroundColor: '#FAF9F6',
+                                  alignItems: 'center',
                                   justifyContent: 'center',
                                   marginBottom: 16
                                 }}>
@@ -349,8 +349,8 @@ export const Navbar = ({ position = 'fixed' }) => {
                               </View>
                             )}
                           </ScrollView>
-                          
-                          <TouchableOpacity 
+
+                          <TouchableOpacity
                             onPress={() => router.push('/notifications')}
                             style={styles.notiFooter}
                           >
@@ -396,10 +396,10 @@ export const Navbar = ({ position = 'fixed' }) => {
                     >
                       <Pressable style={({ pressed }) => [styles.userIconBtn, pressed && styles.iconActionPressed]}>
                         {userAvatar ? (
-                          <Image 
-                            source={{ uri: userAvatar }} 
-                            style={styles.avatarImage} 
-                            resizeMode="cover" 
+                          <Image
+                            source={{ uri: userAvatar }}
+                            style={styles.avatarImage}
+                            resizeMode="cover"
                           />
                         ) : (
                           <UserOutlined style={{ fontSize: 20, color: '#FFFFFF' }} />
@@ -411,10 +411,10 @@ export const Navbar = ({ position = 'fixed' }) => {
                       onPress={() => router.push(`/users/${getCurrentUserId() || 'me'}`)}
                       style={({ pressed }) => [styles.iconActionBtn, pressed && styles.iconActionPressed]}
                     >
-                      <Image 
-                        source={userAvatar ? { uri: userAvatar } : UserIcon} 
-                        style={[styles.avatar, isMobile && styles.avatarMobile]} 
-                        resizeMode="cover" 
+                      <Image
+                        source={userAvatar ? { uri: userAvatar } : UserIcon}
+                        style={[styles.avatar, isMobile && styles.avatarMobile]}
+                        resizeMode="cover"
                       />
                     </Pressable>
                   )}
@@ -439,12 +439,12 @@ export const Navbar = ({ position = 'fixed' }) => {
             {navMenu.map((item) => {
               const isOnPage = pathname === item.path || (item.path !== '/' && item.path !== '/homepage' && pathname?.startsWith(item.path))
               const activeColor = item.tint || '#78905E'
-              
+
               return (
                 <TouchableOpacity
                   key={item.path}
                   style={[
-                    styles.mobileMenuItem, 
+                    styles.mobileMenuItem,
                     isOnPage && { backgroundColor: activeColor + '10', borderLeftColor: activeColor, borderLeftWidth: 4 }
                   ]}
                   onPress={() => {
@@ -452,10 +452,10 @@ export const Navbar = ({ position = 'fixed' }) => {
                     setMobileMenuOpen(false)
                   }}
                 >
-                  <IconRenderer 
-                    icon={item.icon} 
-                    size={24} 
-                    tint={isOnPage ? '#FFB300' : '#8D6E63'} 
+                  <IconRenderer
+                    icon={item.icon}
+                    size={24}
+                    tint={isOnPage ? '#FFB300' : '#8D6E63'}
                   />
                   <Text style={[
                     styles.mobileMenuText,
@@ -656,7 +656,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#EEDCC5', 
+    backgroundColor: '#EEDCC5',
     overflow: 'hidden',
     ...(Platform.OS === 'web' && {
       transition: 'all 0.2s ease',
@@ -678,8 +678,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
-    ...(Platform.OS === 'web' 
-      ? { boxShadow: '0 2px 4px rgba(0,0,0,0.1)' } 
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }
       : { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 2 }
     ),
   },

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, Image, Pressable, StyleSheet, ActivityIndicator } from 'react-native'
+import { View, Text, Image, Pressable, StyleSheet, ActivityIndicator, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
+import { CreditCardOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
 import { getVipPackages, createVipPackagePayment } from '../../api/premium-package-api'
 import { getCurrentUserId } from '../../../../provider/api/client'
 
@@ -27,21 +28,25 @@ const PackageItem = ({ pkg, isSelected, onSelect, loading }) => {
       onHoverOut={() => setIsHovered(false)}
       style={[
         styles.packageItem,
-        isSpecial && styles.specialPackage,
         isSelected && styles.selectedPackage,
-        (isHovered || isSelected) && { borderColor: '#FF4D6D' }
+        (isHovered && !isSelected) && { borderColor: '#FFBCC8' },
+        isSelected && { transform: [{ scale: 1.02 }] }
       ]}
     >
       {/* Badge */}
       {pkg.badge && (
-        <View style={[styles.badge, isSpecial && { backgroundColor: '#FF4D6D' }]}>
+        <View style={[styles.badge, isSpecial && { backgroundColor: '#FF4D6D' }, !isSpecial && isSelected && { backgroundColor: '#FF4D6D' }]}>
           <Text style={styles.badgeText}>{pkg.badge.text}</Text>
         </View>
       )}
 
       {/* Icon */}
-      <View style={[styles.packageIcon, isSpecial && { backgroundColor: '#FF4D6D' }]}>
-         <Text style={{ color: isSpecial ? '#fff' : '#A0AEC0', fontSize: 18 }}>💳</Text>
+      <View style={[styles.packageIcon, isSelected && { backgroundColor: '#FF4D6D' }]}>
+        {Platform.OS === 'web' ? (
+          <CreditCardOutlined style={{ color: isSelected ? '#fff' : '#A0AEC0', fontSize: 20 }} />
+        ) : (
+          <Text style={{ color: isSelected ? '#fff' : '#A0AEC0', fontSize: 18 }}>💳</Text>
+        )}
       </View>
 
       {/* Info */}
@@ -56,14 +61,20 @@ const PackageItem = ({ pkg, isSelected, onSelect, loading }) => {
           {new Intl.NumberFormat('vi-VN').format(pkg.totalPrice)} <Text style={styles.currency}>VNĐ</Text>
         </Text>
         <Text style={styles.pricePerMonth}>
-          ~{new Intl.NumberFormat('vi-VN').format(pkg.pricePerMonth)} VNĐ / tháng
+          ~{new Intl.NumberFormat('vi-VN').format(pkg.pricePerDay)} VNĐ / ngày
         </Text>
       </View>
 
       {/* Buy Button */}
-      <View style={[styles.buyButton, isSpecial && styles.specialBuyButton, !isSpecial && { backgroundColor: '#E8EEF4' }]}>
-        <Text style={[styles.buyButtonText, isSpecial && { color: '#fff' }, !isSpecial && { color: '#A0AEC0' }]}>
-          {loading === pkg.id ? <ActivityIndicator size="small" color="#fff" /> : 'MUA'}
+      <View style={[
+        styles.buyButton,
+        isSelected ? styles.specialBuyButton : { backgroundColor: '#E8EEF4' }
+      ]}>
+        <Text style={[
+          styles.buyButtonText,
+          isSelected ? { color: '#fff' } : { color: '#A0AEC0' }
+        ]}>
+          {loading === pkg.id ? <ActivityIndicator size="small" color="#fff" /> : (isSelected ? 'CHỌN' : 'MUA')}
         </Text>
       </View>
     </Pressable>
@@ -82,26 +93,42 @@ export const ChoosePackage = () => {
       try {
         const response = await getVipPackages()
         if (response.isSuccess && response.data) {
-          const mapped = response.data
-            .filter(pkg => pkg.isActive)
-            .map(pkg => {
-              const months = pkg.durationDays / 30
-              const pricePerMonth = months > 0 ? Math.round(pkg.price / months) : pkg.price
-              let badge = null
-              if (pkg.durationDays === 30) badge = { text: 'PHỔ BIẾN' }
-              else if (pkg.durationDays === 90) badge = { text: 'TIẾT KIỆM 8%' }
-              else if (pkg.durationDays === 180) badge = { text: 'TIẾT KIỆM 15%' }
+          const activePackages = response.data.filter(pkg => pkg.isActive)
 
-              return {
-                id: pkg.id,
-                name: pkg.name,
-                durationDays: pkg.durationDays,
-                duration: pkg.durationDays >= 30 ? `${Math.floor(pkg.durationDays / 30)} Tháng` : `${pkg.durationDays} Ngày`,
-                totalPrice: pkg.price,
-                pricePerMonth: pricePerMonth,
-                badge: badge,
+          // Find the base price (30 days) to calculate discounts
+          const basePkg = activePackages.find(p => p.durationDays === 30)
+          const basePricePerMonth = basePkg ? basePkg.price : null
+
+          const mapped = activePackages.map(pkg => {
+            const price = Number(pkg.price) || 0
+            const durationDays = Number(pkg.durationDays) || 0
+
+            const months = durationDays / 30
+            const pricePerMonth = months > 0 ? Math.round(price / months) : price
+            const pricePerDay = durationDays > 0 ? Math.round(price / durationDays) : price
+
+            let badge = null
+            if (durationDays === 30) {
+              badge = { text: 'PHỔ BIẾN' }
+            } else if (basePricePerMonth && months > 1) {
+              // Calculate discount compared to base price
+              const discount = Math.round((1 - (pricePerMonth / basePricePerMonth)) * 100)
+              if (discount > 0) {
+                badge = { text: `TIẾT KIỆM ${discount}%` }
               }
-            })
+            }
+
+            return {
+              id: pkg.id,
+              name: pkg.name,
+              durationDays: durationDays,
+              duration: durationDays >= 30 ? `${Math.floor(durationDays / 30)} Tháng` : `${durationDays} Ngày`,
+              totalPrice: price,
+              pricePerMonth: pricePerMonth,
+              pricePerDay: pricePerDay,
+              badge: badge,
+            }
+          })
           setPackages(mapped)
           if (mapped.length > 0) setSelectedId(mapped[0].id)
         }
@@ -117,7 +144,7 @@ export const ChoosePackage = () => {
   const handleContinue = async () => {
     if (!selectedId) return
     const pkg = packages.find(p => p.id === selectedId)
-    
+
     try {
       setLoading(selectedId)
       const userId = getCurrentUserId()
@@ -137,9 +164,14 @@ export const ChoosePackage = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Chọn gói đăng ký ⚡</Text>
+        <Text style={styles.title}>Chọn gói đăng ký</Text>
         <View style={styles.securePayment}>
-          <Text style={styles.secureText}>🛡️ THANH TOÁN AN TOÀN</Text>
+          {Platform.OS === 'web' ? (
+            <SafetyCertificateOutlined style={{ color: '#00C48C', fontSize: 14, marginRight: 6 }} />
+          ) : (
+            <Text style={{ marginRight: 4 }}>🛡️</Text>
+          )}
+          <Text style={styles.secureText}>THANH TOÁN AN TOÀN</Text>
         </View>
       </View>
 

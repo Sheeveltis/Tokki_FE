@@ -32,11 +32,11 @@ export const Card = ({
       style={[
         {
           width: 440,
-          minHeight: 700,
+          minHeight: 500,
           borderRadius: 40,
           backgroundColor: '#FFFFFF',
           paddingHorizontal: 40,
-          paddingTop: 50,
+          paddingTop: 40,
           paddingBottom: 40,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 10 },
@@ -49,21 +49,7 @@ export const Card = ({
         style,
       ]}
     >
-      {/* Icon Crown */}
-      <View style={{ marginBottom: 30 }}>
-        <View
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: 16,
-            backgroundColor: '#FFF0F3',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Text style={{ fontSize: 24 }}>👑</Text>
-        </View>
-      </View>
+
 
       <View style={{ flex: 1 }}>
         {/* Title + subtitle */}
@@ -137,38 +123,6 @@ export const Card = ({
         </View>
       </View>
 
-      {/* Bottom Illustration Box */}
-      <View
-        style={{
-          marginTop: 40,
-          backgroundColor: '#FFF0F3',
-          borderRadius: 24,
-          padding: 24,
-          alignItems: 'center',
-          position: 'relative',
-        }}
-      >
-        <Image
-          source={normalizeImageSource(LogoImage)}
-          style={{
-            width: 180,
-            height: 100,
-            resizeMode: 'contain',
-            marginBottom: 12,
-          }}
-        />
-        <Text
-          style={{
-            fontSize: 15,
-            fontWeight: '800',
-            color: '#C9184A',
-            fontFamily: 'Lexend, sans-serif',
-            textAlign: 'center',
-          }}
-        >
-          Học không giới hạn cùng Thỏ!
-        </Text>
-      </View>
     </View>
   )
 }

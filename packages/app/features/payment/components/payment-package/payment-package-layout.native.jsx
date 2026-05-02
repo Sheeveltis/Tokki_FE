@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     backgroundColor: '#fff',
-    paddingBottom: 80, // Padding for navbar
+    // paddingBottom: 80, // Removed padding for navbar as requested
   },
   titleContainer: {
     paddingTop: 20,
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 20,
-    paddingBottom: 20, // Extra padding for navbar
+    // paddingBottom: 20, // Removed extra padding for navbar
     gap: 8,
   },
   dot: {

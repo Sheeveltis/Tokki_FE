@@ -382,7 +382,8 @@ export function PublicLayout() {
     location.pathname.startsWith('/minigame/wordle/wordle-play')
   const isAlphabetRoute = location.pathname.startsWith('/alphabet')
   const isTopikRoute = location.pathname.startsWith('/topik')
-  const shouldHideFooter = isRoadmapRoute || isStudyRoute || isFlashcardRoute || isProfileRoute || isBlogManagementRoute || isPlayScreen || isAlphabetRoute || isTopikRoute
+  const isPaymentRoute = location.pathname.startsWith('/payment-package') || location.pathname.startsWith('/premium-package') || location.pathname.startsWith('/payment-detail') || location.pathname.startsWith('/payment-failed') || location.pathname.startsWith('/payment-success')
+  const shouldHideFooter = isRoadmapRoute || isStudyRoute || isFlashcardRoute || isProfileRoute || isBlogManagementRoute || isPlayScreen || isAlphabetRoute || isTopikRoute || isPaymentRoute
 
 
   // Hide Navbar for specific distraction-free screens
