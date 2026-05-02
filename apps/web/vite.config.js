@@ -32,6 +32,7 @@ export default defineConfig({
       'assets': path.resolve(__dirname, '../..', 'packages/assets'),
       // Solito navigation wrapper cho web
       'solito/navigation': path.resolve(__dirname, '../..', 'packages/app/provider/navigation/solito-web.tsx'),
+      '@react-native/assets-registry/registry': 'react-native-web/dist/modules/AssetRegistry',
     },
     dedupe: ['react', 'react-dom'],
     extensions: [
