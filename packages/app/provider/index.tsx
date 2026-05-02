@@ -21,10 +21,14 @@ if (Platform.OS === 'android') {
 
 import { XpProvider } from './xp'
 import { NotificationProvider } from './notification'
+import { initAuthToken } from './api/client'
 
 export function Provider({ children }: { children: React.ReactNode }) {
   // Set navigation bar color thành đen khi app load
   useEffect(() => {
+    // Khởi tạo token từ storage vào memory
+    initAuthToken().catch((err) => console.error('Failed to init auth token:', err))
+
     if (Platform.OS === 'android') {
       if (setBackgroundColorAsync) {
         setBackgroundColorAsync('#000000').catch(() => { }) // Màu đen
