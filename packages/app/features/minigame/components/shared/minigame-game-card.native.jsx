@@ -1,9 +1,6 @@
 import React, { useState } from 'react'
 import { Image, StyleSheet, View, Text, Pressable, Platform } from 'react-native'
-import CarrotImage from '../../../../../assets/carrot.png'
 import BunnyDeveloping from '../../../../../assets/bunny/9.png'
-import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
-import { StudyIcon } from '../../../study/components/study-icon.web'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -14,27 +11,9 @@ const normalizeImageSource = (src) => {
 }
 
 /**
- * Game Type mapping:
- * 1 = Matching Card
- * 2 = Solitaire
- * 3 = Typing Practice
- */
-const GAME_TYPE_NAMES = {
-  1: 'Lật thẻ bài từ vựng',
-  2: 'Solitaire',
-  3: 'Luyện gõ phím',
-}
-
-/**
- * Game Card Component - Hiển thị game card với image từ API
- * @param {{ 
- *   game: { gameId: string; gameName: string; gameType: number; isVip: boolean; imgUrl: string };
- *   onPress?: () => void;
- * }} props
+ * Game Card Component (Native) - Hiển thị game card với tỷ lệ ngang thu nhỏ cho mobile
  */
 export function MinigameGameCard({ game, onPress }) {
-  const [hovered, setHovered] = useState(false)
-
   const content = (
     <View style={styles.cardInner}>
       <View style={styles.imageSection}>
@@ -65,11 +44,9 @@ export function MinigameGameCard({ game, onPress }) {
   return (
     <Pressable
       onPress={onPress}
-      onHoverIn={() => Platform.OS === 'web' && setHovered(true)}
-      onHoverOut={() => Platform.OS === 'web' && setHovered(false)}
       style={({ pressed }) => [
         styles.card,
-        (pressed || hovered) && styles.cardActive,
+        pressed && styles.cardActive,
         styles.pressable,
       ]}
     >
@@ -81,35 +58,33 @@ export function MinigameGameCard({ game, onPress }) {
 const styles = StyleSheet.create({
   pressable: {
     width: '100%',
-    aspectRatio: 1, // Trả về tỷ lệ vuông cho bản Web
-    ...(Platform.OS === 'web' && { cursor: 'pointer' }),
+    height: 300, // Giảm chiều cao tổng thể để bớt khoảng trắng dư thừa
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#F0F0F0',
     overflow: 'hidden',
     width: '100%',
     height: '100%',
-    ...(Platform.OS === 'web' && {
-      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-    }),
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
   cardActive: {
-    transform: [{ translateY: -6 }],
+    transform: [{ scale: 0.98 }],
     borderColor: '#F1BE4B50',
-    ...(Platform.OS === 'web' && {
-      boxShadow: '0 12px 24px rgba(241, 190, 75, 0.12)',
-    }),
+    backgroundColor: '#F9F9F9',
   },
   cardInner: {
     flex: 1,
     flexDirection: 'column',
   },
   imageSection: {
-    flex: 2, // Tỷ lệ 2/3 cho Web
+    flex: 2, // Tăng diện tích hình ảnh để lấp đầy khoảng trống
     backgroundColor: '#FEF7E6',
     overflow: 'hidden',
   },
@@ -118,10 +93,9 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   contentSection: {
-    flex: 1, // Tỷ lệ 1/3 cho Web
-    padding: 16,
-    gap: 4,
-    justifyContent: 'center',
+    flex: 1, // Phần chữ chiếm diện tích vừa đủ
+    padding: 12,
+    justifyContent: 'flex-start', // Đưa chữ lên trên để bớt trống bên dưới
   },
   headerRow: {
     flexDirection: 'row',
@@ -130,30 +104,28 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '800',
     color: '#1A1A1A',
     fontFamily: 'Lexend, sans-serif',
     flex: 1,
   },
   description: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#999', // Mờ chữ (faded)
+    fontSize: 12,
+    lineHeight: 16,
+    color: '#888',
     fontFamily: 'Epilogue, sans-serif',
-    opacity: 0.8,
+    marginTop: 2,
   },
   vipBadge: {
     backgroundColor: '#FFD70033',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
   },
   vipText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '800',
     color: '#8B4513',
-    fontFamily: 'Epilogue, sans-serif',
   },
 })
-

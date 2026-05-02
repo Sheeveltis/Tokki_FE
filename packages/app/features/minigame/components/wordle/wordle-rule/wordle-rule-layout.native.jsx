@@ -6,7 +6,8 @@ import WordleRule from './wordle-rule'
 import WordleLevelPopup from './wordle-level-popup'
 import { getWordleLevelByDifficulty, getWordleLevels } from '../../../api/wordle-level-api'
 import { LoginRequest } from '../../../../../../components/loginRequest'
-import { getAuthToken, isCurrentTokenExpired } from '../../../../../provider/api/client'
+import { getAuthToken, getAuthTokenAsync, isCurrentTokenExpired, isCurrentTokenExpiredAsync } from '../../../../../provider/api/client'
+import { Platform } from 'react-native'
 
 export function WordleRuleLayoutNative() {
   const navigation = useNavigation()
@@ -16,8 +17,10 @@ export function WordleRuleLayoutNative() {
   const [showLoginRequest, setShowLoginRequest] = useState(false)
 
   const handleOpenLevelPopup = async () => {
-    const token = getAuthToken()
-    const isAuthed = Boolean(token) && !isCurrentTokenExpired()
+    const token = await getAuthTokenAsync()
+    const isAuthed = Platform.OS === 'web'
+      ? (Boolean(token) && !(await isCurrentTokenExpiredAsync()))
+      : Boolean(token)
 
     if (!isAuthed) {
       setShowLoginRequest(true)

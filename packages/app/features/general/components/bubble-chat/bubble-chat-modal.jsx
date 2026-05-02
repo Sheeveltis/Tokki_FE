@@ -11,6 +11,8 @@ import UserAvatar from '../../../../../assets/user.png'
 import './bubble-chat-style.css'
 import { LoginRequest } from '../../../../../components/loginRequest'
 import { getAuthToken } from '../../../../provider/api/client'
+import EmojiPickerWrapper from './EmojiPickerWrapper'
+import EmojiIcon from './EmojiIcon'
 
 const BubbleChat = () => {
   const [showLoginRequest, setShowLoginRequest] = useState(false)
@@ -28,10 +30,17 @@ const BubbleChat = () => {
     messagesEndRef,
     isConnected,
     currentUserId,
+    isInitializing,
     handleStartConsultation,
     handleSendMessage,
     handleKeyPress,
   } = useBubbleChatLogic()
+
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+
+  const onEmojiClick = (emojiData) => {
+    setInputMessage((prev) => prev + emojiData.emoji)
+  }
 
   const handleToggleChat = () => {
     if (isOpen) {
@@ -52,9 +61,10 @@ const BubbleChat = () => {
 
     messages.forEach((msg, index) => {
       const isMine = msg.isFromCurrentUser || (currentUserId && msg.senderId === currentUserId)
+      const isSystem = msg.isSystem || msg.type === 'System' || !msg.senderId
       const messageContent = msg.content || msg.message || msg.text || msg.contentText || ''
 
-      if (!messageContent && !isMine) return
+      if (!messageContent && !isMine && !isSystem) return
 
       const currentTime = msg.timestamp
         ? new Date(msg.timestamp).getTime()
@@ -68,22 +78,27 @@ const BubbleChat = () => {
           ? new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
           : ''
 
+      // Xử lý tin nhắn hệ thống
+      if (isSystem) {
+        result.push(
+          <div key={`sys-${index}`} className="message-time-separator">
+            <span>{messageContent}</span>
+          </div>
+        )
+        return
+      }
+
       let isSequence = false
       let showTimeSeparator = false
-      let isLastInGroup = true
 
       if (index > 0) {
         const prevMsg = messages[index - 1]
-        const prevIsMine =
-          prevMsg.isFromCurrentUser || (currentUserId && prevMsg.senderId === currentUserId)
+        const prevIsMine = prevMsg.isFromCurrentUser || (currentUserId && prevMsg.senderId === currentUserId)
         const prevTime = prevMsg.timestamp
           ? new Date(prevMsg.timestamp).getTime()
-          : prevMsg.createdAt
-            ? new Date(prevMsg.createdAt).getTime()
-            : Date.now()
+          : prevMsg.createdAt ? new Date(prevMsg.createdAt).getTime() : Date.now()
 
         const timeDiff = (currentTime - prevTime) / 1000 / 60
-
         if (isMine === prevIsMine && timeDiff < 5) {
           isSequence = true
         } else {
@@ -93,25 +108,8 @@ const BubbleChat = () => {
         showTimeSeparator = true
       }
 
-      if (index < messages.length - 1) {
-        const nextMsg = messages[index + 1]
-        const nextIsMine =
-          nextMsg.isFromCurrentUser || (currentUserId && nextMsg.senderId === currentUserId)
-        const nextTime = nextMsg.timestamp
-          ? new Date(nextMsg.timestamp).getTime()
-          : nextMsg.createdAt
-            ? new Date(nextMsg.createdAt).getTime()
-            : Date.now()
-
-        const timeDiff = (nextTime - currentTime) / 1000 / 60
-
-        if (isMine === nextIsMine && timeDiff < 5) {
-          isLastInGroup = false
-        }
-      }
-
-      const senderName = !isMine ? msg.senderName || 'Nhân viên hỗ trợ' : null
-      const senderAvatar = !isMine ? msg.senderAvatar || UserAvatar : null
+      const senderName = isMine ? 'Bạn' : (msg.senderName || 'Nhân viên hỗ trợ')
+      const senderAvatar = isMine ? (msg.senderAvatar || UserAvatar) : (msg.senderAvatar || UserAvatar)
 
       if (showTimeSeparator && index > 0) {
         result.push(
@@ -124,29 +122,37 @@ const BubbleChat = () => {
       result.push(
         <div
           key={index}
-          className={`message ${isMine ? 'message-sent' : 'message-received'} ${
-            isSequence ? 'middle-of-group' : 'first-of-group'
-          }`}
+          className={`message ${isMine ? 'message-sent' : 'message-received'}`}
         >
-          {!isMine && isLastInGroup && messageContent && (
+          {!isMine && (
             <div className="message-avatar-container">
               <img
                 src={senderAvatar}
                 alt={senderName}
                 className="message-avatar"
-                onError={(e) => {
-                  e.target.src = UserAvatar
-                }}
+                onError={(e) => { e.target.src = UserAvatar }}
               />
             </div>
           )}
+          
           <div className="message-content-wrapper">
-            {!isMine && !isSequence && messageContent && (
+            {!isMine && !isSequence && (
               <div className="message-sender-name">{senderName}</div>
             )}
-            <div className="message-content message-bubble">{messageContent}</div>
-            {!isSequence && <div className="message-time">{messageTime}</div>}
+            <div className="message-bubble">{messageContent}</div>
+            <div className="message-time">{messageTime}</div>
           </div>
+
+          {isMine && (
+            <div className="message-avatar-container" style={{ marginRight: 0, marginLeft: 8 }}>
+              <img
+                src={senderAvatar}
+                alt={senderName}
+                className="message-avatar"
+                onError={(e) => { e.target.src = UserAvatar }}
+              />
+            </div>
+          )}
         </div>
       )
     })
@@ -199,20 +205,12 @@ const BubbleChat = () => {
             </div>
           </div>
 
-          {isQueueing && isConnected && !hasSupporter && (
-            <div className="chat-queue-status">
-              <div className="waiting-bunny-container">
-                <img src={WaitingBubbleChat} alt="Waiting" className="waiting-bunny" />
-              </div>
-              <p>
-                Đang kết nối nhân viên tư vấn... <br />
-                Bạn có thể để lại lời nhắn, nhân viên sẽ trả lời ngay khi vào phòng.
-              </p>
-            </div>
-          )}
-
           <div className="chat-messages">
-            {!roomId ? (
+            {isInitializing ? (
+              <div className="welcome-message">
+                <p>Đang kiểm tra kết nối...</p>
+              </div>
+            ) : !roomId ? (
               <div className="welcome-message">
                 <div className="point-down-bunny-container">
                   <img src={PointDownSide} alt="Point down" className="point-down-bunny" />
@@ -230,24 +228,55 @@ const BubbleChat = () => {
             ) : (
               <>
                 {renderMessageList()}
+                {isQueueing && isConnected && !hasSupporter && (
+                  <div className="chat-queue-status" style={{ borderBottom: 'none', background: 'transparent' }}>
+                    <div className="waiting-bunny-container">
+                      <img src={WaitingBubbleChat} alt="Waiting" className="waiting-bunny" />
+                    </div>
+                    <p style={{ fontSize: '12px', color: '#666' }}>
+                      Đang kết nối nhân viên tư vấn... <br />
+                      Bạn có thể để lại lời nhắn, nhân viên sẽ trả lời ngay khi vào phòng.
+                    </p>
+                  </div>
+                )}
                 <div ref={messagesEndRef} />
               </>
             )}
           </div>
 
           {roomId && (
-            <div className="chat-input-container">
-              <input
-                type="text"
-                className="chat-input"
-                placeholder="Vui lòng nhập tin nhắn..."
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                disabled={!isConnected}
-              />
+            <div className="chat-footer">
+              <div className="chat-input-container">
+                <input
+                  type="text"
+                  className="chat-input"
+                  placeholder="Vui lòng nhập tin nhắn..."
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  disabled={!isConnected}
+                />
+                <button
+                  className="emoji-btn"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  type="button"
+                >
+                  <EmojiIcon style={{ fontSize: '20px', color: '#64748b' }} />
+                </button>
+
+                {showEmojiPicker && (
+                  <div className="emoji-picker-container">
+                    <EmojiPickerWrapper
+                      onEmojiClick={onEmojiClick}
+                      autoFocusSearch={false}
+                      width={300}
+                      height={400}
+                    />
+                  </div>
+                )}
+              </div>
               <button
-                className="send-btn"
+                className="send-btn circular-send-btn"
                 onClick={handleSendMessage}
                 disabled={!inputMessage.trim() || !isConnected}
               >

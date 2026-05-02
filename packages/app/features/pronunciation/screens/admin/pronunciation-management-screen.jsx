@@ -1,11 +1,21 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Space, message, Modal, Tooltip, Tag, InputNumber } from 'antd'
-import { EyeOutlined, EditOutlined, PlusOutlined, DeleteOutlined, SwapOutlined } from '@ant-design/icons'
-import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
-import { getPronunciationRules, createPronunciationRule, deletePronunciationRule } from '../../api/index.js'
+import { Space, message, Modal, Tooltip, Tag, InputNumber, Button, Table } from 'antd'
+import { 
+  getPronunciationRules, 
+  createPronunciationRule, 
+  deletePronunciationRule, 
+  reorderPronunciationRule, 
+  updatePronunciationRule,
+  importPronunciationRulesFromExcel,
+  exportPronunciationRulesToExcel,
+  downloadPronunciationTemplate
+} from '../../api/index.js'
+import { PlusOutlined, DownloadOutlined, UploadOutlined, FileExcelOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import PronunciationRuleDetail from './components/pronunciation-rule-detail.jsx'
 import PronunciationRuleCreateModal from './components/pronunciation-rule-create-modal.jsx'
+import PronunciationRuleList from './components/pronunciation-rule-list.jsx'
+import PronunciationRuleEditModal from './components/pronunciation-rule-edit-modal.jsx'
 
 export function PronunciationManagementScreen({ basePath = '/admin' }) {
   const router = useRouter()
@@ -16,15 +26,24 @@ export function PronunciationManagementScreen({ basePath = '/admin' }) {
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [createLoading, setCreateLoading] = useState(false)
   
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingRule, setEditingRule] = useState(null)
+  const [editLoading, setEditLoading] = useState(false)
+
   const [orderModalOpen, setOrderModalOpen] = useState(false)
   const [orderRule, setOrderRule] = useState(null)
   const [orderValue, setOrderValue] = useState(null)
+
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState(null)
+  const fileInputRef = React.useRef(null)
 
   const fetchRules = async () => {
     try {
       setLoading(true)
       const data = await getPronunciationRules('admin')
-      setRules(data)
+      // Đảm bảo rules luôn là mảng, hỗ trợ cả trường hợp API trả về object phân trang { items, totalCount }
+      setRules(Array.isArray(data) ? data : (data?.items || []))
     } catch (error) {
       message.error(error.message || 'Không thể tải danh sách quy tắc phát âm')
     } finally {
@@ -37,7 +56,8 @@ export function PronunciationManagementScreen({ basePath = '/admin' }) {
   }, [])
 
   const filteredRules = useMemo(() => {
-    return rules.filter(rule => 
+    if (!Array.isArray(rules)) return []
+    return rules.filter(rule =>
       rule.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       rule.description?.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -57,6 +77,27 @@ export function PronunciationManagementScreen({ basePath = '/admin' }) {
     }
   }
 
+  const handleEdit = async (payload) => {
+    try {
+      setEditLoading(true)
+      await updatePronunciationRule(payload.pronunciationRuleId, payload)
+      message.success('Đã cập nhật quy tắc phát âm thành công')
+      setEditModalOpen(false)
+      setEditingRule(null)
+      
+      // Update selectedRule if we are in detail view
+      if (selectedRule && selectedRule.id === payload.pronunciationRuleId) {
+        setSelectedRule(prev => ({ ...prev, ...payload, title: payload.ruleName }))
+      }
+      
+      fetchRules()
+    } catch (err) {
+      message.error(err.message || 'Cập nhật quy tắc phát âm thất bại')
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
   const handleDeleteRule = (record) => {
     Modal.confirm({
       title: 'Xác nhận xóa quy tắc',
@@ -64,12 +105,12 @@ export function PronunciationManagementScreen({ basePath = '/admin' }) {
       content: `Bạn chắc chắn muốn xóa quy tắc "${record.title}"?`,
       okText: 'Xóa',
       cancelText: 'Hủy',
-      okButtonProps: { 
+      okButtonProps: {
         danger: true,
-        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 }
       },
-      cancelButtonProps: { 
-        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      cancelButtonProps: {
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 }
       },
       onOk: async () => {
         try {
@@ -90,96 +131,99 @@ export function PronunciationManagementScreen({ basePath = '/admin' }) {
     setOrderModalOpen(true)
   }
 
-  const handleUpdateOrderIndex = async () => {
-    // Logic API cho phần chuyển đổi sẽ làm sau như yêu cầu
-    message.info('Tính năng cập nhật thứ tự đang được phát triển')
-    setOrderModalOpen(false)
-    setOrderRule(null)
+  const handleImportClick = () => {
+    fileInputRef.current?.click()
   }
 
-  const columns = [
-    {
-      title: 'Tên quy tắc',
-      dataIndex: 'title',
-      key: 'title',
-      width: 250,
-      render: (text) => (
-        <span style={{ 
-          fontWeight: 600,
-          display: '-webkit-box',
-          WebkitLineClamp: 1,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          wordBreak: 'break-word'
-        }}>
-          {text}
-        </span>
-      )
-    },
-    {
-      title: 'Mô tả',
-      dataIndex: 'description',
-      key: 'description',
-      render: (text) => (
-        <span style={{ 
-          display: '-webkit-box',
-          WebkitLineClamp: 1,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          wordBreak: 'break-word',
-          color: '#8c8c8c'
-        }}>
-          {text}
-        </span>
-      )
-    },
-    {
-      title: 'Thứ tự',
-      dataIndex: 'sortOrder',
-      key: 'sortOrder',
-      align: 'center',
-      width: 100,
-      render: (order) => <Tag color="blue">{order}</Tag>
-    },
-    {
-      title: 'Hành động',
-      key: 'actions',
-      align: 'center',
-      width: 180,
-      render: (_, record) => (
-        <Space size="middle">
-          <Tooltip title="Xem chi tiết">
-            <EyeOutlined
-              style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
-              onClick={() => setSelectedRule(record)}
-            />
-          </Tooltip>
-          <Tooltip title="Chỉnh sửa">
-            <EditOutlined
-              style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
-              onClick={() => router.push(`${basePath}/pronunciation/rules/${record.id}/edit`)}
-            />
-          </Tooltip>
-          <Tooltip title="Xóa">
-            <DeleteOutlined
-              style={{ fontSize: 18, cursor: 'pointer', color: '#ff4d4f' }}
-              onClick={() => handleDeleteRule(record)}
-            />
-          </Tooltip>
-          <Tooltip title="Đổi vị trí">
-            <SwapOutlined
-              style={{ fontSize: 18, cursor: 'pointer', color: '#1890ff' }}
-              onClick={(e) => handleOpenOrderIndexModal(record, e)}
-            />
-          </Tooltip>
-        </Space>
-      ),
-    },
-  ]
+  const handleUpdateOrderIndex = async () => {
+    if (!orderRule || orderValue === null) return
+
+    try {
+      setLoading(true)
+      await reorderPronunciationRule(orderRule.id, orderValue)
+      message.success('Đã thay đổi vị trí quy tắc thành công')
+      setOrderModalOpen(false)
+      setOrderRule(null)
+      fetchRules()
+    } catch (err) {
+      message.error(err.message || 'Thay đổi vị trí thất bại')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      setImporting(true)
+      const result = await importPronunciationRulesFromExcel(file)
+      setImportResult(result)
+      fetchRules()
+    } catch (err) {
+      message.error(err.message || 'Import thất bại')
+    } finally {
+      setImporting(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const handleExportExcel = async () => {
+    try {
+      message.loading({ content: 'Đang chuẩn bị dữ liệu...', key: 'export' })
+      const blob = await exportPronunciationRulesToExcel()
+      const url = window.URL.createObjectURL(new Blob([blob]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `PronunciationRules_${new Date().getTime()}.xlsx`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      message.success({ content: 'Xuất file thành công', key: 'export' })
+    } catch (err) {
+      message.error({ content: err.message || 'Xuất file thất bại', key: 'export' })
+    }
+  }
+
+  const handleDownloadTemplate = async () => {
+    try {
+      message.loading({ content: 'Đang tải template...', key: 'template' })
+      const blob = await downloadPronunciationTemplate()
+      const url = window.URL.createObjectURL(new Blob([blob]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', 'PronunciationTemplate.xlsx')
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      message.success({ content: 'Tải template thành công', key: 'template' })
+    } catch (err) {
+      message.error({ content: err.message || 'Tải template thất bại', key: 'template' })
+    }
+  }
+
 
   const actions = [
+    {
+      label: 'Import',
+      icon: <UploadOutlined />,
+      type: 'dashed',
+      loading: importing,
+      onPress: handleImportClick
+    },
+    {
+      label: 'Export',
+      icon: <DownloadOutlined />,
+      type: 'dashed',
+      onPress: handleExportExcel
+    },
+    {
+      label: 'Tải Template',
+      icon: <DownloadOutlined />,
+      type: 'dashed',
+      onPress: handleDownloadTemplate
+    },
     {
       label: 'Thêm quy tắc',
       icon: <PlusOutlined />,
@@ -190,10 +234,13 @@ export function PronunciationManagementScreen({ basePath = '/admin' }) {
 
   if (selectedRule) {
     return (
-      <PronunciationRuleDetail 
-        rule={selectedRule} 
-        onBack={() => setSelectedRule(null)} 
-        onEdit={() => router.push(`${basePath}/pronunciation/rules/${selectedRule.id}/edit`)}
+      <PronunciationRuleDetail
+        rule={selectedRule}
+        onBack={() => setSelectedRule(null)}
+        onEdit={(rule) => {
+          setEditingRule(rule)
+          setEditModalOpen(true)
+        }}
         onDelete={handleDeleteRule}
       />
     )
@@ -201,22 +248,19 @@ export function PronunciationManagementScreen({ basePath = '/admin' }) {
 
   return (
     <>
-      <ManagementLayout
-        title="Quản lý Phát âm"
-        searchPlaceholder="Tìm theo tên quy tắc, mô tả..."
-        searchValue={searchTerm}
+      <PronunciationRuleList
+        rules={filteredRules}
+        loading={loading}
+        searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         actions={actions}
-        tableProps={{
-          columns,
-          dataSource: filteredRules,
-          loading: loading,
-          rowKey: 'id',
-          pagination: {
-            pageSize: 10,
-            showSizeChanger: true,
-          }
+        onViewDetail={setSelectedRule}
+        onEdit={(record) => {
+          setEditingRule(record)
+          setEditModalOpen(true)
         }}
+        onDelete={handleDeleteRule}
+        onReorder={handleOpenOrderIndexModal}
       />
       <PronunciationRuleCreateModal
         open={createModalOpen}
@@ -224,7 +268,17 @@ export function PronunciationManagementScreen({ basePath = '/admin' }) {
         onCancel={() => setCreateModalOpen(false)}
         onSubmit={handleCreate}
       />
-      
+      <PronunciationRuleEditModal
+        open={editModalOpen}
+        loading={editLoading}
+        rule={editingRule}
+        onCancel={() => {
+          setEditModalOpen(false)
+          setEditingRule(null)
+        }}
+        onSubmit={handleEdit}
+      />
+
       <Modal
         title="Đổi vị trí quy tắc"
         open={orderModalOpen}
@@ -236,11 +290,11 @@ export function PronunciationManagementScreen({ basePath = '/admin' }) {
         }}
         okText="Lưu"
         cancelText="Hủy"
-        okButtonProps={{ 
-          style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+        okButtonProps={{
+          style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 }
         }}
-        cancelButtonProps={{ 
-          style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+        cancelButtonProps={{
+          style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 }
         }}
         centered
         width={420}
@@ -261,6 +315,87 @@ export function PronunciationManagementScreen({ basePath = '/admin' }) {
             />
           </div>
         </div>
+      </Modal>
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        accept=".xlsx, .xls"
+        onChange={handleFileChange}
+      />
+
+      <Modal
+        title="Kết quả Import Excel"
+        open={!!importResult}
+        onCancel={() => setImportResult(null)}
+        footer={[
+          <Button key="close" type="primary" onClick={() => setImportResult(null)}>
+            Đóng
+          </Button>
+        ]}
+        width={800}
+        centered
+      >
+        {importResult && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{
+              padding: 12,
+              borderRadius: 8,
+              backgroundColor: importResult.isSuccess ? '#f6ffed' : '#fff2f0',
+              border: `1px solid ${importResult.isSuccess ? '#b7eb8f' : '#ffccc7'}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12
+            }}>
+              {importResult.isSuccess ? (
+                <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 24 }} />
+              ) : (
+                <CloseCircleOutlined style={{ color: '#ff4d4f', fontSize: 24 }} />
+              )}
+              <div strong style={{ fontSize: 16, fontWeight: 600 }}>{importResult.message}</div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ fontWeight: 600 }}>Chi tiết:</div>
+              <Table
+                size="small"
+                dataSource={[
+                  ...(importResult.data?.successList?.map((item, idx) => ({ ...item, type: 'success', key: `s-${idx}` })) || []),
+                  ...(importResult.data?.failureList?.map((item, idx) => ({ ...item, type: 'failure', key: `f-${idx}` })) || [])
+                ]}
+                columns={[
+                  {
+                    title: 'Tên quy tắc',
+                    dataIndex: 'title',
+                    key: 'title',
+                  },
+                  {
+                    title: 'Mô tả',
+                    dataIndex: 'description',
+                    key: 'description',
+                  },
+                  {
+                    title: 'Kết quả',
+                    dataIndex: 'type',
+                    key: 'type',
+                    width: 120,
+                    render: (type) => (
+                      <Tag color={type === 'success' ? 'green' : 'red'}>
+                        {type === 'success' ? 'Thành công' : 'Thất bại'}
+                      </Tag>
+                    )
+                  },
+                  {
+                    title: 'Lý do',
+                    dataIndex: 'reason',
+                    key: 'reason',
+                  }
+                ]}
+                pagination={{ pageSize: 10 }}
+              />
+            </div>
+          </div>
+        )}
       </Modal>
     </>
   )

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { message } from 'antd'
 import { ChatSupportLayout } from '../components/chat-support/chat-support-layout.web'
-import { getPendingSupport, getMyRooms, joinSupport } from '../api/chat-support'
+import { getPendingSupport, getMyRooms, joinSupport, closeSupport } from '../api/chat-support'
 import { showAdminError } from 'components/HelperAdmin'
 
 export function ChatSupportScreen() {
@@ -58,6 +58,17 @@ export function ChatSupportScreen() {
     }
   }
 
+  const handleCloseRoom = async (roomId) => {
+    try {
+      await closeSupport(roomId)
+      message.success('Đã kết thúc phiên hỗ trợ')
+      setSelectedRoom(null)
+      await loadData()
+    } catch (error) {
+      message.error('Lỗi khi đóng phòng chat')
+    }
+  }
+
   return (
     <ChatSupportLayout
       pendingRooms={pendingRooms}
@@ -66,6 +77,7 @@ export function ChatSupportScreen() {
       loading={loading}
       loadingJoin={loadingJoin}
       onSelectRoom={handleSelectRoom}
+      onCloseRoom={handleCloseRoom}
     />
   )
 }

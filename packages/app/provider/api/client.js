@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { Platform } from 'react-native'
-import { API_BASE_URL } from './endpoints'
+import { API_BASE_URL, ENDPOINTS } from './endpoints'
 import { encryptToken, decryptToken } from '../../helpers/token-encryption'
 import {
   getUserInfoFromToken,
@@ -119,8 +119,19 @@ export const getAuthTokenAsync = async () => {
       storageCache = decryptedToken
       return decryptedToken
     }
+    // Fallback cho token không mã hóa
+    if (isValidJWTFormat(stored)) {
+      inMemoryToken = stored
+      storageCache = stored
+      return stored
+    }
   }
   return null
+}
+
+export const initAuthToken = async () => {
+  await getAuthTokenAsync()
+  await getCurrentUserAvatarAsync()
 }
 
 export const getCurrentUserAvatar = () => {
@@ -180,6 +191,12 @@ export const getCurrentUserRole = () => {
 
 export const isCurrentTokenExpired = () => {
   const token = getAuthToken()
+  if (!token) return true
+  return isTokenExpired(token)
+}
+
+export const isCurrentTokenExpiredAsync = async () => {
+  const token = await getAuthTokenAsync()
   if (!token) return true
   return isTokenExpired(token)
 }
