@@ -15,7 +15,7 @@ export function usePronunciationRules() {
       setLoading(true)
       setError(null)
       const data = await getPronunciationRules('user')
-      setRules(Array.isArray(data) ? data : [])
+      setRules(Array.isArray(data) ? data : (data?.items || []))
     } catch (e) {
       console.error('Error fetching pronunciation rules:', e)
       setError(e?.message || 'Không thể tải danh sách quy tắc phát âm')
