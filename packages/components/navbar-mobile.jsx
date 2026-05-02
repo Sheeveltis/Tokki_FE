@@ -141,7 +141,7 @@ export function NavbarMobile({
     }
     if (!navigation) return
     try {
-      navigation.navigate('wordle-rule')
+      navigation.navigate('minigame')
     } catch (error) {
       console.error('Navigation error:', error)
     }
@@ -203,7 +203,7 @@ export function NavbarMobile({
     <View style={styles.container}>
       {/* Home - Leftmost */}
         <TouchableOpacity style={styles.iconButton} onPress={handleHomePress} activeOpacity={0.7}>
-          {renderIcon(HomeIcon, styles.icon, currentRouteName === 'wordle-rule', '#5E794E')}
+          {renderIcon(HomeIcon, styles.icon, currentRouteName === 'minigame', '#5E794E')}
         </TouchableOpacity>
 
         {/* Flashcard - Second from left */}
