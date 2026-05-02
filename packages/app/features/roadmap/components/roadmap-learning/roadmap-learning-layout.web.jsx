@@ -12,7 +12,7 @@ import { RoadmapTestButton } from '../roadmap-test/roadmap-test-button'
 import { apiClient } from '../../../../provider/api/client'
 import { ENDPOINTS } from '../../../../provider/api/endpoints'
 import { Alert } from 'react-native'
-import { HistoryOutlined } from '@ant-design/icons'
+import { HistoryOutlined, CalendarOutlined } from '@ant-design/icons'
 
 const getTopikPhaseByLevel = (level) => {
   if (level === 1 || level === 2) return 'TOPIK I'
@@ -52,7 +52,9 @@ export function RoadmapLearningLayout({
 
   // ĐỔI MỚI: Quản lý tuần hiện tại
   const [activeWeekIndex, setActiveWeekIndex] = useState(null)
+  const [activeDay, setActiveDay] = useState(null)
   const [hoveredWeekIndex, setHoveredWeekIndex] = useState(null)
+  const [hoveredDay, setHoveredDay] = useState(null)
   const [isHoveredHistory, setIsHoveredHistory] = useState(false)
   const [isHoveredCancel, setIsHoveredCancel] = useState(false)
   const [isHoveredInfo, setIsHoveredInfo] = useState(false)
@@ -305,14 +307,29 @@ export function RoadmapLearningLayout({
   }, [weeks])
 
   // Thống kê bài học của tuần đang chọn
-  const weekStats = useMemo(() => {
-    if (!activeWeek?.tasks) return { completed: 0, total: 0 }
-    const tasks = activeWeek.tasks
-    return {
+  const { weekStats, dayKeys } = useMemo(() => {
+    const tasks = Array.isArray(activeWeek?.tasks) ? activeWeek.tasks : []
+    const stats = {
       completed: tasks.filter(t => t.isCompleted).length,
       total: tasks.length
     }
+    
+    const lessonsByDay = tasks.reduce((acc, task) => {
+      const dayIndex = task.dayIndex || 1
+      if (!acc[dayIndex]) acc[dayIndex] = []
+      acc[dayIndex].push(task)
+      return acc
+    }, {})
+    
+    const keys = Object.keys(lessonsByDay).map(Number).sort((a, b) => a - b)
+    
+    return { weekStats: stats, dayKeys: keys }
   }, [activeWeek])
+
+  const handleDayChange = (day) => {
+    setActiveDay(day)
+    router.replace(`/roadmap/learning?week=${activeWeekIndex}&day=${day}`, undefined, { shallow: true })
+  }
 
   const isActiveWeekNextToCreate = useMemo(() => {
     if (!activeWeek) return false
@@ -431,31 +448,68 @@ export function RoadmapLearningLayout({
               <View style={styles.contentCardInner}>
                 {/* Tóm tắt tuần đang chọn */}
                 <View style={styles.weekFocusArea}>
-                  <View style={styles.weekFocusHeader}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.weekFocusLabel}>NHIỆM VỤ TUẦN {activeWeekIndex}</Text>
-                      <Text style={styles.weekFocusGoal} numberOfLines={2}>
-                        {isActiveWeekNextToCreate
-                          ? 'Vui lòng bấm tạo tuần tiếp theo'
-                          : (activeWeek?.focusGoal || 'Duy trì phong độ học tập ổn định')}
-                      </Text>
+                  <View style={styles.headerTopRow}>
+                    <View style={styles.statsContainer}>
+                      <View style={styles.statBox}>
+                        <Text style={styles.statVal}>
+                          {activeWeek?.progressPercent != null
+                            ? activeWeek.progressPercent
+                            : Math.floor((weekStats.completed / (weekStats.total || 1)) * 100)}%
+                        </Text>
+                        <Text style={styles.statLabel}>HOÀN THÀNH TUẦN</Text>
+                      </View>
+                      <View style={styles.statDivider} />
+                      <View style={styles.statBox}>
+                        <Text style={styles.statVal}>{weekStats.completed}/{weekStats.total}</Text>
+                        <Text style={styles.statLabel}>TIẾN ĐỘ TUẦN</Text>
+                      </View>
                     </View>
+
+                    {dayKeys.length > 0 && (
+                      <View style={styles.daySelectorContainer}>
+                        <View style={styles.calendarLink}>
+                          <CalendarOutlined style={{ fontSize: 14, color: '#888' }} />
+                          <Text style={styles.calendarLinkText}>LỊCH HỌC</Text>
+                        </View>
+                        <View style={styles.dayPillsRow}>
+                          {dayKeys.map((day) => {
+                            const active = activeDay === day
+                            return (
+                              <Pressable
+                                key={day}
+                                onPress={() => handleDayChange(day)}
+                                onHoverIn={() => Platform.OS === 'web' && setHoveredDay(day)}
+                                onHoverOut={() => Platform.OS === 'web' && setHoveredDay(null)}
+                                style={({ pressed }) => [
+                                  styles.dayPillSmall,
+                                  active && styles.dayPillSmallActive,
+                                  !active && hoveredDay === day && { backgroundColor: '#E8E8E8' },
+                                  pressed && { transform: [{ scale: 0.95 }] }
+                                ]}
+                              >
+                                <Text style={[
+                                  styles.dayPillSmallText,
+                                  active && styles.dayPillSmallTextActive
+                                ]}>Ngày {day}</Text>
+                              </Pressable>
+                            )
+                          })}
+                        </View>
+                      </View>
+                    )}
                   </View>
 
-                  <View style={styles.weekStatsRow}>
-                    <View style={styles.statBox}>
-                      <Text style={styles.statVal}>
-                        {activeWeek?.progressPercent != null
-                          ? activeWeek.progressPercent
-                          : Math.floor((weekStats.completed / (weekStats.total || 1)) * 100)}%
-                      </Text>
-                      <Text style={styles.statLabel}>Hoàn thành tuần</Text>
-                    </View>
-                    <View style={styles.statDivider} />
-                    <View style={styles.statBox}>
-                      <Text style={styles.statVal}>{weekStats.completed}/{weekStats.total}</Text>
-                      <Text style={styles.statLabel}>Tiến độ tuần</Text>
-                    </View>
+                  <View style={styles.weekProgressBarArea}>
+                    <View 
+                      style={[
+                        styles.weekProgressBarFill, 
+                        { 
+                          width: `${activeWeek?.progressPercent != null
+                            ? activeWeek.progressPercent
+                            : Math.floor((weekStats.completed / (weekStats.total || 1)) * 100)}%` 
+                        }
+                      ]} 
+                    />
                   </View>
                 </View>
 
@@ -469,6 +523,9 @@ export function RoadmapLearningLayout({
                       weeks={weeks}
                       activeWeek={activeWeek}
                       initialDayIndex={initialDayIndex}
+                      activeDay={activeDay}
+                      onDayChange={setActiveDay}
+                      hideSelector={true}
                       onGenerateNextWeek={handleGenerateNextWeek}
                       isNextWeekEmpty={!weeks.find(w => w.weekIndex === activeWeekIndex + 1) || (weeks.find(w => w.weekIndex === activeWeekIndex + 1)?.tasks?.length || 0) === 0}
                     />
@@ -1208,7 +1265,77 @@ const styles = StyleSheet.create({
   cardDivider: {
     height: 1,
     backgroundColor: '#F5F5F5',
-    marginVertical: 20,
+    marginTop: 30,
+    marginBottom: 20,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    width: '100%',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 40,
+  },
+  daySelectorContainer: {
+    alignItems: 'flex-end',
+    gap: 10,
+  },
+  calendarLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+    marginRight: 4,
+  },
+  calendarLinkText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#888',
+    letterSpacing: 0.5,
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  dayPillsRow: {
+    flexDirection: 'row',
+    backgroundColor: '#F2F2F2',
+    padding: 4,
+    borderRadius: 14,
+    gap: 2,
+  },
+  dayPillSmall: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 11,
+    ...(Platform.OS === 'web' && { cursor: 'pointer', transition: 'all 0.2s' }),
+  },
+  dayPillSmallActive: {
+    backgroundColor: '#FFFFFF',
+    ...(Platform.OS === 'web' && { boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }),
+  },
+  dayPillSmallText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#777',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  dayPillSmallTextActive: {
+    color: '#1A1A1A',
+    fontWeight: '800',
+  },
+  weekProgressBarArea: {
+    width: '100%',
+    height: 8,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 100,
+    marginTop: 20,
+    overflow: 'hidden',
+  },
+  weekProgressBarFill: {
+    height: '100%',
+    backgroundColor: '#3B82F6',
+    borderRadius: 100,
   },
   listWrapper: {
     flex: 1,

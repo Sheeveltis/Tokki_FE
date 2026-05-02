@@ -70,8 +70,11 @@ export function RoadmapLearningDayList({
   weeks = [], 
   activeWeek, 
   initialDayIndex = null,
+  activeDay: externalActiveDay = null,
+  onDayChange: externalOnDayChange = null,
   onGenerateNextWeek,
-  isNextWeekEmpty = false
+  isNextWeekEmpty = false,
+  hideSelector = false
 }) {
   const router = useRouter()
 
@@ -88,7 +91,11 @@ export function RoadmapLearningDayList({
   }, [activeWeek])
 
   const dayKeys = useMemo(() => Object.keys(lessonsByDay).map(Number).sort((a, b) => a - b), [lessonsByDay])
-  const [activeDay, setActiveDay] = useState(null)
+  const [internalActiveDay, setInternalActiveDay] = useState(null)
+  
+  const activeDay = externalActiveDay !== null ? externalActiveDay : internalActiveDay
+  const setActiveDay = externalOnDayChange || setInternalActiveDay
+
   const [hoveredDay, setHoveredDay] = useState(null)
 
   // Khởi tạo ngày đang học hoặc ngày từ URL
@@ -100,7 +107,7 @@ export function RoadmapLearningDayList({
         setActiveDay(dayKeys[0])
       }
     }
-  }, [dayKeys, initialDayIndex, activeDay])
+  }, [dayKeys, initialDayIndex, activeDay, setActiveDay])
 
   const handleDayChange = (day) => {
     setActiveDay(day)
@@ -122,31 +129,33 @@ export function RoadmapLearningDayList({
         </View>
       ) : (
         <>
-          <View style={styles.daySelector}>
-            {dayKeys.map((day) => {
-              const active = activeDay === day
-              return (
-                <Pressable
-                  key={day}
-                  onPress={() => handleDayChange(day)}
-                  onHoverIn={() => Platform.OS === 'web' && setHoveredDay(day)}
-                  onHoverOut={() => Platform.OS === 'web' && setHoveredDay(null)}
-                  style={({ pressed }) => [
-                    styles.dayPill,
-                    active && styles.dayPillActive,
-                    !active && hoveredDay === day && styles.dayPillHovered,
-                    pressed && styles.dayPillPressed
-                  ]}
-                >
-                  <Text style={[
-                    styles.dayPillText,
-                    active && styles.dayPillTextActive,
-                    (!active && hoveredDay === day) && styles.dayPillTextHovered
-                  ]}>Ngày {day}</Text>
-                </Pressable>
-              )
-            })}
-          </View>
+          {!hideSelector && (
+            <View style={styles.daySelector}>
+              {dayKeys.map((day) => {
+                const active = activeDay === day
+                return (
+                  <Pressable
+                    key={day}
+                    onPress={() => handleDayChange(day)}
+                    onHoverIn={() => Platform.OS === 'web' && setHoveredDay(day)}
+                    onHoverOut={() => Platform.OS === 'web' && setHoveredDay(null)}
+                    style={({ pressed }) => [
+                      styles.dayPill,
+                      active && styles.dayPillActive,
+                      !active && hoveredDay === day && styles.dayPillHovered,
+                      pressed && styles.dayPillPressed
+                    ]}
+                  >
+                    <Text style={[
+                      styles.dayPillText,
+                      active && styles.dayPillTextActive,
+                      (!active && hoveredDay === day) && styles.dayPillTextHovered
+                    ]}>Ngày {day}</Text>
+                  </Pressable>
+                )
+              })}
+            </View>
+          )}
 
 
           <View style={styles.lessonPanel}>

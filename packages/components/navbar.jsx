@@ -12,24 +12,21 @@ import {
   ScrollView,
 } from 'react-native'
 import { colors } from '../app/color'
-import { getAuthToken, clearAuthToken, getCurrentUserId, getCurrentUserAvatar } from '../app/provider/api/client'
+import { getAuthToken, clearAuthToken, getCurrentUserId, getCurrentUserAvatar, apiClient } from '../app/provider/api/client'
+import { ENDPOINTS } from '../app/provider/api/endpoints'
 import { useNotifications, NotificationReadFilter } from '../app/provider/notification'
 import { MessageModal } from './MessageModal'
 
 import BackgroundImage from '../assets/background1.png'
-import LogoImage from '../assets/logo-text.png'
-import LogoIcon from '../assets/logo.png'
 import LogoNewIcon from '../assets/homepage/Logo.png'
 import HomeIcon from '../assets/icon/navigate-app/home.svg'
 import StudyIcon from '../assets/icon/navigate-app/book.svg'
 import FlashcardIcon from '../assets/icon/navigate-app/folder.svg'
 import BlogIcon from '../assets/icon/navigate-app/chat.svg'
-import LeaderboardIcon from '../assets/icon/navigate-app/rank.svg'
 import RoadmapIcon from '../assets/icon/navigate-app/roadmap.svg'
 import DictionaryIcon from '../assets/icon/navigate-app/dictionary.svg'
 import UserIcon from '../assets/user.png'
 import LogoutIcon from '../assets/icon/icon-mainflow/logout.svg'
-import StarIcon from '../assets/icon/icon-mainflow/star.svg'
 import {
   BellOutlined,
   UserOutlined,
@@ -132,13 +129,29 @@ export const Navbar = ({ position = 'fixed' }) => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [notiFilter, setNotiFilter] = useState(NotificationReadFilter.All)
+  const [userRole, setUserRole] = useState(null)
   const pathname = usePathname()
+
+  const fetchUserRole = async () => {
+    try {
+      const response = await apiClient.get(ENDPOINTS.ACCOUNT.CURRENT_ROLE)
+      if (response.data && typeof response.data.role !== 'undefined') {
+        setUserRole(response.data.role)
+      }
+    } catch (error) {
+      console.error('[Navbar] Error fetching user role:', error)
+    }
+  }
 
   useEffect(() => {
     const check = () => {
-      setHasToken(!!getAuthToken())
+      const token = getAuthToken()
+      setHasToken(!!token)
       setUserAvatar(getCurrentUserAvatar())
       setAuthChecked(true)
+      if (token) {
+        fetchUserRole()
+      }
     }
     check()
 
@@ -238,9 +251,16 @@ export const Navbar = ({ position = 'fixed' }) => {
               hasToken ? (
                 <>
                   <View style={styles.premiumWrapper}>
-                    <PremiumButton
-                      onPress={() => router.push('/payment-package')}
-                    />
+                    {userRole === 1 || userRole === 3 ? (
+                      <PremiumButton
+                        label="VIP"
+                        disabled={true}
+                      />
+                    ) : (
+                      <PremiumButton
+                        onPress={() => router.push('/payment-package')}
+                      />
+                    )}
                   </View>
 
                   {Platform.OS === 'web' ? (
@@ -471,12 +491,19 @@ export const Navbar = ({ position = 'fixed' }) => {
               <>
                 <View style={styles.mobileSeparator} />
                 <View style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
-                  <PremiumButton
-                    onPress={() => {
-                      router.push('/payment-package')
-                      setMobileMenuOpen(false)
-                    }}
-                  />
+                  {userRole === 1 || userRole === 3 ? (
+                    <PremiumButton
+                      label="VIP"
+                      disabled={true}
+                    />
+                  ) : (
+                    <PremiumButton
+                      onPress={() => {
+                        router.push('/payment-package')
+                        setMobileMenuOpen(false)
+                      }}
+                    />
+                  )}
                 </View>
 
                 <TouchableOpacity
