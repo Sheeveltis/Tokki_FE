@@ -31,7 +31,7 @@ export function FlashcardFirstLearnScreen({
   route: routeProp,
   navigation: navigationProp,
 }) {
-  const { replace, query } = useRouter()
+  const { push, replace, query } = useRouter()
   
   // Lấy route và navigation từ hooks nếu không có trong props
   // Chỉ sử dụng hooks trên mobile để tránh lỗi trên web
@@ -78,6 +78,11 @@ export function FlashcardFirstLearnScreen({
     if (Platform.OS === 'web') {
       replace(`/flashcard/learn?topic=${topicId}`, undefined, { shallow: true })
     }
+  }
+
+  // Chuyển sang chế độ học Flashcard (study mode)
+  const handleStartStudy = () => {
+    push(`/flashcard/study?topic=${topicId}`)
   }
 
   const {
@@ -162,6 +167,7 @@ export function FlashcardFirstLearnScreen({
         <List 
           topicId={topicId}
           onStartLearning={handleStartLearning}
+          onStartStudy={handleStartStudy}
         />
       ) : (
         <Main

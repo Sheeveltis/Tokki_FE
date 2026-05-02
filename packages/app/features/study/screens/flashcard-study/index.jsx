@@ -98,6 +98,38 @@ export function FlashcardStudyScreen({
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
 
+  if (Platform.OS === 'web') {
+    return (
+      <Main
+        title={screenTitle}
+        flashcards={flashcards}
+        current={current}
+        currentIndex={currentIndex}
+        total={flashcards.length}
+        unlearnedCount={unlearnedFlashcards.length}
+        isFlipped={isFlipped}
+        isFavorite={isFavorite}
+        isLearned={isLearned}
+        favorites={favorites}
+        onBackPress={handleBackPress}
+        onTestPress={onTestPress}
+        onFavoritesPress={onFavoritesPress}
+        onFlip={setIsFlipped}
+        onToggleFavorite={toggleFavorite}
+        onNext={handleNext}
+        onPrev={handlePrev}
+        onSelectFlashcard={handleSelectFlashcard}
+        onMarkAsLearned={markAsLearned}
+        onMarkAsNeedReview={markAsNeedReview}
+        onResetAllLearned={resetAllLearned}
+        loading={loading}
+        error={error}
+        onRetry={fetchFlashcards}
+        isFavoritesMode={favoritesMode}
+      />
+    )
+  }
+
   return (
     <Layout
       levelId={route?.params?.levelId || 1}

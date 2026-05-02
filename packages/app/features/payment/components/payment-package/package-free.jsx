@@ -1,16 +1,7 @@
-import React from 'react'
-import { View, Text, Image } from 'react-native'
+import React, { useState } from 'react'
+import { View, Text, Image, Pressable } from 'react-native'
 import CheckedIcon from '../../../../../assets/checked.png'
-import IncorrectIcon from '../../../../../assets/incorrect.png'
-import FreeBackground from '../../../../../assets/freebackground.png'
-import LogoImage from '../../../../../assets/logo-free.png'
 
-/**
- * Normalize image source so it works with:
- * - require('...png') / numeric ids
- * - { uri: '...' }
- * - Next/webpack static imports: { src: '...' }
- */
 const normalizeImageSource = (src) => {
   if (!src) return null
   if (typeof src === 'number' || src.uri) return src
@@ -23,203 +14,156 @@ const normalizeImageSource = (src) => {
   return src
 }
 
-/**
- * Card Type 4: Vertical pricing card
- * - Tall card with background image
- * - Centered title and subtitle
- * - Bullet list of benefits
- * - Bunny image bottom-right
- * - Price label bottom-left
- *
- * @param {{
- *   title: string;
- *   subtitle?: string;
- *   benefits?: string[];
- *   priceLabel?: string;
- *   imageSource?: any;
- *   backgroundImageSource?: any;
- *   style?: any;
- * }} props
- */
 export const Card = ({
-  title,
-  subtitle,
-  benefits = [],
-  priceLabel,
-  imageSource,
-  backgroundImageSource,
+  title = 'GÓI MIỄN PHÍ',
+  subtitle = 'BẠN SẼ NHẬN ĐƯỢC GÌ?',
+  benefits = [
+    'Giải đề TOPIK tối đa 2 đề/ngày',
+    'Chơi Minigame tối đa 5 lần/ngày',
+    'Giới hạn số lần sử dụng AI',
+    'Sử dụng hệ thống Flashcard cơ bản',
+  ],
   style,
 }) => {
+  const [isHovered, setIsHovered] = useState(false)
+
   return (
     <View
-      style={{
-        width: 400,
-        height: 500,
-        borderRadius: 32,
-        backgroundColor: '#FFF3D9',
-        paddingHorizontal: 30,
-        paddingTop: 24,
-        paddingBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.16,
-        shadowRadius: 8,
-        elevation: 4,
-        overflow: 'hidden',
-        position: 'relative',
-        ...style,
-      }}
-    >
-      <Image
-        source={normalizeImageSource(backgroundImageSource || FreeBackground)}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
+      style={[
+        {
           width: '100%',
-          height: '100%',
-          resizeMode: 'cover',
-          opacity: 0.35,
-        }}
-      />
+          minHeight: 580,
+          borderRadius: 40,
+          backgroundColor: '#FFFFFF',
+          paddingHorizontal: 40,
+          paddingTop: 40,
+          paddingBottom: 40,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.05,
+          shadowRadius: 20,
+          elevation: 5,
+          position: 'relative',
+          borderWidth: 1,
+          borderColor: '#F0F0F0',
+        },
+        style,
+      ]}
+    >
+      {/* Icon Bolt */}
+      <View style={{ marginBottom: 25 }}>
+        <View
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 14,
+            backgroundColor: '#F8F9FB',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 1,
+            borderColor: '#E8EBF1',
+          }}
+        >
+          <Text style={{ fontSize: 20 }}>⚡</Text>
+        </View>
+      </View>
 
-      <View style={{ zIndex: 1, flex: 1 }}>
+      <View style={{ flex: 1 }}>
         {/* Title + subtitle */}
-        <View style={{ alignItems: 'center', marginBottom: 16 }}>
+        <View style={{ marginBottom: 30 }}>
           <Text
             style={{
-              fontSize: 34,
-              fontWeight: '800',
+              fontSize: 28,
+              fontWeight: '900',
               fontFamily: 'Lexend, sans-serif',
-              color: '#5E794C', // Green color for free package
-              textAlign: 'center',
+              color: '#333333',
+              marginBottom: 4,
             }}
           >
             {title}
           </Text>
-          {subtitle ? (
-            <Text
-              style={{
-                marginTop: 4,
-                fontSize: 14,
-                color: '#555',
-                fontFamily: 'Epilogue, sans-serif',
-                textAlign: 'center',
-              }}
-            >
-              {subtitle}
-            </Text>
-          ) : null}
-          <View
+          <Text
             style={{
-              width: '90%',
-              height: 1.25,
-              marginTop: 12,
-              backgroundColor: '#E8D6B5',
+              fontSize: 13,
+              fontWeight: '700',
+              color: '#9E9E9E',
+              fontFamily: 'Lexend, sans-serif',
+              letterSpacing: 0.5,
             }}
-          />
+          >
+            {subtitle}
+          </Text>
         </View>
 
         {/* Benefits list */}
-        <View style={{ gap: 15, paddingRight: 8 }}>
+        <View style={{ gap: 20 }}>
           {benefits.map((item, index) => (
             <View
-              key={`${item.label}-${index}`}
+              key={`free-benefit-${index}`}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: 8,
+                gap: 16,
               }}
             >
-              <Image
-                source={
-                  item.type === 'invalid'
-                    ? normalizeImageSource(IncorrectIcon)
-                    : normalizeImageSource(CheckedIcon)
-                }
+              <View
                 style={{
                   width: 20,
                   height: 20,
-                  tintColor: item.type === 'invalid' ? '#E35345' : '#3A8F44',
-                }}
-              />
-              <Text
-                style={{
-                  flex: 1,
-                  fontSize: 14,
-                  lineHeight: 20,
-                  color: '#333',
-                  fontFamily: 'Epilogue, sans-serif',
+                  borderRadius: 10,
+                  backgroundColor: '#F5F5F5',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                {item.label || item}
+                <Image
+                  source={normalizeImageSource(CheckedIcon)}
+                  style={{
+                    width: 10,
+                    height: 10,
+                    tintColor: '#BDBDBD',
+                  }}
+                />
+              </View>
+              <Text
+                style={{
+                  fontSize: 15,
+                  color: '#4F4F4F',
+                  fontFamily: 'Lexend, sans-serif',
+                  fontWeight: '500',
+                }}
+              >
+                {item}
               </Text>
             </View>
           ))}
         </View>
       </View>
 
-      <View
+      {/* Button */}
+      <Pressable
+        onHoverIn={() => setIsHovered(true)}
+        onHoverOut={() => setIsHovered(false)}
         style={{
-          flex: 1,
-          marginTop: 8,
-          alignItems: 'flex-end',
-          justifyContent: 'flex-end',
-          zIndex: 1,
+          height: 64,
+          borderRadius: 20,
+          backgroundColor: isHovered ? '#E8EEF4' : '#F2F6F9',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
-        {imageSource ? (
-          <Image
-            source={normalizeImageSource(imageSource)}
-            style={{
-              width: 220,
-              height: 220,
-              resizeMode: 'contain',
-              marginRight: -20,
-            }}
-          />
-        ) : null}
-      </View>
-
-      <View
-        style={{
-          position: 'absolute',
-          bottom: 20,
-          right: 20,
-          zIndex: 2,
-        }}
-      >
-        <Image
-          source={normalizeImageSource(LogoImage)}
+        <Text
           style={{
-            width: 180,
-            height: 180,
-            resizeMode: 'contain',
-          }}
-        />
-      </View>
-
-      {priceLabel ? (
-        <View
-          style={{
-            position: 'absolute',
-            left: 20,
-            bottom: 20,
-            zIndex: 2,
+            fontSize: 18,
+            fontWeight: '800',
+            color: '#A0AEC0',
+            fontFamily: 'Lexend, sans-serif',
+            letterSpacing: 1,
           }}
         >
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: '700',
-              fontFamily: 'Lexend, sans-serif',
-              color: '#222',
-            }}
-          >
-            {priceLabel}
-          </Text>
-        </View>
-      ) : null}
+          ĐANG SỬ DỤNG
+        </Text>
+      </Pressable>
     </View>
   )
 }

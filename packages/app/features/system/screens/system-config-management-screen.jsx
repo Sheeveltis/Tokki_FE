@@ -1,52 +1,74 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'solito/navigation'
-import { Modal, Form, Space, Input, InputNumber, Switch, Tooltip, Typography, Tag, Button, Select } from 'antd'
-import { 
-  EditOutlined, 
-  EyeOutlined, 
-  SearchOutlined, 
-  SaveOutlined, 
-  FilterOutlined, 
-  ReloadOutlined, 
+import {
+  Form,
+  Space,
+  Typography,
+  Tag,
+  Button,
+  Select,
+  Tabs,
+  Card,
+  Empty,
+  Badge,
+  Row,
+  Col,
+  Tooltip
+} from 'antd'
+import {
+  EditOutlined,
+  ReloadOutlined,
   PlusOutlined,
-  KeyOutlined,
-  AppstoreOutlined,
-  FileTextOutlined,
-  CheckCircleOutlined
+  EyeOutlined
 } from '@ant-design/icons'
 import { showAdminSuccess, showAdminError } from '../../../../components/HelperAdmin'
 import { fetchSystemConfigs, updateSystemConfig, createSystemConfig } from '../api/system-config'
 import ManagementLayout from '../../../../components/layout/management-layout'
 import { useManagementFilters } from '../../back-office/hooks/use-management-filters'
 
-const { Text } = Typography
+// Import tách nhỏ components
+import { SYSTEM_CONFIG_TYPES } from '../constants/config-types.jsx'
+import ConfigFormModal from '../components/config-form-modal'
+import ConfigViewModal from '../components/config-view-modal'
+import ConfigTypeItem from '../components/config-type-item'
+import ConfigListHeader from '../components/config-list-header'
+
+const { Text, Title } = Typography
 
 export function SystemConfigManagement({ basePath = '/admin' }) {
   const router = useRouter()
   const [filters, setFilters] = useManagementFilters({
     search: '',
-    isActive: true,
+    isActive: undefined, // Mặc định là Tất cả
     page: 1,
     size: 20,
+    configType: 0
   })
 
   const [data, setData] = useState({ items: [], total: 0 })
   const [loading, setLoading] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  const [viewModalOpen, setViewModalOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [isEdit, setIsEdit] = useState(false)
   const [editingConfig, setEditingConfig] = useState(null)
+  const [viewingConfig, setViewingConfig] = useState(null)
 
   const [form] = Form.useForm()
+
+  const activeType = useMemo(() => 
+    SYSTEM_CONFIG_TYPES.find(t => t.value === filters.configType) || SYSTEM_CONFIG_TYPES[0]
+  , [filters.configType])
 
   const loadData = useCallback(async (currentFilters) => {
     try {
       setLoading(true)
       const params = {
-        keyword: currentFilters.search?.trim() || undefined,
+        search: currentFilters.search?.trim() || undefined,
         isActive: currentFilters.isActive,
         pageNumber: currentFilters.page,
         pageSize: currentFilters.size,
+        configType: currentFilters.configType
       }
       const result = await fetchSystemConfigs(params)
       setData({
@@ -62,7 +84,7 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
 
   useEffect(() => {
     loadData(filters)
-  }, [filters.page, filters.size, filters.search, filters.isActive, loadData])
+  }, [filters.page, filters.size, filters.search, filters.isActive, filters.configType, loadData])
 
   const handleFilterChange = useCallback((key, value) => {
     setFilters(prev => ({ ...prev, [key]: value, page: 1 }))
@@ -86,27 +108,53 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
     setModalOpen(true)
   }, [form])
 
+  const handleView = useCallback((record) => {
+    setViewingConfig(record)
+    setViewModalOpen(true)
+  }, [])
+
   const handleCreate = useCallback(() => {
     setIsEdit(false)
     setEditingConfig(null)
     form.resetFields()
     form.setFieldsValue({
       dataType: 'string',
-      isActive: true
+      isActive: true,
+      configType: filters.configType
     })
     setModalOpen(true)
-  }, [form])
+  }, [form, filters.configType])
+
+  const handleFormFinish = async (values) => {
+    try {
+      setSaving(true)
+      const payload = {
+        ...editingConfig,
+        ...values,
+        value: String(values.value)
+      }
+      if (isEdit) {
+        await updateSystemConfig(payload)
+        showAdminSuccess('Đã cập nhật cấu hình thành công')
+      } else {
+        await createSystemConfig(payload)
+        showAdminSuccess('Đã tạo mới cấu hình thành công')
+      }
+      setModalOpen(false)
+      loadData(filters)
+    } catch (err) {
+      showAdminError(err?.message || (isEdit ? 'Cập nhật thất bại' : 'Tạo mới thất bại'))
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const columns = useMemo(() => [
     {
-      title: () => (
-        <Tooltip title="Số thứ tự">
-          <span>STT</span>
-        </Tooltip>
-      ),
+      title: 'STT',
       key: 'stt',
       align: 'center',
-      width: 70,
+      width: 60,
       render: (_, __, index) => (filters.page - 1) * filters.size + index + 1,
     },
     {
@@ -114,61 +162,91 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
       dataIndex: 'key',
       key: 'key',
       width: 250,
-      render: (key) => <Text strong style={{ color: '#262626', fontSize: 16 }}>{key}</Text>
+      render: (key, record) => (
+        <div style={{ width: 250 }}>
+          <Space direction="vertical" size={0} style={{ width: '100%' }}>
+            <Text
+              strong
+              style={{ color: '#1677ff', fontSize: 13, display: 'block' }}
+              ellipsis={{ tooltip: key }}
+            >
+              {key}
+            </Text>
+            <Text
+              type="secondary"
+              style={{ fontSize: 11, display: 'block' }}
+              ellipsis={{ tooltip: record.description }}
+            >
+              {record.description || 'Không có mô tả'}
+            </Text>
+          </Space>
+        </div>
+      )
     },
     {
-      title: 'Giá trị',
+      title: 'Giá trị cấu hình',
       dataIndex: 'value',
       key: 'value',
-      width: 200,
-      render: (value) => <Text ellipsis style={{ maxWidth: 180 }}>{value || '-'}</Text>
+      render: (value, record) => {
+        if (record.dataType === 'boolean') {
+          return <Tag color={value === 'true' || value === true ? 'green' : 'red'}>{value === 'true' || value === true ? 'BẬT' : 'TẮT'}</Tag>
+        }
+
+        // Truncate if value is too long
+        const isLong = value && value.length > 120
+        const displayValue = isLong ? value.substring(0, 120) + '...' : value
+
+        return (
+          <div style={{
+            background: '#f9f9f9',
+            padding: '4px 10px',
+            borderRadius: '4px',
+            border: '1px solid #f0f0f0',
+            display: 'inline-block',
+            maxWidth: '350px',
+            cursor: isLong ? 'pointer' : 'default'
+          }} onClick={() => isLong && handleView(record)}>
+            <Text code style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 12 }}>{displayValue || '-'}</Text>
+            {isLong && <div style={{ fontSize: 10, color: '#1890ff', marginTop: 2 }}>[Xem thêm]</div>}
+          </div>
+        )
+      }
     },
-    // {
-    //   title: 'Loại dữ liệu',
-    //   dataIndex: 'dataType',
-    //   key: 'dataType',
-    //   width: 120,
-    //   align: 'center',
-    //   render: (type) => <Text type="secondary" style={{ textTransform: 'uppercase' }}>{type || 'string'}</Text>
-    // },
-    // {
-    //   title: 'Mô tả',
-    //   dataIndex: 'description',
-    //   key: 'description',
-    //   ellipsis: true,
-    //   render: (desc) => <Text type="secondary">{desc}</Text>
-    // },
+    {
+      title: 'Kiểu',
+      dataIndex: 'dataType',
+      key: 'dataType',
+      width: 80,
+      align: 'center',
+      render: (type) => <Tag color="blue" style={{ borderRadius: '10px', fontSize: 11 }}>{type?.toUpperCase()}</Tag>
+    },
     {
       title: 'Trạng thái',
       dataIndex: 'isActive',
       key: 'isActive',
-      width: 120,
+      width: 100,
       align: 'center',
-      render: (isActive) => {
-        const color = isActive ? '#52c41a' : '#8c8c8c'
-        const label = isActive ? 'Hoạt động' : 'Tạm dừng'
-        return (
-          <Tooltip title={label}>
-            <div
-              style={{
-                width: 14,
-                height: 14,
-                borderRadius: '50%',
-                backgroundColor: color,
-                margin: '0 auto',
-                boxShadow: '0 0 4px rgba(0,0,0,0.3)',
-                cursor: 'pointer'
-              }}
-            />
-          </Tooltip>
-        )
-      },
+      render: (isActive) => (
+        <Tooltip title={isActive ? 'Đang hoạt động' : 'Đang tắt'}>
+          <div
+            style={{
+              width: 14,
+              height: 14,
+              borderRadius: '50%',
+              backgroundColor: isActive ? '#52c41a' : '#bfbfbf',
+              margin: '0 auto',
+              boxShadow: '0 0 4px rgba(0,0,0,0.2)',
+              cursor: 'pointer',
+            }}
+          />
+        </Tooltip>
+      ),
     },
     {
       title: 'Hành động',
       key: 'actions',
       align: 'center',
-      width: 120,
+      width: 100,
       render: (_, record) => {
         const iconStyle = { fontSize: 18, cursor: 'pointer', color: '#1890ff' }
         return (
@@ -176,7 +254,7 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
             <Tooltip title="Xem chi tiết">
               <EyeOutlined
                 style={iconStyle}
-                onClick={() => router.push(`${basePath}/system-config/${record.key}`)}
+                onClick={() => handleView(record)}
               />
             </Tooltip>
             <Tooltip title="Chỉnh sửa">
@@ -189,181 +267,146 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
         )
       },
     },
-  ], [filters.page, filters.size, router, basePath, handleEdit])
-
-  const extraFilters = (
-    <Space wrap>
-      <Select
-        allowClear
-        placeholder="Lọc trạng thái"
-        suffixIcon={<FilterOutlined />}
-        style={{ width: 180 }}
-        value={filters.isActive}
-        onChange={(val) => handleFilterChange('isActive', val)}
-        options={[
-          { value: true, label: 'Hoạt động' },
-          { value: false, label: 'Tạm dừng' },
-        ]}
-      />
-    </Space>
-  )
-
-  const actions = [
-    {
-      label: 'Thêm mới',
-      icon: <PlusOutlined />,
-      type: 'primary',
-      onPress: handleCreate,
-    }
-  ]
+  ], [filters.page, filters.size, handleEdit, handleView])
 
   return (
-    <>
-      <ManagementLayout
-        searchPlaceholder="Tìm kiếm theo khóa (key)..."
-        searchValue={filters.search}
-        onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
-        onSearchSubmit={() => handleFilterChange('search', filters.search)}
-        extraFilters={extraFilters}
-        actions={actions}
-        tableProps={{
-          columns,
-          dataSource: data.items,
-          loading,
-          rowKey: "key",
-          pagination: {
-            current: filters.page,
-            pageSize: filters.size,
-            total: data.total,
-            showSizeChanger: true,
-            showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} cấu hình`,
-            pageSizeOptions: ['10', '20', '50', '100'],
-            onChange: handlePaginationChange
-          }
-        }}
-      />
-
-      <Modal
-        title={
-          <Space>
-            {isEdit ? <EditOutlined style={{ color: '#1890ff' }} /> : <PlusOutlined style={{ color: '#52c41a' }} />}
-            <Text strong>{isEdit ? 'Chỉnh sửa cấu hình hệ thống' : 'Thêm mới cấu hình hệ thống'}</Text>
-          </Space>
+    <div style={{
+      height: 'calc(100vh - 140px)', // Tăng khoảng cách trừ đi để tránh bị che bởi footer admin
+      display: 'flex',
+      flexDirection: 'column',
+      padding: '24px',
+      overflow: 'hidden' // Không cho scroll cả trang
+    }}>
+      <style>{`
+        .system-config-tabs {
+          height: 100%;
         }
-        open={modalOpen}
-        onCancel={() => !saving && setModalOpen(false)}
-        destroyOnClose
-        centered
-        footer={[
-          <Button key="cancel" onClick={() => setModalOpen(false)} disabled={saving}>
-            Hủy
-          </Button>,
-          <Button
-            key="submit"
-            type="primary"
-            icon={<SaveOutlined />}
-            loading={saving}
-            onClick={() => form.submit()}
-          >
-            {isEdit ? 'Lưu thay đổi' : 'Tạo mới cấu hình'}
-          </Button>
-        ]}
+        .system-config-tabs .ant-tabs-content-holder {
+          height: 100%;
+          display: flex;
+        }
+        .system-config-tabs .ant-tabs-content {
+          height: 100%;
+          width: 100%;
+        }
+        .system-config-tabs .ant-tabs-tabpane {
+          height: 100% !important;
+          display: flex !important;
+          flex-direction: column;
+        }
+      `}</style>
+      <ConfigListHeader onCreate={handleCreate} />
+
+      <Card
+        variant="borderless"
+        styles={{ body: { padding: 0, height: '100%', display: 'flex', flexDirection: 'column' } }}
+        style={{
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+          flex: 1,
+          minHeight: 0
+        }}
       >
-        <Form
-          layout="vertical"
-          form={form}
-          requiredMark={false}
-          onFinish={async (values) => {
-            try {
-              setSaving(true)
-              const payload = {
-                ...editingConfig,
-                ...values,
-                value: String(values.value)
-              }
-              if (isEdit) {
-                await updateSystemConfig(payload)
-                showAdminSuccess('Đã cập nhật cấu hình hệ thống thành công')
-              } else {
-                await createSystemConfig(payload)
-                showAdminSuccess('Đã tạo mới cấu hình hệ thống thành công')
-              }
-              setModalOpen(false)
-              loadData(filters)
-            } catch (err) {
-              showAdminError(err?.message || (isEdit ? 'Cập nhật cấu hình thất bại' : 'Tạo mới cấu hình thất bại'))
-            } finally {
-              setSaving(false)
-            }
-          }}
-        >
-          <Form.Item
-            label={<Space><KeyOutlined style={{ color: '#1677ff' }} />Khóa (Key) (Bắt buộc)</Space>}
-            name="key"
-            rules={[{ required: true, message: 'Vui lòng nhập khóa (key)' }]}
-          >
-            <Input disabled={isEdit} placeholder="Ví dụ: TOKEN_EXPIRATION_TIME" />
-          </Form.Item>
+        <Tabs
+          tabPlacement="left"
+          activeKey={String(filters.configType)}
+          onChange={(key) => handleFilterChange('configType', Number(key))}
+          style={{ height: '100%', width: '100%', flex: 1 }}
+          className="system-config-tabs"
+          destroyInactiveTabPane
+          items={SYSTEM_CONFIG_TYPES.map(type => ({
+            key: String(type.value),
+            label: <ConfigTypeItem type={type} isActive={filters.configType === type.value} />,
+            children: (
+              <div style={{
+                height: '100%',
+                padding: '0 24px 24px',
+                display: 'flex',
+                flexDirection: 'column',
+                flex: 1
+              }}>
+                <div style={{ padding: '24px 0', borderBottom: '1px solid #f0f0f0', marginBottom: 24 }}>
+                  <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
+                    <span style={{ color: activeType.color, marginRight: 12 }}>{activeType.icon}</span>
+                    {activeType.fullLabel}
+                  </Title>
+                </div>
 
-          <Form.Item
-            label={<Space><AppstoreOutlined style={{ color: '#1677ff' }} />Loại dữ liệu (Bắt buộc)</Space>}
-            name="dataType"
-            rules={[{ required: true, message: 'Vui lòng chọn loại dữ liệu' }]}
-          >
-            <Select placeholder="Chọn kiểu dữ liệu">
-              <Select.Option value="string">String</Select.Option>
-              <Select.Option value="int">Integer</Select.Option>
-              <Select.Option value="boolean">Boolean</Select.Option>
-            </Select>
-          </Form.Item>
+                <div style={{ flex: 1, minHeight: 0 }}> {/* Container cho ManagementLayout để nó tự scroll */}
+                  <ManagementLayout
+                    scrollOffset={520}
+                    searchPlaceholder="Tìm kiếm theo khóa (key)..."
+                    searchValue={filters.search}
+                    onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
+                    onSearchSubmit={() => handleFilterChange('search', filters.search)}
+                    extraFilters={
+                      <Space>
+                        <Select
+                          placeholder="Trạng thái"
+                          value={filters.isActive}
+                          onChange={val => handleFilterChange('isActive', val)}
+                          options={[
+                            { label: 'Tất cả trạng thái', value: undefined },
+                            { label: 'Đang hoạt động', value: true },
+                            { label: 'Đang tắt', value: false },
+                          ]}
+                          style={{ width: 160 }}
+                        />
+                        <Button icon={<ReloadOutlined />} onClick={() => loadData(filters)} />
+                      </Space>
+                    }
+                    tableProps={{
+                      columns,
+                      dataSource: data.items,
+                      loading,
+                      rowKey: "key",
+                      pagination: {
+                        current: filters.page,
+                        pageSize: filters.size,
+                        total: data.total,
+                        showSizeChanger: true,
+                        showTotal: (total) => `Tổng cộng ${total} cấu hình`,
+                        onChange: handlePaginationChange,
+                      }
+                    }}
+                  />
 
-          <Form.Item dependencies={['dataType']} noStyle>
-            {({ getFieldValue }) => {
-              const dataType = getFieldValue('dataType')
-              if (dataType === 'int') {
-                return (
-                  <Form.Item
-                    label={<Space><EditOutlined style={{ color: '#1677ff' }} />Giá trị (Bắt buộc)</Space>}
-                    name="value"
-                    rules={[{ required: true, message: 'Vui lòng nhập giá trị số' }]}
-                  >
-                    <InputNumber style={{ width: '100%' }} placeholder="Nhập số..." />
-                  </Form.Item>
-                )
-              }
-              if (dataType === 'boolean') {
-                return (
-                  <Form.Item
-                    label={<Space><EditOutlined style={{ color: '#1677ff' }} />Giá trị</Space>}
-                    name="value"
-                    valuePropName="checked"
-                  >
-                    <Switch checkedChildren="ON" unCheckedChildren="OFF" />
-                  </Form.Item>
-                )
-              }
-              return (
-                <Form.Item
-                  label={<Space><EditOutlined style={{ color: '#1677ff' }} />Giá trị (Bắt buộc)</Space>}
-                  name="value"
-                  rules={[{ required: true, message: 'Vui lòng nhập giá trị' }]}
-                >
-                  <Input.TextArea autoSize={{ minRows: 2, maxRows: 6 }} placeholder="Nhập nội dung cấu hình..." />
-                </Form.Item>
-              )
-            }}
-          </Form.Item>
+                  {data.items.length === 0 && !loading && (
+                    <div style={{ padding: '80px 0' }}>
+                      <Empty
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        description={
+                          <Space direction="vertical" align="center">
+                            <Text type="secondary">Nhóm này chưa có tham số cấu hình nào</Text>
+                            <Button type="dashed" icon={<PlusOutlined />} onClick={handleCreate}>Tạo cấu hình đầu tiên</Button>
+                          </Space>
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          }))}
+        />
+      </Card>
 
-          <Form.Item label={<Space><FileTextOutlined style={{ color: '#1677ff' }} />Mô tả</Space>} name="description">
-            <Input.TextArea rows={3} placeholder="Mô tả chi tiết tác dụng của cấu hình này..." />
-          </Form.Item>
-
-          <Form.Item label={<Space><CheckCircleOutlined style={{ color: '#1677ff' }} />Kích hoạt</Space>} name="isActive" valuePropName="checked">
-            <Switch checkedChildren="Bật" unCheckedChildren="Tắt" />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </>
+      <ConfigFormModal
+        open={modalOpen}
+        onCancel={() => setModalOpen(false)}
+        onFinish={handleFormFinish}
+        saving={saving}
+        isEdit={isEdit}
+        editingConfig={editingConfig}
+        form={form}
+      />
+      <ConfigViewModal
+        open={viewModalOpen}
+        onCancel={() => setViewModalOpen(false)}
+        config={viewingConfig}
+      />
+    </div>
   )
 }
 

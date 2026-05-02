@@ -44,6 +44,7 @@ export const ENDPOINTS = {
   },
   QUESTION_TYPE: {
     GET_ALL: '/QuestionType/admin',
+    USER_GET_ALL: '/QuestionType/user',
     GET_BY_ID: (id) => `/QuestionType/${id}`,
     CREATE: '/QuestionType',
     UPDATE: (id) => `/QuestionType/${id}`,
@@ -349,6 +350,7 @@ export const ENDPOINTS = {
     COMPLETE: '/Roadmap/complete',
     NEXT_WEEK: '/Roadmap/next-week',
     CANCEL: '/Roadmap/cancel',
+    VIRTUAL_QUIZ: (typeId, count = 5) => `/Roadmap/virtual-quiz/${encodeURIComponent(typeId)}?count=${count}`,
   },
   SYSTEM_CONFIGS: {
     GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,
@@ -360,5 +362,11 @@ export const ENDPOINTS = {
     MY_NOTIFICATIONS: (pageNumber = 1, pageSize = 20, filter = 0) => `/Notification/my-notifications?pageNumber=${pageNumber}&pageSize=${pageSize}&filter=${filter}`,
     MARK_AS_READ: (id) => `/Notification/mark-as-read/${id}`,
     MARK_ALL_AS_READ: '/Notification/mark-all-as-read',
+  },
+  ENUMS: {
+    LOOKUP: (type) => `/enums/lookup/${type}`,
+  },
+  TOPIK_LEVEL_CONFIG: {
+    GET_ALL: (pageNumber = 1, pageSize = 20) => `/TopikLevelConfig?pageNumber=${pageNumber}&pageSize=${pageSize}`,
   },
 }

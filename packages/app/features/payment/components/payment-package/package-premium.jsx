@@ -3,12 +3,6 @@ import { View, Text, Image } from 'react-native'
 import CheckedIcon from '../../../../../assets/checked.png'
 import LogoImage from '../../../../../assets/logo-prem.png'
 
-/**
- * Normalize image source so it works with:
- * - require('...png') / numeric ids
- * - { uri: '...' }
- * - Next/webpack static imports: { src: '...' }
- */
 const normalizeImageSource = (src) => {
   if (!src) return null
   if (typeof src === 'number' || src.uri) return src
@@ -21,30 +15,15 @@ const normalizeImageSource = (src) => {
   return src
 }
 
-/**
- * Card Type 5: Premium Package Card (without background)
- * - Large red title "GÓI PREMIUM"
- * - Subtitle question
- * - Dashed line separator
- * - List of benefits with checkmarks
- * - Rabbit logo (logo-prem.png) bottom-right
- *
- * @param {{
- *   title?: string;
- *   subtitle?: string;
- *   benefits?: string[];
- *   style?: any;
- * }} props
- */
 export const Card = ({
   title = 'GÓI PREMIUM',
-  subtitle = 'Bạn sẽ nhận được quyền lợi gì ?',
+  subtitle = 'BẠN SẼ NHẬN ĐƯỢC QUYỀN LỢI GÌ?',
   benefits = [
-    'Tất cả các tính năng của gói miễn phí',
+    'Tất cả tính năng của gói miễn phí',
     'Mở khóa tất cả các bài học',
     'Chơi Minigame không giới hạn',
-    'Sử dụng AI trong các bài học không giới hạn',
-    'Sở hữu huy hiệu đặc biệt',
+    'Sử dụng AI trong bài học không giới hạn',
+    'Sở hữu huy hiệu đặc biệt & Avatar độc quyền',
   ],
   style,
 }) => {
@@ -52,92 +31,103 @@ export const Card = ({
     <View
       style={[
         {
-          width: 400,
-          height: 500,
-          borderRadius: 32,
-          backgroundColor: 'transparent',
-          paddingHorizontal: 30,
-          paddingTop: 24,
-          paddingBottom: 20,
-          overflow: 'hidden',
-          position: 'relative',
+          width: 440,
+          minHeight: 700,
+          borderRadius: 40,
+          backgroundColor: '#FFFFFF',
+          paddingHorizontal: 40,
+          paddingTop: 50,
+          paddingBottom: 40,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.05,
+          shadowRadius: 20,
+          elevation: 5,
+          borderWidth: 1,
+          borderColor: '#F0F0F0',
         },
         style,
       ]}
     >
-      <View style={{ zIndex: 1, flex: 1 }}>
-        {/* Title */}
-        <View style={{ alignItems: 'center', marginBottom: 8 }}>
+      {/* Icon Crown */}
+      <View style={{ marginBottom: 30 }}>
+        <View
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: 16,
+            backgroundColor: '#FFF0F3',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Text style={{ fontSize: 24 }}>👑</Text>
+        </View>
+      </View>
+
+      <View style={{ flex: 1 }}>
+        {/* Title + subtitle */}
+        <View style={{ marginBottom: 40 }}>
           <Text
             style={{
               fontSize: 36,
-              fontWeight: '800',
+              fontWeight: '900',
               fontFamily: 'Lexend, sans-serif',
-              color: '#DC143C', // Red color
-              textAlign: 'center',
+              color: '#C9184A',
+              marginBottom: 8,
             }}
           >
             {title}
           </Text>
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: '700',
+              color: '#9E9E9E',
+              fontFamily: 'Lexend, sans-serif',
+              letterSpacing: 0.5,
+            }}
+          >
+            {subtitle}
+          </Text>
         </View>
 
-        {/* Subtitle */}
-        {subtitle ? (
-          <View style={{ alignItems: 'center', marginBottom: 12 }}>
-            <Text
-              style={{
-                fontSize: 16,
-                color: '#555',
-                fontFamily: 'Epilogue, sans-serif',
-                textAlign: 'center',
-                fontWeight: '400',
-              }}
-            >
-              {subtitle}
-            </Text>
-          </View>
-        ) : null}
-
-        {/* Dashed line separator */}
-        <View
-          style={{
-            width: '90%',
-            alignSelf: 'center',
-            height: 1.5,
-            marginBottom: 16,
-            borderTopWidth: 1.5,
-            borderTopColor: '#333',
-            borderStyle: 'dashed',
-          }}
-        />
-
         {/* Benefits list */}
-        <View style={{ gap: 12, paddingRight: 8 }}>
+        <View style={{ gap: 24 }}>
           {benefits.map((item, index) => (
             <View
-              key={`benefit-${index}`}
+              key={`prem-benefit-${index}`}
               style={{
                 flexDirection: 'row',
-                alignItems: 'flex-start',
-                gap: 10,
+                alignItems: 'center',
+                gap: 16,
               }}
             >
-              <Image
-                source={normalizeImageSource(CheckedIcon)}
+              <View
                 style={{
-                  width: 20,
-                  height: 20,
-                  marginTop: 2,
-                  tintColor: '#3A8F44',
+                  width: 24,
+                  height: 24,
+                  borderRadius: 12,
+                  backgroundColor: '#00C48C', // Green as in the image
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
-              />
+              >
+                <Image
+                  source={normalizeImageSource(CheckedIcon)}
+                  style={{
+                    width: 12,
+                    height: 12,
+                    tintColor: '#FFFFFF',
+                  }}
+                />
+              </View>
               <Text
                 style={{
-                  flex: 1,
-                  fontSize: 14,
-                  lineHeight: 20,
-                  color: '#333',
-                  fontFamily: 'Epilogue, sans-serif',
+                  fontSize: 16,
+                  color: '#1A1A1A',
+                  fontFamily: 'Lexend, sans-serif',
+                  fontWeight: '600',
                 }}
               >
                 {item}
@@ -147,29 +137,38 @@ export const Card = ({
         </View>
       </View>
 
-      {/* Rabbit logo bottom-right */}
+      {/* Bottom Illustration Box */}
       <View
         style={{
-          position: 'absolute',
-          bottom: 20,
-          right: 20,
-          zIndex: 2,
+          marginTop: 40,
+          backgroundColor: '#FFF0F3',
+          borderRadius: 24,
+          padding: 24,
+          alignItems: 'center',
+          position: 'relative',
         }}
       >
         <Image
           source={normalizeImageSource(LogoImage)}
           style={{
-            width: 210,
-            height: 210,
+            width: 180,
+            height: 100,
             resizeMode: 'contain',
-            left: 20,
-            top: 10,
+            marginBottom: 12,
           }}
         />
+        <Text
+          style={{
+            fontSize: 15,
+            fontWeight: '800',
+            color: '#C9184A',
+            fontFamily: 'Lexend, sans-serif',
+            textAlign: 'center',
+          }}
+        >
+          Học không giới hạn cùng Thỏ!
+        </Text>
       </View>
-
     </View>
   )
 }
-
-

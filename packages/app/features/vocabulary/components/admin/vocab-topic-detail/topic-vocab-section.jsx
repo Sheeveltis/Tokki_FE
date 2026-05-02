@@ -163,7 +163,7 @@ export function TopicVocabSection({
     >
       {!isModerator && (
         <div style={{ marginBottom: 24, padding: '16px', background: '#f9f9f9', borderRadius: 12, border: '1px solid #f0f0f0' }}>
-          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+          <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
               <Space size="middle">
                 <Button
@@ -236,7 +236,7 @@ export function TopicVocabSection({
           width={800}
           centered
         >
-          <Space direction="vertical" size="large" style={{ width: '100%', padding: '10px 0' }}>
+          <Space orientation="vertical" size="large" style={{ width: '100%', padding: '10px 0' }}>
             <Select
               mode="multiple"
               allowClear

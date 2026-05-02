@@ -13,6 +13,8 @@ import { LoadingWithContainer } from 'components/Loading'
 import { StudyActionButtons } from '@tokki/app/features/alphabet/api/alphabet-learn-index'
 import { PaginationControls, InstructionsBox } from '@tokki/app/features/alphabet/api/alphabet-typing-index'
 import { colors } from '@tokki/app/color'
+import { GuidelineModal } from 'components/GuidelineModal'
+import { FLASHCARD_GUIDELINE } from '@tokki/app/features/study/guideline-data'
 
 /**
  * FlashcardLearnMain (Web): Nội dung chính của trang học flashcard trên web
@@ -266,12 +268,14 @@ export function FlashcardLearnMain({
                 word={current.word || ''}
                 meaning={current.meaning || ''}
                 image={current.imageUrl || undefined}
+                pronunciation={current.pronunciation}
+                _raw={current._raw}
                 width="100%"
                 height={500}
                 frontColor={colors.primary}
                 backColor={colors.primary}
-                borderWidth={12}
-                borderRadius={12}
+                borderWidth={0}
+                borderRadius={32}
                 flipOnHover={false}
                 isFlipped={isFlipped}
                 onFlip={onFlip}
@@ -288,12 +292,14 @@ export function FlashcardLearnMain({
               word={current.word || ''}
               meaning={current.meaning || ''}
               image={current.imageUrl || undefined}
+              pronunciation={current.pronunciation}
+              _raw={current._raw}
               width="100%"
               height={500}
               frontColor={colors.primaryLight}
               backColor={colors.primaryLight}
-              borderWidth={12}
-              borderRadius={12}
+              borderWidth={0}
+              borderRadius={32}
               flipOnHover={false}
               isFlipped={isFlipped}
               onFlip={onFlip}
@@ -339,14 +345,13 @@ export function FlashcardLearnMain({
         onNext={onNext}
       />
       
-      {/* Instructions - Hiển thị khi click vào icon dấu chấm hỏi */}
-      {showInstructions && (
-        <View style={styles.instructionsContainer}>
-          <InstructionsBox
-            instructions={`1. Click vào card để xem nghĩa và cách phát âm\n2. Nhấn phím Space để lật card\n3. Sử dụng nút "Cần học lại" hoặc "Đã học" để đánh dấu\n4. Sử dụng mũi tên trái/phải để chuyển card và đánh dấu`}
-          />
-        </View>
-      )}
+      {/* Instructions Modal - Hiển thị khi click vào icon dấu chấm hỏi */}
+      <GuidelineModal
+        visible={showInstructions}
+        steps={FLASHCARD_GUIDELINE}
+        onClose={onToggleInstructions}
+        primaryColor={colors.primary}
+      />
     </>
   )
 }

@@ -31,6 +31,7 @@ import { RoadmapTipsScreen } from '@tokki/app/features/roadmap/screens/roadmap-t
 import { RoadmapPracticeScreen } from '@tokki/app/features/roadmap/screens/roadmap-practice-screen'
 import { RoadmapPracticeTestScreen } from '@tokki/app/features/roadmap/screens/roadmap-practice-test-screen'
 import { RoadmapGenerateScreen } from '@tokki/app/features/roadmap/screens/roadmap-generate-screen'
+import { TopikTypesScreen } from '@tokki/app/features/topik/screens/topik-types-screen'
 const AlphabetDrawingScreen = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
 
 import { getCurrentUserId, apiClient } from '@tokki/app/provider/api/client'
@@ -534,6 +535,18 @@ function AlphabetSyllablesDrawingRoute() {
   )
 }
 
+function TopikTypesRoute() {
+  const { navigate, getIntQueryParam } = useRouteNavigation()
+  const level = getIntQueryParam('level', 1)
+  
+  return (
+    <TopikTypesScreen 
+      level={level} 
+      onBackPress={() => navigate('/study')}
+    />
+  )
+}
+
 /**
  * Study Routes Configuration
  */
@@ -584,6 +597,9 @@ export const studyRoutes = [
   { path: '/roadmap/practice-test/:id', element: <RoadmapPracticeTestRoute /> },
   { path: '/roadmap/learning/tips/:id', element: <RoadmapTipsRoute /> },
   { path: '/roadmap/tips', element: <RoadmapTipsIndexRoute /> },
+
+  // Topik
+  { path: '/topik/types', element: <TopikTypesRoute /> },
 ]
 
 /**
