@@ -5,6 +5,7 @@ import { Space, Select, Modal, InputNumber, Tooltip, message } from 'antd'
 import { EyeOutlined, EditOutlined, SwapOutlined, PlusOutlined, GlobalOutlined, ArrowLeftOutlined, CheckCircleOutlined, CloseCircleOutlined, UploadOutlined, DownloadOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useRouter } from 'solito/navigation'
 import { searchFlashcardTopics, createFlashcardTopic, approveTopic, rejectTopic, updateFlashcardTopic, uploadTopicImageToCloudinary, updateTopicOrderIndex, deleteTopic } from '../../api/index.js'
+import { useEnumConfig } from '@tokki/app/hooks/useEnumConfig'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 import FlashcardTopicCreateModal from '../../components/admin/vocab-topic-management/vocab-topic-create-modal.jsx'
 import TopicApprovalModal from '../../components/admin/vocab-topic-detail/topic-approval-modal.jsx'
@@ -42,9 +43,16 @@ export function FlashcardTopicManagement({ initialData = null }) {
 
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(!initialData)
+  const { data: enumLevels } = useEnumConfig(1, 1, 100)
+  const levelOptions = useMemo(() => {
+    return enumLevels?.map(item => ({
+      value: Number(item.value),
+      label: item.label
+    })) || []
+  }, [enumLevels])
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [createLoading, setCreateLoading] = useState(false)
-  
+
   const [filters, setFilters] = useManagementFilters({
     page: 1,
     size: 20,
@@ -99,6 +107,8 @@ export function FlashcardTopicManagement({ initialData = null }) {
     },
     []
   )
+
+
 
   useEffect(() => {
     loadData(1, pagination.pageSize, searchTerm, level, status)
@@ -321,11 +331,11 @@ export function FlashcardTopicManagement({ initialData = null }) {
       okText: 'Xóa',
       okType: 'danger',
       cancelText: 'Hủy',
-      okButtonProps: { 
-        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      okButtonProps: {
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 }
       },
-      cancelButtonProps: { 
-        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+      cancelButtonProps: {
+        style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 }
       },
       onOk: async () => {
         try {
@@ -359,10 +369,10 @@ export function FlashcardTopicManagement({ initialData = null }) {
       render: (_, __, index) =>
         (filters.page - 1) * filters.size + index + 1,
     },
-    { 
-      title: 'Tiêu đề', 
-      dataIndex: 'title', 
-      key: 'title', 
+    {
+      title: 'Tiêu đề',
+      dataIndex: 'title',
+      key: 'title',
       width: 200,
       render: (text) => (
         <span style={{
@@ -399,7 +409,16 @@ export function FlashcardTopicManagement({ initialData = null }) {
         </span>
       ),
     },
-    { title: 'Level', dataIndex: 'level', key: 'level', width: 100 },
+    {
+      title: 'Phân loại',
+      dataIndex: 'level',
+      key: 'level',
+      width: 100,
+      render: (val) => {
+        const option = levelOptions.find(opt => opt.value === val)
+        return option ? option.label : val
+      }
+    },
     {
       title: 'Thứ tự',
       dataIndex: 'orderIndex',
@@ -600,14 +619,15 @@ export function FlashcardTopicManagement({ initialData = null }) {
         extraFilters={
           <Space wrap>
             <Select
-              placeholder="Chọn level"
-              value={level}
-              onChange={(value) => setFilters(prev => ({ ...prev, level: value || 1, page: 1 }))}
+              placeholder="Chọn phân loại"
+              value={level === null ? 'all' : level}
+              onChange={(value) => setFilters(prev => ({ ...prev, level: value === 'all' ? null : value, page: 1 }))}
               style={{ width: 'clamp(120px, 10vw, 160px)', height: 'clamp(32px, 4vh, 40px)', borderRadius: '1rem', fontSize: 'clamp(13px, 1.1vw, 14px)' }}
             >
-              {[1, 2, 3, 4, 5, 6].map((lvl) => (
-                <Option key={lvl} value={lvl}>
-                  Level {lvl}
+              <Option value="all">Tất cả phân loại</Option>
+              {levelOptions.map((lvl) => (
+                <Option key={lvl.value} value={lvl.value}>
+                  {lvl.label}
                 </Option>
               ))}
             </Select>
@@ -637,6 +657,7 @@ export function FlashcardTopicManagement({ initialData = null }) {
             showSizeChanger: true,
             showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} chủ đề`,
             pageSizeOptions: ['10', '20', '50', '100'],
+            onChange: (page, pageSize) => handleTableChange({ current: page, pageSize }),
           },
           onChange: handleTableChange,
         }}
@@ -688,11 +709,11 @@ export function FlashcardTopicManagement({ initialData = null }) {
         okText="Lưu"
         cancelText="Hủy"
         confirmLoading={orderLoading}
-        okButtonProps={{ 
-          style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+        okButtonProps={{
+          style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 }
         }}
-        cancelButtonProps={{ 
-          style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+        cancelButtonProps={{
+          style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 }
         }}
         centered
         width={420}

@@ -357,4 +357,10 @@ export const ENDPOINTS = {
     MARK_AS_READ: (id) => `/Notification/mark-as-read/${id}`,
     MARK_ALL_AS_READ: '/Notification/mark-all-as-read',
   },
+  ENUMS: {
+    LOOKUP: (type) => `/enums/lookup/${type}`,
+  },
+  TOPIK_LEVEL_CONFIG: {
+    GET_ALL: (pageNumber = 1, pageSize = 20) => `/TopikLevelConfig?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+  },
 }

@@ -233,7 +233,7 @@ export function VocabularyGuideModal({ open, onCancel }) {
             }
             key="search"
           >
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
               <div>
                 <Title level={5}>Các bước thực hiện:</Title>
                 <Table
@@ -264,7 +264,7 @@ export function VocabularyGuideModal({ open, onCancel }) {
             }
             key="excel"
           >
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
               <div>
                 <Title level={5}>Format Excel yêu cầu:</Title>
                 <Table
@@ -309,7 +309,7 @@ export function VocabularyGuideModal({ open, onCancel }) {
             }
             key="quick-add"
           >
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
               <div>
                 <Title level={5}>Các bước thực hiện:</Title>
                 <Table

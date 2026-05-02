@@ -1,7 +1,8 @@
 'use client'
 
 import React from 'react'
-import { Modal, Form, Input, InputNumber, Upload, message, Space } from 'antd'
+import { Modal, Form, Input, InputNumber, Upload, message, Space, Select } from 'antd'
+import { useEnumConfig } from '@tokki/app/hooks/useEnumConfig'
 import { 
   FontSizeOutlined, 
   FileTextOutlined, 
@@ -16,9 +17,12 @@ export function FlashcardTopicCreateModal({ open, loading, onCancel, onSubmit })
   const [form] = Form.useForm()
   const [previewUrl, setPreviewUrl] = React.useState('')
 
-  // Reset form khi modal đóng
+  const { data: enumLevels } = useEnumConfig(open ? 1 : null, 1, 100)
+  const levelOptions = React.useMemo(() => enumLevels?.map(item => ({ value: Number(item.value), label: item.label })) || [], [enumLevels])
+
+  // Reset form khi modal mở lại, tránh gọi khi form đã unmount
   React.useEffect(() => {
-    if (!open) {
+    if (open) {
       form.resetFields()
       setPreviewUrl('')
     }
@@ -64,7 +68,7 @@ export function FlashcardTopicCreateModal({ open, loading, onCancel, onSubmit })
       confirmLoading={loading}
       okButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
       cancelButtonProps={{ style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } }}
-      destroyOnClose
+      destroyOnHidden
       centered
       styles={{
         header: { fontSize: 18 },
@@ -91,18 +95,22 @@ export function FlashcardTopicCreateModal({ open, loading, onCancel, onSubmit })
           />
         </Form.Item>
         <Form.Item
-          label={<Space><LineChartOutlined style={{ color: '#1677ff' }} />Level (Bắt buộc)</Space>}
+          label={<Space><LineChartOutlined style={{ color: '#1677ff' }} />Phân loại (Bắt buộc)</Space>}
           name="level"
-          rules={[{ required: true, message: 'Vui lòng nhập level' }]}
+          rules={[{ required: true, message: 'Vui lòng chọn phân loại' }]}
           initialValue={1}
         >
-          <InputNumber
-            min={1}
-            max={10}
-            placeholder="VD: 1"
+          <Select
+            placeholder="Chọn phân loại"
             size="large"
             style={{ width: '100%', fontSize: 16 }}
-          />
+          >
+            {levelOptions.map((lvl) => (
+              <Select.Option key={lvl.value} value={lvl.value}>
+                {lvl.label}
+              </Select.Option>
+            ))}
+          </Select>
         </Form.Item>
          <Form.Item 
           label={<Space><PictureOutlined style={{ color: '#1677ff' }} />Ảnh minh họa</Space>} 

@@ -10,6 +10,9 @@ import SearchIcon from 'assets/icon/navigate-app/search.svg'
 import { normalizeImageSource } from '@tokki/app/features/study/api'
 import { studyStyles } from '@tokki/app/features/study/styles'
 import { LoadingWithContainer } from 'components/Loading'
+import { apiClient } from '@tokki/app/provider/api/client'
+import { ENDPOINTS } from '@tokki/app/provider/api/endpoints'
+import { useEnumConfig } from '@tokki/app/hooks/useEnumConfig'
 
 const StarSVG = ({ size, fill = "#FFD700" }) => (
   <Text style={{ fontSize: size, color: fill, includeFontPadding: false, lineHeight: size }}>✦</Text>
@@ -41,15 +44,19 @@ export function FlashcardListMain({
   const [isSearchVisible, setIsSearchVisible] = useState(false)
   const [localSearchTerm, setLocalSearchTerm] = useState('')
 
-  const levels = [
-    { id: null, label: 'Tất cả' },
-    { id: 1, label: 'TOPIK 1' },
-    { id: 2, label: 'TOPIK 2' },
-    { id: 3, label: 'TOPIK 3' },
-    { id: 4, label: 'TOPIK 4' },
-    { id: 5, label: 'TOPIK 5' },
-    { id: 6, label: 'TOPIK 6' },
-  ]
+  const { data: enumData } = useEnumConfig(1, 1, 100)
+
+  const levels = React.useMemo(() => {
+    const defaultLevel = { id: null, label: 'Tất cả' }
+    if (!enumData || enumData.length === 0) return [defaultLevel]
+
+    const mapped = enumData.map(item => ({
+      id: Number(item.value),
+      label: item.label
+    }))
+
+    return [defaultLevel, ...mapped]
+  }, [enumData])
 
   // Helper function để render icon (hỗ trợ cả SVG component và image source)
   const renderIcon = (IconComponent, style) => {
