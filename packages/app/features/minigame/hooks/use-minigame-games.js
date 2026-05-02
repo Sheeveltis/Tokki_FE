@@ -1,10 +1,11 @@
 import { useCallback, useState } from 'react'
+import { Platform } from 'react-native'
 import { useRouter, useSearchParams } from 'solito/navigation'
 
 import MatchingCardBannerImage from '../../../../assets/Matching-Card-Banner.png'
 import BannerImage from '../../../../assets/Solitaire-banner-outside.png'
 import WordleBannerImage from '../../../../assets/Wordle-banner.png'
-import { getAuthToken, isCurrentTokenExpired } from '../../../provider/api/client'
+import { getAuthToken, getAuthTokenAsync, isCurrentTokenExpired, isCurrentTokenExpiredAsync } from '../../../provider/api/client'
 import { getWordleLevelByDifficulty, getWordleLevels } from '../api/wordle-level-api'
 import { hasPlayedLevel, mapLevelToDifficulty } from '../api/matching-card-play-api'
 
@@ -53,9 +54,12 @@ export function useMinigameGames(options = {}) {
   const [selectedMatchingCardTopic, setSelectedMatchingCardTopic] = useState(null)
   const [showLoginRequest, setShowLoginRequest] = useState(false)
 
-  const handleOpenMatchingCardTopicPopup = useCallback(() => {
-    const token = getAuthToken()
-    const isAuthed = Boolean(token) && !isCurrentTokenExpired()
+  const handleOpenMatchingCardTopicPopup = useCallback(async () => {
+    const token = await getAuthTokenAsync()
+    // Trên mobile, chỉ cần có token là cho phép thử vào, server sẽ check hết hạn sau
+    const isAuthed = Platform.OS === 'web' 
+      ? (Boolean(token) && !(await isCurrentTokenExpiredAsync()))
+      : Boolean(token)
 
     if (!isAuthed) {
       setShowLoginRequest(true)
@@ -113,9 +117,11 @@ export function useMinigameGames(options = {}) {
     [onNavigate, router, selectedMatchingCardTopic]
   )
 
-  const handleOpenSolitareLevelPopup = useCallback(() => {
-    const token = getAuthToken()
-    const isAuthed = Boolean(token) && !isCurrentTokenExpired()
+  const handleOpenSolitareLevelPopup = useCallback(async () => {
+    const token = await getAuthTokenAsync()
+    const isAuthed = Platform.OS === 'web'
+      ? (Boolean(token) && !(await isCurrentTokenExpiredAsync()))
+      : Boolean(token)
 
     if (!isAuthed) {
       setShowLoginRequest(true)
@@ -139,8 +145,10 @@ export function useMinigameGames(options = {}) {
   )
 
   const handleOpenWordleLevelPopup = useCallback(async () => {
-    const token = getAuthToken()
-    const isAuthed = Boolean(token) && !isCurrentTokenExpired()
+    const token = await getAuthTokenAsync()
+    const isAuthed = Platform.OS === 'web'
+      ? (Boolean(token) && !(await isCurrentTokenExpiredAsync()))
+      : Boolean(token)
 
     if (!isAuthed) {
       setShowLoginRequest(true)
