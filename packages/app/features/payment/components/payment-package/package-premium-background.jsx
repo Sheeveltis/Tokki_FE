@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, Image, Pressable } from 'react-native'
+import { View, Text, Image, Pressable, useWindowDimensions } from 'react-native'
 import CheckedIcon from '../../../../../assets/checked.png'
 import { useRouter } from 'solito/navigation'
 
@@ -29,30 +29,38 @@ export const Card = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false)
   const { push } = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width < 600
 
   const handleUpgrade = () => {
     push('/premium-package')
   }
 
   return (
-    <View
+    <Pressable
+      onPress={handleUpgrade}
+      onHoverIn={() => setIsHovered(true)}
+      onHoverOut={() => setIsHovered(false)}
       style={[
         {
           width: '100%',
-          minHeight: 580,
+          minHeight: isMobile ? 480 : 580,
           borderRadius: 40,
           backgroundColor: '#FFFFFF',
-          paddingHorizontal: 40,
-          paddingTop: 40,
-          paddingBottom: 40,
+          paddingHorizontal: isMobile ? 24 : 40,
+          paddingTop: isMobile ? 30 : 40,
+          paddingBottom: isMobile ? 30 : 40,
           shadowColor: '#FF4D6D',
           shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: 0.1,
-          shadowRadius: 20,
-          elevation: 5,
+          shadowOpacity: isHovered ? 0.25 : 0.1,
+          shadowRadius: isHovered ? 30 : 20,
+          elevation: isHovered ? 12 : 5,
           position: 'relative',
           borderWidth: 2,
-          borderColor: '#FF4D6D',
+          borderColor: isHovered ? '#FF0035' : '#FF4D6D',
+          transform: [{ scale: isHovered ? 1.02 : 1 }],
+          transitionProperty: 'transform, shadow-opacity, shadow-radius, border-color',
+          transitionDuration: '300ms',
         },
         style,
       ]}
@@ -61,11 +69,11 @@ export const Card = ({
       <View
         style={{
           position: 'absolute',
-          top: -16,
-          right: 30,
+          top: isMobile ? -14 : -16,
+          right: isMobile ? 20 : 30,
           backgroundColor: '#FF4D6D',
-          paddingHorizontal: 20,
-          paddingVertical: 8,
+          paddingHorizontal: isMobile ? 12 : 20,
+          paddingVertical: isMobile ? 6 : 8,
           borderRadius: 100,
           shadowColor: '#FF4D6D',
           shadowOffset: { width: 0, height: 4 },
@@ -77,7 +85,7 @@ export const Card = ({
         <Text
           style={{
             color: '#FFFFFF',
-            fontSize: 11,
+            fontSize: isMobile ? 10 : 11,
             fontWeight: '900',
             fontFamily: 'Lexend, sans-serif',
             letterSpacing: 1,
@@ -88,12 +96,12 @@ export const Card = ({
       </View>
 
       {/* Icon Crown */}
-      <View style={{ marginBottom: 25 }}>
+      <View style={{ marginBottom: isMobile ? 15 : 25 }}>
         <View
           style={{
-            width: 48,
-            height: 48,
-            borderRadius: 14,
+            width: isMobile ? 40 : 48,
+            height: isMobile ? 40 : 48,
+            borderRadius: 12,
             backgroundColor: '#FFF0F3',
             alignItems: 'center',
             justifyContent: 'center',
@@ -101,16 +109,16 @@ export const Card = ({
             borderColor: '#FFE0E6',
           }}
         >
-          <Text style={{ fontSize: 20 }}>👑</Text>
+          <Text style={{ fontSize: isMobile ? 18 : 20 }}>👑</Text>
         </View>
       </View>
 
       <View style={{ flex: 1 }}>
         {/* Title + subtitle */}
-        <View style={{ marginBottom: 30 }}>
+        <View style={{ marginBottom: isMobile ? 20 : 30 }}>
           <Text
             style={{
-              fontSize: 28,
+              fontSize: isMobile ? 24 : 28,
               fontWeight: '900',
               fontFamily: 'Lexend, sans-serif',
               color: '#C9184A',
@@ -121,7 +129,7 @@ export const Card = ({
           </Text>
           <Text
             style={{
-              fontSize: 13,
+              fontSize: isMobile ? 12 : 13,
               fontWeight: '700',
               color: '#FF4D6D',
               fontFamily: 'Lexend, sans-serif',
@@ -133,21 +141,21 @@ export const Card = ({
         </View>
 
         {/* Benefits list */}
-        <View style={{ gap: 20 }}>
+        <View style={{ gap: isMobile ? 16 : 20 }}>
           {benefits.map((item, index) => (
             <View
               key={`premium-benefit-${index}`}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: 16,
+                gap: 12,
               }}
             >
               <View
                 style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 10,
+                  width: 18,
+                  height: 18,
+                  borderRadius: 9,
                   backgroundColor: '#FF4D6D',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -156,18 +164,19 @@ export const Card = ({
                 <Image
                   source={normalizeImageSource(CheckedIcon)}
                   style={{
-                    width: 10,
-                    height: 10,
+                    width: 9,
+                    height: 9,
                     tintColor: '#FFFFFF',
                   }}
                 />
               </View>
               <Text
                 style={{
-                  fontSize: 15,
+                  fontSize: isMobile ? 14 : 15,
                   color: '#4F4F4F',
                   fontFamily: 'Lexend, sans-serif',
                   fontWeight: '500',
+                  flex: 1,
                 }}
               >
                 {item}
@@ -178,10 +187,10 @@ export const Card = ({
       </View>
 
       {/* Price Section */}
-      <View style={{ alignItems: 'center', marginBottom: 20 }}>
+      <View style={{ alignItems: 'center', marginBottom: 20, marginTop: 20 }}>
         <Text
           style={{
-            fontSize: 20,
+            fontSize: isMobile ? 18 : 20,
             fontWeight: '900',
             color: '#FF4D6D',
             fontFamily: 'Lexend, sans-serif',
@@ -191,7 +200,7 @@ export const Card = ({
         </Text>
         <Text
           style={{
-            fontSize: 13,
+            fontSize: isMobile ? 12 : 13,
             fontWeight: '600',
             color: '#FF4D6D',
             fontFamily: 'Lexend, sans-serif',
@@ -203,13 +212,10 @@ export const Card = ({
       </View>
 
       {/* Button */}
-      <Pressable
-        onPress={handleUpgrade}
-        onHoverIn={() => setIsHovered(true)}
-        onHoverOut={() => setIsHovered(false)}
+      <View
         style={{
-          height: 64,
-          borderRadius: 20,
+          height: isMobile ? 56 : 64,
+          borderRadius: 18,
           backgroundColor: isHovered ? '#FFCA3D' : '#FFB703',
           alignItems: 'center',
           justifyContent: 'center',
@@ -224,7 +230,7 @@ export const Card = ({
       >
         <Text
           style={{
-            fontSize: 18,
+            fontSize: isMobile ? 16 : 18,
             fontWeight: '800',
             color: '#7B4D00',
             fontFamily: 'Lexend, sans-serif',
@@ -233,8 +239,8 @@ export const Card = ({
         >
           NÂNG CẤP NGAY
         </Text>
-        <Text style={{ fontSize: 18, color: '#7B4D00' }}>→</Text>
-      </Pressable>
-    </View>
+        <Text style={{ fontSize: isMobile ? 16 : 18, color: '#7B4D00' }}>→</Text>
+      </View>
+    </Pressable>
   )
 }

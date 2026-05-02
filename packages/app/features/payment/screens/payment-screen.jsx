@@ -58,12 +58,6 @@ export function PaymentScreen() {
 
   return (
     <View style={styles.root}>
-      {/* Background image */}
-      <Image
-        source={normalizeImageSource(BackgroundImage)}
-        style={styles.backgroundImage}
-      />
-
       {/* Nội dung chính */}
       <View style={styles.container}>
         <View style={styles.wrapper}>
@@ -81,30 +75,19 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     width: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFDF9', // Soft cream background
     position: 'relative',
-  },
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-    opacity: 0.3,
-    zIndex: 0,
   },
   container: {
     flex: 1,
-    backgroundColor: 'transparent',
     zIndex: 1,
     alignItems: 'center',
-    paddingVertical: 40,
+    paddingVertical: 60,
   },
   wrapper: {
     width: '100%',
-    maxWidth: 1200,
-    paddingHorizontal: 16,
+    maxWidth: 1100,
+    paddingHorizontal: 20,
   },
 })
 

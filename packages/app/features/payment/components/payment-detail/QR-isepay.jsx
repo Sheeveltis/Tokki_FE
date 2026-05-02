@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native'
+import { View, Text, Image, StyleSheet, ActivityIndicator, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { getPaymentById, getPaymentStatusById } from '../../api/payment-detail-api'
+import { ClockCircleOutlined } from '@ant-design/icons'
 
 /**
  * Normalize image source so it works with:
@@ -21,17 +22,6 @@ const normalizeImageSource = (src) => {
   return src
 }
 
-/**
- * QR ISePay Component
- * - Displays payment QR code from SePay API
- * - Shows instructions and bank logos
- *
- * @param {{
- *   paymentId?: string;
- *   paymentUrl?: string;
- *   style?: any;
- * }} props
- */
 export const QRIsepay = ({ paymentId, paymentUrl, style }) => {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -43,40 +33,28 @@ export const QRIsepay = ({ paymentId, paymentUrl, style }) => {
   const hasNavigatedRef = useRef(false)
   const hasNavigatedToFailedRef = useRef(false)
 
-  // If paymentUrl is provided, use it directly
+  // ... (previous logic stays the same)
   useEffect(() => {
     if (paymentUrl) {
       setQrUrl(paymentUrl)
       setTimeLeft(600)
       return
     }
-    
-    // Otherwise, fetch using paymentId
     if (paymentId) {
       fetchQRCode()
-      // Reset timer when paymentId changes
       setTimeLeft(600)
     }
   }, [paymentId, paymentUrl])
 
-  // Countdown timer - 10 minutes (only if we have paymentId or paymentUrl)
   useEffect(() => {
     if (!paymentId && !paymentUrl) return
-
-    // Start countdown timer
     timerIntervalRef.current = setInterval(() => {
       setTimeLeft((prevTime) => {
         if (prevTime <= 1) {
-          // Time's up, navigate to payment-failed
           if (!hasNavigatedToFailedRef.current && !hasNavigatedRef.current) {
             hasNavigatedToFailedRef.current = true
-            // Clear all intervals before navigating
-            if (intervalRef.current) {
-              clearInterval(intervalRef.current)
-            }
-            if (timerIntervalRef.current) {
-              clearInterval(timerIntervalRef.current)
-            }
+            if (intervalRef.current) clearInterval(intervalRef.current)
+            if (timerIntervalRef.current) clearInterval(timerIntervalRef.current)
             router.push('/payment-failed')
           }
           return 0
@@ -84,74 +62,44 @@ export const QRIsepay = ({ paymentId, paymentUrl, style }) => {
         return prevTime - 1
       })
     }, 1000)
-
-    // Cleanup timer on unmount
     return () => {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current)
-      }
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current)
     }
   }, [paymentId, paymentUrl, router])
 
-  // Poll payment status every 2 seconds (only if paymentId is provided)
   useEffect(() => {
     if (!paymentId) return
-
-    // Function to check payment status
     const checkPaymentStatus = async () => {
       try {
         const response = await getPaymentStatusById(paymentId)
-        
         if (response.isSuccess && response.data) {
           const status = response.data.status
-
-          // If status changes from 0 to 1, navigate to success page
           if (status === 1 && !hasNavigatedRef.current && !hasNavigatedToFailedRef.current) {
             hasNavigatedRef.current = true
-            // Clear all intervals before navigating
-            if (intervalRef.current) {
-              clearInterval(intervalRef.current)
-            }
-            if (timerIntervalRef.current) {
-              clearInterval(timerIntervalRef.current)
-            }
+            if (intervalRef.current) clearInterval(intervalRef.current)
+            if (timerIntervalRef.current) clearInterval(timerIntervalRef.current)
             router.push('/payment-success')
           }
         }
       } catch (error) {
-        // Kiểm tra nếu lỗi là do token hết hạn (401)
         const errorMessage = error?.response?.data?.message || error?.message || ''
         if (errorMessage.includes('hết hạn') || errorMessage.includes('đăng nhập') || error?.response?.status === 401) {
-          console.warn('Token expired while checking payment status. Stopping polling.')
-          // Dừng polling khi token hết hạn
           if (intervalRef.current) {
             clearInterval(intervalRef.current)
             intervalRef.current = null
           }
-          // Không log error để tránh spam console
           return
         }
-        // Chỉ log các lỗi khác
         console.error('Error checking payment status:', error)
-        // Continue polling for other errors
       }
     }
-
-    // Check immediately
     checkPaymentStatus()
-
-    // Set up interval to check every 2 seconds
     intervalRef.current = setInterval(checkPaymentStatus, 2000)
-
-    // Cleanup interval on unmount
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current)
     }
   }, [paymentId, router])
 
-  // Format time from seconds to MM:SS
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
@@ -162,11 +110,8 @@ export const QRIsepay = ({ paymentId, paymentUrl, style }) => {
     try {
       setLoading(true)
       setError(null)
-      
       const response = await getPaymentById(paymentId)
-
       if (response.isSuccess && response.data) {
-        // response.data is a string (QR code URL), not an object
         setQrUrl(response.data)
       } else {
         setError('Không thể lấy mã QR thanh toán')
@@ -180,37 +125,33 @@ export const QRIsepay = ({ paymentId, paymentUrl, style }) => {
 
   return (
     <View style={[styles.container, style]}>
-      {/* Title */}
       <Text style={styles.title}>Quét mã QR để thanh toán</Text>
-
-      {/* Instruction */}
       <Text style={styles.instruction}>
-        Sử dụng ứng dụng ngân hàng để quét mã QR và chuyển tiền tự động
+        Sử dụng ứng dụng ngân hàng bất kỳ để quét mã QR và chuyển tiền tự động
       </Text>
 
-      
-
-      {/* QR Code */}
-      <View style={styles.qrContainer}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#000" />
-        ) : error ? (
-          <Text style={styles.errorText}>{error}</Text>
-        ) : qrUrl ? (
-          <Image
-            source={normalizeImageSource(qrUrl)}
-            style={styles.qrCode}
-            resizeMode="contain"
-          />
-        ) : (
-          <Text style={styles.placeholderText}>Chọn gói để hiển thị mã QR</Text>
-        )}
+      <View style={styles.qrWrapper}>
+        <View style={styles.qrContainer}>
+          {loading ? (
+            <ActivityIndicator size="large" color="#FFB703" />
+          ) : error ? (
+            <Text style={styles.errorText}>{error}</Text>
+          ) : qrUrl ? (
+            <Image
+              source={normalizeImageSource(qrUrl)}
+              style={styles.qrCode}
+              resizeMode="contain"
+            />
+          ) : (
+            <Text style={styles.placeholderText}>Đang khởi tạo mã QR...</Text>
+          )}
+        </View>
       </View>
 
-      {/* Countdown Timer */}
       {qrUrl && !error && (
-        <View style={styles.timerContainer}>
-          <Text style={styles.timerLabel}>Thời gian còn lại:</Text>
+        <View style={styles.timerWrapper}>
+          <ClockCircleOutlined style={{ fontSize: 16, color: '#666', marginRight: 8 }} />
+          <Text style={styles.timerLabel}>Thời gian còn lại: </Text>
           <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
         </View>
       )}
@@ -220,77 +161,76 @@ export const QRIsepay = ({ paymentId, paymentUrl, style }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'transparent',
-    padding: 24,
-    borderRadius: 16,
     alignItems: 'center',
     width: '100%',
   },
   title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#222',
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#1A1A1A',
     fontFamily: 'Lexend, sans-serif',
-    marginBottom: 8,
+    marginBottom: 12,
     textAlign: 'center',
   },
   instruction: {
-    fontSize: 14,
-    color: '#222',
+    fontSize: 15,
+    color: '#666',
     fontFamily: 'Epilogue, sans-serif',
-    marginBottom: 24,
+    marginBottom: 30,
     textAlign: 'center',
+    lineHeight: 22,
+    maxWidth: 400,
   },
-  sepayLogoContainer: {
-    marginBottom: 24,
-  },
-  sepayText: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#0066CC',
-    fontFamily: 'Lexend, sans-serif',
+  qrWrapper: {
+    padding: 20,
+    backgroundColor: '#F8F9FB',
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E8EBF1',
   },
   qrContainer: {
     width: 280,
     height: 280,
-    borderWidth: 2,
-    borderColor: '#003366',
-    borderRadius: 8,
+    backgroundColor: '#fff',
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
-    backgroundColor: '#fff',
+    overflow: 'hidden',
   },
   qrCode: {
     width: '100%',
     height: '100%',
   },
-  errorText: {
-    color: '#E35345',
-    fontSize: 14,
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  placeholderText: {
-    color: '#999',
-    fontSize: 14,
-    fontFamily: 'Epilogue, sans-serif',
-  },
-  timerContainer: {
+  timerWrapper: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 24,
+    backgroundColor: '#FFF0F3',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 100,
   },
   timerLabel: {
     fontSize: 14,
     fontWeight: '500',
     color: '#666',
     fontFamily: 'Epilogue, sans-serif',
-    marginBottom: 4,
   },
   timerText: {
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#DC143C',
+    color: '#FF4D6D',
     fontFamily: 'Lexend, sans-serif',
+  },
+  errorText: {
+    color: '#FF4D6D',
+    fontSize: 14,
+    textAlign: 'center',
+    padding: 20,
+  },
+  placeholderText: {
+    color: '#999',
+    fontSize: 14,
   },
 })
 
