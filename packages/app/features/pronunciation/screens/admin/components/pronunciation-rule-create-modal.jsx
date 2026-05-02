@@ -4,14 +4,22 @@ import { Modal, Form, Input, Space } from 'antd'
 import { 
   FontSizeOutlined, 
   FileTextOutlined, 
-  AlignLeftOutlined 
+  AlignLeftOutlined,
+  BoldOutlined 
 } from '@ant-design/icons'
+import { ReactQuillWrapper } from '../../../../blog/components/create-blog/react-quill-wrapper.jsx'
 
 /**
  * Modal tạo mới quy tắc phát âm
  */
 export function PronunciationRuleCreateModal({ open, loading, onCancel, onSubmit }) {
   const [form] = Form.useForm()
+
+  const quillModules = {
+    toolbar: [
+      ['bold']
+    ],
+  }
 
   // Reset form khi modal đóng
   React.useEffect(() => {
@@ -71,10 +79,17 @@ export function PronunciationRuleCreateModal({ open, loading, onCancel, onSubmit
           name="content"
           rules={[{ required: true, message: 'Vui lòng nhập nội dung chi tiết' }]}
         >
-          <Input.TextArea
-            rows={5}
-            placeholder="Nhập nội dung quy tắc..."
-            style={{ fontSize: 16 }}
+          <ReactQuillWrapper 
+            className="pronunciation-editor"
+            modules={quillModules}
+            placeholder="Nhập nội dung quy tắc (Sử dụng nút B để in đậm)..."
+            style={{ 
+              border: '1px solid #d9d9d9', 
+              borderRadius: 8,
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
           />
         </Form.Item>
       </Form>
