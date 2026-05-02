@@ -9,7 +9,7 @@ import {
   EditOutlined,
   DeleteOutlined
 } from '@ant-design/icons'
-import { apiClient } from '../../../../../provider/api/client'
+import { getPronunciationExamples } from '../../../api/index.js'
 
 const { Title, Text } = Typography
 
@@ -22,19 +22,13 @@ export default function PronunciationRuleDetail({ rule, onBack, onEdit, onDelete
     if (!rule?.id) return
     try {
       setLoading(true)
-      const response = await apiClient.get(`/PronunciationExample`, {
-        params: {
-          PronunciationRuleId: rule.id,
-          PageNumber: 1,
-          PageSize: 100,
-          SearchTerm: searchTerm || undefined
-        }
+      const data = await getPronunciationExamples({
+        pronunciationRuleId: rule.id,
+        pageNumber: 1,
+        pageSize: 100,
+        searchTerm: searchTerm || undefined
       })
-      if (response.data?.isSuccess) {
-        setExamples(response.data.data.items || [])
-      } else {
-        message.error(response.data?.message || 'Không thể tải ví dụ')
-      }
+      setExamples(data.items || [])
     } catch (error) {
       console.error('Error fetching examples:', error)
       message.error('Lỗi khi tải danh sách ví dụ')
@@ -217,7 +211,7 @@ export default function PronunciationRuleDetail({ rule, onBack, onEdit, onDelete
           <Button
             type="primary"
             icon={<EditOutlined />}
-            onClick={onEdit}
+            onClick={() => onEdit?.(rule)}
             style={{
               borderRadius: 20,
               height: 40,
