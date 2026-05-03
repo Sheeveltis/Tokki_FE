@@ -134,6 +134,7 @@ export const ENDPOINTS = {
     JOIN_SUPPORT: (roomId) => `/Chat/support/${roomId}/join`,
     CLOSE_SUPPORT: (roomId) => `/Chat/support/${roomId}/close`,
     GET_HISTORY: (roomId) => `/Chat/${roomId}/history`,
+    GET_ACTIVE_SUPPORT: '/Chat/support/active',
   },
   TOPIC: {
     CREATE: '/Topics',
