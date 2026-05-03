@@ -163,6 +163,10 @@ export function RoadmapLearningDayList({
               const allTaskIds = activeDayLessons.map((l) => l.id).join(',')
               const targetPath = `/roadmap/learning/tips/${lesson.id}?level=${targetAim}&roadmap=${allTaskIds}`
 
+              // Bài kiểm ngày 7 (WeeklyExam) đã hoàn thành => khóa hoàn toàn, không cho vào lại
+              const isWeeklyExam = lesson.taskType === 2 || lesson.taskType === 'WeeklyExam'
+              const isLocked = isWeeklyExam && lesson.isCompleted
+
               return (
                 <RoadmapLearningLessonCard
                   key={`${lesson.id}-detail`}
@@ -172,7 +176,8 @@ export function RoadmapLearningDayList({
                   actionLabel={lesson.actionLabel}
                   tone={lesson.tone}
                   isCompleted={lesson.isCompleted}
-                  onPress={() => router.push(targetPath)}
+                  isLocked={isLocked}
+                  onPress={isLocked ? null : () => router.push(targetPath)}
                 />
               )
             })}
