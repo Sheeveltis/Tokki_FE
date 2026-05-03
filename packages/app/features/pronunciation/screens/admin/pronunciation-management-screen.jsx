@@ -232,36 +232,35 @@ export function PronunciationManagementScreen({ basePath = '/admin' }) {
     }
   ]
 
-  if (selectedRule) {
-    return (
-      <PronunciationRuleDetail
-        rule={selectedRule}
-        onBack={() => setSelectedRule(null)}
-        onEdit={(rule) => {
-          setEditingRule(rule)
-          setEditModalOpen(true)
-        }}
-        onDelete={handleDeleteRule}
-      />
-    )
-  }
-
   return (
     <>
-      <PronunciationRuleList
-        rules={filteredRules}
-        loading={loading}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        actions={actions}
-        onViewDetail={setSelectedRule}
-        onEdit={(record) => {
-          setEditingRule(record)
-          setEditModalOpen(true)
-        }}
-        onDelete={handleDeleteRule}
-        onReorder={handleOpenOrderIndexModal}
-      />
+      {selectedRule ? (
+        <PronunciationRuleDetail
+          rule={selectedRule}
+          onBack={() => setSelectedRule(null)}
+          onEdit={(rule) => {
+            setEditingRule(rule)
+            setEditModalOpen(true)
+          }}
+          onDelete={handleDeleteRule}
+        />
+      ) : (
+        <PronunciationRuleList
+          rules={filteredRules}
+          loading={loading}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          actions={actions}
+          onViewDetail={setSelectedRule}
+          onEdit={(record) => {
+            setEditingRule(record)
+            setEditModalOpen(true)
+          }}
+          onDelete={handleDeleteRule}
+          onReorder={handleOpenOrderIndexModal}
+        />
+      )}
+
       <PronunciationRuleCreateModal
         open={createModalOpen}
         loading={createLoading}
@@ -278,6 +277,7 @@ export function PronunciationManagementScreen({ basePath = '/admin' }) {
         }}
         onSubmit={handleEdit}
       />
+
 
       <Modal
         title="Đổi vị trí quy tắc"

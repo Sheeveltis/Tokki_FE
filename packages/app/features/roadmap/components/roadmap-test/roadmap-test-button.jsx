@@ -42,6 +42,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  buttonHovered: {
+    backgroundColor: '#EEEEEE',
+    transform: [{ translateY: -1 }],
+  },
   buttonPressed: {
     transform: [{ scale: 0.98 }],
     backgroundColor: '#EAEAEA',

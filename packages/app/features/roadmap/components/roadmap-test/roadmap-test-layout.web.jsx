@@ -5,7 +5,7 @@ import { RoadmapTestQuestion } from './roadmap-test-question'
 import { RoadmapTestDashboard } from './roadmap-test-dashboard'
 import { RoadmapTestButton } from './roadmap-test-button'
 import { ToastNotification } from './toast-notification'
-import { ArrowLeftOutlined, ArrowRightOutlined, FlagFilled } from '@ant-design/icons'
+import { ArrowLeftOutlined, ArrowRightOutlined, FlagFilled, ClockCircleOutlined, CustomerServiceOutlined, EditOutlined, ReadOutlined } from '@ant-design/icons'
 import { getTestQuestions, getTestConfig, formatTime } from '../../api/roadmap-test'
 import { apiClient } from '../../../../provider/api/client'
 import { ENDPOINTS } from '../../../../provider/api/endpoints'
@@ -19,12 +19,8 @@ const normalizeImageSource = (src) => {
   return src
 }
 
-const DEFAULT_EXAM_ID = 'kjyv9q3dac'
 
-// Đảm bảo trong 1 lần load bundle chỉ gọi API take-exam đúng 1 lần
-// (kể cả khi React StrictMode mount/unmount component 2 lần)
-let startExamOncePromise = null
-let startExamCacheKey = null
+
 
 const isTwoPartWriting = (questionTypeCode) => {
   const code = String(questionTypeCode || '').slice(-3).toUpperCase()
@@ -181,34 +177,18 @@ const buildAllMcqAnswersPayload = (sections, allAnswersState) => {
 }
 
 // Bước 1: Take exam để lấy userExamId
-const startExam = async (examId = DEFAULT_EXAM_ID, isShuffle = true) => {
-  const cacheKey = `${examId || ''}:${isShuffle}`
-  // Nếu đã có promise đang/đã gọi rồi với cùng tham số thì luôn dùng lại (tránh gọi 2 lần API)
-  if (startExamOncePromise && startExamCacheKey === cacheKey) {
-    return startExamOncePromise
-  }
-
-  startExamCacheKey = cacheKey
-
+const startExam = async (examId, isShuffle = true) => {
   const url = ENDPOINTS.USER_EXAM?.TAKE_EXAM
     ? ENDPOINTS.USER_EXAM.TAKE_EXAM(examId, isShuffle)
     : `/UserExam/user/take-exam?examId=${encodeURIComponent(examId)}&isShuffle=${isShuffle}`
 
-  startExamOncePromise = (async () => {
-    try {
-      const response = await apiClient.post(url, {})
-      // console.log('[API Debug] startExam response:', response?.data)
-      // backend standard: { isSuccess, data: { userExamId }, ... } or just { userExamId }
-      return response?.data?.data || response?.data || null
-    } catch (error) {
-      // console.error('[API Debug] startExam error:', error)
-      startExamOncePromise = null
-      startExamCacheKey = null
-      throw error
-    }
-  })()
-
-  return startExamOncePromise
+  try {
+    const response = await apiClient.post(url, {})
+    return response?.data?.data || response?.data || null
+  } catch (error) {
+    console.error('Failed to start exam:', error)
+    throw error
+  }
 }
 
 // Bước 2: Lấy chi tiết bài thi đang làm dở từ userExamId
@@ -222,15 +202,19 @@ const getExamDetailInProgress = async (userExamId) => {
   return response?.data?.data || null
 }
 
+const examIdConfigCache = {}
 const getExamIdByConfigKey = async (examKey) => {
   if (!examKey) return null
+  if (examIdConfigCache[examKey]) return examIdConfigCache[examKey]
 
   const url = ENDPOINTS.SYSTEM_CONFIGS?.GET_BY_KEY
     ? ENDPOINTS.SYSTEM_CONFIGS.GET_BY_KEY(examKey)
     : `/system-configs/${encodeURIComponent(examKey)}`
 
   const response = await apiClient.get(url)
-  return response?.data?.data?.value || null
+  const value = response?.data?.data?.value || null
+  if (value) examIdConfigCache[examKey] = value
+  return value
 }
 
 // Map dữ liệu exam thành 3 phần: listening / reading / writing (nếu có)
@@ -435,6 +419,20 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
   const [toastMessage, setToastMessage] = useState('')
   const [toastType, setToastType] = useState('success')
   const [markedQuestions, setMarkedQuestions] = useState({}) // { [sectionKey]: { [questionNo]: boolean } }
+  const questionListRef = useRef(null)
+  // Refs to deduplicate the take-exam API call when React StrictMode double-invokes
+  // the effect. Both invocations share the same promise so the API fires exactly once.
+  const activeLoadIdRef = useRef(0)
+  const takeExamInFlightRef = useRef(null)   // { examId, promise }
+
+  // Scroll to top when section changes
+  useEffect(() => {
+    if (activeSectionKey && questionListRef.current) {
+      if (Platform.OS === 'web') {
+        questionListRef.current.scrollTop = 0
+      }
+    }
+  }, [activeSectionKey])
 
   const handleToggleMark = (questionNum) => {
     if (!activeSectionKey) return
@@ -450,68 +448,86 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     })
   }
 
-  // Load exam data (ưu tiên gọi API thật, fallback sang mock theo level nếu lỗi)
+  // Load exam data
   useEffect(() => {
-    let isMounted = true
+    // Give this specific invocation a unique ID.
+    // If React StrictMode mounts twice, the first invocation's ID becomes stale
+    // as soon as the cleanup runs and increments the counter.
+    const loadId = ++activeLoadIdRef.current
 
     const loadExam = async () => {
       setIsLoading(true)
       setLoadError(null)
 
       try {
-        // 1) Resolve examId từ examKey (nếu có), sau đó take exam để backend tạo/ghi nhận userExamId
+        // 1) Resolve examId
         const resolvedExamId = examId || (examKey ? await getExamIdByConfigKey(examKey) : null)
-        const examIdToUse = resolvedExamId || DEFAULT_EXAM_ID
-        const takeExamResult = await startExam(examIdToUse)
-        console.log('takeExamResult:', takeExamResult)
-        // Handle different possible response structures:
-        // - { userExamId: '...' }
-        // - { data: { userExamId: '...' } }
-        // - userExamId directly (string/number)
-        let userExamId = null
+
+        // Bail out if this request is no longer the latest (component unmounted or re-ran)
+        if (activeLoadIdRef.current !== loadId) return
+
+        if (!resolvedExamId) {
+          throw new Error('Không tìm thấy mã bài thi. Vui lòng quay lại trang trước.')
+        }
+
+        const takeExamResult = await (() => {
+          // If a take-exam call for this exact examId is already in-flight
+          // (StrictMode double-mount), reuse the same promise so the API
+          // fires exactly once and both invocations get the same result.
+          if (
+            takeExamInFlightRef.current &&
+            takeExamInFlightRef.current.examId === resolvedExamId
+          ) {
+            return takeExamInFlightRef.current.promise
+          }
+          const promise = startExam(resolvedExamId)
+          takeExamInFlightRef.current = { examId: resolvedExamId, promise }
+          // Clear once settled so the ref doesn’t block future retries
+          promise.finally(() => {
+            if (takeExamInFlightRef.current?.examId === resolvedExamId) {
+              takeExamInFlightRef.current = null
+            }
+          })
+          return promise
+        })()
+
+        // Bail out again after the async call — this is the critical check that
+        // prevents the second StrictMode invocation from committing its session.
+        if (activeLoadIdRef.current !== loadId) return
+
+        let uId = null
         if (takeExamResult) {
-          // Robust checking for userExamId in various possible response structures
-          if (typeof takeExamResult === 'string' || typeof takeExamResult === 'number') {
-            userExamId = takeExamResult
-          } else if (takeExamResult.userExamId) {
-            userExamId = takeExamResult.userExamId
-          } else if (takeExamResult.data?.userExamId) {
-            userExamId = takeExamResult.data.userExamId
-          } else if (takeExamResult.id) {
-            userExamId = takeExamResult.id
-          } else if (takeExamResult.data?.id) {
-            userExamId = takeExamResult.data.id
+          uId = takeExamResult.userExamId || takeExamResult.id || takeExamResult.data?.userExamId || takeExamResult.data?.id
+          if (!uId && (typeof takeExamResult === 'string' || typeof takeExamResult === 'number')) {
+            uId = takeExamResult
           }
         }
-        if (!isMounted || !userExamId) {
+
+        if (!uId) {
           throw new Error('No userExamId returned from take-exam')
         }
 
-        setUserExamId(userExamId)
-        setExamTitle(takeExamResult?.title || takeExamResult?.examTitle || '')
+        setUserExamId(uId)
 
-        // 2) Lấy chi tiết bài đang làm từ userExamId
-        const examData = await getExamDetailInProgress(userExamId)
-        if (!isMounted || !examData) {
+        // 2) Fetch exam detail
+        const examData = await getExamDetailInProgress(uId)
+
+        if (activeLoadIdRef.current !== loadId) return
+        if (!examData) {
           throw new Error('No exam detail data')
         }
 
         const mappedSections = mapExamToSections(examData)
-
-        // Khôi phục đáp án đã chọn trước đó (nếu user quay lại)
         const restoredAnswers = restoreAnswersFromSections(mappedSections)
 
         setSections(mappedSections)
-
-        // Respect currentSkill from backend if available, or find first section with time remaining
         const skillRemaining = examData.skillTimeRemaining || {}
         const backendCurrentSkill = (examData.currentSkill || '').toLowerCase()
-        let initialSection = mappedSections.find(s => s.key === backendCurrentSkill)
 
+        let initialSection = mappedSections.find(s => s.key === backendCurrentSkill)
         if (!initialSection) {
           initialSection = mappedSections.find(s => (skillRemaining[s.key] || 0) > 0)
         }
-
         if (!initialSection) initialSection = mappedSections[0]
 
         setActiveSectionKey(initialSection?.key || null)
@@ -527,7 +543,6 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
               ? examData.duration * 60
               : getTestConfig(level).totalTime
 
-        // Initialize skillTimeRemaining. If API doesn't provide it, fall back to global duration divided equally
         if (Object.keys(skillRemaining).length === 0) {
           mappedSections.forEach(s => {
             skillRemaining[s.key] = totalSeconds / mappedSections.length
@@ -540,6 +555,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
 
         setTimeRemainingSeconds(currentSkillSeconds)
         setTimeRemaining(formatTime(currentSkillSeconds))
+
         const activeSectionQuestion = initialSection?.questions?.[0]
         setCurrentQuestion(activeSectionQuestion?.questionNumber || 1)
         setCurrentQuestionIndex(0)
@@ -552,24 +568,16 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
           ''
         )
       } catch (error) {
+        if (activeLoadIdRef.current !== loadId) return
         console.error('Failed to load exam:', error)
 
-        if (isMounted) {
-          Alert.alert(
-            'Không thể tải đề thi',
-            'Đã có lỗi xảy ra khi lấy thông tin bài kiểm tra. Vui lòng thử lại sau.',
-            [{ text: 'Đồng ý', onPress: () => router.push(isEntrance ? '/roadmap/info' : '/roadmap/learning') }]
-          )
-
-          // Sau 2 giây nếu chưa chuyển trang thì tự động chuyển (đề phòng Alert bị chặn hoặc không gọi onPress)
-          setTimeout(() => {
-            if (isMounted) {
-              router.push(isEntrance ? '/roadmap/info' : '/roadmap/learning')
-            }
-          }, 2000)
-        }
+        Alert.alert(
+          'Không thể tải đề thi',
+          'Đã có lỗi xảy ra khi lấy thông tin bài kiểm tra. Vui lòng thử lại sau.',
+          [{ text: 'Đồng ý', onPress: () => router.push(isEntrance ? '/roadmap/info' : '/roadmap/learning') }]
+        )
       } finally {
-        if (isMounted) {
+        if (activeLoadIdRef.current === loadId) {
           setIsLoading(false)
         }
       }
@@ -577,8 +585,9 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
 
     loadExam()
 
+    // Cleanup: invalidate this loadId so any in-flight async work is discarded
     return () => {
-      isMounted = false
+      activeLoadIdRef.current = loadId + 1
     }
   }, [level, examKey, examId])
 
@@ -601,6 +610,26 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
 
     return () => clearInterval(timer)
   }, [isLoading, activeSectionKey, isSubmitting])
+
+  // Prevent accidental tab close/refresh on Web
+  useEffect(() => {
+    if (Platform.OS !== 'web') return
+
+    const handleBeforeUnload = (e) => {
+      // Only show warning if we are not currently in the submission process
+      // and the exam has loaded.
+      if (!isLoading && !isSubmitting) {
+        e.preventDefault()
+        e.returnValue = '' // Standard way to trigger browser's "Leave site?" dialog
+        return ''
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [isLoading, isSubmitting])
 
   // Watch current skill time to update display and handle timeout
   useEffect(() => {
@@ -842,42 +871,41 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
 
   const handleSubmit = async (isAuto = false) => {
     if (isSubmitting) return
-
-    // If auto-submit, we don't clear the timer here (it's already 0)
-    if (isAuto !== true) {
-      // timeRemainingSeconds logic handled below
-    }
-
-    if (!userExamId) {
-      if (isAuto !== true) {
-        Alert.alert('Thông báo', 'Bạn đang làm đề mẫu. Kết quả không được lưu.')
-      }
-      return
-    }
-
-    const activeSectionSnapshot = activeSection
-    const activeSectionIndexSnapshot = activeSectionIndex
-    const isLastSkill = activeSectionIndexSnapshot === sections.length - 1
-
-    if (isAuto !== true) {
-      const confirmText = isLastSkill
-        ? 'Bạn có chắc chắn muốn nộp bài? Sau khi nộp, bạn sẽ không thể chỉnh sửa đáp án.'
-        : `Bạn có chắc chắn muốn nộp phần thi ${activeSectionSnapshot?.label || ''} và chuyển sang phần tiếp theo?`
-
-      const confirmed = await confirmSubmit(confirmText)
-      if (!confirmed) return
-    }
-
     setIsSubmitting(true)
+
     try {
-      // 0) Sync tất cả đáp án (MCQ + Writing) trước khi submit/next-skill
+      if (!userExamId) {
+        if (isAuto !== true) {
+          Alert.alert('Thông báo', 'Bạn đang làm đề mẫu. Kết quả không được lưu.')
+        }
+        setIsSubmitting(false)
+        return
+      }
+
+      const activeSectionSnapshot = activeSection
+      const activeSectionIndexSnapshot = activeSectionIndex
+      const isLastSkill = activeSectionIndexSnapshot === sections.length - 1
+
+      if (isAuto !== true) {
+        const confirmText = isLastSkill
+          ? 'Bạn có chắc chắn muốn nộp bài? Sau khi nộp, bạn sẽ không thể chỉnh sửa đáp án.'
+          : `Bạn có chắc chắn muốn nộp phần thi ${activeSectionSnapshot?.label || ''} và chuyển sang phần tiếp theo?`
+
+        const confirmed = await confirmSubmit(confirmText)
+        if (!confirmed) {
+          setIsSubmitting(false)
+          return
+        }
+      }
+
+      // 1) Sync tất cả đáp án (MCQ + Writing) trước khi submit/next-skill
       await syncAllAnswersBeforeSubmit()
 
       if (isLastSkill) {
         // timeRemainingSeconds logic only for final submit
         if (!isAuto) setTimeRemainingSeconds(0)
 
-        // 1) Submit exam
+        // 2) Submit exam
         const submitResp = await apiClient.post(ENDPOINTS.USER_EXAM.SUBMIT, {
           userExamId,
         })
@@ -887,6 +915,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
 
         if (!isSubmitSuccess || !submittedUserExamId) {
           Alert.alert('Lỗi', 'Không thể nộp bài. Vui lòng thử lại.')
+          setIsSubmitting(false)
           return
         }
 
@@ -904,8 +933,6 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
             submittedUserExamId
           )}&level=${encodeURIComponent(String(level))}&isEntrance=${isEntrance ? '1' : '0'}&taskId=${taskId || ''}`
         )
-
-        startExamOncePromise = null
       } else {
         // Gọi next-skill API
         await apiClient.put(ENDPOINTS.USER_EXAM.NEXT_SKILL(userExamId))
@@ -913,11 +940,13 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         // Chuyển phần tiếp theo
         const nextSection = sections[activeSectionIndexSnapshot + 1]
         if (nextSection) {
-          handleChangeSection(nextSection.key, true)
+          performSectionSwitch(nextSection.key)
         }
       }
     } catch (error) {
       console.error('Failed to submit exam/skill:', error)
+      const activeSectionIndexSnapshot = sections.findIndex((s) => s.key === activeSectionKey)
+      const isLastSkill = activeSectionIndexSnapshot === sections.length - 1
       const errorMsg = isLastSkill ? 'Không thể nộp bài. Vui lòng thử lại.' : 'Không thể chuyển phần. Vui lòng thử lại.'
       Alert.alert('Lỗi', errorMsg)
     } finally {
@@ -934,6 +963,14 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     // Block going back to previous sections
     if (targetIndex < currentIndex) {
       setToastMessage('Bạn không thể quay lại phần thi đã qua.')
+      setToastType('error')
+      setToastVisible(true)
+      return
+    }
+
+    // Chặn nhảy cóc qua các phần thi (ví dụ từ 1 nhảy lên 3 mà chưa qua 2)
+    if (targetIndex > currentIndex + 1) {
+      setToastMessage('Bạn phải thực hiện tuần tự các phần thi.')
       setToastType('error')
       setToastVisible(true)
       return
@@ -1043,8 +1080,9 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         {/* Close button */}
         <Pressable
           onPress={handleBackToLearning}
-          style={({ pressed }) => [
+          style={({ pressed, hovered }) => [
             styles.headerCloseButton,
+            hovered && styles.closeButtonHovered,
             pressed && styles.headerCloseButtonPressed,
           ]}
           hitSlop={8}
@@ -1068,7 +1106,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
           </View>
           <View style={styles.headerRightSection}>
             <View style={styles.timerBox}>
-              <Text style={styles.timerLabel}>Thời gian còn lại</Text>
+              <ClockCircleOutlined style={StyleSheet.flatten(styles.timerIcon)} />
               <Text style={styles.timerValue}>{timeRemaining}</Text>
             </View>
           </View>
@@ -1076,7 +1114,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
 
         <View style={styles.contentRow}>
           {/* Left: Question */}
-          <View style={styles.questionContainer}>
+          <View ref={questionListRef} style={styles.questionContainer}>
             {(() => {
               const groupedParts = []
               let currentPart = null
@@ -1153,19 +1191,28 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
                 const currentIndex = sections.findIndex((s) => s.key === activeSectionKey)
                 const isPrevious = index < currentIndex
                 const isFinished = skillTimeRemaining[section.key] <= 0 && section.key !== activeSectionKey
+                const isActive = activeSectionKey === section.key
+
+                let Icon = ReadOutlined
+                if (section.key === 'listening') Icon = CustomerServiceOutlined
+                if (section.key === 'writing') Icon = EditOutlined
 
                 return (
                   <RoadmapTestButton
                     key={section.key}
-                    title={section.label}
                     onPress={() => handleChangeSection(section.key)}
-                    disabled={isPrevious || isFinished}
+                    disabled={isPrevious || isFinished || index > currentIndex + 1}
                     style={[
                       styles.sectionTab,
-                      activeSectionKey === section.key && styles.sectionTabActive,
+                      isActive && styles.sectionTabActive,
                       (isPrevious || isFinished) && styles.sectionTabDisabled,
                     ]}
-                  />
+                  >
+                    <Icon style={StyleSheet.flatten([styles.sectionTabIcon, isActive && styles.sectionTabIconActive])} />
+                    <Text style={StyleSheet.flatten([styles.sectionTabText, isActive && styles.sectionTabTextActive])}>
+                      {section.label}
+                    </Text>
+                  </RoadmapTestButton>
                 )
               })}
             </View>
@@ -1187,14 +1234,14 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
             <View style={[styles.navigationButtons, styles.dashboardNavigationButtons]}>
               {currentQuestionIndex > 0 ? (
                 <RoadmapTestButton onPress={handlePrevQuestion} style={styles.navButtonLeft}>
-                  <ArrowLeftOutlined style={styles.navButtonIconLeft} />
+                  <ArrowLeftOutlined style={StyleSheet.flatten(styles.navButtonIconLeft)} />
                 </RoadmapTestButton>
               ) : (
                 <View style={{ flex: 1 }} />
               )}
               {currentQuestionIndex < sectionQuestions.length - 1 && (
                 <RoadmapTestButton onPress={handleNextQuestion} style={styles.navButtonRight}>
-                  <ArrowRightOutlined style={styles.navButtonIcon} />
+                  <ArrowRightOutlined style={StyleSheet.flatten(styles.navButtonIcon)} />
                 </RoadmapTestButton>
               )}
             </View>
@@ -1263,9 +1310,10 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
             <View style={styles.confirmActions}>
               <Pressable
                 onPress={handleCancelSectionChange}
-                style={({ pressed }) => [
+                style={({ pressed, hovered }) => [
                   styles.confirmButton,
                   styles.confirmButtonCancel,
+                  hovered && styles.confirmButtonHovered,
                   pressed && styles.confirmButtonPressed,
                 ]}
               >
@@ -1273,9 +1321,10 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
               </Pressable>
               <Pressable
                 onPress={handleConfirmSectionChange}
-                style={({ pressed }) => [
+                style={({ pressed, hovered }) => [
                   styles.confirmButton,
                   styles.confirmButtonOk,
+                  hovered && styles.confirmButtonHovered,
                   pressed && styles.confirmButtonPressed,
                 ]}
               >
@@ -1297,8 +1346,9 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
           <View style={styles.confirmModal}>
             <Pressable
               onPress={handleCloseBackConfirm}
-              style={({ pressed }) => [
+              style={({ pressed, hovered }) => [
                 styles.closeButton,
+                hovered && styles.closeButtonHovered,
                 pressed && styles.closeButtonPressed,
               ]}
               hitSlop={8}
@@ -1376,12 +1426,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 100,
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.2s ease',
+    }),
   },
   headerCloseButtonText: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '300',
     color: '#666',
-    lineHeight: 22,
+    lineHeight: 24,
   },
   headerRow: {
     flexDirection: 'row',
@@ -1394,24 +1447,29 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   instructionBox: {
-    backgroundColor: '#F8F9FF',
-    borderRadius: 16,
-    padding: 12,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#6366F1',
     borderWidth: 1,
-    borderColor: '#E8EFFF',
+    borderColor: '#E5E7EB',
+    marginBottom: 8,
   },
   instructionTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#2A2A2A',
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#1F2937',
     fontFamily: 'Epilogue, sans-serif',
+    letterSpacing: -0.3,
   },
   instructionSubtitle: {
-    marginTop: 4,
-    fontSize: 13,
-    color: '#666',
+    marginTop: 6,
+    fontSize: 14,
+    color: '#4B5563',
     fontFamily: 'Epilogue, sans-serif',
     fontWeight: '500',
+    lineHeight: 20,
   },
   examTitleRow: {
     flexDirection: 'row',
@@ -1448,24 +1506,27 @@ const styles = StyleSheet.create({
     paddingRight: 40,
   },
   timerBox: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 14,
-    backgroundColor: '#F1BE4B',
+    flexDirection: 'row',
     alignItems: 'center',
-    minWidth: 130,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 100,
+    backgroundColor: '#FFF9EE',
+    borderWidth: 1,
+    borderColor: '#FFECC0',
+    gap: 8,
+    minWidth: 110,
+    justifyContent: 'center',
   },
-  timerLabel: {
-    fontSize: 9,
-    color: '#1A1A1A',
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+  timerIcon: {
+    fontSize: 16,
+    color: '#8D4E2A',
   },
   timerValue: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
-    color: '#1A1A1A',
+    color: '#8D4E2A',
+    fontFamily: 'Epilogue, sans-serif',
   },
   contentRow: {
     flex: 1,
@@ -1501,21 +1562,47 @@ const styles = StyleSheet.create({
   dashboardHeaderTabs: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    padding: 6,
+    borderRadius: 20,
+    backgroundColor: '#F0F2F5', // Light gray background
     width: '100%',
+    gap: 4,
+    marginBottom: 8,
   },
   sectionTab: {
     flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    backgroundColor: '#F5F5F5',
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: 'transparent',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    borderWidth: 0,
   },
   sectionTabActive: {
-    backgroundColor: '#FFE5B3',
-    borderColor: '#FFC107',
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 0,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+    }),
+  },
+  sectionTabText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#667085',
+  },
+  sectionTabTextActive: {
+    color: '#6366F1',
+  },
+  sectionTabIcon: {
+    fontSize: 18,
+    color: '#667085',
+  },
+  sectionTabIconActive: {
+    color: '#6366F1',
   },
   sectionTabDisabled: {
     opacity: 0.5,
@@ -1572,12 +1659,26 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     right: 16,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#F5F5F5',
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 10,
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.2s ease',
+    }),
+  },
+  closeButtonHovered: {
+    backgroundColor: '#E0E0E0',
+    transform: [{ scale: 1.1 }],
+  },
+  closeButtonText: {
+    fontSize: 24,
+    fontWeight: '300',
+    color: '#666',
+    lineHeight: 24,
   },
   confirmTitle: {
     fontSize: 20,
@@ -1601,6 +1702,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
+    ...(Platform.OS === 'web' && {
+      transition: 'all 0.2s ease',
+    }),
+  },
+  confirmButtonHovered: {
+    opacity: 0.9,
+    transform: [{ translateY: -2 }],
   },
   confirmButtonCancel: {
     backgroundColor: '#F5F5F5',

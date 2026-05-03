@@ -59,7 +59,7 @@ export function RoadmapTestDashboard({
           <Pressable
             key={questionNum}
             onPress={() => onQuestionSelect && onQuestionSelect(questionNum)}
-            style={[
+            style={({ pressed, hovered }) => [
               styles.questionBox,
               currentQuestion === questionNum && styles.questionBoxActive,
               currentQuestion !== questionNum &&
@@ -78,6 +78,8 @@ export function RoadmapTestDashboard({
                     String(answers?.[questionNum]?.b || '').trim().length > 0
                     : false) &&
               styles.questionBoxAnswered,
+              hovered && styles.questionBoxHovered,
+              pressed && styles.questionBoxPressed,
             ]}
           >
             <Text
@@ -91,7 +93,7 @@ export function RoadmapTestDashboard({
             </Text>
             {markedQuestions[questionNum] && (
               <View style={styles.flagIconContainer}>
-                <FlagFilled style={styles.flagIcon} />
+                <FlagFilled style={StyleSheet.flatten(styles.flagIcon)} />
               </View>
             )}
           </Pressable>
@@ -103,8 +105,9 @@ export function RoadmapTestDashboard({
         <Pressable
           onPress={onSubmit}
           disabled={isSubmitting}
-          style={({ pressed }) => [
+          style={({ pressed, hovered }) => [
             styles.submitButton,
+            hovered && styles.submitButtonHovered,
             pressed && styles.submitButtonPressed,
             isSubmitting && styles.submitButtonDisabled,
           ]}
@@ -126,8 +129,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    padding: 20,
-    gap: 20,
+    padding: 16,
+    gap: 12,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#F0F0F0',
@@ -139,7 +142,7 @@ const styles = StyleSheet.create({
     gap: 4,
     borderBottomWidth: 1,
     borderBottomColor: '#F5F5F5',
-    paddingBottom: 12,
+    paddingBottom: 8,
   },
   headerTitle: {
     fontSize: 16,
@@ -161,22 +164,31 @@ const styles = StyleSheet.create({
   questionsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 11,
     justifyContent: 'flex-start',
     paddingVertical: 4,
   },
   questionBox: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
+    width: 64,
+    height: 48,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#F3F4F6',
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: '#E5E7EB',
     ...(Platform.OS === 'web' && {
       transition: 'all 0.2s ease',
     }),
+  },
+  questionBoxHovered: {
+    transform: [{ translateY: -2 }],
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+    }),
+  },
+  questionBoxPressed: {
+    transform: [{ scale: 0.96 }],
   },
   questionBoxAnswered: {
     backgroundColor: '#E6FFFA',
@@ -194,9 +206,9 @@ const styles = StyleSheet.create({
     }),
   },
   questionNumber: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
-    color: '#999',
+    color: '#6B7280',
     fontFamily: 'Epilogue, sans-serif',
   },
   questionNumberMarked: {
@@ -204,11 +216,11 @@ const styles = StyleSheet.create({
   },
   flagIconContainer: {
     position: 'absolute',
-    top: 4,
-    right: 4,
+    top: 2,
+    right: 2,
   },
   flagIcon: {
-    fontSize: 10,
+    fontSize: 8,
     color: '#EF4444',
   },
   questionNumberActive: {
@@ -229,6 +241,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...(Platform.OS === 'web' && {
       boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
+      transition: 'all 0.3s ease',
+    }),
+  },
+  submitButtonHovered: {
+    backgroundColor: '#F3C96D',
+    transform: [{ translateY: -2 }],
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 12px 24px rgba(0,0,0,0.2)',
     }),
   },
   submitButtonPressed: {

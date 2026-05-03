@@ -156,8 +156,10 @@ export const ENDPOINTS = {
     EVALUATE: '/Pronunciation/evaluate', // POST: Đánh giá phát âm
   },
   PRONUNCIATION_EXAMPLE: {
-    GET_BY_RULE_ID: (ruleId) => `/PronunciationExample?pronunciationRuleId=${ruleId}&pageSize=100`, // GET: Lấy danh sách ví dụ theo rule
-    GET_BY_ID: (exampleId) => `/PronunciationExample/${exampleId}`, // GET: Lấy chi tiết ví dụ
+    GET_BY_RULE_ID: (ruleId) => `/PronunciationExample?pronunciationRuleId=${ruleId}&pageSize=100`,
+    GET_BY_ID: (exampleId) => `/PronunciationExample/${exampleId}`,
+    UPDATE: (exampleId) => `/PronunciationExample/${exampleId}`,
+    DELETE: (exampleId) => `/PronunciationExample/${exampleId}`,
   },
   PRONUNCIATION_RULES: {
     CREATE: '/PronunciationRules', // POST: Tạo pronunciation rule

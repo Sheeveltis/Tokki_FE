@@ -81,7 +81,7 @@ export function MinigameGameCard({ game, onPress }) {
 const styles = StyleSheet.create({
   pressable: {
     width: '100%',
-    aspectRatio: 1, // Trả về tỷ lệ vuông cho bản Web
+    aspectRatio: 1.1, // Adjusted for a slightly wider look
     ...(Platform.OS === 'web' && { cursor: 'pointer' }),
   },
   card: {
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     height: '100%',
     ...(Platform.OS === 'web' && {
       transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.06)',
     }),
   },
   cardActive: {

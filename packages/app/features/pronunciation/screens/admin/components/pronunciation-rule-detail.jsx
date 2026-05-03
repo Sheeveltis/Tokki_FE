@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Typography, Card, Table, Tag, Button, Space, message, Descriptions, Divider, Input, Tabs } from 'antd'
+import { Typography, Card, Table, Tag, Button, Space, message, Descriptions, Divider, Input, Tabs, Tooltip } from 'antd'
 import { 
   ArrowLeftOutlined, 
   SoundOutlined, 
@@ -9,7 +9,9 @@ import {
   EditOutlined,
   DeleteOutlined
 } from '@ant-design/icons'
-import { getPronunciationExamples } from '../../../api/index.js'
+import { getPronunciationExamples, updatePronunciationExample, deletePronunciationExample } from '../../../api/index.js'
+import PronunciationExampleEditModal from './pronunciation-example-edit-modal.jsx'
+import { Modal } from 'antd'
 
 const { Title, Text } = Typography
 
@@ -17,6 +19,10 @@ export default function PronunciationRuleDetail({ rule, onBack, onEdit, onDelete
   const [examples, setExamples] = useState([])
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  
+  const [editExampleModalOpen, setEditExampleModalOpen] = useState(false)
+  const [editingExample, setEditingExample] = useState(null)
+  const [editExampleLoading, setEditExampleLoading] = useState(false)
 
   const fetchExamples = async () => {
     if (!rule?.id) return
@@ -47,6 +53,42 @@ export default function PronunciationRuleDetail({ rule, onBack, onEdit, onDelete
     audio.play().catch(e => message.error('Không thể phát âm thanh'))
   }
 
+  const handleEditExample = async (payload) => {
+    try {
+      setEditExampleLoading(true)
+      await updatePronunciationExample(payload.exampleId, payload)
+      message.success('Đã cập nhật ví dụ thành công')
+      setEditExampleModalOpen(false)
+      setEditingExample(null)
+      fetchExamples()
+    } catch (err) {
+      message.error(err.message || 'Cập nhật ví dụ thất bại')
+    } finally {
+      setEditExampleLoading(false)
+    }
+  }
+
+  const handleDeleteExample = (record) => {
+    Modal.confirm({
+      title: 'Xác nhận xóa ví dụ',
+      centered: true,
+      content: 'Bạn chắc chắn muốn xóa ví dụ này?',
+      okText: 'Xóa',
+      cancelText: 'Hủy',
+      okButtonProps: { danger: true, style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } },
+      cancelButtonProps: { style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } },
+      onOk: async () => {
+        try {
+          await deletePronunciationExample(record.exampleId)
+          message.success('Đã xóa ví dụ thành công')
+          fetchExamples()
+        } catch (err) {
+          message.error(err.message || 'Xóa ví dụ thất bại')
+        }
+      },
+    })
+  }
+
   const columns = [
     {
       title: 'STT',
@@ -56,10 +98,11 @@ export default function PronunciationRuleDetail({ rule, onBack, onEdit, onDelete
       render: (_, __, index) => index + 1
     },
     {
-      title: 'Câu mẫu (Raw)',
-      dataIndex: 'rawScript',
-      key: 'rawScript',
+      title: 'Câu mẫu',
+      dataIndex: 'targetScript',
+      key: 'targetScript',
       width: '30%',
+      render: (text) => <div dangerouslySetInnerHTML={{ __html: text }} />
     },
     {
       title: 'Phiên âm',
@@ -88,6 +131,34 @@ export default function PronunciationRuleDetail({ rule, onBack, onEdit, onDelete
           disabled={!url}
           onClick={() => playAudio(url)}
         />
+      )
+    },
+    {
+      title: 'Hoạt động',
+      key: 'action',
+      align: 'center',
+      width: 120,
+      render: (_, record) => (
+        <Space size="middle">
+          <Tooltip title="Chỉnh sửa">
+            <Button 
+              type="text" 
+              icon={<EditOutlined style={{ color: '#1890ff' }} />} 
+              onClick={() => {
+                setEditingExample(record)
+                setEditExampleModalOpen(true)
+              }}
+            />
+          </Tooltip>
+          <Tooltip title="Xóa">
+            <Button 
+              type="text" 
+              danger 
+              icon={<DeleteOutlined />} 
+              onClick={() => handleDeleteExample(record)}
+            />
+          </Tooltip>
+        </Space>
       )
     }
   ]
@@ -245,6 +316,17 @@ export default function PronunciationRuleDetail({ rule, onBack, onEdit, onDelete
           items={tabItems}
         />
       </div>
+
+      <PronunciationExampleEditModal
+        open={editExampleModalOpen}
+        loading={editExampleLoading}
+        example={editingExample}
+        onCancel={() => {
+          setEditExampleModalOpen(false)
+          setEditingExample(null)
+        }}
+        onSubmit={handleEditExample}
+      />
     </div>
   )
 }
