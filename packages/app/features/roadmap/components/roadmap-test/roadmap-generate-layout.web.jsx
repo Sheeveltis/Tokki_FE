@@ -31,7 +31,7 @@ export function RoadmapGenerateLayout({
   generateError = null,
   progressData = null,
   isEntrance = false,
-  selfDeclaredLevel = 0,
+
 }) {
   const router = useRouter()
   const [selectedDuration, setSelectedDuration] = useState(null)
@@ -113,7 +113,7 @@ export function RoadmapGenerateLayout({
 
   const confirmNavigateBack = () => {
     setConfirmBackVisible(false)
-    const query = `userExamId=${encodeURIComponent(userExamId)}&level=${level}&isEntrance=${isEntrance ? '1' : '0'}&selfDeclaredLevel=${selfDeclaredLevel}`
+    const query = `userExamId=${encodeURIComponent(userExamId)}&level=${level}&isEntrance=${isEntrance ? '1' : '0'}`
     router.push(`/roadmap/test/result?${query}`)
   }
 

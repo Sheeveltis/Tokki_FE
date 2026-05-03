@@ -23,13 +23,7 @@ export function RoadmapTestResultScreen() {
     Platform.OS === 'web'
       ? Number(searchParams?.get?.('level'))
       : Number(route?.params?.level || searchParams?.get?.('level'))
-  const selfDeclaredLevel =
-    Platform.OS === 'web'
-      ? Number(searchParams?.get?.('selfDeclaredLevel'))
-      : Number(
-          route?.params?.selfDeclaredLevel ||
-            searchParams?.get?.('selfDeclaredLevel')
-        )
+
   const isEntrance =
     Platform.OS === 'web'
       ? String(searchParams?.get?.('isEntrance') || '') === '1'
@@ -76,7 +70,7 @@ export function RoadmapTestResultScreen() {
   const fetchFeedback = useCallback(async () => {
     if (!isEntrance || !userExamId || !Number.isFinite(targetAim)) return null
 
-    const requestKey = `${userExamId}-${targetAim}-${Number.isFinite(selfDeclaredLevel) ? selfDeclaredLevel : 0}`
+    const requestKey = `${userExamId}-${targetAim}`
     if (feedbackRequestKeyRef.current === requestKey && feedbackData) {
       return feedbackData
     }
@@ -90,9 +84,6 @@ export function RoadmapTestResultScreen() {
         params: {
           userExamId,
           targetAim,
-          selfDeclaredLevel: Number.isFinite(selfDeclaredLevel)
-            ? selfDeclaredLevel
-            : 0,
         },
       })
       const data = response?.data?.data || null
@@ -106,7 +97,7 @@ export function RoadmapTestResultScreen() {
     } finally {
       setFeedbackLoading(false)
     }
-  }, [isEntrance, userExamId, targetAim, selfDeclaredLevel, feedbackData])
+  }, [isEntrance, userExamId, targetAim, feedbackData])
 
   const handleGenerateRoadmap = useCallback(
     async ({ durationDays }) => {
@@ -121,9 +112,6 @@ export function RoadmapTestResultScreen() {
           targetAim,
           durationDays,
           userExamId,
-          selfDeclaredLevel: Number.isFinite(selfDeclaredLevel)
-            ? selfDeclaredLevel
-            : 0,
         }, {
           timeout: 0,
         })
@@ -269,7 +257,7 @@ export function RoadmapTestResultScreen() {
       isEntrance={isEntrance}
       isRoadmapTask={!!taskId}
       onNavigateToGenerate={() => {
-        const query = `userExamId=${encodeURIComponent(userExamId)}&level=${targetAim}&selfDeclaredLevel=${selfDeclaredLevel}&isEntrance=1`
+        const query = `userExamId=${encodeURIComponent(userExamId)}&level=${targetAim}&isEntrance=1`
         router.push(`/roadmap/test/result/generate?${query}`)
       }}
     />
