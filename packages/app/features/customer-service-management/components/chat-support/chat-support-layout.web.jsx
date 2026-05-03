@@ -18,11 +18,19 @@ import { ChatWindow } from './chat-window'
 export function ChatSupportLayout({
   pendingRooms,
   myRooms,
+  closedRooms,
   selectedRoom,
   loading,
   loadingJoin,
   onSelectRoom,
   onCloseRoom,
+  onJoinRoom,
+  userRole,
+  isMember,
+  mode,
+  onModeChange,
+  historyDays,
+  onHistoryDaysChange,
 }) {
   return (
     <div style={styles.root}>
@@ -30,14 +38,28 @@ export function ChatSupportLayout({
         <ChatSidebar
           pendingRooms={pendingRooms}
           myRooms={myRooms}
+          closedRooms={closedRooms}
           loading={loading}
           selectedRoomId={selectedRoom?.id}
           onSelectRoom={onSelectRoom}
+          userRole={userRole}
+          mode={mode}
+          onModeChange={onModeChange}
+          historyDays={historyDays}
+          onHistoryDaysChange={onHistoryDaysChange}
         />
       </div>
 
       <div style={styles.rightCol}>
-        <ChatWindow room={selectedRoom} loadingJoin={loadingJoin} onCloseRoom={onCloseRoom} />
+        <ChatWindow
+          room={selectedRoom}
+          loadingJoin={loadingJoin}
+          onCloseRoom={onCloseRoom}
+          onJoinRoom={onJoinRoom}
+          userRole={userRole}
+          isMember={isMember}
+          mode={mode}
+        />
       </div>
     </div>
   )

@@ -3,18 +3,28 @@ import { ENDPOINTS } from '../../../provider/api/endpoints'
 
 export const requestSupport = async () => {
   const res = await apiClient.post(ENDPOINTS.LIVE_CHAT.REQUEST_SUPPORT)
-  // API trả về: { isSuccess, data: "roomId", ... }
+  // API tráº£ vá»: { isSuccess, data: "roomId", ... }
   return res?.data?.data
 }
 
+export const getActiveSupportRoom = async () => {
+  try {
+    const res = await apiClient.get(ENDPOINTS.LIVE_CHAT.GET_ACTIVE_SUPPORT)
+    return res?.data?.data
+  } catch (error) {
+    console.error('Error fetching active support room:', error)
+    return null
+  }
+}
+
 /**
- * Lấy lịch sử chat của 1 room
+ * Láº¥y lá»‹ch sá»­ chat cá»§a 1 room
  * GET Chat/{roomId}/history
  */
 export const getChatHistory = async (roomId) => {
   try {
     const res = await apiClient.get(ENDPOINTS.LIVE_CHAT.GET_HISTORY(roomId))
-    // Giả sử format OperationResult: { isSuccess, data: [...] }
+    // Giáº£ sá»­ format OperationResult: { isSuccess, data: [...] }
     return res?.data?.data || []
   } catch (error) {
     console.error('Error fetching chat history:', error)
@@ -22,12 +32,12 @@ export const getChatHistory = async (roomId) => {
   }
 }
 /**
- * Lấy danh sách support requests đang pending (Dành cho Staff/Admin)
+ * Láº¥y danh sĂ¡ch support requests Ä‘ang pending (DĂ nh cho Staff/Admin)
  */
 export const getPendingSupport = async () => {
   try {
     const res = await apiClient.get(ENDPOINTS.LIVE_CHAT.GET_PENDING_SUPPORT)
-    // Giả sử API trả về { data: [...] } hoặc mảng trực tiếp
+    // Giáº£ sá»­ API tráº£ vá» { data: [...] } hoáº·c máº£ng trá»±c tiáº¿p
     const data = res?.data?.data || res?.data
     return Array.isArray(data) ? data : []
   } catch (error) {
@@ -37,7 +47,21 @@ export const getPendingSupport = async () => {
 }
 
 /**
- * Lấy danh sách rooms mà Staff đang tham gia
+ * Láº¥y Táº¤T Cáº¢ cĂ¡c support requests Ä‘ang hoáº¡t Ä‘á»™ng (DĂ nh cho Admin)
+ */
+export const fetchActiveSupportsAll = async () => {
+  try {
+    const res = await apiClient.get('/Chat/support/active-all')
+    const data = res?.data?.data || res?.data
+    return Array.isArray(data) ? data : []
+  } catch (error) {
+    console.error("Error fetching all active supports:", error)
+    return []
+  }
+}
+
+/**
+ * Láº¥y danh sĂ¡ch rooms mĂ  Staff Ä‘ang tham gia
  */
 export const getMyRooms = async () => {
   try {
@@ -51,7 +75,7 @@ export const getMyRooms = async () => {
 }
 
 /**
- * Staff join vào support room
+ * Staff join vĂ o support room
  */
 export const joinSupport = async (roomId) => {
   try {
@@ -64,7 +88,7 @@ export const joinSupport = async (roomId) => {
 }
 
 /**
- * Đóng phòng chat (Staff kết thúc hỗ trợ)
+ * ÄĂ³ng phĂ²ng chat (Staff káº¿t thĂºc há»— trá»£)
  */
 export const closeSupport = async (roomId) => {
   try {
@@ -73,5 +97,20 @@ export const closeSupport = async (roomId) => {
   } catch (error) {
     console.error("Error closing support room:", error)
     throw error
+  }
+}
+/**
+ * L?y danh sách các ph?ng support đ? đóng (L?ch s?)
+ */
+export const getClosedSupportRooms = async (days = 30, search = '') => {
+  try {
+    const res = await apiClient.get('/Chat/support/history', {
+      params: { days, search }
+    })
+    const data = res?.data?.data || res?.data
+    return Array.isArray(data) ? data : []
+  } catch (error) {
+    console.error('Error fetching closed support rooms:', error)
+    return []
   }
 }

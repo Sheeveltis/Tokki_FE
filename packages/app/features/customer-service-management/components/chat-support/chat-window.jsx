@@ -11,7 +11,7 @@ import { getAuthToken } from '../../../../provider/api/client'
 
 const { Title, Text } = Typography
 
-export const ChatWindow = ({ room, loadingJoin, onCloseRoom }) => {
+export const ChatWindow = ({ room, loadingJoin, onCloseRoom, onJoinRoom, userRole, isMember, mode }) => {
   const [messages, setMessages] = useState([])
   const [inputValue, setInputValue] = useState('')
   const [connection, setConnection] = useState(null)
@@ -210,21 +210,23 @@ export const ChatWindow = ({ room, loadingJoin, onCloseRoom }) => {
         </div>
       }
       extra={
-        <Button
-          danger
-          type="primary"
-          loading={isClosing}
-          onClick={async () => {
-            setIsClosing(true)
-            try {
-              await onCloseRoom(room.id)
-            } finally {
-              setIsClosing(false)
-            }
-          }}
-        >
-          Kết thúc tư vấn
-        </Button>
+        isMember && mode === 'live' && (
+          <Button
+            danger
+            type="primary"
+            loading={isClosing}
+            onClick={async () => {
+              setIsClosing(true)
+              try {
+                await onCloseRoom(room.id)
+              } finally {
+                setIsClosing(false)
+              }
+            }}
+          >
+            Kết thúc tư vấn
+          </Button>
+        )
       }
     >
       <div style={{ flex: 1, overflowY: 'auto', paddingRight: '10px', marginBottom: '10px' }}>
@@ -313,13 +315,28 @@ export const ChatWindow = ({ room, loadingJoin, onCloseRoom }) => {
         <div ref={messagesEndRef} />
       </div>
 
+      {userRole === 1 && !isMember && mode === 'live' && (
+        <div style={{ textAlign: 'center', padding: '10px', backgroundColor: '#fffbe6', borderRadius: '8px', marginBottom: '10px', border: '1px solid #ffe58f' }}>
+          <Text type="warning" strong>Bạn đang ở chế độ xem lịch sử.</Text>
+          <Button type="primary" size="small" style={{ marginLeft: 10 }} onClick={() => onJoinRoom(room.id)}>
+            Tham gia hỗ trợ
+          </Button>
+        </div>
+      )}
+
+      {mode === 'history' && (
+        <div style={{ textAlign: 'center', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '8px', marginBottom: '10px' }}>
+          <Text type="secondary">Đây là phòng chat đã đóng. Bạn chỉ có thể xem lại lịch sử.</Text>
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: '10px', borderTop: '1px solid #f0f0f0', paddingTop: '10px' }}>
         <Input
-          placeholder="Nhập tin nhắn..."
+          placeholder={mode === 'history' ? "Chế độ xem lại" : (isMember ? "Nhập tin nhắn..." : "Tham gia để bắt đầu chat")}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          disabled={!connection || loadingJoin || isClosing}
+          disabled={!connection || loadingJoin || isClosing || !isMember || mode === 'history'}
           style={{ borderRadius: '20px' }}
         />
         <Button
@@ -327,7 +344,7 @@ export const ChatWindow = ({ room, loadingJoin, onCloseRoom }) => {
           shape="circle"
           icon={<SendOutlined />}
           onClick={handleSendMessage}
-          disabled={!connection || !inputValue.trim()}
+          disabled={!connection || !inputValue.trim() || !isMember || mode === 'history'}
         />
       </div>
     </Card>
