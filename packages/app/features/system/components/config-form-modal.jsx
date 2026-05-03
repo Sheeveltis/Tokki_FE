@@ -111,8 +111,8 @@ const ConfigFormModal = ({
               name="key"
               rules={[
                 { required: true, message: 'Nhập khóa (key)' },
-                { pattern: /^[A-Z0-9_]+$/, message: 'Khóa chỉ gồm chữ hoa, số và dấu gạch dưới' }
-              ]}
+                !isEdit && { pattern: /^[a-zA-Z0-9_]+$/, message: 'Khóa chỉ gồm chữ cái, số và dấu gạch dưới' }
+              ].filter(Boolean)}
             >
               <Input size="large" disabled={isEdit} placeholder="VÍ_DỤ: MAX_LOGIN_ATTEMPTS" style={{ borderRadius: '8px' }} />
             </Form.Item>
