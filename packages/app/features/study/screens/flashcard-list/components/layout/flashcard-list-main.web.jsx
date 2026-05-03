@@ -5,6 +5,9 @@ import ArrowIcon from 'assets/icon/icon-mainflow/arrow.svg'
 import SearchIcon from 'assets/icon/navigate-app/search.svg'
 import { LoadingWithContainer } from 'components/Loading'
 import { StudyIcon } from '@tokki/app/features/study/components/study-icon.web'
+import { apiClient } from '@tokki/app/provider/api/client'
+import { ENDPOINTS } from '@tokki/app/provider/api/endpoints'
+import { useEnumConfig } from '@tokki/app/hooks/useEnumConfig'
 
 /**
  * FlashcardListMain (Web): Nội dung chính của trang danh sách flashcard trên web
@@ -33,16 +36,39 @@ export function FlashcardListMain({
   onPageChange,
 }) {
   const [viewMode, setViewMode] = React.useState('card') // 'card' or 'table'
+  const scrollViewRef = React.useRef(null)
 
-  const levels = [
-    { id: null, label: 'Tất cả' },
-    { id: 1, label: 'TOPIK 1' },
-    { id: 2, label: 'TOPIK 2' },
-    { id: 3, label: 'TOPIK 3' },
-    { id: 4, label: 'TOPIK 4' },
-    { id: 5, label: 'TOPIK 5' },
-    { id: 6, label: 'TOPIK 6' },
-  ]
+  const handleScrollLeft = () => {
+    if (Platform.OS === 'web' && scrollViewRef.current) {
+      const node = scrollViewRef.current.getScrollableNode()
+      if (node.scrollBy) {
+        node.scrollBy({ left: -200, behavior: 'smooth' })
+      }
+    }
+  }
+
+  const handleScrollRight = () => {
+    if (Platform.OS === 'web' && scrollViewRef.current) {
+      const node = scrollViewRef.current.getScrollableNode()
+      if (node.scrollBy) {
+        node.scrollBy({ left: 200, behavior: 'smooth' })
+      }
+    }
+  }
+
+  const { data: enumData } = useEnumConfig(1, 1, 100)
+
+  const levels = React.useMemo(() => {
+    const defaultLevel = { id: null, label: 'Tất cả' }
+    if (!enumData || enumData.length === 0) return [defaultLevel]
+
+    const mapped = enumData.map(item => ({
+      id: Number(item.value),
+      label: item.label
+    }))
+
+    return [defaultLevel, ...mapped]
+  }, [enumData])
 
   if (isInitialLoading && loading) {
     return (
@@ -203,7 +229,18 @@ export function FlashcardListMain({
   return (
     <View style={styles.container}>
       <View style={styles.filtersSection}>
-        <View style={styles.levelSelector}>
+        <View style={styles.levelSelectorWrapper}>
+          <TouchableOpacity onPress={handleScrollLeft} style={styles.scrollArrowBtn}>
+            <StudyIcon source={ArrowIcon} width={16} height={16} style={{ transform: [{ rotate: '180deg' }] }} />
+          </TouchableOpacity>
+          
+          <ScrollView 
+            ref={scrollViewRef}
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            style={styles.levelSelectorScroll}
+            contentContainerStyle={styles.levelSelector}
+          >
           {levels.map((level) => (
             <TouchableOpacity
               key={String(level.id)}
@@ -223,6 +260,11 @@ export function FlashcardListMain({
               </Text>
             </TouchableOpacity>
           ))}
+          </ScrollView>
+
+          <TouchableOpacity onPress={handleScrollRight} style={styles.scrollArrowBtn}>
+            <StudyIcon source={ArrowIcon} width={16} height={16} />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.rightActions}>
@@ -337,10 +379,32 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     marginBottom: 16,
   },
+  levelSelectorWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minWidth: 200,
+  },
+  scrollArrowBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(Platform.OS === 'web' && { cursor: 'pointer' }),
+  },
+  levelSelectorScroll: {
+    flex: 1,
+  },
   levelSelector: {
     flexDirection: 'row',
     gap: 8,
-    flexWrap: 'wrap',
+    alignItems: 'center',
+    paddingBottom: 4,
   },
   levelButton: {
     paddingHorizontal: 16,

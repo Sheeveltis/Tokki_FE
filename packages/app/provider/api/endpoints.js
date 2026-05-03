@@ -44,6 +44,7 @@ export const ENDPOINTS = {
   },
   QUESTION_TYPE: {
     GET_ALL: '/QuestionType/admin',
+    USER_GET_ALL: '/QuestionType/user',
     GET_BY_ID: (id) => `/QuestionType/${id}`,
     CREATE: '/QuestionType',
     UPDATE: (id) => `/QuestionType/${id}`,
@@ -131,7 +132,9 @@ export const ENDPOINTS = {
     REQUEST_SUPPORT: '/Chat/support/request',
     GET_PENDING_SUPPORT: '/Chat/support/pending',
     JOIN_SUPPORT: (roomId) => `/Chat/support/${roomId}/join`,
+    CLOSE_SUPPORT: (roomId) => `/Chat/support/${roomId}/close`,
     GET_HISTORY: (roomId) => `/Chat/${roomId}/history`,
+    GET_ACTIVE_SUPPORT: '/Chat/support/active',
   },
   TOPIC: {
     CREATE: '/Topics',
@@ -153,14 +156,21 @@ export const ENDPOINTS = {
     EVALUATE: '/Pronunciation/evaluate', // POST: Đánh giá phát âm
   },
   PRONUNCIATION_EXAMPLE: {
-    GET_BY_RULE_ID: (ruleId) => `/PronunciationExample?pronunciationRuleId=${ruleId}&pageSize=100`, // GET: Lấy danh sách ví dụ theo rule
-    GET_BY_ID: (exampleId) => `/PronunciationExample/${exampleId}`, // GET: Lấy chi tiết ví dụ
+    GET_BY_RULE_ID: (ruleId) => `/PronunciationExample?pronunciationRuleId=${ruleId}&pageSize=100`,
+    GET_BY_ID: (exampleId) => `/PronunciationExample/${exampleId}`,
+    UPDATE: (exampleId) => `/PronunciationExample/${exampleId}`,
+    DELETE: (exampleId) => `/PronunciationExample/${exampleId}`,
   },
   PRONUNCIATION_RULES: {
     CREATE: '/PronunciationRules', // POST: Tạo pronunciation rule
     USER_GET_ALL: '/PronunciationRules/user/get-all', // GET: User lấy danh sách rules
     ADMIN_GET_ALL: '/PronunciationRules/admin/get-all', // GET: Admin lấy danh sách rules
+    UPDATE: (id) => `/PronunciationRules/${id}`, // PUT: Cập nhật rule
     DELETE: (id) => `/PronunciationRules/${id}`, // DELETE: Xóa rule
+    REORDER: '/PronunciationRules/reorder', // POST: Đổi vị trí
+    IMPORT_EXCEL: '/PronunciationRules/import-excel', // POST: Import từ Excel
+    EXPORT_EXCEL: '/PronunciationRules/export-excel', // GET: Export ra Excel
+    IMPORT_TEMPLATE: '/PronunciationRules/import-template', // GET: Tải template mẫu
   },
   VOCABULARY: {
     ADMIN_GET_ALL: '/Vocabulary/admin/get-all',
@@ -332,14 +342,15 @@ export const ENDPOINTS = {
   ROADMAP: {
     DURATION_RECOMMENDATION: '/Roadmap/duration-recommendation',
     FEEDBACK: '/Roadmap/entrance-feedback',
-    GENERATE: '/RoadmapVer2/generate',
-    PROGRESS: (jobId) => `/RoadmapVer2/progress/${encodeURIComponent(jobId)}`,
+    GENERATE: '/Roadmap/generate',
+    PROGRESS: (jobId) => `/Roadmap/progress/${encodeURIComponent(jobId)}`,
     CURRENT: '/Roadmap/current',
     CURRENT_WEEK_PROGRESS: '/Roadmap/current-week-progress',
     TASK_DETAIL: (taskId) => `/Roadmap/task/${encodeURIComponent(taskId)}/detail`,
     COMPLETE: '/Roadmap/complete',
-    NEXT_WEEK: '/RoadmapVer2/next-week',
-    CANCEL: '/RoadmapVer2/cancel',
+    NEXT_WEEK: '/Roadmap/next-week',
+    CANCEL: '/Roadmap/cancel',
+    VIRTUAL_QUIZ: (typeId, count = 5) => `/Roadmap/virtual-quiz/${encodeURIComponent(typeId)}?count=${count}`,
   },
   SYSTEM_CONFIGS: {
     GET_BY_KEY: (key) => `/system-configs/${encodeURIComponent(key)}`,
@@ -351,5 +362,11 @@ export const ENDPOINTS = {
     MY_NOTIFICATIONS: (pageNumber = 1, pageSize = 20, filter = 0) => `/Notification/my-notifications?pageNumber=${pageNumber}&pageSize=${pageSize}&filter=${filter}`,
     MARK_AS_READ: (id) => `/Notification/mark-as-read/${id}`,
     MARK_ALL_AS_READ: '/Notification/mark-all-as-read',
+  },
+  ENUMS: {
+    LOOKUP: (type) => `/enums/lookup/${type}`,
+  },
+  TOPIK_LEVEL_CONFIG: {
+    GET_ALL: (pageNumber = 1, pageSize = 20) => `/TopikLevelConfig?pageNumber=${pageNumber}&pageSize=${pageSize}`,
   },
 }

@@ -3,11 +3,18 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import * as signalR from '@microsoft/signalr';
 import { CHAT_HUB } from '../../../provider/api/hubConstants'; // Nhớ trỏ đúng đường dẫn file config của bạn
 
-export const useChatSignalR = (token) => {
+export const useChatSignalR = (token, initialRoomId = null) => {
   const [connection, setConnection] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(null);
+  const [roomId, setRoomId] = useState(initialRoomId);
+
+  // Ref để theo dõi roomId hiện tại nhằm re-join khi reconnect
+  const roomIdRef = useRef(roomId);
+  useEffect(() => {
+    roomIdRef.current = roomId;
+  }, [roomId]);
 
   // Ref để tránh stale closure trong event listener
   const messagesRef = useRef(messages);
@@ -53,13 +60,11 @@ export const useChatSignalR = (token) => {
       let incoming = null;
 
       if (args.length === 1 && typeof args[0] === 'object') {
-        // Trường hợp backend gửi DTO đầy đủ: { content, roomId, createdAt, senderId, senderName, ... }
         incoming = {
           ...args[0],
           timestamp: args[0].createdAt || args[0].timestamp || new Date().toISOString(),
         };
       } else {
-        // Trường hợp cũ: (user, message, timestamp)
         const [user, message, timestamp] = args;
         incoming = {
           senderId: typeof user === 'object' ? user.id : null,
@@ -69,10 +74,65 @@ export const useChatSignalR = (token) => {
         };
       }
 
-      setMessages((prev) => [...prev, incoming]);
+      setMessages((prev) => {
+        // 1. Kiểm tra ID trùng (ưu tiên ID từ server)
+        if (incoming.id && prev.some(m => m.id?.toString() === incoming.id?.toString())) {
+          return prev;
+        }
+
+        // 2. Tìm và thay thế tin nhắn tạm (temp-) của chính người gửi này
+        // So sánh nội dung và senderId (chuyển về string để chính xác)
+        const tempIndex = prev.findIndex(m => 
+          m.id?.toString().startsWith('temp-') && 
+          m.content === incoming.content && 
+          m.senderId?.toString() === incoming.senderId?.toString()
+        );
+
+        if (tempIndex !== -1) {
+          const newMsgs = [...prev];
+          newMsgs[tempIndex] = incoming;
+          return newMsgs;
+        }
+
+        // 3. Kiểm tra trùng nội dung trong thời gian ngắn (phòng trường hợp ID không ổn định)
+        const isContentDuplicate = prev.some(m => 
+          m.content === incoming.content && 
+          m.senderId?.toString() === incoming.senderId?.toString() &&
+          Math.abs(new Date(m.timestamp).getTime() - new Date(incoming.timestamp).getTime()) < 5000
+        );
+
+        if (isContentDuplicate) return prev;
+
+        return [...prev, incoming];
+      });
     });
 
-    // B. Lắng nghe lỗi từ server (nếu có)
+    // C. Tự động re-join room khi reconnect thành công
+    connection.onreconnected((connectionId) => {
+      console.log('SignalR Reconnected. ConnectionId:', connectionId);
+      setIsConnected(true);
+      if (roomIdRef.current) {
+        connection.invoke(CHAT_HUB.METHODS.JOIN_ROOM, roomIdRef.current)
+          .then(() => console.log('Auto re-joined room:', roomIdRef.current))
+          .catch(err => console.error('Auto re-join failed:', err));
+      }
+    });
+
+    connection.onreconnecting((err) => {
+      console.warn('SignalR Reconnecting...', err);
+      setIsConnected(false);
+    });
+
+    // B. Lắng nghe thông báo đóng phòng
+    connection.on(CHAT_HUB.EVENTS.ROOM_CLOSED, (closedRoomId) => {
+      console.log('SignalR: Room closed -', closedRoomId);
+      if (roomIdRef.current === closedRoomId) {
+        setRoomId(null);
+        // Có thể gọi thêm callback nếu cần
+      }
+    });
+
+    // C. Lắng nghe lỗi từ server (nếu có)
     connection.on(CHAT_HUB.EVENTS.ERROR, (errMessage) => {
       console.error("SignalR Error from server:", errMessage);
       setError(errMessage);
@@ -99,11 +159,12 @@ export const useChatSignalR = (token) => {
   // 3. Các hàm gọi lên Server (Invoke Methods)
 
   // Join Room
-  const joinRoom = useCallback(async (roomId) => {
+  const joinRoom = useCallback(async (id) => {
     if (connection && connection.state === signalR.HubConnectionState.Connected) {
       try {
-        await connection.invoke(CHAT_HUB.METHODS.JOIN_ROOM, roomId);
-        console.log(`Joined room: ${roomId}`);
+        await connection.invoke(CHAT_HUB.METHODS.JOIN_ROOM, id);
+        console.log(`Joined room: ${id}`);
+        setRoomId(id); // Lưu lại roomId để re-join khi cần
       } catch (err) {
         console.error('JoinRoom failed:', err);
       }
@@ -141,6 +202,7 @@ export const useChatSignalR = (token) => {
     joinRoom,
     leaveRoom,
     isConnected,
-    error
+    error,
+    roomId
   };
 };

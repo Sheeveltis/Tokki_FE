@@ -1,7 +1,8 @@
 import React from 'react'
 import { View, StyleSheet, Platform } from 'react-native'
 import { PaymentPackageLayout } from '../components/payment-package/payment-package-layout.web'
-import { NavbarMobile } from '../../../../components/navbar-mobile'
+// Footer is hidden via PublicLayout in public.routes.jsx for web
+// and by not rendering NavbarMobile for native
 
 /**
  * PackageScreen: Màn hình hiển thị các gói thanh toán
@@ -12,7 +13,6 @@ export function PackageScreen() {
   return (
     <View style={styles.container}>
       <PaymentPackageLayout />
-      {Platform.OS !== 'web' && <NavbarMobile />}
     </View>
   )
 }

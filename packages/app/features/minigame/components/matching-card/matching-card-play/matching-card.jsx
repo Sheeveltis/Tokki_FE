@@ -251,20 +251,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#F5F5F5',
   },
-  word: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    textAlign: 'center',
-  },
   meaning: {
     fontSize: 14,
     color: '#333',
     textAlign: 'center',
   },
-
-
-
   backImageLarge: {
     width: 95,
     height: 95,

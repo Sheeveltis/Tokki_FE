@@ -62,7 +62,7 @@ export function TopicSearchSection({
 
   return (
     <Card title="Tìm kiếm chủ đề">
-      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+      <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
         <Space style={{ width: '100%' }} wrap>
           <Input
             placeholder="Tìm kiếm theo tên chủ đề..."

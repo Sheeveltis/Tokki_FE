@@ -74,7 +74,8 @@ export default function ManagementLayout({
   tableProps,
   children,
   title,
-  renderCard // Thêm prop renderCard để hiển thị dạng card
+  renderCard, // Thêm prop renderCard để hiển thị dạng card
+  scrollOffset = 260 // Thêm prop để bù trừ chiều cao scroll
 }) {
   const tableWrapperRef = useRef(null)
   const [tableScrollY, setTableScrollY] = useState(400)
@@ -86,9 +87,8 @@ export default function ManagementLayout({
   useEffect(() => {
     const updateHeight = () => {
       // Calculate height based on viewport, subtracting space for header and footer items
-      // 580 was the old fixed value, now we try to fit better
       const vh = window.innerHeight
-      const calculatedHeight = Math.max(400, vh - 260) // Ensure at least 400px
+      const calculatedHeight = Math.max(400, vh - scrollOffset) // Ensure at least 400px
       setTableScrollY(calculatedHeight)
     }
 

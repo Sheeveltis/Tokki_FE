@@ -1,53 +1,62 @@
 import React from 'react'
-import { View, ScrollView, StyleSheet } from 'react-native'
-import { Navbar } from '../../../../../components/navbar'
-import { Footer } from '../../../../../components/footer'
+import { View, ScrollView, StyleSheet, Text, useWindowDimensions } from 'react-native'
 import { Card as PackageFree } from './package-free'
 import { Card as PackagePremium } from './package-premium-background'
-import { BackButton } from '../../../../../components/backBtn'
-import { ViewDetailPackageButton } from './view-detail-package-btn'
 
 export function PaymentPackageLayout() {
+  const { width } = useWindowDimensions()
+  const isMobile = width < 900
+  const isSmallMobile = width < 600
+
   return (
     <View style={styles.root}>
-      {/* Nội dung chính */}
-      <View style={styles.container}>
-        <View style={styles.wrapper}>
-          {/* Container cho 2 cards */}
-          <View style={styles.cardsContainer}>
-            {/* Card Free bên trái */}
-            <View style={styles.leftCard}>
-              <PackageFree
-                title="GÓI MIỄN PHÍ"
-                subtitle="Bạn sẽ nhận được quyền lợi gì ?"
-                benefits={[
-                  'Giải đề TOPIK tối đa 2 đề/ngày',
-                  'Chơi Minigame tối đa 5 lần/ngày',
-                  'Bị giới hạn số lần sử dụng AI trong một ngày',
-                  'Sử dụng được hệ thống Flashcard',
-                ]}
-                priceLabel="Miễn phí"
-              />
-              {/* Nút Quay lại */}
-              <View style={styles.buttonContainerLeft}>
-                <BackButton />
-              </View>
+      <ScrollView
+        contentContainerStyle={[
+          styles.container,
+          isMobile && styles.containerMobile
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <Text style={[
+            styles.title,
+            isMobile && styles.titleMobile,
+            isSmallMobile && styles.titleSmallMobile
+          ]}>
+            Nâng cấp trải nghiệm <Text style={styles.highlight}>học tập</Text>
+          </Text>
+          <Text style={[
+            styles.subtitle,
+            isMobile && styles.subtitleMobile
+          ]}>
+            Chọn gói dịch vụ phù hợp để bứt phá điểm số TOPIK ngay hôm nay cùng bạn Thỏ!
+          </Text>
+        </View>
+
+        <View style={[
+          styles.wrapper,
+          isMobile && styles.wrapperMobile
+        ]}>
+          <View style={[
+            styles.cardsContainer,
+            isMobile && styles.cardsContainerMobile
+          ]}>
+            <View style={[
+              styles.cardWrapper,
+              isMobile && styles.cardWrapperMobile
+            ]}>
+              <PackageFree />
             </View>
 
-            {/* Gạch đen chia cách */}
-            <View style={styles.divider} />
-
-            {/* Card Premium bên phải */}
-            <View style={styles.rightCard}>
+            <View style={[
+              styles.cardWrapper,
+              isMobile && styles.cardWrapperMobile
+            ]}>
               <PackagePremium />
-              {/* Nút Xem chi tiết các gói */}
-              <View style={styles.buttonContainerRight}>
-                <ViewDetailPackageButton />
-              </View>
             </View>
           </View>
         </View>
-      </View>
+      </ScrollView>
     </View>
   )
 }
@@ -59,50 +68,74 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   container: {
-    flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFDF9',
     alignItems: 'center',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+  },
+  containerMobile: {
     paddingVertical: 40,
+    paddingHorizontal: 16,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 20,
+    width: '100%',
+    maxWidth: 800,
+  },
+  title: {
+    fontSize: 48,
+    fontWeight: '900',
+    color: '#1A1A1A',
+    fontFamily: 'Lexend, sans-serif',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  titleMobile: {
+    fontSize: 36,
+  },
+  titleSmallMobile: {
+    fontSize: 28,
+  },
+  highlight: {
+    color: '#F9A825',
+  },
+  subtitle: {
+    fontSize: 18,
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
+    textAlign: 'center',
+    lineHeight: 28,
+  },
+  subtitleMobile: {
+    fontSize: 15,
+    lineHeight: 22,
   },
   wrapper: {
     width: '100%',
-    maxWidth: 1200,
-    paddingHorizontal: 16,
+    maxWidth: 1100,
+  },
+  wrapperMobile: {
+    maxWidth: 500,
   },
   cardsContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'stretch',
     justifyContent: 'center',
-    gap: 0,
+    gap: 30,
   },
-  leftCard: {
-    flex: 1,
+  cardsContainerMobile: {
+    flexDirection: 'column',
     alignItems: 'center',
-    paddingRight: 20,
+    gap: 40,
   },
-  rightCard: {
+  cardWrapper: {
     flex: 1,
-    alignItems: 'center',
-    paddingLeft: 20,
-  },
-  divider: {
-    width: 2,
-    height: 540,
-    backgroundColor: '#000',
-    marginHorizontal: 20,
-    alignSelf: 'center',
-  },
-  buttonContainerLeft: {
-    marginTop: 24,
-    alignItems: 'flex-start',
-    left: 80,
+    maxWidth: 480,
     width: '100%',
   },
-  buttonContainerRight: {
-    marginTop: 24,
-    alignItems: 'flex-end',
-    right: 75,
+  cardWrapperMobile: {
+    flex: 0,
     width: '100%',
   },
 })
-

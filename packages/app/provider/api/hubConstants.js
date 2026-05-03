@@ -23,6 +23,7 @@ export const CHAT_HUB = {
   
   EVENTS: {
     RECEIVE_MESSAGE: 'ReceiveMessage', 
+    ROOM_CLOSED: 'RoomClosed',
     ERROR: 'ErrorMessage' 
   }
 };

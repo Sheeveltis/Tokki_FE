@@ -25,13 +25,7 @@ export function RoadmapGenerateScreen() {
       ? Number(searchParams?.get?.('level'))
       : Number(route?.params?.level || searchParams?.get?.('level'))
 
-  const selfDeclaredLevel =
-    Platform.OS === 'web'
-      ? Number(searchParams?.get?.('selfDeclaredLevel'))
-      : Number(
-        route?.params?.selfDeclaredLevel ||
-        searchParams?.get?.('selfDeclaredLevel')
-      )
+
 
   const isEntrance =
     Platform.OS === 'web'
@@ -99,9 +93,6 @@ export function RoadmapGenerateScreen() {
         params: {
           userExamId,
           targetAim,
-          selfDeclaredLevel: Number.isFinite(selfDeclaredLevel)
-            ? selfDeclaredLevel
-            : 0,
         },
       })
       const data = response?.data?.data || null
@@ -112,7 +103,7 @@ export function RoadmapGenerateScreen() {
     } finally {
       setFeedbackLoading(false)
     }
-  }, [isEntrance, userExamId, targetAim, selfDeclaredLevel])
+  }, [isEntrance, userExamId, targetAim])
 
   useEffect(() => {
     if (!hasFetchedRef.current) {
@@ -134,9 +125,6 @@ export function RoadmapGenerateScreen() {
           targetAim,
           durationDays,
           userExamId,
-          selfDeclaredLevel: Number.isFinite(selfDeclaredLevel)
-            ? selfDeclaredLevel
-            : 0,
         }, {
           timeout: 0,
         })
@@ -156,7 +144,7 @@ export function RoadmapGenerateScreen() {
         return null
       }
     },
-    [isEntrance, userExamId, targetAim, selfDeclaredLevel, pollProgress]
+    [isEntrance, userExamId, targetAim, pollProgress]
   )
 
   return (
@@ -171,7 +159,7 @@ export function RoadmapGenerateScreen() {
       generateError={generateError}
       progressData={progressData}
       isEntrance={isEntrance}
-      selfDeclaredLevel={selfDeclaredLevel}
+
     />
   )
 }

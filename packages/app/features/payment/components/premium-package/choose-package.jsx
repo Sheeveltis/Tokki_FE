@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native'
+import { View, Text, Image, Pressable, StyleSheet, ActivityIndicator, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
+import { CreditCardOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
 import { getVipPackages, createVipPackagePayment } from '../../api/premium-package-api'
 import { getCurrentUserId } from '../../../../provider/api/client'
-import BigFoot from '../../../../../assets/bigfoot.png'
 
-/**
- * Normalize image source so it works with:
- * - require('...png') / numeric ids
- * - { uri: '...' }
- * - Next/webpack static imports: { src: '...' }
- */
 const normalizeImageSource = (src) => {
   if (!src) return null
   if (typeof src === 'number' || src.uri) return src
@@ -23,385 +17,339 @@ const normalizeImageSource = (src) => {
   return src
 }
 
-/**
- * Choose Package Component
- * - Title "Chọn gói" with bigfoot icon
- * - Three pricing options horizontally
- * - Each option has duration, total price, price per month, and BUY button
- *
- * @param {{
- *   onSelectPackage?: (packageId: string) => void;
- *   style?: any;
- * }} props
- */
-export const ChoosePackage = ({ onSelectPackage, style }) => {
+const PackageItem = ({ pkg, isSelected, onSelect, loading }) => {
+  const [isHovered, setIsHovered] = useState(false)
+  const isSpecial = pkg.badge?.text === 'PHỔ BIẾN' || pkg.durationDays === 30
+
+  return (
+    <Pressable
+      onPress={() => onSelect(pkg.id)}
+      onHoverIn={() => setIsHovered(true)}
+      onHoverOut={() => setIsHovered(false)}
+      style={[
+        styles.packageItem,
+        isSelected && styles.selectedPackage,
+        (isHovered && !isSelected) && { borderColor: '#FFBCC8' },
+        isSelected && { transform: [{ scale: 1.02 }] }
+      ]}
+    >
+      {/* Badge */}
+      {pkg.badge && (
+        <View style={[styles.badge, isSpecial && { backgroundColor: '#FF4D6D' }, !isSpecial && isSelected && { backgroundColor: '#FF4D6D' }]}>
+          <Text style={styles.badgeText}>{pkg.badge.text}</Text>
+        </View>
+      )}
+
+      {/* Icon */}
+      <View style={[styles.packageIcon, isSelected && { backgroundColor: '#FF4D6D' }]}>
+        {Platform.OS === 'web' ? (
+          <CreditCardOutlined style={{ color: isSelected ? '#fff' : '#A0AEC0', fontSize: 20 }} />
+        ) : (
+          <Text style={{ color: isSelected ? '#fff' : '#A0AEC0', fontSize: 18 }}>💳</Text>
+        )}
+      </View>
+
+      {/* Info */}
+      <View style={styles.packageInfo}>
+        <Text style={styles.packageName}>{pkg.name}</Text>
+        <Text style={styles.packageDuration}>THỜI HẠN: {pkg.duration}</Text>
+      </View>
+
+      {/* Price */}
+      <View style={styles.packagePrice}>
+        <Text style={styles.totalPrice}>
+          {new Intl.NumberFormat('vi-VN').format(pkg.totalPrice)} <Text style={styles.currency}>VNĐ</Text>
+        </Text>
+        <Text style={styles.pricePerMonth}>
+          ~{new Intl.NumberFormat('vi-VN').format(pkg.pricePerDay)} VNĐ / ngày
+        </Text>
+      </View>
+
+      {/* Buy Button */}
+      <View style={[
+        styles.buyButton,
+        isSelected ? styles.specialBuyButton : { backgroundColor: '#E8EEF4' }
+      ]}>
+        <Text style={[
+          styles.buyButtonText,
+          isSelected ? { color: '#fff' } : { color: '#A0AEC0' }
+        ]}>
+          {loading === pkg.id ? <ActivityIndicator size="small" color="#fff" /> : (isSelected ? 'CHỌN' : 'MUA')}
+        </Text>
+      </View>
+    </Pressable>
+  )
+}
+
+export const ChoosePackage = () => {
   const router = useRouter()
-  const [loading, setLoading] = useState(null) // Track which package is loading
+  const [selectedId, setSelectedId] = useState(null)
+  const [loading, setLoading] = useState(null)
   const [packages, setPackages] = useState([])
   const [fetching, setFetching] = useState(true)
-  const [error, setError] = useState(null)
 
-  // Fetch VIP packages from API
   useEffect(() => {
     const fetchPackages = async () => {
       try {
-        setFetching(true)
-        setError(null)
         const response = await getVipPackages()
-        
         if (response.isSuccess && response.data) {
-          // Map API data to component format
-          const mappedPackages = response.data
-            .filter(pkg => pkg.isActive) // Only show active packages
-            .map(pkg => {
-              // Calculate price per month
-              const months = pkg.durationDays / 30
-              const pricePerMonth = months > 0 ? Math.round(pkg.price / months) : pkg.price
-              
-              // Format duration text
-              let durationText = ''
-              if (pkg.durationDays >= 365) {
-                const years = Math.floor(pkg.durationDays / 365)
-                durationText = years === 1 ? '1 năm' : `${years} năm`
-              } else if (pkg.durationDays >= 30) {
-                const months = Math.floor(pkg.durationDays / 30)
-                durationText = months === 1 ? '1 tháng' : `${months} tháng`
-              } else {
-                durationText = `${pkg.durationDays} ngày`
-              }
+          const activePackages = response.data.filter(pkg => pkg.isActive)
 
-              // Determine badge based on packageType
-              let badge = null
-              if (pkg.packageType === 'Ưu Đãi') {
-                badge = { text: 'Ưu Đãi', color: '#FF6B9D' } // Pink
-              } else if (pkg.packageType === 'Phổ biến') {
-                badge = { text: 'Phổ biến', color: '#4ECDC4' } // Teal
-              } else if (pkg.packageType === 'Tiết kiệm') {
-                badge = { text: 'Tiết kiệm', color: '#87CEEB' } // Light blue
-              }
+          // Find the base price (30 days) to calculate discounts
+          const basePkg = activePackages.find(p => p.durationDays === 30)
+          const basePricePerMonth = basePkg ? basePkg.price : null
 
-              return {
-                id: pkg.id,
-                name: pkg.name,
-                duration: durationText,
-                durationDays: pkg.durationDays,
-                totalPrice: pkg.price,
-                pricePerMonth: pricePerMonth,
-                badge: badge,
-                description: pkg.description,
+          const mapped = activePackages.map(pkg => {
+            const price = Number(pkg.price) || 0
+            const durationDays = Number(pkg.durationDays) || 0
+
+            const months = durationDays / 30
+            const pricePerMonth = months > 0 ? Math.round(price / months) : price
+            const pricePerDay = durationDays > 0 ? Math.round(price / durationDays) : price
+
+            let badge = null
+            if (durationDays === 30) {
+              badge = { text: 'PHỔ BIẾN' }
+            } else if (basePricePerMonth && months > 1) {
+              // Calculate discount compared to base price
+              const discount = Math.round((1 - (pricePerMonth / basePricePerMonth)) * 100)
+              if (discount > 0) {
+                badge = { text: `TIẾT KIỆM ${discount}%` }
               }
-            })
-          
-          setPackages(mappedPackages)
-        } else {
-          setError('Không thể tải danh sách gói')
+            }
+
+            return {
+              id: pkg.id,
+              name: pkg.name,
+              durationDays: durationDays,
+              duration: durationDays >= 30 ? `${Math.floor(durationDays / 30)} Tháng` : `${durationDays} Ngày`,
+              totalPrice: price,
+              pricePerMonth: pricePerMonth,
+              pricePerDay: pricePerDay,
+              badge: badge,
+            }
+          })
+          setPackages(mapped)
+          if (mapped.length > 0) setSelectedId(mapped[0].id)
         }
       } catch (err) {
-        console.error('[ChoosePackage] Error fetching packages:', err)
-        setError('Đã xảy ra lỗi khi tải danh sách gói')
+        console.error(err)
       } finally {
         setFetching(false)
       }
     }
-
     fetchPackages()
   }, [])
 
-  // Format price with thousand separators
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN').format(price)
-  }
-
-  const handleBuy = async (packageId, amount) => {
-    if (onSelectPackage) {
-      onSelectPackage(packageId, amount)
-      return
-    }
+  const handleContinue = async () => {
+    if (!selectedId) return
+    const pkg = packages.find(p => p.id === selectedId)
 
     try {
-      setLoading(packageId)
-      
-      // Get userId from localStorage
+      setLoading(selectedId)
       const userId = getCurrentUserId()
-      if (!userId) {
-        console.error('User ID not found')
-        return
-      }
-
-      // Call createVipPackagePayment API
-      const response = await createVipPackagePayment(userId, packageId)
-
+      const response = await createVipPackagePayment(userId, selectedId)
       if (response.isSuccess && response.data?.paymentUrl) {
-        // Navigate to payment detail page with paymentUrl
         router.push(`/payment-detail?paymentUrl=${encodeURIComponent(response.data.paymentUrl)}&paymentId=${response.data.paymentId || ''}`)
-      } else {
-        console.error('Failed to create payment:', response)
       }
     } catch (error) {
-      console.error('Error creating payment:', error)
+      console.error(error)
     } finally {
       setLoading(null)
     }
   }
 
-  // Loading state
-  if (fetching) {
-    return (
-      <View style={[styles.outerContainer, style, { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 }]}>
-        <ActivityIndicator size="large" color="#FF6B9D" />
-        <Text style={[styles.title, { marginTop: 16, fontSize: 16 }]}>Đang tải danh sách gói...</Text>
-      </View>
-    )
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <View style={[styles.outerContainer, style, { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 }]}>
-        <Text style={[styles.title, { color: '#d9534f', fontSize: 16 }]}>{error}</Text>
-      </View>
-    )
-  }
-
-  // Empty state
-  if (packages.length === 0) {
-    return (
-      <View style={[styles.outerContainer, style, { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 }]}>
-        <Text style={[styles.title, { fontSize: 16 }]}>Không có gói nào khả dụng</Text>
-      </View>
-    )
-  }
+  if (fetching) return <ActivityIndicator size="large" color="#FFB703" />
 
   return (
-    <View style={[styles.outerContainer, style]}>
-      {/* Transparent container */}
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.container}>
-          {/* Title with icon */}
-          <View style={styles.titleContainer}>
-            <Text style={styles.title}>Chọn gói</Text>
-            <Image
-              source={normalizeImageSource(BigFoot)}
-              style={styles.icon}
-            />
-          </View>
-
-          {/* Packages list - each package in a row with 5 columns */}
-          <View style={styles.packagesContainer}>
-            {packages.map((pkg) => (
-              <View key={pkg.id} style={styles.packageRow}>
-                {/* Column 1: Badge */}
-                <View style={styles.column1}>
-                  {pkg.badge ? (
-                    <View style={[styles.badge, { backgroundColor: pkg.badge.color }]}>
-                      <Text style={styles.badgeText}>{pkg.badge.text}</Text>
-                    </View>
-                  ) : (
-                    <View style={styles.emptyBadge} />
-                  )}
-                </View>
-
-                {/* Column 2: Package Name */}
-                <View style={styles.column2}>
-                  <Text style={styles.packageName}>{pkg.name}</Text>
-                </View>
-
-                {/* Column 3: Duration */}
-                <View style={styles.column3}>
-                  <Text style={styles.duration}>{pkg.duration}</Text>
-                </View>
-
-                {/* Column 4: Prices */}
-                <View style={styles.column4}>
-                  <Text style={styles.totalPrice}>{formatPrice(pkg.totalPrice)} VNĐ</Text>
-                  {pkg.durationDays >= 30 && (
-                    <Text style={styles.pricePerMonth}>
-                      {formatPrice(pkg.pricePerMonth)} VNĐ/tháng
-                    </Text>
-                  )}
-                </View>
-
-                {/* Column 5: Buy Button */}
-                <View style={styles.column5}>
-                  <TouchableOpacity
-                    style={styles.buyButton}
-                    onPress={() => handleBuy(pkg.id, pkg.totalPrice)}
-                    disabled={loading === pkg.id}
-                  >
-                    {loading === pkg.id ? (
-                      <ActivityIndicator size="small" color="#FFFFFF" />
-                    ) : (
-                      <Text style={styles.buyButtonText}>MUA</Text>
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
-          </View>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Chọn gói đăng ký</Text>
+        <View style={styles.securePayment}>
+          {Platform.OS === 'web' ? (
+            <SafetyCertificateOutlined style={{ color: '#00C48C', fontSize: 14, marginRight: 6 }} />
+          ) : (
+            <Text style={{ marginRight: 4 }}>🛡️</Text>
+          )}
+          <Text style={styles.secureText}>THANH TOÁN AN TOÀN</Text>
         </View>
-      </ScrollView>
+      </View>
+
+      <View style={styles.list}>
+        {packages.map(pkg => (
+          <PackageItem
+            key={pkg.id}
+            pkg={pkg}
+            isSelected={selectedId === pkg.id}
+            onSelect={setSelectedId}
+            loading={loading}
+          />
+        ))}
+      </View>
+
+      <Pressable
+        onPress={handleContinue}
+        style={({ hovered }) => [
+          styles.continueButton,
+          hovered && { backgroundColor: '#FFCA3D' }
+        ]}
+      >
+        <Text style={styles.continueText}>TIẾP TỤC THANH TOÁN  →</Text>
+      </Pressable>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  outerContainer: {
-    width: '100%',
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingVertical: 24,
-  },
   container: {
-    width: '100%',
-    backgroundColor: 'transparent',
-    paddingHorizontal: 10,
-    borderRadius: 16,
+    paddingLeft: 40,
+    flex: 1,
   },
-  titleContainer: {
+  header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 28,
-    gap: 10,
+    marginBottom: 30,
   },
   title: {
-    fontSize: 36,
-    fontWeight: '800',
-    color: '#5E794C',
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#1A1A1A',
     fontFamily: 'Lexend, sans-serif',
   },
-  icon: {
-    width: 30,
-    height: 30,
-    resizeMode: 'contain',
-  },
-  packagesContainer: {
-    flexDirection: 'column',
-    gap: 20,
-  },
-  packageRow: {
+  securePayment: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8F9FB',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#E8E8E8',
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: '#E8EBF1',
   },
-  column1: {
-    flex: 1,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-  },
-  column2: {
-    flex: 1.5,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  column3: {
-    flex: 1,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    paddingLeft: 15,
-  },
-  column4: {
-    flex: 1.8,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    gap: 4,
-    paddingRight: 30,
-  },
-  column5: {
-    flex: 1,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-  },
-  packageName: {
-    fontSize: 15,
+  secureText: {
+    fontSize: 10,
     fontWeight: '800',
-    color: '#1C1C1C',
+    color: '#A0AEC0',
     fontFamily: 'Lexend, sans-serif',
-    marginBottom: 2,
   },
-  description: {
-    fontSize: 13,
-    color: '#666',
-    fontFamily: 'Epilogue, sans-serif',
-    lineHeight: 18,
+  list: {
+    gap: 16,
+    marginBottom: 40,
+  },
+  packageItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: '#F0F0F0',
+    position: 'relative',
+    transition: 'all 0.2s ease',
+  },
+  specialPackage: {
+    borderColor: '#FF4D6D',
+  },
+  selectedPackage: {
+    borderColor: '#FF4D6D',
+    backgroundColor: '#FFF0F3',
   },
   badge: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    position: 'absolute',
+    top: -12,
+    right: 20,
+    backgroundColor: '#A0AEC0',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 10,
   },
   badgeText: {
-    color: '#FFFFFF',
+    color: '#fff',
     fontSize: 10,
-    fontWeight: '700',
-    fontFamily: 'Epilogue, sans-serif',
-    letterSpacing: 0.5,
-  },
-  emptyBadge: {
-    width: 80,
-    height: 24,
-  },
-  duration: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#3A8F44',
+    fontWeight: '900',
     fontFamily: 'Lexend, sans-serif',
   },
-  totalPrice: {
+  packageIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#F8F9FB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  packageInfo: {
+    flex: 1,
+  },
+  packageName: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#1C1C1C',
+    color: '#1A1A1A',
     fontFamily: 'Lexend, sans-serif',
     marginBottom: 2,
+  },
+  packageDuration: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#A0AEC0',
+    fontFamily: 'Lexend, sans-serif',
+  },
+  packagePrice: {
+    alignItems: 'flex-end',
+    marginRight: 20,
+  },
+  totalPrice: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#1A1A1A',
+    fontFamily: 'Lexend, sans-serif',
+  },
+  currency: {
+    fontSize: 12,
+    color: '#A0AEC0',
   },
   pricePerMonth: {
     fontSize: 11,
-    color: '#666',
-    fontFamily: 'Epilogue, sans-serif',
-    fontWeight: '500',
+    fontWeight: '700',
+    color: '#FF4D6D',
+    fontFamily: 'Lexend, sans-serif',
   },
   buyButton: {
-    backgroundColor: '#FF6B9D', // Bright pink/red matching premium style
-    paddingHorizontal: 36,
-    paddingVertical: 14,
-    borderRadius: 18,
+    width: 80,
+    height: 44,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FF6B9D',
+  },
+  specialBuyButton: {
+    backgroundColor: '#FF4D6D',
+    shadowColor: '#FF4D6D',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-    minWidth: 100,
   },
   buyButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '800',
-    textTransform: 'uppercase',
+    fontSize: 14,
+    fontWeight: '900',
+    fontFamily: 'Lexend, sans-serif',
+  },
+  continueButton: {
+    height: 70,
+    backgroundColor: '#FFB703',
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#FFB703',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+  },
+  continueText: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#7B4D00',
     fontFamily: 'Lexend, sans-serif',
     letterSpacing: 1,
   },
 })
-

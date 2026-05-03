@@ -1561,3 +1561,20 @@ export async function fetchFavorites(params = {}) {
   }
 }
 
+/**
+ * Lấy lookup enum từ server
+ * @param {number|string} type - Loại enum cần lookup
+ */
+export async function fetchEnumsLookup(type = 1) {
+  try {
+    const res = await apiClient.get(ENDPOINTS.ENUMS.LOOKUP(type))
+    const payload = res?.data
+    if (!payload?.isSuccess) {
+      throw new Error(payload?.message || 'Không thể tải danh sách enum')
+    }
+    return payload?.data || []
+  } catch (error) {
+    console.error('Error fetching enums lookup:', error)
+    return []
+  }
+}

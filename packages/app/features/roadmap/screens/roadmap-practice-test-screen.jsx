@@ -8,6 +8,7 @@ export function RoadmapPracticeTestScreen({ questionTypeId }) {
   const qTypeFromQuery = Platform.OS === 'web' ? searchParams?.get?.('questionTypeId') || questionTypeId : questionTypeId
   const taskId = Platform.OS === 'web' ? searchParams?.get?.('taskId') : null
   const quantity = Platform.OS === 'web' ? searchParams?.get?.('quantity') || '10' : '10'
+  const mode = Platform.OS === 'web' ? searchParams?.get?.('mode') : null
 
-  return <RoadmapPracticeTestLayout questionTypeId={qTypeFromQuery} taskId={taskId} quantity={parseInt(quantity)} />
+  return <RoadmapPracticeTestLayout questionTypeId={qTypeFromQuery} taskId={taskId} quantity={parseInt(quantity)} mode={mode} />
 }

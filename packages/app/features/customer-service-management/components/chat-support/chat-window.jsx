@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Card, Typography, Input, Button, Avatar, List, Spin, message as antMessage } from 'antd'
 import { SendOutlined, UserOutlined } from '@ant-design/icons'
-import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'
+import { HubConnectionBuilder, LogLevel, HttpTransportType } from '@microsoft/signalr'
 import axios from 'axios'
 import { jwtDecode } from 'jwt-decode'
 
@@ -11,11 +11,12 @@ import { getAuthToken } from '../../../../provider/api/client'
 
 const { Title, Text } = Typography
 
-export const ChatWindow = ({ room, loadingJoin }) => {
+export const ChatWindow = ({ room, loadingJoin, onCloseRoom, onJoinRoom, userRole, isMember, mode }) => {
   const [messages, setMessages] = useState([])
   const [inputValue, setInputValue] = useState('')
   const [connection, setConnection] = useState(null)
   const [loadingHistory, setLoadingHistory] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
 
   const messagesEndRef = useRef(null)
 
@@ -69,7 +70,11 @@ export const ChatWindow = ({ room, loadingJoin }) => {
     if (!token || !room?.id) return
 
     const newConnection = new HubConnectionBuilder()
-      .withUrl(CHAT_HUB.HUB_URL, { accessTokenFactory: () => token })
+      .withUrl(CHAT_HUB.HUB_URL, {
+        accessTokenFactory: () => token,
+        skipNegotiation: true,
+        transport: HttpTransportType.WebSockets
+      })
       .withAutomaticReconnect()
       .configureLogging(LogLevel.None)
       .build()
@@ -83,8 +88,41 @@ export const ChatWindow = ({ room, loadingJoin }) => {
         newConnection.on(CHAT_HUB.EVENTS.RECEIVE_MESSAGE, (msg) => {
           console.log('[ChatSupport] ReceiveMessage from hub:', msg)
           if (msg.roomId === room.id) {
-            setMessages((prev) => [...prev, msg])
+            setMessages((prev) => {
+              // Nếu tin nhắn này đã tồn tại (check theo nội dung và thời gian gần đây) thì bỏ qua
+              const isDuplicate = prev.some(m => 
+                m.content === msg.content && 
+                m.senderId === msg.senderId && 
+                !m.id?.toString().startsWith('temp-')
+              )
+              if (isDuplicate) return prev
+
+              // Thay thế tin nhắn tạm (nếu có)
+              const tempIndex = prev.findIndex(m => 
+                m.content === msg.content && 
+                m.senderId === msg.senderId && 
+                m.id?.toString().startsWith('temp-')
+              )
+              
+              if (tempIndex !== -1) {
+                const newMsgs = [...prev]
+                newMsgs[tempIndex] = msg
+                return newMsgs
+              }
+
+              return [...prev, msg]
+            })
           }
+        })
+
+        newConnection.onreconnected((connectionId) => {
+          console.log('✅ SignalR Reconnected (Admin). Re-joining room:', room.id)
+          newConnection.invoke(CHAT_HUB.METHODS.JOIN_ROOM, room.id)
+            .catch(err => console.error('❌ Admin re-join failed:', err))
+        })
+
+        newConnection.onreconnecting((err) => {
+          console.warn('⚠️ SignalR Reconnecting (Admin)...', err)
         })
 
         setConnection(newConnection)
@@ -106,12 +144,29 @@ export const ChatWindow = ({ room, loadingJoin }) => {
   const handleSendMessage = async () => {
     if (!inputValue.trim() || !connection) return
 
+    const content = inputValue.trim()
+    setInputValue('')
+
+    // Hiển thị ngay lập tức (Optimistic UI)
+    const tempId = `temp-${Date.now()}`
+    const tempMsg = {
+      id: tempId,
+      content,
+      senderId: myUserId,
+      senderName: 'Bạn',
+      createdAt: new Date().toISOString(),
+      roomId: room.id
+    }
+    setMessages((prev) => [...prev, tempMsg])
+
     try {
-      await connection.invoke(CHAT_HUB.METHODS.SEND_MESSAGE, room.id, inputValue)
-      setInputValue('')
+      await connection.invoke(CHAT_HUB.METHODS.SEND_MESSAGE, room.id, content)
     } catch (e) {
       console.error('Gửi tin nhắn thất bại:', e)
       antMessage.error('Gửi lỗi!')
+      // Xóa tin nhắn tạm nếu gửi lỗi
+      setMessages((prev) => prev.filter(m => m.id !== tempId))
+      setInputValue(content)
     }
   }
 
@@ -143,7 +198,7 @@ export const ChatWindow = ({ room, loadingJoin }) => {
   return (
     <Card
       style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}
-      bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '12px', overflow: 'hidden' }}
+      styles={{ body: { flex: 1, display: 'flex', flexDirection: 'column', padding: '12px', overflow: 'hidden' } }}
       title={
         <div>
           <Title level={4} style={{ margin: 0 }}>
@@ -153,6 +208,25 @@ export const ChatWindow = ({ room, loadingJoin }) => {
             {user.email} - Room: {room.id}
           </Text>
         </div>
+      }
+      extra={
+        isMember && mode === 'live' && (
+          <Button
+            danger
+            type="primary"
+            loading={isClosing}
+            onClick={async () => {
+              setIsClosing(true)
+              try {
+                await onCloseRoom(room.id)
+              } finally {
+                setIsClosing(false)
+              }
+            }}
+          >
+            Kết thúc tư vấn
+          </Button>
+        )
       }
     >
       <div style={{ flex: 1, overflowY: 'auto', paddingRight: '10px', marginBottom: '10px' }}>
@@ -194,7 +268,7 @@ export const ChatWindow = ({ room, loadingJoin }) => {
                   }}
                 >
                   {!isMyMessage && (
-                    <Avatar icon={<UserOutlined />} src={item.senderAvatar} style={{ marginRight: 8 }} />
+                    <Avatar icon={<UserOutlined />} src={item.senderAvatar || undefined} style={{ marginRight: 8 }} />
                   )}
 
                   <div style={{ maxWidth: '70%' }}>
@@ -231,7 +305,7 @@ export const ChatWindow = ({ room, loadingJoin }) => {
                   </div>
 
                   {isMyMessage && (
-                    <Avatar icon={<UserOutlined />} src={item.senderAvatar} style={{ marginLeft: 8 }} />
+                    <Avatar icon={<UserOutlined />} src={item.senderAvatar || undefined} style={{ marginLeft: 8 }} />
                   )}
                 </List.Item>
               )
@@ -241,13 +315,28 @@ export const ChatWindow = ({ room, loadingJoin }) => {
         <div ref={messagesEndRef} />
       </div>
 
+      {userRole === 1 && !isMember && mode === 'live' && (
+        <div style={{ textAlign: 'center', padding: '10px', backgroundColor: '#fffbe6', borderRadius: '8px', marginBottom: '10px', border: '1px solid #ffe58f' }}>
+          <Text type="warning" strong>Bạn đang ở chế độ xem lịch sử.</Text>
+          <Button type="primary" size="small" style={{ marginLeft: 10 }} onClick={() => onJoinRoom(room.id)}>
+            Tham gia hỗ trợ
+          </Button>
+        </div>
+      )}
+
+      {mode === 'history' && (
+        <div style={{ textAlign: 'center', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '8px', marginBottom: '10px' }}>
+          <Text type="secondary">Đây là phòng chat đã đóng. Bạn chỉ có thể xem lại lịch sử.</Text>
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: '10px', borderTop: '1px solid #f0f0f0', paddingTop: '10px' }}>
         <Input
-          placeholder="Nhập tin nhắn..."
+          placeholder={mode === 'history' ? "Chế độ xem lại" : (isMember ? "Nhập tin nhắn..." : "Tham gia để bắt đầu chat")}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          disabled={!connection}
+          disabled={!connection || loadingJoin || isClosing || !isMember || mode === 'history'}
           style={{ borderRadius: '20px' }}
         />
         <Button
@@ -255,7 +344,7 @@ export const ChatWindow = ({ room, loadingJoin }) => {
           shape="circle"
           icon={<SendOutlined />}
           onClick={handleSendMessage}
-          disabled={!connection || !inputValue.trim()}
+          disabled={!connection || !inputValue.trim() || !isMember || mode === 'history'}
         />
       </div>
     </Card>

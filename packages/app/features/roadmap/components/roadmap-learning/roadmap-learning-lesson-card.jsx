@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Image, Pressable, StyleSheet, Text, View, Platform } from 'react-native'
-import { CheckOutlined, CheckCircleFilled } from '@ant-design/icons'
+import { CheckOutlined, CheckCircleFilled, LockFilled } from '@ant-design/icons'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -36,6 +36,7 @@ export function RoadmapLearningLessonCard({
   actionLabel,
   onPress,
   isCompleted = false,
+  isLocked = false, // Khóa hoàn toàn (bài kiểm ngày 7 đã hoàn thành)
   tone = 'primary',
   variant = 'default', // 'default' | 'header'
 }) {
@@ -106,15 +107,16 @@ export function RoadmapLearningLessonCard({
   // Default variant: dùng hover xám và onPress riêng (Hướng dẫn / Luyện tập / Đánh giá)
   return (
     <Pressable
-      onPress={onPress}
-      onHoverIn={() => Platform.OS === 'web' && setIsHovered(true)}
-      onHoverOut={() => Platform.OS === 'web' && setIsHovered(false)}
+      onPress={isLocked ? undefined : onPress}
+      onHoverIn={() => !isLocked && Platform.OS === 'web' && setIsHovered(true)}
+      onHoverOut={() => !isLocked && Platform.OS === 'web' && setIsHovered(false)}
       style={({ pressed }) => [
         styles.container,
         cardBaseStyle,
         styles.defaultContainer,
-        isHovered && styles.containerHovered,
-        pressed && styles.containerPressed,
+        isLocked && styles.containerLocked,
+        !isLocked && isHovered && styles.containerHovered,
+        !isLocked && pressed && styles.containerPressed,
       ]}
     >
       <View style={styles.left}>
@@ -132,12 +134,19 @@ export function RoadmapLearningLessonCard({
                 <Text style={styles.completedBadgeText}>Đã hoàn thành</Text>
               </View>
             )}
+            {isLocked && (
+              <View style={styles.lockedBadge}>
+                <Text style={styles.lockedBadgeText}>Đã khóa</Text>
+              </View>
+            )}
           </View>
           {!!subtitle && <Text style={[styles.subtitle, subtitleStyle]}>{subtitle}</Text>}
         </View>
       </View>
-      <View style={[styles.actionButton, actionButtonStyle, isHovered && styles.actionButtonHovered]}>
-        {isCompleted ? (
+      <View style={[styles.actionButton, isLocked ? styles.lockedActionButton : actionButtonStyle, !isLocked && isHovered && styles.actionButtonHovered]}>
+        {isLocked ? (
+          <LockFilled style={{ color: '#A0AEC0', fontSize: 18 }} />
+        ) : isCompleted ? (
           <CheckCircleFilled style={{ color: '#48BB78', fontSize: 24 }} />
         ) : (
           <Text style={[styles.actionLabel, actionLabelStyle, isHovered && styles.actionLabelHovered]}>{actionLabel}</Text>
@@ -159,6 +168,42 @@ const styles = StyleSheet.create({
       cursor: 'pointer',
       transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
     }),
+  },
+  containerLocked: {
+    opacity: 0.72,
+    ...(Platform.OS === 'web' && {
+      cursor: 'not-allowed',
+    }),
+  },
+  lockedBadge: {
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginLeft: 4,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  lockedBadgeText: {
+    color: '#999',
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  lockedActionButton: {
+    backgroundColor: '#F5F5F5',
+    borderColor: '#E8E8E8',
+    borderWidth: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    flexShrink: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lockIcon: {
+    fontSize: 20,
   },
   headerContainer: {
     minHeight: 72,

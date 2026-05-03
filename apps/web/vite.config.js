@@ -23,6 +23,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      'react': path.resolve(__dirname, '../../node_modules/react'),
+      'react-dom': path.resolve(__dirname, '../../node_modules/react-dom'),
       // react-native on web
       'react-native': 'react-native-web',
       // react-native-safe-area-context - no-op trên web
@@ -37,6 +39,7 @@ export default defineConfig({
       'assets': path.resolve(__dirname, '../..', 'packages/assets'),
       // Solito navigation wrapper cho web
       'solito/navigation': path.resolve(__dirname, '../..', 'packages/app/provider/navigation/solito-web.tsx'),
+      '@react-native/assets-registry/registry': 'react-native-web/dist/modules/AssetRegistry',
     },
     dedupe: ['react', 'react-dom'],
     extensions: [
@@ -58,10 +61,10 @@ export default defineConfig({
       },
     },
     include: [
-      'react', 
-      'react-dom', 
-      '@tanstack/react-query', 
-      'react-native-web' 
+      'react',
+      'react-dom',
+      '@tanstack/react-query',
+      'react-native-web'
     ],
     exclude: [
       'react-native',

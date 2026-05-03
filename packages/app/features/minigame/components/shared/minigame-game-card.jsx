@@ -81,7 +81,7 @@ export function MinigameGameCard({ game, onPress }) {
 const styles = StyleSheet.create({
   pressable: {
     width: '100%',
-    aspectRatio: 1, // Make it square
+    aspectRatio: 1.1, // Adjusted for a slightly wider look
     ...(Platform.OS === 'web' && { cursor: 'pointer' }),
   },
   card: {
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     height: '100%',
     ...(Platform.OS === 'web' && {
       transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.06)',
     }),
   },
   cardActive: {
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   imageSection: {
-    flex: 2, // 2/3 of the card
+    flex: 2, // Tỷ lệ 2/3 cho Web
     backgroundColor: '#FEF7E6',
     overflow: 'hidden',
   },
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   contentSection: {
-    flex: 1, // 1/3 of the card
+    flex: 1, // Tỷ lệ 1/3 cho Web
     padding: 16,
     gap: 4,
     justifyContent: 'center',

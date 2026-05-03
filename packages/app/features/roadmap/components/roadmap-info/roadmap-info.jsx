@@ -1,43 +1,70 @@
 import { useMemo, useState } from 'react'
 import { Modal, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native'
-import { FormOutlined, SettingOutlined, RocketOutlined, QuestionCircleOutlined, InfoCircleOutlined } from '@ant-design/icons'
+import { FormOutlined, SettingOutlined, RocketOutlined, QuestionCircleOutlined, InfoCircleOutlined, LeftOutlined, RightOutlined, LockOutlined } from '@ant-design/icons'
 import { TOPIK_LEVELS, formatTime, getTotalTime } from '../../api/roadmap-info'
+import { useTopikLevelConfigs } from '../../api/useTopikLevelConfigs'
+import { useRef } from 'react'
 
 const LEVELS = TOPIK_LEVELS.map((l) => ({ value: l.level, label: l.label }))
 
-const SELF_DECLARED_LEVELS = [
-  { value: 0, label: 'Chưa bao giờ' },
-  { value: 1, label: 'Học cơ bản' },
-  { value: 3, label: 'Đã học 1-2 năm' },
-  { value: 5, label: 'Đã thành thạo' },
-]
 
-const TOPIK_REQUIREMENTS = [
-  { value: 1, displayName: 'TOPIK I - Level 1', passScore: 80, totalScore: 200 },
-  { value: 2, displayName: 'TOPIK I - Level 2', passScore: 140, totalScore: 200 },
-  { value: 3, displayName: 'TOPIK II - Level 3', passScore: 120, totalScore: 300 },
-  { value: 4, displayName: 'TOPIK II - Level 4', passScore: 150, totalScore: 300 },
-  { value: 5, displayName: 'TOPIK II - Level 5', passScore: 190, totalScore: 300 },
-  { value: 6, displayName: 'TOPIK II - Level 6', passScore: 230, totalScore: 300 },
-]
 
-const TOPIK_DETAILED_DATA = [
-  { level: 'Cấp 1', target: '80/200 ', listening: '15/30 câu (50đ)', reading: '12/40 câu (30đ)', writing: 'Không thi', strategy: 'Làm chắc các câu chào hỏi, số đếm, đồ vật.' },
-  { level: 'Cấp 2', target: '140/200', listening: '24/30 câu (80đ)', reading: '24/40 câu (60đ)', writing: 'Không thi', strategy: 'Hoàn thành 80% bài thi sơ cấp.' },
-  { level: 'Cấp 3', target: '120/300', listening: '22/50 câu (44đ)', reading: '23/50 câu (46đ)', writing: '30/100đ', strategy: 'Tập trung câu 51, 52 và nửa câu 53.' },
-  { level: 'Cấp 4', target: '150/300', listening: '28/50 câu (56đ)', reading: '27/50 câu (54đ)', writing: '40/100đ', strategy: 'Làm tốt câu 53 (Biểu đồ) để gánh điểm.' },
-  { level: 'Cấp 5', target: '190/300', listening: '35/50 câu (70đ)', reading: '35/50 câu (70đ)', writing: '50/100đ', strategy: 'Bắt đầu phải viết được câu 54 (nghị luận).' },
-  { level: 'Cấp 6', target: '230/300', listening: '43/50 câu (86đ)', reading: '42/50 câu (84đ)', writing: '60/100đ', strategy: 'Phải đúng các câu cực khó (từ câu 40 trở đi).' },
-]
+
 
 export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
   const [selectedLevel, setSelectedLevel] = useState(initialLevel)
-  const [selectedSelfDeclaredLevel, setSelectedSelfDeclaredLevel] = useState(SELF_DECLARED_LEVELS[0].value)
+
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false)
   const [isRequirementsModalOpen, setIsRequirementsModalOpen] = useState(false)
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false)
   const [helpPage, setHelpPage] = useState(1)
   const [openListKey, setOpenListKey] = useState(null)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [tablePage, setTablePage] = useState(0)
+  const pageSize = 6
+
+  const { data: configs, loading } = useTopikLevelConfigs(1, 100)
+
+  const requirements = useMemo(() => {
+    if (!configs || configs.length === 0) return []
+    return configs.map(item => ({
+      value: item.targetAimLevel,
+      displayName: `TOPIK ${item.examGroup === 1 ? 'I' : 'II'} - ${item.displayName}`,
+      passScore: item.passScore,
+      totalScore: item.totalScore
+    }))
+  }, [configs])
+
+  const totalPages = Math.ceil(requirements.length / pageSize)
+
+  const displayedRequirements = useMemo(() => {
+    const pageItems = requirements.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
+    // Nếu trang cuối không đủ 6, bù thêm placeholder để giữ bố cục 3x2
+    const placeholders = []
+    if (pageItems.length > 0 && pageItems.length < pageSize) {
+      for (let i = 0; i < pageSize - pageItems.length; i++) {
+        placeholders.push({ isPlaceholder: true, id: `placeholder-${i}` })
+      }
+    }
+    return [...pageItems, ...placeholders]
+  }, [requirements, currentPage, pageSize])
+
+  const detailedData = useMemo(() => {
+    if (!configs || configs.length === 0) return []
+    return configs.map(item => ({
+      level: item.displayName,
+      target: `${item.passScore}/${item.totalScore}`,
+      listening: `${item.targetListeningQuestions}/${item.listeningMaxQuestions} câu (${item.targetListeningScore}đ)`,
+      reading: `${item.targetReadingQuestions}/${item.readingMaxQuestions} câu (${item.targetReadingScore}đ)`,
+      writing: (item.writingMaxQuestions > 0 || item.targetWritingScore > 0) ? `${item.targetWritingScore}/100đ` : 'Không thi',
+      strategy: item.strategy
+    }))
+  }, [configs])
+
+  const totalTablePages = Math.ceil(detailedData.length / pageSize)
+  const displayedTableData = useMemo(() => {
+    return detailedData.slice(tablePage * pageSize, (tablePage + 1) * pageSize)
+  }, [detailedData, tablePage, pageSize])
 
   const selectedLevelInfo = useMemo(
     () => TOPIK_LEVELS.find((level) => level.level === selectedLevel) || TOPIK_LEVELS[0],
@@ -59,7 +86,7 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
 
   const confirmSelection = () => {
     if (onStart) {
-      onStart(selectedLevel, selectedSelfDeclaredLevel)
+      onStart(selectedLevel)
     }
     closeSelectionModal()
   }
@@ -130,27 +157,74 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
           </View>
         </View>
 
-        <View style={styles.dayGrid}>
-          {TOPIK_REQUIREMENTS.map((item) => (
-            <Pressable
-              key={item.value}
-              onPress={() => setSelectedLevel(item.value)}
-              style={({ pressed, hovered }) => [
-                styles.dayCell,
-                selectedLevel === item.value && styles.selectedRequirement,
-                pressed && styles.pressedRequirement,
-                hovered && styles.hoveredRequirement,
-              ]}
+        <View style={styles.dayGridContainer}>
+          {totalPages > 1 && (
+            <TouchableOpacity 
+              disabled={currentPage === 0}
+              style={[
+                styles.paginationButton, 
+                styles.leftButton,
+                currentPage === 0 && styles.paginationButtonDisabled
+              ]} 
+              onPress={() => setCurrentPage(prev => Math.max(0, prev - 1))}
             >
-              <View style={[styles.dayIndicator, selectedLevel === item.value && styles.selectedIndicator]}>
-                <Text style={[styles.dayLabel, selectedLevel === item.value && styles.selectedLabelText]}>{item.displayName}</Text>
-              </View>
-              <View style={styles.scoreInfo}>
-                <Text style={styles.scoreProgressText}>{item.passScore} / {item.totalScore}</Text>
-                <Text style={styles.scoreLabel}>Điểm đạt</Text>
-              </View>
-            </Pressable>
-          ))}
+              <LeftOutlined style={{ fontSize: 16, color: currentPage === 0 ? '#CCC' : '#0066FF' }} />
+            </TouchableOpacity>
+          )}
+
+          <View style={styles.dayGrid}>
+            {displayedRequirements.map((item, index) => {
+              if (item.isPlaceholder) {
+                return (
+                  <View key={item.id} style={[styles.dayCell, styles.lockedCell]}>
+                    <View style={styles.lockedIndicator}>
+                      <LockOutlined style={{ fontSize: 14, color: '#BFBFBF' }} />
+                      <Text style={styles.lockedLabel}>Sắp ra mắt</Text>
+                    </View>
+                    <View style={styles.scoreInfo}>
+                      <Text style={styles.lockedValue}>-- / --</Text>
+                      <Text style={styles.scoreLabel}>Chưa cập nhật</Text>
+                    </View>
+                  </View>
+                )
+              }
+
+              return (
+                <Pressable
+                  key={item.value}
+                  onPress={() => setSelectedLevel(item.value)}
+                  style={({ pressed, hovered }) => [
+                    styles.dayCell,
+                    selectedLevel === item.value && styles.selectedRequirement,
+                    pressed && styles.pressedRequirement,
+                    hovered && styles.hoveredRequirement,
+                  ]}
+                >
+                  <View style={[styles.dayIndicator, selectedLevel === item.value && styles.selectedIndicator]}>
+                    <Text style={[styles.dayLabel, selectedLevel === item.value && styles.selectedLabelText]}>{item.displayName}</Text>
+                  </View>
+                  <View style={styles.scoreInfo}>
+                    <Text style={styles.scoreProgressText}>{item.passScore} / {item.totalScore}</Text>
+                    <Text style={styles.scoreLabel}>Điểm đạt</Text>
+                  </View>
+                </Pressable>
+              )
+            })}
+          </View>
+
+          {totalPages > 1 && (
+            <TouchableOpacity 
+              disabled={currentPage === totalPages - 1}
+              style={[
+                styles.paginationButton, 
+                styles.rightButton,
+                currentPage === totalPages - 1 && styles.paginationButtonDisabled
+              ]} 
+              onPress={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+            >
+              <RightOutlined style={{ fontSize: 16, color: currentPage === totalPages - 1 ? '#CCC' : '#0066FF' }} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -236,48 +310,7 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
               )}
             </View>
 
-            <View style={[styles.selectionSection, { zIndex: openListKey === 'selfDeclared' ? 20 : 5 }]}>
-              <Text style={styles.selectionLabel}>Trình độ hiện tại của bạn</Text>
-              <Pressable 
-                style={({ hovered, pressed }) => [
-                  styles.selectionTrigger,
-                  hovered && styles.selectionTriggerHovered,
-                  pressed && styles.selectionTriggerPressed
-                ]} 
-                onPress={() => toggleList('selfDeclared')}
-              >
-                <View>
-                  <Text style={styles.selectionTriggerValue}>
-                    {SELF_DECLARED_LEVELS.find((level) => level.value === selectedSelfDeclaredLevel)?.label}
-                  </Text>
-                </View>
-                <Text style={styles.selectionTriggerArrow}>▼</Text>
-              </Pressable>
 
-              {openListKey === 'selfDeclared' && (
-                <View style={styles.inlineDropdown}>
-                  {SELF_DECLARED_LEVELS.map((level) => (
-                    <Pressable
-                      key={level.value}
-                      onPress={() => {
-                        setSelectedSelfDeclaredLevel(level.value)
-                        setOpenListKey(null)
-                      }}
-                      style={({ hovered, pressed }) => [
-                        styles.dropdownItem,
-                        hovered && styles.dropdownItemHover,
-                        pressed && styles.dropdownItemPressed,
-                        selectedSelfDeclaredLevel === level.value && styles.dropdownItemSelected,
-                      ]}
-                    >
-                      <Text style={[styles.dropdownItemText, selectedSelfDeclaredLevel === level.value && styles.dropdownItemTextSelected]}>
-                        {level.label}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-            </View>
 
             <View style={styles.modalActions}>
               <Pressable 
@@ -440,7 +473,7 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
           style={styles.modalOverlay}
           onPress={() => setIsRequirementsModalOpen(false)}
         >
-          <View style={[styles.selectionModalContainer, { maxWidth: 900, padding: 24 }]}>
+          <View style={[styles.selectionModalContainer, { maxWidth: 900, padding: 24, minHeight: 650 }]}>
             <View style={[styles.modalHeader, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }]}>
               <View>
                 <Text style={styles.selectionTitle}>Chuẩn đầu ra TOPIK</Text>
@@ -473,8 +506,8 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
                   <Text style={[styles.headerCell, { width: 100 }]}>Viết</Text>
                   <Text style={[styles.headerCell, { flex: 1, minWidth: 240 }]}>Chiến thuật trọng tâm</Text>
                 </View>
-                {TOPIK_DETAILED_DATA.map((row, index) => (
-                  <View key={index} style={[styles.tableRow, index === TOPIK_DETAILED_DATA.length - 1 && { borderBottomWidth: 0 }]}>
+                {displayedTableData.map((row, index) => (
+                  <View key={index} style={[styles.tableRow, index === displayedTableData.length - 1 && { borderBottomWidth: 0 }]}>
                     <Text style={[styles.cell, { width: 80, fontWeight: '700', color: '#1A1A1A' }]}>{row.level}</Text>
                     <Text style={[styles.cell, { width: 100, fontWeight: '600', color: '#0066FF' }]}>{row.target}</Text>
                     <Text style={[styles.cell, { width: 140 }]}>{row.listening}</Text>
@@ -485,6 +518,26 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
                 ))}
               </View>
             </ScrollView>
+
+            {totalTablePages > 1 && (
+              <View style={styles.tablePagination}>
+                <TouchableOpacity 
+                  disabled={tablePage === 0}
+                  style={[styles.miniPaginationButton, tablePage === 0 && { opacity: 0.3 }]}
+                  onPress={() => setTablePage(p => Math.max(0, p - 1))}
+                >
+                  <LeftOutlined style={{ fontSize: 14 }} />
+                </TouchableOpacity>
+                <Text style={styles.pageText}>Trang {tablePage + 1} / {totalTablePages}</Text>
+                <TouchableOpacity 
+                  disabled={tablePage === totalTablePages - 1}
+                  style={[styles.miniPaginationButton, tablePage === totalTablePages - 1 && { opacity: 0.3 }]}
+                  onPress={() => setTablePage(p => Math.min(totalTablePages - 1, p + 1))}
+                >
+                  <RightOutlined style={{ fontSize: 14 }} />
+                </TouchableOpacity>
+              </View>
+            )}
 
             <Pressable 
               style={({ hovered, pressed }) => [
@@ -700,13 +753,100 @@ const styles = StyleSheet.create({
     color: '#0066FF',
     fontFamily: 'Epilogue, sans-serif',
   },
+  dayGridContainer: {
+    position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+  },
   dayGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
+    flex: 1,
+    justifyContent: 'flex-start',
+  },
+  paginationButton: {
+    position: 'absolute',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+    }),
+  },
+  paginationButtonDisabled: {
+    opacity: 0.5,
+    backgroundColor: '#FAFAFA',
+  },
+  leftButton: {
+    left: 0,
+  },
+  rightButton: {
+    right: 0,
+  },
+  tablePagination: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+  },
+  miniPaginationButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#F8F9FB',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#EEEEEE',
+  },
+  pageText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  lockedCell: {
+    backgroundColor: '#F9F9F9',
+    borderColor: '#F0F0F0',
+    opacity: 0.6,
+  },
+  lockedIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F0F0F0',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  lockedLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#BFBFBF',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  lockedValue: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#E0E0E0',
+    fontFamily: 'Epilogue, sans-serif',
   },
   dayCell: {
-    flex: 1,
+    width: '31%',
     minWidth: 160,
     backgroundColor: '#FDFDFD',
     borderRadius: 16,
@@ -1020,6 +1160,7 @@ const styles = StyleSheet.create({
   table: {
     minWidth: 800,
     width: '100%',
+    minHeight: 380,
   },
   tableHeader: {
     flexDirection: 'row',

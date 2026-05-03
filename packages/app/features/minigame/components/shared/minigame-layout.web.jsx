@@ -58,6 +58,7 @@ export function MinigameLayout() {
         breadcrumbPrefix="Học tập"
         breadcrumbActive="Minigame"
         onBackPress={() => router.back()}
+        hideHero={true}
       >
         <View style={styles.bannerWrapper}>
           <MinigameBanner />
@@ -203,13 +204,13 @@ const styles = StyleSheet.create({
   cardsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 60, // Increased gap
+    gap: 24,
     alignItems: 'flex-start',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
   cardCol: {
-    width: 'calc(30% - 40px)',
-    maxWidth: 300, // Slightly smaller cards
+    width: '32%',
+    minWidth: 300,
     alignItems: 'stretch',
     marginBottom: 40,
   },

@@ -1,15 +1,8 @@
-import React from 'react'
-import { View, Text, Image } from 'react-native'
+import React, { useState } from 'react'
+import { View, Text, Image, Pressable, useWindowDimensions } from 'react-native'
 import CheckedIcon from '../../../../../assets/checked.png'
-import BackgroundImage from '../../../../../assets/background1.png'
-import LogoImage from '../../../../../assets/logo-prem.png'
+import { useRouter } from 'solito/navigation'
 
-/**
- * Normalize image source so it works with:
- * - require('...png') / numeric ids
- * - { uri: '...' }
- * - Next/webpack static imports: { src: '...' }
- */
 const normalizeImageSource = (src) => {
   if (!src) return null
   if (typeof src === 'number' || src.uri) return src
@@ -22,145 +15,168 @@ const normalizeImageSource = (src) => {
   return src
 }
 
-/**
- * Card Type 5: Premium Package Card with Background
- * - Background with carrots pattern (background1.png)
- * - Large red title "GÓI PREMIUM"
- * - Subtitle question
- * - Dashed line separator
- * - List of benefits with checkmarks
- * - Rabbit logo (logo-prem.png) bottom-right
- * - Price label bottom-left
- *
- * @param {{
- *   title?: string;
- *   subtitle?: string;
- *   benefits?: string[];
- *   priceLabel?: string;
- *   style?: any;
- * }} props
- */
 export const Card = ({
-  title = 'GÓI PREMIUM',
-  subtitle = 'Bạn sẽ nhận được quyền lợi gì ?',
+  title = 'GÓI PREMIUM ★',
+  subtitle = 'BỨT PHÁ MỌI GIỚI HẠN',
   benefits = [
-    'Tất cả các tính năng của gói miễn phí',
+    'Tất cả tính năng của gói miễn phí',
     'Mở khóa tất cả các bài học',
     'Chơi Minigame không giới hạn',
-    'Sử dụng AI trong các bài học không giới hạn',
-    'Sở hữu huy hiệu đặc biệt',
+    'Sử dụng AI trong bài học không giới hạn',
+    'Sở hữu huy hiệu đặc biệt & Avatar độc quyền',
   ],
   style,
 }) => {
+  const [isHovered, setIsHovered] = useState(false)
+  const { push } = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width < 600
+
+  const handleUpgrade = () => {
+    push('/premium-package')
+  }
+
   return (
-    <View
+    <Pressable
+      onPress={handleUpgrade}
+      onHoverIn={() => setIsHovered(true)}
+      onHoverOut={() => setIsHovered(false)}
       style={[
         {
-          width: 400,
-          height: 500,
-          borderRadius: 32,
-          backgroundColor: '#FFE4B5', // Light creamy orange background
-          paddingHorizontal: 30,
-          paddingTop: 24,
-          paddingBottom: 20,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.16,
-          shadowRadius: 8,
-          elevation: 4,
-          overflow: 'hidden',
+          width: '100%',
+          minHeight: isMobile ? 480 : 580,
+          borderRadius: 40,
+          backgroundColor: '#FFFFFF',
+          paddingHorizontal: isMobile ? 24 : 40,
+          paddingTop: isMobile ? 30 : 40,
+          paddingBottom: isMobile ? 30 : 40,
+          shadowColor: '#FF4D6D',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: isHovered ? 0.25 : 0.1,
+          shadowRadius: isHovered ? 30 : 20,
+          elevation: isHovered ? 12 : 5,
           position: 'relative',
+          borderWidth: 2,
+          borderColor: isHovered ? '#FF0035' : '#FF4D6D',
+          transform: [{ scale: isHovered ? 1.02 : 1 }],
+          transitionProperty: 'transform, shadow-opacity, shadow-radius, border-color',
+          transitionDuration: '300ms',
         },
         style,
       ]}
     >
-      {/* Background image */}
-      <Image
-        source={normalizeImageSource(BackgroundImage)}
+      {/* Badge Khuyên dùng */}
+      <View
         style={{
           position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          resizeMode: 'cover',
-          opacity: 0.4,
+          top: isMobile ? -14 : -16,
+          right: isMobile ? 20 : 30,
+          backgroundColor: '#FF4D6D',
+          paddingHorizontal: isMobile ? 12 : 20,
+          paddingVertical: isMobile ? 6 : 8,
+          borderRadius: 100,
+          shadowColor: '#FF4D6D',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          zIndex: 10,
         }}
-      />
+      >
+        <Text
+          style={{
+            color: '#FFFFFF',
+            fontSize: isMobile ? 10 : 11,
+            fontWeight: '900',
+            fontFamily: 'Lexend, sans-serif',
+            letterSpacing: 1,
+          }}
+        >
+          KHUYÊN DÙNG
+        </Text>
+      </View>
 
-      <View style={{ zIndex: 1, flex: 1 }}>
-        {/* Title */}
-        <View style={{ alignItems: 'center', marginBottom: 8 }}>
+      {/* Icon Crown */}
+      <View style={{ marginBottom: isMobile ? 15 : 25 }}>
+        <View
+          style={{
+            width: isMobile ? 40 : 48,
+            height: isMobile ? 40 : 48,
+            borderRadius: 12,
+            backgroundColor: '#FFF0F3',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 1,
+            borderColor: '#FFE0E6',
+          }}
+        >
+          <Text style={{ fontSize: isMobile ? 18 : 20 }}>👑</Text>
+        </View>
+      </View>
+
+      <View style={{ flex: 1 }}>
+        {/* Title + subtitle */}
+        <View style={{ marginBottom: isMobile ? 20 : 30 }}>
           <Text
             style={{
-              fontSize: 36,
-              fontWeight: '800',
+              fontSize: isMobile ? 24 : 28,
+              fontWeight: '900',
               fontFamily: 'Lexend, sans-serif',
-              color: '#DC143C', // Red color
-              textAlign: 'center',
+              color: '#C9184A',
+              marginBottom: 4,
             }}
           >
             {title}
           </Text>
+          <Text
+            style={{
+              fontSize: isMobile ? 12 : 13,
+              fontWeight: '700',
+              color: '#FF4D6D',
+              fontFamily: 'Lexend, sans-serif',
+              letterSpacing: 0.5,
+            }}
+          >
+            {subtitle}
+          </Text>
         </View>
 
-        {/* Subtitle */}
-        {subtitle ? (
-          <View style={{ alignItems: 'center', marginBottom: 12 }}>
-            <Text
-              style={{
-                fontSize: 16,
-                color: '#555',
-                fontFamily: 'Epilogue, sans-serif',
-                textAlign: 'center',
-                fontWeight: '400',
-              }}
-            >
-              {subtitle}
-            </Text>
-          </View>
-        ) : null}
-
-        {/* Dashed line separator */}
-        <View
-          style={{
-            width: '90%',
-            alignSelf: 'center',
-            height: 1.5,
-            marginBottom: 16,
-            borderTopWidth: 1.5,
-            borderTopColor: '#333',
-            borderStyle: 'dashed',
-          }}
-        />
-
         {/* Benefits list */}
-        <View style={{ gap: 12, paddingRight: 8 }}>
+        <View style={{ gap: isMobile ? 16 : 20 }}>
           {benefits.map((item, index) => (
             <View
-              key={`benefit-${index}`}
+              key={`premium-benefit-${index}`}
               style={{
                 flexDirection: 'row',
-                alignItems: 'flex-start',
-                gap: 10,
+                alignItems: 'center',
+                gap: 12,
               }}
             >
-              <Image
-                source={normalizeImageSource(CheckedIcon)}
+              <View
                 style={{
-                  width: 20,
-                  height: 20,
-                  marginTop: 2,
-                  tintColor: '#3A8F44',
+                  width: 18,
+                  height: 18,
+                  borderRadius: 9,
+                  backgroundColor: '#FF4D6D',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
-              />
+              >
+                <Image
+                  source={normalizeImageSource(CheckedIcon)}
+                  style={{
+                    width: 9,
+                    height: 9,
+                    tintColor: '#FFFFFF',
+                  }}
+                />
+              </View>
               <Text
                 style={{
+                  fontSize: isMobile ? 14 : 15,
+                  color: '#4F4F4F',
+                  fontFamily: 'Lexend, sans-serif',
+                  fontWeight: '500',
                   flex: 1,
-                  fontSize: 14,
-                  lineHeight: 20,
-                  color: '#333',
-                  fontFamily: 'Epilogue, sans-serif',
                 }}
               >
                 {item}
@@ -170,30 +186,61 @@ export const Card = ({
         </View>
       </View>
 
-      {/* Rabbit logo bottom-right */}
-      <View
-        style={{
-          position: 'absolute',
-          bottom: 20,
-          right: 20,
-          zIndex: 2,
-        }}
-      >
-        <Image
-          source={normalizeImageSource(LogoImage)}
+      {/* Price Section */}
+      <View style={{ alignItems: 'center', marginBottom: 20, marginTop: 20 }}>
+        <Text
           style={{
-            width: 210,
-            height: 210,
-            resizeMode: 'contain',
-            left: 20,
-            top: 10,
+            fontSize: isMobile ? 18 : 20,
+            fontWeight: '900',
+            color: '#FF4D6D',
+            fontFamily: 'Lexend, sans-serif',
           }}
-        />
+        >
+          GIÁ ƯU ĐÃI
+        </Text>
+        <Text
+          style={{
+            fontSize: isMobile ? 12 : 13,
+            fontWeight: '600',
+            color: '#FF4D6D',
+            fontFamily: 'Lexend, sans-serif',
+            fontStyle: 'italic',
+          }}
+        >
+          Chỉ từ 2k/ngày
+        </Text>
       </View>
 
-    </View>
+      {/* Button */}
+      <View
+        style={{
+          height: isMobile ? 56 : 64,
+          borderRadius: 18,
+          backgroundColor: isHovered ? '#FFCA3D' : '#FFB703',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'row',
+          gap: 10,
+          shadowColor: '#FFB703',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          cursor: 'pointer',
+        }}
+      >
+        <Text
+          style={{
+            fontSize: isMobile ? 16 : 18,
+            fontWeight: '800',
+            color: '#7B4D00',
+            fontFamily: 'Lexend, sans-serif',
+            letterSpacing: 1,
+          }}
+        >
+          NÂNG CẤP NGAY
+        </Text>
+        <Text style={{ fontSize: isMobile ? 16 : 18, color: '#7B4D00' }}>→</Text>
+      </View>
+    </Pressable>
   )
 }
-
-
-

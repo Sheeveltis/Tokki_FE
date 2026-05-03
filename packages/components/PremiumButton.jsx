@@ -14,7 +14,7 @@ if (Platform.OS !== 'web') {
  * PremiumButton component with fancy gradient and hover effects
  * Optimized to be safe and beautiful on both Web and Mobile.
  */
-const PremiumButton = ({ onPress, style, textStyle, label = 'Nâng cấp VIP' }) => {
+const PremiumButton = ({ onPress, style, textStyle, label = 'Nâng cấp VIP', disabled = false }) => {
   const isWeb = Platform.OS === 'web'
   const Svg = RNSvg?.Svg;
   const Path = RNSvg?.Path;
@@ -62,8 +62,13 @@ const PremiumButton = ({ onPress, style, textStyle, label = 'Nâng cấp VIP' }
             box-shadow: 0 12px 20px rgba(255, 143, 0, 0.35) !important;
           }
 
-          .uiverse-premium-button:active {
+          .uiverse-premium-button:active:not(.is-disabled) {
             transform: scale(0.98);
+          }
+
+          .uiverse-premium-button.is-disabled {
+            cursor: default;
+            opacity: 0.95;
           }
 
           .uiverse-premium-button svg {
@@ -79,8 +84,8 @@ const PremiumButton = ({ onPress, style, textStyle, label = 'Nâng cấp VIP' }
           }
         `}} />
         <button
-          className="uiverse-premium-button"
-          onClick={onPress}
+          className={`uiverse-premium-button ${disabled ? 'is-disabled' : ''}`}
+          onClick={disabled ? (e) => e.preventDefault() : onPress}
           style={style}
         >
           <svg viewBox="0 0 24 24">
@@ -95,10 +100,10 @@ const PremiumButton = ({ onPress, style, textStyle, label = 'Nâng cấp VIP' }
   // Mobile version using React Native components
   return (
     <Pressable
-      onPress={onPress}
+      onPress={disabled ? null : onPress}
       style={({ pressed }) => [
         styles.mobileBtn,
-        pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] },
+        !disabled && pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] },
         style
       ]}
     >
