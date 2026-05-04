@@ -4,8 +4,20 @@ import { EditOutlined, EyeOutlined } from '@ant-design/icons'
 
 const { Text } = Typography
 
-const TopikConfigTable = ({ data, loading, onEdit, onView }) => {
-  const columns = useMemo(() => [
+// Export hook để dùng chung ở màn hình quản lý (giúp pagination đồng nhất)
+export const useTopikColumns = ({ onEdit, onView, pagination }) => {
+  return useMemo(() => [
+    {
+      title: 'STT',
+      key: 'stt',
+      align: 'center',
+      width: 60,
+      render: (_, __, index) => {
+        const current = pagination?.current || 1
+        const pageSize = pagination?.pageSize || 20
+        return (current - 1) * pageSize + index + 1
+      },
+    },
     {
       title: 'Cấp độ',
       dataIndex: 'displayName',
@@ -25,9 +37,9 @@ const TopikConfigTable = ({ data, loading, onEdit, onView }) => {
       render: (_, record) => (
         <div style={{ width: 120 }}>
           <Text strong>{record.passScore}</Text> / <Text type="secondary">{record.totalScore}</Text>
-          <Progress 
-            percent={Math.round((record.passScore / record.totalScore) * 100)} 
-            size="small" 
+          <Progress
+            percent={Math.round((record.passScore / record.totalScore) * 100)}
+            size="small"
             status="active"
             strokeColor="#52c41a"
           />
@@ -35,47 +47,51 @@ const TopikConfigTable = ({ data, loading, onEdit, onView }) => {
       )
     },
     {
-      title: 'Kỹ năng (Nghe/Đọc/Viết)',
+      title: 'Kỹ năng',
       key: 'skills',
+      width: 140,
       render: (_, record) => (
-        <Space direction="vertical" size={2}>
-          <Text size="small" style={{ fontSize: 12 }}>
+        <div style={{ lineHeight: '1.2' }}>
+          <Text style={{ fontSize: 11, display: 'block' }}>
             <Badge color="blue" text="Nghe:" /> {record.targetListeningScore}/{record.listeningMaxScore}
           </Text>
-          <Text size="small" style={{ fontSize: 12 }}>
+          <Text style={{ fontSize: 11, display: 'block' }}>
             <Badge color="green" text="Đọc:" /> {record.targetReadingScore}/{record.readingMaxScore}
           </Text>
           {record.writingMaxScore > 0 && (
-            <Text size="small" style={{ fontSize: 12 }}>
+            <Text style={{ fontSize: 11, display: 'block' }}>
               <Badge color="orange" text="Viết:" /> {record.targetWritingScore}/{record.writingMaxScore}
             </Text>
           )}
-        </Space>
+        </div>
       )
     },
     {
       title: 'Chiến thuật',
       dataIndex: 'strategy',
       key: 'strategy',
-      ellipsis: true,
+      width: 220,
+      ellipsis: {
+        showTitle: true,
+      },
       render: (text) => <Text type="secondary" style={{ fontSize: 12 }}>{text}</Text>
     },
     {
       title: 'Trạng thái',
       dataIndex: 'isActive',
       key: 'isActive',
-      width: 100,
+      width: 80,
       align: 'center',
       render: (isActive) => (
         <Tooltip title={isActive ? 'Đang hoạt động' : 'Đang tắt'}>
           <div
             style={{
-              width: 14,
-              height: 14,
+              width: 12,
+              height: 12,
               borderRadius: '50%',
               backgroundColor: isActive ? '#52c41a' : '#bfbfbf',
               margin: '0 auto',
-              boxShadow: '0 0 4px rgba(0,0,0,0.2)',
+              boxShadow: '0 0 4px rgba(0,0,0,0.1)',
               cursor: 'pointer',
             }}
           />
@@ -107,7 +123,11 @@ const TopikConfigTable = ({ data, loading, onEdit, onView }) => {
         )
       },
     },
-  ], [onEdit, onView])
+  ], [onEdit, onView, pagination])
+}
+
+const TopikConfigTable = ({ data, total, pagination, loading, onEdit, onView }) => {
+  const columns = useTopikColumns({ onEdit, onView, pagination })
 
   return (
     <Table
@@ -115,9 +135,16 @@ const TopikConfigTable = ({ data, loading, onEdit, onView }) => {
       dataSource={data}
       loading={loading}
       rowKey="topikLevelConfigID"
-      pagination={false}
+      pagination={pagination ? {
+        ...pagination,
+        total: total,
+        showSizeChanger: true,
+        showTotal: (total) => `Tổng cộng ${total} mục`,
+        position: ['bottomRight'],
+        style: { marginTop: 16 }
+      } : false}
       size="middle"
-      scroll={{ y: 'calc(100vh - 580px)' }}
+      scroll={{ y: 'calc(100vh - 480px)' }}
       style={{ marginTop: 16 }}
     />
   )

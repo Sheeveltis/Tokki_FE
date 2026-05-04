@@ -6,6 +6,8 @@ export const fetchTopikConfigs = async (params) => {
     params: {
       pageNumber: params?.pageNumber || 1,
       pageSize: params?.pageSize || 20,
+      search: params?.search?.trim() || undefined,
+      isActive: params?.isActive
     } 
   })
   return response?.data?.data || response?.data
@@ -16,8 +18,8 @@ export const createTopikConfig = async (data) => {
   return response?.data
 }
 
-export const updateTopikConfig = async (id, data) => {
-  const response = await apiClient.put(`/TopikLevelConfig/${id}`, data)
+export const updateTopikConfig = async (data) => {
+  const response = await apiClient.put('/TopikLevelConfig', data)
   return response?.data
 }
 

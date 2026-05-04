@@ -19,7 +19,9 @@ import {
   EditOutlined,
   ReloadOutlined,
   PlusOutlined,
-  EyeOutlined
+  EyeOutlined,
+  ControlOutlined,
+  BookOutlined
 } from '@ant-design/icons'
 import { showAdminSuccess, showAdminError } from '../../../../components/HelperAdmin'
 import ManagementLayout from '../../../../components/layout/management-layout'
@@ -32,7 +34,7 @@ import ConfigFormModal from '../components/config-form-modal'
 import ConfigViewModal from '../components/config-view-modal'
 import ConfigTypeItem from '../components/config-type-item'
 import ConfigListHeader from '../components/config-list-header'
-import TopikConfigTable from '../components/topik-config-table'
+import { useTopikColumns } from '../components/topik-config-table'
 import TopikConfigModal from '../components/topik-config-modal'
 import TopikConfigView from '../components/topik-config-view'
 
@@ -45,7 +47,7 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
   const router = useRouter()
   const [filters, setFilters] = useManagementFilters({
     search: '',
-    isActive: undefined, // Mặc định là Tất cả
+    isActive: true, // Mặc định là Đang hoạt động
     page: 1,
     size: 20,
     configType: 0
@@ -62,7 +64,7 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
 
   const [form] = Form.useForm()
   const [activeSubTab, setActiveSubTab] = useState('general') // 'general' or 'topik'
-  const [topikData, setTopikData] = useState([])
+  const [topikData, setTopikData] = useState({ items: [], total: 0 })
   const [topikLoading, setTopikLoading] = useState(false)
   const [topikModalOpen, setTopikModalOpen] = useState(false)
   const [topikViewOpen, setTopikViewOpen] = useState(false)
@@ -96,24 +98,40 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
     }
   }, [])
 
+  const loadTopikData = useCallback(async (currentFilters) => {
+    try {
+      setTopikLoading(true)
+      const result = await fetchTopikConfigs({
+        pageNumber: currentFilters.page,
+        pageSize: currentFilters.size,
+        search: currentFilters.search,
+        isActive: currentFilters.isActive
+      })
+      setTopikData({
+        items: result?.items || result || [],
+        total: result?.totalCount || (Array.isArray(result) ? result.length : (result?.items?.length || 0))
+      })
+    } catch (err) {
+      showAdminError('Không thể tải cấu hình TOPIK')
+    } finally {
+      setTopikLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     if (filters.configType === 6 && activeSubTab === 'topik') {
-      const loadTopikData = async () => {
-        try {
-          setTopikLoading(true)
-          const result = await fetchTopikConfigs()
-          setTopikData(result?.items || result || [])
-        } catch (err) {
-          showAdminError('Không thể tải cấu hình TOPIK')
-        } finally {
-          setTopikLoading(false)
-        }
-      }
-      loadTopikData()
+      loadTopikData(filters)
     } else {
       loadData(filters)
     }
-  }, [filters.page, filters.size, filters.search, filters.isActive, filters.configType, activeSubTab, loadData])
+  }, [filters.page, filters.size, filters.search, filters.isActive, filters.configType, activeSubTab, loadData, loadTopikData])
+
+  // Reset activeSubTab when category changes
+  useEffect(() => {
+    if (filters.configType !== 6 && activeSubTab !== 'general') {
+      setActiveSubTab('general')
+    }
+  }, [filters.configType])
 
   const handleFilterChange = useCallback((key, value) => {
     setFilters(prev => ({ ...prev, [key]: value, page: 1 }))
@@ -193,7 +211,10 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
     try {
       setSaving(true)
       if (editingTopik) {
-        await updateTopikConfig(editingTopik.topikLevelConfigID, values)
+        await updateTopikConfig({
+          ...values,
+          topikLevelConfigID: editingTopik.topikLevelConfigID
+        })
         showAdminSuccess('Đã cập nhật cấu hình TOPIK thành công')
       } else {
         await createTopikConfig(values)
@@ -201,8 +222,7 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
       }
       setTopikModalOpen(false)
       // Reload topik data
-      const result = await fetchTopikConfigs()
-      setTopikData(result?.items || result || [])
+      loadTopikData(filters)
     } catch (err) {
       showAdminError(err?.message || 'Thao tác thất bại')
     } finally {
@@ -228,15 +248,13 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
           <Space direction="vertical" size={0} style={{ width: '100%' }}>
             <Text
               strong
-              style={{ color: '#1677ff', fontSize: 13, display: 'block' }}
-              ellipsis={{ tooltip: key }}
+              style={{ color: '#1677ff', fontSize: 13, display: 'block', wordBreak: 'break-all' }}
             >
               {key}
             </Text>
             <Text
               type="secondary"
-              style={{ fontSize: 11, display: 'block' }}
-              ellipsis={{ tooltip: record.description }}
+              style={{ fontSize: 11, display: 'block', wordBreak: 'break-word' }}
             >
               {record.description || 'Không có mô tả'}
             </Text>
@@ -248,14 +266,11 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
       title: 'Giá trị cấu hình',
       dataIndex: 'value',
       key: 'value',
+      width: 400,
       render: (value, record) => {
         if (record.dataType === 'boolean') {
           return <Tag color={value === 'true' || value === true ? 'green' : 'red'}>{value === 'true' || value === true ? 'BẬT' : 'TẮT'}</Tag>
         }
-
-        // Truncate if value is too long
-        const isLong = value && value.length > 120
-        const displayValue = isLong ? value.substring(0, 120) + '...' : value
 
         return (
           <div style={{
@@ -265,10 +280,10 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
             border: '1px solid #f0f0f0',
             display: 'inline-block',
             maxWidth: '350px',
-            cursor: isLong ? 'pointer' : 'default'
-          }} onClick={() => isLong && handleView(record)}>
-            <Text code style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 12 }}>{displayValue || '-'}</Text>
-            {isLong && <div style={{ fontSize: 10, color: '#1890ff', marginTop: 2 }}>[Xem thêm]</div>}
+            maxHeight: '120px',
+            overflowY: 'auto'
+          }}>
+            <Text code style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 12 }}>{value || '-'}</Text>
           </div>
         )
       }
@@ -330,9 +345,24 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
     },
   ], [filters.page, filters.size, handleEdit, handleView])
 
+  const topikColumns = useTopikColumns({
+    onEdit: (record) => {
+      setEditingTopik(record)
+      setTopikModalOpen(true)
+    },
+    onView: (record) => {
+      setViewingTopik(record)
+      setTopikViewOpen(true)
+    },
+    pagination: {
+      current: filters.page,
+      pageSize: filters.size
+    }
+  })
+
   return (
     <div style={{
-      height: 'calc(100vh - 140px)', // Tăng khoảng cách trừ đi để tránh bị che bởi footer admin
+      height: 'calc(100vh - 160px)', // Tăng khoảng cách trừ đi để tránh bị che bởi footer admin
       display: 'flex',
       flexDirection: 'column',
       padding: '24px',
@@ -355,6 +385,61 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
           display: flex !important;
           flex-direction: column;
         }
+        .system-config-tabs .ant-tabs-nav-operations {
+          display: none !important;
+        }
+        .system-config-tabs .ant-tabs-nav-wrap {
+          overflow-y: auto !important;
+        }
+        .system-config-tabs .ant-tabs-nav-wrap::-webkit-scrollbar {
+          width: 4px;
+        }
+        .system-config-tabs .ant-tabs-nav-wrap::-webkit-scrollbar-thumb {
+          background: #f0f0f0;
+          border-radius: 2px;
+        }
+        .ant-table-wrapper .ant-table,
+        .ant-table-wrapper .ant-table-container,
+        .ant-table-wrapper .ant-table-thead > tr > th:first-child,
+        .ant-table-wrapper .ant-table-thead > tr > th:last-child {
+          border-radius: 0 !important;
+        }
+        .system-config-tabs, 
+        .system-config-tabs .ant-tabs-nav, 
+        .system-config-tabs .ant-tabs-content-holder {
+          border: none !important;
+          background: transparent !important;
+          border-radius: 0 !important;
+        }
+        .system-config-tabs .ant-tabs-nav::before {
+          display: none !important;
+        }
+        .ant-card, .ant-card-body {
+          border: none !important;
+          box-shadow: none !important;
+          border-radius: 0 !important;
+          background: transparent !important;
+        }
+        .config-type-item:hover {
+          background-color: #f5f5f5 !important;
+        }
+        
+        /* Đưa phân trang xuống góc */
+        .system-config-tabs .management-layout-box {
+          border-radius: 0 !important;
+          box-shadow: none !important;
+          background: transparent !important;
+        }
+        
+        .system-config-tabs .management-pagination-wrapper {
+          padding: 12px 0 !important;
+          background: transparent !important;
+          border-top: none !important;
+        }
+
+        .system-config-tabs .ant-table-wrapper .ant-table-thead > tr > th {
+          background: #fafafa !important;
+        }
       `}</style>
       <ConfigListHeader onCreate={handleCreate} />
 
@@ -362,11 +447,9 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
         variant="borderless"
         styles={{ body: { padding: 0, height: '100%', display: 'flex', flexDirection: 'column' } }}
         style={{
-          borderRadius: '12px',
-          overflow: 'hidden',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
           flex: 1,
-          minHeight: 0
+          minHeight: 0,
+          background: 'transparent'
         }}
       >
         <Tabs
@@ -385,9 +468,12 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
                 padding: '0 24px 24px',
                 display: 'flex',
                 flexDirection: 'column',
-                flex: 1
+                flex: 1,
+                maxWidth: '1400px',
+                margin: '0 auto',
+                width: '100%'
               }}>
-                <div style={{ padding: '24px 0', borderBottom: '1px solid #f0f0f0', marginBottom: 24 }}>
+                <div style={{ padding: '12px 0' }}>
                   <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
                     <span style={{ color: activeType.color, marginRight: 12 }}>{activeType.icon}</span>
                     {activeType.fullLabel}
@@ -395,71 +481,78 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
                 </div>
 
                 <div style={{ flex: 1, minHeight: 0 }}> {/* Container cho ManagementLayout để nó tự scroll */}
-                  {filters.configType === 6 && (
-                    <div style={{ marginBottom: 16 }}>
-                      <Segmented 
+                  <ManagementLayout
+                    scrollOffset={580}
+                    searchPlaceholder="Tìm kiếm..."
+                    searchValue={filters.search}
+                    onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
+                    onSearchSubmit={() => handleFilterChange('search', filters.search)}
+                    leftExtra={
+                      <Select
+                        placeholder="Trạng thái"
+                        allowClear
+                        value={filters.isActive}
+                        onChange={val => handleFilterChange('isActive', val)}
                         options={[
-                          { label: 'Tham số chung', value: 'general' },
-                          { label: 'Cấu hình cấp độ TOPIK', value: 'topik' },
-                        ]} 
-                        value={activeSubTab}
-                        onChange={setActiveSubTab}
+                          { label: 'Đang hoạt động', value: true },
+                          { label: 'Đang tắt', value: false },
+                        ]}
+                        style={{ width: 160 }}
                       />
-                    </div>
-                  )}
-
-                  {activeSubTab === 'topik' && filters.configType === 6 ? (
-                    <TopikConfigTable 
-                      data={topikData}
-                      loading={topikLoading}
-                      onEdit={(record) => {
-                        setEditingTopik(record)
-                        setTopikModalOpen(true)
-                      }}
-                      onView={(record) => {
-                        setViewingTopik(record)
-                        setTopikViewOpen(true)
-                      }}
-                    />
-                  ) : (
-                    <ManagementLayout
-                      scrollOffset={520}
-                      searchPlaceholder="Tìm kiếm theo khóa (key)..."
-                      searchValue={filters.search}
-                      onSearchChange={val => setFilters(prev => ({ ...prev, search: val }))}
-                      onSearchSubmit={() => handleFilterChange('search', filters.search)}
-                      extraFilters={
-                        <Space>
-                          <Select
-                            placeholder="Trạng thái"
-                            value={filters.isActive}
-                            onChange={val => handleFilterChange('isActive', val)}
+                    }
+                    extraFilters={
+                      <Space>
+                        {filters.configType === 6 && (
+                          <Segmented 
                             options={[
-                              { label: 'Tất cả trạng thái', value: undefined },
-                              { label: 'Đang hoạt động', value: true },
-                              { label: 'Đang tắt', value: false },
-                            ]}
-                            style={{ width: 160 }}
+                              { 
+                                label: 'Tham số chung', 
+                                value: 'general',
+                                icon: <ControlOutlined />
+                              },
+                              { 
+                                label: 'Cấu hình cấp độ TOPIK', 
+                                value: 'topik',
+                                icon: <BookOutlined />
+                              },
+                            ]} 
+                            value={activeSubTab}
+                            onChange={setActiveSubTab}
                           />
-                          <Button icon={<ReloadOutlined />} onClick={() => loadData(filters)} />
-                        </Space>
+                        )}
+                        <Button icon={<ReloadOutlined />} onClick={() => activeSubTab === 'topik' ? loadTopikData(filters) : loadData(filters)} />
+                      </Space>
+                    }
+                    tableProps={(activeSubTab === 'topik' && filters.configType === 6) ? {
+                      columns: topikColumns,
+                      dataSource: topikData.items,
+                      loading: topikLoading,
+                      rowKey: "topikLevelConfigID",
+                      pagination: {
+                        current: filters.page,
+                        pageSize: filters.size,
+                        total: topikData.total,
+                        showSizeChanger: true,
+                        showTotal: (total) => `Tổng cộng ${total} mục`,
+                        onChange: handlePaginationChange,
                       }
-                      tableProps={{
-                        columns,
-                        dataSource: data.items,
-                        loading,
-                        rowKey: "key",
-                        pagination: {
-                          current: filters.page,
-                          pageSize: filters.size,
-                          total: data.total,
-                          showSizeChanger: true,
-                          showTotal: (total) => `Tổng cộng ${total} cấu hình`,
-                          onChange: handlePaginationChange,
-                        }
-                      }}
-                    />
-                  )}
+                    } : {
+                      columns,
+                      dataSource: data.items,
+                      loading,
+                      rowKey: "key",
+                      pagination: {
+                        current: filters.page,
+                        pageSize: filters.size,
+                        total: data.total,
+                        showSizeChanger: true,
+                        showTotal: (total) => `Tổng cộng ${total} cấu hình`,
+                        onChange: handlePaginationChange,
+                      }
+                    }}
+                  >
+                    {/* Content specific to active tab handled by tableProps */}
+                  </ManagementLayout>
 
                   {((activeSubTab === 'general' && data.items.length === 0) || (activeSubTab === 'topik' && topikData.length === 0)) && !loading && !topikLoading && (
                     <div style={{ padding: '80px 0' }}>
