@@ -3,18 +3,25 @@ import { Modal, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View, S
 import { FormOutlined, SettingOutlined, RocketOutlined, QuestionCircleOutlined, InfoCircleOutlined, LeftOutlined, RightOutlined, LockOutlined } from '@ant-design/icons'
 import { TOPIK_LEVELS, formatTime, getTotalTime } from '../../api/roadmap-info'
 import { useTopikLevelConfigs } from '../../api/useTopikLevelConfigs'
-import { useRef } from 'react'
-
-const LEVELS = TOPIK_LEVELS.map((l) => ({ value: l.level, label: l.label }))
-
-
-
-
 
 export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
+  const { data: configs, loading } = useTopikLevelConfigs(1, 100)
+
+  const LEVELS = useMemo(() => {
+    if (!configs || configs.length === 0) {
+      return TOPIK_LEVELS.map((l) => ({ value: l.level, label: l.label }))
+    }
+    return configs.map((item) => ({
+      value: item.targetAimLevel,
+      label: `TOPIK ${item.targetAimLevel}`,
+      configKey: item.configKey,
+    }))
+  }, [configs])
+
   const [selectedLevel, setSelectedLevel] = useState(initialLevel)
 
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false)
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [isRequirementsModalOpen, setIsRequirementsModalOpen] = useState(false)
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false)
   const [helpPage, setHelpPage] = useState(1)
@@ -22,8 +29,6 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
   const [currentPage, setCurrentPage] = useState(0)
   const [tablePage, setTablePage] = useState(0)
   const pageSize = 6
-
-  const { data: configs, loading } = useTopikLevelConfigs(1, 100)
 
   const requirements = useMemo(() => {
     if (!configs || configs.length === 0) return []
@@ -85,11 +90,18 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
   }
 
   const confirmSelection = () => {
-    if (onStart) {
-      onStart(selectedLevel)
-    }
-    closeSelectionModal()
+    setIsSelectionModalOpen(false)
+    setIsConfirmModalOpen(true)
   }
+
+  const handleFinalStart = () => {
+    if (onStart) {
+      const selectedConfig = configs?.find((item) => item.targetAimLevel === selectedLevel)
+      onStart(selectedLevel, selectedConfig?.configKey)
+    }
+    setIsConfirmModalOpen(false)
+  }
+
 
   return (
     <View style={styles.container}>
@@ -102,7 +114,7 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
 
         <View style={styles.titleRow}>
           <Text style={styles.introTitle}>Lộ trình luyện TOPIK cá nhân hóa</Text>
-          <Pressable 
+          <Pressable
             style={({ hovered }) => [
               styles.helpIconButton,
               hovered && styles.helpIconButtonHovered
@@ -159,13 +171,13 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
 
         <View style={styles.dayGridContainer}>
           {totalPages > 1 && (
-            <TouchableOpacity 
+            <TouchableOpacity
               disabled={currentPage === 0}
               style={[
-                styles.paginationButton, 
+                styles.paginationButton,
                 styles.leftButton,
                 currentPage === 0 && styles.paginationButtonDisabled
-              ]} 
+              ]}
               onPress={() => setCurrentPage(prev => Math.max(0, prev - 1))}
             >
               <LeftOutlined style={{ fontSize: 16, color: currentPage === 0 ? '#CCC' : '#0066FF' }} />
@@ -213,13 +225,13 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
           </View>
 
           {totalPages > 1 && (
-            <TouchableOpacity 
+            <TouchableOpacity
               disabled={currentPage === totalPages - 1}
               style={[
-                styles.paginationButton, 
+                styles.paginationButton,
                 styles.rightButton,
                 currentPage === totalPages - 1 && styles.paginationButtonDisabled
-              ]} 
+              ]}
               onPress={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
             >
               <RightOutlined style={{ fontSize: 16, color: currentPage === totalPages - 1 ? '#CCC' : '#0066FF' }} />
@@ -269,12 +281,12 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
 
             <View style={[styles.selectionSection, { zIndex: openListKey === 'level' ? 20 : 10 }]}>
               <Text style={styles.selectionLabel}>Bạn muốn thi lấy chứng chỉ nào?</Text>
-              <Pressable 
+              <Pressable
                 style={({ hovered, pressed }) => [
                   styles.selectionTrigger,
                   hovered && styles.selectionTriggerHovered,
                   pressed && styles.selectionTriggerPressed
-                ]} 
+                ]}
                 onPress={() => toggleList('level')}
               >
                 <View>
@@ -313,25 +325,73 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
 
 
             <View style={styles.modalActions}>
-              <Pressable 
+              <Pressable
                 style={({ hovered, pressed }) => [
                   styles.cancelButton,
                   hovered && styles.cancelButtonHovered,
                   pressed && styles.cancelButtonPressed
-                ]} 
+                ]}
                 onPress={closeSelectionModal}
               >
                 <Text style={styles.cancelButtonText}>Để sau</Text>
               </Pressable>
-              <Pressable 
+              <Pressable
                 style={({ hovered, pressed }) => [
                   styles.confirmButton,
                   hovered && styles.confirmButtonHovered,
                   pressed && styles.confirmButtonPressed
-                ]} 
+                ]}
                 onPress={confirmSelection}
               >
                 <Text style={styles.confirmButtonText}>Bắt đầu kiểm tra</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
+
+      <Modal visible={isConfirmModalOpen} transparent animationType="fade" onRequestClose={() => setIsConfirmModalOpen(false)}>
+        <Pressable style={styles.modalOverlay} onPress={() => setIsConfirmModalOpen(false)}>
+          <View style={[styles.selectionModalContainer, { maxWidth: 440, padding: 28 }]}>
+            <View style={[styles.modalHeader, { alignItems: 'center', gap: 16 }]}>
+              <View style={[styles.confirmIconCircle, { backgroundColor: '#FFF9E6' }]}>
+                <InfoCircleOutlined style={{ fontSize: 32, color: '#F1BE4B' }} />
+              </View>
+              <View style={{ alignItems: 'center', gap: 8 }}>
+                <Text style={[styles.selectionTitle, { textAlign: 'center' }]}>Lưu ý trước khi bắt đầu</Text>
+                <Text style={[styles.modalSubtitle, { textAlign: 'center', lineHeight: 22, color: '#444' }]}>
+                  Bạn hãy đảm bảo làm bài kiểm tra nghiêm túc, cẩn thận. Thời gian làm bài tương đương với 1 bài thi TOPIK nên bạn hãy tránh để bị gián đoạn để cho ra kết quả tốt nhất nhé.
+                </Text>
+              </View>
+            </View>
+
+            <View style={[styles.modalHeader, { marginTop: 4, alignItems: 'center' }]}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: '#111', textAlign: 'center' }}>
+                Chúc bạn làm bài thật tốt!
+              </Text>
+            </View>
+
+            <View style={[styles.modalActions, { marginTop: 8 }]}>
+              <Pressable
+                style={({ hovered, pressed }) => [
+                  styles.cancelButton,
+                  hovered && styles.cancelButtonHovered,
+                  pressed && styles.cancelButtonPressed
+                ]}
+                onPress={() => setIsConfirmModalOpen(false)}
+              >
+                <Text style={styles.cancelButtonText}>Quay lại</Text>
+              </Pressable>
+              <Pressable
+                style={({ hovered, pressed }) => [
+                  styles.confirmButton,
+                  { backgroundColor: '#F1BE4B' },
+                  hovered && { backgroundColor: '#E5B13A' },
+                  pressed && { transform: [{ scale: 0.98 }] }
+                ]}
+                onPress={handleFinalStart}
+              >
+                <Text style={[styles.confirmButtonText, { color: '#1A1A1A' }]}>Tôi đã sẵn sàng</Text>
               </Pressable>
             </View>
           </View>
@@ -344,8 +404,8 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
         animationType="fade"
         onRequestClose={() => setIsHelpModalOpen(false)}
       >
-        <Pressable 
-          style={styles.modalOverlay} 
+        <Pressable
+          style={styles.modalOverlay}
           onPress={() => setIsHelpModalOpen(false)}
         >
           <View style={[styles.selectionModalContainer, { maxWidth: 500, padding: 24, gap: 20 }]}>
@@ -358,7 +418,7 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
                   {helpPage === 1 ? 'Tìm hiểu cách hệ thống giúp bạn học tập' : 'Quy trình từ lúc bắt đầu đến khi về đích'}
                 </Text>
               </View>
-              <Pressable 
+              <Pressable
                 onPress={() => {
                   setIsHelpModalOpen(false)
                   setTimeout(() => setHelpPage(1), 300)
@@ -431,25 +491,25 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
 
             <View style={{ flexDirection: 'row', gap: 12, marginTop: 24 }}>
               {helpPage > 1 && (
-                <Pressable 
+                <Pressable
                   style={({ hovered, pressed }) => [
                     styles.modalCloseButton,
                     { flex: 1, backgroundColor: '#F5F5F5' },
                     pressed && { transform: [{ scale: 0.95 }] }
-                  ]} 
+                  ]}
                   onPress={() => setHelpPage(prev => prev - 1)}
                 >
                   <Text style={[styles.modalCloseButtonText, { color: '#666' }]}>Quay lại</Text>
                 </Pressable>
               )}
-              
-              <Pressable 
+
+              <Pressable
                 style={({ hovered, pressed }) => [
                   styles.modalCloseButton,
                   { flex: 2 },
                   hovered && styles.modalCloseButtonHovered,
                   pressed && styles.modalCloseButtonPressed
-                ]} 
+                ]}
                 onPress={() => {
                   if (helpPage === 1) {
                     setHelpPage(2)
@@ -479,8 +539,8 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
                 <Text style={styles.selectionTitle}>Chuẩn đầu ra TOPIK</Text>
                 <Text style={styles.modalSubtitle}>Chỉ tiêu điểm đạt và chiến thuật cho từng cấp độ</Text>
               </View>
-              <Pressable 
-                onPress={() => setIsRequirementsModalOpen(false)} 
+              <Pressable
+                onPress={() => setIsRequirementsModalOpen(false)}
                 style={({ hovered, pressed }) => [
                   styles.closeModalButton,
                   hovered && styles.closeModalButtonHovered,
@@ -521,7 +581,7 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
 
             {totalTablePages > 1 && (
               <View style={styles.tablePagination}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   disabled={tablePage === 0}
                   style={[styles.miniPaginationButton, tablePage === 0 && { opacity: 0.3 }]}
                   onPress={() => setTablePage(p => Math.max(0, p - 1))}
@@ -529,7 +589,7 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
                   <LeftOutlined style={{ fontSize: 14 }} />
                 </TouchableOpacity>
                 <Text style={styles.pageText}>Trang {tablePage + 1} / {totalTablePages}</Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   disabled={tablePage === totalTablePages - 1}
                   style={[styles.miniPaginationButton, tablePage === totalTablePages - 1 && { opacity: 0.3 }]}
                   onPress={() => setTablePage(p => Math.min(totalTablePages - 1, p + 1))}
@@ -539,13 +599,13 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
               </View>
             )}
 
-            <Pressable 
+            <Pressable
               style={({ hovered, pressed }) => [
                 styles.modalCloseButton,
                 { marginTop: 20 },
                 hovered && styles.modalCloseButtonHovered,
                 pressed && styles.modalCloseButtonPressed
-              ]} 
+              ]}
               onPress={() => setIsRequirementsModalOpen(false)}
             >
               <Text style={styles.modalCloseButtonText}>Đóng</Text>
@@ -995,6 +1055,15 @@ const styles = StyleSheet.create({
   modalHeader: {
     gap: 4,
   },
+  confirmIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#F0F7FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
   selectionTitle: {
     fontSize: 24,
     fontWeight: '900',
@@ -1056,7 +1125,7 @@ const styles = StyleSheet.create({
   },
   inlineDropdown: {
     position: 'absolute',
-    top: 96, // Adjust based on height of label + trigger
+    top: 76, // Adjust based on height of label + trigger
     left: 0,
     right: 0,
     backgroundColor: '#FFFFFF',
