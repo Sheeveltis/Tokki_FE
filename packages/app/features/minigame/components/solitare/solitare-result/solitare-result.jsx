@@ -14,12 +14,15 @@ import {
 import { normalizeImageSource } from '../../../../study/api'
 import { getCurrentUserId } from '../../../../../provider/api/client'
 import { getSolitareLeaderboard } from '../../../api/solitare-play-api'
+import { useXp, XpConfigKeys, XpSourceList } from 'app/provider/xp'
 
 import BunnyImage from '../../../../../../assets/bunny/14.png'
 import CarrotImage from '../../../../../../assets/carrot.png'
 import CarrotGround from '../../../../../../assets/carrot-ground.png'
 
-export function SolitareResult({ score = 0, topPercent = 5, timeLeft = 0, onReplay, level = 'medium' }) {
+export function SolitareResult({ score = 0, topPercent = 5, timeLeft = 0, onReplay, level = 'medium', isWin = false }) {
+  const { addXp } = useXp()
+  const awardedXPRef = useRef(false)
   const { height: windowHeight } = useWindowDimensions()
   const minutes = Math.floor(timeLeft / 60)
   const seconds = timeLeft % 60
@@ -34,7 +37,31 @@ export function SolitareResult({ score = 0, topPercent = 5, timeLeft = 0, onRepl
   useEffect(() => {
     const userId = getCurrentUserId()
     setCurrentUserId(userId)
-  }, [])
+
+    // Award XP
+    if (!awardedXPRef.current) {
+      const awardXP = async () => {
+        try {
+          const lv = String(level || '').toLowerCase()
+          const isLv3 = lv === 'hard' || lv === '3'
+          const isLv2 = lv === 'medium' || lv === '2'
+          
+          let configKey = XpConfigKeys.MINIGAME_WIN_LV1
+          if (isWin) {
+            configKey = isLv3 ? XpConfigKeys.MINIGAME_WIN_LV3 : (isLv2 ? XpConfigKeys.MINIGAME_WIN_LV2 : XpConfigKeys.MINIGAME_WIN_LV1)
+          } else {
+            configKey = isLv3 ? XpConfigKeys.MINIGAME_LOSS_LV3 : (isLv2 ? XpConfigKeys.MINIGAME_LOSS_LV2 : XpConfigKeys.MINIGAME_LOSS_LV1)
+          }
+
+          await addXp(configKey, XpSourceList.MINIGAME)
+          awardedXPRef.current = true
+        } catch (err) {
+          console.error('[SolitareResult] XP Error:', err)
+        }
+      }
+      awardXP()
+    }
+  }, [level, isWin, addXp])
 
   const getRankIcon = (rank) => {
     if (rank === 1) return '🥇'

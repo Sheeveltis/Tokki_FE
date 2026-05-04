@@ -59,7 +59,7 @@ export function WordlePlayNative(props) {
                 <Pressable onPress={handleQuit} style={styles.backButtonContainer}>
                   <Image source={ButtonWood} style={styles.backButtonBg} />
                   <View style={styles.backButtonContent}>
-                    <ArrowIcon width={16} height={16} fill="#FFD700" />
+                    <ArrowIcon width={12} height={12} fill="#FFD700" />
                     <Text style={styles.backButtonText}>Quay lại</Text>
                   </View>
                 </Pressable>
@@ -82,13 +82,7 @@ export function WordlePlayNative(props) {
               <Text style={styles.title}>Wordle</Text>
             </View>
 
-            <View style={styles.headerRight}>
-              {gameState === 'playing' && (
-                <Pressable onPress={handleMenuClick} style={styles.menuBtn}>
-                  <Image source={MenuIcon} style={styles.menuIcon} />
-                </Pressable>
-              )}
-            </View>
+            <View style={styles.headerRight} />
             {!!TOPIC_NAME && <Text style={styles.topic}>Chủ đề: {TOPIC_NAME}</Text>}
           </View>
 
@@ -215,8 +209,8 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   backButtonContainer: {
-    width: 120,
-    height: 44,
+    width: 80,
+    height: 34,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -234,7 +228,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   backButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '800',
     color: '#FFFFFF',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
@@ -293,12 +287,12 @@ const styles = StyleSheet.create({
     marginBottom: -30,
   },
   keyboardWrap: {
-    width: '130%',
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
     marginBottom: 2,
-    transform: [{ scale: 0.80 }],
+    transform: [{ scale: 0.95 }],
   },
   sentenceFlowWrap: {
     width: '100%',

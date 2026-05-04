@@ -8,6 +8,7 @@ import FailSound from '../../../../../../assets/sound-effect/solitare/fail.wav'
 import SuccessSound from '../../../../../../assets/sound-effect/solitare/success.wav'
 import { submitWordleGuess, getWordleResult, getWordleLevels } from '../../../api/wordle-level-api'
 import { awardMinigameXP } from '../../../api/api'
+import { useXp, XpConfigKeys, XpSourceList } from 'app/provider/xp'
 import { hasSeenHowToPlayTour } from './components/HowToPlayTour'
 
 export function useWordlePlayControl({
@@ -17,6 +18,7 @@ export function useWordlePlayControl({
   maxAttempts,
 }) {
   const router = useRouter()
+  const { addXp } = useXp()
   const isWeb = Platform.OS === 'web'
 
   const WORD_LENGTH = initialWordLength || 2
@@ -368,8 +370,17 @@ export function useWordlePlayControl({
             }
 
             try {
-              await awardMinigameXP(_level)
-              console.log('[useWordlePlayControl] ✅ Awarded XP for wordle')
+              const lv = String(_level || '').toLowerCase()
+              const isLv3 = lv === 'hard' || lv === '3'
+              const isLv2 = lv === 'medium' || lv === '2'
+              const configKey = isLv3 
+                ? XpConfigKeys.MINIGAME_WIN_LV3 
+                : isLv2 
+                  ? XpConfigKeys.MINIGAME_WIN_LV2 
+                  : XpConfigKeys.MINIGAME_WIN_LV1
+              
+              await addXp(configKey, XpSourceList.MINIGAME)
+              console.log('[useWordlePlayControl] ✅ Awarded XP for wordle win')
             } catch (xpError) {
               console.error('[useWordlePlayControl] ⚠️ Failed awarding XP:', xpError)
             }
@@ -386,6 +397,21 @@ export function useWordlePlayControl({
             setGameState('won')
           } else if (isGameOver) {
             setGameState('lost')
+            try {
+              const lv = String(_level || '').toLowerCase()
+              const isLv3 = lv === 'hard' || lv === '3'
+              const isLv2 = lv === 'medium' || lv === '2'
+              const configKey = isLv3 
+                ? XpConfigKeys.MINIGAME_LOSS_LV3 
+                : isLv2 
+                  ? XpConfigKeys.MINIGAME_LOSS_LV2 
+                  : XpConfigKeys.MINIGAME_LOSS_LV1
+              
+              await addXp(configKey, XpSourceList.MINIGAME)
+              console.log('[useWordlePlayControl] ❌ Awarded XP for wordle loss')
+            } catch (xpError) {
+              console.error('[useWordlePlayControl] ⚠️ Failed awarding loss XP:', xpError)
+            }
           }
         }
 

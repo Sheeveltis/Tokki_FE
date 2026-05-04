@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'solito/navigation'
 import { MatchingCardHeader } from './matching-card-play-header'
 import { MatchingCardPlayBody } from './matching-card-play-body'
 import { MatchingCardTour, hasSeenMatchingCardTour } from './matching-card-tour'
+import { useXp, XpConfigKeys, XpSourceList } from 'app/provider/xp'
 import { BackButton } from '../../../../../../components/backBtn'
 import { showAdminSuccess } from 'components/HelperAdmin'
 import ThemeMusic from '../../../../../../assets/sound-effect/solitare/theme.mp3'
@@ -45,6 +46,7 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
   const [finished, setFinished] = useState(false)
   const userKey = getUserIdFromToken()
   const [showMenuPopup, setShowMenuPopup] = useState(false)
+  const { addXp } = useXp()
   const [runTour, setRunTour] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -236,8 +238,7 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
     if (!cardsCount) return
     if (finished) return
     if (matchedIds.length && matchedIds.length === cardsCount) {
-      showAdminSuccess('Bạn đã thành công vượt qua thử thách!')
-      goToResult()
+      goToResult(true)
     }
   }, [matchedIds, cardsCount, finished])
 
@@ -279,10 +280,10 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
     }, 250)
   }
 
-  const goToResult = () => {
+  const goToResult = (isWin = false) => {
     if (finished) return
     setFinished(true)
-    runWinEffects(score, secondsLeft)
+    if (isWin) runWinEffects(score, secondsLeft)
     const query = new URLSearchParams()
     if (gameId) query.set('gameId', gameId)
     if (topicId) query.set('topic', topicId)
@@ -292,6 +293,7 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
     query.set('time', String(secondsLeft))
     query.set('hasPlayed', String(hasPlayed)) // Truyền flag để biết dùng POST hay PUT
     query.set('top', '5')
+    query.set('isWin', String(isWin))
     
     // Debug: Log params trước khi navigate
     console.log('[MatchingCardLayout] Navigating to result with params:', {
@@ -307,7 +309,7 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
   }
 
   const handleTimeUp = () => {
-    goToResult()
+    goToResult(false)
   }
 
   const handleToggleSound = () => {
