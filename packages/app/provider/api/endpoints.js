@@ -159,6 +159,9 @@ export const ENDPOINTS = {
     GET_BY_ID: (exampleId) => `/PronunciationExample/${exampleId}`,
     UPDATE: (exampleId) => `/PronunciationExample/${exampleId}`,
     DELETE: (exampleId) => `/PronunciationExample/${exampleId}`,
+    IMPORT_EXCEL: '/PronunciationExample/import-excel',
+    EXPORT_EXCEL: '/PronunciationExample/export-excel',
+    IMPORT_TEMPLATE: '/PronunciationExample/import-template',
   },
   PRONUNCIATION_RULES: {
     CREATE: '/PronunciationRules', // POST: Tạo pronunciation rule
