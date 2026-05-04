@@ -95,6 +95,7 @@ export const ENDPOINTS = {
     CREATE: '/Payment',
     GET_QR_BY_ID: (id) => `/Payment/${id}/qr`,
     GET_BY_ID: (id) => `/Payment/${id}`,
+    CANCEL: (id) => `/Payment/${id}/cancel`,
     HISTORY_TOKEN_USER: '/Payment/history-token-user', // GET: Lấy lịch sử thanh toán của user hiện tại
   },
   VIP_PACKAGE: {
@@ -135,6 +136,7 @@ export const ENDPOINTS = {
     CLOSE_SUPPORT: (roomId) => `/Chat/support/${roomId}/close`,
     GET_HISTORY: (roomId) => `/Chat/${roomId}/history`,
     GET_ACTIVE_SUPPORT: '/Chat/support/active',
+    GET_ACTIVE_ALL: '/Chat/support/active-all',
   },
   TOPIC: {
     CREATE: '/Topics',
