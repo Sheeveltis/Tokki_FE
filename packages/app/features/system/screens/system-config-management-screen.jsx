@@ -13,7 +13,8 @@ import {
   Badge,
   Row,
   Col,
-  Tooltip
+  Tooltip,
+  Switch
 } from 'antd'
 import {
   EditOutlined,
@@ -230,6 +231,22 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
     }
   }
 
+  const handleToggleActive = useCallback(async (record, checked) => {
+    try {
+      setLoading(true)
+      await updateSystemConfig({
+        ...record,
+        isActive: checked
+      })
+      showAdminSuccess(`${checked ? 'Bật' : 'Tắt'} cấu hình thành công`)
+      loadData(filters)
+    } catch (err) {
+      showAdminError(err?.message || 'Không thể cập nhật trạng thái')
+    } finally {
+      setLoading(false)
+    }
+  }, [filters, loadData])
+
   const columns = useMemo(() => [
     {
       title: 'STT',
@@ -302,18 +319,12 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
       key: 'isActive',
       width: 100,
       align: 'center',
-      render: (isActive) => (
-        <Tooltip title={isActive ? 'Đang hoạt động' : 'Đang tắt'}>
-          <div
-            style={{
-              width: 14,
-              height: 14,
-              borderRadius: '50%',
-              backgroundColor: isActive ? '#52c41a' : '#bfbfbf',
-              margin: '0 auto',
-              boxShadow: '0 0 4px rgba(0,0,0,0.2)',
-              cursor: 'pointer',
-            }}
+      render: (isActive, record) => (
+        <Tooltip title={isActive ? 'Nhấn để tắt' : 'Nhấn để bật'}>
+          <Switch
+            size="small"
+            checked={isActive}
+            onChange={(checked) => handleToggleActive(record, checked)}
           />
         </Tooltip>
       ),
@@ -343,7 +354,23 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
         )
       },
     },
-  ], [filters.page, filters.size, handleEdit, handleView])
+  ], [filters.page, filters.size, handleEdit, handleView, handleToggleActive])
+
+  const handleToggleTopikActive = useCallback(async (record, checked) => {
+    try {
+      setTopikLoading(true)
+      await updateTopikConfig({
+        ...record,
+        isActive: checked
+      })
+      showAdminSuccess(`${checked ? 'Bật' : 'Tắt'} cấu hình thành công`)
+      loadTopikData(filters)
+    } catch (err) {
+      showAdminError(err?.message || 'Không thể cập nhật trạng thái')
+    } finally {
+      setTopikLoading(false)
+    }
+  }, [filters, loadTopikData])
 
   const topikColumns = useTopikColumns({
     onEdit: (record) => {
@@ -354,6 +381,7 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
       setViewingTopik(record)
       setTopikViewOpen(true)
     },
+    onToggleActive: handleToggleTopikActive,
     pagination: {
       current: filters.page,
       pageSize: filters.size

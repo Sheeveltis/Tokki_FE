@@ -2,7 +2,7 @@ import { apiClient } from '../../../provider/api/client'
 import { ENDPOINTS } from '../../../provider/api/endpoints'
 
 export const fetchTopikConfigs = async (params) => {
-  const response = await apiClient.get('/TopikLevelConfig', { 
+  const response = await apiClient.get('/TopikLevelConfig/admin', { 
     params: {
       pageNumber: params?.pageNumber || 1,
       pageSize: params?.pageSize || 20,

@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react'
-import { Table, Tag, Space, Tooltip, Typography, Progress } from 'antd'
+import { Table, Tag, Space, Tooltip, Typography, Progress, Switch } from 'antd'
 import { EditOutlined, EyeOutlined } from '@ant-design/icons'
 
 const { Text } = Typography
 
 // Export hook để dùng chung ở màn hình quản lý (giúp pagination đồng nhất)
-export const useTopikColumns = ({ onEdit, onView, pagination }) => {
+export const useTopikColumns = ({ onEdit, onView, onToggleActive, pagination }) => {
   return useMemo(() => [
     {
       title: 'STT',
@@ -80,20 +80,14 @@ export const useTopikColumns = ({ onEdit, onView, pagination }) => {
       title: 'Trạng thái',
       dataIndex: 'isActive',
       key: 'isActive',
-      width: 80,
+      width: 100,
       align: 'center',
-      render: (isActive) => (
-        <Tooltip title={isActive ? 'Đang hoạt động' : 'Đang tắt'}>
-          <div
-            style={{
-              width: 12,
-              height: 12,
-              borderRadius: '50%',
-              backgroundColor: isActive ? '#52c41a' : '#bfbfbf',
-              margin: '0 auto',
-              boxShadow: '0 0 4px rgba(0,0,0,0.1)',
-              cursor: 'pointer',
-            }}
+      render: (isActive, record) => (
+        <Tooltip title={isActive ? 'Nhấn để tắt' : 'Nhấn để bật'}>
+          <Switch
+            size="small"
+            checked={isActive}
+            onChange={(checked) => onToggleActive?.(record, checked)}
           />
         </Tooltip>
       ),
@@ -126,8 +120,8 @@ export const useTopikColumns = ({ onEdit, onView, pagination }) => {
   ], [onEdit, onView, pagination])
 }
 
-const TopikConfigTable = ({ data, total, pagination, loading, onEdit, onView }) => {
-  const columns = useTopikColumns({ onEdit, onView, pagination })
+const TopikConfigTable = ({ data, total, pagination, loading, onEdit, onView, onToggleActive }) => {
+  const columns = useTopikColumns({ onEdit, onView, onToggleActive, pagination })
 
   return (
     <Table
