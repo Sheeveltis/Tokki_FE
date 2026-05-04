@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native'
+import { renderHtmlText } from './PronunciationFeedbackText'
 
 const getDifficultyStyles = (level) => {
   switch (level) {
@@ -48,7 +49,7 @@ export function PronunciationExampleCard({
 
         <View style={styles.content}>
           <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
-            {text}
+            {renderHtmlText(text, styles.title, styles.titleBold)}
           </Text>
           <View style={styles.bottomRow}>
             <View style={[styles.diffBadge, { backgroundColor: diffStyle.bg }]}>
@@ -134,6 +135,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue, sans-serif',
     marginBottom: 4,
     lineHeight: 26,
+  },
+  titleBold: {
+    fontWeight: '900',
   },
   subtitle: {
     fontSize: 12,

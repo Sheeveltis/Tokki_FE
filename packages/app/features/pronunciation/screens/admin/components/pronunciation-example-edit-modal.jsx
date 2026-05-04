@@ -37,18 +37,32 @@ export default function PronunciationExampleEditModal({ open, loading, example, 
     }
   }, [open, example, form])
 
+  const cleanHtml = (html) => {
+    if (!html) return ''
+    return html
+      .replace(/&nbsp;/g, ' ')
+      .replace(/<strong>/g, '<b>')
+      .replace(/<\/strong>/g, '</b>')
+      .replace(/<p>/g, '') // Xóa thẻ mở <p>
+      .replace(/<\/p>/g, '') // Xóa thẻ đóng </p>
+      .trim()
+  }
+
   const handleOk = async () => {
     try {
       const values = await form.validateFields()
       
+      // Chuẩn hóa HTML: Chuyển <strong> -> <b> và &nbsp; -> space
+      const cleanedTargetScript = cleanHtml(values.targetScript)
+      
       // Xử lý tạo rawScript từ targetScript bằng cách loại bỏ các thẻ HTML
-      const targetScript = values.targetScript || ''
-      const rawScript = targetScript.replace(/<\/?[^>]+(>|$)/g, "").trim()
+      const rawScript = cleanedTargetScript.replace(/<\/?[^>]+(>|$)/g, "").trim()
       
       const payload = {
         exampleId: example.exampleId,
         ...values,
-        rawScript // Gửi kèm rawScript đã được lọc thẻ
+        targetScript: cleanedTargetScript,
+        rawScript
       }
       onSubmit?.(payload)
     } catch (err) {
@@ -86,8 +100,7 @@ export default function PronunciationExampleEditModal({ open, loading, example, 
               borderRadius: 8,
               overflow: 'hidden',
               display: 'flex',
-              flexDirection: 'column',
-              minHeight: 120
+              flexDirection: 'column'
             }}
           />
         </Form.Item>

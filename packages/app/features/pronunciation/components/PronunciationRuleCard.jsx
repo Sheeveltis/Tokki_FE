@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet, Pressable } from 'react-native'
+import { renderHtmlText } from './PronunciationFeedbackText'
 import SoundIcon from '../../../../assets/icon/icon-mainflow/sound.svg'
 
 /**
@@ -23,8 +24,12 @@ export function PronunciationRuleCard({ rule, onPress }) {
     >
       <View style={styles.topRow}>
         <View style={styles.textContainer}>
-          <Text style={styles.koreanTitle} numberOfLines={1}>{title}</Text>
-          <Text style={styles.vietnameseSubtitle} numberOfLines={1}>{subtitle}</Text>
+          <Text style={styles.koreanTitle} numberOfLines={1}>
+            {renderHtmlText(title, styles.koreanTitle, styles.boldTitle)}
+          </Text>
+          <Text style={styles.vietnameseSubtitle} numberOfLines={1}>
+            {renderHtmlText(subtitle, styles.vietnameseSubtitle, styles.boldSubtitle)}
+          </Text>
         </View>
 
         <View style={styles.iconBox}>
@@ -121,6 +126,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#D97706', // Orange
     borderRadius: 5,
   },
+  boldTitle: { fontWeight: '900' },
+  boldSubtitle: { fontWeight: '800' },
 })
 
 export default PronunciationRuleCard

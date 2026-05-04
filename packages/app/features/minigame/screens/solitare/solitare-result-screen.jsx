@@ -3,10 +3,10 @@ import { StyleSheet, View } from 'react-native'
 
 import SolitareResult from '../../components/solitare/solitare-result/solitare-result'
 
-export function SolitareResultScreen({ score = 0, timeLeft = 0, level = 'medium', onReplay }) {
+export function SolitareResultScreen({ score = 0, timeLeft = 0, level = 'medium', onReplay, isWin = false }) {
   return (
     <View style={styles.container}>
-      <SolitareResult score={score} timeLeft={timeLeft} level={level} onReplay={onReplay} />
+      <SolitareResult score={score} timeLeft={timeLeft} level={level} onReplay={onReplay} isWin={isWin} />
     </View>
   )
 }
