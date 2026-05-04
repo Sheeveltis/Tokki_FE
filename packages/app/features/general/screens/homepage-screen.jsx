@@ -1,3 +1,4 @@
+import React from 'react'
 import { View, Platform } from 'react-native'
 import { HomeLayout } from '../components/homepage/home-layout.web'
 import { HomeMain } from '../components/homepage/home-main'
@@ -8,21 +9,13 @@ import { LandingLayout } from '../components/homepage/landing-layout.web'
 import { getAuthToken } from 'app/provider/api/client'
 import { useRouter } from 'solito/navigation'
 
-interface HomeScreenProps {
-  onHomePress?: () => void;      
-  onRoadmapPress?: () => void;
-  onFlashcardPress?: () => void;
-  onBlogPress?: () => void;
-  onProfilePress?: () => void;
-}
-
 export function HomeScreen({
   onHomePress,
   onRoadmapPress,
   onFlashcardPress,
   onBlogPress,
   onProfilePress,
-}: HomeScreenProps) {
+}) {
 
   const { data: sidebarData, isLoading: sidebarLoading, error } = useSidebarData()
   const router = useRouter()
