@@ -34,12 +34,27 @@ export function PronunciationRuleEditModal({ open, loading, rule, onCancel, onSu
     }
   }, [open, rule, form])
 
+  const cleanHtml = (html) => {
+    if (!html) return ''
+    return html
+      .replace(/&nbsp;/g, ' ')
+      .replace(/<strong>/g, '<b>')
+      .replace(/<\/strong>/g, '</b>')
+  }
+
   const handleOk = async () => {
     try {
       const values = await form.validateFields()
+      
+      // Làm sạch HTML cho phần nội dung và mô tả
+      const cleanedContent = cleanHtml(values.content)
+      const cleanedDescription = cleanHtml(values.description)
+
       const payload = {
         pronunciationRuleId: rule.id,
-        ...values
+        ...values,
+        content: cleanedContent,
+        description: cleanedDescription
       }
       onSubmit?.(payload)
     } catch (err) {
