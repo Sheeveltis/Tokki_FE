@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { ClockCircleOutlined } from '@ant-design/icons'
 import { useBubbleChatLogic } from '../../api/bubble-chat-logic'
 // Import SVG as URL for Vite compatibility
 const ChatboxIcon = new URL('../../../../../assets/icon/icon-mainflow/chatbox.svg', import.meta.url).href
@@ -66,12 +67,6 @@ const BubbleChat = () => {
 
       if (!messageContent && !isMine && !isSystem) return
 
-      const currentTime = msg.timestamp
-        ? new Date(msg.timestamp).getTime()
-        : msg.createdAt
-          ? new Date(msg.createdAt).getTime()
-          : Date.now()
-
       const messageTime = msg.timestamp
         ? new Date(msg.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
         : msg.createdAt
@@ -82,77 +77,36 @@ const BubbleChat = () => {
       if (isSystem) {
         result.push(
           <div key={`sys-${index}`} className="message-time-separator">
-            <span>{messageContent}</span>
+            <span>{messageContent.toUpperCase()}</span>
           </div>
         )
         return
       }
 
-      let isSequence = false
-      let showTimeSeparator = false
-
-      if (index > 0) {
-        const prevMsg = messages[index - 1]
-        const prevIsMine = prevMsg.isFromCurrentUser || (currentUserId && prevMsg.senderId === currentUserId)
-        const prevTime = prevMsg.timestamp
-          ? new Date(prevMsg.timestamp).getTime()
-          : prevMsg.createdAt ? new Date(prevMsg.createdAt).getTime() : Date.now()
-
-        const timeDiff = (currentTime - prevTime) / 1000 / 60
-        if (isMine === prevIsMine && timeDiff < 5) {
-          isSequence = true
-        } else {
-          showTimeSeparator = true
-        }
-      } else {
-        showTimeSeparator = true
-      }
-
       const senderName = isMine ? 'Bạn' : (msg.senderName || 'Nhân viên hỗ trợ')
       const senderAvatar = isMine ? (msg.senderAvatar || UserAvatar) : (msg.senderAvatar || UserAvatar)
-
-      if (showTimeSeparator && index > 0) {
-        result.push(
-          <div key={`time-${index}`} className="message-time-separator">
-            <span>{messageTime}</span>
-          </div>
-        )
-      }
 
       result.push(
         <div
           key={index}
           className={`message ${isMine ? 'message-sent' : 'message-received'}`}
         >
-          {!isMine && (
-            <div className="message-avatar-container">
-              <img
-                src={senderAvatar}
-                alt={senderName}
-                className="message-avatar"
-                onError={(e) => { e.target.src = UserAvatar }}
-              />
-            </div>
-          )}
+          <div className="message-avatar-container" title={senderName}>
+            <img
+              src={senderAvatar}
+              alt={senderName}
+              className="message-avatar"
+              onError={(e) => { e.target.src = UserAvatar }}
+            />
+          </div>
           
           <div className="message-content-wrapper">
-            {!isMine && !isSequence && (
-              <div className="message-sender-name">{senderName}</div>
-            )}
             <div className="message-bubble">{messageContent}</div>
-            <div className="message-time">{messageTime}</div>
-          </div>
-
-          {isMine && (
-            <div className="message-avatar-container" style={{ marginRight: 0, marginLeft: 8 }}>
-              <img
-                src={senderAvatar}
-                alt={senderName}
-                className="message-avatar"
-                onError={(e) => { e.target.src = UserAvatar }}
-              />
+            <div className="message-time">
+              <ClockCircleOutlined style={{ fontSize: 10 }} />
+              {messageTime}
             </div>
-          )}
+          </div>
         </div>
       )
     })
@@ -276,7 +230,7 @@ const BubbleChat = () => {
                 )}
               </div>
               <button
-                className="send-btn circular-send-btn"
+                className="circular-send-btn"
                 onClick={handleSendMessage}
                 disabled={!inputMessage.trim() || !isConnected}
               >

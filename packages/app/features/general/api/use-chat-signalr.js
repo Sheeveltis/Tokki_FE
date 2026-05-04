@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import * as signalR from '@microsoft/signalr';
 import { CHAT_HUB } from '../../../provider/api/hubConstants'; // Nhớ trỏ đúng đường dẫn file config của bạn
 
-export const useChatSignalR = (token, initialRoomId = null) => {
+export const useChatSignalR = (token, initialRoomId = null, onRoomClosed = null) => {
   const [connection, setConnection] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -128,7 +128,7 @@ export const useChatSignalR = (token, initialRoomId = null) => {
       console.log('SignalR: Room closed -', closedRoomId);
       if (roomIdRef.current === closedRoomId) {
         setRoomId(null);
-        // Có thể gọi thêm callback nếu cần
+        if (onRoomClosed) onRoomClosed(closedRoomId);
       }
     });
 
