@@ -70,8 +70,11 @@ export function RoadmapLearningDayList({
   weeks = [], 
   activeWeek, 
   initialDayIndex = null,
+  activeDay: externalActiveDay = null,
+  onDayChange: externalOnDayChange = null,
   onGenerateNextWeek,
-  isNextWeekEmpty = false
+  isNextWeekEmpty = false,
+  hideSelector = false
 }) {
   const router = useRouter()
 
@@ -88,7 +91,11 @@ export function RoadmapLearningDayList({
   }, [activeWeek])
 
   const dayKeys = useMemo(() => Object.keys(lessonsByDay).map(Number).sort((a, b) => a - b), [lessonsByDay])
-  const [activeDay, setActiveDay] = useState(null)
+  const [internalActiveDay, setInternalActiveDay] = useState(null)
+  
+  const activeDay = externalActiveDay !== null ? externalActiveDay : internalActiveDay
+  const setActiveDay = externalOnDayChange || setInternalActiveDay
+
   const [hoveredDay, setHoveredDay] = useState(null)
 
   // Khởi tạo ngày đang học hoặc ngày từ URL
@@ -100,7 +107,7 @@ export function RoadmapLearningDayList({
         setActiveDay(dayKeys[0])
       }
     }
-  }, [dayKeys, initialDayIndex, activeDay])
+  }, [dayKeys, initialDayIndex, activeDay, setActiveDay])
 
   const handleDayChange = (day) => {
     setActiveDay(day)
@@ -122,68 +129,69 @@ export function RoadmapLearningDayList({
         </View>
       ) : (
         <>
-          <View style={styles.daySelector}>
-            {dayKeys.map((day) => {
-              const active = activeDay === day
-              return (
-                <Pressable
-                  key={day}
-                  onPress={() => handleDayChange(day)}
-                  onHoverIn={() => Platform.OS === 'web' && setHoveredDay(day)}
-                  onHoverOut={() => Platform.OS === 'web' && setHoveredDay(null)}
-                  style={({ pressed }) => [
-                    styles.dayPill,
-                    active && styles.dayPillActive,
-                    !active && hoveredDay === day && styles.dayPillHovered,
-                    pressed && styles.dayPillPressed
-                  ]}
-                >
-                  <Text style={[
-                    styles.dayPillText,
-                    active && styles.dayPillTextActive,
-                    (!active && hoveredDay === day) && styles.dayPillTextHovered
-                  ]}>Ngày {day}</Text>
-                </Pressable>
-              )
-            })}
-          </View>
+          {!hideSelector && (
+            <View style={styles.daySelector}>
+              {dayKeys.map((day) => {
+                const active = activeDay === day
+                return (
+                  <Pressable
+                    key={day}
+                    onPress={() => handleDayChange(day)}
+                    onHoverIn={() => Platform.OS === 'web' && setHoveredDay(day)}
+                    onHoverOut={() => Platform.OS === 'web' && setHoveredDay(null)}
+                    style={({ pressed }) => [
+                      styles.dayPill,
+                      active && styles.dayPillActive,
+                      !active && hoveredDay === day && styles.dayPillHovered,
+                      pressed && styles.dayPillPressed
+                    ]}
+                  >
+                    <Text style={[
+                      styles.dayPillText,
+                      active && styles.dayPillTextActive,
+                      (!active && hoveredDay === day) && styles.dayPillTextHovered
+                    ]}>Ngày {day}</Text>
+                  </Pressable>
+                )
+              })}
+            </View>
+          )}
 
 
           <View style={styles.lessonPanel}>
-            <ScrollView 
-              style={styles.lessonScroll} 
-              contentContainerStyle={styles.lessonColumn}
-              showsVerticalScrollIndicator={false}
-            >
-              {activeDayLessons.map((lesson) => {
-                const allTaskIds = activeDayLessons.map((l) => l.id).join(',')
-                const targetPath = `/roadmap/learning/tips/${lesson.id}?level=${targetAim}&roadmap=${allTaskIds}`
+            {activeDayLessons.map((lesson) => {
+              const allTaskIds = activeDayLessons.map((l) => l.id).join(',')
+              const targetPath = `/roadmap/learning/tips/${lesson.id}?level=${targetAim}&roadmap=${allTaskIds}`
 
-                return (
-                  <RoadmapLearningLessonCard
-                    key={`${lesson.id}-detail`}
-                    icon={lesson.icon}
-                    title={lesson.title}
-                    subtitle={lesson.subtitle}
-                    actionLabel={lesson.actionLabel}
-                    tone={lesson.tone}
-                    isCompleted={lesson.isCompleted}
-                    onPress={() => router.push(targetPath)}
-                  />
-                )
-              })}
-              {activeDay === 7 && isNextWeekEmpty && activeDayLessons.every(l => l.isCompleted) && (
-                <View style={styles.nextWeekAction}>
-                  <View style={styles.actionDivider} />
-                  <Text style={styles.actionNote}>Bạn đã hoàn thành tuần học này! Hãy tạo nội dung cho tuần kế tiếp nhé.</Text>
-                  <RoadmapTestButton 
-                    title="Tạo tuần tiếp theo" 
-                    onPress={onGenerateNextWeek}
-                    style={styles.nextWeekBtn}
-                  />
-                </View>
-              )}
-            </ScrollView>
+              // Bài kiểm ngày 7 (WeeklyExam) đã hoàn thành => khóa hoàn toàn, không cho vào lại
+              const isWeeklyExam = lesson.taskType === 2 || lesson.taskType === 'WeeklyExam'
+              const isLocked = isWeeklyExam && lesson.isCompleted
+
+              return (
+                <RoadmapLearningLessonCard
+                  key={`${lesson.id}-detail`}
+                  icon={lesson.icon}
+                  title={lesson.title}
+                  subtitle={lesson.subtitle}
+                  actionLabel={lesson.actionLabel}
+                  tone={lesson.tone}
+                  isCompleted={lesson.isCompleted}
+                  isLocked={isLocked}
+                  onPress={isLocked ? null : () => router.push(targetPath)}
+                />
+              )
+            })}
+            {activeDay === 7 && isNextWeekEmpty && activeDayLessons.every(l => l.isCompleted) && (
+              <View style={styles.nextWeekAction}>
+                <View style={styles.actionDivider} />
+                <Text style={styles.actionNote}>Bạn đã hoàn thành tuần học này! Hãy tạo nội dung cho tuần kế tiếp nhé.</Text>
+                <RoadmapTestButton 
+                  title="Tạo tuần tiếp theo" 
+                  onPress={onGenerateNextWeek}
+                  style={styles.nextWeekBtn}
+                />
+              </View>
+            )}
           </View>
         </>
       )}
@@ -214,11 +222,12 @@ const styles = StyleSheet.create({
   dayPillTextActive: { color: '#FFFFFF', fontWeight: '800' },
   dayPillTextHovered: { color: '#1A1A1A' },
   lessonPanel: {
-    flex: 1, minHeight: 0, backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: '#F0F0F0', padding: 20,
+    flex: 1, 
+    minHeight: 0, 
+    gap: 12,
   },
   lessonPanelTitle: { fontSize: 13, fontWeight: '800', color: '#D38E3F', fontFamily: 'Epilogue, sans-serif', textTransform: 'uppercase', letterSpacing: 1 },
-  lessonColumn: { gap: 10, paddingBottom: 10 },
-  lessonScroll: { flex: 1 },
+  lessonColumn: { gap: 12, paddingBottom: 10 },
   emptyBox: {
     flex: 1, minHeight: 0, borderRadius: 18, borderWidth: 1, borderColor: '#F0F0F0', backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center',
   },

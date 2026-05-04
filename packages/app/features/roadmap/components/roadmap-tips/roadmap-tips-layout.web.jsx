@@ -1,11 +1,20 @@
-import { useState } from 'react'
-import { ScrollView, StyleSheet, Text, View, Pressable, Platform, ActivityIndicator } from 'react-native'
+import { useCallback, useState } from 'react'
+import { ScrollView, StyleSheet, Text, View, Pressable, Platform, ActivityIndicator, TextInput } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { NavigationPill } from '../../../../../components/navigation-pill'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
 import { Navbar } from '../../../../../components/navbar'
 import { RoadmapTestButton } from '../roadmap-test/roadmap-test-button'
 import { HtmlViewer } from '../../../blog/components/blog-detail/html-viewer'
+import { 
+  AppstoreOutlined, 
+  ClockCircleOutlined, 
+  TrophyOutlined, 
+  UserOutlined,
+  BookOutlined,
+  PlayCircleFilled,
+  RightOutlined
+} from '@ant-design/icons'
 
 const TASK_TYPE_LABEL = {
   LearnTheory: 'Lý thuyết',
@@ -69,49 +78,50 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                   contentContainerStyle={styles.contentCardInner}
                 >
                   {/* Header Section in Card */}
-                  <View style={styles.heroSection}>
-                    <View style={styles.headerTop}>
-                      <View style={styles.headerText}>
-
-
-                        <View style={styles.titleRow}>
-                          <Text style={styles.mainTitle}>{title}</Text>
-                          {isCompleted && (
-                            <View style={styles.completeCheckBadge}>
-                              <Text style={styles.checkIcon}>✓</Text>
+                  {/* Header Section in Card */}
+                  {taskType !== 'VirtualQuiz' && taskType !== 'WeeklyExam' && (
+                    <>
+                      <View style={styles.heroSection}>
+                        <View style={styles.headerTop}>
+                          <View style={styles.headerText}>
+                            <View style={styles.titleRow}>
+                              <Text style={styles.mainTitle}>{title}</Text>
+                              {isCompleted && (
+                                <View style={styles.completeCheckBadge}>
+                                  <Text style={styles.checkIcon}>✓</Text>
+                                </View>
+                              )}
                             </View>
-                          )}
-                        </View>
 
-                        <View style={styles.metaInfo}>
-                          <View style={styles.metaItem}>
-                            <View style={[styles.dot, { backgroundColor: '#FF6B6B' }]} />
-                            <Text style={styles.metaText}>{typeLabel}</Text>
+                            <View style={styles.metaInfo}>
+                              <View style={styles.metaItem}>
+                                <View style={[styles.dot, { backgroundColor: '#FF6B6B' }]} />
+                                <Text style={styles.metaText}>{typeLabel}</Text>
+                              </View>
+                            </View>
+                          </View>
+
+                          <View style={styles.headerActions}>
+                            <Pressable
+                              onPress={() => router.back()}
+                              style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+                            >
+                              <Text style={styles.backButtonText}>Quay lại lộ trình</Text>
+                            </Pressable>
                           </View>
                         </View>
                       </View>
 
-                      <View style={styles.headerActions}>
-                        <Pressable
-                          onPress={() => router.back()}
-                          style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
-                        >
-                          <Text style={styles.backButtonText}>Quay lại lộ trình</Text>
-                        </Pressable>
+                      {/* Main Content Card */}
+                      <View style={styles.articleContent}>
+                        <HtmlViewer html={contentHtml} />
                       </View>
-                    </View>
-                  </View>
-
-
-
-                  {/* Main Content Card */}
-                  <View style={styles.articleContent}>
-                    <HtmlViewer html={contentHtml} />
-                  </View>
+                    </>
+                  )}
 
                   {/* Bottom Action Area */}
                   <View style={styles.bottomActions}>
-                    <View style={styles.actionDivider} />
+                    {taskType !== 'VirtualQuiz' && taskType !== 'WeeklyExam' && <View style={styles.actionDivider} />}
 
                     {taskType === 'LearnTheory' && (
                       <View style={[styles.theoryActionBox, isCompleted && styles.theoryActionBoxCompleted]}>
@@ -140,32 +150,127 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                     )}
 
                     {(taskType === 'VirtualQuiz' || taskType === 'WeeklyExam') && (
-                      <View style={styles.practiceActionBox}>
-                        {taskType === 'VirtualQuiz' && skill !== 'Writing' && (
-                          <View style={styles.selectionGroup}>
-                            <Text style={styles.selectionLabel}>Chọn số lượng câu hỏi luyện tập:</Text>
-                            <View style={styles.chipRow}>
-                              {[3, 5, 10].map((num) => (
-                                <Pressable
-                                  key={num}
-                                  onPress={() => setQuantity(num)}
-                                  style={({ pressed }) => [
-                                    styles.qChip,
-                                    quantity === num && styles.qChipActive,
-                                    pressed && styles.qChipPressed
-                                  ]}
-                                >
-                                  <Text style={[styles.qChipText, quantity === num && styles.qChipTextActive]}>{num}</Text>
-                                </Pressable>
-                              ))}
+                      <View style={styles.preExamContainer}>
+                        {/* Left Side: Exam Info */}
+                        <View style={styles.examInfoMain}>
+                          <View style={styles.examHeader}>
+                            <View style={styles.examIconBox}>
+                              <BookOutlined style={{ fontSize: 24, color: '#FFF' }} />
+                            </View>
+                            <View style={styles.examHeaderText}>
+                              <View style={styles.examTitleRow}>
+                                <Text style={styles.examTitle}>{title}</Text>
+                                {isCompleted && (
+                                  <View style={styles.examCheckBadge}>
+                                    <Text style={styles.examCheckIcon}>✓</Text>
+                                  </View>
+                                )}
+                              </View>
+                              <Text style={styles.examSubtitle}>Lộ trình cá nhân • {typeLabel}</Text>
                             </View>
                           </View>
-                        )}
 
-                        <View style={styles.mainActionRow}>
+                          <Text style={styles.examDescription}>
+                            {taskType === 'WeeklyExam' 
+                              ? `Bài kiểm tra tổng hợp tất cả các dạng bài đã học trong tuần. Hãy chuẩn bị tâm lý thoải mái và không gian yên tĩnh trước khi bắt đầu.`
+                              : `Luyện tập các câu hỏi theo chủ đề "${title}". Đây là cơ hội để bạn củng cố kiến thức và làm quen với các dạng bài thi thực tế.`
+                            }
+                          </Text>
+
+                          {taskType === 'WeeklyExam' && (
+                            <View style={styles.wishBox}>
+                              <Text style={styles.wishText}>✨ Chúc bạn làm bài thật tốt và đạt kết quả cao nhất nhé!</Text>
+                            </View>
+                          )}
+
+                          <View style={styles.statsGrid}>
+                            {/* Time Limit Card */}
+                            {taskDetail?.duration && (
+                              <View style={styles.statCard}>
+                                <View style={styles.statIconCircle}>
+                                  <ClockCircleOutlined style={{ color: '#888', fontSize: 16 }} />
+                                </View>
+                                <View>
+                                  <Text style={styles.statValue}>{taskDetail.duration} Phút</Text>
+                                  <Text style={styles.statLabel}>THỜI GIAN LÀM</Text>
+                                </View>
+                              </View>
+                            )}
+
+                            {/* Passing Score Card */}
+                            <View style={styles.statCard}>
+                              <View style={styles.statIconCircle}>
+                                <TrophyOutlined style={{ color: '#888', fontSize: 16 }} />
+                              </View>
+                              <View>
+                                <Text style={styles.statValue}>50%</Text>
+                                <Text style={styles.statLabel}>ĐIỂM ĐẠT TỐI THIỂU</Text>
+                              </View>
+                            </View>
+
+                            {/* Attempts Card */}
+                            <View style={styles.statCard}>
+                              <View style={styles.statIconCircle}>
+                                <UserOutlined style={{ color: '#888', fontSize: 16 }} />
+                              </View>
+                              <View>
+                                <Text style={styles.statValue}>
+                                  {taskType === 'WeeklyExam' ? (isCompleted ? '0 Lần' : '1 Lần') : 'Vô hạn'}
+                                </Text>
+                                <Text style={styles.statLabel}>LẦN THỬ CÒN LẠI</Text>
+                              </View>
+                            </View>
+                          </View>
+
+                          {taskType === 'VirtualQuiz' && skill !== 'Writing' && (
+                            <View style={styles.quantityInputGroup}>
+                              <Text style={styles.quantityInputLabel}>Nhập số lượng câu hỏi luyện tập (tối thiểu 5):</Text>
+                              <TextInput
+                                style={styles.quantityInput}
+                                value={String(quantity)}
+                                onChangeText={(val) => {
+                                  const num = parseInt(val)
+                                  if (!isNaN(num)) {
+                                    setQuantity(num)
+                                  } else if (val === '') {
+                                    setQuantity('')
+                                  }
+                                }}
+                                keyboardType="numeric"
+                                placeholder="VD: 10"
+                              />
+                              {quantity !== '' && quantity < 5 && (
+                                <Text style={styles.errorHint}>Vui lòng chọn ít nhất 5 câu hỏi.</Text>
+                              )}
+                            </View>
+                          )}
+                        </View>
+
+                        {/* Right Side: Start Action */}
+                        <View style={styles.examStartSide}>
+                          <View style={styles.playIconContainer}>
+                             <PlayCircleFilled style={{ fontSize: 80, color: '#FFD666', opacity: 0.8 }} />
+                          </View>
+                          
+                          <View style={styles.startCallToAction}>
+                            <Text style={styles.startPromptTitle}>Sẵn sàng chưa?</Text>
+                            <Text style={styles.startPromptSubtitle}>
+                              Bạn không thể tạm dừng khi đã bắt đầu làm bài.
+                            </Text>
+                          </View>
+
                           <RoadmapTestButton
-                            title={taskType === 'WeeklyExam' ? 'Bắt đầu kiểm tra ngay' : 'Bắt đầu luyện tập ngay'}
+                            title="Bắt đầu ngay"
                             onPress={() => {
+                              if (taskType === 'VirtualQuiz' && quantity < 5) {
+                                alert('Vui lòng chọn ít nhất 5 câu hỏi để bắt đầu.');
+                                return;
+                              }
+                              if (taskType === 'WeeklyExam' && isCompleted) {
+                                alert('Bạn đã hoàn thành bài kiểm tra này.');
+                                return;
+                              }
+
                               if (taskType === 'WeeklyExam') {
                                 router.push(taskDetail?.examId
                                   ? `/roadmap/test?examId=${taskDetail.examId}&level=${level}&taskId=${tipId}`
@@ -173,17 +278,23 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                               } else {
                                 const qTypeId = taskDetail?.questionTypeId
                                 if (qTypeId) {
-                                  const finalQuantity = skill === 'Writing' ? 1 : quantity
+                                  const finalQuantity = skill === 'Writing' ? 1 : (quantity || 5)
                                   router.push(`/roadmap/practice-test/${qTypeId}?taskId=${tipId}&level=${level}&quantity=${finalQuantity}`)
                                 } else {
                                   alert('Không tìm thấy thông tin bộ câu hỏi.');
                                 }
                               }
                             }}
-                            style={styles.startBtn}
-                            textStyle={styles.startBtnText}
-                            hoverStyle={styles.startBtnHover}
+                            disabled={taskType === 'WeeklyExam' && isCompleted}
+                            style={[styles.premiumStartBtn, taskType === 'WeeklyExam' && isCompleted && styles.btnDisabled]}
+                            textStyle={styles.premiumStartBtnText}
+                            hoverStyle={styles.premiumStartBtnHover}
+                            icon={<RightOutlined style={{ marginLeft: 8 }} />}
                           />
+
+                          <Pressable onPress={() => router.back()} style={styles.secondaryBackLink}>
+                            <Text style={styles.secondaryBackLinkText}>Quay lại lộ trình</Text>
+                          </Pressable>
                         </View>
                       </View>
                     )}
@@ -602,6 +713,217 @@ const styles = StyleSheet.create({
   },
   retryButton: {
     minWidth: 160
+  },
+  preExamContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    overflow: 'hidden',
+    marginTop: 20,
+    ...(Platform.OS === 'web' && { 
+      boxShadow: '0 10px 40px rgba(0,0,0,0.05)',
+      minHeight: 500
+    }),
+  },
+  examInfoMain: {
+    flex: 3,
+    padding: 40,
+    gap: 24,
+  },
+  examHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+  },
+  examIconBox: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: '#F4A950',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(Platform.OS === 'web' && { boxShadow: '0 8px 16px rgba(244, 169, 80, 0.3)' }),
+  },
+  examHeaderText: {
+    flex: 1,
+    gap: 4,
+  },
+  examTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  examTitle: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  examCheckBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#4CAF50',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  examCheckIcon: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  examSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  examDescription: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#4A4A4A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  wishBox: {
+    padding: 16,
+    backgroundColor: '#F0F7FF',
+    borderRadius: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#007AFF',
+  },
+  wishText: {
+    fontSize: 15,
+    color: '#0056B3',
+    fontWeight: '600',
+    fontStyle: 'italic',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    marginTop: 8,
+  },
+  statCard: {
+    width: '48%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 16,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  statIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  statLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  quantityInputGroup: {
+    marginTop: 8,
+    gap: 10,
+  },
+  quantityInputLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1A1A1A',
+  },
+  quantityInput: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 16,
+    fontWeight: '600',
+    width: 120,
+    color: '#1A1A1A',
+  },
+  errorHint: {
+    fontSize: 12,
+    color: '#EF4444',
+    fontWeight: '500',
+  },
+  examStartSide: {
+    flex: 1.5,
+    backgroundColor: '#FAFBFF',
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 32,
+    borderLeftWidth: 1,
+    borderLeftColor: '#F0F0F0',
+  },
+  playIconContainer: {
+    marginBottom: 8,
+  },
+  startCallToAction: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  startPromptTitle: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  startPromptSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+    maxWidth: 200,
+  },
+  premiumStartBtn: {
+    width: '100%',
+    paddingVertical: 16,
+    backgroundColor: '#F4A950',
+    borderRadius: 16,
+    ...(Platform.OS === 'web' && { 
+      boxShadow: '0 10px 20px rgba(244, 169, 80, 0.25)',
+      transition: 'all 0.3s ease',
+    }),
+  },
+  premiumStartBtnText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  premiumStartBtnHover: {
+    backgroundColor: '#FFB861',
+    transform: [{ translateY: -2 }],
+    ...(Platform.OS === 'web' && { boxShadow: '0 14px 28px rgba(244, 169, 80, 0.35)' }),
+  },
+  btnDisabled: {
+    backgroundColor: '#CCC',
+    opacity: 0.6,
+  },
+  secondaryBackLink: {
+    marginTop: 8,
+  },
+  secondaryBackLinkText: {
+    fontSize: 14,
+    color: '#999',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 })
 

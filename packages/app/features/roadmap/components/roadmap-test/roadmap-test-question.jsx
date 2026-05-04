@@ -171,16 +171,17 @@ export function RoadmapTestQuestion({
         <Text style={styles.questionTitle}>Câu hỏi {questionNumber}:</Text>
         <Pressable
           onPress={onToggleMark}
-          style={({ pressed }) => [
+          style={({ pressed, hovered }) => [
             styles.markButton,
             isMarked && styles.markButtonActive,
+            hovered && styles.markButtonHovered,
             pressed && styles.markButtonPressed,
           ]}
         >
           {isMarked ? (
-            <FlagFilled style={styles.markIconActive} />
+            <FlagFilled style={StyleSheet.flatten(styles.markIconActive)} />
           ) : (
-            <FlagOutlined style={styles.markIcon} />
+            <FlagOutlined style={StyleSheet.flatten(styles.markIcon)} />
           )}
           <Text style={[styles.markText, isMarked && styles.markTextActive]}>
             Đánh dấu
@@ -329,11 +330,13 @@ export function RoadmapTestQuestion({
               <Pressable
                 key={answerNumber}
                 onPress={() => onAnswerSelect?.(answerNumber)}
-                style={[
+                style={({ pressed, hovered }) => [
                   styles.answerOption,
                   option?.imageUrl && styles.answerOptionWithImage,
                   isSelected && styles.answerOptionSelected,
                   showCorrectAnswer && answerNumber === correctAnswer && styles.answerOptionCorrect,
+                  hovered && styles.answerOptionHovered,
+                  pressed && styles.answerOptionPressed,
                 ]}
               >
                 <Text style={styles.answerOptionLabel}>{answerNumber}.</Text>
@@ -397,6 +400,10 @@ const styles = StyleSheet.create({
   },
   markButtonActive: {
     backgroundColor: '#FEE2E2',
+  },
+  markButtonHovered: {
+    backgroundColor: '#E5E7EB',
+    transform: [{ scale: 1.02 }],
   },
   markButtonPressed: {
     opacity: 0.7,
@@ -472,6 +479,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#ECFDF5',
     borderColor: '#10B981',
     borderWidth: 2,
+  },
+  answerOptionHovered: {
+    borderColor: '#D1D5DB',
+    backgroundColor: '#F3F4F6',
+    transform: [{ translateX: 4 }],
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+    }),
+  },
+  answerOptionPressed: {
+    transform: [{ scale: 0.99 }],
   },
   answerOptionLabel: {
     fontSize: 13,

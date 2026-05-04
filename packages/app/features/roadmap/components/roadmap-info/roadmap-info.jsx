@@ -7,18 +7,13 @@ import { useRef } from 'react'
 
 const LEVELS = TOPIK_LEVELS.map((l) => ({ value: l.level, label: l.label }))
 
-const SELF_DECLARED_LEVELS = [
-  { value: 0, label: 'Chưa bao giờ' },
-  { value: 1, label: 'Học cơ bản' },
-  { value: 3, label: 'Đã học 1-2 năm' },
-  { value: 5, label: 'Đã thành thạo' },
-]
+
 
 
 
 export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
   const [selectedLevel, setSelectedLevel] = useState(initialLevel)
-  const [selectedSelfDeclaredLevel, setSelectedSelfDeclaredLevel] = useState(SELF_DECLARED_LEVELS[0].value)
+
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false)
   const [isRequirementsModalOpen, setIsRequirementsModalOpen] = useState(false)
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false)
@@ -91,7 +86,7 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
 
   const confirmSelection = () => {
     if (onStart) {
-      onStart(selectedLevel, selectedSelfDeclaredLevel)
+      onStart(selectedLevel)
     }
     closeSelectionModal()
   }
@@ -315,48 +310,7 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
               )}
             </View>
 
-            <View style={[styles.selectionSection, { zIndex: openListKey === 'selfDeclared' ? 20 : 5 }]}>
-              <Text style={styles.selectionLabel}>Trình độ hiện tại của bạn</Text>
-              <Pressable 
-                style={({ hovered, pressed }) => [
-                  styles.selectionTrigger,
-                  hovered && styles.selectionTriggerHovered,
-                  pressed && styles.selectionTriggerPressed
-                ]} 
-                onPress={() => toggleList('selfDeclared')}
-              >
-                <View>
-                  <Text style={styles.selectionTriggerValue}>
-                    {SELF_DECLARED_LEVELS.find((level) => level.value === selectedSelfDeclaredLevel)?.label}
-                  </Text>
-                </View>
-                <Text style={styles.selectionTriggerArrow}>▼</Text>
-              </Pressable>
 
-              {openListKey === 'selfDeclared' && (
-                <View style={styles.inlineDropdown}>
-                  {SELF_DECLARED_LEVELS.map((level) => (
-                    <Pressable
-                      key={level.value}
-                      onPress={() => {
-                        setSelectedSelfDeclaredLevel(level.value)
-                        setOpenListKey(null)
-                      }}
-                      style={({ hovered, pressed }) => [
-                        styles.dropdownItem,
-                        hovered && styles.dropdownItemHover,
-                        pressed && styles.dropdownItemPressed,
-                        selectedSelfDeclaredLevel === level.value && styles.dropdownItemSelected,
-                      ]}
-                    >
-                      <Text style={[styles.dropdownItemText, selectedSelfDeclaredLevel === level.value && styles.dropdownItemTextSelected]}>
-                        {level.label}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-            </View>
 
             <View style={styles.modalActions}>
               <Pressable 

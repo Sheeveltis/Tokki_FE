@@ -123,7 +123,16 @@ export const useChatSignalR = (token, initialRoomId = null) => {
       setIsConnected(false);
     });
 
-    // B. Lắng nghe lỗi từ server (nếu có)
+    // B. Lắng nghe thông báo đóng phòng
+    connection.on(CHAT_HUB.EVENTS.ROOM_CLOSED, (closedRoomId) => {
+      console.log('SignalR: Room closed -', closedRoomId);
+      if (roomIdRef.current === closedRoomId) {
+        setRoomId(null);
+        // Có thể gọi thêm callback nếu cần
+      }
+    });
+
+    // C. Lắng nghe lỗi từ server (nếu có)
     connection.on(CHAT_HUB.EVENTS.ERROR, (errMessage) => {
       console.error("SignalR Error from server:", errMessage);
       setError(errMessage);
@@ -193,6 +202,7 @@ export const useChatSignalR = (token, initialRoomId = null) => {
     joinRoom,
     leaveRoom,
     isConnected,
-    error
+    error,
+    roomId
   };
 };

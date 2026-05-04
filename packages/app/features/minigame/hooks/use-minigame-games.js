@@ -39,7 +39,7 @@ export function useMinigameGames(options = {}) {
       gameType: 3,
       isVip: false,
       imgUrl: WordleBannerImage,
-      description: 'Đoán từ vựng bí ẩn trong 6 lượt thử mỗi ngày.',
+      description: 'Đoán từ vựng bí ẩn với lượt thử giới hạn mỗi ngày.',
     },
   ])
   const [loading, setLoading] = useState(false)

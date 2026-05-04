@@ -155,7 +155,38 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
   }, [form, filters.configType])
 
   const handleFormFinish = async (values) => {
-    // ... (rest of standard config finish)
+    try {
+      setSaving(true)
+      const payload = { ...values }
+      
+      // Chuyển đổi dữ liệu về string trước khi gửi lên API (vì DB lưu Value là string)
+      if (payload.dataType === 'int') {
+        payload.value = String(payload.value)
+      } else if (payload.dataType === 'boolean') {
+        payload.value = String(payload.value)
+      }
+
+      if (isEdit) {
+        // API Update yêu cầu truyền command chứa thông tin
+        // Giả sử UpdateSystemConfigCommand cần ID hoặc Key
+        // Ở đây BE Controller dùng [FromBody] UpdateSystemConfigCommand
+        await updateSystemConfig({
+          ...payload,
+          systemConfigID: editingConfig.systemConfigID
+        })
+        showAdminSuccess('Cập nhật cấu hình thành công')
+      } else {
+        await createSystemConfig(payload)
+        showAdminSuccess('Tạo mới cấu hình thành công')
+      }
+      
+      setModalOpen(false)
+      loadData(filters)
+    } catch (err) {
+      showAdminError(err?.message || 'Thao tác thất bại')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleTopikFormFinish = async (values) => {

@@ -12,7 +12,7 @@ import { RoadmapTestButton } from '../roadmap-test/roadmap-test-button'
 import { apiClient } from '../../../../provider/api/client'
 import { ENDPOINTS } from '../../../../provider/api/endpoints'
 import { Alert } from 'react-native'
-import { HistoryOutlined } from '@ant-design/icons'
+import { HistoryOutlined, CalendarOutlined } from '@ant-design/icons'
 
 const getTopikPhaseByLevel = (level) => {
   if (level === 1 || level === 2) return 'TOPIK I'
@@ -52,7 +52,10 @@ export function RoadmapLearningLayout({
 
   // ĐỔI MỚI: Quản lý tuần hiện tại
   const [activeWeekIndex, setActiveWeekIndex] = useState(null)
+  const [activeDay, setActiveDay] = useState(null)
   const [hoveredWeekIndex, setHoveredWeekIndex] = useState(null)
+  const [hoveredDay, setHoveredDay] = useState(null)
+  const [isHoveredTitle, setIsHoveredTitle] = useState(false)
   const [isHoveredHistory, setIsHoveredHistory] = useState(false)
   const [isHoveredCancel, setIsHoveredCancel] = useState(false)
   const [isHoveredInfo, setIsHoveredInfo] = useState(false)
@@ -305,14 +308,29 @@ export function RoadmapLearningLayout({
   }, [weeks])
 
   // Thống kê bài học của tuần đang chọn
-  const weekStats = useMemo(() => {
-    if (!activeWeek?.tasks) return { completed: 0, total: 0 }
-    const tasks = activeWeek.tasks
-    return {
+  const { weekStats, dayKeys } = useMemo(() => {
+    const tasks = Array.isArray(activeWeek?.tasks) ? activeWeek.tasks : []
+    const stats = {
       completed: tasks.filter(t => t.isCompleted).length,
       total: tasks.length
     }
+
+    const lessonsByDay = tasks.reduce((acc, task) => {
+      const dayIndex = task.dayIndex || 1
+      if (!acc[dayIndex]) acc[dayIndex] = []
+      acc[dayIndex].push(task)
+      return acc
+    }, {})
+
+    const keys = Object.keys(lessonsByDay).map(Number).sort((a, b) => a - b)
+
+    return { weekStats: stats, dayKeys: keys }
   }, [activeWeek])
+
+  const handleDayChange = (day) => {
+    setActiveDay(day)
+    router.replace(`/roadmap/learning?week=${activeWeekIndex}&day=${day}`, undefined, { shallow: true })
+  }
 
   const isActiveWeekNextToCreate = useMemo(() => {
     if (!activeWeek) return false
@@ -431,37 +449,102 @@ export function RoadmapLearningLayout({
               <View style={styles.contentCardInner}>
                 {/* Tóm tắt tuần đang chọn */}
                 <View style={styles.weekFocusArea}>
-                  <View style={styles.weekFocusHeader}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.weekFocusLabel}>NHIỆM VỤ TUẦN {activeWeekIndex}</Text>
-                      <Text style={styles.weekFocusGoal} numberOfLines={2}>
-                        {isActiveWeekNextToCreate
+                  <View style={styles.weekTitleRow}>
+                    <Pressable
+                      onHoverIn={() => Platform.OS === 'web' && setIsHoveredTitle(true)}
+                      onHoverOut={() => Platform.OS === 'web' && setIsHoveredTitle(false)}
+                      style={{ position: 'relative' }}
+                    >
+                      <Text style={styles.weekTitleText} numberOfLines={1}>
+                        NHIỆM VỤ TUẦN {activeWeekIndex}: {isActiveWeekNextToCreate
                           ? 'Vui lòng bấm tạo tuần tiếp theo'
                           : (activeWeek?.focusGoal || 'Duy trì phong độ học tập ổn định')}
                       </Text>
+                      {isHoveredTitle && (
+                        <View style={styles.titleTooltip}>
+                          <Text style={styles.titleTooltipText}>
+                            NHIỆM VỤ TUẦN {activeWeekIndex}: {isActiveWeekNextToCreate
+                              ? 'Vui lòng bấm tạo tuần tiếp theo'
+                              : (activeWeek?.focusGoal || 'Duy trì phong độ học tập ổn định')}
+                          </Text>
+                          <View style={styles.tooltipArrowDown} />
+                        </View>
+                      )}
+                    </Pressable>
+                  </View>
+                  <View style={styles.headerTopRow}>
+                    <View style={styles.statsContainer}>
+                      <View style={styles.statBox}>
+                        <Text style={styles.statVal}>
+                          {activeWeek?.progressPercent != null
+                            ? activeWeek.progressPercent
+                            : Math.floor((weekStats.completed / (weekStats.total || 1)) * 100)}%
+                        </Text>
+                        <Text style={styles.statLabel}>HOÀN THÀNH TUẦN</Text>
+                      </View>
+                      <View style={styles.statDivider} />
+                      <View style={styles.statBox}>
+                        <Text style={styles.statVal}>{weekStats.completed}/{weekStats.total}</Text>
+                        <Text style={styles.statLabel}>TIẾN ĐỘ TUẦN</Text>
+                      </View>
                     </View>
+
+                    {dayKeys.length > 0 && (
+                      <View style={styles.daySelectorContainer}>
+                        <View style={styles.dayPillsRow}>
+                          {dayKeys.map((day) => {
+                            const active = activeDay === day
+                            return (
+                              <Pressable
+                                key={day}
+                                onPress={() => handleDayChange(day)}
+                                onHoverIn={() => Platform.OS === 'web' && setHoveredDay(day)}
+                                onHoverOut={() => Platform.OS === 'web' && setHoveredDay(null)}
+                                style={({ pressed }) => [
+                                  styles.dayPillSmall,
+                                  active && styles.dayPillSmallActive,
+                                  day === 7 && !active && styles.day7Pill,
+                                  day === 7 && active && styles.day7PillActive,
+                                  !active && hoveredDay === day && { backgroundColor: '#E8E8E8' },
+                                  pressed && { transform: [{ scale: 0.95 }] }
+                                ]}
+                              >
+                                <Text style={[
+                                  styles.dayPillSmallText,
+                                  active && styles.dayPillSmallTextActive,
+                                  day === 7 && active && { color: '#FFFFFF' },
+                                  day === 7 && !active && { color: '#D48806' }
+                                ]}>
+                                  {day === 7 ? 'Ngày 7' : `Ngày ${day}`}
+                                </Text>
+                              </Pressable>
+                            )
+                          })}
+                        </View>
+                      </View>
+                    )}
                   </View>
 
-                  <View style={styles.weekStatsRow}>
-                    <View style={styles.statBox}>
-                      <Text style={styles.statVal}>
-                        {activeWeek?.progressPercent != null
-                          ? activeWeek.progressPercent
-                          : Math.floor((weekStats.completed / (weekStats.total || 1)) * 100)}%
-                      </Text>
-                      <Text style={styles.statLabel}>Hoàn thành tuần</Text>
-                    </View>
-                    <View style={styles.statDivider} />
-                    <View style={styles.statBox}>
-                      <Text style={styles.statVal}>{weekStats.completed}/{weekStats.total}</Text>
-                      <Text style={styles.statLabel}>Tiến độ tuần</Text>
-                    </View>
+                  <View style={styles.weekProgressBarArea}>
+                    <View
+                      style={[
+                        styles.weekProgressBarFill,
+                        {
+                          width: `${activeWeek?.progressPercent != null
+                            ? activeWeek.progressPercent
+                            : Math.floor((weekStats.completed / (weekStats.total || 1)) * 100)}%`
+                        }
+                      ]}
+                    />
                   </View>
                 </View>
 
-                <View style={styles.cardDivider} />
 
-                <View style={styles.listWrapper}>
+                <ScrollView
+                  style={styles.listWrapper}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: 20 }}
+                >
                   {activeWeek?.tasks?.length > 0 ? (
                     <RoadmapLearningDayList
                       hasWriting={hasWriting}
@@ -469,6 +552,9 @@ export function RoadmapLearningLayout({
                       weeks={weeks}
                       activeWeek={activeWeek}
                       initialDayIndex={initialDayIndex}
+                      activeDay={activeDay}
+                      onDayChange={setActiveDay}
+                      hideSelector={true}
                       onGenerateNextWeek={handleGenerateNextWeek}
                       isNextWeekEmpty={!weeks.find(w => w.weekIndex === activeWeekIndex + 1) || (weeks.find(w => w.weekIndex === activeWeekIndex + 1)?.tasks?.length || 0) === 0}
                     />
@@ -486,7 +572,7 @@ export function RoadmapLearningLayout({
                       />
                     </View>
                   )}
-                </View>
+                </ScrollView>
               </View>
             </View>
 
@@ -654,26 +740,26 @@ export function RoadmapLearningLayout({
             <View style={styles.vipIconContainer}>
               <Text style={styles.vipIcon}>👑</Text>
             </View>
-            
+
             <Text style={styles.vipModalTitle}>Yêu cầu nâng cấp VIP</Text>
             <Text style={styles.vipModalText}>
-              Tính năng thiết kế lộ trình học tập nâng cao bằng AI chỉ dành cho thành viên VIP. 
+              Tính năng thiết kế lộ trình học tập nâng cao bằng AI chỉ dành cho thành viên VIP.
               Hãy nâng cấp ngay để tiếp tục hành trình chinh phục mục tiêu của bạn!
             </Text>
 
             <View style={styles.vipModalActions}>
-              <Pressable 
-                onPress={() => setIsVipModalVisible(false)} 
+              <Pressable
+                onPress={() => setIsVipModalVisible(false)}
                 style={({ pressed }) => [styles.vipCancelBtn, pressed && styles.vipBtnPressed]}
               >
                 <Text style={styles.vipCancelBtnText}>Để sau</Text>
               </Pressable>
-              
-              <Pressable 
+
+              <Pressable
                 onPress={() => {
                   setIsVipModalVisible(false)
                   router.push('/payment-package')
-                }} 
+                }}
                 style={({ pressed }) => [styles.vipUpgradeBtn, pressed && styles.vipBtnPressed]}
               >
                 <Text style={styles.vipUpgradeBtnText}>Nâng cấp ngay</Text>
@@ -898,9 +984,13 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     borderColor: '#F0F0F0',
-    overflow: 'hidden',
-    zIndex: 0,
-    ...(Platform.OS === 'web' && { boxShadow: '0 10px 40px rgba(0,0,0,0.03)', position: 'relative' }),
+    zIndex: 1,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 10px 40px rgba(0,0,0,0.03)',
+      position: 'relative',
+      overflow: 'visible'
+    }),
+    ...(Platform.OS !== 'web' && { overflow: 'hidden' }),
   },
   contentCardScroll: {
     flex: 1,
@@ -909,6 +999,8 @@ const styles = StyleSheet.create({
     padding: 32,
     gap: 0,
     flex: 1,
+    zIndex: 10,
+    ...(Platform.OS === 'web' && { overflow: 'visible' }),
   },
   headerTop: {
     flexDirection: 'row',
@@ -1155,6 +1247,8 @@ const styles = StyleSheet.create({
   weekFocusArea: {
     gap: 16,
     marginBottom: 8,
+    zIndex: 100,
+    ...(Platform.OS === 'web' && { overflow: 'visible' }),
   },
   weekFocusHeader: {
     flexDirection: 'row',
@@ -1189,15 +1283,15 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   statVal: {
-    fontSize: 26,
+    fontSize: 20,
     fontWeight: '800',
     color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif',
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 15,
     color: '#888',
-    fontWeight: '500',
+    fontWeight: '600',
     fontFamily: 'Epilogue, sans-serif',
   },
   statDivider: {
@@ -1208,11 +1302,110 @@ const styles = StyleSheet.create({
   cardDivider: {
     height: 1,
     backgroundColor: '#F5F5F5',
-    marginVertical: 20,
+    marginTop: 30,
+    marginBottom: 20,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    width: '100%',
+  },
+  weekTitleRow: {
+    paddingTop: 8,
+    marginBottom: 10,
+    paddingHorizontal: 4,
+  },
+  weekTitleText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    fontFamily: 'Epilogue, sans-serif',
+    letterSpacing: -0.4,
+    lineHeight: 32,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 40,
+  },
+  daySelectorContainer: {
+    alignItems: 'flex-end',
+    gap: 10,
+  },
+  calendarLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+    marginRight: 4,
+  },
+  calendarLinkText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#888',
+    letterSpacing: 0.5,
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  dayPillsRow: {
+    flexDirection: 'row',
+    backgroundColor: '#F2F2F2',
+    padding: 4,
+    borderRadius: 14,
+    gap: 2,
+  },
+  dayPillSmall: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 11,
+    ...(Platform.OS === 'web' && { cursor: 'pointer', transition: 'all 0.2s' }),
+  },
+  dayPillSmallActive: {
+    backgroundColor: '#FFFFFF',
+    ...(Platform.OS === 'web' && { boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }),
+  },
+  dayPillSmallText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#666',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  dayPillSmallTextActive: {
+    color: '#1A1A1A',
+    fontWeight: '800',
+  },
+  day7Pill: {
+    borderColor: '#FF4D4F',
+    backgroundColor: '#FFF1F0',
+    borderWidth: 1.5,
+  },
+  day7Pill: {
+    borderColor: '#FFC53D',
+    backgroundColor: '#FFFBE6',
+    borderWidth: 1.5,
+  },
+  day7PillActive: {
+    backgroundColor: '#FFC53D',
+    borderColor: '#FFC53D',
+    ...(Platform.OS === 'web' && { boxShadow: '0 4px 12px rgba(255,197,61,0.3)' }),
+  },
+  weekProgressBarArea: {
+    width: '100%',
+    height: 8,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 100,
+    marginTop: 20,
+    overflow: 'hidden',
+  },
+  weekProgressBarFill: {
+    height: '100%',
+    backgroundColor: '#F4A950',
+    borderRadius: 100,
   },
   listWrapper: {
     flex: 1,
-    minHeight: 300,
+    marginTop: 20,
+    ...(Platform.OS === 'web' && { overflowY: 'auto' }),
   },
   centerContent: {
     alignItems: 'center',
@@ -1331,7 +1524,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   weekInfoTitle: {
-    fontSize: 18,
+    fontSize: 30,
     fontWeight: '800',
     color: '#1A1A1A',
     fontFamily: 'Epilogue, sans-serif'
@@ -1515,5 +1708,36 @@ const styles = StyleSheet.create({
   vipBtnPressed: {
     transform: [{ scale: 0.97 }],
     opacity: 0.9,
+  },
+  titleTooltip: {
+    position: 'absolute',
+    bottom: 30,
+    left: 0,
+    backgroundColor: '#1A1A1A',
+    padding: 12,
+    borderRadius: 8,
+    width: 450,
+    zIndex: 9999,
+    ...(Platform.OS === 'web' && { boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }),
+  },
+  titleTooltipText: {
+    color: '#FFF',
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: '500',
+    fontFamily: 'Epilogue, sans-serif',
+  },
+  tooltipArrowDown: {
+    position: 'absolute',
+    bottom: -6,
+    left: 20,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 6,
+    borderLeftColor: 'transparent',
+    borderRightWidth: 6,
+    borderRightColor: 'transparent',
+    borderTopWidth: 6,
+    borderTopColor: '#1A1A1A',
   },
 })
