@@ -409,14 +409,6 @@ export function PublicLayout() {
       {/* Widgets only for Web */}
       {Platform.OS === 'web' && !shouldHideFooter && (
         <>
-          <AppShow
-            style={{
-              position: 'fixed',
-              right: 20,
-              bottom: 20,
-              zIndex: 1000,
-            }}
-          />
           <BubbleChat />
         </>
       )}
