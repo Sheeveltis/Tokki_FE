@@ -4,7 +4,7 @@ import { QRIsepay } from './QR-isepay'
 import { InformationBanking } from './Information-banking'
 import { BackButton } from '../../../../../components/backBtn'
 
-export function PaymentLayout({ paymentId, paymentUrl }) {
+export function PaymentLayout({ paymentId, paymentUrl, onBackPress }) {
   const { width } = useWindowDimensions()
   const isMobile = width < 800
 
@@ -29,7 +29,7 @@ export function PaymentLayout({ paymentId, paymentUrl }) {
 
       {/* Back Button ở dưới */}
       <View style={styles.buttonContainer}>
-        <BackButton />
+        <BackButton onPress={onBackPress} />
       </View>
     </View>
   )

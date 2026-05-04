@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Text, TouchableOpacity, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
+import { ArrowRightOutlined } from '@ant-design/icons'
 // Import useNavigation cho native
 let useNavigation = null
 if (Platform.OS !== 'web') {
@@ -71,18 +72,13 @@ export const ViewDetailPackageButton = ({ onPress, style, textStyle }) => {
       >
         Xem chi tiết các gói
       </Text>
-      <Text
-        style={[
-          {
-            fontSize: 18,
-            fontWeight: '500',
-            color: '#FF8C00',
-          },
-          textStyle,
-        ]}
-      >
-        →
-      </Text>
+      <ArrowRightOutlined 
+        style={{ 
+          fontSize: 16, 
+          color: '#FF8C00',
+          fontWeight: 'bold'
+        }} 
+      />
     </TouchableOpacity>
   )
 }

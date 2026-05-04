@@ -12,8 +12,10 @@ import {
   TrophyOutlined, 
   UserOutlined,
   BookOutlined,
+  CheckOutlined,
   PlayCircleFilled,
-  RightOutlined
+  RightOutlined,
+  ArrowRightOutlined
 } from '@ant-design/icons'
 
 const TASK_TYPE_LABEL = {
@@ -22,7 +24,7 @@ const TASK_TYPE_LABEL = {
   WeeklyExam: 'Thi thử tuần',
 }
 
-export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error = null, onRetry, onComplete }) {
+export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error = null, onRetry, onComplete, passingScore, studyLimit }) {
   const router = useRouter()
   const [quantity, setQuantity] = useState(10)
 
@@ -88,17 +90,12 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                               <Text style={styles.mainTitle}>{title}</Text>
                               {isCompleted && (
                                 <View style={styles.completeCheckBadge}>
-                                  <Text style={styles.checkIcon}>✓</Text>
+                                  <CheckOutlined style={{ color: '#FFF', fontSize: 12, fontWeight: 'bold' }} />
                                 </View>
                               )}
                             </View>
 
-                            <View style={styles.metaInfo}>
-                              <View style={styles.metaItem}>
-                                <View style={[styles.dot, { backgroundColor: '#FF6B6B' }]} />
-                                <Text style={styles.metaText}>{typeLabel}</Text>
-                              </View>
-                            </View>
+
                           </View>
 
                           <View style={styles.headerActions}>
@@ -138,7 +135,7 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                           {isCompleted ? (
                             <>
                               <View style={styles.miniCheckBadge}>
-                                <Text style={styles.miniCheckIcon}>✓</Text>
+                                <CheckOutlined style={{ color: '#FFF', fontSize: 10, fontWeight: 'bold' }} />
                               </View>
                               <Text style={styles.theoryButtonTextCompleted}>Bạn đã học bài này</Text>
                             </>
@@ -162,7 +159,7 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                                 <Text style={styles.examTitle}>{title}</Text>
                                 {isCompleted && (
                                   <View style={styles.examCheckBadge}>
-                                    <Text style={styles.examCheckIcon}>✓</Text>
+                                    <CheckOutlined style={{ color: '#FFF', fontSize: 10, fontWeight: 'bold' }} />
                                   </View>
                                 )}
                               </View>
@@ -202,10 +199,10 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                               <View style={styles.statIconCircle}>
                                 <TrophyOutlined style={{ color: '#888', fontSize: 16 }} />
                               </View>
-                              <View>
-                                <Text style={styles.statValue}>50%</Text>
-                                <Text style={styles.statLabel}>ĐIỂM ĐẠT TỐI THIỂU</Text>
-                              </View>
+                               <View>
+                                 <Text style={styles.statValue}>{passingScore}%</Text>
+                                 <Text style={styles.statLabel}>ĐIỂM ĐẠT TỐI THIỂU</Text>
+                               </View>
                             </View>
 
                             {/* Attempts Card */}
@@ -215,7 +212,7 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                               </View>
                               <View>
                                 <Text style={styles.statValue}>
-                                  {taskType === 'WeeklyExam' ? (isCompleted ? '0 Lần' : '1 Lần') : 'Vô hạn'}
+                                  {taskType === 'WeeklyExam' ? (isCompleted ? '0 Lần' : '1 Lần') : studyLimit}
                                 </Text>
                                 <Text style={styles.statLabel}>LẦN THỬ CÒN LẠI</Text>
                               </View>
@@ -304,13 +301,17 @@ export function RoadmapTipsLayout({ tipId, taskDetail, isLoading = false, error 
                   {!!nextId && (
                     <Pressable
                       onPress={() => router.push(`/roadmap/learning/tips/${nextId}?level=${level}&roadmap=${roadmapRaw}`)}
-                      style={({ pressed }) => [styles.nextShortcut, pressed && styles.nextShortcutPressed]}
+                      style={({ pressed }) => [
+                        styles.nextShortcut, 
+                        taskType === 'LearnTheory' && styles.nextShortcutTheory,
+                        pressed && (taskType === 'LearnTheory' ? styles.nextShortcutPressedTheory : styles.nextShortcutPressed)
+                      ]}
                     >
                       <View>
                         <Text style={styles.nextLabel}>BÀI TIẾP THEO</Text>
                         <Text style={styles.nextTitle} numberOfLines={1}>Chuyển sang nội dung kế tiếp</Text>
                       </View>
-                      <Text style={styles.nextArrow}>→</Text>
+                      <ArrowRightOutlined style={{ fontSize: 18, color: '#1A1A1A' }} />
                     </Pressable>
                   )}
                 </ScrollView>
@@ -458,11 +459,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...(Platform.OS === 'web' && { boxShadow: '0 4px 12px rgba(76, 175, 80, 0.3)' }),
   },
-  checkIcon: {
-    color: '#FFF',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
   metaInfo: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -523,13 +519,14 @@ const styles = StyleSheet.create({
   theoryActionBox: {
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 20,
+    paddingVertical: 24,
     paddingHorizontal: 24,
-    backgroundColor: '#FFF8F0',
+    backgroundColor: '#FFFFFF',
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#FFE8CC',
+    borderColor: '#F0F0F0',
     marginTop: 12,
+    ...(Platform.OS === 'web' && { boxShadow: '0 10px 30px rgba(0,0,0,0.04)' }),
   },
   theoryActionBoxCompleted: {
     backgroundColor: '#F6FCF6',
@@ -544,19 +541,19 @@ const styles = StyleSheet.create({
   },
   theoryButton: {
     minWidth: 260,
-    backgroundColor: '#F4A950',
+    backgroundColor: '#00875A',
     paddingVertical: 14,
     borderRadius: 16,
     borderWidth: 0,
     ...(Platform.OS === 'web' && {
-      boxShadow: '0 8px 20px rgba(244, 169, 80, 0.2)',
+      boxShadow: '0 8px 20px rgba(0, 135, 90, 0.2)',
       transition: 'all 0.2s ease',
     }),
   },
   theoryButtonHover: {
-    backgroundColor: '#FFB861',
+    backgroundColor: '#00A36C',
     transform: [{ translateY: -2 }],
-    ...(Platform.OS === 'web' && { boxShadow: '0 12px 24px rgba(244, 169, 80, 0.3)' }),
+    ...(Platform.OS === 'web' && { boxShadow: '0 12px 24px rgba(0, 135, 90, 0.3)' }),
   },
   theoryButtonText: {
     color: '#FFF',
@@ -587,11 +584,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
-  },
-  miniCheckIcon: {
-    color: '#FFF',
-    fontSize: 12,
-    fontWeight: 'bold',
   },
   practiceActionBox: {
     gap: 16,
@@ -672,6 +664,17 @@ const styles = StyleSheet.create({
   },
   nextShortcutPressed: {
     backgroundColor: '#E2B03A',
+    transform: [{ scale: 0.98 }],
+  },
+  nextShortcutTheory: {
+    backgroundColor: '#E6E6E6',
+    borderColor: '#DDDDDD',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 10px 20px rgba(0, 0, 0, 0.03)',
+    }),
+  },
+  nextShortcutPressedTheory: {
+    backgroundColor: '#D9D9D9',
     transform: [{ scale: 0.98 }],
   },
   nextLabel: {
@@ -766,11 +769,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  examCheckIcon: {
-    color: '#FFF',
-    fontSize: 12,
-    fontWeight: 'bold',
   },
   examSubtitle: {
     fontSize: 14,

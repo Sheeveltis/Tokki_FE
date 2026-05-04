@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { View, Text, Image, Pressable, useWindowDimensions } from 'react-native'
 import CheckedIcon from '../../../../../assets/checked.png'
 import { useRouter } from 'solito/navigation'
+import { ArrowRightOutlined } from '@ant-design/icons'
 
 const normalizeImageSource = (src) => {
   if (!src) return null
@@ -239,7 +240,7 @@ export const Card = ({
         >
           NÂNG CẤP NGAY
         </Text>
-        <Text style={{ fontSize: isMobile ? 16 : 18, color: '#7B4D00' }}>→</Text>
+        <ArrowRightOutlined style={{ fontSize: isMobile ? 16 : 18, color: '#7B4D00' }} />
       </View>
     </Pressable>
   )

@@ -16,7 +16,7 @@ import { BackButton } from '../../../../../components/backBtn'
  *   paymentUrl?: string;
  * }} props
  */
-export function PaymentLayout({ paymentId, paymentUrl }) {
+export function PaymentLayout({ paymentId, paymentUrl, onBackPress }) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       {/* QR ISePay ở trên */}
@@ -31,7 +31,7 @@ export function PaymentLayout({ paymentId, paymentUrl }) {
 
       {/* Back Button ở dưới cùng */}
       <View style={styles.buttonContainer}>
-        <BackButton />
+        <BackButton onPress={onBackPress} />
       </View>
     </ScrollView>
   )
