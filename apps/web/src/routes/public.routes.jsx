@@ -407,7 +407,7 @@ export function PublicLayout() {
       {!shouldHideFooter && <Footer />}
 
       {/* Widgets only for Web */}
-      {Platform.OS === 'web' && !shouldHideFooter && (
+      {Platform.OS === 'web' && (!shouldHideFooter || isStudyRoute || isRoadmapRoute || isFlashcardRoute) && (
         <>
           <BubbleChat />
         </>
