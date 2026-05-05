@@ -21,6 +21,7 @@ const STATUS_MAP = {
   0: { color: '#8c8c8c', text: 'Nháp' },
   1: { color: '#52c41a', text: 'Đã xuất bản' },
   2: { color: '#f5222d', text: 'Đã xóa' },
+  3: { color: '#1890ff', text: 'Đã công khai' },
 }
 
 // Map type enum values to display text
@@ -224,11 +225,11 @@ export function ExamManagement({ initialData = null }) {
                     okText: 'Xóa',
                     okType: 'danger',
                     cancelText: 'Hủy',
-                    okButtonProps: { 
-                      style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+                    okButtonProps: {
+                      style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 }
                     },
-                    cancelButtonProps: { 
-                      style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+                    cancelButtonProps: {
+                      style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 }
                     },
                     onOk: async () => {
                       try {
@@ -334,6 +335,7 @@ export function ExamManagement({ initialData = null }) {
       >
         <Option value={0}>Nháp</Option>
         <Option value={1}>Đã xuất bản</Option>
+        <Option value={3}>Đã công khai</Option>
         <Option value={2}>Đã xóa</Option>
       </Select>
 
