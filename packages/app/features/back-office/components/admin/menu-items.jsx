@@ -93,6 +93,14 @@ export const adminMenuItems = [
   // { key: 'settings', icon: <SettingOutlined />, label: 'Cài đặt' },
   { key: 'system-config', icon: <DatabaseOutlined />, label: 'Cấu hình hệ thống' },
   {
+    key: 'minigame-management',
+    icon: <ThunderboltOutlined />,
+    label: 'Quản lý Minigame',
+    children: [
+      { key: 'wordle-management', icon: <ThunderboltOutlined />, label: 'Wordle' },
+    ],
+  },
+  {
     type: 'divider',
   },
   {
