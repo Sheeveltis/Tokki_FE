@@ -425,16 +425,8 @@ export function PublicLayout() {
       {!shouldHideFooter && <Footer />}
 
       {/* Widgets only for Web */}
-      {Platform.OS === 'web' && !shouldHideFooter && (
+      {Platform.OS === 'web' && (!shouldHideFooter || isStudyRoute || isRoadmapRoute || isFlashcardRoute) && (
         <>
-          <AppShow
-            style={{
-              position: 'fixed',
-              right: 20,
-              bottom: 20,
-              zIndex: 1000,
-            }}
-          />
           <BubbleChat />
         </>
       )}

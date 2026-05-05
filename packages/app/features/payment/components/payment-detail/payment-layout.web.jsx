@@ -3,10 +3,36 @@ import { View, StyleSheet, useWindowDimensions } from 'react-native'
 import { QRIsepay } from './QR-isepay'
 import { InformationBanking } from './Information-banking'
 import { BackButton } from '../../../../../components/backBtn'
+import { cancelPayment } from '../../api/payment-detail-api'
+import { useRouter } from 'solito/navigation'
+import { Modal, message } from 'antd'
+import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin'
+import { TouchableOpacity, Text } from 'react-native'
 
 export function PaymentLayout({ paymentId, paymentUrl, onBackPress }) {
   const { width } = useWindowDimensions()
   const isMobile = width < 800
+  const router = useRouter()
+
+  const handleCancelPayment = () => {
+    Modal.confirm({
+      title: 'Xác nhận hủy thanh toán',
+      content: 'Bạn có chắc chắn muốn hủy giao dịch này không? Hành động này không thể hoàn tác.',
+      okText: 'Hủy thanh toán',
+      okType: 'danger',
+      cancelText: 'Quay lại',
+      onOk: async () => {
+        try {
+          await cancelPayment(paymentId)
+          router.push('/')
+          // Hiển thị thông báo thành công sau khi về trang chủ
+          showAdminSuccess('Hủy thanh toán thành công')
+        } catch (error) {
+          showAdminError(error?.message || 'Không thể hủy thanh toán')
+        }
+      },
+    })
+  }
 
   return (
     <View style={styles.container}>
@@ -27,9 +53,15 @@ export function PaymentLayout({ paymentId, paymentUrl, onBackPress }) {
         </View>
       </View>
 
-      {/* Back Button ở dưới */}
+      {/* Buttons ở dưới */}
       <View style={styles.buttonContainer}>
-        <BackButton onPress={onBackPress} />
+        <TouchableOpacity onPress={handleCancelPayment} style={styles.cancelBtn}>
+          <Text style={styles.cancelText}>Hủy thanh toán</Text>
+        </TouchableOpacity>
+
+        <View style={{ width: 40 }} />
+
+        <BackButton />
       </View>
     </View>
   )
@@ -73,7 +105,20 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 40,
-    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+  },
+  cancelText: {
+    fontSize: 16,
+    color: '#999',
+    fontWeight: '500',
+    textDecorationLine: 'underline',
   },
 })
 
