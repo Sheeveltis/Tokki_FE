@@ -33,6 +33,11 @@ export function useWordlePlayControl({
   const [showMenuPopup, setShowMenuPopup] = useState(false)
   const [wordResult, setWordResult] = useState(null)
   const [tourRun, setTourRun] = useState(false)
+  const [currentPage, setCurrentPage] = useState(0)
+
+  const totalPages = useMemo(() => Math.ceil(MAX_GUESSES / 6), [MAX_GUESSES])
+  const canGoPrev = currentPage > 0
+  const canGoNext = currentPage < totalPages - 1
 
   const tapSoundRef = useRef(null)
   const failSoundRef = useRef(null)
@@ -261,6 +266,13 @@ export function useWordlePlayControl({
 
         if (!cancelled) {
           setRows(hydratedRows)
+          
+          // Tự động chuyển đến trang chứa hàng đang chơi
+          const nextRowIndex = hydratedRows.length
+          const targetPage = Math.floor(nextRowIndex / 6)
+          if (targetPage < totalPages) {
+            setCurrentPage(targetPage)
+          }
 
           if (levelData.isWon) {
             setGameState('won')
@@ -415,6 +427,12 @@ export function useWordlePlayControl({
           }
         }
 
+        // Tự động chuyển trang nếu đã điền hết trang hiện tại
+        const nextRowIndex = rows.length + 1
+        if (nextRowIndex % 6 === 0 && nextRowIndex < MAX_GUESSES && gameState === 'playing') {
+          setCurrentPage(Math.floor(nextRowIndex / 6))
+        }
+
         resetRow()
       } catch (error) {
         console.error('[useWordlePlayControl] submit guess error:', error)
@@ -479,11 +497,20 @@ export function useWordlePlayControl({
     resetRow()
     setTargetWord('')
     setWordResult(null)
+    setCurrentPage(0)
     if (isWeb) {
       focusHiddenImeInput()
       clearHiddenImeInput()
     }
   }, [resetRow, isWeb, focusHiddenImeInput, clearHiddenImeInput])
+
+  const goToNextPage = useCallback(() => {
+    if (canGoNext) setCurrentPage((p) => p + 1)
+  }, [canGoNext])
+
+  const goToPrevPage = useCallback(() => {
+    if (canGoPrev) setCurrentPage((p) => p - 1)
+  }, [canGoPrev])
 
   const handleNavigateToBoard = useCallback(() => {
     console.log('[useWordlePlayControl] handleNavigateToBoard called. dailyWordleId:', dailyWordleId)
@@ -561,6 +588,15 @@ export function useWordlePlayControl({
     setTargetWord,
     setWordResult,
     setShowMenuPopup,
+    setCurrentPage,
+
+    // pagination
+    currentPage,
+    totalPages,
+    canGoPrev,
+    canGoNext,
+    goToNextPage,
+    goToPrevPage,
 
     // ime/game handlers
     handleVirtualKey: (key) => {

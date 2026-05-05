@@ -42,6 +42,12 @@ export function WordlePlayWeb(props) {
     handleNavigateToBoard,
     handlePlayWordAudio,
     handleGoHome,
+    currentPage,
+    totalPages,
+    canGoPrev,
+    canGoNext,
+    goToNextPage,
+    goToPrevPage,
   } = useWordlePlayControl(props)
   const [isFlowFinished, setIsFlowFinished] = useState(false)
 
@@ -159,18 +165,41 @@ export function WordlePlayWeb(props) {
             )}
 
             {gameState !== 'won' && (
-              <View nativeID="tour-grid" style={styles.gridContainer}>
-                <WordleGrid
-                  rows={gameState === 'won' ? [] : rows}
-                  maxGuesses={gameState === 'won' ? 0 : MAX_GUESSES}
-                  wordLength={WORD_LENGTH}
-                  level={LEVEL}
-                  targetWord={targetWord}
-                  gridCells={gridCells}
-                  gameState={gameState}
-                  activeColIndex={activeColIndex}
-                  onCellClick={handleCellClick}
-                />
+              <View style={styles.gridWithNavigation}>
+                {totalPages > 1 && (
+                  <Pressable
+                    onPress={goToPrevPage}
+                    style={[styles.navArrow, styles.navArrowLeft, !canGoPrev && styles.navArrowDisabled]}
+                    disabled={!canGoPrev}
+                  >
+                    <View style={[styles.arrowTriangle, styles.arrowTriangleLeft]} />
+                  </Pressable>
+                )}
+
+                <View nativeID="tour-grid" style={styles.gridContainer}>
+                  <WordleGrid
+                    rows={gameState === 'won' ? [] : rows}
+                    maxGuesses={gameState === 'won' ? 0 : MAX_GUESSES}
+                    currentPage={currentPage}
+                    wordLength={WORD_LENGTH}
+                    level={LEVEL}
+                    targetWord={targetWord}
+                    gridCells={gridCells}
+                    gameState={gameState}
+                    activeColIndex={activeColIndex}
+                    onCellClick={handleCellClick}
+                  />
+                </View>
+
+                {totalPages > 1 && (
+                  <Pressable
+                    onPress={goToNextPage}
+                    style={[styles.navArrow, styles.navArrowRight, !canGoNext && styles.navArrowDisabled]}
+                    disabled={!canGoNext}
+                  >
+                    <View style={[styles.arrowTriangle, styles.arrowTriangleRight]} />
+                  </Pressable>
+                )}
               </View>
             )}
           </View>
@@ -414,5 +443,60 @@ const styles = StyleSheet.create({
     height: 1,
     left: -9999,
     top: 0,
+  },
+  gridWithNavigation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 20,
+    width: '100%',
+  },
+  navArrow: {
+    width: 50,
+    height: 50,
+    backgroundColor: '#a46200ff',
+    borderWidth: 4,
+    borderColor: '#884400ff',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 4px 0 #62390094, 0 6px 8px rgba(0,0,0,0.25)',
+      transition: 'all 0.1s ease',
+      cursor: 'pointer',
+    }),
+  },
+  navArrowDisabled: {
+    opacity: 0.4,
+    backgroundColor: '#CFD8DC',
+    borderColor: '#90A4AE',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 2px 0 #78909C',
+      cursor: 'default',
+    }),
+  },
+  navArrowLeft: {
+    // optional specific styles
+  },
+  navArrowRight: {
+    // optional specific styles
+  },
+  arrowTriangle: {
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderLeftWidth: 10,
+    borderRightWidth: 10,
+    borderBottomWidth: 16,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: '#FFFFFF',
+  },
+  arrowTriangleLeft: {
+    transform: [{ rotate: '-90deg' }],
+  },
+  arrowTriangleRight: {
+    transform: [{ rotate: '90deg' }],
   },
 })

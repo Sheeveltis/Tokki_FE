@@ -28,6 +28,7 @@ const LazyPassageManagement = lazy(() => import('../../examination-management/sc
 const LazyTitleManagement = lazy(() => import('../../title-management/screens/title-management-screen'))
 const LazySystemConfigManagement = lazy(() => import('../../system/screens/system-config-management-screen'))
 const LazyPronunciationManagement = lazy(() => import('../../pronunciation/screens/admin/pronunciation-management-screen'))
+const LazyWordleManagement = lazy(() => import('../../minigame-management/screens/WordleVocabularyManagementScreen'))
 
 const LoadingFallback = () => <Spin />
 
@@ -224,6 +225,11 @@ export function AdminScreen() {
       'pronunciation-management': (
         <Suspense fallback={<LoadingFallback />}>
           <LazyPronunciationManagement basePath="/admin" />
+        </Suspense>
+      ),
+      'wordle-management': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyWordleManagement />
         </Suspense>
       ),
     }),

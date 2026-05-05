@@ -201,6 +201,10 @@ export const ENDPOINTS = {
     WORDLE_RESULT: (dailyWordleId) => `/minigame/wordle/result/${dailyWordleId}`,
     WORDLE_PUBLISH_SENTENCE: '/minigame/wordle/publish-sentence',
     WORDLE_TOP_SENTENCES: (dailyWordleId) => `/minigame/wordle/${dailyWordleId}/top-sentences`,
+    WORDLE_ADMIN_PAGINATION: '/minigame/wordle/admin/pagination',
+    WORDLE_REROLL: '/minigame/wordle/reroll',
+    WORDLE_SUITABLE_VOCABS: '/minigame/wordle/suitable-vocabs',
+    WORDLE_ASSIGN_VOCAB: '/minigame/wordle/assign-vocab',
   },
   GAMES: {
     USER_GET_ALL: '/Games/user/get-all', // GET: Lấy danh sách games cho user (query: pageNumber, pageSize)

@@ -68,6 +68,14 @@ export const adminMenuItems = [
     ],
   },
   {
+    key: 'minigame-management',
+    icon: <ThunderboltOutlined />,
+    label: 'Quản lý Minigame',
+    children: [
+      { key: 'wordle-management', icon: <ThunderboltOutlined />, label: 'Wordle' },
+    ],
+  },
+  {
     key: 'customer-service',
     icon: <CustomerServiceOutlined />,
     label: 'Chăm sóc khách hàng',
@@ -92,6 +100,7 @@ export const adminMenuItems = [
   // { key: 'system-log', icon: <DatabaseOutlined />, label: 'System Log' },
   // { key: 'settings', icon: <SettingOutlined />, label: 'Cài đặt' },
   { key: 'system-config', icon: <DatabaseOutlined />, label: 'Cấu hình hệ thống' },
+
   {
     type: 'divider',
   },
