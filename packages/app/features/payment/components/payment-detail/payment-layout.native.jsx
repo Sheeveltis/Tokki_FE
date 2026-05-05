@@ -29,8 +29,8 @@ export function PaymentLayout({ paymentId, paymentUrl }) {
       'Bạn có chắc chắn muốn hủy giao dịch này không?',
       [
         { text: 'Quay lại', style: 'cancel' },
-        { 
-          text: 'Hủy thanh toán', 
+        {
+          text: 'Hủy thanh toán',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -63,7 +63,7 @@ export function PaymentLayout({ paymentId, paymentUrl }) {
         <TouchableOpacity onPress={handleCancelPayment} style={styles.cancelBtn}>
           <Text style={styles.cancelText}>Hủy thanh toán</Text>
         </TouchableOpacity>
-        
+
         <View style={{ height: 20 }} />
 
         <BackButton />

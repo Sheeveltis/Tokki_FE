@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
   },
   modalBody: {
     width: '100%',
-    maxWidth: 1000,
+    maxWidth: 1300,
     height: '85vh',
     backgroundColor: '#FFFFFF',
     borderRadius: 32,

@@ -61,11 +61,11 @@ const SectionScoreCard = ({
             <Text style={styles.pendingScoreText}>Chưa có điểm</Text>
             {isGradingWriting && (
               <View style={styles.progressBarContainer}>
-                <View 
+                <View
                   style={[
-                    styles.progressBarFill, 
+                    styles.progressBarFill,
                     { width: `${gradingProgress.progressPercentage}%` }
-                  ]} 
+                  ]}
                 />
               </View>
             )}
@@ -124,11 +124,11 @@ const WaitingModal = ({
 
           <View style={styles.waitingProgressSection}>
             <View style={styles.mainProgressContainerLarge}>
-              <View 
+              <View
                 style={[
-                  styles.mainProgressFill, 
+                  styles.mainProgressFill,
                   { width: `${gradingProgress?.progressPercentage || 0}%` }
-                ]} 
+                ]}
               />
             </View>
             <View style={styles.progressDetailRow}>
@@ -395,10 +395,9 @@ const styles = StyleSheet.create({
     minHeight: '100vh',
   },
   scrollContent: {
-    paddingVertical: 40,
+    paddingTop: 12,
     paddingHorizontal: 24,
     alignItems: 'center',
-    paddingBottom: 60,
   },
   backButtonContainer: {
     alignSelf: 'flex-start',
@@ -821,7 +820,7 @@ const styles = StyleSheet.create({
   },
   modalBody: {
     width: '100%',
-    maxWidth: 1000,
+    maxWidth: 1300,
     height: '85vh',
     backgroundColor: '#FFFFFF',
     borderRadius: 32,

@@ -89,6 +89,9 @@ export const QRIsepay = ({ paymentId, paymentUrl, style }) => {
             hasNavigatedRef.current = true
             if (intervalRef.current) clearInterval(intervalRef.current)
             if (timerIntervalRef.current) clearInterval(timerIntervalRef.current)
+            if (Platform.OS === 'web') {
+              sessionStorage.setItem('payment_success', 'true')
+            }
             router.push('/payment-success')
           }
         }

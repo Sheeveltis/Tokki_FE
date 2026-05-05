@@ -42,7 +42,7 @@ const normalizeImageSource = (src) => {
  * - Divider in the middle
  * - Back button at the bottom
  */
-export function PaymentScreen() {
+export function PaymentScreen({ onBackPress }) {
   // Trên web: dùng useSearchParams từ solito
   // Trên native: dùng route.params từ React Navigation
   const searchParams = useSearchParams()
@@ -61,7 +61,11 @@ export function PaymentScreen() {
       {/* Nội dung chính */}
       <View style={styles.container}>
         <View style={styles.wrapper}>
-          <PaymentLayout paymentId={paymentId} paymentUrl={paymentUrl} />
+          <PaymentLayout 
+            paymentId={paymentId} 
+            paymentUrl={paymentUrl} 
+            onBackPress={onBackPress}
+          />
         </View>
       </View>
 

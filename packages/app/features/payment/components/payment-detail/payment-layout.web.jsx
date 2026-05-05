@@ -9,7 +9,7 @@ import { Modal, message } from 'antd'
 import { showAdminSuccess, showAdminError } from '../../../../../components/HelperAdmin'
 import { TouchableOpacity, Text } from 'react-native'
 
-export function PaymentLayout({ paymentId, paymentUrl }) {
+export function PaymentLayout({ paymentId, paymentUrl, onBackPress }) {
   const { width } = useWindowDimensions()
   const isMobile = width < 800
   const router = useRouter()
@@ -58,7 +58,7 @@ export function PaymentLayout({ paymentId, paymentUrl }) {
         <TouchableOpacity onPress={handleCancelPayment} style={styles.cancelBtn}>
           <Text style={styles.cancelText}>Hủy thanh toán</Text>
         </TouchableOpacity>
-        
+
         <View style={{ width: 40 }} />
 
         <BackButton />
