@@ -533,7 +533,7 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
           style={styles.modalOverlay}
           onPress={() => setIsRequirementsModalOpen(false)}
         >
-          <View style={[styles.selectionModalContainer, { maxWidth: 900, padding: 24, minHeight: 650 }]}>
+          <View style={[styles.selectionModalContainer, { maxWidth: 1100, padding: 24, minHeight: 450 }]}>
             <View style={[styles.modalHeader, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }]}>
               <View>
                 <Text style={styles.selectionTitle}>Chuẩn đầu ra TOPIK</Text>
@@ -564,7 +564,7 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
                   <Text style={[styles.headerCell, { width: 140 }]}>Nghe</Text>
                   <Text style={[styles.headerCell, { width: 140 }]}>Đọc</Text>
                   <Text style={[styles.headerCell, { width: 100 }]}>Viết</Text>
-                  <Text style={[styles.headerCell, { flex: 1, minWidth: 240 }]}>Chiến thuật trọng tâm</Text>
+                  <Text style={[styles.headerCell, { flex: 1, minWidth: 400 }]}>Chiến thuật trọng tâm</Text>
                 </View>
                 {displayedTableData.map((row, index) => (
                   <View key={index} style={[styles.tableRow, index === displayedTableData.length - 1 && { borderBottomWidth: 0 }]}>
@@ -573,7 +573,7 @@ export function RoadmapInfo({ onStart, initialLevel = 1, startButton }) {
                     <Text style={[styles.cell, { width: 140 }]}>{row.listening}</Text>
                     <Text style={[styles.cell, { width: 140 }]}>{row.reading}</Text>
                     <Text style={[styles.cell, { width: 100 }]}>{row.writing}</Text>
-                    <Text style={[styles.cell, { minWidth: 240, flex: 1, fontSize: 13, lineHeight: 18 }]}>{row.strategy}</Text>
+                    <Text style={[styles.cell, { minWidth: 400, flex: 1, fontSize: 13, lineHeight: 18 }]}>{row.strategy}</Text>
                   </View>
                 ))}
               </View>
@@ -1227,9 +1227,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAFAFA',
   },
   table: {
-    minWidth: 800,
+    minWidth: 1000,
     width: '100%',
-    minHeight: 380,
+    minHeight: 300,
   },
   tableHeader: {
     flexDirection: 'row',
