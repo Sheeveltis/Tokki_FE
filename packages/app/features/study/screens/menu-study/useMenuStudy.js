@@ -86,7 +86,7 @@ export function useMenuStudy(router, levelId) {
     checkTitles()
   }, [])
 
-  const handleModulePress = (moduleId, itemLabel, overrideLevel) => {
+  const handleModulePress = (moduleId, itemLabel, overrideLevel, itemRoute) => {
     const finalLevel = overrideLevel || levelId
     // Tạm thời bỏ chặn đăng nhập cho speaking để vào màn pronunciation theo yêu cầu
     const shouldRequireLogin = isLoginRequiredModule(moduleId) && moduleId !== 'speaking'
@@ -96,7 +96,7 @@ export function useMenuStudy(router, levelId) {
     }
 
     // Lấy route tương ứng và điều hướng nếu có
-    const route = getMenuStudyRoute({ moduleId, itemLabel, levelId: finalLevel })
+    const route = getMenuStudyRoute({ moduleId, itemLabel, levelId: finalLevel, itemRoute })
     if (route) {
       router.push(route)
     }

@@ -11,7 +11,7 @@
  * @param {number} [params.levelId]
  * @returns {string|null}
  */
-export function getMenuStudyRoute({ moduleId, itemLabel, levelId }) {
+export function getMenuStudyRoute({ moduleId, itemLabel, levelId, itemRoute }) {
   // Mapping theo label chính xác từ UI mới
   if (itemLabel === 'Học từ vựng theo chủ đề') {
     return levelId ? `/flashcard?level=${levelId}` : '/flashcard'
@@ -36,6 +36,9 @@ export function getMenuStudyRoute({ moduleId, itemLabel, levelId }) {
   }
   if (itemLabel === 'Giải đề TOPIK') {
     return levelId ? `/topik/exams?level=${levelId}` : '/topik/exams'
+  }
+  if (itemLabel === 'Làm đề thi Topik' || itemLabel?.includes('đề thi Topik') || itemRoute === 'topik-trial') {
+    return levelId ? `/topik/trial-exams?level=${levelId}` : '/topik/trial-exams'
   }
 
   // Fallback cho logic cũ nếu cần

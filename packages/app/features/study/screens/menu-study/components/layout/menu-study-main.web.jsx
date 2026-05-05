@@ -349,7 +349,7 @@ export function MenuStudyMain({
                           onClick={() => {
                             if (item.route === 'alphabet') onAlphabetPress?.()
                             else if (item.route === 'roadmap') onTopikRoadmapPress?.(levelId)
-                            else onModulePress?.(module.id, item.label)
+                             else onModulePress?.(module.id, item.label, null, item.route)
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
