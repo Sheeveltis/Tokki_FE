@@ -23,6 +23,8 @@ import {
   SettingOutlined,
   DotChartOutlined
 } from '@ant-design/icons'
+import { apiClient } from '../../../provider/api/client'
+import { ENDPOINTS } from '../../../provider/api/endpoints'
 
 const { Text } = Typography
 
@@ -35,6 +37,37 @@ const TopikConfigModal = ({
   form 
 }) => {
   const [activeTab, setActiveTab] = useState('1')
+  const [exams, setExams] = useState([])
+  const [loadingExams, setLoadingExams] = useState(false)
+
+  // Fetch exams for selection helper
+  const fetchExams = async (type) => {
+    try {
+      setLoadingExams(true)
+      const res = await apiClient.get(ENDPOINTS.EXAMS.ADMIN_LIST, {
+        params: {
+          PageNumber: 1,
+          PageSize: 100,
+          Status: 1,
+          Type: type,
+          CreatorFilter: 2
+        }
+      })
+      setExams(res.data?.data?.items || [])
+    } catch (err) {
+      console.error('Failed to fetch exams for topik helper', err)
+    } finally {
+      setLoadingExams(false)
+    }
+  }
+
+  const currentExamGroup = Form.useWatch('examGroup', form)
+
+  useEffect(() => {
+    if (open) {
+      fetchExams(currentExamGroup || 1)
+    }
+  }, [open, currentExamGroup])
 
   useEffect(() => {
     if (open && config) {
@@ -69,9 +102,45 @@ const TopikConfigModal = ({
               </Form.Item>
             </Col>
             <Col span={12}>
+              <Form.Item label="Thứ tự hiển thị" name="sortOrder">
+                <InputNumber min={0} style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
               <Form.Item label="Config Key" name="configKey" rules={[{ required: true, message: 'Vui lòng nhập config key' }]}>
                 <Input placeholder="Ví dụ: ENTRANCE_EXAM_TOPIK_1" />
               </Form.Item>
+              
+              <div style={{ 
+                marginTop: -12, 
+                marginBottom: 16,
+                background: '#f0f5ff', 
+                padding: '12px', 
+                borderRadius: '8px', 
+                border: '1px solid #adc6ff' 
+              }}>
+                <Space direction="vertical" style={{ width: '100%' }} size={4}>
+                  <Text strong style={{ color: '#1d39c4', fontSize: 12 }}>
+                    <BookOutlined /> Hỗ trợ chọn mã đề nhanh
+                  </Text>
+                  <Select
+                    showSearch
+                    loading={loadingExams}
+                    placeholder="Tìm kiếm và chọn đề thi..."
+                    size="small"
+                    style={{ width: '100%' }}
+                    optionFilterProp="children"
+                    onChange={(val) => form.setFieldsValue({ configKey: val })}
+                    filterOption={(input, option) =>
+                      (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
+                    options={exams.map(ex => ({
+                      value: ex.examId,
+                      label: `[${ex.examId}] ${ex.title}`
+                    }))}
+                  />
+                </Space>
+              </div>
             </Col>
             <Col span={6}>
               <Form.Item label="Cấp độ (Aim)" name="targetAimLevel">
@@ -96,12 +165,7 @@ const TopikConfigModal = ({
                 <InputNumber min={0} style={{ width: '100%' }} />
               </Form.Item>
             </Col>
-            <Col span={12}>
-              <Form.Item label="Thứ tự hiển thị" name="sortOrder">
-                <InputNumber min={0} style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
+            <Col span={12} style={{ display: 'none' }}>
               <Form.Item label="Kích hoạt" name="isActive" valuePropName="checked">
                 <Switch />
               </Form.Item>
