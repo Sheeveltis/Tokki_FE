@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { View, Text, StyleSheet, Pressable, ScrollView, Platform, ActivityIndicator } from 'react-native'
-import { Modal, Button, Tag, Space, Divider, Typography } from 'antd'
+import { Modal, Button, Tag, Space, Divider, Typography, Tabs } from 'antd'
 import { apiClient } from '../../../../provider/api/client'
 import { ENDPOINTS } from '../../../../provider/api/endpoints'
 import { useRouter } from 'solito/navigation'
@@ -26,12 +26,13 @@ export function TopikTrialExamsWeb({ onBackPress }) {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedExam, setSelectedExam] = useState(null)
+  const [selectedType, setSelectedType] = useState('1')
   const [isModalVisible, setIsModalVisible] = useState(false)
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
-      const res = await apiClient.get(ENDPOINTS.EXAMS.TRIAL_EXAMS(1, 20))
+      const res = await apiClient.get(ENDPOINTS.EXAMS.TRIAL_EXAMS(1, 20, selectedType))
       
       let items = []
       if (res.data?.isSuccess && res.data?.data?.items) {
@@ -44,7 +45,7 @@ export function TopikTrialExamsWeb({ onBackPress }) {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [selectedType])
 
   useEffect(() => {
     fetchData()
@@ -88,6 +89,35 @@ export function TopikTrialExamsWeb({ onBackPress }) {
           </View>
         </View>
 
+        <View style={styles.filterContainer}>
+          <Tabs 
+            activeKey={selectedType}
+            onChange={setSelectedType}
+            centered
+            items={[
+              { 
+                key: '1', 
+                label: (
+                  <Space size={8}>
+                    <StarFilled style={{ fontSize: 16 }} />
+                    <span style={{ fontWeight: 700, fontSize: 16 }}>TOPIK I</span>
+                  </Space>
+                ) 
+              },
+              { 
+                key: '2', 
+                label: (
+                  <Space size={8}>
+                    <ThunderboltFilled style={{ fontSize: 16 }} />
+                    <span style={{ fontWeight: 700, fontSize: 16 }}>TOPIK II</span>
+                  </Space>
+                ) 
+              }
+            ]}
+            className="topik-filter-tabs"
+          />
+        </View>
+
         <View style={styles.scrollContainer}>
           <ScrollView
             style={styles.scroll}
@@ -129,7 +159,9 @@ export function TopikTrialExamsWeb({ onBackPress }) {
                       <View style={styles.cardInfo}>
                         <View style={styles.tagRow}>
                           <Tag color="gold" icon={<ThunderboltFilled />}>TOPIK MỚI</Tag>
-                          <Tag color="blue">{exam.examTemplateName || 'Đề chuẩn'}</Tag>
+                          <Tag color={exam.type === 1 ? 'blue' : 'purple'}>
+                            {exam.type === 1 ? 'TOPIK I' : 'TOPIK II'}
+                          </Tag>
                         </View>
                         <Text style={styles.cardTitle} numberOfLines={2}>{exam.title}</Text>
                       </View>
@@ -167,13 +199,15 @@ export function TopikTrialExamsWeb({ onBackPress }) {
                         )}
                       </View>
                       <Pressable 
+                        className="card-action-btn"
                         style={({ hovered }) => [
                           styles.cardActionBtn,
                           hovered && styles.cardActionBtnHover
                         ]}
+                        onPress={() => handleExamClick(exam)}
                       >
                         <Text style={styles.cardActionText}>Làm bài</Text>
-                        <PlayCircleOutlined style={{ color: '#1A1A1A', fontSize: 16 }} />
+                        <PlayCircleOutlined style={{ color: '#1A1A1A', fontSize: 18 }} />
                       </Pressable>
                     </View>
                   </Pressable>
@@ -276,6 +310,7 @@ export function TopikTrialExamsWeb({ onBackPress }) {
               <Button 
                 block 
                 size="large" 
+                className="btn-cancel"
                 style={{ height: '52px', borderRadius: '14px', fontWeight: 600 }}
                 onClick={() => setIsModalVisible(false)}
               >
@@ -285,6 +320,7 @@ export function TopikTrialExamsWeb({ onBackPress }) {
                 type="primary" 
                 block 
                 size="large" 
+                className="btn-start"
                 icon={<RocketOutlined />}
                 style={{ 
                   height: '52px', 
@@ -304,9 +340,47 @@ export function TopikTrialExamsWeb({ onBackPress }) {
       </Modal>
 
       <style dangerouslySetInnerHTML={{ __html: `
+        .topik-filter-tabs .ant-tabs-nav {
+          margin-bottom: 0 !important;
+        }
+        .topik-filter-tabs .ant-tabs-tab {
+          padding: 12px 32px !important;
+          transition: all 0.3s ease !important;
+        }
+        .topik-filter-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+          color: #F1BE4B !important;
+          transform: scale(1.05);
+        }
+        .topik-filter-tabs .ant-tabs-ink-bar {
+          background: #F1BE4B !important;
+          height: 3px !important;
+          border-radius: 3px 3px 0 0;
+        }
         .exam-detail-modal .ant-modal-content {
           border-radius: 24px;
           overflow: hidden;
+        }
+        .btn-cancel:hover {
+          border-color: #F1BE4B !important;
+          color: #F1BE4B !important;
+          background: #FFFBEB !important;
+        }
+        .btn-start {
+          transition: all 0.3s ease !important;
+        }
+        .btn-start:hover {
+          background-color: #EAB308 !important;
+          border-color: #EAB308 !important;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(241, 190, 75, 0.4) !important;
+        }
+        .card-action-btn {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .card-action-btn:hover {
+          transform: scale(1.05) translateY(-2px) !important;
+          background-color: #EAB308 !important;
+          box-shadow: 0 8px 20px rgba(241, 190, 75, 0.3) !important;
         }
       `}} />
     </View>
@@ -352,9 +426,7 @@ const styles = StyleSheet.create({
   fixedHeader: {
     paddingTop: 32,
     paddingHorizontal: 40,
-    paddingBottom: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    paddingBottom: 12,
   },
   header: {
     width: '100%',
@@ -402,7 +474,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContainer: {
-    padding: 40,
+    paddingHorizontal: 40,
+    paddingTop: 24,
+    paddingBottom: 40,
+  },
+  filterContainer: {
+    backgroundColor: '#FFFFFF',
+    paddingTop: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    zIndex: 10,
   },
   grid: {
     flexDirection: 'row',
@@ -495,20 +576,22 @@ const styles = StyleSheet.create({
   cardActionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: 8,
+    borderRadius: 100,
+    backgroundColor: '#F1BE4B',
+    gap: 10,
     ...(Platform.OS === 'web' && {
-      transition: 'all 0.2s ease',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      boxShadow: '0 4px 10px rgba(241, 190, 75, 0.2)',
     }),
   },
   cardActionBtnHover: {
-    backgroundColor: '#F1BE4B',
-    borderColor: '#F1BE4B',
+    backgroundColor: '#EAB308',
+    transform: [{ scale: 1.05 }],
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 6px 15px rgba(241, 190, 75, 0.3)',
+    }),
   },
   cardActionText: {
     fontSize: 13,

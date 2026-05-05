@@ -333,7 +333,7 @@ export const ENDPOINTS = {
     EXPORT_PDF: (id) => `/Exams/${id}/export-pdf`, // GET: Xuất PDF
     IMPORT: '/Exams/import',
     EXPORT: '/Exams/export',
-    TRIAL_EXAMS: (pageNumber = 1, pageSize = 20) => `/Exams/trial-exams?PageNumber=${pageNumber}&PageSize=${pageSize}`,
+    TRIAL_EXAMS: (pageNumber = 1, pageSize = 20, type) => `/Exams/trial-exams?PageNumber=${pageNumber}&PageSize=${pageSize}${type ? `&Type=${type}` : ''}`,
   },
   USER_EXAM: {
     TAKE_EXAM: (examId, isShuffle = true) =>
