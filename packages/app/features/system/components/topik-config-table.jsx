@@ -71,10 +71,7 @@ export const useTopikColumns = ({ onEdit, onView, onToggleActive, pagination }) 
       dataIndex: 'strategy',
       key: 'strategy',
       width: 220,
-      ellipsis: {
-        showTitle: true,
-      },
-      render: (text) => <Text type="secondary" style={{ fontSize: 12 }}>{text}</Text>
+      render: (text) => <Text type="secondary" style={{ fontSize: 12, whiteSpace: 'normal' }}>{text}</Text>
     },
     {
       title: 'Trạng thái',

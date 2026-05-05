@@ -177,6 +177,7 @@ const TopikConfigModal = ({
     {
       key: '2',
       label: <Space><DotChartOutlined />Kỹ năng & Câu hỏi</Space>,
+      forceRender: true,
       children: (
         <div style={{ padding: '16px 0' }}>
           <Row gutter={16}>
@@ -235,6 +236,7 @@ const TopikConfigModal = ({
     {
       key: '3',
       label: <Space><ThunderboltOutlined />Chiến thuật</Space>,
+      forceRender: true,
       children: (
         <div style={{ padding: '16px 0' }}>
           <Form.Item label="Nội dung chiến thuật làm bài" name="strategy">
