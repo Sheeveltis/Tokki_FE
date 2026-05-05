@@ -17,6 +17,8 @@ export function RoadmapTestQuestion({
   correctAnswer = null,
   isMarked = false,
   onToggleMark,
+  isFlat = false,
+  onImagePreview,
 }) {
   const [, setCurrentTime] = useState(0)
   const [, setTotalTime] = useState(0)
@@ -165,7 +167,7 @@ export function RoadmapTestQuestion({
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isFlat && styles.flatContainer]}>
       {/* Question Header with Title and Mark button */}
       <View style={styles.headerRow}>
         <Text style={styles.questionTitle}>Câu hỏi {questionNumber}:</Text>
@@ -204,7 +206,7 @@ export function RoadmapTestQuestion({
         )
       ) : (
         <View style={styles.questionTextContainer}>
-          {renderHtmlText(questionText || 'Câu hỏi mẫu', styles.questionText)}
+          {questionText ? renderHtmlText(questionText, styles.questionText) : null}
         </View>
       )}
 
@@ -212,17 +214,23 @@ export function RoadmapTestQuestion({
       {type === 'writing' ? (
         <View style={styles.writingContainer}>
           {imageUrl && (
-            <View style={styles.writingImageContainer}>
+            <Pressable 
+              onPress={() => onImagePreview?.(imageUrl)}
+              style={({ pressed }) => [
+                styles.writingImageContainer,
+                pressed && styles.imagePressed
+              ]}
+            >
               {Platform.OS === 'web' ? (
                 <img
                   src={imageUrl}
                   alt="Question image"
-                  style={{ maxWidth: '100%', borderRadius: 8, marginBottom: 12 }}
+                  style={{ maxWidth: '100%', borderRadius: 8, marginBottom: 12, cursor: 'zoom-in' }}
                 />
               ) : (
-                <Text style={styles.writingImagePlaceholder}>[Image: {imageUrl}]</Text>
+                <Image source={{ uri: imageUrl }} style={styles.optionImage} />
               )}
-            </View>
+            </Pressable>
           )}
           
           {isTwoPartWriting ? (
@@ -341,17 +349,23 @@ export function RoadmapTestQuestion({
               >
                 <Text style={styles.answerOptionLabel}>{answerNumber}.</Text>
                 {option?.imageUrl ? (
-                  Platform.OS === 'web' ? (
-                    <img
-                      src={option.imageUrl}
-                      alt={`Option ${answerNumber}`}
-                      style={styles.optionImage}
-                    />
-                  ) : (
-                    <Text style={styles.optionImagePlaceholder}>
-                      [Image: {option.imageUrl}]
-                    </Text>
-                  )
+                  <Pressable 
+                    onPress={() => onImagePreview?.(option.imageUrl)}
+                    style={({ pressed }) => [
+                      styles.optionImageWrapper,
+                      pressed && styles.imagePressed
+                    ]}
+                  >
+                    {Platform.OS === 'web' ? (
+                      <img
+                        src={option.imageUrl}
+                        alt={`Option ${answerNumber}`}
+                        style={{ ...styles.optionImage, cursor: 'zoom-in' }}
+                      />
+                    ) : (
+                      <Image source={{ uri: option.imageUrl }} style={styles.optionImage} />
+                    )}
+                  </Pressable>
                 ) : (
                   <Text style={styles.optionText}>{option?.content || ''}</Text>
                 )}
@@ -565,6 +579,21 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 10,
     resizeMode: 'contain',
+  },
+  flatContainer: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    padding: 0,
+    paddingVertical: 10,
+    boxShadow: 'none',
+  },
+  optionImageWrapper: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+  },
+  imagePressed: {
+    opacity: 0.8,
   },
 })
 
