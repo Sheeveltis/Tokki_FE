@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { fetchWordleVocabularies, rerollWordle, fetchSuitableVocabs, assignWordleVocab } from './wordle-list-api'
+import { fetchWordleVocabularies, rerollWordle, fetchSuitableVocabs, assignWordleVocab, fetchWordlePlayers, fetchWordleLeaderboard } from './wordle-list-api'
 import { useManagementFilters } from '../../back-office/hooks/use-management-filters'
 
 /**
@@ -118,5 +118,104 @@ export function useWordleVocabularyManagement() {
     handleFetchSuitableVocabs,
     handleAssignVocab,
     refreshData,
+  }
+}
+
+/**
+ * Hook quản lý danh sách người chơi Wordle
+ */
+export function useWordlePlayers(dailyWordleId) {
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  })
+
+  const loadData = useCallback(
+    async (page = 1, size = 10) => {
+      if (!dailyWordleId) return
+      try {
+        setLoading(true)
+        const res = await fetchWordlePlayers(dailyWordleId, {
+          pageIndex: page,
+          pageSize: size,
+        })
+        const pagingData = res?.data || {}
+        setData(pagingData.items || [])
+        setPagination({
+          current: pagingData.pageNumber || 1,
+          pageSize: pagingData.pageSize || 10,
+          total: pagingData.totalCount || 0,
+        })
+      } catch (error) {
+        console.error('Failed to load Wordle players:', error)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [dailyWordleId]
+  )
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  return {
+    data,
+    loading,
+    pagination,
+    loadData,
+  }
+}
+
+/**
+ * Hook quản lý bảng xếp hạng Wordle
+ */
+export function useWordleLeaderboard(dailyWordleId) {
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  })
+
+  const loadData = useCallback(
+    async (page = 1, size = 10) => {
+      if (!dailyWordleId) return
+      try {
+        setLoading(true)
+        const res = await fetchWordleLeaderboard(dailyWordleId, {
+          pageIndex: page,
+          pageSize: size,
+          includePrivate: true,
+        })
+        const pagingData = res?.data || {}
+        setData(pagingData.items || [])
+        setPagination({
+          current: pagingData.pageNumber || 1,
+          pageSize: pagingData.pageSize || 10,
+          total: pagingData.totalCount || 0,
+        })
+      } catch (error) {
+        console.error('Failed to load Wordle leaderboard:', error)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [dailyWordleId]
+  )
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  return {
+    data,
+    loading,
+    pagination,
+    loadData,
   }
 }

@@ -51,3 +51,40 @@ export const assignWordleVocab = async (dailyWordleId, vocabularyId) => {
   })
   return response.data
 }
+
+/**
+ * Lấy danh sách người chơi một từ vựng Wordle (admin)
+ * @param {string} dailyWordleId
+ * @param {Object} params
+ */
+export const fetchWordlePlayers = async (dailyWordleId, params) => {
+  const response = await apiClient.get(ENDPOINTS.MINIGAME.WORDLE_ADMIN_PLAYERS(dailyWordleId), {
+    params,
+  })
+  return response.data
+}
+
+/**
+ * Lấy bảng xếp hạng cho một từ vựng Wordle (admin)
+ * @param {string} dailyWordleId
+ * @param {Object} params
+ */
+export const fetchWordleLeaderboard = async (dailyWordleId, params) => {
+  const response = await apiClient.get(ENDPOINTS.MINIGAME.WORDLE_ADMIN_LEADERBOARD(dailyWordleId), {
+    params,
+  })
+  return response.data
+}
+
+/**
+ * Bật/tắt công khai câu văn Wordle
+ * @param {string} submissionId
+ * @param {boolean} isPublic
+ */
+export const toggleWordleSubmissionVisibility = async (submissionId, isPublic) => {
+  const response = await apiClient.put(ENDPOINTS.MINIGAME.WORDLE_TOGGLE_VISIBILITY, {
+    submissionId,
+    isPublic,
+  })
+  return response.data
+}
