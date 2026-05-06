@@ -9,6 +9,8 @@ import {
   FlashcardFirstLearnLayoutMobile as MobileLayout,
   FlashcardFirstLearnMainMobile as MobileMain,
   FlashcardFirstLearnListWeb,
+  FlashcardFirstLearnListMobile,
+  NavbarMobile,
 } from './components'
 import { useXp, XpConfigKeys, XpSourceList } from 'app/provider/xp'
 
@@ -125,7 +127,7 @@ export function FlashcardFirstLearnScreen({
 
   const Layout = Platform.OS === 'web' ? WebLayout : MobileLayout
   const Main = Platform.OS === 'web' ? WebMain : MobileMain
-  const List = Platform.OS === 'web' ? FlashcardFirstLearnListWeb : FlashcardFirstLearnListWeb
+  const List = Platform.OS === 'web' ? FlashcardFirstLearnListWeb : FlashcardFirstLearnListMobile
 
   const canContinue = currentStepKey !== 'view' || hasFlippedOnce
 
@@ -157,7 +159,8 @@ export function FlashcardFirstLearnScreen({
   }, [allWordsCompleted, showContinueDialog, safeBack])
 
   return (
-    <Layout
+    <>
+      <Layout
       levelId={route?.params?.levelId || 1}
       onBackPress={mode === 'learn' ? handleExitLearning : handleBackPress}
       lessonsLearned={30}
@@ -203,7 +206,9 @@ export function FlashcardFirstLearnScreen({
         />
       )}
     </Layout>
-  )
+    {Platform.OS !== 'web' && mode === 'list' && <NavbarMobile />}
+  </>
+)
 }
 
 export default FlashcardFirstLearnScreen

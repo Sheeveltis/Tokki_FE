@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, StyleSheet, Platform } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { NavbarMobile } from 'components/navbar-mobile'
 
 /**
@@ -7,19 +8,19 @@ import { NavbarMobile } from 'components/navbar-mobile'
  */
 export function FlashcardListLayout({ children }) {
   return (
-    <View style={styles.root}>
+    <LinearGradient colors={['#FEF7E6', '#FFFFFF']} locations={[0, 0.4]} style={styles.root}>
       <View style={styles.contentWrapper}>
         {children}
       </View>
       {Platform.OS !== 'web' && <NavbarMobile />}
-    </View>
+    </LinearGradient>
   )
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: 'transparent',
   },
   contentWrapper: {
     flex: 1,
