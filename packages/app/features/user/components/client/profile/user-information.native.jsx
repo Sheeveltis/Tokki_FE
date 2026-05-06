@@ -179,7 +179,7 @@ export function UserInformation() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F0DD',
+    backgroundColor: 'transparent',
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F0DD',
+    backgroundColor: 'transparent',
   },
   loadingText: {
     fontSize: 16,
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#F5F0DD',
+    backgroundColor: 'transparent',
   },
   errorText: {
     fontSize: 16,

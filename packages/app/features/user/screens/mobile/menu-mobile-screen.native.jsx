@@ -7,6 +7,7 @@ import { UserInformation } from '../../components/client/profile/user-informatio
 import { PaymentHistoryContent } from '../../components/client/payment-history/payment-history-content'
 import { getPaymentHistory } from '../../api/get-payment-history'
 import { NavbarMobile } from '../../../../../components/navbar-mobile'
+import { LinearGradient } from 'expo-linear-gradient'
 
 /**
  * Menu Mobile Screen (Native)
@@ -68,7 +69,7 @@ export function MenuMobileScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <LinearGradient colors={['#FEF7E6', '#FFFFFF']} locations={[0, 0.4]} style={styles.container}>
       {/* Back button for profile and history tabs */}
       {(activeTab === 'profile' || activeTab === 'history') && (
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -105,14 +106,14 @@ export function MenuMobileScreen() {
 
       {/* NavbarMobile */}
       {Platform.OS !== 'web' && <NavbarMobile />}
-    </View>
+    </LinearGradient>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F0DD',
+    backgroundColor: '#FFFFFF',
     position: 'relative',
   },
   scrollView: {
