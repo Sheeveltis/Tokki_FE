@@ -38,6 +38,10 @@ export const AIWordlePromptEditor = ({ form }) => {
     ).join('\n') || '- (Chưa có ví dụ)'
 
     const prompt = `Bạn là ${values.Persona || '[Persona]'}. 
+
+QUY TẮC NGÔN NGỮ:
+${values.LanguageRules || '[Chưa cấu hình quy tắc ngôn ngữ]'}
+
 Nhiệm vụ: Chấm điểm câu đặt của sinh viên dựa trên từ khóa cho trước.
 
 THÔNG TIN:
@@ -89,7 +93,22 @@ YÊU CẦU ĐẦU RA (JSON THUẦN TÚY):
               >
                 <Input.TextArea 
                   placeholder="Ví dụ: Một giám khảo chấm thi TOPIK nổi tiếng khắt khe và tỉ mỉ..." 
-                  autoSize={{ minRows: 4, maxRows: 8 }} 
+                  autoSize={{ minRows: 3, maxRows: 6 }} 
+                  style={{ borderRadius: '8px' }}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={24}>
+              <Form.Item
+                label={<Text strong>Quy tắc ngôn ngữ (Language Rules)</Text>}
+                name="LanguageRules"
+                rules={[{ required: true, message: 'Vui lòng nhập quy tắc ngôn ngữ' }]}
+                tooltip="Các quy định về ngôn ngữ đầu vào và đầu ra của AI. Ví dụ: Chỉ nhận tiếng Hàn, trả về tiếng Việt."
+              >
+                <Input.TextArea 
+                  placeholder="Ví dụ: Chỉ chấp nhận ngôn ngữ đầu vào từ người dùng là tiếng Hàn. Toàn bộ Feedback trả về phải luôn là tiếng Việt..." 
+                  autoSize={{ minRows: 3, maxRows: 6 }} 
                   style={{ borderRadius: '8px' }}
                 />
               </Form.Item>
