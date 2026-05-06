@@ -1,8 +1,8 @@
-import { useMemo } from 'react'
+import { useMemo, memo } from 'react'
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { FlagFilled } from '@ant-design/icons'
 
-export function RoadmapTestDashboard({
+export const RoadmapTestDashboard = memo(function RoadmapTestDashboard({
   totalQuestions = 8, // dùng cho fallback
   questionNumbers = [], // danh sách questionNo thật của section hiện tại
   answers = {},
@@ -123,7 +123,7 @@ export function RoadmapTestDashboard({
       </View>
     </View>
   )
-}
+})
 
 const styles = StyleSheet.create({
   container: {

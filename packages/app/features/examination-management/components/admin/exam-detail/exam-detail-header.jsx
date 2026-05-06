@@ -42,7 +42,8 @@ export const ExamDetailHeader = ({ exam, statusLoading, onStatusClick }) => {
   const getStatusConfig = (status) => {
     switch (status) {
       case 1: return { color: 'success', text: 'Đã xuất bản', icon: <CheckCircleOutlined /> };
-      case 2: return { color: 'error', text: 'Hết hạn', icon: <ClockCircleOutlined /> };
+      case 2: return { color: 'error', text: 'Đã xóa', icon: <ClockCircleOutlined /> };
+      case 3: return { color: 'processing', text: 'Công khai (Làm thử)', icon: <CheckCircleOutlined /> };
       default: return { color: 'warning', text: 'Bản nháp', icon: <EditOutlined /> };
     }
   };

@@ -99,7 +99,7 @@ export function SkillModulesGrid({ levelId, onModulePress }) {
                   return (
                     <Pressable
                       key={index}
-                      onPress={() => onModulePress?.(module.id, item.label)}
+                      onPress={() => onModulePress?.(module.id, item.label, null, item.route)}
                       onHoverIn={() => Platform.OS === 'web' && setHoveredItem(`${module.id}-${index}`)}
                       onHoverOut={() => Platform.OS === 'web' && setHoveredItem(null)}
                       style={({ pressed }) => [

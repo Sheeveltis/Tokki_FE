@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, memo } from 'react'
 import { StyleSheet, View, Image, Text, Alert, Platform, Modal, Pressable } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { RoadmapTestQuestion } from './roadmap-test-question'
@@ -469,7 +469,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     }
   }, [activeSectionKey])
 
-  const handleToggleMark = (questionNum) => {
+  const handleToggleMark = useCallback((questionNum) => {
     if (!activeSectionKey) return
     setMarkedQuestions((prev) => {
       const sectionMarked = prev[activeSectionKey] || {}
@@ -481,11 +481,11 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         },
       }
     })
-  }
+  }, [activeSectionKey])
 
-  const handleImagePreview = (url) => {
+  const handleImagePreview = useCallback((url) => {
     if (url) setPreviewImage(url)
-  }
+  }, [])
 
   // Load exam data
   useEffect(() => {
@@ -820,9 +820,9 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
   }
 
   // Shared handler: cập nhật đáp án (dùng cho question area và dashboard)
-  const handleAnswerSelect = (questionNum, answerIndex) => {
+  const handleAnswerSelect = useCallback((questionNum, answerIndex) => {
     if (!activeSectionKey) return
-    const activeSection = sections.find((s) => s.key === activeSectionKey)
+    const activeSection = sectionsRef.current.find((s) => s.key === activeSectionKey)
     const questionData = activeSection?.questions?.find((q) => q.questionNumber === questionNum)
     if (!questionData) return
 
@@ -840,7 +840,18 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
       }
       return next
     })
-  }
+  }, [activeSectionKey])
+
+  const handleAnswerChange = useCallback((questionNum, val) => {
+    if (!activeSectionKey) return
+    setAnswers((prev) => ({
+      ...prev,
+      [activeSectionKey]: {
+        ...(prev[activeSectionKey] || {}),
+        [questionNum]: val,
+      },
+    }))
+  }, [activeSectionKey])
 
 
   // Handle question selection from dashboard
@@ -1276,20 +1287,10 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
                                   options={q.options}
                                   questionTypeCode={q.questionTypeCode}
                                   selectedAnswer={(answers[activeSectionKey] || {})[q.questionNumber]}
-                                  onAnswerSelect={(val) => handleAnswerSelect(q.questionNumber, val)}
-                                  onAnswerChange={(val) => {
-                                    if (q.type === 'writing') {
-                                      setAnswers((prev) => ({
-                                        ...prev,
-                                        [activeSectionKey]: {
-                                          ...(prev[activeSectionKey] || {}),
-                                          [q.questionNumber]: val,
-                                        },
-                                      }))
-                                    }
-                                  }}
+                                  onAnswerSelect={handleAnswerSelect}
+                                  onAnswerChange={handleAnswerChange}
                                   isMarked={(markedQuestions[activeSectionKey] || {})[q.questionNumber]}
-                                  onToggleMark={() => handleToggleMark(q.questionNumber)}
+                                  onToggleMark={handleToggleMark}
                                   isFlat={true}
                                   onImagePreview={handleImagePreview}
                                 />

@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, memo } from 'react'
 import { Pressable, StyleSheet, Text, View, Platform, TextInput } from 'react-native'
 import { FlagFilled, FlagOutlined } from '@ant-design/icons'
 
-export function RoadmapTestQuestion({
+export const RoadmapTestQuestion = memo(function RoadmapTestQuestion({
   questionNumber = 1,
   type = 'text', // 'audio', 'text', or 'writing'
   questionText = '',
@@ -17,6 +17,7 @@ export function RoadmapTestQuestion({
   correctAnswer = null,
   isMarked = false,
   onToggleMark,
+  onToggleMarkProp, // internal prop for parent
   isFlat = false,
   onImagePreview,
 }) {
@@ -135,7 +136,7 @@ export function RoadmapTestQuestion({
       ...twoPartAnswer,
       [part]: value,
     }
-    onAnswerChange(newAnswer)
+    onAnswerChange(questionNumber, newAnswer)
   }
 
 
@@ -172,7 +173,7 @@ export function RoadmapTestQuestion({
       <View style={styles.headerRow}>
         <Text style={styles.questionTitle}>Câu hỏi {questionNumber}:</Text>
         <Pressable
-          onPress={onToggleMark}
+          onPress={() => onToggleMark?.(questionNumber)}
           style={({ pressed, hovered }) => [
             styles.markButton,
             isMarked && styles.markButtonActive,
@@ -299,7 +300,7 @@ export function RoadmapTestQuestion({
                   value={typeof selectedAnswer === 'string' ? selectedAnswer : ''}
                   onChange={(e) => {
                     if (onAnswerChange) {
-                      onAnswerChange(e.target.value)
+                      onAnswerChange(questionNumber, e.target.value)
                     }
                   }}
                   placeholder="Nhập câu trả lời của bạn ở đây..."
@@ -313,7 +314,7 @@ export function RoadmapTestQuestion({
               ) : (
                 <TextInput
                   value={typeof selectedAnswer === 'string' ? selectedAnswer : ''}
-                  onChangeText={onAnswerChange}
+                  onChangeText={(text) => onAnswerChange?.(questionNumber, text)}
                   placeholder="Nhập câu trả lời của bạn ở đây..."
                   style={styles.writingTextInput}
                   multiline
@@ -337,7 +338,7 @@ export function RoadmapTestQuestion({
             return (
               <Pressable
                 key={answerNumber}
-                onPress={() => onAnswerSelect?.(answerNumber)}
+                onPress={() => onAnswerSelect?.(questionNumber, answerNumber)}
                 style={({ pressed, hovered }) => [
                   styles.answerOption,
                   option?.imageUrl && styles.answerOptionWithImage,
@@ -376,7 +377,7 @@ export function RoadmapTestQuestion({
       )}
     </View>
   )
-}
+})
 
 const styles = StyleSheet.create({
   container: {
@@ -497,13 +498,12 @@ const styles = StyleSheet.create({
   answerOptionHovered: {
     borderColor: '#D1D5DB',
     backgroundColor: '#F3F4F6',
-    transform: [{ translateX: 4 }],
     ...(Platform.OS === 'web' && {
       boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
     }),
   },
   answerOptionPressed: {
-    transform: [{ scale: 0.99 }],
+    opacity: 0.8,
   },
   answerOptionLabel: {
     fontSize: 13,

@@ -27,6 +27,7 @@ export function AlphabetStudyScreen({
     favorites,
     data,
     current,
+    loading,
     isFavorite,
     modeTitle,
     handleNext,
@@ -45,6 +46,7 @@ export function AlphabetStudyScreen({
         isFlipped={isFlipped}
         isFavorite={isFavorite}
         data={data}
+        loading={loading}
         favorites={favorites}
         onBackPress={onBackPress}
         onLearnPress={onLearnPress}
