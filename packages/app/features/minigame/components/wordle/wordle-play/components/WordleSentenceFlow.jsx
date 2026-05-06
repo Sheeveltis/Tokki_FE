@@ -233,14 +233,19 @@ export function WordleSentenceFlow({
         </View>
       </Modal>
 
-      {feedbackLoading && (
+      <Modal
+        visible={feedbackLoading}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+      >
         <View style={styles.loadingOverlay}>
           <View style={styles.loadingCard}>
             <ActivityIndicator size="large" color="#4CAF50" />
             <Text style={styles.loadingText}>Đang chấm điểm câu văn...</Text>
           </View>
         </View>
-      )}
+      </Modal>
 
       {/* Modal feedback chi tiết sau khi submit câu */}
       <WordleFeedbackModal

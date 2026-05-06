@@ -44,6 +44,7 @@ export function WordlePlayNative(props) {
     handleNavigateToBoard,
     handlePlayWordAudio,
     handleHowToPlay,
+    handleGoHome,
     currentPage,
     totalPages,
     canGoPrev,
@@ -52,6 +53,7 @@ export function WordlePlayNative(props) {
     goToPrevPage,
   } = useWordlePlayControl(props)
   const [isFlowFinished, setIsFlowFinished] = useState(false)
+  const [isWordConfirmed, setIsWordConfirmed] = useState(false)
 
   const renderWordInfo = gameState === 'won' && wordResult
 
@@ -119,6 +121,15 @@ export function WordlePlayNative(props) {
                     <Text style={styles.audioButtonText}>🔊 Nghe phát âm</Text>
                   </Pressable>
                 )}
+
+                {!isWordConfirmed && (
+                  <Pressable 
+                    style={styles.continueToSentenceBtn} 
+                    onPress={() => setIsWordConfirmed(true)}
+                  >
+                    <Text style={styles.continueToSentenceText}>Tiếp tục học</Text>
+                  </Pressable>
+                )}
               </View>
             )}
 
@@ -168,15 +179,21 @@ export function WordlePlayNative(props) {
               </View>
             )}
 
-            <View style={styles.sentenceFlowWrap}>
-              <WordleSentenceFlow
-                gameState={gameState}
-                dailyWordleId={props.dailyWordleId}
-                onNavigateToBoard={handleNavigateToBoard}
-                onRestart={handleRestart}
-                onFlowFinished={setIsFlowFinished}
-              />
-            </View>
+            {isWordConfirmed && (
+              <View style={styles.sentenceFlowWrap}>
+                <WordleSentenceFlow
+                  gameState={gameState}
+                  dailyWordleId={props.dailyWordleId}
+                  onNavigateToBoard={handleNavigateToBoard}
+                  onRestart={() => {
+                    handleRestart()
+                    setIsWordConfirmed(false)
+                    setIsFlowFinished(false)
+                  }}
+                  onFlowFinished={setIsFlowFinished}
+                />
+              </View>
+            )}
           </ScrollView>
         </View>
 
@@ -311,15 +328,15 @@ const styles = StyleSheet.create({
   gridScaleWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    transform: [{ scale: 0.88 }],
-    marginTop: -20,
-    marginBottom: -30,
+    transform: [{ scale: 1.0 }],
+    marginTop: 15,
+    marginBottom: 5,
   },
   keyboardWrap: {
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 10,
+    marginTop: 20,
     marginBottom: 2,
     transform: [{ scale: 0.95 }],
   },
@@ -376,23 +393,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
+    gap: 20,
     width: '100%',
   },
   navArrow: {
-    width: 40,
-    height: 60,
-    backgroundColor: '#FFE0B2',
-    borderWidth: 2,
-    borderColor: '#FB8C00',
-    borderRadius: 8,
+    width: 50,
+    height: 50,
+    backgroundColor: '#a46200ff',
+    borderWidth: 4,
+    borderColor: '#884400ff',
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
+    elevation: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
   navArrowDisabled: {
     opacity: 0.3,
@@ -411,12 +428,27 @@ const styles = StyleSheet.create({
     borderBottomWidth: 16,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
-    borderBottomColor: '#E65100',
+    borderBottomColor: '#FFFFFF',
   },
   arrowTriangleLeft: {
     transform: [{ rotate: '-90deg' }],
   },
   arrowTriangleRight: {
     transform: [{ rotate: '90deg' }],
+  },
+  continueToSentenceBtn: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginTop: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+  },
+  continueToSentenceText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '900',
   },
 })

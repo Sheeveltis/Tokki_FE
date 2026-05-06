@@ -74,11 +74,10 @@ export function WordleGrid({
 const styles = StyleSheet.create({
   grid: {
     paddingVertical: 40,
-    paddingHorizontal: 15,
+    paddingHorizontal: 35,
     gap: 2,
     alignItems: 'center',
     justifyContent: 'center',
-
   },
 })
 
