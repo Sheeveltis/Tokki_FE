@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'flex-start',
     paddingHorizontal: 4,
-    backgroundColor: '#FFF8E7',
+    backgroundColor: 'transparent',
   },
   titleContainer: { width: '100%', alignItems: 'center', marginTop: 12 },
   title: { fontSize: 36, fontWeight: '900', color: '#1F1F1F', fontFamily: 'Epilogue, sans-serif', textAlign: 'center' },
