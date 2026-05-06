@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react'
 import { Space, Tooltip, Tag, Select, DatePicker, Modal, message } from 'antd'
-import { EditOutlined, ReloadOutlined, FilterOutlined } from '@ant-design/icons'
+import { EditOutlined, ReloadOutlined, FilterOutlined, EyeOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import ManagementLayout from '../../../../components/layout/management-layout.jsx'
 import { useWordleVocabularyManagement } from '../api/wordle-list-hooks'
@@ -17,7 +17,7 @@ const LEVEL_LABELS = {
 /**
  * Component hiển thị danh sách từ vựng Wordle cho admin
  */
-export function WordleVocabularyList() {
+export function WordleVocabularyList({ onOpenDetail }) {
   const {
     data,
     loading,
@@ -37,6 +37,12 @@ export function WordleVocabularyList() {
   const handleOpenSelectModal = (record) => {
     setSelectedRecord(record)
     setSelectModalVisible(true)
+  }
+
+  const handleOpenDetailModal = (record) => {
+    if (onOpenDetail) {
+      onOpenDetail(record)
+    }
   }
 
   const handleSelectVocab = async (vocabId) => {
@@ -149,6 +155,16 @@ export function WordleVocabularyList() {
 
           return (
             <Space size="middle">
+              <Tooltip title="Xem chi tiết">
+                <EyeOutlined
+                  style={{
+                    fontSize: 18,
+                    color: '#1890ff',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => handleOpenDetailModal(record)}
+                />
+              </Tooltip>
               <Tooltip title={tooltipTitle}>
                 <ReloadOutlined
                   style={{

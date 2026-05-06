@@ -6,7 +6,7 @@ import { BackButton } from '../../../../../components/backBtn'
 import { cancelPayment } from '../../api/payment-detail-api'
 import { useRouter } from 'solito/navigation'
 import { Alert, TouchableOpacity, Text } from 'react-native'
-import { showSuccess, showError } from '../../authentication/utils/notification'
+import { showSuccess, showError } from '../../../authentication/utils/notification'
 
 /**
  * Payment Layout Component (Native/Mobile)

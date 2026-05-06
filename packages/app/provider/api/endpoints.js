@@ -205,6 +205,9 @@ export const ENDPOINTS = {
     WORDLE_REROLL: '/minigame/wordle/reroll',
     WORDLE_SUITABLE_VOCABS: '/minigame/wordle/suitable-vocabs',
     WORDLE_ASSIGN_VOCAB: '/minigame/wordle/assign-vocab',
+    WORDLE_ADMIN_PLAYERS: (dailyWordleId) => `/minigame/wordle/admin/${dailyWordleId}/players`,
+    WORDLE_ADMIN_LEADERBOARD: (dailyWordleId) => `/minigame/wordle/admin/${dailyWordleId}/leaderboard`,
+    WORDLE_TOGGLE_VISIBILITY: '/minigame/wordle/admin/toggle-visibility',
   },
   GAMES: {
     USER_GET_ALL: '/Games/user/get-all', // GET: Lấy danh sách games cho user (query: pageNumber, pageSize)
