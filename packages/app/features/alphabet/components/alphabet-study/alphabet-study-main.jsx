@@ -10,7 +10,6 @@ import TestIcon from '../../../../../assets/icon/icon-mainflow/game.svg'
 import { AlphabetTable } from './alphabet-table'
 import { AlphabetGuideInfo } from './alphabet-guide-info'
 import { ReactSketchCanvas } from 'react-sketch-canvas'
-import alphabetStrokesData from '../../api/alphabet-strokes.json'
 import { GuideStrokes } from '../alphabet-drawing/GuideStrokes'
 import { TypingPractice } from '../alphabet-typing/TypingPractice'
 
@@ -149,6 +148,7 @@ export function AlphabetStudyMain({
   onSelectFlashcard,
   onPrev,
   onNext,
+  loading,
 }) {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [isDrawing, setIsDrawing] = useState(false)
@@ -159,15 +159,15 @@ export function AlphabetStudyMain({
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
   const [isSentenceMode, setIsSentenceMode] = useState(false)
   const [currentSentence, setCurrentSentence] = useState('')
+  const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [strokeFeedbacks, setStrokeFeedbacks] = useState([])
+  const [liveFeedback, setLiveFeedback] = useState('')
+  const [detailsPage, setDetailsPage] = useState(0)
   const canvasRef = useRef(null)
 
-  const selectedStrokeData = alphabetStrokesData.find(s => s.word === current?.word)
-  const normalizedStrokes = selectedStrokeData?.strokes
-    ? selectedStrokeData.strokes.map(s => s.hangulPoints)
-    : []
-  const guideData = selectedStrokeData?.strokes
-    ? selectedStrokeData.strokes.map(s => s.guide)
-    : []
+  const selectedStrokes = current?.strokes || []
+  const normalizedStrokes = selectedStrokes.map(s => s.hangulPoints)
+  const guideData = selectedStrokes.map(s => s.guide)
 
   const handleSelectLetter = (index) => {
     onSelectFlashcard(index)
@@ -196,6 +196,9 @@ export function AlphabetStudyMain({
     setStrokeCount(0)
     setStrokeScores([])
     setFinalScore(null)
+    setFeedbackMessage('')
+    setStrokeFeedbacks([])
+    setLiveFeedback('')
     canvasRef.current?.clearCanvas()
   }
 
@@ -220,6 +223,13 @@ export function AlphabetStudyMain({
   }
 
   // Scoring helpers
+  const getGeneralFeedback = (score) => {
+    if (score >= 90) return "Tuyệt vời! Bạn đã nắm vững chữ này. 🎉"
+    if (score >= 70) return "Rất tốt! Chỉ cần chú ý một chút nữa thôi. ✨"
+    if (score >= 50) return "Khá tốt! Hãy luyện tập thêm để hoàn thiện nhé. 👍"
+    return "Cố gắng lên! Hãy xem chi tiết lỗi bên dưới. 💪"
+  }
+
   const pointToSegmentDistance = (p, a, b) => {
     const [px, py] = p
     const [ax, ay] = a
@@ -247,28 +257,75 @@ export function AlphabetStudyMain({
   }
 
   const handleStroke = (path, isEraser) => {
-    if (isEraser || !selectedStrokeData || !canvasSize.width || !canvasSize.height || !path || path.paths.length < 3) return
+    if (isEraser || !current || !canvasSize.width || !canvasSize.height || !path || path.paths.length < 3) return
 
-    const expectedStrokes = selectedStrokeData.totalStrokes || selectedStrokeData.strokes?.length || 1
+    const expectedStrokes = current.totalStrokes || selectedStrokes.length || 1
     if (finalScore !== null || strokeCount >= expectedStrokes) return
 
     const userPoints = path.paths.map(p => [p.x / canvasSize.width, p.y / canvasSize.height])
-    const targetStroke = selectedStrokeData.strokes[strokeCount]
-    const targetPoints = targetStroke?.hangulPoints || []
+    const targetStroke = selectedStrokes[strokeCount]
+    const targetPoints = targetStroke?.validationPoints || targetStroke?.hangulPoints || []
 
-    if (!targetPoints.length) {
+    if (!targetPoints.length || userPoints.length < 2) {
       setStrokeCount(prev => prev + 1)
       return
     }
 
+    // 1. Kiểm tra độ bao phủ (Coverage) - Tỷ lệ điểm nằm trong vùng an toàn
     const tolerance = 0.08
-    let inside = 0
+    let insidePoints = 0
     userPoints.forEach(pt => {
-      if (distanceToPolyline(pt, targetPoints) <= tolerance) inside++
+      if (distanceToPolyline(pt, targetPoints) <= tolerance) insidePoints++
     })
+    const coverageRatio = insidePoints / userPoints.length
 
-    const ratio = userPoints.length > 0 ? inside / userPoints.length : 0
-    const percent = Math.max(0, Math.min(100, Math.round((ratio / 0.9) * 100)))
+    // 2. Kiểm tra điểm đầu và điểm cuối (Start/End Proximity)
+    const startTarget = targetPoints[0]
+    const endTarget = targetPoints[targetPoints.length - 1]
+    const startUser = userPoints[0]
+    const endUser = userPoints[userPoints.length - 1]
+
+    const startDist = Math.hypot(startUser[0] - startTarget[0], startUser[1] - startTarget[1])
+    const endDist = Math.hypot(endUser[0] - endTarget[0], endUser[1] - endTarget[1])
+    
+    // Chấp nhận trong khoảng 15% kích thước canvas
+    const startEndScore = (startDist < 0.15 ? 0.5 : 0) + (endDist < 0.15 ? 0.5 : 0)
+
+    // 3. Kiểm tra hướng vẽ (Direction Check)
+    // Tính vector hướng của mẫu và người dùng
+    const targetVec = [endTarget[0] - startTarget[0], endTarget[1] - startTarget[1]]
+    const userVec = [endUser[0] - startUser[0], endUser[1] - startUser[1]]
+    
+    // Tính Dot Product để xem có cùng hướng không
+    const dotProduct = targetVec[0] * userVec[0] + targetVec[1] * userVec[1]
+    const isCorrectDirection = dotProduct > 0
+
+    // Tính điểm tổng hợp (Weighted Score)
+    // 60% Coverage + 20% Start/End + 20% Direction
+    const percent = Math.min(100, Math.round((coverageRatio * 60) + (startEndScore * 20) + (isCorrectDirection ? 20 : 0)))
+    
+    // Tạo thông điệp phản hồi
+    let message = ""
+    let hasError = false
+    if (!isCorrectDirection) {
+      message = `Nét ${strokeCount + 1}: Vẽ ngược hướng!`
+      hasError = true
+    } else if (startDist >= 0.15) {
+      message = `Nét ${strokeCount + 1}: Đặt bút chưa chuẩn.`
+      hasError = true
+    } else if (endDist >= 0.15) {
+      message = `Nét ${strokeCount + 1}: Dừng bút chưa chuẩn.`
+      hasError = true
+    } else if (coverageRatio < 0.7) {
+      message = `Nét ${strokeCount + 1}: Bị lệch nhiều quá.`
+      hasError = true
+    } else {
+      message = `Nét ${strokeCount + 1}: Tốt!`
+    }
+    
+    setLiveFeedback(message)
+    const newFeedbacks = [...strokeFeedbacks, { strokeIndex: strokeCount, message, score: percent, hasError }]
+    setStrokeFeedbacks(newFeedbacks)
 
     const newScores = [...strokeScores, percent]
     setStrokeScores(newScores)
@@ -277,8 +334,20 @@ export function AlphabetStudyMain({
     if (newScores.length === expectedStrokes) {
       const avg = Math.round(newScores.reduce((a, b) => a + b, 0) / newScores.length)
       setFinalScore(avg)
+      
+      // Tìm lỗi đầu tiên để nhận xét tổng kết
+      const firstError = newFeedbacks.find(f => f.hasError)
+      if (firstError) {
+        setFeedbackMessage(firstError.message)
+      } else {
+        setFeedbackMessage("Bạn vẽ rất tuyệt vời!")
+      }
     }
   }
+
+  const itemsPerPage = 3
+  const totalPages = Math.ceil(strokeFeedbacks.length / itemsPerPage)
+  const currentDetails = strokeFeedbacks.slice(detailsPage * itemsPerPage, (detailsPage + 1) * itemsPerPage)
 
   useEffect(() => {
     if (isDrawing) {
@@ -314,6 +383,7 @@ export function AlphabetStudyMain({
         <AlphabetTable
           data={data}
           onSelectLetter={handleSelectLetter}
+          loading={loading}
         />
         <AlphabetGuideInfo />
       </View>
@@ -362,9 +432,9 @@ export function AlphabetStudyMain({
                 <View style={styles.drawingHeader}>
                   <View style={styles.drawingTitleAbsolute}>
                     <Text style={styles.drawingTitle}>Tập vẽ "{current?.word}"</Text>
-                    <Text style={styles.strokeCountText}>Nét: {strokeCount}/{selectedStrokeData?.totalStrokes || 1}</Text>
+                    <Text style={styles.strokeCountText}>Nét: {strokeCount}/{current?.totalStrokes || selectedStrokes.length || 1}</Text>
                   </View>
-                  <View style={{ width: 40 }} /> {/* Spacer */}
+                  <View style={{ width: 40 }} />
                   <TouchableOpacity
                     style={styles.closeButton}
                     onPress={() => setIsModalVisible(false)}
@@ -373,43 +443,97 @@ export function AlphabetStudyMain({
                   </TouchableOpacity>
                 </View>
 
-                <View style={styles.canvasBox}>
-                  {selectedStrokeData && (
+                <View style={[styles.canvasBox, finalScore !== null && styles.canvasBoxShrink]}>
+                  {liveFeedback ? (
+                    <View style={styles.liveFeedbackContainer}>
+                      <Text style={styles.liveFeedbackText}>{liveFeedback}</Text>
+                    </View>
+                  ) : null}
+                  {selectedStrokes.length > 0 && (
                     <GuideStrokes
                       strokes={normalizedStrokes}
                       guides={guideData}
                       width={canvasSize.width}
                       height={canvasSize.height}
                       show={true}
+                      activeStrokeIndex={strokeCount}
+                      style={finalScore !== null ? { opacity: 0.4 } : {}}
                     />
                   )}
                   <ReactSketchCanvas
                     ref={canvasRef}
                     style={styles.canvas}
-                    strokeWidth={10}
-                    strokeColor="#000"
+                    strokeWidth={15}
+                    strokeColor="#4A4A4A"
                     canvasColor="transparent"
                     onStroke={handleStroke}
                   />
+
                   {finalScore !== null && (
-                    <View style={styles.scoreOverlay}>
-                      <Text style={styles.scoreIcon}>🏆</Text>
-                      <Text style={styles.scoreText}>Điểm: {finalScore}%</Text>
-                      <Text style={styles.scoreFeedback}>
-                        {finalScore >= 80 ? 'Tuyệt vời!' : finalScore >= 50 ? 'Khá tốt!' : 'Cố gắng thêm nhé!'}
-                      </Text>
+                    <View style={styles.scoreSummary}>
+                      <Text style={styles.scoreIconSmall}>🏆</Text>
+                      <View>
+                        <Text style={styles.scoreTextSmall}>Điểm: {finalScore}%</Text>
+                        <Text style={styles.scoreFeedbackSmall}>{getGeneralFeedback(finalScore)}</Text>
+                      </View>
                     </View>
                   )}
                 </View>
 
                 <View style={styles.drawingActions}>
-                  <TouchableOpacity style={styles.drawingActionButton} onPress={handleUndo}>
-                    <Text style={styles.drawingActionText}>Hoàn tác</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.drawingActionButton, styles.clearBtn]} onPress={handleClear}>
-                    <Text style={[styles.drawingActionText, { color: '#D32F2F' }]}>Xoá hết</Text>
+                  <TouchableOpacity 
+                    style={[styles.actionBtn, styles.clearBtn, { width: '100%' }]} 
+                    onPress={resetDrawing}
+                  >
+                    <Text style={styles.actionBtnText}>
+                      {finalScore !== null ? 'Thử lại' : 'Xóa hết'}
+                    </Text>
                   </TouchableOpacity>
                 </View>
+
+                {finalScore !== null && strokeFeedbacks.length > 0 && (
+                  <View style={styles.detailsSectionResult}>
+                    <View style={styles.detailsHeader}>
+                      <Text style={styles.detailsTitle}>Chi tiết từng nét</Text>
+                      {totalPages > 1 && (
+                        <View style={styles.pagination}>
+                          <TouchableOpacity 
+                            disabled={detailsPage === 0}
+                            onPress={() => setDetailsPage(p => p - 1)}
+                            style={[styles.pageBtn, detailsPage === 0 && styles.pageBtnDisabled]}
+                          >
+                            <Text style={styles.pageBtnText}>◀</Text>
+                          </TouchableOpacity>
+                          <Text style={styles.pageIndicator}>{detailsPage + 1}/{totalPages}</Text>
+                          <TouchableOpacity 
+                            disabled={detailsPage === totalPages - 1}
+                            onPress={() => setDetailsPage(p => p + 1)}
+                            style={[styles.pageBtn, detailsPage === totalPages - 1 && styles.pageBtnDisabled]}
+                          >
+                            <Text style={styles.pageBtnText}>▶</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                    
+                    <View style={styles.detailsListResult}>
+                      {currentDetails.map((item, idx) => (
+                        <View key={idx} style={styles.detailItemResult}>
+                          <View style={[styles.detailStatus, { backgroundColor: item.hasError ? '#FFF1F0' : '#F6FFED' }]}>
+                            <Text style={[styles.detailStatusText, { color: item.hasError ? '#FF4D4F' : '#52C41A' }]}>
+                              {item.hasError ? '✘' : '✔'}
+                            </Text>
+                          </View>
+                          <View style={styles.detailContent}>
+                            <Text style={styles.detailLabel}>Nét {item.strokeIndex + 1}</Text>
+                            <Text style={styles.detailMsg}>{item.message}</Text>
+                          </View>
+                          <Text style={styles.detailScore}>{item.score}%</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
               </View>
             ) : isTyping ? (
               <View style={styles.drawingContainer}>
@@ -679,6 +803,158 @@ const styles = StyleSheet.create({
   },
   clearBtn: {
     backgroundColor: '#FFF0F0',
+  },
+  liveFeedbackContainer: {
+    position: 'absolute',
+    top: 10,
+    left: 0,
+    right: 0,
+    zIndex: 20,
+    alignItems: 'center',
+    pointerEvents: 'none',
+  },
+  liveFeedbackText: {
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    color: '#fff',
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    fontSize: 12,
+    fontWeight: '700',
+    overflow: 'hidden',
+  },
+  detailsSection: {
+    marginTop: 20,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    width: '100%',
+  },
+  detailsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  detailsTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#4B5563',
+  },
+  pagination: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  pageBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pageBtnDisabled: {
+    opacity: 0.3,
+  },
+  pageBtnText: {
+    fontSize: 10,
+    color: '#1F2937',
+  },
+  pageIndicator: {
+    fontSize: 11,
+    color: '#6B7280',
+    fontWeight: '600',
+  },
+  detailsList: {
+    gap: 8,
+  },
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 8,
+    gap: 10,
+  },
+  detailStatus: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  detailStatusText: {
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  detailContent: {
+    flex: 1,
+  },
+  detailLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#4B5563',
+  },
+  detailMsg: {
+    fontSize: 11,
+    color: '#6B7280',
+  },
+  detailScore: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#1D4ED8',
+  },
+  canvasBoxShrink: {
+    height: 180,
+    opacity: 0.8,
+  },
+  scoreSummary: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 15,
+    zIndex: 30,
+  },
+  scoreIconSmall: {
+    fontSize: 32,
+  },
+  scoreTextSmall: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#1D4ED8',
+  },
+  scoreFeedbackSmall: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4B5563',
+    maxWidth: 160,
+  },
+  detailsSectionResult: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    width: '100%',
+  },
+  detailsListResult: {
+    gap: 6,
+  },
+  detailItemResult: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 6,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 8,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
   },
 })
 

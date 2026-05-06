@@ -5,7 +5,7 @@ import { View, StyleSheet } from 'react-native'
 /**
  * GuideStrokes (Mobile): Hiển thị vùng tolerance + đường guide (đỏ) sử dụng react-native-svg
  */
-export function GuideStrokes({ strokes, guides, width, height, show }) {
+export function GuideStrokes({ strokes, guides, width, height, show, activeStrokeIndex = 0 }) {
   if (!show || !strokes || !width || !height) return null
 
   const toleranceZoneWidth = 10
@@ -29,6 +29,9 @@ export function GuideStrokes({ strokes, guides, width, height, show }) {
         {/* Render main strokes (background traces) */}
         {strokes.map((stroke, index) => {
           if (!stroke || stroke.length === 0) return null
+          const isActive = index === activeStrokeIndex
+          const isDone = index < activeStrokeIndex
+          
           const points = stroke
             .map(([x, y]) => `${x * width},${y * height}`)
             .join(' ')
@@ -39,22 +42,34 @@ export function GuideStrokes({ strokes, guides, width, height, show }) {
               <Polyline
                 points={points}
                 fill="none"
-                stroke="#E8F5E9"
+                stroke={isActive ? "#E8F5E9" : "#F5F5F5"}
                 strokeWidth={toleranceZoneWidth}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                opacity={0.25}
+                opacity={isActive ? 0.4 : 0.1}
               />
               {/* Guide stroke chính */}
               <Polyline
                 points={points}
                 fill="none"
-                stroke="#E0E0E0"
+                stroke={isActive ? "#E0E0E0" : "#F0F0F0"}
                 strokeWidth={24}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                opacity={0.5}
+                opacity={isActive ? 0.6 : 0.2}
               />
+              
+              {/* Điểm bắt đầu cho nét hiện tại */}
+              {isActive && stroke.length > 0 && (
+                <Circle
+                  cx={stroke[0][0] * width}
+                  cy={stroke[0][1] * height}
+                  r="12"
+                  fill="#4CAF50"
+                  stroke="#fff"
+                  strokeWidth="2"
+                />
+              )}
             </React.Fragment>
           )
         })}

@@ -40,6 +40,14 @@ export const adminMenuItems = [
     ],
   },
   {
+    key: 'alphabet-parent',
+    icon: <ThunderboltOutlined />,
+    label: 'Quản lý Chữ cái',
+    children: [
+      { key: 'alphabet-management', icon: <ThunderboltOutlined />, label: 'Bảng chữ cái' },
+    ],
+  },
+  {
     key: 'pronunciation-parent',
     icon: <CustomerServiceOutlined />,
     label: 'Quản lý Phát âm',

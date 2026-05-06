@@ -261,8 +261,6 @@ export const ENDPOINTS = {
     UPLOAD_TOPIC_IMAGE: '/Cloudinary/image/topic',  // POST: Upload ảnh chủ đề lên Cloudinary
     UPLOAD_AVATAR: '/Cloudinary/image/avatar',  // POST: Upload avatar lên Cloudinary
     UPLOAD_TEMPLATE_PART_IMAGE: '/Cloudinary/image/template-part',  // POST: Upload ảnh template part lên Cloudinary
-    UPLOAD_VOCABULARY_IMAGE: '/Cloudinary/image/vocabulary',  // POST: Upload ảnh từ vựng lên Cloudinary
-    UPLOAD_TOPIC_IMAGE: '/Cloudinary/image/topic',  // POST: Upload ảnh chủ đề lên Cloudinary
 
     // Question/Option media
     UPLOAD_QUESTION_IMAGE: '/Cloudinary/image/question',
@@ -371,5 +369,15 @@ export const ENDPOINTS = {
   },
   TOPIK_LEVEL_CONFIG: {
     GET_ALL: (pageNumber = 1, pageSize = 20) => `/TopikLevelConfig?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+  },
+  ALPHABET: {
+    GET_ALL: '/Alphabet',
+    CREATE: '/Alphabet',
+    UPDATE: '/Alphabet',
+    DELETE: (id) => `/Alphabet/${id}`,
+    GET_BY_ID: (id) => `/Alphabet/${id}`,
+    IMPORT: '/Alphabet/import',
+    TOGGLE_STATUS: (id) => `/Alphabet/${id}/toggle-status`,
+    PAGINATED: '/Alphabet/paginated',
   },
 }

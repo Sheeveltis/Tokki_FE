@@ -17,7 +17,6 @@ import { FlashcardActionButton } from '../../../study/components/shared'
 import { AlphabetTable } from './alphabet-table'
 import { AlphabetGuideInfo } from './alphabet-guide-info'
 import { ReactSketchCanvas } from 'react-sketch-canvas'
-import alphabetStrokesData from '../../api/alphabet-strokes.json'
 import { GuideStrokes } from '../alphabet-drawing/GuideStrokes'
 import { TypingPractice } from '../alphabet-typing/TypingPractice'
 import ButtonUI from 'components/decor/buttonUI'
@@ -92,6 +91,7 @@ export function AlphabetStudyMain({
   onSelectFlashcard,
   onPrev,
   onNext,
+  loading,
 }) {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [isDrawing, setIsDrawing] = useState(false)
@@ -102,17 +102,17 @@ export function AlphabetStudyMain({
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
   const [isSentenceMode, setIsSentenceMode] = useState(false)
   const [currentSentence, setCurrentSentence] = useState('')
+  const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [strokeFeedbacks, setStrokeFeedbacks] = useState([])
+  const [liveFeedback, setLiveFeedback] = useState('')
+  const [detailsPage, setDetailsPage] = useState(0)
   const canvasRef = useRef(null)
   const canvasBoxRef = useRef(null)
   const audioRef = useRef(null)
 
-  const selectedStrokeData = alphabetStrokesData.find(s => s.word === current?.word)
-  const normalizedStrokes = selectedStrokeData?.strokes
-    ? selectedStrokeData.strokes.map(s => s.hangulPoints)
-    : []
-  const guideData = selectedStrokeData?.strokes
-    ? selectedStrokeData.strokes.map(s => s.guide)
-    : []
+  const selectedStrokes = current?.strokes || []
+  const normalizedStrokes = selectedStrokes.map(s => s.hangulPoints)
+  const guideData = selectedStrokes.map(s => s.guide)
 
   const handlePlaySound = (customAudio) => {
     // Ensure customAudio is a string URL, otherwise fallback to current?.audio
@@ -176,6 +176,10 @@ export function AlphabetStudyMain({
     setStrokeCount(0)
     setStrokeScores([])
     setFinalScore(null)
+    setFeedbackMessage('')
+    setStrokeFeedbacks([])
+    setLiveFeedback('')
+    setDetailsPage(0)
     canvasRef.current?.clearCanvas()
   }
 
@@ -191,6 +195,13 @@ export function AlphabetStudyMain({
   }
 
   // Scoring helpers
+  const getGeneralFeedback = (score) => {
+    if (score >= 90) return "Tuyệt vời! Bạn đã nắm vững chữ này. 🎉"
+    if (score >= 70) return "Rất tốt! Chỉ cần chú ý một chút nữa thôi. ✨"
+    if (score >= 50) return "Khá tốt! Hãy luyện tập thêm để hoàn thiện nhé. 👍"
+    return "Cố gắng lên! Hãy xem chi tiết lỗi bên dưới. 💪"
+  }
+
   const pointToSegmentDistance = (p, a, b) => {
     const [px, py] = p
     const [ax, ay] = a
@@ -218,28 +229,71 @@ export function AlphabetStudyMain({
   }
 
   const handleStroke = (path, isEraser) => {
-    if (isEraser || !selectedStrokeData || !canvasSize.width || !canvasSize.height || !path || path.paths.length < 3) return
+    if (isEraser || !current || !canvasSize.width || !canvasSize.height || !path || path.paths.length < 3) return
 
-    const expectedStrokes = selectedStrokeData.totalStrokes || selectedStrokeData.strokes?.length || 1
+    const expectedStrokes = current.totalStrokes || selectedStrokes.length || 1
     if (finalScore !== null || strokeCount >= expectedStrokes) return
 
     const userPoints = path.paths.map(p => [p.x / canvasSize.width, p.y / canvasSize.height])
-    const targetStroke = selectedStrokeData.strokes[strokeCount]
-    const targetPoints = targetStroke?.hangulPoints || []
+    const targetStroke = selectedStrokes[strokeCount]
+    const targetPoints = targetStroke?.validationPoints || targetStroke?.hangulPoints || []
 
-    if (!targetPoints.length) {
+    if (!targetPoints.length || userPoints.length < 2) {
       setStrokeCount(prev => prev + 1)
       return
     }
 
+    // 1. Kiểm tra độ bao phủ (Coverage)
     const tolerance = 0.08
-    let inside = 0
+    let insidePoints = 0
     userPoints.forEach(pt => {
-      if (distanceToPolyline(pt, targetPoints) <= tolerance) inside++
+      if (distanceToPolyline(pt, targetPoints) <= tolerance) insidePoints++
     })
+    const coverageRatio = insidePoints / userPoints.length
 
-    const ratio = userPoints.length > 0 ? inside / userPoints.length : 0
-    const percent = Math.max(0, Math.min(100, Math.round((ratio / 0.9) * 100)))
+    // 2. Kiểm tra điểm đầu và điểm cuối
+    const startTarget = targetPoints[0]
+    const endTarget = targetPoints[targetPoints.length - 1]
+    const startUser = userPoints[0]
+    const endUser = userPoints[userPoints.length - 1]
+
+    const startDist = Math.hypot(startUser[0] - startTarget[0], startUser[1] - startTarget[1])
+    const endDist = Math.hypot(endUser[0] - endTarget[0], endUser[1] - endTarget[1])
+    const startEndScore = (startDist < 0.15 ? 0.5 : 0) + (endDist < 0.15 ? 0.5 : 0)
+
+    // 3. Kiểm tra hướng vẽ
+    const targetVec = [endTarget[0] - startTarget[0], endTarget[1] - startTarget[1]]
+    const userVec = [endUser[0] - startUser[0], endUser[1] - startUser[1]]
+    const dotProduct = targetVec[0] * userVec[0] + targetVec[1] * userVec[1]
+    const isCorrectDirection = dotProduct > 0
+
+    // Tính điểm tổng hợp (Weighted Score)
+    // 60% Coverage + 20% Start/End + 20% Direction
+    const strokeScore = (coverageRatio * 60) + (startEndScore * 20) + (isCorrectDirection ? 20 : 0)
+    const percent = Math.max(0, Math.min(100, Math.round(strokeScore)))
+    
+    // Tạo thông điệp phản hồi
+    let message = ""
+    let hasError = false
+    if (!isCorrectDirection) {
+      message = `Nét ${strokeCount + 1}: Vẽ ngược hướng!`
+      hasError = true
+    } else if (startDist >= 0.15) {
+      message = `Nét ${strokeCount + 1}: Đặt bút chưa chuẩn.`
+      hasError = true
+    } else if (endDist >= 0.15) {
+      message = `Nét ${strokeCount + 1}: Dừng bút chưa chuẩn.`
+      hasError = true
+    } else if (coverageRatio < 0.7) {
+      message = `Nét ${strokeCount + 1}: Bị lệch nhiều quá.`
+      hasError = true
+    } else {
+      message = `Nét ${strokeCount + 1}: Tốt!`
+    }
+    
+    setLiveFeedback(message)
+    const newFeedbacks = [...strokeFeedbacks, { strokeIndex: strokeCount, message, score: percent, hasError }]
+    setStrokeFeedbacks(newFeedbacks)
 
     const newScores = [...strokeScores, percent]
     setStrokeScores(newScores)
@@ -248,8 +302,20 @@ export function AlphabetStudyMain({
     if (newScores.length === expectedStrokes) {
       const avg = Math.round(newScores.reduce((a, b) => a + b, 0) / newScores.length)
       setFinalScore(avg)
+
+      // Tìm lỗi đầu tiên để nhận xét tổng kết
+      const firstError = newFeedbacks.find(f => f.hasError)
+      if (firstError) {
+        setFeedbackMessage(firstError.message)
+      } else {
+        setFeedbackMessage("Bạn vẽ rất tuyệt vời!")
+      }
     }
   }
+
+  const itemsPerPage = 3
+  const totalPages = Math.ceil(strokeFeedbacks.length / itemsPerPage)
+  const currentDetails = strokeFeedbacks.slice(detailsPage * itemsPerPage, (detailsPage + 1) * itemsPerPage)
 
   useEffect(() => {
     if (isDrawing && canvasBoxRef.current) {
@@ -290,6 +356,7 @@ export function AlphabetStudyMain({
         <AlphabetTable
           data={data}
           onSelectLetter={handleSelectLetter}
+          loading={loading}
         />
         <AlphabetGuideInfo />
       </View>
@@ -338,7 +405,7 @@ export function AlphabetStudyMain({
                 <View style={styles.drawingHeader}>
                   <View style={styles.drawingTitleAbsolute}>
                     <Text style={styles.drawingTitle}>Tập vẽ chữ "{current?.word}"</Text>
-                    <Text style={styles.strokeCountText}>Nét: {strokeCount}/{selectedStrokeData?.totalStrokes || 1}</Text>
+                    <Text style={styles.strokeCountText}>Nét: {strokeCount}/{current?.totalStrokes || selectedStrokes.length || 1}</Text>
                   </View>
                   <View style={{ width: 40 }} /> {/* Left spacer */}
                   <CloseButton
@@ -346,14 +413,21 @@ export function AlphabetStudyMain({
                   />
                 </View>
 
-                <View style={styles.canvasBox} ref={canvasBoxRef}>
-                  {selectedStrokeData && (
+                <View style={[styles.canvasBox, finalScore !== null && styles.canvasBoxShrink]} ref={canvasBoxRef}>
+                  {liveFeedback ? (
+                    <View style={styles.liveFeedbackContainer}>
+                      <Text style={styles.liveFeedbackText}>{liveFeedback}</Text>
+                    </View>
+                  ) : null}
+                  {selectedStrokes.length > 0 && (
                     <GuideStrokes
                       strokes={normalizedStrokes}
                       guides={guideData}
                       width={canvasSize.width}
                       height={canvasSize.height}
                       show={true}
+                      activeStrokeIndex={strokeCount}
+                      style={finalScore !== null ? { opacity: 0.5 } : {}}
                     />
                   )}
                   <ReactSketchCanvas
@@ -366,22 +440,67 @@ export function AlphabetStudyMain({
                   />
 
                   {finalScore !== null && (
-                    <View style={styles.scoreOverlay}>
-                      <TrophyOutlined style={styles.scoreIcon} />
-                      <Text style={styles.scoreText}>Điểm: {finalScore}%</Text>
-                      <Text style={styles.scoreFeedback}>
-                        {finalScore >= 80 ? 'Tuyệt vời!' : finalScore >= 50 ? 'Khá tốt!' : 'Cố gắng thêm nhé!'}
-                      </Text>
+                    <View style={styles.scoreSummary}>
+                      <TrophyOutlined style={styles.scoreIconSmall} />
+                      <View>
+                        <Text style={styles.scoreTextSmall}>Điểm: {finalScore}%</Text>
+                        <Text style={styles.scoreFeedbackSmall}>{getGeneralFeedback(finalScore)}</Text>
+                      </View>
                     </View>
                   )}
                 </View>
 
-                <View style={styles.drawingActions}>
+                <View style={[styles.drawingActions, finalScore !== null && styles.drawingActionsResult]}>
                   <TouchableOpacity style={styles.tryAgainButton} onPress={handleClear}>
                     <UndoOutlined style={{ fontSize: 20 }} />
                     <Text style={styles.tryAgainText}>Thử lại</Text>
                   </TouchableOpacity>
                 </View>
+
+                {finalScore !== null && strokeFeedbacks.length > 0 && (
+                  <View style={styles.detailsSectionResult}>
+                    <View style={styles.detailsHeader}>
+                      <Text style={styles.detailsTitle}>Chi tiết từng nét</Text>
+                      {totalPages > 1 && (
+                        <View style={styles.pagination}>
+                          <TouchableOpacity 
+                            disabled={detailsPage === 0}
+                            onClick={() => setDetailsPage(p => p - 1)}
+                            style={[styles.pageBtn, detailsPage === 0 && styles.pageBtnDisabled]}
+                          >
+                            <ArrowLeftOutlined />
+                          </TouchableOpacity>
+                          <Text style={styles.pageIndicator}>{detailsPage + 1}/{totalPages}</Text>
+                          <TouchableOpacity 
+                            disabled={detailsPage === totalPages - 1}
+                            onClick={() => setDetailsPage(p => p + 1)}
+                            style={[styles.pageBtn, detailsPage === totalPages - 1 && styles.pageBtnDisabled]}
+                          >
+                            <ArrowLeftOutlined style={{ transform: [{ scaleX: -1 }] }} />
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                    
+                    <View style={styles.detailsListResult}>
+                      {currentDetails.map((item, idx) => (
+                        <View key={idx} style={styles.detailItemResult}>
+                          <View style={[styles.detailStatus, { backgroundColor: item.hasError ? '#FFF1F0' : '#F6FFED' }]}>
+                            {item.hasError ? 
+                              <CloseOutlined style={{ color: '#FF4D4F' }} /> : 
+                              <HighlightOutlined style={{ color: '#52C41A' }} />
+                            }
+                          </View>
+                          <View style={styles.detailContent}>
+                            <Text style={styles.detailLabel}>Nét {item.strokeIndex + 1}</Text>
+                            <Text style={styles.detailMsg}>{item.message}</Text>
+                          </View>
+                          <Text style={styles.detailScore}>{item.score}%</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
               </View>
             ) : isTyping ? (
               <View style={styles.drawingContainer}>
@@ -636,6 +755,24 @@ const styles = StyleSheet.create({
     zIndex: 10,
     borderRadius: 16,
   },
+  liveFeedbackContainer: {
+    position: 'absolute',
+    top: 15,
+    left: 0,
+    right: 0,
+    zIndex: 20,
+    alignItems: 'center',
+    pointerEvents: 'none',
+  },
+  liveFeedbackText: {
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    color: '#fff',
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 25,
+    fontSize: 14,
+    fontWeight: '700',
+  },
   scoreIcon: {
     fontSize: 48,
     color: '#F1BE4B',
@@ -656,7 +793,10 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 16,
+    paddingVertical: 16,
+  },
+  drawingActionsResult: {
+    paddingVertical: 10,
   },
   tryAgainButton: {
     flexDirection: 'row',
@@ -678,5 +818,136 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1A1A1A',
   },
+  detailsSection: {
+    marginTop: 24,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    width: '100%',
+  },
+  detailsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  detailsTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#374151',
+  },
+  pagination: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  pageBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+  },
+  pageBtnDisabled: {
+    opacity: 0.3,
+    cursor: 'not-allowed',
+  },
+  pageIndicator: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '600',
+  },
+  detailsList: {
+    gap: 10,
+  },
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 8,
+    gap: 12,
+  },
+  detailStatus: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  detailContent: {
+    flex: 1,
+  },
+  detailLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#374151',
+  },
+  detailMsg: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  detailScore: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1D4ED8',
+  },
+  canvasBoxShrink: {
+    aspectRatio: 1.8,
+    opacity: 0.8,
+    marginBottom: 0,
+  },
+  scoreSummary: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 20,
+    zIndex: 30,
+  },
+  scoreIconSmall: {
+    fontSize: 40,
+    color: '#F1BE4B',
+  },
+  scoreTextSmall: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#1D4ED8',
+  },
+  scoreFeedbackSmall: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4B5563',
+    maxWidth: 200,
+  },
+  drawingActionsResult: {
+    paddingVertical: 10,
+  },
+  detailsSectionResult: {
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    width: '100%',
+  },
+  detailsListResult: {
+    gap: 6,
+  },
+  detailItemResult: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
 })
-
