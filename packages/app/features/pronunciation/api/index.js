@@ -165,6 +165,48 @@ export const deletePronunciationExample = async (id) => {
   }
 }
 
+export const importPronunciationExamplesFromExcel = async (file, ruleId) => {
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    if (ruleId) {
+      formData.append('RuleId', ruleId)
+    }
+    const res = await apiClient.post(ENDPOINTS.PRONUNCIATION_EXAMPLE.IMPORT_EXCEL, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    return extractData(res)
+  } catch (error) {
+    throw new Error(extractErrorMessage(error, 'Không thể import ví dụ phát âm'))
+  }
+}
+
+export const exportPronunciationExamplesToExcel = async (ruleId) => {
+  try {
+    const url = ruleId 
+      ? `${ENDPOINTS.PRONUNCIATION_EXAMPLE.EXPORT_EXCEL}?ruleId=${ruleId}`
+      : ENDPOINTS.PRONUNCIATION_EXAMPLE.EXPORT_EXCEL
+      
+    const response = await apiClient.get(url, {
+      responseType: 'blob'
+    })
+    return response.data
+  } catch (error) {
+    throw new Error(extractErrorMessage(error, 'Không thể xuất dữ liệu ví dụ phát âm'))
+  }
+}
+
+export const downloadPronunciationExampleTemplate = async () => {
+  try {
+    const response = await apiClient.get(ENDPOINTS.PRONUNCIATION_EXAMPLE.IMPORT_TEMPLATE, {
+      responseType: 'blob'
+    })
+    return response.data
+  } catch (error) {
+    throw new Error(extractErrorMessage(error, 'Không thể tải template mẫu ví dụ'))
+  }
+}
+
 export const getPronunciationExamplesByRuleId = async (ruleId) => {
   if (!ruleId) return []
 

@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, memo } from 'react'
 import { Pressable, StyleSheet, Text, View, Platform, TextInput } from 'react-native'
 import { FlagFilled, FlagOutlined } from '@ant-design/icons'
 
-export function RoadmapTestQuestion({
+export const RoadmapTestQuestion = memo(function RoadmapTestQuestion({
   questionNumber = 1,
   type = 'text', // 'audio', 'text', or 'writing'
   questionText = '',
@@ -17,6 +17,9 @@ export function RoadmapTestQuestion({
   correctAnswer = null,
   isMarked = false,
   onToggleMark,
+  onToggleMarkProp, // internal prop for parent
+  isFlat = false,
+  onImagePreview,
 }) {
   const [, setCurrentTime] = useState(0)
   const [, setTotalTime] = useState(0)
@@ -133,7 +136,7 @@ export function RoadmapTestQuestion({
       ...twoPartAnswer,
       [part]: value,
     }
-    onAnswerChange(newAnswer)
+    onAnswerChange(questionNumber, newAnswer)
   }
 
 
@@ -165,12 +168,12 @@ export function RoadmapTestQuestion({
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isFlat && styles.flatContainer]}>
       {/* Question Header with Title and Mark button */}
       <View style={styles.headerRow}>
         <Text style={styles.questionTitle}>Câu hỏi {questionNumber}:</Text>
         <Pressable
-          onPress={onToggleMark}
+          onPress={() => onToggleMark?.(questionNumber)}
           style={({ pressed, hovered }) => [
             styles.markButton,
             isMarked && styles.markButtonActive,
@@ -204,7 +207,7 @@ export function RoadmapTestQuestion({
         )
       ) : (
         <View style={styles.questionTextContainer}>
-          {renderHtmlText(questionText || 'Câu hỏi mẫu', styles.questionText)}
+          {questionText ? renderHtmlText(questionText, styles.questionText) : null}
         </View>
       )}
 
@@ -212,17 +215,23 @@ export function RoadmapTestQuestion({
       {type === 'writing' ? (
         <View style={styles.writingContainer}>
           {imageUrl && (
-            <View style={styles.writingImageContainer}>
+            <Pressable 
+              onPress={() => onImagePreview?.(imageUrl)}
+              style={({ pressed }) => [
+                styles.writingImageContainer,
+                pressed && styles.imagePressed
+              ]}
+            >
               {Platform.OS === 'web' ? (
                 <img
                   src={imageUrl}
                   alt="Question image"
-                  style={{ maxWidth: '100%', borderRadius: 8, marginBottom: 12 }}
+                  style={{ maxWidth: '100%', borderRadius: 8, marginBottom: 12, cursor: 'zoom-in' }}
                 />
               ) : (
-                <Text style={styles.writingImagePlaceholder}>[Image: {imageUrl}]</Text>
+                <Image source={{ uri: imageUrl }} style={styles.optionImage} />
               )}
-            </View>
+            </Pressable>
           )}
           
           {isTwoPartWriting ? (
@@ -291,7 +300,7 @@ export function RoadmapTestQuestion({
                   value={typeof selectedAnswer === 'string' ? selectedAnswer : ''}
                   onChange={(e) => {
                     if (onAnswerChange) {
-                      onAnswerChange(e.target.value)
+                      onAnswerChange(questionNumber, e.target.value)
                     }
                   }}
                   placeholder="Nhập câu trả lời của bạn ở đây..."
@@ -305,7 +314,7 @@ export function RoadmapTestQuestion({
               ) : (
                 <TextInput
                   value={typeof selectedAnswer === 'string' ? selectedAnswer : ''}
-                  onChangeText={onAnswerChange}
+                  onChangeText={(text) => onAnswerChange?.(questionNumber, text)}
                   placeholder="Nhập câu trả lời của bạn ở đây..."
                   style={styles.writingTextInput}
                   multiline
@@ -329,7 +338,7 @@ export function RoadmapTestQuestion({
             return (
               <Pressable
                 key={answerNumber}
-                onPress={() => onAnswerSelect?.(answerNumber)}
+                onPress={() => onAnswerSelect?.(questionNumber, answerNumber)}
                 style={({ pressed, hovered }) => [
                   styles.answerOption,
                   option?.imageUrl && styles.answerOptionWithImage,
@@ -341,17 +350,23 @@ export function RoadmapTestQuestion({
               >
                 <Text style={styles.answerOptionLabel}>{answerNumber}.</Text>
                 {option?.imageUrl ? (
-                  Platform.OS === 'web' ? (
-                    <img
-                      src={option.imageUrl}
-                      alt={`Option ${answerNumber}`}
-                      style={styles.optionImage}
-                    />
-                  ) : (
-                    <Text style={styles.optionImagePlaceholder}>
-                      [Image: {option.imageUrl}]
-                    </Text>
-                  )
+                  <Pressable 
+                    onPress={() => onImagePreview?.(option.imageUrl)}
+                    style={({ pressed }) => [
+                      styles.optionImageWrapper,
+                      pressed && styles.imagePressed
+                    ]}
+                  >
+                    {Platform.OS === 'web' ? (
+                      <img
+                        src={option.imageUrl}
+                        alt={`Option ${answerNumber}`}
+                        style={{ ...styles.optionImage, cursor: 'zoom-in' }}
+                      />
+                    ) : (
+                      <Image source={{ uri: option.imageUrl }} style={styles.optionImage} />
+                    )}
+                  </Pressable>
                 ) : (
                   <Text style={styles.optionText}>{option?.content || ''}</Text>
                 )}
@@ -362,7 +377,7 @@ export function RoadmapTestQuestion({
       )}
     </View>
   )
-}
+})
 
 const styles = StyleSheet.create({
   container: {
@@ -483,13 +498,12 @@ const styles = StyleSheet.create({
   answerOptionHovered: {
     borderColor: '#D1D5DB',
     backgroundColor: '#F3F4F6',
-    transform: [{ translateX: 4 }],
     ...(Platform.OS === 'web' && {
       boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
     }),
   },
   answerOptionPressed: {
-    transform: [{ scale: 0.99 }],
+    opacity: 0.8,
   },
   answerOptionLabel: {
     fontSize: 13,
@@ -565,6 +579,21 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 10,
     resizeMode: 'contain',
+  },
+  flatContainer: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    padding: 0,
+    paddingVertical: 10,
+    boxShadow: 'none',
+  },
+  optionImageWrapper: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+  },
+  imagePressed: {
+    opacity: 0.8,
   },
 })
 

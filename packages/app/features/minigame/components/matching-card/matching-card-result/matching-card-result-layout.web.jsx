@@ -7,6 +7,8 @@ import MatchingCardResultContent from './matching-card-result-content'
 import { MatchingCardLeaderboardPopup } from './matching-card-leaderboard-popup'
 import { saveGameResult, updateGameResult, mapLevelToDifficulty } from '../../../api/matching-card-play-api'
 import { awardMinigameXP } from '../../../api/api'
+import { useXp, XpConfigKeys, XpSourceList } from 'app/provider/xp'
+import { useSearchParams } from 'solito/navigation'
 
 /**
  * Web layout cho màn kết quả Matching Card
@@ -35,6 +37,9 @@ export function MatchingCardResultLayout({
   onReplay,
 }) {
   const [showLeaderboard, setShowLeaderboard] = useState(false)
+  const searchParams = useSearchParams()
+  const isWinParam = searchParams?.get('isWin') === 'true'
+  const { addXp } = useXp()
   const awardedXPRef = useRef(false)
 
   // Save game result when component mounts
@@ -107,9 +112,20 @@ export function MatchingCardResultLayout({
 
       if (!awardedXPRef.current) {
         try {
-          await awardMinigameXP(levelId)
+          const lv = String(levelId || '').toLowerCase()
+          const isLv3 = lv === 'hard' || lv === '3'
+          const isLv2 = lv === 'medium' || lv === '2'
+          
+          let configKey = XpConfigKeys.MINIGAME_WIN_LV1
+          if (isWinParam) {
+            configKey = isLv3 ? XpConfigKeys.MINIGAME_WIN_LV3 : (isLv2 ? XpConfigKeys.MINIGAME_WIN_LV2 : XpConfigKeys.MINIGAME_WIN_LV1)
+          } else {
+            configKey = isLv3 ? XpConfigKeys.MINIGAME_LOSS_LV3 : (isLv2 ? XpConfigKeys.MINIGAME_LOSS_LV2 : XpConfigKeys.MINIGAME_LOSS_LV1)
+          }
+
+          await addXp(configKey, XpSourceList.MINIGAME)
           awardedXPRef.current = true
-          console.log('[MatchingCardResultLayout] ✅ Awarded XP for matching-card')
+          console.log('[MatchingCardResultLayout] ✅ Awarded XP for matching-card:', configKey)
         } catch (xpError) {
           console.error('[MatchingCardResultLayout] ⚠️ Failed awarding XP:', xpError)
         }

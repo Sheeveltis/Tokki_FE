@@ -28,6 +28,8 @@ const LazyPassageManagement = lazy(() => import('../../examination-management/sc
 const LazyTitleManagement = lazy(() => import('../../title-management/screens/title-management-screen'))
 const LazySystemConfigManagement = lazy(() => import('../../system/screens/system-config-management-screen'))
 const LazyPronunciationManagement = lazy(() => import('../../pronunciation/screens/admin/pronunciation-management-screen'))
+const LazyWordleManagement = lazy(() => import('../../minigame-management/screens/WordleVocabularyManagementScreen'))
+const LazyAlphabetManagement = lazy(() => import('../../alphabet/screens/admin/alphabet-management-screen'))
 
 const LoadingFallback = () => <Spin />
 
@@ -47,7 +49,7 @@ export function AdminScreen() {
     const checkAuth = () => {
       try {
         const token = getAuthToken()
-        
+
         // Kiểm tra token trước
         if (!token || token === 'null' || token === 'undefined') {
           // Chưa đăng nhập hoặc token không hợp lệ
@@ -58,13 +60,13 @@ export function AdminScreen() {
 
         // Kiểm tra role - chỉ Admin mới được truy cập
         const role = getCurrentUserRole()
-        
+
         // Nếu không có role hoặc role không phải Admin
         if (!role || role !== allowedRole) {
           // Không có quyền - redirect về dashboard tương ứng với role
           setIsAuthorized(false)
           setChecking(false)
-          
+
           // Nếu là Staff hoặc Moderator, redirect về dashboard của họ
           if (role === 'Staff') {
             if (typeof window !== 'undefined') {
@@ -224,6 +226,16 @@ export function AdminScreen() {
       'pronunciation-management': (
         <Suspense fallback={<LoadingFallback />}>
           <LazyPronunciationManagement basePath="/admin" />
+        </Suspense>
+      ),
+      'alphabet-management': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyAlphabetManagement />
+        </Suspense>
+      ),
+      'wordle-management': (
+        <Suspense fallback={<LoadingFallback />}>
+          <LazyWordleManagement />
         </Suspense>
       ),
     }),

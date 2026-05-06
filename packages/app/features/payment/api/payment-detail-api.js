@@ -86,5 +86,24 @@ export async function getPaymentStatusById(paymentId) {
   }
 }
 
+/**
+ * Cancel payment by ID
+ * @param {string} paymentId
+ * @returns {Promise<{ isSuccess: boolean; message: string; statusCode: number }>}
+ */
+export async function cancelPayment(paymentId) {
+  try {
+    if (!paymentId) {
+      throw { status: 400, message: 'Payment ID không hợp lệ' }
+    }
+
+    const response = await apiClient.patch(ENDPOINTS.PAYMENT.CANCEL(paymentId))
+
+    return response.data
+  } catch (error) {
+    handleApiError(error, 'Không thể hủy thanh toán')
+  }
+}
+
 // Export handleApiError để các component có thể sử dụng
 export { handleApiError }

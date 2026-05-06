@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { StyleSheet, View, Text, ScrollView, Platform, TouchableOpacity, Pressable } from 'react-native'
+import { StyleSheet, View, Text, ScrollView, Platform, TouchableOpacity, Pressable, Modal } from 'react-native'
 import { CloseOutlined } from '@ant-design/icons'
 
 const getSectionLabel = (section) =>
@@ -41,6 +41,7 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
   }, [questionGroups])
 
   const [selectedQuestionNo, setSelectedQuestionNo] = useState(null)
+  const [zoomedImageUrl, setZoomedImageUrl] = useState(null)
 
   useEffect(() => {
     if (allQuestions.length > 0) {
@@ -178,9 +179,13 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
                           ) : null}
 
                           {Platform.OS === 'web' && sharedMediaUrl && sharedMediaType === 'image' ? (
-                            <View style={styles.groupMediaBox}>
-                              <img src={sharedMediaUrl} alt="Media" style={styles.groupMediaImage} />
-                            </View>
+                            <Pressable style={styles.groupMediaBox} onPress={() => setZoomedImageUrl(sharedMediaUrl)}>
+                              <img 
+                                src={sharedMediaUrl} 
+                                alt="Media" 
+                                style={{ ...styles.groupMediaImage, cursor: 'zoom-in' }} 
+                              />
+                            </Pressable>
                           ) : null}
 
                           {/* Question Specific Content */}
@@ -211,7 +216,13 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
                                       <View style={styles.optionContentBox}>
                                         {opt?.content ? <Text style={styles.optionText}>{String(opt?.content)}</Text> : null}
                                         {Platform.OS === 'web' && opt?.imageUrl ? (
-                                          <img src={opt?.imageUrl} alt="Option" style={styles.optionImage} />
+                                          <Pressable onPress={() => setZoomedImageUrl(opt.imageUrl)}>
+                                            <img 
+                                              src={opt?.imageUrl} 
+                                              alt="Option" 
+                                              style={{ ...styles.optionImage, cursor: 'zoom-in' }} 
+                                            />
+                                          </Pressable>
                                         ) : null}
                                       </View>
                                     </View>
@@ -242,7 +253,10 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
 
                               {q?.aiAnalysis && (
                                 <View style={styles.aiBox}>
-                                  <Text style={styles.aiTitle}>Phân tích AI ({q?.aiAnalysis?.totalScore ?? 0}đ)</Text>
+                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                                    <Text style={styles.aiTitle}>Phân tích AI ({q?.aiAnalysis?.totalScore ?? 0}đ)</Text>
+                                    <Text style={[styles.referenceNote, { marginTop: 0 }]}>• Đáp án tham khảo</Text>
+                                  </View>
                                   
                                   {Array.isArray(q?.aiAnalysis?.results) ? (
                                     q.aiAnalysis.results.map((res, idx) => (
@@ -294,7 +308,7 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
                                       )}
                                       {q.aiAnalysis.polishedVersion && (
                                         <View style={styles.aiSection}>
-                                          <Text style={styles.aiSectionTitle}>Đáp án tham khảo</Text>
+                                          <Text style={styles.aiSectionTitle}>Bài mẫu gợi ý</Text>
                                           <View style={styles.polishedBox}>
                                             <Text style={styles.polishedText}>{q.aiAnalysis.polishedVersion}</Text>
                                           </View>
@@ -338,6 +352,18 @@ export function RoadmapTestResultDetailView({ section, detailData, isLoading, er
               </ScrollView>
             </View>
           )}
+        </View>
+      )}
+
+      {/* Image Zoom Overlay (Fixed View for Web reliability) */}
+      {zoomedImageUrl && (
+        <View style={[styles.zoomOverlay, { position: Platform.OS === 'web' ? 'fixed' : 'absolute' }]}>
+          <Pressable style={styles.zoomContent} onPress={() => setZoomedImageUrl(null)}>
+            <img src={zoomedImageUrl} alt="Zoomed" style={styles.zoomedImage} />
+            <Pressable style={styles.zoomCloseBtn} onPress={() => setZoomedImageUrl(null)}>
+              <CloseOutlined style={{ color: '#FFF', fontSize: 24 }} />
+            </Pressable>
+          </Pressable>
         </View>
       )}
     </View>
@@ -647,5 +673,46 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: '#374151',
     fontWeight: '500',
+  },
+  referenceNote: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontStyle: 'italic',
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  zoomOverlay: {
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 99999,
+  },
+  zoomContent: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  zoomedImage: {
+    maxWidth: '95%',
+    maxHeight: '95%',
+    objectFit: 'contain',
+    borderRadius: 8,
+  },
+  zoomCloseBtn: {
+    position: 'absolute',
+    top: 40,
+    right: 40,
+    width: 50,
+    height: 50,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 })

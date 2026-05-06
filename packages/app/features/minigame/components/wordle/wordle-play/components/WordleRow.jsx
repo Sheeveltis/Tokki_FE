@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native'
 import { WordleCell } from './WordleCell'
 
 // feedbacks: mảng các object { character, blockColor, initialStatus, vowelStatus, finalStatus }
-export function WordleRow({ feedbacks, length = 5 }) {
+export function WordleRow({ feedbacks, length = 5, isLocked = false }) {
   const cells = []
 
   for (let i = 0; i < length; i++) {
@@ -12,6 +12,7 @@ export function WordleRow({ feedbacks, length = 5 }) {
       <WordleCell
         key={i}
         feedback={fb}
+        isLocked={isLocked}
       />
     )
   }

@@ -9,10 +9,10 @@ import { PaymentPackageLayout } from '../components/payment-package/payment-pack
  * - Hiển thị gói miễn phí và gói premium
  * - Có nút quay lại và xem chi tiết
  */
-export function PackageScreen() {
+export function PackageScreen({ onBackPress }) {
   return (
     <View style={styles.container}>
-      <PaymentPackageLayout />
+      <PaymentPackageLayout onBackPress={onBackPress} />
     </View>
   )
 }

@@ -1,6 +1,7 @@
+import { memo } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
-export function RoadmapTestButton({
+export const RoadmapTestButton = memo(function RoadmapTestButton({
   title = 'Button',
   onPress,
   disabled = false,
@@ -31,7 +32,7 @@ export function RoadmapTestButton({
       )}
     </Pressable>
   )
-}
+})
 
 const styles = StyleSheet.create({
   button: {

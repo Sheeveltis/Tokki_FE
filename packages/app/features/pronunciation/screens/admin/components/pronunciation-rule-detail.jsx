@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Typography, Card, Table, Tag, Button, Space, message, Descriptions, Divider, Input, Tabs, Tooltip } from 'antd'
+import { Typography, Card, Table, Tag, Button, Space, message, Descriptions, Divider, Input, Tabs, Tooltip, Modal } from 'antd'
 import { 
   ArrowLeftOutlined, 
   SoundOutlined, 
@@ -7,11 +7,21 @@ import {
   InfoCircleOutlined, 
   UnorderedListOutlined,
   EditOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  UploadOutlined,
+  DownloadOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined
 } from '@ant-design/icons'
-import { getPronunciationExamples, updatePronunciationExample, deletePronunciationExample } from '../../../api/index.js'
+import { 
+  getPronunciationExamples, 
+  updatePronunciationExample, 
+  deletePronunciationExample,
+  importPronunciationExamplesFromExcel,
+  exportPronunciationExamplesToExcel,
+  downloadPronunciationExampleTemplate
+} from '../../../api/index.js'
 import PronunciationExampleEditModal from './pronunciation-example-edit-modal.jsx'
-import { Modal } from 'antd'
 
 const { Title, Text } = Typography
 
@@ -23,6 +33,10 @@ export default function PronunciationRuleDetail({ rule, onBack, onEdit, onDelete
   const [editExampleModalOpen, setEditExampleModalOpen] = useState(false)
   const [editingExample, setEditingExample] = useState(null)
   const [editExampleLoading, setEditExampleLoading] = useState(false)
+
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState(null)
+  const fileInputRef = React.useRef(null)
 
   const fetchExamples = async () => {
     if (!rule?.id) return
@@ -87,6 +101,61 @@ export default function PronunciationRuleDetail({ rule, onBack, onEdit, onDelete
         }
       },
     })
+  }
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      setImporting(true)
+      const result = await importPronunciationExamplesFromExcel(file, rule?.id)
+      setImportResult(result)
+      fetchExamples()
+    } catch (err) {
+      message.error(err.message || 'Import thất bại')
+    } finally {
+      setImporting(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const handleExportExcel = async () => {
+    try {
+      message.loading({ content: 'Đang chuẩn bị dữ liệu...', key: 'export' })
+      const blob = await exportPronunciationExamplesToExcel(rule?.id)
+      const url = window.URL.createObjectURL(new Blob([blob]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `PronunciationExamples_${new Date().getTime()}.xlsx`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      message.success({ content: 'Xuất file thành công', key: 'export' })
+    } catch (err) {
+      message.error({ content: err.message || 'Xuất file thất bại', key: 'export' })
+    }
+  }
+
+  const handleDownloadTemplate = async () => {
+    try {
+      message.loading({ content: 'Đang tải template...', key: 'template' })
+      const blob = await downloadPronunciationExampleTemplate()
+      const url = window.URL.createObjectURL(new Blob([blob]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', 'PronunciationExampleTemplate.xlsx')
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      message.success({ content: 'Tải template thành công', key: 'template' })
+    } catch (err) {
+      message.error({ content: err.message || 'Tải template thất bại', key: 'template' })
+    }
   }
 
   const columns = [
@@ -226,14 +295,38 @@ export default function PronunciationRuleDetail({ rule, onBack, onEdit, onDelete
       children: (
         <div style={{ padding: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-            <Input
-              placeholder="Tìm trong ví dụ..."
-              prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-              style={{ width: 300, borderRadius: 20 }}
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              allowClear
-            />
+            <Space>
+              <Button 
+                icon={<UploadOutlined />} 
+                onClick={handleImportClick}
+                loading={importing}
+                style={{ borderRadius: 20 }}
+              >
+                Import
+              </Button>
+              <Button 
+                icon={<DownloadOutlined />} 
+                onClick={handleExportExcel}
+                style={{ borderRadius: 20 }}
+              >
+                Export
+              </Button>
+              <Button 
+                icon={<DownloadOutlined />} 
+                onClick={handleDownloadTemplate}
+                style={{ borderRadius: 20 }}
+              >
+                Template
+              </Button>
+              <Input
+                placeholder="Tìm trong ví dụ..."
+                prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                style={{ width: 300, borderRadius: 20 }}
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                allowClear
+              />
+            </Space>
           </div>
           <Table
             dataSource={examples}
@@ -327,6 +420,89 @@ export default function PronunciationRuleDetail({ rule, onBack, onEdit, onDelete
         }}
         onSubmit={handleEditExample}
       />
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        accept=".xlsx, .xls"
+        onChange={handleFileChange}
+      />
+
+      <Modal
+        title="Kết quả Import Excel"
+        open={!!importResult}
+        onCancel={() => setImportResult(null)}
+        footer={[
+          <Button key="close" type="primary" onClick={() => setImportResult(null)}>
+            Đóng
+          </Button>
+        ]}
+        width={800}
+        centered
+      >
+        {importResult && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{
+              padding: 12,
+              borderRadius: 8,
+              backgroundColor: importResult.isSuccess ? '#f6ffed' : '#fff2f0',
+              border: `1px solid ${importResult.isSuccess ? '#b7eb8f' : '#ffccc7'}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12
+            }}>
+              {importResult.isSuccess ? (
+                <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 24 }} />
+              ) : (
+                <CloseCircleOutlined style={{ color: '#ff4d4f', fontSize: 24 }} />
+              )}
+              <div strong style={{ fontSize: 16, fontWeight: 600 }}>{importResult.message}</div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ fontWeight: 600 }}>Chi tiết:</div>
+              <Table
+                size="small"
+                dataSource={[
+                  ...(importResult.data?.successList?.map((item, idx) => ({ ...item, type: 'success', key: `s-${idx}` })) || []),
+                  ...(importResult.data?.failureList?.map((item, idx) => ({ ...item, type: 'failure', key: `f-${idx}` })) || [])
+                ]}
+                columns={[
+                  {
+                    title: 'Câu mẫu',
+                    dataIndex: 'targetScript',
+                    key: 'targetScript',
+                    render: (text) => <div dangerouslySetInnerHTML={{ __html: text }} />
+                  },
+                  {
+                    title: 'Phiên âm',
+                    dataIndex: 'phoneticScript',
+                    key: 'phoneticScript',
+                  },
+                  {
+                    title: 'Kết quả',
+                    dataIndex: 'type',
+                    key: 'type',
+                    width: 120,
+                    render: (type) => (
+                      <Tag color={type === 'success' ? 'green' : 'red'}>
+                        {type === 'success' ? 'Thành công' : 'Thất bại'}
+                      </Tag>
+                    )
+                  },
+                  {
+                    title: 'Lý do',
+                    dataIndex: 'reason',
+                    key: 'reason',
+                  }
+                ]}
+                pagination={{ pageSize: 10 }}
+              />
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   )
 }

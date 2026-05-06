@@ -7,6 +7,7 @@ import BackgroundColumn from '../../../../../../../assets/BackgroundColumn.png'
 export function WordleGrid({
   rows = [],
   maxGuesses = 6,
+  currentPage = 0,
   wordLength = 5,
   gridCells = [],
   gameState = 'playing',
@@ -16,25 +17,38 @@ export function WordleGrid({
 }) {
   const renderedRows = []
   const currentRowIndex = rows.length
+  const PAGE_SIZE = 6
 
-  for (let i = 0; i < maxGuesses; i++) {
-    // Nếu là row hiện tại đang nhập và gameState === 'playing', hiển thị input row
-    if (i === currentRowIndex && gameState === 'playing') {
-      renderedRows.push(
-        <WordleInputRow
-          key={i}
-          gridCells={gridCells}
-          length={wordLength}
-          onCellClick={onCellClick}
-          activeIndex={activeColIndex}
-        />
-      )
+  for (let i = 0; i < PAGE_SIZE; i++) {
+    const rowIndex = currentPage * PAGE_SIZE + i
+
+    if (rowIndex < maxGuesses) {
+      if (rowIndex === currentRowIndex && gameState === 'playing') {
+        renderedRows.push(
+          <WordleInputRow
+            key={rowIndex}
+            gridCells={gridCells}
+            length={wordLength}
+            onCellClick={onCellClick}
+            activeIndex={activeColIndex}
+          />
+        )
+      } else {
+        renderedRows.push(
+          <WordleRow
+            key={rowIndex}
+            feedbacks={rows[rowIndex]}
+            length={wordLength}
+          />
+        )
+      }
     } else {
+      // Hàng bị khóa (vượt quá maxGuesses)
       renderedRows.push(
         <WordleRow
-          key={i}
-          feedbacks={rows[i]}
+          key={rowIndex}
           length={wordLength}
+          isLocked={true}
         />
       )
     }

@@ -1,4 +1,4 @@
-/* From Uiverse.io by cssbuttons-io - Modified for Tokki */
+/* From Uiverse.io by cssbuttons-io - Heavily Modified for Tokki Premium Look */
 button {
     position: relative;
     display: inline-block;
@@ -15,36 +15,43 @@ button {
 
 button.learn-more {
     width: auto;
-    min-width: 11rem;
-    height: auto;
-    transition: transform 0.3s ease;
-    background: #FFF8E1;
-    /* Solid light background so it's not transparent */
+    min-width: 12.5rem;
+    height: 3.25rem;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    background: #ffffff;
     border-radius: 1.625rem;
+    border: 1.5px solid #FFB30025;
     overflow: hidden;
-    opacity: 1 !important;
-    /* Explicitly set opacity to 1 */
+    box-shadow: 0 4px 15px rgba(255, 179, 0, 0.05);
 }
 
 button.learn-more:hover {
-    transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255, 179, 0, 0.15);
+    border-color: #FFB30040;
+}
+
+button.learn-more:active {
+    transform: translateY(0);
 }
 
 button.learn-more .circle {
-    transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
-    position: relative;
+    transition: all 0.5s cubic-bezier(0.65, 0, 0.076, 1);
+    position: absolute;
+    top: 0.125rem;
+    left: 0.125rem;
     display: block;
     margin: 0;
     width: 3rem;
     height: 3rem;
-    background: #FFB300;
-    border-radius: 1.625rem;
-    box-shadow: 0 4px 15px rgba(255, 179, 0, 0.5);
+    background: linear-gradient(135deg, #FFB300 0%, #FF8F00 100%);
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 12px rgba(255, 179, 0, 0.35);
     z-index: 1;
 }
 
 button.learn-more .circle .icon {
-    transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+    transition: all 0.5s cubic-bezier(0.65, 0, 0.076, 1);
     position: absolute;
     top: 0;
     bottom: 0;
@@ -53,8 +60,7 @@ button.learn-more .circle .icon {
 }
 
 button.learn-more .circle .icon.arrow {
-    transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
-    left: 0.625rem;
+    left: 0.75rem;
     width: 1.125rem;
     height: 0.125rem;
     background: none;
@@ -67,42 +73,48 @@ button.learn-more .circle .icon.arrow::before {
     right: 0.0625rem;
     width: 0.625rem;
     height: 0.625rem;
-    border-top: 0.125rem solid #fff;
-    border-right: 0.125rem solid #fff;
+    border-top: 0.15rem solid #fff;
+    border-right: 0.15rem solid #fff;
     transform: rotate(45deg);
 }
 
 button.learn-more .button-text {
-    transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+    transition: all 0.5s cubic-bezier(0.65, 0, 0.076, 1);
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    padding: 0.75rem 0;
-    margin: 0 0 0 1.85rem;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 3rem; /* Space for the circle */
     color: #1E293B;
-    font-weight: 700;
-    line-height: 1.6;
-    text-align: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
     white-space: nowrap;
-    padding-left: 1.2rem;
-    padding-right: 1.2rem;
     z-index: 2;
-    /* Ensure text is above the expanding circle */
 }
 
 button:hover .circle {
-    width: 100%;
-    background: #FF8F00;
+    width: calc(100% - 0.25rem);
 }
 
 button:hover .circle .icon.arrow {
     background: #fff;
-    transform: translate(1rem, 0);
+    transform: translate(0.5rem, 0); /* Subtle move instead of colliding */
 }
 
 button:hover .button-text {
     color: #fff;
+    padding-left: 2rem; /* More space to avoid the arrow */
 }
+
+button:active .circle {
+    filter: brightness(0.9);
+}
+

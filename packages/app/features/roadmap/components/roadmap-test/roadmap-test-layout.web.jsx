@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, memo } from 'react'
 import { StyleSheet, View, Image, Text, Alert, Platform, Modal, Pressable } from 'react-native'
 import { useRouter } from 'solito/navigation'
 import { RoadmapTestQuestion } from './roadmap-test-question'
@@ -57,6 +57,31 @@ const parseTwoPartAnswerContent = (answerContent) => {
   // No markers: fallback split first newline into 2 parts (assume b then a)
   const [b = '', ...rest] = text.split('\n')
   return { b: String(b).trimEnd(), a: rest.join('\n').trimEnd() }
+}
+
+const normalizeHtmlText = (value) => {
+  if (!value) return ''
+  return String(value)
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/?[^>]+(>|$)/g, '')
+}
+
+const renderHtmlText = (value, style) => {
+  if (Platform.OS === 'web') {
+    return (
+      <span
+        style={{ 
+          ...style, 
+          display: 'block', 
+          lineHeight: '1.5',
+          wordBreak: 'break-word' 
+        }}
+        dangerouslySetInnerHTML={{ __html: String(value || '') }}
+      />
+    )
+  }
+
+  return <Text style={style}>{normalizeHtmlText(value)}</Text>
 }
 
 const serializeWritingAnswerForApi = (answerValue, questionTypeCode) => {
@@ -229,13 +254,16 @@ const mapExamToSections = (examData) => {
 
     const questions = []
 
-    sectionArray.forEach((p) => {
+    sectionArray.forEach((p, pIdx) => {
       // Xử lý cấu trúc mới: questionGroups với sharedMediaUrl/sharedMediaType
       const questionGroups = p.questionGroups || []
 
-      questionGroups.forEach((group) => {
+      questionGroups.forEach((group, gIdx) => {
         const sharedMediaUrl = group.sharedMediaUrl
         const sharedMediaType = (group.sharedMediaType || '').toLowerCase()
+        const sharedPassageContent = group.sharedPassageContent || null
+        const sharedPassageMediaUrl = group.sharedPassageMediaUrl || null
+        const groupId = `group-${p.partId || pIdx}-${gIdx}`
 
         // Xác định type dựa trên defaultType (ưu tiên) hoặc sharedMediaType
         // Nếu defaultType là 'writing', luôn giữ là 'writing' (có thể có image kèm theo)
@@ -259,7 +287,7 @@ const mapExamToSections = (examData) => {
           // Writing: dùng sharedPassageContent hoặc partName khi content trống; đáp án lấy từ answerContent
           const questionText =
             q.content ||
-            (type === 'writing' ? group.sharedPassageContent || p.partName || '' : '')
+            (type === 'writing' ? sharedPassageContent || p.partName || '' : '')
 
           questions.push({
             id: q.userQuestionId || q.questionId, // dùng userQuestionId nếu có
@@ -268,6 +296,9 @@ const mapExamToSections = (examData) => {
             questionText,
             audioUrl: type === 'audio' ? sharedMediaUrl : null,
             imageUrl: type === 'image' || type === 'writing' ? sharedMediaUrl : null,
+            sharedPassageContent,
+            sharedPassageMediaUrl,
+            groupId,
             options,
             questionTypeCode: q.questionTypeCode || null,
             partTitle: p.partName || '',
@@ -279,7 +310,7 @@ const mapExamToSections = (examData) => {
 
       // Fallback: nếu không có questionGroups, thử dùng questions trực tiếp (backward compatibility)
       if (questionGroups.length === 0 && p.questions) {
-        ; (p.questions || []).forEach((q) => {
+        ; (p.questions || []).forEach((q, qIdx) => {
           const options = (q.options || []).map((opt) => ({
             content: opt.content || '',
             imageUrl: opt.imageUrl || null,
@@ -309,6 +340,9 @@ const mapExamToSections = (examData) => {
             questionText,
             audioUrl: type === 'audio' ? q.mediaUrl : null,
             imageUrl: type === 'image' || type === 'writing' ? q.mediaUrl : null,
+            sharedPassageContent: null,
+            sharedPassageMediaUrl: null,
+            groupId: `legacy-${p.partId || pIdx}-${qIdx}`,
             options,
             questionTypeCode: q.questionTypeCode || null,
             partTitle: p.partName || '',
@@ -419,6 +453,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
   const [toastMessage, setToastMessage] = useState('')
   const [toastType, setToastType] = useState('success')
   const [markedQuestions, setMarkedQuestions] = useState({}) // { [sectionKey]: { [questionNo]: boolean } }
+  const [previewImage, setPreviewImage] = useState(null)
   const questionListRef = useRef(null)
   // Refs to deduplicate the take-exam API call when React StrictMode double-invokes
   // the effect. Both invocations share the same promise so the API fires exactly once.
@@ -434,7 +469,7 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
     }
   }, [activeSectionKey])
 
-  const handleToggleMark = (questionNum) => {
+  const handleToggleMark = useCallback((questionNum) => {
     if (!activeSectionKey) return
     setMarkedQuestions((prev) => {
       const sectionMarked = prev[activeSectionKey] || {}
@@ -446,7 +481,11 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
         },
       }
     })
-  }
+  }, [activeSectionKey])
+
+  const handleImagePreview = useCallback((url) => {
+    if (url) setPreviewImage(url)
+  }, [])
 
   // Load exam data
   useEffect(() => {
@@ -781,9 +820,9 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
   }
 
   // Shared handler: cập nhật đáp án (dùng cho question area và dashboard)
-  const handleAnswerSelect = (questionNum, answerIndex) => {
+  const handleAnswerSelect = useCallback((questionNum, answerIndex) => {
     if (!activeSectionKey) return
-    const activeSection = sections.find((s) => s.key === activeSectionKey)
+    const activeSection = sectionsRef.current.find((s) => s.key === activeSectionKey)
     const questionData = activeSection?.questions?.find((q) => q.questionNumber === questionNum)
     if (!questionData) return
 
@@ -801,7 +840,18 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
       }
       return next
     })
-  }
+  }, [activeSectionKey])
+
+  const handleAnswerChange = useCallback((questionNum, val) => {
+    if (!activeSectionKey) return
+    setAnswers((prev) => ({
+      ...prev,
+      [activeSectionKey]: {
+        ...(prev[activeSectionKey] || {}),
+        [questionNum]: val,
+      },
+    }))
+  }, [activeSectionKey])
 
 
   // Handle question selection from dashboard
@@ -1126,11 +1176,27 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
                     key: partKey,
                     title: q.partTitle,
                     description: q.partDescription,
-                    questions: [],
+                    groups: [],
                   }
                   groupedParts.push(currentPart)
                 }
-                currentPart.questions.push(q)
+                
+                // Group by groupId
+                let currentGroup = currentPart.groups[currentPart.groups.length - 1]
+                if (!currentGroup || currentGroup.id !== q.groupId) {
+                  currentGroup = {
+                    id: q.groupId,
+                    sharedPassageContent: q.sharedPassageContent,
+                    sharedPassageMediaUrl: q.sharedPassageMediaUrl,
+                    // If all questions in group share the same audio/image, we can show it at group level
+                    audioUrl: q.audioUrl,
+                    imageUrl: q.imageUrl,
+                    type: q.type,
+                    questions: [],
+                  }
+                  currentPart.groups.push(currentGroup)
+                }
+                currentGroup.questions.push(q)
               })
 
               return groupedParts.map((part, pIdx) => (
@@ -1145,38 +1211,95 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
                       )}
                     </View>
                   )}
-                  <View style={styles.partQuestionsList}>
-                    {part.questions.map((q) => (
-                      <View
-                        key={q.id || q.questionNumber}
-                        id={Platform.OS === 'web' ? `question-${q.questionNumber}` : undefined}
-                      >
-                        <RoadmapTestQuestion
-                          questionNumber={q.questionNumber}
-                          type={q.type}
-                          questionText={q.questionText}
-                          audioUrl={q.audioUrl}
-                          imageUrl={q.imageUrl}
-                          options={q.options}
-                          questionTypeCode={q.questionTypeCode}
-                          selectedAnswer={(answers[activeSectionKey] || {})[q.questionNumber]}
-                          onAnswerSelect={(val) => handleAnswerSelect(q.questionNumber, val)}
-                          onAnswerChange={(val) => {
-                            if (q.type === 'writing') {
-                              setAnswers((prev) => ({
-                                ...prev,
-                                [activeSectionKey]: {
-                                  ...(prev[activeSectionKey] || {}),
-                                  [q.questionNumber]: val,
-                                },
-                              }))
-                            }
-                          }}
-                          isMarked={(markedQuestions[activeSectionKey] || {})[q.questionNumber]}
-                          onToggleMark={() => handleToggleMark(q.questionNumber)}
-                        />
-                      </View>
-                    ))}
+                  
+                  <View style={styles.partGroupsList}>
+                    {part.groups.map((group, gIdx) => {
+                      const hasSharedContent = !!(group.sharedPassageContent || group.sharedPassageMediaUrl || group.audioUrl || group.imageUrl)
+
+                      return (
+                        <View key={group.id || gIdx} style={styles.groupCard}>
+                          {hasSharedContent && (
+                            <View style={styles.groupHeader}>
+                              {group.sharedPassageMediaUrl && (
+                                <Pressable 
+                                  onPress={() => handleImagePreview(group.sharedPassageMediaUrl)}
+                                  style={({ pressed }) => [
+                                    styles.sharedImageWrapper,
+                                    pressed && styles.imagePressed
+                                  ]}
+                                >
+                                  <Image 
+                                    source={normalizeImageSource(group.sharedPassageMediaUrl)} 
+                                    style={styles.sharedImage} 
+                                    resizeMode="contain"
+                                  />
+                                </Pressable>
+                              )}
+                              
+                              {group.audioUrl && group.type === 'audio' && (
+                                <View style={styles.sharedAudioWrapper}>
+                                  {Platform.OS === 'web' ? (
+                                    <audio controls src={group.audioUrl} style={{ width: '100%' }} />
+                                  ) : (
+                                    <Text style={styles.instructionSubtitle}>[Audio: {group.audioUrl}]</Text>
+                                  )}
+                                </View>
+                              )}
+
+                              {group.imageUrl && group.type === 'image' && (
+                                <Pressable 
+                                  onPress={() => handleImagePreview(group.imageUrl)}
+                                  style={({ pressed }) => [
+                                    styles.sharedImageWrapper,
+                                    pressed && styles.imagePressed
+                                  ]}
+                                >
+                                  <Image 
+                                    source={normalizeImageSource(group.imageUrl)} 
+                                    style={styles.sharedImage} 
+                                    resizeMode="contain"
+                                  />
+                                </Pressable>
+                              )}
+
+                              {group.sharedPassageContent && renderHtmlText(group.sharedPassageContent, styles.sharedPassageText)}
+                              
+                              {/* Separator if there are questions below */}
+                              {group.questions.length > 0 && <View style={styles.groupSeparator} />}
+                            </View>
+                          )}
+
+                          <View style={styles.groupQuestionsList}>
+                            {group.questions.map((q, qIdx) => (
+                              <View
+                                key={q.id || q.questionNumber}
+                                id={Platform.OS === 'web' ? `question-${q.questionNumber}` : undefined}
+                                style={[
+                                  qIdx > 0 && styles.questionInGroupSeparator
+                                ]}
+                              >
+                                <RoadmapTestQuestion
+                                  questionNumber={q.questionNumber}
+                                  type={hasSharedContent && (q.type === 'audio' || q.type === 'image') ? 'text' : q.type}
+                                  questionText={q.questionText}
+                                  audioUrl={hasSharedContent && q.type === 'audio' ? null : q.audioUrl}
+                                  imageUrl={hasSharedContent && q.type === 'image' ? null : q.imageUrl}
+                                  options={q.options}
+                                  questionTypeCode={q.questionTypeCode}
+                                  selectedAnswer={(answers[activeSectionKey] || {})[q.questionNumber]}
+                                  onAnswerSelect={handleAnswerSelect}
+                                  onAnswerChange={handleAnswerChange}
+                                  isMarked={(markedQuestions[activeSectionKey] || {})[q.questionNumber]}
+                                  onToggleMark={handleToggleMark}
+                                  isFlat={true}
+                                  onImagePreview={handleImagePreview}
+                                />
+                              </View>
+                            ))}
+                          </View>
+                        </View>
+                      )
+                    })}
                   </View>
                 </View>
               ))
@@ -1385,6 +1508,36 @@ export function RoadmapTestLayout({ level = 1, examKey = null, examId = null, is
           </View>
         </View>
       </Modal>
+
+      {/* Image Preview Modal */}
+      <Modal
+        visible={!!previewImage}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPreviewImage(null)}
+      >
+        <Pressable 
+          style={styles.previewOverlay} 
+          onPress={() => setPreviewImage(null)}
+        >
+          <Pressable 
+            onPress={handleBackToLearning}
+            style={styles.previewCloseButton}
+            onPressIn={() => setPreviewImage(null)}
+          >
+            <Text style={styles.previewCloseText}>×</Text>
+          </Pressable>
+          <View style={styles.previewImageContainer}>
+            {previewImage && (
+              <Image 
+                source={normalizeImageSource(previewImage)} 
+                style={styles.previewFullImage} 
+                resizeMode="contain"
+              />
+            )}
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   )
 }
@@ -1544,10 +1697,107 @@ const styles = StyleSheet.create({
   },
   partGroup: {
     gap: 16,
-    marginBottom: 20,
+    marginBottom: 32,
   },
-  partQuestionsList: {
-    gap: 16,
+  partGroupsList: {
+    gap: 32,
+  },
+  groupCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    gap: 8,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 12px 40px rgba(0,0,0,0.04)',
+    }),
+  },
+  groupHeader: {
+    gap: 20,
+    marginBottom: 8,
+  },
+  sharedImage: {
+    width: '100%',
+    borderRadius: 12,
+    backgroundColor: '#F9FAFB',
+    minHeight: 200,
+  },
+  sharedAudioWrapper: {
+    width: '100%',
+    backgroundColor: '#F8F9FA',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#EEEEEE',
+  },
+  sharedPassageText: {
+    fontSize: 16,
+    color: '#374151',
+    lineHeight: 26,
+    fontFamily: 'Epilogue, sans-serif',
+    fontWeight: '500',
+  },
+  groupSeparator: {
+    height: 1,
+    backgroundColor: '#F3F4F6',
+    marginTop: 8,
+  },
+  groupQuestionsList: {
+    gap: 0,
+  },
+  questionInGroupSeparator: {
+    borderTopWidth: 1,
+    borderTopColor: '#F9FAFB',
+    marginTop: 12,
+    paddingTop: 12,
+  },
+  sharedImageWrapper: {
+    width: '100%',
+    ...(Platform.OS === 'web' && {
+      cursor: 'zoom-in',
+    }),
+  },
+  imagePressed: {
+    opacity: 0.9,
+  },
+  previewOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    ...(Platform.OS === 'web' && {
+      backdropFilter: 'blur(10px)',
+    }),
+  },
+  previewImageContainer: {
+    width: '90%',
+    height: '85%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  previewFullImage: {
+    width: '100%',
+    height: '100%',
+  },
+  previewCloseButton: {
+    position: 'absolute',
+    top: 30,
+    right: 30,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  previewCloseText: {
+    fontSize: 36,
+    color: '#FFFFFF',
+    fontWeight: '300',
+    lineHeight: 40,
   },
   dashboardContainer: {
     flex: 0.6,

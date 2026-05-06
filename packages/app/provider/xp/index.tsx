@@ -44,6 +44,7 @@ const XpContext = createContext({
   xpValue: 0,
   isLevelUp: false,
   newLevel: 0,
+  loading: false,
 })
 
 export const useXp = () => useContext(XpContext)
@@ -54,6 +55,7 @@ export const XpProvider = ({ children }: { children: React.ReactNode }) => {
     xpValue: 0,
     isLevelUp: false,
     newLevel: 0,
+    loading: false,
   })
   
   // State cho danh hiệu mới mở khóa
@@ -69,19 +71,7 @@ export const XpProvider = ({ children }: { children: React.ReactNode }) => {
    * 3. Hiển thị thông báo
    */
   const addXp = useCallback(async (configKey: string, source: number) => {
-    // 0. OPTIMISTIC UI: HIỂN THỊ THÔNG BÁO LÊN NGAY LẬP TỨC TRƯỚC KHI CHỜ FETCH API
-    // Điều này đảm bảo XP bay ra ngay khi người dùng hoàn thành
     if (timerRef.current) clearTimeout(timerRef.current)
-    setNotification({
-      visible: true,
-      xpValue: 10, // Hiển thị tạm 10XP ngay lập tức (nếu API có kết quả khác sẽ cập nhật sau)
-      isLevelUp: false,
-      newLevel: 0,
-    })
-
-    timerRef.current = setTimeout(() => {
-      setNotification(prev => ({ ...prev, visible: false }))
-    }, 4500)
 
     try {
       // 1. Lấy giá trị cấu hình (XP amount) ngầm
@@ -106,15 +96,21 @@ export const XpProvider = ({ children }: { children: React.ReactNode }) => {
       })
 
       if (res.data && res.data.isSuccess) {
-        // Cập nhật lại số XP nếu thành công, lúc này Notification ĐÃ VÀ ĐANG hiển thị rồi 
-        setNotification(prev => ({
-          ...prev, // giữ nguyên trạng thái visible: true đang có
+        // 3. HIỂN THỊ THÔNG BÁO CHỈ KHI ĐÃ CÓ KẾT QUẢ THỰC TẾ TỪ SERVER
+        setNotification({
+          visible: true,
           xpValue: res.data.data.xpAdded,
           isLevelUp: res.data.data.isLevelUp,
           newLevel: res.data.data.newLevel,
-        }))
+          loading: false,
+        })
 
-        // 3. Kiểm tra danh hiệu cấp độ mới (theo yêu cầu người dùng: mỗi lần cộng XP đều check)
+        // Tự động ẩn sau 4.5s
+        timerRef.current = setTimeout(() => {
+          setNotification(prev => ({ ...prev, visible: false }))
+        }, 4500)
+
+        // 4. Kiểm tra danh hiệu cấp độ mới
         try {
           const titleRes = await apiClient.post(ENDPOINTS.TITLE.CHECK_LEVEL_TITLES)
           if (titleRes.data && titleRes.data.isSuccess && titleRes.data.data && titleRes.data.data.length > 0) {
@@ -138,6 +134,7 @@ export const XpProvider = ({ children }: { children: React.ReactNode }) => {
         visible={notification.visible} 
         isLevelUp={notification.isLevelUp}
         newLevel={notification.newLevel}
+        loading={notification.loading}
       />
       <UnlockedTitlesModal 
         visible={showTitlesModal} 

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { 
   Modal, 
   Form, 
@@ -19,6 +19,9 @@ import {
   SaveOutlined 
 } from '@ant-design/icons'
 import { SYSTEM_CONFIG_TYPES } from '../constants/config-types.jsx'
+import { apiClient } from '../../../provider/api/client'
+import { ENDPOINTS } from '../../../provider/api/endpoints'
+import { BookOutlined } from '@ant-design/icons'
 
 const { Text } = Typography
 
@@ -31,6 +34,49 @@ const ConfigFormModal = ({
   editingConfig, 
   form 
 }) => {
+  const [exams, setExams] = useState([])
+  const [loadingExams, setLoadingExams] = useState(false)
+  const [examType, setExamType] = useState(2) // Default to TOPIK II
+
+  // Fetch exams for selection helper
+  const fetchExams = async (type) => {
+    try {
+      setLoadingExams(true)
+      const res = await apiClient.get(ENDPOINTS.EXAMS.ADMIN_LIST, {
+        params: {
+          PageNumber: 1,
+          PageSize: 100,
+          Status: 1, // Published
+          Type: type,
+          CreatorFilter: 2 // Human
+        }
+      })
+      setExams(res.data?.data?.items || [])
+    } catch (err) {
+      console.error('Failed to fetch exams for config helper', err)
+    } finally {
+      setLoadingExams(false)
+    }
+  }
+
+  useEffect(() => {
+    if (open && form.getFieldValue('configType') === 6) {
+      fetchExams(examType)
+    }
+  }, [open, examType, form.getFieldValue('configType')])
+
+  // Auto detect exam type from key
+  useEffect(() => {
+    if (open && form.getFieldValue('configType') === 6) {
+      const key = form.getFieldValue('key') || ''
+      if (key.toUpperCase().includes('TOPIK_1')) {
+        setExamType(1)
+      } else if (key.toUpperCase().includes('TOPIK_2')) {
+        setExamType(2)
+      }
+    }
+  }, [open, form.getFieldValue('configType'), form.getFieldValue('key')])
+
   return (
     <Modal
       title={
@@ -128,14 +174,16 @@ const ConfigFormModal = ({
                 <Select.Option value="string">Văn bản (String)</Select.Option>
                 <Select.Option value="int">Số nguyên (Integer)</Select.Option>
                 <Select.Option value="boolean">Bật/Tắt (Boolean)</Select.Option>
+                <Select.Option value="json">Cấu hình JSON</Select.Option>
               </Select>
             </Form.Item>
           </Col>
 
           <Col span={24}>
-            <Form.Item dependencies={['dataType']} noStyle>
+            <Form.Item dependencies={['dataType', 'configType']} noStyle>
               {({ getFieldValue }) => {
                 const dataType = getFieldValue('dataType')
+                const configType = getFieldValue('configType')
                 if (dataType === 'int') {
                   return (
                     <Form.Item
@@ -163,6 +211,70 @@ const ConfigFormModal = ({
                     </Form.Item>
                   )
                 }
+                if (configType === 6 && dataType === 'string') {
+                  return (
+                    <div style={{ marginBottom: 24 }}>
+                      <Form.Item
+                        label={<Text strong>Giá trị tham số (Mã đề thi)</Text>}
+                        name="value"
+                        rules={[{ required: true, message: 'Vui lòng chọn hoặc nhập mã đề' }]}
+                        style={{ marginBottom: 12 }}
+                      >
+                        <Input.TextArea 
+                          size="large" 
+                          placeholder="Nhập mã đề hoặc chọn từ danh sách bên dưới..." 
+                          style={{ borderRadius: '8px' }} 
+                        />
+                      </Form.Item>
+                      
+                      <div style={{ 
+                        background: '#f0f5ff', 
+                        padding: '16px', 
+                        borderRadius: '12px', 
+                        border: '1px solid #adc6ff',
+                        boxShadow: '0 2px 6px rgba(24, 144, 255, 0.1)'
+                      }}>
+                        <Space direction="vertical" style={{ width: '100%' }} size={12}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Text strong style={{ color: '#1d39c4' }}>
+                              <BookOutlined /> Hỗ trợ chọn mã đề nhanh
+                            </Text>
+                            <Select 
+                              value={examType} 
+                              onChange={setExamType}
+                              size="small"
+                              style={{ width: 100 }}
+                              options={[
+                                { label: 'TOPIK I', value: 1 },
+                                { label: 'TOPIK II', value: 2 },
+                              ]}
+                            />
+                          </div>
+                          
+                          <Select
+                            showSearch
+                            loading={loadingExams}
+                            placeholder="Tìm kiếm và chọn đề thi..."
+                            style={{ width: '100%' }}
+                            optionFilterProp="children"
+                            onChange={(val) => form.setFieldsValue({ value: val })}
+                            filterOption={(input, option) =>
+                              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                            }
+                            options={exams.map(ex => ({
+                              value: ex.examId,
+                              label: `[${ex.examId}] ${ex.title}`
+                            }))}
+                          />
+                          <Text type="secondary" style={{ fontSize: 12, fontStyle: 'italic' }}>
+                            * Khi chọn, mã đề sẽ được tự động điền vào ô giá trị phía trên.
+                          </Text>
+                        </Space>
+                      </div>
+                    </div>
+                  )
+                }
+
                 return (
                   <Form.Item
                     label={<Text strong>Giá trị tham số</Text>}
@@ -182,7 +294,7 @@ const ConfigFormModal = ({
             </Form.Item>
           </Col>
 
-          <Col span={24}>
+          <Col span={24} style={{ display: 'none' }}>
             <div style={{ background: '#fcfcfc', padding: '16px', borderRadius: '10px', border: '1px solid #f0f0f0' }}>
               <Form.Item 
                 label={<Text strong>Trạng thái kích hoạt</Text>} 

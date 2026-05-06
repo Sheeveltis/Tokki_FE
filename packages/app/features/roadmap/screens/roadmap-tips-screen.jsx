@@ -8,6 +8,8 @@ export function RoadmapTipsScreen({ tipId }) {
   const [taskDetail, setTaskDetail] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [passingScore, setPassingScore] = useState('')
+  const [studyLimit, setStudyLimit] = useState('')
 
   const fetchTaskDetail = useCallback(async () => {
     if (!tipId) {
@@ -48,9 +50,31 @@ export function RoadmapTipsScreen({ tipId }) {
     }
   }, [tipId])
 
+  const fetchConfigs = useCallback(async () => {
+    try {
+      const [scoreRes, limitRes] = await Promise.all([
+        apiClient.get(ENDPOINTS.SYSTEM_CONFIGS.GET_BY_KEY('AI_LEARNING_SCORE')),
+        apiClient.get(ENDPOINTS.SYSTEM_CONFIGS.GET_BY_KEY('AI_LEARNING_LIMIT_STUDY'))
+      ])
+
+      const scoreValue = scoreRes?.data?.data?.value
+      if (scoreValue) {
+        setPassingScore(scoreValue)
+      }
+
+      const limitValue = limitRes?.data?.data?.value
+      if (limitValue) {
+        setStudyLimit(limitValue)
+      }
+    } catch (err) {
+      console.error('Failed to fetch system configs:', err)
+    }
+  }, [])
+
   useEffect(() => {
     fetchTaskDetail()
-  }, [fetchTaskDetail])
+    fetchConfigs()
+  }, [fetchTaskDetail, fetchConfigs])
 
   return (
     <RoadmapTipsLayout
@@ -60,6 +84,8 @@ export function RoadmapTipsScreen({ tipId }) {
       error={error}
       onRetry={fetchTaskDetail}
       onComplete={handleCompleteTask}
+      passingScore={passingScore}
+      studyLimit={studyLimit}
     />
   )
 }

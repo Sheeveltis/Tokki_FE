@@ -8,6 +8,7 @@ import FailSound from '../../../../../../assets/sound-effect/solitare/fail.wav'
 import SuccessSound from '../../../../../../assets/sound-effect/solitare/success.wav'
 import { submitWordleGuess, getWordleResult, getWordleLevels } from '../../../api/wordle-level-api'
 import { awardMinigameXP } from '../../../api/api'
+import { useXp, XpConfigKeys, XpSourceList } from 'app/provider/xp'
 import { hasSeenHowToPlayTour } from './components/HowToPlayTour'
 
 export function useWordlePlayControl({
@@ -17,6 +18,7 @@ export function useWordlePlayControl({
   maxAttempts,
 }) {
   const router = useRouter()
+  const { addXp } = useXp()
   const isWeb = Platform.OS === 'web'
 
   const WORD_LENGTH = initialWordLength || 2
@@ -31,6 +33,11 @@ export function useWordlePlayControl({
   const [showMenuPopup, setShowMenuPopup] = useState(false)
   const [wordResult, setWordResult] = useState(null)
   const [tourRun, setTourRun] = useState(false)
+  const [currentPage, setCurrentPage] = useState(0)
+
+  const totalPages = useMemo(() => Math.ceil(MAX_GUESSES / 6), [MAX_GUESSES])
+  const canGoPrev = currentPage > 0
+  const canGoNext = currentPage < totalPages - 1
 
   const tapSoundRef = useRef(null)
   const failSoundRef = useRef(null)
@@ -259,6 +266,13 @@ export function useWordlePlayControl({
 
         if (!cancelled) {
           setRows(hydratedRows)
+          
+          // Tự động chuyển đến trang chứa hàng đang chơi
+          const nextRowIndex = hydratedRows.length
+          const targetPage = Math.floor(nextRowIndex / 6)
+          if (targetPage < totalPages) {
+            setCurrentPage(targetPage)
+          }
 
           if (levelData.isWon) {
             setGameState('won')
@@ -368,8 +382,17 @@ export function useWordlePlayControl({
             }
 
             try {
-              await awardMinigameXP(_level)
-              console.log('[useWordlePlayControl] ✅ Awarded XP for wordle')
+              const lv = String(_level || '').toLowerCase()
+              const isLv3 = lv === 'hard' || lv === '3'
+              const isLv2 = lv === 'medium' || lv === '2'
+              const configKey = isLv3 
+                ? XpConfigKeys.MINIGAME_WIN_LV3 
+                : isLv2 
+                  ? XpConfigKeys.MINIGAME_WIN_LV2 
+                  : XpConfigKeys.MINIGAME_WIN_LV1
+              
+              await addXp(configKey, XpSourceList.MINIGAME)
+              console.log('[useWordlePlayControl] ✅ Awarded XP for wordle win')
             } catch (xpError) {
               console.error('[useWordlePlayControl] ⚠️ Failed awarding XP:', xpError)
             }
@@ -386,7 +409,28 @@ export function useWordlePlayControl({
             setGameState('won')
           } else if (isGameOver) {
             setGameState('lost')
+            try {
+              const lv = String(_level || '').toLowerCase()
+              const isLv3 = lv === 'hard' || lv === '3'
+              const isLv2 = lv === 'medium' || lv === '2'
+              const configKey = isLv3 
+                ? XpConfigKeys.MINIGAME_LOSS_LV3 
+                : isLv2 
+                  ? XpConfigKeys.MINIGAME_LOSS_LV2 
+                  : XpConfigKeys.MINIGAME_LOSS_LV1
+              
+              await addXp(configKey, XpSourceList.MINIGAME)
+              console.log('[useWordlePlayControl] ❌ Awarded XP for wordle loss')
+            } catch (xpError) {
+              console.error('[useWordlePlayControl] ⚠️ Failed awarding loss XP:', xpError)
+            }
           }
+        }
+
+        // Tự động chuyển trang nếu đã điền hết trang hiện tại
+        const nextRowIndex = rows.length + 1
+        if (nextRowIndex % 6 === 0 && nextRowIndex < MAX_GUESSES && gameState === 'playing') {
+          setCurrentPage(Math.floor(nextRowIndex / 6))
         }
 
         resetRow()
@@ -453,11 +497,20 @@ export function useWordlePlayControl({
     resetRow()
     setTargetWord('')
     setWordResult(null)
+    setCurrentPage(0)
     if (isWeb) {
       focusHiddenImeInput()
       clearHiddenImeInput()
     }
   }, [resetRow, isWeb, focusHiddenImeInput, clearHiddenImeInput])
+
+  const goToNextPage = useCallback(() => {
+    if (canGoNext) setCurrentPage((p) => p + 1)
+  }, [canGoNext])
+
+  const goToPrevPage = useCallback(() => {
+    if (canGoPrev) setCurrentPage((p) => p - 1)
+  }, [canGoPrev])
 
   const handleNavigateToBoard = useCallback(() => {
     console.log('[useWordlePlayControl] handleNavigateToBoard called. dailyWordleId:', dailyWordleId)
@@ -535,6 +588,15 @@ export function useWordlePlayControl({
     setTargetWord,
     setWordResult,
     setShowMenuPopup,
+    setCurrentPage,
+
+    // pagination
+    currentPage,
+    totalPages,
+    canGoPrev,
+    canGoNext,
+    goToNextPage,
+    goToPrevPage,
 
     // ime/game handlers
     handleVirtualKey: (key) => {

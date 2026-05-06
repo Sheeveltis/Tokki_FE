@@ -42,6 +42,7 @@ export function ChatSupportLayout({
           loading={loading}
           selectedRoomId={selectedRoom?.id}
           onSelectRoom={onSelectRoom}
+          onJoinRoom={onJoinRoom}
           userRole={userRole}
           mode={mode}
           onModeChange={onModeChange}
@@ -67,20 +68,21 @@ export function ChatSupportLayout({
 
 const styles = {
   root: {
-    padding: 24,
     display: 'flex',
-    gap: 16,
-    height: 'calc(100vh - 120px)',
-    backgroundColor: '#f0f2f5',
+    height: 'calc(100vh - 64px)',
+    backgroundColor: '#fff',
+    overflow: 'hidden',
   },
   leftCol: {
-    width: 320,
+    width: 350,
     flexShrink: 0,
     height: '100%',
+    borderRight: '1px solid #f0f2f5',
   },
   rightCol: {
     flex: 1,
     height: '100%',
     minWidth: 0,
+    backgroundColor: '#fff',
   },
 }

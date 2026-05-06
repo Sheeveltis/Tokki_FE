@@ -8,6 +8,7 @@ import WinSound from '../../../../../../../assets/sound-effect/solitare/win.mp3'
 import MenuBackground from '../../../../../../../assets/menu2.png'
 import { getSolitareLayout, saveSolitareResult } from '../../../../api/solitare-play-api'
 import { awardMinigameXP } from '../../../../api/api'
+import { useXp, XpConfigKeys, XpSourceList } from 'app/provider/xp'
 import { SolitarePlayWebHeader } from './solitare-play-web-header'
 import { SolitarePlayWebBody } from './solitare-play-web-body'
 import { SolitarePlayWebMovingCard } from './solitare-play-web-moving-card'
@@ -57,6 +58,7 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
   const [score, setScore] = useState(0)
   const [isGameWon, setIsGameWon] = useState(false)
   const [isGameOver, setIsGameOver] = useState(false)
+  const { addXp } = useXp()
   const [isDragging, setIsDragging] = useState(false)
   const [topicCardCounts, setTopicCardCounts] = useState({})
   const [showMenuPopup, setShowMenuPopup] = useState(false)
@@ -381,8 +383,11 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
   useEffect(() => {
     if (!isGameWon && timeLeft === 0 && !isGameOver) {
       setIsGameOver(true)
+      if (onFinish) {
+        onFinish(score, 0, false) // isWin = false
+      }
     }
-  }, [timeLeft, isGameWon, isGameOver])
+  }, [timeLeft, isGameWon, isGameOver, onFinish, score])
 
   useEffect(() => {
     const totalTopics = Object.keys(topicCardCounts).length
@@ -425,32 +430,8 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
             winSoundRef.current.pause()
           }
   
-          Promise.allSettled([
-            saveSolitareResult({
-              gameId: 'GAME002',
-              score: finalScore,
-              level,
-            }),
-            awardMinigameXP(level),
-          ])
-            .then((results) => {
-              const [saveResultState, xpResultState] = results
-
-              if (saveResultState?.status === 'fulfilled') {
-                console.log('[SolitarePlayWeb] ✅ Saved solitaire result')
-              } else {
-                console.error('[SolitarePlayWeb] ⚠️ Failed saving solitaire result:', saveResultState?.reason)
-              }
-
-              if (xpResultState?.status === 'fulfilled') {
-                console.log('[SolitarePlayWeb] ✅ Awarded XP for solitaire')
-              } else {
-                console.error('[SolitarePlayWeb] ⚠️ Failed awarding XP:', xpResultState?.reason)
-              }
-            })
-
           if (onFinish) {
-            onFinish(finalScore, timeLeft)
+            onFinish(finalScore, timeLeft, true)
           }
           return
         }

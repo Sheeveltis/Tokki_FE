@@ -112,13 +112,13 @@ const styles = StyleSheet.create({
   dotsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 2,
-    gap: 3,
+    marginBottom: 4,
+    gap: 4,
   },
   dot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   dotInactive: {
     backgroundColor: 'rgba(255,255,255,0.4)',

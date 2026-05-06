@@ -1,6 +1,6 @@
 import React from 'react'
 import { Space, Typography, Button } from 'antd'
-import { PlusOutlined, ExportOutlined, ImportOutlined } from '@ant-design/icons'
+import { PlusOutlined } from '@ant-design/icons'
 
 const { Title, Text } = Typography
 
@@ -12,8 +12,7 @@ const ConfigListHeader = ({ onCreate }) => {
         <Text type="secondary">Quản lý các tham số vận hành, AI, bảo mật và giao diện của Tokki</Text>
       </Space>
       <Space>
-        <Button icon={<ExportOutlined />}>Xuất dữ liệu</Button>
-        <Button icon={<ImportOutlined />}>Nhập dữ liệu</Button>
+
         <Button 
           type="primary" 
           size="large" 

@@ -28,10 +28,28 @@ export function PronunciationRuleCreateModal({ open, loading, onCancel, onSubmit
     }
   }, [open, form])
 
+  const cleanHtml = (html) => {
+    if (!html) return ''
+    return html
+      .replace(/&nbsp;/g, ' ')
+      .replace(/<strong>/g, '<b>')
+      .replace(/<\/strong>/g, '</b>')
+  }
+
   const handleOk = async () => {
     try {
       const values = await form.validateFields()
-      onSubmit?.(values)
+      
+      // Làm sạch HTML cho phần nội dung và mô tả
+      const cleanedContent = cleanHtml(values.content)
+      const cleanedDescription = cleanHtml(values.description)
+
+      const payload = {
+        ...values,
+        content: cleanedContent,
+        description: cleanedDescription
+      }
+      onSubmit?.(payload)
     } catch (err) {
       // ignore validation errors
     }

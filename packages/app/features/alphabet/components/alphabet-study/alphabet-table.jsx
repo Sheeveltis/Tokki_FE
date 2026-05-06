@@ -31,7 +31,7 @@ const AlphabetCell = ({ item, onSelectLetter, themeColor }) => {
   );
 };
 
-export function AlphabetTable({ data, onSelectLetter }) {
+export function AlphabetTable({ data, onSelectLetter, loading }) {
   const padRow = (rowItems, totalCols = 13) => {
     const padded = [...rowItems];
     let keyIdx = 0;
@@ -41,6 +41,7 @@ export function AlphabetTable({ data, onSelectLetter }) {
     return padded;
   };
 
+  // Data mapping logic (lowercase 'vowel' and 'consonant' keys)
   const vowelsRow1 = padRow(data.filter(d => d.type === 'vowel' && d.row === 1).map((d) => ({...d, idx: data.indexOf(d)})));
   const vowelsRow2 = padRow(data.filter(d => d.type === 'vowel' && d.row === 2).map((d) => ({...d, idx: data.indexOf(d)})));
   const consRow1 = padRow(data.filter(d => d.type === 'consonant' && d.row === 1).map((d) => ({...d, idx: data.indexOf(d)})));
@@ -54,9 +55,40 @@ export function AlphabetTable({ data, onSelectLetter }) {
     );
   };
 
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: 300 }}>
+        <Text>Đang tải dữ liệu...</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={true} style={styles.scrollWrapper} contentContainerStyle={styles.scrollContent}>
       <View style={styles.mainContainer}>
+        
+        {/* CONSONANTS SECTION (Phụ âm thường đứng trước trong bảng chữ cái) */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionHeading}>BẢNG PHỤ ÂM (CONSONANTS)</Text>
+          <View style={[styles.tableBlock, styles.consTableBorder]}>
+            <View style={[styles.sideHeader, styles.consSideBg]}>
+              {renderTitle('PHỤ ÂM', '#1976D2')}
+            </View>
+            <View style={styles.tableGrid}>
+              <View style={styles.row}>
+                {consRow1.map((item, i) => (
+                  <AlphabetCell key={item.word || item.fallbackKey || i} item={item} onSelectLetter={onSelectLetter} themeColor="#1976D2" />
+                ))}
+              </View>
+              <View style={[styles.row, { borderBottomWidth: 0 }]}>
+                {consRow2.map((item, i) => (
+                  <AlphabetCell key={item.word || item.fallbackKey || i} item={item} onSelectLetter={onSelectLetter} themeColor="#1976D2" />
+                ))}
+              </View>
+            </View>
+          </View>
+        </View>
+
         {/* VOWELS SECTION */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionHeading}>BẢNG NGUYÊN ÂM (VOWELS)</Text>
@@ -79,27 +111,6 @@ export function AlphabetTable({ data, onSelectLetter }) {
           </View>
         </View>
 
-        {/* CONSONANTS SECTION */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionHeading}>BẢNG PHỤ ÂM (CONSONANTS)</Text>
-          <View style={[styles.tableBlock, styles.consTableBorder]}>
-            <View style={[styles.sideHeader, styles.consSideBg]}>
-              {renderTitle('PHỤ ÂM', '#1976D2')}
-            </View>
-            <View style={styles.tableGrid}>
-              <View style={styles.row}>
-                {consRow1.map((item, i) => (
-                  <AlphabetCell key={item.word || item.fallbackKey || i} item={item} onSelectLetter={onSelectLetter} themeColor="#1976D2" />
-                ))}
-              </View>
-              <View style={[styles.row, { borderBottomWidth: 0 }]}>
-                {consRow2.map((item, i) => (
-                  <AlphabetCell key={item.word || item.fallbackKey || i} item={item} onSelectLetter={onSelectLetter} themeColor="#1976D2" />
-                ))}
-              </View>
-            </View>
-          </View>
-        </View>
       </View>
     </ScrollView>
   );

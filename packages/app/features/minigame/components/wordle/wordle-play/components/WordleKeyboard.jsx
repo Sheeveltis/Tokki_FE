@@ -141,8 +141,20 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 50,
-    paddingHorizontal: 60,
+    ...Platform.select({
+      web: {
+        paddingVertical: 50,
+        paddingHorizontal: 60,
+      },
+      native: {
+        paddingVertical: 45,
+        paddingHorizontal: 20,
+      },
+      default: {
+        paddingVertical: 25,
+        paddingHorizontal: 15,
+      }
+    }),
   },
   row: {
     flexDirection: 'row',
@@ -151,13 +163,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   key: {
-    minWidth: Platform.OS === 'web' ? 40 : 33,
-    height: Platform.OS === 'web' ? 40 : 33,
-    backgroundColor: '#FFF9E3', // Soft cream/pastel
-    borderRadius: 14, // Bubbly
+    minWidth: Platform.OS === 'web' ? 40 : 29,
+    height: Platform.OS === 'web' ? 40 : 29,
+    backgroundColor: '#FFF9E3',
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    borderBottomWidth: Platform.OS === 'web' ? 0 : 4,
+    borderBottomWidth: Platform.OS === 'web' ? 0 : 3,
     borderBottomColor: '#EAD7AE',
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
@@ -168,10 +180,9 @@ const styles = StyleSheet.create({
       boxShadow: '0 4px 0 #EAD7AE, 0 6px 8px rgba(0, 0, 0, 0.15)',
       transition: 'all 0.05s ease',
     }),
-
   },
   submitKey: {
-    minWidth: 70,
+    minWidth: Platform.OS === 'web' ? 70 : 50,
     backgroundColor: '#4CAF50', // Friendly Green
     borderBottomColor: '#2E7D32',
     ...(Platform.OS === 'web' && {
@@ -179,7 +190,7 @@ const styles = StyleSheet.create({
     }),
   },
   deleteKey: {
-    minWidth: 70,
+    minWidth: Platform.OS === 'web' ? 70 : 50,
     backgroundColor: '#EF5350', // Soft earthy red
     borderBottomColor: '#C62828',
     ...(Platform.OS === 'web' && {
@@ -208,7 +219,7 @@ const styles = StyleSheet.create({
     }),
   },
   keyText: {
-    fontSize: 16,
+    fontSize: Platform.OS === 'web' ? 16 : 12,
     fontWeight: 'bold',
     color: '#1a1a1b',
     textAlign: 'center',

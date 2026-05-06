@@ -32,6 +32,7 @@ import { RoadmapPracticeScreen } from '@tokki/app/features/roadmap/screens/roadm
 import { RoadmapPracticeTestScreen } from '@tokki/app/features/roadmap/screens/roadmap-practice-test-screen'
 import { RoadmapGenerateScreen } from '@tokki/app/features/roadmap/screens/roadmap-generate-screen'
 import { TopikTypesScreen } from '@tokki/app/features/topik/screens/topik-types-screen'
+import { TopikTrialExamsScreen } from '@tokki/app/features/topik/screens/topik-trial-exams-screen'
 const AlphabetDrawingScreen = lazy(() => import('@tokki/app/features/alphabet/screens/client/alphabet-drawing-screen'))
 
 import { getCurrentUserId, apiClient } from '@tokki/app/provider/api/client'
@@ -547,6 +548,17 @@ function TopikTypesRoute() {
   )
 }
 
+function TopikTrialExamsRoute() {
+  const { navigate } = useRouteNavigation()
+  
+  return (
+    <TopikTrialExamsScreen 
+      onBackPress={() => navigate('/study')}
+    />
+  )
+}
+
+
 /**
  * Study Routes Configuration
  */
@@ -600,6 +612,7 @@ export const studyRoutes = [
 
   // Topik
   { path: '/topik/types', element: <TopikTypesRoute /> },
+  { path: '/topik/trial-exams', element: <TopikTrialExamsRoute /> },
 ]
 
 /**

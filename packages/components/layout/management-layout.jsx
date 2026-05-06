@@ -69,26 +69,32 @@ export default function ManagementLayout({
   searchValue,
   onSearchChange,
   onSearchSubmit,
+  leftExtra, // Thêm prop leftExtra
   extraFilters,
   actions = [],
   tableProps,
   children,
   title,
   renderCard, // Thêm prop renderCard để hiển thị dạng card
+  showViewToggle, // Thêm prop mới để ép hiện nút toggle dù không có renderCard
+  viewMode: externalViewMode, // Cho phép control viewMode từ bên ngoài
+  onViewModeChange, // Callback khi đổi viewMode
   scrollOffset = 260 // Thêm prop để bù trừ chiều cao scroll
 }) {
   const tableWrapperRef = useRef(null)
   const [tableScrollY, setTableScrollY] = useState(400)
-  const [viewMode, setViewMode] = useState('table') // 'table' hoặc 'card'
+  const [internalViewMode, setInternalViewMode] = useState('table')
+
+  const viewMode = externalViewMode || internalViewMode
+  const setViewMode = onViewModeChange || setInternalViewMode
 
   // Tách pagination ra để hiển thị riêng bên dưới bảng
   const paginationProps = tableProps?.pagination
 
   useEffect(() => {
     const updateHeight = () => {
-      // Calculate height based on viewport, subtracting space for header and footer items
       const vh = window.innerHeight
-      const calculatedHeight = Math.max(400, vh - scrollOffset) // Ensure at least 400px
+      const calculatedHeight = Math.max(400, vh - scrollOffset)
       setTableScrollY(calculatedHeight)
     }
 
@@ -98,7 +104,7 @@ export default function ManagementLayout({
   }, [])
 
   return (
-    <div style={{
+    <div className="management-layout-main" style={{
       display: 'flex',
       flexDirection: 'column',
       gap: 16,
@@ -125,8 +131,9 @@ export default function ManagementLayout({
               onSearch={onSearchSubmit}
             />
           )}
+          {leftExtra}
           {extraFilters}
-          {renderCard && (
+          {(renderCard || showViewToggle) && (
             <Segmented
               style={{ borderRadius: '0.75rem', padding: '2px' }}
               options={[
@@ -148,22 +155,22 @@ export default function ManagementLayout({
       </div>
 
       {/* UNIFIED CONTENT BOX (TABLE/CARDS + PAGINATION) */}
-      <div style={{
+      <div className="management-layout-box" style={{
         backgroundColor: '#fff',
         borderRadius: '1rem',
         boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        flex: 1, // Đẩy box này chiếm toàn bộ không gian còn lại
-        minHeight: 0 // Quan trọng để flex child có thể nhỏ hơn nội dung
+        flex: 1,
+        minHeight: 0
       }}>
         {/* CONTENT SECTION */}
         <div
           ref={tableWrapperRef}
           className="management-content-wrapper"
           style={{
-            flex: 1, // Để wrapper tự giãn theo không gian còn lại trong box
+            flex: 1,
             minHeight: 0,
             overflowY: viewMode === 'table' ? 'hidden' : 'auto',
             overflowX: 'auto',
@@ -171,49 +178,52 @@ export default function ManagementLayout({
           }}
         >
           {viewMode === 'table' ? (
-            <ManagementTable
-              {...tableProps}
-              pagination={false}
-              // Trừ đi khoảng 80px để chừa chỗ cho header, border và thanh cuộn ngang nếu có
-              scroll={{ ...tableProps?.scroll, x: 'max-content', y: tableScrollY - 70 }}
-              size="middle"
-            />
-          ) : (
-            <div style={{ padding: '24px 24px 24px 24px' }}>
-              <List
-                grid={{
-                  gutter: 16,
-                  xs: 1,
-                  sm: 2,
-                  md: 2,
-                  lg: 3,
-                  xl: 4,
-                  xxl: 4,
-                }}
-                rowKey={(item) => item.id || item.userId || item.key || item.email}
-                loading={tableProps?.loading}
-                dataSource={tableProps?.dataSource || []}
-                renderItem={(item) => (
-                  <List.Item>
-                    {renderCard(item)}
-                  </List.Item>
-                )}
-                locale={{
-                  emptyText: <Empty description="Không có dữ liệu" />
-                }}
+            tableProps ? (
+              <ManagementTable
+                {...tableProps}
+                pagination={false}
+                scroll={{ ...tableProps?.scroll, x: 'max-content', y: tableScrollY - 70 }}
+                size="middle"
               />
-            </div>
+            ) : null
+          ) : (
+            renderCard && (
+              <div style={{ padding: '24px 24px 24px 24px' }}>
+                <List
+                  grid={{
+                    gutter: 16,
+                    xs: 1,
+                    sm: 2,
+                    md: 2,
+                    lg: 3,
+                    xl: 4,
+                    xxl: 4,
+                  }}
+                  rowKey={(item) => item.id || item.userId || item.key || item.email}
+                  loading={tableProps?.loading}
+                  dataSource={tableProps?.dataSource || []}
+                  renderItem={(item) => (
+                    <List.Item>
+                      {renderCard(item)}
+                    </List.Item>
+                  )}
+                  locale={{
+                    emptyText: <Empty description="Không có dữ liệu" />
+                  }}
+                />
+              </div>
+            )
           )}
           {children}
         </div>
 
         {/* PAGINATION SECTION */}
-        {paginationProps && (
-          <div style={{
+        {viewMode === 'table' && paginationProps && (
+          <div className="management-pagination-wrapper" style={{
             display: 'flex',
             justifyContent: 'flex-end',
             alignItems: 'center',
-            padding: '12px 24px 16px 24px', // Giảm bớt padding để khít hơn
+            padding: '12px 24px 16px 24px',
             backgroundColor: '#fff',
             borderTop: '1px solid #f0f0f0',
             zIndex: 10,
