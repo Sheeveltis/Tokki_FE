@@ -174,6 +174,7 @@ const ConfigFormModal = ({
                 <Select.Option value="string">Văn bản (String)</Select.Option>
                 <Select.Option value="int">Số nguyên (Integer)</Select.Option>
                 <Select.Option value="boolean">Bật/Tắt (Boolean)</Select.Option>
+                <Select.Option value="json">Cấu hình JSON</Select.Option>
               </Select>
             </Form.Item>
           </Col>

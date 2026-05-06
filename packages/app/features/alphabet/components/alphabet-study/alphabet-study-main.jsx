@@ -162,7 +162,6 @@ export function AlphabetStudyMain({
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [strokeFeedbacks, setStrokeFeedbacks] = useState([])
   const [liveFeedback, setLiveFeedback] = useState('')
-  const [detailsPage, setDetailsPage] = useState(0)
   const canvasRef = useRef(null)
 
   const selectedStrokes = current?.strokes || []
@@ -345,9 +344,7 @@ export function AlphabetStudyMain({
     }
   }
 
-  const itemsPerPage = 3
-  const totalPages = Math.ceil(strokeFeedbacks.length / itemsPerPage)
-  const currentDetails = strokeFeedbacks.slice(detailsPage * itemsPerPage, (detailsPage + 1) * itemsPerPage)
+  const currentDetails = strokeFeedbacks
 
   useEffect(() => {
     if (isDrawing) {
@@ -495,25 +492,6 @@ export function AlphabetStudyMain({
                   <View style={styles.detailsSectionResult}>
                     <View style={styles.detailsHeader}>
                       <Text style={styles.detailsTitle}>Chi tiết từng nét</Text>
-                      {totalPages > 1 && (
-                        <View style={styles.pagination}>
-                          <TouchableOpacity 
-                            disabled={detailsPage === 0}
-                            onPress={() => setDetailsPage(p => p - 1)}
-                            style={[styles.pageBtn, detailsPage === 0 && styles.pageBtnDisabled]}
-                          >
-                            <Text style={styles.pageBtnText}>◀</Text>
-                          </TouchableOpacity>
-                          <Text style={styles.pageIndicator}>{detailsPage + 1}/{totalPages}</Text>
-                          <TouchableOpacity 
-                            disabled={detailsPage === totalPages - 1}
-                            onPress={() => setDetailsPage(p => p + 1)}
-                            style={[styles.pageBtn, detailsPage === totalPages - 1 && styles.pageBtnDisabled]}
-                          >
-                            <Text style={styles.pageBtnText}>▶</Text>
-                          </TouchableOpacity>
-                        </View>
-                      )}
                     </View>
                     
                     <View style={styles.detailsListResult}>

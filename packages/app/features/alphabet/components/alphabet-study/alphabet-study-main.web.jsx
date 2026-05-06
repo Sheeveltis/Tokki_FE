@@ -105,7 +105,6 @@ export function AlphabetStudyMain({
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [strokeFeedbacks, setStrokeFeedbacks] = useState([])
   const [liveFeedback, setLiveFeedback] = useState('')
-  const [detailsPage, setDetailsPage] = useState(0)
   const canvasRef = useRef(null)
   const canvasBoxRef = useRef(null)
   const audioRef = useRef(null)
@@ -179,7 +178,6 @@ export function AlphabetStudyMain({
     setFeedbackMessage('')
     setStrokeFeedbacks([])
     setLiveFeedback('')
-    setDetailsPage(0)
     canvasRef.current?.clearCanvas()
   }
 
@@ -313,9 +311,7 @@ export function AlphabetStudyMain({
     }
   }
 
-  const itemsPerPage = 3
-  const totalPages = Math.ceil(strokeFeedbacks.length / itemsPerPage)
-  const currentDetails = strokeFeedbacks.slice(detailsPage * itemsPerPage, (detailsPage + 1) * itemsPerPage)
+  const currentDetails = strokeFeedbacks
 
   useEffect(() => {
     if (isDrawing && canvasBoxRef.current) {
@@ -461,25 +457,6 @@ export function AlphabetStudyMain({
                   <View style={styles.detailsSectionResult}>
                     <View style={styles.detailsHeader}>
                       <Text style={styles.detailsTitle}>Chi tiết từng nét</Text>
-                      {totalPages > 1 && (
-                        <View style={styles.pagination}>
-                          <TouchableOpacity 
-                            disabled={detailsPage === 0}
-                            onClick={() => setDetailsPage(p => p - 1)}
-                            style={[styles.pageBtn, detailsPage === 0 && styles.pageBtnDisabled]}
-                          >
-                            <ArrowLeftOutlined />
-                          </TouchableOpacity>
-                          <Text style={styles.pageIndicator}>{detailsPage + 1}/{totalPages}</Text>
-                          <TouchableOpacity 
-                            disabled={detailsPage === totalPages - 1}
-                            onClick={() => setDetailsPage(p => p + 1)}
-                            style={[styles.pageBtn, detailsPage === totalPages - 1 && styles.pageBtnDisabled]}
-                          >
-                            <ArrowLeftOutlined style={{ transform: [{ scaleX: -1 }] }} />
-                          </TouchableOpacity>
-                        </View>
-                      )}
                     </View>
                     
                     <View style={styles.detailsListResult}>

@@ -67,17 +67,37 @@ export function MenuStudyMain({
           font-family: 'Plus Jakarta Sans', 'Epilogue', sans-serif;
         }
         .main-banner {
-          background: white;
-          border-radius: 20px;
-          padding: 20px 26px;
-          border: 1px solid #FFF8E1;
-          box-shadow: 0 10px 30px rgba(255, 179, 0, 0.05);
-          margin-bottom: 16px;
+          background: #ffffff;
+          border-radius: 24px;
+          padding: 32px;
+          border: 1px solid #F1F5F9;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+          margin-bottom: 24px;
           position: relative;
           overflow: hidden;
-          min-height: 140px;
+          min-height: 160px;
           display: flex;
           align-items: center;
+        }
+        .banner-decoration-1 {
+          position: absolute;
+          top: -20px;
+          right: -20px;
+          width: 150px;
+          height: 150px;
+          background: radial-gradient(circle, rgba(255, 179, 0, 0.08) 0%, rgba(255, 179, 0, 0) 70%);
+          border-radius: 50%;
+          z-index: 0;
+        }
+        .banner-decoration-2 {
+          position: absolute;
+          bottom: -50px;
+          left: 10%;
+          width: 200px;
+          height: 200px;
+          background: radial-gradient(circle, rgba(255, 179, 0, 0.05) 0%, rgba(255, 179, 0, 0) 70%);
+          border-radius: 50%;
+          z-index: 0;
         }
         .banner-mascot {
           width: 36px;
@@ -250,16 +270,30 @@ export function MenuStudyMain({
         <Col xs={24} lg={16}>
           {/* Banner Section */}
           <section className="main-banner">
+            <div className="banner-decoration-1" />
+            <div className="banner-decoration-2" />
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '24px', position: 'relative', zIndex: 1, width: '100%' }}>
               <div style={{ flex: 1, minWidth: '300px', position: 'relative', zIndex: 2 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px', marginBottom: '24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div style={{ 
+                      width: '48px', 
+                      height: '48px', 
+                      background: 'linear-gradient(135deg, #FFF8E1 0%, #FFF3E0 100%)',
+                      borderRadius: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 12px rgba(255, 179, 0, 0.1)'
+                    }}>
+                      <CompassOutlined style={{ fontSize: '24px', color: '#FFB300' }} />
+                    </div>
                     <div>
-                      <Title level={4} style={{ margin: 0, textTransform: 'uppercase', fontWeight: 900, color: '#1E293B', fontSize: '18px' }}>
+                      <Title level={4} style={{ margin: 0, textTransform: 'uppercase', fontWeight: 900, color: '#1E293B', fontSize: '20px', letterSpacing: '0.5px' }}>
                         {hasRoadmap ? `Lộ trình tuần ${roadmapData.weekIndex}` : 'Chưa có lộ trình học'}
                       </Title>
-                      <Text type="secondary" style={{ fontSize: '13px' }}>
-                        {hasRoadmap ? 'Hôm nay học tiếp nhé!' : 'Bắt đầu hành trình chinh phục tiếng Hàn ngay hôm nay!'}
+                      <Text type="secondary" style={{ fontSize: '14px', color: '#64748B' }}>
+                        {hasRoadmap ? 'Hôm nay học tiếp nhé!' : 'Khám phá lộ trình học tập tối ưu dành riêng cho bạn'}
                       </Text>
                     </div>
                   </div>
@@ -291,8 +325,14 @@ export function MenuStudyMain({
                 )}
 
                 {!hasRoadmap && (
-                  <div>
-                    <Text style={{ color: '#64748B', maxWidth: '400px' }}>
+                  <div style={{ 
+                    background: 'rgba(255, 179, 0, 0.03)', 
+                    padding: '16px 20px', 
+                    borderRadius: '16px', 
+                    borderLeft: '4px solid #FFB300',
+                    marginTop: '8px'
+                  }}>
+                    <Text style={{ color: '#475569', fontSize: '14px', lineHeight: '1.6' }}>
                       AI sẽ giúp bạn thiết kế một lộ trình học tập tối ưu, phù hợp với trình độ và mục tiêu riêng của bạn.
                     </Text>
                   </div>
