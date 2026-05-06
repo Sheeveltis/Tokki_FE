@@ -22,7 +22,8 @@ import {
   PlusOutlined,
   EyeOutlined,
   ControlOutlined,
-  BookOutlined
+  BookOutlined,
+  CodeOutlined
 } from '@ant-design/icons'
 import { showAdminSuccess, showAdminError } from '../../../../components/HelperAdmin'
 import ManagementLayout from '../../../../components/layout/management-layout'
@@ -38,6 +39,7 @@ import ConfigListHeader from '../components/config-list-header'
 import { useTopikColumns } from '../components/topik-config-table'
 import TopikConfigModal from '../components/topik-config-modal'
 import TopikConfigView from '../components/topik-config-view'
+import JsonConfigModal from '../components/json-config/json-config-modal'
 
 import { fetchSystemConfigs, updateSystemConfig, createSystemConfig } from '../api/system-config'
 import { fetchTopikConfigs, createTopikConfig, updateTopikConfig } from '../api/topik-config'
@@ -62,6 +64,8 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
   const [isEdit, setIsEdit] = useState(false)
   const [editingConfig, setEditingConfig] = useState(null)
   const [viewingConfig, setViewingConfig] = useState(null)
+  const [jsonModalOpen, setJsonModalOpen] = useState(false)
+  const [jsonEditingConfig, setJsonEditingConfig] = useState(null)
 
   const [form] = Form.useForm()
   const [activeSubTab, setActiveSubTab] = useState('general') // 'general' or 'topik'
@@ -161,6 +165,11 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
     setViewModalOpen(true)
   }, [])
 
+  const handleJsonEdit = useCallback((record) => {
+    setJsonEditingConfig(record)
+    setJsonModalOpen(true)
+  }, [])
+
   const handleCreate = useCallback(() => {
     setIsEdit(false)
     setEditingConfig(null)
@@ -203,6 +212,24 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
       loadData(filters)
     } catch (err) {
       showAdminError(err?.message || 'Thao tác thất bại')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleJsonFormFinish = async (values) => {
+    try {
+      setSaving(true)
+      // values đã được modal đóng gói lại thành JSON string trong trường hợp structured
+      await updateSystemConfig({
+        ...values,
+        systemConfigID: jsonEditingConfig.systemConfigID
+      })
+      showAdminSuccess('Cập nhật cấu hình JSON thành công')
+      setJsonModalOpen(false)
+      loadData(filters)
+    } catch (err) {
+      showAdminError(err?.message || 'Cập nhật JSON thất bại')
     } finally {
       setSaving(false)
     }
@@ -336,6 +363,11 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
       width: 100,
       render: (_, record) => {
         const iconStyle = { fontSize: 18, cursor: 'pointer', color: '#1890ff' }
+        const isJson = record.dataType === 'json' || 
+                       record.key?.toUpperCase().includes('JSON') || 
+                       record.key?.toUpperCase().includes('PROMPT') ||
+                       ['AI_WORDLE_PROMPT'].includes(record.key)
+
         return (
           <Space size="large">
             <Tooltip title="Xem chi tiết">
@@ -344,17 +376,27 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
                 onClick={() => handleView(record)}
               />
             </Tooltip>
-            <Tooltip title="Chỉnh sửa">
-              <EditOutlined
-                style={iconStyle}
-                onClick={() => handleEdit(record)}
-              />
-            </Tooltip>
+            {isJson && (
+              <Tooltip title="Cấu hình JSON chuyên sâu">
+                <CodeOutlined
+                  style={{ ...iconStyle, color: '#722ed1' }}
+                  onClick={() => handleJsonEdit(record)}
+                />
+              </Tooltip>
+            )}
+            {!isJson && (
+              <Tooltip title="Chỉnh sửa cơ bản">
+                <EditOutlined
+                  style={iconStyle}
+                  onClick={() => handleEdit(record)}
+                />
+              </Tooltip>
+            )}
           </Space>
         )
       },
     },
-  ], [filters.page, filters.size, handleEdit, handleView, handleToggleActive])
+  ], [filters.page, filters.size, handleEdit, handleView, handleToggleActive, handleJsonEdit])
 
   const handleToggleTopikActive = useCallback(async (record, checked) => {
     try {
@@ -630,6 +672,14 @@ export function SystemConfigManagement({ basePath = '/admin' }) {
         open={topikViewOpen}
         onCancel={() => setTopikViewOpen(false)}
         config={viewingTopik}
+      />
+
+      <JsonConfigModal
+        open={jsonModalOpen}
+        onCancel={() => setJsonModalOpen(false)}
+        onFinish={handleJsonFormFinish}
+        saving={saving}
+        config={jsonEditingConfig}
       />
     </div>
   )
