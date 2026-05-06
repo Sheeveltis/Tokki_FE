@@ -199,33 +199,58 @@ export function NavbarMobile({
     }
   }
 
+  // Logic to determine if a tab should be active based on route groups
+  const isTabActive = (tab) => {
+    if (!currentRouteName) return false
+    
+    switch (tab) {
+      case 'home':
+        return currentRouteName === 'minigame' || 
+               currentRouteName.startsWith('wordle-') || 
+               currentRouteName.startsWith('matching-card-')
+      case 'flashcard':
+        return currentRouteName === 'flashcard-list' || 
+               currentRouteName.startsWith('flashcard-') || 
+               currentRouteName === 'learned-vocabulary-list' ||
+               currentRouteName === 'menu-study'
+      case 'pronunciation':
+        return currentRouteName.startsWith('pronunciation-')
+      case 'blog':
+        return currentRouteName.startsWith('blog-')
+      case 'profile':
+        return currentRouteName === 'menu-mobile' || currentRouteName === 'user-profile'
+      default:
+        return false
+    }
+  }
+
   return (
     <View style={styles.container}>
       {/* Home - Leftmost */}
         <TouchableOpacity style={styles.iconButton} onPress={handleHomePress} activeOpacity={0.7}>
-          {renderIcon(HomeIcon, styles.icon, currentRouteName === 'minigame', '#5E794E')}
+          {renderIcon(HomeIcon, styles.icon, isTabActive('home'), '#5E794E')}
         </TouchableOpacity>
-
+ 
         {/* Flashcard - Second from left */}
         <TouchableOpacity style={styles.iconButton} onPress={handleFlashcardPress} activeOpacity={0.7}>
-          {renderIcon(FlashcardIcon, styles.icon, currentRouteName === 'flashcard-list', '#F4900C')}
+          {renderIcon(FlashcardIcon, styles.icon, isTabActive('flashcard'), '#F4900C')}
         </TouchableOpacity>
-
+ 
         {/* Pronunciation AI - Center */}
         <TouchableOpacity style={styles.iconButton} onPress={handleMenuPress} activeOpacity={0.7}>
-          {renderIcon(MicrophoneIcon, styles.icon, currentRouteName === 'pronunciation-rules', '#4834D4')}
+          {renderIcon(MicrophoneIcon, styles.icon, isTabActive('pronunciation'), '#4834D4')}
         </TouchableOpacity>
-
-
+ 
+ 
         {/* Blog - Second from right */}
         <TouchableOpacity style={styles.iconButton} onPress={handleBlogPress} activeOpacity={0.7}>
-          {renderIcon(BlogIcon, styles.icon, currentRouteName === 'blog-list', '#DD9B9D')}
+          {renderIcon(BlogIcon, styles.icon, isTabActive('blog'), '#DD9B9D')}
         </TouchableOpacity>
-
+ 
         {/* Profile - Rightmost */}
         <TouchableOpacity style={styles.iconButton} onPress={handleProfilePress} activeOpacity={0.7}>
           {avatarUrl ? (
-            <View style={[styles.avatarContainer, currentRouteName === 'menu-mobile' && { backgroundColor: '#89A455' + '20', borderRadius: 15 }]}>
+            <View style={[styles.avatarContainer, isTabActive('profile') && { backgroundColor: '#89A455' + '20', borderRadius: 15 }]}>
               <Image
                 source={normalizeImageSource(avatarUrl)}
                 style={styles.avatarIcon}
@@ -233,7 +258,7 @@ export function NavbarMobile({
               />
             </View>
           ) : (
-            renderIcon(UserIcon, styles.icon, currentRouteName === 'menu-mobile', '#89A455')
+            renderIcon(UserIcon, styles.icon, isTabActive('profile'), '#89A455')
           )}
       </TouchableOpacity>
     </View>

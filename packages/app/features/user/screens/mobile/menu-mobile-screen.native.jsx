@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, Platform, TouchableOpacity, Text } from '
 import { useNavigation } from '@react-navigation/native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { UserProfileMenu } from '../../components/mobile/menu-mobile/user-profile-menu.native'
-import { UserInformation } from '../../components/client/profile/user-information'
+import { UserDashboardContent } from '../../components/client/profile/user-dashboard-content.native'
 import { PaymentHistoryContent } from '../../components/client/payment-history/payment-history-content'
 import { getPaymentHistory } from '../../api/get-payment-history'
 import { NavbarMobile } from '../../../../../components/navbar-mobile'
@@ -93,7 +93,7 @@ export function MenuMobileScreen() {
 
         {activeTab === 'profile' && (
           <View style={styles.contentContainer}>
-            <UserInformation />
+            <UserDashboardContent />
           </View>
         )}
 

@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignItems: 'center',
     gap: 40,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent',
   },
   loadingContainer: {
     flex: 1,
