@@ -27,7 +27,8 @@ export const QRIsepay = ({ paymentId, paymentUrl, style }) => {
   const [loading, setLoading] = useState(false)
   const [qrUrl, setQrUrl] = useState(null)
   const [error, setError] = useState(null)
-  const [timeLeft, setTimeLeft] = useState(600) // 10 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(0)
+  const [expiresAt, setExpiresAt] = useState(null)
   const intervalRef = useRef(null)
   const timerIntervalRef = useRef(null)
   const hasNavigatedRef = useRef(false)
@@ -37,35 +38,40 @@ export const QRIsepay = ({ paymentId, paymentUrl, style }) => {
   useEffect(() => {
     if (paymentUrl) {
       setQrUrl(paymentUrl)
-      setTimeLeft(600)
       return
     }
     if (paymentId) {
       fetchQRCode()
-      setTimeLeft(600)
     }
   }, [paymentId, paymentUrl])
 
   useEffect(() => {
-    if (!paymentId && !paymentUrl) return
-    timerIntervalRef.current = setInterval(() => {
-      setTimeLeft((prevTime) => {
-        if (prevTime <= 1) {
-          if (!hasNavigatedToFailedRef.current && !hasNavigatedRef.current) {
-            hasNavigatedToFailedRef.current = true
-            if (intervalRef.current) clearInterval(intervalRef.current)
-            if (timerIntervalRef.current) clearInterval(timerIntervalRef.current)
-            router.push('/payment-failed')
-          }
-          return 0
+    if (!expiresAt) return
+    
+    const updateTimer = () => {
+      const now = new Date()
+      const expiry = new Date(expiresAt)
+      const diff = Math.floor((expiry.getTime() - now.getTime()) / 1000)
+
+      if (diff <= 0) {
+        setTimeLeft(0)
+        if (!hasNavigatedToFailedRef.current && !hasNavigatedRef.current) {
+          hasNavigatedToFailedRef.current = true
+          if (intervalRef.current) clearInterval(intervalRef.current)
+          router.push('/payment-failed')
         }
-        return prevTime - 1
-      })
-    }, 1000)
+      } else {
+        setTimeLeft(diff)
+      }
+    }
+
+    updateTimer()
+    timerIntervalRef.current = setInterval(updateTimer, 1000)
+    
     return () => {
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current)
     }
-  }, [paymentId, paymentUrl, router])
+  }, [expiresAt, router])
 
   useEffect(() => {
     if (!paymentId) return
@@ -73,11 +79,19 @@ export const QRIsepay = ({ paymentId, paymentUrl, style }) => {
       try {
         const response = await getPaymentStatusById(paymentId)
         if (response.isSuccess && response.data) {
+          // Lưu thời gian hết hạn để tính toán countdown
+          if (response.data.expiresAt) {
+            setExpiresAt(response.data.expiresAt)
+          }
+
           const status = response.data.status
           if (status === 1 && !hasNavigatedRef.current && !hasNavigatedToFailedRef.current) {
             hasNavigatedRef.current = true
             if (intervalRef.current) clearInterval(intervalRef.current)
             if (timerIntervalRef.current) clearInterval(timerIntervalRef.current)
+            if (Platform.OS === 'web') {
+              sessionStorage.setItem('payment_success', 'true')
+            }
             router.push('/payment-success')
           }
         }

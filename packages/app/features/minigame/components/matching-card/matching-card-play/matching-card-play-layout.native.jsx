@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, Image } from 'react-native'
 import { useRouter, useSearchParams } from 'solito/navigation'
 import { MatchingCardHeader } from './matching-card-play-header'
 import { MatchingCardPlayBody } from './matching-card-play-body'
+import { useXp, XpConfigKeys, XpSourceList } from 'app/provider/xp'
 import { BackButton } from '../../../../../../components/backBtn'
 import PlayBackground from '../../../../../../assets/BackgroundSolite.jpg'
 
@@ -29,6 +30,7 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
   const [matchedIds, setMatchedIds] = useState([])
   const [score, setScore] = useState(0)
   const [finished, setFinished] = useState(false)
+  const { addXp } = useXp()
   const router = useRouter()
   const searchParams = useSearchParams()
   const gameId = searchParams?.get('gameId') || ''
@@ -80,6 +82,21 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
     if (!cardsCount) return
     if (finished) return
     if (matchedIds.length && matchedIds.length === cardsCount) {
+      // Award XP for Win
+      try {
+        const lv = String(levelId || '').toLowerCase()
+        const isLv3 = lv === 'hard' || lv === '3'
+        const isLv2 = lv === 'medium' || lv === '2'
+        const configKey = isLv3 
+          ? XpConfigKeys.MINIGAME_WIN_LV3 
+          : isLv2 
+            ? XpConfigKeys.MINIGAME_WIN_LV2 
+            : XpConfigKeys.MINIGAME_WIN_LV1
+        
+        addXp(configKey, XpSourceList.MINIGAME)
+      } catch (err) {
+        console.error('[MatchingCardLayout Native] XP Error:', err)
+      }
       goToResult()
     }
   }, [matchedIds, cardsCount, finished])
@@ -102,6 +119,21 @@ export function MatchingCardLayout({ topicId, topicName, levelId = 'medium', qua
   }
 
   const handleTimeUp = () => {
+    // Award XP for Loss
+    try {
+      const lv = String(levelId || '').toLowerCase()
+      const isLv3 = lv === 'hard' || lv === '3'
+      const isLv2 = lv === 'medium' || lv === '2'
+      const configKey = isLv3 
+        ? XpConfigKeys.MINIGAME_LOSS_LV3 
+        : isLv2 
+          ? XpConfigKeys.MINIGAME_LOSS_LV2 
+          : XpConfigKeys.MINIGAME_LOSS_LV1
+      
+      addXp(configKey, XpSourceList.MINIGAME)
+    } catch (err) {
+      console.error('[MatchingCardLayout Native] Loss XP Error:', err)
+    }
     goToResult()
   }
 

@@ -116,6 +116,7 @@ export const SKILL_MODULES = [
     icon: BookIcon,
     items: [
       { label: 'Học TOPIK theo dạng', icon: ReadOutlined, route: 'topik-type' },
+      { label: 'Làm đề thi Topik', icon: FormOutlined, route: 'topik-trial' },
     ],
   }
 ]

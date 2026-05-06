@@ -89,6 +89,39 @@ export function usePronunciationExampleDetail(exampleId) {
     }
   }, [recording])
 
+  const playTTS = (text, safeRate) => {
+    if (Platform.OS === 'web') {
+      if ('speechSynthesis' in window) {
+        setIsPlaying(true)
+        const utterance = new SpeechSynthesisUtterance(text)
+        utterance.lang = 'ko-KR'
+        utterance.rate = safeRate
+        utterance.onend = () => setIsPlaying(false)
+        utterance.onerror = () => setIsPlaying(false)
+        window.speechSynthesis.speak(utterance)
+      } else {
+        console.warn('TTS not supported on this browser')
+      }
+    } else {
+      // Native TTS using expo-speech
+      try {
+        const Speech = require('expo-speech')
+        setIsPlaying(true)
+        Speech.speak(text, {
+          language: 'ko',
+          rate: safeRate,
+          onDone: () => setIsPlaying(false),
+          onError: (err) => {
+            console.warn('Expo Speech error:', err)
+            setIsPlaying(false)
+          }
+        })
+      } catch (e) {
+        console.warn('expo-speech not available', e)
+      }
+    }
+  }
+
   const playAudio = async (rate = 0.9) => {
     if (isPlaying) return
 
@@ -97,53 +130,81 @@ export function usePronunciationExampleDetail(exampleId) {
     // Nếu có audioUrl: Ưu tiên phát file audio từ server
     if (example?.audioUrl) {
       try {
-        setIsPlaying(true)
         const fullAudioUrl = example.audioUrl.startsWith('http') ? example.audioUrl : `${DOMAIN}${example.audioUrl}`
         console.log(`DEBUG: [${Platform.OS}] Playing pronunciation audio from URL:`, fullAudioUrl)
 
         if (Platform.OS === 'web') {
+          setIsPlaying(true)
           const audio = new window.Audio(fullAudioUrl)
           audio.playbackRate = safeRate
 
-          audio.onended = () => {
-            console.log('DEBUG: Audio playback ended')
-            setIsPlaying(false)
-          }
-
-          audio.onerror = (e) => {
-            console.warn('DEBUG: Audio file error, falling back to TTS', e)
+          audio.onended = () => setIsPlaying(false)
+          audio.onerror = () => {
             setIsPlaying(false)
             playTTS(example.targetScript, safeRate)
           }
-
-          audio.play()
-            .then(() => {
-              console.log('DEBUG: Audio playback started success')
-            })
-            .catch((err) => {
-              console.error('DEBUG: Play failed:', err)
-              setIsPlaying(false)
-              playTTS(example.targetScript, safeRate)
-            })
-        } else if (ExpoAudio) {
-          const { sound } = await ExpoAudio.Sound.createAsync(
-            { uri: fullAudioUrl },
-            { shouldPlay: true, rate: safeRate, shouldCorrectPitch: true }
-          )
-          sound.setOnPlaybackStatusUpdate((s) => {
-            if (s.didJustFinish) {
-              setIsPlaying(false)
-              sound.unloadAsync()
-            }
+          audio.play().catch(() => {
+            setIsPlaying(false)
+            playTTS(example.targetScript, safeRate)
           })
+        } else if (ExpoAudio) {
+          // Configure audio mode with better Android focus settings
+          await ExpoAudio.setAudioModeAsync({
+            allowsRecordingIOS: false,
+            playsInSilentModeIOS: true,
+            staysActiveInBackground: true, // Try to stay active
+            shouldRouteAudioToSpeakerIfInternalMicEnabled: true,
+            interruptionModeAndroid: 1, // INTERRUPTION_MODE_ANDROID_DO_NOT_MIX
+            shouldDuckAndroid: false,
+          })
+
+          console.log('DEBUG: [Native] Step 1: Initializing sound object...')
+          const soundObject = new ExpoAudio.Sound()
+          
+          try {
+            setIsPlaying(true)
+            console.log('DEBUG: [Native] Step 2: Loading sound from URL:', fullAudioUrl)
+            
+            await soundObject.loadAsync(
+              { uri: fullAudioUrl },
+              { shouldPlay: false, rate: safeRate, shouldCorrectPitch: true },
+              false
+            )
+
+            console.log('DEBUG: [Native] Step 3: Sound loaded successfully. Starting playback...')
+            
+            soundObject.setOnPlaybackStatusUpdate((status) => {
+              if (status.didJustFinish) {
+                console.log('DEBUG: [Native] Step 4: Playback finished.')
+                setIsPlaying(false)
+                soundObject.unloadAsync().catch(() => {})
+              }
+              if (status.error) {
+                console.error('DEBUG: [Native] Playback runtime error:', status.error)
+                setIsPlaying(false)
+                soundObject.unloadAsync().catch(() => {})
+              }
+            })
+
+            await soundObject.playAsync()
+            console.log('DEBUG: [Native] Step 5: Play command sent.')
+
+          } catch (loadError) {
+            console.error('DEBUG: [Native] Load/Play error:', loadError)
+            setIsPlaying(false)
+            await soundObject.unloadAsync().catch(() => {})
+            // Fallback to TTS
+            if (example?.targetScript) {
+              console.log('DEBUG: [Native] Falling back to TTS due to load error')
+              playTTS(example.targetScript, safeRate)
+            }
+          }
         }
         return
       } catch (err) {
-        console.error('DEBUG: Play audio error, trying TTS:', err)
+        console.error('DEBUG: Global play audio error, trying TTS:', err)
         setIsPlaying(false)
-        if (example?.targetScript) {
-          playTTS(example.targetScript, safeRate)
-        }
+        if (example?.targetScript) playTTS(example.targetScript, safeRate)
       }
     }
 
@@ -151,20 +212,6 @@ export function usePronunciationExampleDetail(exampleId) {
     if (example?.targetScript) {
       console.log('DEBUG: Playing pronunciation via TTS (Fallback/No URL)')
       playTTS(example.targetScript, safeRate)
-    }
-  }
-
-  const playTTS = (text, safeRate) => {
-    if (Platform.OS === 'web' && 'speechSynthesis' in window) {
-      setIsPlaying(true)
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = 'ko-KR' // Tiếng Hàn
-      utterance.rate = safeRate
-      utterance.onend = () => setIsPlaying(false)
-      utterance.onerror = () => setIsPlaying(false)
-      window.speechSynthesis.speak(utterance)
-    } else {
-      console.warn('TTS not supported on this platform')
     }
   }
 

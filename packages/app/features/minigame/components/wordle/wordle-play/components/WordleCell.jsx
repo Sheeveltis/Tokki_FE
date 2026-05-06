@@ -11,7 +11,7 @@ import { View, Text, StyleSheet, Platform } from 'react-native'
  *   finalStatus: 'Green' | 'Gray',
  * }
  */
-export function WordleCell({ feedback }) {
+export function WordleCell({ feedback, isLocked = false }) {
   const letter = feedback?.character || ''
   const initialStatus = (feedback?.initialStatus || '').toLowerCase()
   const vowelStatus = (feedback?.vowelStatus || '').toLowerCase()
@@ -21,7 +21,10 @@ export function WordleCell({ feedback }) {
   // Màu block theo blockColor (ưu tiên chuẩn backend)
   let cellStyle = styles.cell
   let textStyle = styles.text
-  if (blockColor === 'green') {
+  if (isLocked) {
+    cellStyle = [styles.cell, styles.cellLocked]
+    textStyle = [styles.text, styles.lockedText]
+  } else if (blockColor === 'green') {
     cellStyle = [styles.cell, styles.cellGreen]
     textStyle = [styles.text, styles.whiteText]
   } else if (blockColor === 'yellow') {
@@ -53,13 +56,14 @@ export function WordleCell({ feedback }) {
               style={[
                 styles.dot,
                 isGreen ? styles.dotGreen : isYellow ? styles.dotYellow : styles.dotInactive,
+                isLocked && { opacity: 0.5 } // Optional: dim dots when locked
               ]}
             />
           )
         })}
       </View>
       <View style={cellStyle}>
-        <Text style={textStyle}>{letter}</Text>
+        <Text style={textStyle}>{isLocked ? 'X' : letter}</Text>
       </View>
     </View>
   )
@@ -120,6 +124,11 @@ const styles = StyleSheet.create({
     borderColor: '#90A4AE',
     borderBottomColor: '#546E7A',
   },
+  cellLocked: {
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+    borderBottomColor: 'rgba(0, 0, 0, 0.2)',
+  },
   text: {
     fontSize: 24,
     fontWeight: '900',
@@ -131,6 +140,10 @@ const styles = StyleSheet.create({
       textShadowOffset: { width: 1, height: 1 },
       textShadowRadius: 1,
     }),
+  },
+  lockedText: {
+    color: 'rgba(0, 0, 0, 0.2)',
+    fontSize: 32,
   },
   whiteText: {
     color: '#FFFFFF',

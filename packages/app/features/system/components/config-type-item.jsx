@@ -5,17 +5,18 @@ const { Text } = Typography
 
 const ConfigTypeItem = ({ type, isActive }) => {
   return (
-    <div style={{ 
-      padding: '12px 16px', 
-      display: 'flex', 
-      alignItems: 'center', 
-      width: '240px',
+    <div className="config-type-item" style={{
+      padding: '12px 8px',
+      display: 'flex',
+      alignItems: 'center',
+      width: '200px',
       borderRadius: '8px',
-      transition: 'all 0.3s'
+      transition: 'all 0.3s',
+      cursor: 'pointer'
     }}>
-      <span style={{ 
-        fontSize: '20px', 
-        marginRight: '16px', 
+      <span style={{
+        fontSize: '20px',
+        marginRight: '16px',
         color: isActive ? type.color : '#bfbfbf',
         background: isActive ? `${type.color}15` : 'transparent',
         width: '36px',

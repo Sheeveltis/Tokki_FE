@@ -2,8 +2,9 @@ import React from 'react'
 import { View, ScrollView, StyleSheet, Text, useWindowDimensions } from 'react-native'
 import { Card as PackageFree } from './package-free'
 import { Card as PackagePremium } from './package-premium-background'
+import { BackButton } from '../../../../../components/backBtn'
 
-export function PaymentPackageLayout() {
+export function PaymentPackageLayout({ onBackPress }) {
   const { width } = useWindowDimensions()
   const isMobile = width < 900
   const isSmallMobile = width < 600
@@ -55,6 +56,11 @@ export function PaymentPackageLayout() {
               <PackagePremium />
             </View>
           </View>
+        </View>
+
+        {/* Back Button */}
+        <View style={styles.buttonContainer}>
+          <BackButton onPress={onBackPress} />
         </View>
       </ScrollView>
     </View>
@@ -137,5 +143,10 @@ const styles = StyleSheet.create({
   cardWrapperMobile: {
     flex: 0,
     width: '100%',
+  },
+  buttonContainer: {
+    marginTop: 40,
+    alignSelf: 'center',
+    paddingBottom: 20,
   },
 })

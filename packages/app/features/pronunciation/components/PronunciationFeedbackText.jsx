@@ -9,15 +9,23 @@ export const getScoreColor = (score) => {
 
 export const renderHtmlText = (htmlString, defaultStyle, boldStyle) => {
   if (!htmlString) return null
-  const cleanStr = htmlString.replace(/<\/?p>/g, '').trim()
-  const parts = cleanStr.split(/(<b>|<\/b>)/g)
+  
+  // Clean string: replace &nbsp; and remove <p> tags
+  let cleanStr = htmlString
+    .replace(/&nbsp;/g, ' ')
+    .replace(/<\/?p>/g, '')
+    .trim()
+
+  // Handle both <b> and <strong>
+  const parts = cleanStr.split(/(<b>|<\/b>|<strong>|<\/strong>)/g)
   let isBold = false
+  
   return parts.map((part, index) => {
-    if (part === '<b>') {
+    if (part === '<b>' || part === '<strong>') {
       isBold = true
       return null
     }
-    if (part === '</b>') {
+    if (part === '</b>' || part === '</strong>') {
       isBold = false
       return null
     }
@@ -39,7 +47,10 @@ export const PronunciationFeedbackText = ({ htmlString, evaluationWords }) => {
   const wrapperRef = React.useRef(null)
   const wordLayouts = React.useRef({})
 
-  const cleanStr = htmlString.replace(/<\/?p>/g, '').trim()
+  const cleanStr = htmlString
+    .replace(/&nbsp;/g, ' ')
+    .replace(/<\/?p>/g, '')
+    .trim()
   const referenceWordsFeedback = (evaluationWords || []).filter(w => w.errorType !== 'Insertion')
 
   const getWordStyle = (feedback) => {
@@ -64,14 +75,14 @@ export const PronunciationFeedbackText = ({ htmlString, evaluationWords }) => {
   }
 
   const parseHtml = () => {
-    const segments = cleanStr.split(/(<b>|<\/b>)/g)
+    const segments = cleanStr.split(/(<b>|<\/b>|<strong>|<\/strong>)/g)
     const elements = []
     let isBold = false
     let globalWordIdx = 0
 
     segments.forEach((segment, segmentIdx) => {
-      if (segment === '<b>') isBold = true
-      else if (segment === '</b>') isBold = false
+      if (segment === '<b>' || segment === '<strong>') isBold = true
+      else if (segment === '</b>' || segment === '</strong>') isBold = false
       else if (segment) {
         const wordsInSegment = segment.split(/(\s+)/).filter(p => p !== '')
 

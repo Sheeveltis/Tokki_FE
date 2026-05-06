@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, Image, Pressable, StyleSheet, ActivityIndicator, Platform } from 'react-native'
 import { useRouter } from 'solito/navigation'
-import { CreditCardOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
+import { CreditCardOutlined, SafetyCertificateOutlined, ArrowRightOutlined } from '@ant-design/icons'
 import { getVipPackages, createVipPackagePayment } from '../../api/premium-package-api'
 import { getCurrentUserId } from '../../../../provider/api/client'
 
@@ -194,7 +194,9 @@ export const ChoosePackage = () => {
           hovered && { backgroundColor: '#FFCA3D' }
         ]}
       >
-        <Text style={styles.continueText}>TIẾP TỤC THANH TOÁN  →</Text>
+        <Text style={styles.continueText}>
+          TIẾP TỤC THANH TOÁN  <ArrowRightOutlined style={{ fontSize: 20, color: '#7B4D00', marginLeft: 10 }} />
+        </Text>
       </Pressable>
     </View>
   )

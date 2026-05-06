@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Text, TouchableOpacity } from 'react-native'
 import { useRouter } from 'solito/navigation'
+import { ArrowLeftOutlined } from '@ant-design/icons'
 
 /**
  * Back Button Component
@@ -31,11 +32,18 @@ export const BackButton = ({ onPress, style, textStyle }) => {
         {
           flexDirection: 'row',
           alignItems: 'center',
-          gap: 4,
+          gap: 6,
         },
         style,
       ]}
     >
+      <ArrowLeftOutlined 
+        style={{ 
+          fontSize: 16, 
+          color: '#FF8C00',
+          fontWeight: 'bold'
+        }} 
+      />
       <Text
         style={[
           {
@@ -48,18 +56,6 @@ export const BackButton = ({ onPress, style, textStyle }) => {
         ]}
       >
         Quay lại
-      </Text>
-      <Text
-        style={[
-          {
-            fontSize: 18,
-            fontWeight: '500',
-            color: '#FF8C00',
-          },
-          textStyle,
-        ]}
-      >
-        ←
       </Text>
     </TouchableOpacity>
   )

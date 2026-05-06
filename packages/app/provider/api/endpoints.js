@@ -95,6 +95,7 @@ export const ENDPOINTS = {
     CREATE: '/Payment',
     GET_QR_BY_ID: (id) => `/Payment/${id}/qr`,
     GET_BY_ID: (id) => `/Payment/${id}`,
+    CANCEL: (id) => `/Payment/${id}/cancel`,
     HISTORY_TOKEN_USER: '/Payment/history-token-user', // GET: Lấy lịch sử thanh toán của user hiện tại
   },
   VIP_PACKAGE: {
@@ -135,6 +136,7 @@ export const ENDPOINTS = {
     CLOSE_SUPPORT: (roomId) => `/Chat/support/${roomId}/close`,
     GET_HISTORY: (roomId) => `/Chat/${roomId}/history`,
     GET_ACTIVE_SUPPORT: '/Chat/support/active',
+    GET_ACTIVE_ALL: '/Chat/support/active-all',
   },
   TOPIC: {
     CREATE: '/Topics',
@@ -160,6 +162,9 @@ export const ENDPOINTS = {
     GET_BY_ID: (exampleId) => `/PronunciationExample/${exampleId}`,
     UPDATE: (exampleId) => `/PronunciationExample/${exampleId}`,
     DELETE: (exampleId) => `/PronunciationExample/${exampleId}`,
+    IMPORT_EXCEL: '/PronunciationExample/import-excel',
+    EXPORT_EXCEL: '/PronunciationExample/export-excel',
+    IMPORT_TEMPLATE: '/PronunciationExample/import-template',
   },
   PRONUNCIATION_RULES: {
     CREATE: '/PronunciationRules', // POST: Tạo pronunciation rule
@@ -196,6 +201,10 @@ export const ENDPOINTS = {
     WORDLE_RESULT: (dailyWordleId) => `/minigame/wordle/result/${dailyWordleId}`,
     WORDLE_PUBLISH_SENTENCE: '/minigame/wordle/publish-sentence',
     WORDLE_TOP_SENTENCES: (dailyWordleId) => `/minigame/wordle/${dailyWordleId}/top-sentences`,
+    WORDLE_ADMIN_PAGINATION: '/minigame/wordle/admin/pagination',
+    WORDLE_REROLL: '/minigame/wordle/reroll',
+    WORDLE_SUITABLE_VOCABS: '/minigame/wordle/suitable-vocabs',
+    WORDLE_ASSIGN_VOCAB: '/minigame/wordle/assign-vocab',
   },
   GAMES: {
     USER_GET_ALL: '/Games/user/get-all', // GET: Lấy danh sách games cho user (query: pageNumber, pageSize)
@@ -322,6 +331,7 @@ export const ENDPOINTS = {
     EXPORT_PDF: (id) => `/Exams/${id}/export-pdf`, // GET: Xuất PDF
     IMPORT: '/Exams/import',
     EXPORT: '/Exams/export',
+    TRIAL_EXAMS: (pageNumber = 1, pageSize = 20, type) => `/Exams/trial-exams?PageNumber=${pageNumber}&PageSize=${pageSize}${type ? `&Type=${type}` : ''}`,
   },
   USER_EXAM: {
     TAKE_EXAM: (examId, isShuffle = true) =>

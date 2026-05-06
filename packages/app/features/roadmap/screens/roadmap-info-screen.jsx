@@ -55,12 +55,13 @@ export function RoadmapInfoScreen() {
     }
   }, [needsTest])
 
-  const handleStart = (level) => {
-    // Lấy exam key dựa trên level người dùng chọn
-    const examKey = ENTRANCE_EXAM_KEYS[level]
+  const handleStart = (level, examKey) => {
+    // Lấy exam key từ API (được truyền lên từ component con)
+    // Nếu không có, fallback về mapping cũ để đảm bảo tính tương thích
+    const finalExamKey = examKey || ENTRANCE_EXAM_KEYS[level]
     
-    // Truyền cả level và examKey qua query params để trang test sử dụng
-    router.push(`/roadmap/test?level=${level}&examKey=${examKey}&isEntrance=1`)
+    // Truyền cả level và finalExamKey qua query params để trang test sử dụng
+    router.push(`/roadmap/test?level=${level}&examKey=${finalExamKey}&isEntrance=1`)
   }
 
   if (isChecking) {

@@ -39,8 +39,13 @@ export function ChatSupportScreen() {
 
       const [pending, mine, config, allActive] = await Promise.all(promises)
       
-      setPendingRooms(role === 1 ? (allActive || []) : pending)
-      setMyRooms(mine)
+      // Lọc trùng lặp dựa trên chatRoomId
+      const uniqueAllActive = allActive ? Array.from(new Map(allActive.map(item => [item.chatRoomId, item])).values()) : []
+      const uniquePending = pending ? Array.from(new Map(pending.map(item => [item.chatRoomId, item])).values()) : []
+      const uniqueMine = mine ? Array.from(new Map(mine.map(item => [item.chatRoomId, item])).values()) : []
+
+      setPendingRooms(role === 1 ? uniqueAllActive : uniquePending)
+      setMyRooms(uniqueMine)
       
       if (config && config.value) {
         setMaxChatLimit(parseInt(config.value))

@@ -133,7 +133,7 @@ export function ExamDetailScreen() {
     )
   }
 
-  const isLockedExam = exam.status === 1 || exam.status === 2
+  const isLockedExam = exam.status === 1 || exam.status === 2 || exam.status === 3
 
   // Handlers
   const handleOpenStatusModal = () => {

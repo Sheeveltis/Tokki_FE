@@ -51,7 +51,7 @@ export const getPendingSupport = async () => {
  */
 export const fetchActiveSupportsAll = async () => {
   try {
-    const res = await apiClient.get('/Chat/support/active-all')
+    const res = await apiClient.get(ENDPOINTS.LIVE_CHAT.GET_ACTIVE_ALL)
     const data = res?.data?.data || res?.data
     return Array.isArray(data) ? data : []
   } catch (error) {

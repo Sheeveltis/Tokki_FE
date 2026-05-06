@@ -69,6 +69,7 @@ export default function ManagementLayout({
   searchValue,
   onSearchChange,
   onSearchSubmit,
+  leftExtra, // Thêm prop leftExtra
   extraFilters,
   actions = [],
   tableProps,
@@ -103,7 +104,7 @@ export default function ManagementLayout({
   }, [])
 
   return (
-    <div style={{
+    <div className="management-layout-main" style={{
       display: 'flex',
       flexDirection: 'column',
       gap: 16,
@@ -130,6 +131,7 @@ export default function ManagementLayout({
               onSearch={onSearchSubmit}
             />
           )}
+          {leftExtra}
           {extraFilters}
           {(renderCard || showViewToggle) && (
             <Segmented
@@ -153,7 +155,7 @@ export default function ManagementLayout({
       </div>
 
       {/* UNIFIED CONTENT BOX (TABLE/CARDS + PAGINATION) */}
-      <div style={{
+      <div className="management-layout-box" style={{
         backgroundColor: '#fff',
         borderRadius: '1rem',
         boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
@@ -217,7 +219,7 @@ export default function ManagementLayout({
 
         {/* PAGINATION SECTION */}
         {viewMode === 'table' && paginationProps && (
-          <div style={{
+          <div className="management-pagination-wrapper" style={{
             display: 'flex',
             justifyContent: 'flex-end',
             alignItems: 'center',

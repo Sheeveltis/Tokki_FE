@@ -24,11 +24,13 @@ const normalizeImageSource = (src) => {
   return src
 }
 
+import { Button } from '../../../../components/button'
+
 /**
  * Payment Success Screen Component
  * - Displays payment success message
  */
-export function PaymentSuccessScreen() {
+export function PaymentSuccessScreen({ onHomePress }) {
   return (
     <View style={styles.root}>
       {/* Background image */}
@@ -41,6 +43,15 @@ export function PaymentSuccessScreen() {
       <View style={styles.container}>
         <View style={styles.wrapper}>
           <PaymentSuccessLayout />
+          
+          <View style={styles.buttonContainer}>
+            <Button 
+              title="Về trang chủ" 
+              onPress={onHomePress}
+              color="mustard"
+              style={styles.homeButton}
+            />
+          </View>
         </View>
       </View>
 
@@ -78,6 +89,17 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 1200,
     paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  buttonContainer: {
+    marginTop: 20,
+    width: '100%',
+    alignItems: 'center',
+  },
+  homeButton: {
+    minWidth: 200,
+    height: 50,
+    borderRadius: 25,
   },
 })
 

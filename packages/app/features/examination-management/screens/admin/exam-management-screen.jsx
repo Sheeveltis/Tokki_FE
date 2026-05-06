@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'solito/navigation'
 import { Space, Tag, Select, Tooltip, Card, Button } from 'antd'
-import { EyeOutlined, FilterOutlined, PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
+import { EyeOutlined, FilterOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { message, Modal } from 'antd'
 import ManagementLayout from '../../../../../components/layout/management-layout.jsx'
 import { useExamsAdmin } from '../../api/exam-hooks.js'
-import { deleteExam, importExams, exportExams } from '../../api/exam-management.js'
+import { deleteExam } from '../../api/exam-management.js'
 import CreateExamModal from '../../components/admin/create-exam-modal.jsx'
 import { EditExamInfoModal } from '../../components/admin/exam-detail/edit-exam-info-modal.jsx'
 import { useQueryClient } from '@tanstack/react-query'
@@ -21,6 +21,7 @@ const STATUS_MAP = {
   0: { color: '#8c8c8c', text: 'Nháp' },
   1: { color: '#52c41a', text: 'Đã xuất bản' },
   2: { color: '#f5222d', text: 'Đã xóa' },
+  3: { color: '#1890ff', text: 'Đã công khai' },
 }
 
 // Map type enum values to display text
@@ -52,6 +53,7 @@ export function ExamManagement({ initialData = null }) {
     search: '',
     status: 1,
     type: undefined,
+    creatorFilter: 2,
     page: 1,
     size: 20,
   })
@@ -59,9 +61,6 @@ export function ExamManagement({ initialData = null }) {
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editingRecord, setEditingRecord] = useState(null)
-  const [importing, setImporting] = useState(false)
-  const [exporting, setExporting] = useState(false)
-  const fileInputRef = React.useRef(null)
 
   // Fetch exams from API
   const { data: examsData, isLoading } = useExamsAdmin({
@@ -224,11 +223,11 @@ export function ExamManagement({ initialData = null }) {
                     okText: 'Xóa',
                     okType: 'danger',
                     cancelText: 'Hủy',
-                    okButtonProps: { 
-                      style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+                    okButtonProps: {
+                      style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 }
                     },
-                    cancelButtonProps: { 
-                      style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 } 
+                    cancelButtonProps: {
+                      style: { borderRadius: '2rem', height: 40, padding: '0 24px', fontWeight: 600 }
                     },
                     onOk: async () => {
                       try {
@@ -334,6 +333,7 @@ export function ExamManagement({ initialData = null }) {
       >
         <Option value={0}>Nháp</Option>
         <Option value={1}>Đã xuất bản</Option>
+        <Option value={3}>Đã công khai</Option>
         <Option value={2}>Đã xóa</Option>
       </Select>
 
@@ -364,70 +364,9 @@ export function ExamManagement({ initialData = null }) {
     </Space>
   )
 
-  const handleImport = async (file) => {
-    try {
-      setImporting(true)
-      const res = await importExams(file)
-      if (res?.isSuccess) {
-        message.success(res.message || 'Import đề thi thành công')
-        queryClient.invalidateQueries({ queryKey: ['exams', 'admin'] })
-      } else if (res?.message) {
-        Modal.error({
-          title: 'Lỗi Import Excel',
-          content: <div style={{ whiteSpace: 'pre-line' }}>{res.message}</div>,
-          width: 600,
-        })
-      }
-    } catch (e) {
-      const apiData = e?.response?.data
-      if (apiData?.message) {
-        Modal.error({
-          title: 'Lỗi Import Excel',
-          content: <div style={{ whiteSpace: 'pre-line' }}>{apiData.message}</div>,
-          width: 600,
-        })
-      } else {
-        message.error('Không thể import đề thi')
-      }
-    } finally {
-      setImporting(false)
-    }
-  }
 
-  const handleExport = async () => {
-    try {
-      setExporting(true)
-      const blob = await exportExams()
-      const url = window.URL.createObjectURL(new Blob([blob]))
-      const link = document.createElement('a')
-      link.href = url
-      link.setAttribute('download', `DS_DeThi_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '')}.xlsx`)
-      document.body.appendChild(link)
-      link.click()
-      link.parentNode.removeChild(link)
-      message.success('Xuất file Excel thành công')
-    } catch (e) {
-      message.error('Không thể xuất file Excel')
-    } finally {
-      setExporting(false)
-    }
-  }
 
   const actions = [
-    {
-      label: 'Import',
-      icon: <UploadOutlined />,
-      type: 'dashed',
-      loading: importing,
-      onPress: () => fileInputRef.current?.click()
-    },
-    {
-      label: 'Export',
-      icon: <DownloadOutlined />,
-      type: 'dashed',
-      loading: exporting,
-      onPress: handleExport
-    },
     {
       label: 'Thêm mới',
       icon: <PlusOutlined />,
@@ -483,19 +422,7 @@ export function ExamManagement({ initialData = null }) {
         }}
       />
 
-      <input
-        type="file"
-        ref={fileInputRef}
-        style={{ display: 'none' }}
-        accept=".xlsx, .xls"
-        onChange={(e) => {
-          const file = e.target.files[0]
-          if (file) {
-            handleImport(file)
-            e.target.value = ''
-          }
-        }}
-      />
+
     </>
   )
 }

@@ -2,8 +2,9 @@ import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import { Card as PackagePremium } from '../payment-package/package-premium'
 import { ChoosePackage } from './choose-package'
+import { BackButton } from '../../../../../components/backBtn'
 
-export function PremiumPackageLayout() {
+export function PremiumPackageLayout({ onBackPress }) {
   return (
     <View style={styles.root}>
       <View style={styles.container}>
@@ -18,6 +19,11 @@ export function PremiumPackageLayout() {
             <View style={styles.rightSection}>
               <ChoosePackage />
             </View>
+          </View>
+
+          {/* Back Button */}
+          <View style={styles.buttonContainer}>
+            <BackButton onPress={onBackPress} />
           </View>
         </View>
       </View>
@@ -52,5 +58,9 @@ const styles = StyleSheet.create({
   },
   rightSection: {
     flex: 1.2,
+  },
+  buttonContainer: {
+    marginTop: 40,
+    alignSelf: 'center',
   },
 })

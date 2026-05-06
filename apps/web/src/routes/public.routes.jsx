@@ -142,17 +142,17 @@ function BlogPreviewRoute() {
 
 function PaymentDetailRoute() {
   const { navigate } = useRouteNavigation()
-  return <PaymentScreen onBackPress={() => navigate('/')} onPaymentSuccess={() => navigate('/payment-success')} />
+  return <PaymentScreen onBackPress={() => navigate('/roadmap/learning')} onPaymentSuccess={() => navigate('/payment-success')} />
 }
 
 function PaymentPackageRoute() {
   const { navigate } = useRouteNavigation()
-  return <PackageScreen onBackPress={() => navigate('/')} />
+  return <PackageScreen onBackPress={() => navigate('/roadmap/learning')} />
 }
 
 function PaymentPremiumRoute() {
   const { navigate } = useRouteNavigation()
-  return <PremiumScreen onBackPress={() => navigate('/')} />
+  return <PremiumScreen onBackPress={() => navigate('/roadmap/learning')} />
 }
 
 function PaymentFailedRoute() {
@@ -162,7 +162,25 @@ function PaymentFailedRoute() {
 
 function PaymentSuccessRoute() {
   const { navigate } = useRouteNavigation()
-  return <PaymentSuccessScreen onHomePress={() => navigate('/')} />
+
+  React.useEffect(() => {
+    const isSuccess = sessionStorage.getItem('payment_success')
+    if (!isSuccess) {
+      navigate('/', { replace: true })
+    }
+  }, [navigate])
+
+  const isSuccess = sessionStorage.getItem('payment_success')
+  if (!isSuccess) return null
+
+  return (
+    <PaymentSuccessScreen
+      onHomePress={() => {
+        sessionStorage.removeItem('payment_success')
+        navigate('/')
+      }}
+    />
+  )
 }
 
 // Minigame Routes
@@ -407,16 +425,8 @@ export function PublicLayout() {
       {!shouldHideFooter && <Footer />}
 
       {/* Widgets only for Web */}
-      {Platform.OS === 'web' && !shouldHideFooter && (
+      {Platform.OS === 'web' && (!shouldHideFooter || isStudyRoute || isRoadmapRoute || isFlashcardRoute) && (
         <>
-          <AppShow
-            style={{
-              position: 'fixed',
-              right: 20,
-              bottom: 20,
-              zIndex: 1000,
-            }}
-          />
           <BubbleChat />
         </>
       )}

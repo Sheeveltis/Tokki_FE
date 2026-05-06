@@ -27,6 +27,7 @@ export function ExamStatusChangeModal({ open, loading, onCancel, onSubmit, curre
   const statusOptions = [
     { value: 0, label: 'Nháp', icon: FileOutlined, color: '#6b7280', bgColor: '#f9fafb', borderColor: '#e5e7eb' },
     { value: 1, label: 'Xuất bản', icon: CheckCircleOutlined, color: '#10b981', bgColor: '#f0fdf4', borderColor: '#bbf7d0' },
+    { value: 3, label: 'Công khai (Làm thử)', icon: CheckCircleOutlined, color: '#1890ff', bgColor: '#e6f7ff', borderColor: '#91d5ff' },
     { value: 2, label: 'Xóa', icon: DeleteOutlined, color: '#ef4444', bgColor: '#fef2f2', borderColor: '#fecaca' },
   ]
 
@@ -110,7 +111,7 @@ export function ExamStatusChangeModal({ open, loading, onCancel, onSubmit, curre
           rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
           style={{ marginBottom: 0 }}
         >
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
             {statusOptions.map((option) => {
               const Icon = option.icon
               const isSelected = selectedStatus === option.value

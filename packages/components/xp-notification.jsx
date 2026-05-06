@@ -64,10 +64,10 @@ function XpNotificationWeb({ xp, visible, isLevelUp, newLevel }) {
       <div style={bubbleStyle}>
         {/* XP Badge */}
         <div style={badgeStyle}>
-          <span style={{ fontSize: 24, fontWeight: 900, color: '#F59E0B', filter: 'drop-shadow(0 2px 4px rgba(245, 158, 11, 0.2))' }}>
-            +{xp || 10}
+          <span style={{ fontSize: 24, fontWeight: 900, color: xp === 0 ? '#9CA3AF' : '#F59E0B', filter: xp === 0 ? 'none' : 'drop-shadow(0 2px 4px rgba(245, 158, 11, 0.2))' }}>
+            +{xp}
           </span>
-          <span style={{ fontSize: 13, fontWeight: 800, color: '#F59E0B', marginLeft: 4, marginTop: 4 }}>
+          <span style={{ fontSize: 13, fontWeight: 800, color: xp === 0 ? '#9CA3AF' : '#F59E0B', marginLeft: 4, marginTop: 4 }}>
             XP
           </span>
         </div>
@@ -75,10 +75,10 @@ function XpNotificationWeb({ xp, visible, isLevelUp, newLevel }) {
         {/* Text */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           <span style={{ fontSize: 16, fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>
-            Chúc mừng!
+            {xp === 0 ? 'Hết lượt nhận XP' : 'Chúc mừng!'}
           </span>
           <span style={{ fontSize: 13, color: '#6B7280', fontWeight: 500 }}>
-            Bạn đã nhận được kinh nghiệm
+            {xp === 0 ? 'Bạn đã đạt giới hạn XP hàng ngày' : 'Bạn đã nhận được kinh nghiệm'}
           </span>
         </div>
 
@@ -183,7 +183,9 @@ function XpNotificationMobile({ xp, visible, isLevelUp, newLevel }) {
       marginRight: 4,
     },
     badgeText: { fontSize: 24, fontWeight: '900', color: '#F59E0B' },
+    badgeTextDisabled: { fontSize: 24, fontWeight: '900', color: '#9CA3AF' },
     xpText: { fontSize: 13, fontWeight: '800', color: '#F59E0B', marginLeft: 4, marginTop: 6 },
+    xpTextDisabled: { fontSize: 13, fontWeight: '800', color: '#9CA3AF', marginLeft: 4, marginTop: 6 },
     title: { fontSize: 16, fontWeight: '700', color: '#111827' },
     sub: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
     levelUpBadge: {
@@ -211,12 +213,12 @@ function XpNotificationMobile({ xp, visible, isLevelUp, newLevel }) {
     >
       <View style={styles.bubble}>
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>+{xp || 10}</Text>
-          <Text style={styles.xpText}>XP</Text>
+          <Text style={xp === 0 ? styles.badgeTextDisabled : styles.badgeText}>+{xp}</Text>
+          <Text style={xp === 0 ? styles.xpTextDisabled : styles.xpText}>XP</Text>
         </View>
         <View style={{ gap: 0 }}>
-          <Text style={styles.title}>Chúc mừng! 🎉</Text>
-          <Text style={styles.sub}>Bạn đã nhận được kinh nghiệm</Text>
+          <Text style={styles.title}>{xp === 0 ? 'Hết lượt nhận XP' : 'Chúc mừng! 🎉'}</Text>
+          <Text style={styles.sub}>{xp === 0 ? 'Bạn đã đạt giới hạn XP hàng ngày' : 'Bạn đã nhận được kinh nghiệm'}</Text>
         </View>
         {isLevelUp && newLevel ? (
           <Animated.View

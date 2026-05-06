@@ -9,10 +9,10 @@ import { NavbarMobile } from '../../../../components/navbar-mobile'
  * - Hiển thị các tùy chọn gói bên phải
  * - Có nút quay lại
  */
-export function PremiumScreen() {
+export function PremiumScreen({ onBackPress }) {
   return (
     <View style={styles.container}>
-      <PremiumPackageLayout />
+      <PremiumPackageLayout onBackPress={onBackPress} />
       {Platform.OS !== 'web' && <NavbarMobile />}
     </View>
   )

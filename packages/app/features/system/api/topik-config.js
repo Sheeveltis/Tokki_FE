@@ -2,10 +2,12 @@ import { apiClient } from '../../../provider/api/client'
 import { ENDPOINTS } from '../../../provider/api/endpoints'
 
 export const fetchTopikConfigs = async (params) => {
-  const response = await apiClient.get('/TopikLevelConfig', { 
+  const response = await apiClient.get('/TopikLevelConfig/admin', { 
     params: {
       pageNumber: params?.pageNumber || 1,
       pageSize: params?.pageSize || 20,
+      search: params?.search?.trim() || undefined,
+      isActive: params?.isActive
     } 
   })
   return response?.data?.data || response?.data
@@ -16,8 +18,8 @@ export const createTopikConfig = async (data) => {
   return response?.data
 }
 
-export const updateTopikConfig = async (id, data) => {
-  const response = await apiClient.put(`/TopikLevelConfig/${id}`, data)
+export const updateTopikConfig = async (data) => {
+  const response = await apiClient.put('/TopikLevelConfig', data)
   return response?.data
 }
 
