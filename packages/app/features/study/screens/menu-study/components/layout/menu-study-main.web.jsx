@@ -377,7 +377,6 @@ export function MenuStudyMain({
                 <FireFilled className="flame-icon" />
               </div>
               <Title level={4} style={{ margin: 0, fontWeight: 900 }}>{streakDays} Ngày</Title>
-              <Text type="secondary" style={{ display: 'block', marginTop: '4px', marginBottom: '8px' }}>Học thêm 10 phút nữa để duy trì chuỗi nhé!</Text>
             </div>
 
             {/* Experience / Level Progress Card */}

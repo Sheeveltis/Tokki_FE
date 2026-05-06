@@ -497,13 +497,12 @@ const styles = StyleSheet.create({
   answerOptionHovered: {
     borderColor: '#D1D5DB',
     backgroundColor: '#F3F4F6',
-    transform: [{ translateX: 4 }],
     ...(Platform.OS === 'web' && {
       boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
     }),
   },
   answerOptionPressed: {
-    transform: [{ scale: 0.99 }],
+    opacity: 0.8,
   },
   answerOptionLabel: {
     fontSize: 13,
