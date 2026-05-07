@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Platform } from 'react-native';
 import * as signalR from '@microsoft/signalr';
 import { NOTIFICATION_HUB } from '../../../provider/api/hubConstants';
 
@@ -8,6 +9,11 @@ export const useNotificationSignalR = (token, onNotificationReceived) => {
   const startedRef = useRef(false);
 
   useEffect(() => {
+    // Disable SignalR on Mobile
+    if (Platform.OS !== 'web') {
+      return;
+    }
+
     if (!token) {
       if (connection) {
         connection.stop();

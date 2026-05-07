@@ -10,7 +10,7 @@ import {
   Platform,
   Animated,
 } from 'react-native'
-import confetti from 'canvas-confetti'
+// import confetti from 'canvas-confetti'
 
 
 /**
@@ -55,6 +55,7 @@ export const UnlockedTitlesModal = ({ visible, titles, onClose }) => {
 
       // Confetti
       if (Platform.OS === 'web') {
+        const confetti = require('canvas-confetti')
         const duration = 3 * 1000
         const animationEnd = Date.now() + duration
         const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 }

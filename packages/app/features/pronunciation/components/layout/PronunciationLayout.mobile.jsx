@@ -1,13 +1,14 @@
 import { View, StyleSheet, ScrollView, Text, Pressable } from 'react-native'
 import ArrowIcon from '../../../../../assets/icon/icon-mainflow/arrow.svg'
 import { NavbarMobile } from '../../../../../components/navbar-mobile'
+import { LinearGradient } from 'expo-linear-gradient'
 
 /**
  * PronunciationLayout (Mobile): Bố cục trang Pronunciation cho mobile
  */
 export function PronunciationLayout({ children, onBackPress, title }) {
   return (
-    <View style={styles.mobileRoot}>
+    <LinearGradient colors={['#FEF7E6', '#FFFFFF']} locations={[0, 0.4]} style={styles.mobileRoot}>
       <View style={styles.headerTop}>
         <Pressable onPress={onBackPress} style={styles.backButton}>
           <ArrowIcon
@@ -20,7 +21,7 @@ export function PronunciationLayout({ children, onBackPress, title }) {
         {title && <Text style={styles.headerTitle}>{title}</Text>}
       </View>
       <View style={styles.contentContainer}>
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
@@ -28,7 +29,7 @@ export function PronunciationLayout({ children, onBackPress, title }) {
         </ScrollView>
       </View>
       <NavbarMobile />
-    </View>
+    </LinearGradient>
   )
 }
 
@@ -37,7 +38,7 @@ export default PronunciationLayout
 const styles = StyleSheet.create({
   mobileRoot: {
     flex: 1,
-    backgroundColor: '#FFF8E7',
+    backgroundColor: '#fafafaff',
     paddingTop: 12,
   },
   contentContainer: {

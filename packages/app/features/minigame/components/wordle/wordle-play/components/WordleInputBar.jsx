@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, TextInput, StyleSheet, Platform, Pressable, Text } from 'react-native'
 
-export function WordleInputBar({ value, onChange, onSubmit, disabled, maxLength = 150 }) {
+export function WordleInputBar({ value, onChange, onSubmit, disabled, maxLength = 100 }) {
   return (
     <View style={styles.container}>
       <TextInput
@@ -21,6 +21,14 @@ export function WordleInputBar({ value, onChange, onSubmit, disabled, maxLength 
         textAlignVertical="top"
         scrollEnabled={true}
       />
+      <View style={styles.charCountContainer}>
+        <Text style={[
+          styles.charCount,
+          value.length >= maxLength && styles.charCountMax
+        ]}>
+          {value.length}/{maxLength}
+        </Text>
+      </View>
       <Pressable
         style={[styles.submitButton, disabled && styles.submitButtonDisabled]}
         onPress={onSubmit}
@@ -103,6 +111,25 @@ const styles = StyleSheet.create({
         textShadowRadius: 1,
       },
     }),
+  },
+  charCountContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 20,
+    backgroundColor: '#8D6E63',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    zIndex: 1,
+  },
+  charCount: {
+    fontSize: 12,
+    color: '#FFF9E3',
+    fontWeight: '700',
+  },
+  charCountMax: {
+    color: '#FFCCBC',
   },
 })
 

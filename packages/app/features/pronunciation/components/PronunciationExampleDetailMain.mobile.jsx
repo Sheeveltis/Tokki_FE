@@ -49,8 +49,8 @@ export function PronunciationExampleDetailMain({
           </View>
         )}
         <View style={styles.actionRow}>
-          <Pressable 
-            onPress={() => onPlayAudio(0.75)} 
+          <Pressable
+            onPress={() => onPlayAudio(0.75)}
             style={({ pressed }) => [
               styles.audioButtonWrapper,
               isPlaying && styles.audioButtonPlaying,
@@ -73,9 +73,9 @@ export function PronunciationExampleDetailMain({
 
         <Text style={styles.targetDescription}>{example.meaning}</Text>
         {example.phoneticScript && <Text style={styles.targetPhonetic}>[{example.phoneticScript}]</Text>}
-        
+
         <View style={[
-          styles.diffBadgeDetail, 
+          styles.diffBadgeDetail,
           example.difficulty === 'Easy' && { backgroundColor: '#4CAF50' },
           example.difficulty === 'Medium' && { backgroundColor: '#FFB800' },
           example.difficulty === 'Hard' && { backgroundColor: '#F44336' }
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     maxWidth: 900,
     alignSelf: 'center',
     paddingHorizontal: 0,
-    backgroundColor: '#FFF8E7',
+    backgroundColor: 'transparent',
   },
 
   greenCard: {

@@ -83,7 +83,7 @@ export function WordleSentenceFlow({
     setFeedbackLoading(true)
 
     try {
-      const sentenceContent = sentence.trim().substring(0, 150)
+      const sentenceContent = sentence.trim().substring(0, 100)
       const response = await submitWordleSentence(dailyWordleId, sentenceContent)
 
       const id = response?.submissionId || response?.data?.submissionId || response?.id
@@ -188,7 +188,7 @@ export function WordleSentenceFlow({
             value={sentence}
             onChange={setSentence}
             onSubmit={handleSentenceSubmit}
-            maxLength={150}
+            maxLength={100}
             disabled={false}
           />
         </View>
@@ -233,14 +233,19 @@ export function WordleSentenceFlow({
         </View>
       </Modal>
 
-      {feedbackLoading && (
+      <Modal
+        visible={feedbackLoading}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+      >
         <View style={styles.loadingOverlay}>
           <View style={styles.loadingCard}>
             <ActivityIndicator size="large" color="#4CAF50" />
             <Text style={styles.loadingText}>Đang chấm điểm câu văn...</Text>
           </View>
         </View>
-      )}
+      </Modal>
 
       {/* Modal feedback chi tiết sau khi submit câu */}
       <WordleFeedbackModal

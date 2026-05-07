@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, ScrollView, StyleSheet } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { NavbarMobile } from '../../../../../components/navbar-mobile'
 import { HomeSidebar } from './home-sidebar'
 
@@ -29,16 +30,16 @@ export function HomeLayout({
   onProfilePress,
 }) {
   return (
-    <View style={styles.root}>
+    <LinearGradient colors={['#FEF7E6', '#FFFFFF']} locations={[0, 0.4]} style={styles.root}>
       {/* Nội dung chính */}
       <ScrollView style={styles.container}>
         <View style={styles.wrapper}>
           <View style={styles.content}>
             {children}
           </View>
-
+ 
           <View style={styles.divider} />
-
+ 
           <View style={styles.sidebar}>
             <HomeSidebar data={sidebarData} />
           </View>
@@ -51,18 +52,18 @@ export function HomeLayout({
         onBlogPress={onBlogPress}
         onProfilePress={onProfilePress}
       />
-    </View>
+    </LinearGradient>
   )
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
   },
   wrapper: {
     width: '100%',
