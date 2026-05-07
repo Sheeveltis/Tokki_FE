@@ -24,6 +24,7 @@ const BubbleChat = () => {
     isQueueing,
     hasSupporter,
     roomId,
+    isRoomClosed,
     inputMessage,
     setInputMessage,
     loadingHistory,
@@ -32,6 +33,7 @@ const BubbleChat = () => {
     isConnected,
     currentUserId,
     isInitializing,
+    clearCurrentSession,
     handleStartConsultation,
     handleSendMessage,
     handleKeyPress,
@@ -62,7 +64,7 @@ const BubbleChat = () => {
 
     messages.forEach((msg, index) => {
       const isMine = msg.isFromCurrentUser || (currentUserId && msg.senderId === currentUserId)
-      const isSystem = msg.isSystem || msg.type === 'System' || !msg.senderId
+      const isSystem = msg.isSystem || msg.type === 'System' || msg.type === 9 || !msg.senderId
       const messageContent = msg.content || msg.message || msg.text || msg.contentText || ''
 
       if (!messageContent && !isMine && !isSystem) return
@@ -182,7 +184,7 @@ const BubbleChat = () => {
             ) : (
               <>
                 {renderMessageList()}
-                {isQueueing && isConnected && !hasSupporter && (
+                {isQueueing && isConnected && !hasSupporter && !isRoomClosed && (
                   <div className="chat-queue-status" style={{ borderBottom: 'none', background: 'transparent' }}>
                     <div className="waiting-bunny-container">
                       <img src={WaitingBubbleChat} alt="Waiting" className="waiting-bunny" />
@@ -200,42 +202,55 @@ const BubbleChat = () => {
 
           {roomId && (
             <div className="chat-footer">
-              <div className="chat-input-container">
-                <input
-                  type="text"
-                  className="chat-input"
-                  placeholder="Vui lòng nhập tin nhắn..."
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  disabled={!isConnected}
-                />
-                <button
-                  className="emoji-btn"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  type="button"
-                >
-                  <EmojiIcon style={{ fontSize: '20px', color: '#64748b' }} />
-                </button>
-
-                {showEmojiPicker && (
-                  <div className="emoji-picker-container">
-                    <EmojiPickerWrapper
-                      onEmojiClick={onEmojiClick}
-                      autoFocusSearch={false}
-                      width={300}
-                      height={400}
+              {isRoomClosed ? (
+                <div className="closed-room-container">
+                  <button 
+                    className="finish-chat-btn" 
+                    onClick={clearCurrentSession}
+                  >
+                    Kết thúc cuộc trò chuyện
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="chat-input-container">
+                    <input
+                      type="text"
+                      className="chat-input"
+                      placeholder="Vui lòng nhập tin nhắn..."
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      disabled={!isConnected}
                     />
+                    <button
+                      className="emoji-btn"
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      type="button"
+                    >
+                      <EmojiIcon style={{ fontSize: '20px', color: '#64748b' }} />
+                    </button>
+
+                    {showEmojiPicker && (
+                      <div className="emoji-picker-container">
+                        <EmojiPickerWrapper
+                          onEmojiClick={onEmojiClick}
+                          autoFocusSearch={false}
+                          width={300}
+                          height={400}
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <button
-                className="circular-send-btn"
-                onClick={handleSendMessage}
-                disabled={!inputMessage.trim() || !isConnected}
-              >
-                <img src={SendMessageIcon} alt="Send" className="send-icon" />
-              </button>
+                  <button
+                    className="circular-send-btn"
+                    onClick={handleSendMessage}
+                    disabled={!inputMessage.trim() || !isConnected}
+                  >
+                    <img src={SendMessageIcon} alt="Send" className="send-icon" />
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>
