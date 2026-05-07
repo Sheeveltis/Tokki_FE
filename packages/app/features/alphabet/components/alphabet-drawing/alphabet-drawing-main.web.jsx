@@ -179,22 +179,51 @@ export function AlphabetDrawingMain({ onBackPress }) {
       return
     }
 
-    // Tính % điểm user nằm trong vùng gần polyline mẫu
-    const tolerance = 0.08 // 8% kích thước khung, có thể tinh chỉnh
+    // === STRICT SCORING ===
+    const tolerance = 0.06
     let inside = 0
+    let totalDeviation = 0
     userPoints.forEach((pt) => {
       const d = distanceToPolyline(pt, targetPoints)
+      totalDeviation += d
       if (d <= tolerance) {
         inside += 1
       }
     })
+    const userCoverageRatio = userPoints.length > 0 ? inside / userPoints.length : 0
+    const avgDeviation = userPoints.length > 0 ? totalDeviation / userPoints.length : 1
 
-    const ratio = userPoints.length > 0 ? inside / userPoints.length : 0
-    // Muốn 100 điểm khi “phủ kín” ~90%: scale theo ngưỡng 0.9
-    const percent = Math.max(
-      0,
-      Math.min(100, Math.round((ratio / 0.9) * 100)),
-    )
+    // 2. Template coverage
+    const sampleCount = Math.max(targetPoints.length * 3, 15)
+    let coveredSamples = 0
+    for (let i = 0; i < sampleCount; i++) {
+      const t = i / (sampleCount - 1)
+      const segIdx = Math.min(Math.floor(t * (targetPoints.length - 1)), targetPoints.length - 2)
+      const segT = (t * (targetPoints.length - 1)) - segIdx
+      const samplePt = [
+        targetPoints[segIdx][0] + segT * (targetPoints[segIdx + 1][0] - targetPoints[segIdx][0]),
+        targetPoints[segIdx][1] + segT * (targetPoints[segIdx + 1][1] - targetPoints[segIdx][1])
+      ]
+      if (distanceToPolyline(samplePt, userPoints) <= tolerance) coveredSamples++
+    }
+    const templateCoverageRatio = coveredSamples / sampleCount
+
+    // Kết hợp coverage + precision
+    const coverageRatio = (userCoverageRatio * 0.4) + (templateCoverageRatio * 0.6)
+    const precisionScore = Math.max(0, 1 - (avgDeviation / tolerance))
+
+    // Raw score: 60% coverage + 40% precision
+    const rawScore = (coverageRatio * 60) + (precisionScore * 40)
+    
+    // Penalty: nếu < 90%, nhân đôi độ lệch
+    let finalPercent
+    if (rawScore >= 90) {
+      finalPercent = Math.round(rawScore)
+    } else {
+      const deviation = 100 - rawScore
+      finalPercent = Math.max(0, Math.round(100 - deviation * 2))
+    }
+    const percent = Math.max(0, Math.min(100, finalPercent))
 
     const newScores = [...strokeScores, percent]
     const newCount = newScores.length
@@ -207,24 +236,23 @@ export function AlphabetDrawingMain({ onBackPress }) {
           ? Math.round(newScores.reduce((sum, v) => sum + v, 0) / newScores.length)
           : 0
       setFinalScore(avg)
-      if (avg >= 80) {
-        setFeedback(`Tuyệt vời! Bạn hoàn thành chữ này với khoảng ${avg}% chính xác.`)
-      } else if (avg >= 50) {
-        setFeedback(`Tạm ổn, điểm tổng khoảng ${avg}%. Hãy thử lại để viết mượt hơn nhé.`)
+      if (avg >= 90) {
+        setFeedback(`Tuyệt vời! Bạn hoàn thành chữ này với ${avg}% chính xác.`)
+      } else if (avg >= 60) {
+        setFeedback(`Tạm ổn, điểm tổng khoảng ${avg}%. Hãy thử lại để viết chính xác hơn.`)
       } else {
         setFeedback(`Điểm tổng chỉ khoảng ${avg}%. Thử lại và bám sát đường xám hơn nhé.`)
       }
     } else {
-      // Feedback cho từng nét trong quá trình vẽ
-      if (percent >= 80) {
-        setFeedback(`Rất tốt! Nét ${newCount} khoảng ${percent}%. Tiếp tục nét tiếp theo nhé.`)
+      if (percent >= 90) {
+        setFeedback(`Rất tốt! Nét ${newCount}: ${percent}%. Tiếp tục nét tiếp theo.`)
       } else if (percent >= 50) {
         setFeedback(
-          `Nét ${newCount} ~${percent}%. Ổn nhưng có thể bám sát đường xám hơn ở nét sau.`,
+          `Nét ${newCount}: ${percent}%. Cần chính xác hơn, bám sát đường xám.`,
         )
       } else {
         setFeedback(
-          `Nét ${newCount} hơi lệch (chỉ ~${percent}%). Hãy chú ý hướng mũi tên cho nét tiếp theo.`,
+          `Nét ${newCount} lệch nhiều (${percent}%). Hãy vẽ lại sát đường mẫu hơn.`,
         )
       }
     }

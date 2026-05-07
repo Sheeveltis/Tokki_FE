@@ -1,8 +1,54 @@
 import React from 'react'
 
 /**
+ * Tính offset vuông góc ra phía ngoài cho đường guide arrow
+ * để mũi tên nằm sát bên ngoài đường guide xám mà không đè lên
+ */
+function offsetPolyline(points, offsetDist) {
+  if (!points || points.length < 2) return points
+  
+  const result = []
+  for (let i = 0; i < points.length; i++) {
+    let nx = 0, ny = 0
+    
+    if (i === 0) {
+      const dx = points[1][0] - points[0][0]
+      const dy = points[1][1] - points[0][1]
+      const len = Math.hypot(dx, dy) || 1
+      nx = -dy / len
+      ny = dx / len
+    } else if (i === points.length - 1) {
+      const dx = points[i][0] - points[i - 1][0]
+      const dy = points[i][1] - points[i - 1][1]
+      const len = Math.hypot(dx, dy) || 1
+      nx = -dy / len
+      ny = dx / len
+    } else {
+      const dx1 = points[i][0] - points[i - 1][0]
+      const dy1 = points[i][1] - points[i - 1][1]
+      const len1 = Math.hypot(dx1, dy1) || 1
+      const dx2 = points[i + 1][0] - points[i][0]
+      const dy2 = points[i + 1][1] - points[i][1]
+      const len2 = Math.hypot(dx2, dy2) || 1
+      nx = (-dy1 / len1 + -dy2 / len2) / 2
+      ny = (dx1 / len1 + dx2 / len2) / 2
+      const nlen = Math.hypot(nx, ny) || 1
+      nx /= nlen
+      ny /= nlen
+    }
+    
+    result.push([points[i][0] + nx * offsetDist, points[i][1] + ny * offsetDist])
+  }
+  return result
+}
+
+/**
  * GuideStrokes (Web): Displays tolerance zones + guide lines (red) based on JSON.
  * Optimized for scaling using viewBox.
+ * 
+ * Mũi tên chỉ hướng được vẽ DỌC THEO đường guide chính (hangulPoints),
+ * offset nhẹ ra ngoài để không đè lên vùng vẽ.
+ * Điều này đảm bảo user nhìn mũi tên và vẽ đúng trên đường guide → điểm cao.
  */
 export function GuideStrokes({ strokes, guides, show, activeStrokeIndex = 0 }) {
   if (!show || !strokes || strokes.length === 0) return null
@@ -10,6 +56,7 @@ export function GuideStrokes({ strokes, guides, show, activeStrokeIndex = 0 }) {
   const SCALE = 1000
   const MARGIN = 150 
   const DRAW_AREA = SCALE - MARGIN * 2
+  const ARROW_OFFSET = 0.04 // offset mũi tên ra ngoài (normalized)
 
   // 1. Extract all points to find bounding box
   const allPoints = []
@@ -45,19 +92,25 @@ export function GuideStrokes({ strokes, guides, show, activeStrokeIndex = 0 }) {
     return centeredY * scale + SCALE / 2
   }
 
-  const guideLines = (guides || [])
-    .map((g, index) => {
-      if (!g || !g.arrowPath || g.arrowPath.length === 0) return ''
+  // Vẽ mũi tên DỌC THEO đường stroke chính, offset ra ngoài
+  const guideLines = (strokes || [])
+    .map((stroke, index) => {
+      if (!stroke || stroke.length < 2) return ''
       const isActive = index === activeStrokeIndex
       const opacity = isActive ? 1 : 0.2
 
-      const arrowPoints = g.arrowPath
+      const guide = guides?.[index]
+      const labelValue = guide?.numberLabel?.value ?? (index + 1)
+
+      // Offset đường stroke ra ngoài để tạo đường mũi tên
+      const offsetStroke = offsetPolyline(stroke, ARROW_OFFSET)
+
+      const arrowPoints = offsetStroke
         .map(([x, y]) => `${tx(x)},${ty(y)}`)
         .join(' ')
 
-      const labelPos = g.numberLabel?.position || g.arrowPath[0]
-      const [nx, ny] = labelPos
-      const labelValue = g.numberLabel?.value ?? (index + 1)
+      // Vị trí số thứ tự: gần điểm đầu, offset ra ngoài
+      const labelPos = offsetStroke[0]
 
       return `
         <polyline
@@ -73,16 +126,16 @@ export function GuideStrokes({ strokes, guides, show, activeStrokeIndex = 0 }) {
         />
         <g opacity="${opacity}">
           <circle
-            cx="${tx(nx)}"
-            cy="${ty(ny)}"
+            cx="${tx(labelPos[0])}"
+            cy="${ty(labelPos[1])}"
             r="30"
             fill="#FF4D4F"
             stroke="#fff"
             stroke-width="5"
           />
           <text
-            x="${tx(nx)}"
-            y="${ty(ny) + 10}"
+            x="${tx(labelPos[0])}"
+            y="${ty(labelPos[1]) + 10}"
             text-anchor="middle"
             font-size="32"
             font-weight="bold"
@@ -178,4 +231,3 @@ export function GuideStrokes({ strokes, guides, show, activeStrokeIndex = 0 }) {
     />
   )
 }
-
