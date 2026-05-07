@@ -3,6 +3,10 @@ import { Modal, Form, Button, Typography, Space, Alert, Badge } from 'antd'
 import { SaveOutlined, CodeOutlined, SettingOutlined } from '@ant-design/icons'
 import { AIWordlePromptEditor } from './editors/ai-wordle-prompt-editor'
 import { AIPronunciationPromptEditor } from './editors/ai-pronunciation-prompt-editor'
+import { AIWriting51PromptEditor } from './editors/ai-writing-51-prompt-editor'
+import { AIWriting52PromptEditor } from './editors/ai-writing-52-prompt-editor'
+import { AIWriting53PromptEditor } from './editors/ai-writing-53-prompt-editor'
+import { AIWriting54PromptEditor } from './editors/ai-writing-54-prompt-editor'
 import { GenericJsonEditor } from './editors/generic-json-editor'
 
 const { Text } = Typography
@@ -16,6 +20,26 @@ const EDITOR_REGISTRY = {
   'AI_PRONUNCIATION_PROMPT': {
     title: 'Cấu hình AI Prompt (Phát âm)',
     component: AIPronunciationPromptEditor,
+    isStructured: true
+  },
+  'AI_WRITING_51_PROMPT': {
+    title: 'Cấu hình AI Prompt (Writing 51)',
+    component: AIWriting51PromptEditor,
+    isStructured: true
+  },
+  'AI_WRITING_52_PROMPT': {
+    title: 'Cấu hình AI Prompt (Writing 52)',
+    component: AIWriting52PromptEditor,
+    isStructured: true
+  },
+  'AI_WRITING_53_PROMPT': {
+    title: 'Cấu hình AI Prompt (Writing 53)',
+    component: AIWriting53PromptEditor,
+    isStructured: true
+  },
+  'AI_WRITING_54_PROMPT': {
+    title: 'Cấu hình AI Prompt (Writing 54)',
+    component: AIWriting54PromptEditor,
     isStructured: true
   }
 }
