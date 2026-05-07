@@ -214,7 +214,7 @@ export const ENDPOINTS = {
     HAS_PLAYED_LEVEL: '/Games/user/has-played-level', // GET: Check xem user đã chơi level này chưa (query: gameId, topicId, gameDifficulty)
     SAVE_RESULT: '/Games/user/save-result', // POST: Lưu điểm game mới
     UPDATE_RESULT: '/Games/user/result', // PUT: Cập nhật điểm game đã có
-    GET_ALL_USER_RESULTS: '/Games/user/get-all-user-results', // GET: Lấy bảng xếp hạng user results (query: gameId, topicId, gameDifficulty, pageNumber, pageSize)
+    GET_ALL_USER_RESULTS: '/Games/leaderboard', // GET: Lấy bảng xếp hạng user results (query: gameId, topicId, gameDifficulty, gameType, pageNumber, pageSize)
     SOLITAIRE_SAVE_RESULT: '/Games/solitaire/save-result', // POST: Lưu điểm solitaire (body: { gameId, score, gameDifficulty })
     SOLITAIRE_GET_ALL_USER_RESULTS: '/Games/solitaire/get-all-user-results', // GET: BXH solitaire (query: gameId, gameDifficulty, pageNumber, pageSize)
   },

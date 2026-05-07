@@ -28,9 +28,6 @@ export function MatchingCardResultContent({ score = 0, topPercent = 5, timeLeft 
 
         <View style={styles.textBlock}>
           <Text style={styles.title}>Chúc mừng bạn đã thành công vượt qua thử thách</Text>
-          <Text style={styles.subtitle}>
-            Bạn là một trong những người đạt top {topPercent}% người đứng đầu{'\n'}trong bảng xếp hạng này.
-          </Text>
         </View>
 
         <View style={styles.scoreRow}>

@@ -133,9 +133,6 @@ export function SolitareResult({ score = 0, topPercent = 5, timeLeft = 0, onRepl
 
           <View style={styles.textBlock}>
             <Text style={styles.title}>Chúc mừng bạn đã thành công vượt qua thử thách</Text>
-            <Text style={styles.subtitle}>
-              Bạn là một trong những người đạt top {topPercent}% người đứng đầu{"\n"}trong bảng xếp hạng này.
-            </Text>
           </View>
 
           <View style={styles.scoreRow}>
@@ -164,13 +161,17 @@ export function SolitareResult({ score = 0, topPercent = 5, timeLeft = 0, onRepl
 
       <Modal visible={showLeaderboard} transparent animationType="fade" onRequestClose={() => setShowLeaderboard(false)}>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🏆 Bảng xếp hạng Solitaire</Text>
-              <Pressable onPress={() => setShowLeaderboard(false)} style={styles.closeButton}>
-                <Text style={styles.closeButtonText}>✕</Text>
+          <View style={styles.boardContainer}>
+            <View style={styles.header}>
+              <View style={styles.titleContainer}>
+                <Text style={styles.titleText}>BẢNG XẾP HẠNG</Text>
+              </View>
+              <Pressable style={styles.closeBtn} onPress={() => setShowLeaderboard(false)}>
+                <Text style={styles.closeBtnText}>✕</Text>
               </Pressable>
             </View>
+
+            <View style={styles.content}>
 
             {loadingLeaderboard ? (
               <View style={styles.centerBlock}>
@@ -201,15 +202,26 @@ export function SolitareResult({ score = 0, topPercent = 5, timeLeft = 0, onRepl
                       key={item.gameMatchSessionId || `${item.userId}-${index}`}
                       style={[
                         styles.row,
+                        rank === 1 && styles.itemTop1,
+                        rank === 2 && styles.itemTop2,
+                        rank === 3 && styles.itemTop3,
                         isCurrentUser && styles.leaderboardItemCurrent,
                       ]}
                     >
-                      <View style={styles.rankContainer}>
-                        {rankIcon ? (
-                          <Text style={styles.rankIcon}>{rankIcon}</Text>
-                        ) : (
-                          <Text style={[styles.rankNumber, { color: rankColor }]}>#{rank}</Text>
-                        )}
+                      <View style={[
+                        styles.rankContainer,
+                        rank === 1 && styles.rankContainerTop1,
+                        rank === 2 && styles.rankContainerTop2,
+                        rank === 3 && styles.rankContainerTop3,
+                      ]}>
+                        <Text style={[
+                          styles.rankText,
+                          rank === 1 && styles.rankTextTop1,
+                          rank === 2 && styles.rankTextTop2,
+                          rank === 3 && styles.rankTextTop3,
+                        ]}>
+                          {rank === 1 ? '👑' : rank}
+                        </Text>
                       </View>
 
                       <View style={styles.avatarContainer}>
@@ -245,7 +257,8 @@ export function SolitareResult({ score = 0, topPercent = 5, timeLeft = 0, onRepl
             )}
           </View>
         </View>
-      </Modal>
+      </View>
+    </Modal>
     </View>
   )
 }
@@ -353,45 +366,99 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
     justifyContent: 'center',
+    alignItems: 'center',
     padding: 16,
   },
-  modalCard: {
-    width: '100%',
-    maxWidth: 620,
-    maxHeight: '80%',
-    backgroundColor: '#F5F0DD',
-    borderRadius: 20,
-    overflow: 'hidden',
+  boardContainer: {
+    width: '95%',
+    maxWidth: 900,
+    height: Platform.OS === 'web' ? '85vh' : '85%',
+    backgroundColor: '#F3E5AB', // Light wood/parchment color
+    borderRadius: 32,
+    borderWidth: 8,
+    borderColor: '#5D4037', // Dark wood border
+    padding: 20,
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 10,
+    // Cartoon-style hard shadow for web
+    ...(Platform.OS === 'web' && {
+      boxShadow: '8px 8px 0px 0px rgba(93, 64, 55, 0.4)',
+    }),
   },
-  modalHeader: {
+  header: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    backgroundColor: '#FFE4B5',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#1C1C1C',
-  },
-  closeButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
     justifyContent: 'center',
-    ...(Platform.OS === 'web' && { cursor: 'pointer' }),
+    alignItems: 'center',
+    marginBottom: 20,
+    position: 'relative',
+    height: 60,
+    zIndex: 2,
   },
-  closeButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#666',
+  titleContainer: {
+    backgroundColor: '#8D6E63', // Woody brown to match theme
+    paddingHorizontal: 40,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderWidth: 4,
+    borderColor: '#5D4037',
+    transform: [{ rotate: '-1deg' }],
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  titleText: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#FFF',
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 1,
+    fontFamily: Platform.select({
+      web: 'Epilogue, sans-serif',
+      default: undefined,
+    }),
+  },
+  closeBtn: {
+    position: 'absolute',
+    right: -10,
+    top: -10,
+    width: 44,
+    height: 44,
+    backgroundColor: '#FF5252',
+    borderRadius: 22,
+    borderWidth: 4,
+    borderColor: '#D32F2F',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  closeBtnText: {
+    color: '#FFF',
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  content: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: '#FFFDE7', // Slightly warmer paper color
+    borderRadius: 20,
+    borderWidth: 3,
+    borderColor: '#A1887F', // Medium wood accent
+    overflow: 'hidden',
+    marginTop: 10,
   },
   centerBlock: {
     alignItems: 'center',
@@ -415,29 +482,89 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 10,
+    borderWidth: 3,
+    borderColor: '#8D6E63',
+    // Cartoon shadow
+    ...(Platform.OS === 'web' && {
+      boxShadow: '4px 4px 0px 0px rgba(141, 110, 99, 0.2)',
+    }),
+  },
+  itemTop1: {
+    borderColor: '#FBC02D',
+    backgroundColor: '#FFFDE7',
+    borderWidth: 4,
+  },
+  itemTop2: {
+    borderColor: '#90A4AE',
+    backgroundColor: '#F4F7F8',
+    borderWidth: 4,
+  },
+  itemTop3: {
+    borderColor: '#A1887F',
+    backgroundColor: '#FAF8F7',
+    borderWidth: 4,
   },
   leaderboardItemCurrent: {
     backgroundColor: '#FFF4E6',
     borderColor: '#FFD700',
-    borderWidth: 2,
+    borderWidth: 3,
   },
   rankContainer: {
-    width: 50,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#EFE0C2',
+    borderWidth: 2,
+    borderColor: '#8D6E63',
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 10,
   },
-  rankIcon: {
-    fontSize: 28,
+  rankContainerTop1: {
+    backgroundColor: '#FFD54F',
+    borderColor: '#F57F17',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
   },
-  rankNumber: {
+  rankContainerTop2: {
+    backgroundColor: '#CFD8DC',
+    borderColor: '#546E7A',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  rankContainerTop3: {
+    backgroundColor: '#D7CCC8',
+    borderColor: '#5D4037',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+  },
+  rankText: {
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '900',
+    color: '#5D4037',
+    fontFamily: Platform.select({
+      web: 'Epilogue, sans-serif',
+      default: undefined,
+    }),
+  },
+  rankTextTop1: {
+    fontSize: 22,
+    color: '#E65100',
+  },
+  rankTextTop2: {
+    fontSize: 18,
+    color: '#37474F',
+  },
+  rankTextTop3: {
+    fontSize: 18,
+    color: '#3E2723',
   },
   avatarContainer: {
     width: 50,
@@ -448,6 +575,8 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
+    borderWidth: 2,
+    borderColor: '#D7CCC8',
   },
   avatarPlaceholder: {
     width: 50,
@@ -456,6 +585,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#7FA14D',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#D7CCC8',
   },
   avatarText: {
     fontSize: 20,
@@ -464,12 +595,13 @@ const styles = StyleSheet.create({
   },
   userInfo: {
     flex: 1,
-    gap: 6,
+    gap: 4,
   },
   name: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1C1C1C',
+    fontWeight: '800',
+    color: '#3E2723',
+    fontFamily: 'Lexend, sans-serif',
   },
   userNameCurrent: {
     color: '#D97706',
@@ -477,27 +609,35 @@ const styles = StyleSheet.create({
   titleBadge: {
     alignSelf: 'flex-start',
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
+    paddingVertical: 2,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.1)',
   },
   titleBadgeText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
   },
   scoreContainer: {
-    alignItems: 'flex-end',
-    gap: 2,
+    alignItems: 'center',
+    backgroundColor: '#F1F8E9',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    minWidth: 60,
+    borderWidth: 2,
+    borderColor: '#C5E1A5',
   },
   bestScore: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#E05668',
+    fontWeight: '900',
+    color: '#558B2F',
+    fontFamily: 'Lexend, sans-serif',
   },
   scoreTextCurrent: {
     color: '#D97706',
   },
   scoreLabel: {
-    fontSize: 11,
     color: '#999',
   },
 })

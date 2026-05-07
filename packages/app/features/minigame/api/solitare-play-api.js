@@ -252,12 +252,21 @@ export const saveSolitareResult = async ({ gameId = 'GAME002', score = 0, level 
     const gameDifficulty = mapLevelToDifficulty(level)
     const safeScore = Number(score) || 0
 
-    const response = await apiClient.post(ENDPOINTS.GAMES.SOLITAIRE_SAVE_RESULT, {
-      gameId,
+    console.log('[saveSolitareResult] Payload:', {
+      gameId: 'GAME002',
       score: safeScore,
       gameDifficulty,
+      gameType: 2,
     })
 
+    const response = await apiClient.post(ENDPOINTS.GAMES.SAVE_RESULT, {
+      gameId: 'GAME002',
+      score: safeScore,
+      gameDifficulty,
+      gameType: 2, // Solitaire
+    })
+
+    console.log('[saveSolitareResult] Response:', response.data)
     return response?.data
   } catch (error) {
     console.error('[saveSolitareResult] Error:', error)
@@ -273,15 +282,25 @@ export const getSolitareLeaderboard = async ({ gameId = 'GAME002', level = 'easy
   try {
     const gameDifficulty = mapLevelToDifficulty(level)
 
-    const response = await apiClient.get(ENDPOINTS.GAMES.SOLITAIRE_GET_ALL_USER_RESULTS, {
+    console.log('[getSolitareLeaderboard] Params:', {
+      gameId: 'GAME002',
+      gameType: 2,
+      gameDifficulty,
+      pageNumber,
+      pageSize,
+    })
+
+    const response = await apiClient.get(ENDPOINTS.GAMES.GET_ALL_USER_RESULTS, {
       params: {
-        gameId,
+        gameId: 'GAME002',
+        gameType: 2, // Solitaire
         gameDifficulty,
         pageNumber,
         pageSize,
       },
     })
 
+    console.log('[getSolitareLeaderboard] Response:', response.data)
     return response?.data
   } catch (error) {
     console.error('[getSolitareLeaderboard] Error:', error)
