@@ -1,4 +1,4 @@
-import { requestSupport, getChatHistory, getMyRooms } from '../../customer-service-management/api/chat-support'
+import { requestSupport, getChatHistory, getMyRooms, getActiveSupportRoom } from '../../customer-service-management/api/chat-support'
 import { getAuthToken } from '../../../provider/api/client'
 import { useChatSignalR } from './use-chat-signalr'
 import { useEffect, useRef, useState } from 'react'
@@ -13,15 +13,17 @@ export const getUserIdFromToken = (token) => {
   }
 }
 
-// Hook gói toàn bộ logic chat, tách khỏi phần JSX render
+// Hook gói toàn bộ logic chat, tách khỏi phần JSX
 export const useBubbleChatLogic = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isQueueing, setIsQueueing] = useState(false)
   const [hasSupporter, setHasSupporter] = useState(false) // Đã có nhân viên tham gia
-  const [roomId, setRoomId] = useState(null) // Bỏ khởi tạo từ localStorage ngay lập tức
+  const [roomId, setRoomId] = useState(null)
   const [isInitializing, setIsInitializing] = useState(true)
+  const [isRoomClosed, setIsRoomClosed] = useState(false) // Trạng thái phòng đã đóng
   const [inputMessage, setInputMessage] = useState('')
   const [loadingHistory, setLoadingHistory] = useState(false)
+  const [messages, setMessagesState] = useState([])
 
   const messagesEndRef = useRef(null)
 
@@ -31,9 +33,10 @@ export const useBubbleChatLogic = () => {
       localStorage.removeItem(`curr_chat_room_${currentUserId}`)
     }
     setRoomId(null)
-    setMessages([])
+    setMessagesState([])
     setIsQueueing(false)
     setHasSupporter(false)
+    setIsRoomClosed(false)
   }
 
   const token = getAuthToken()
@@ -41,17 +44,27 @@ export const useBubbleChatLogic = () => {
   const chatStorageKey = currentUserId ? `curr_chat_room_${currentUserId}` : null
   const initialRoomIdFromLocal = (typeof window !== 'undefined' && chatStorageKey) ? localStorage.getItem(chatStorageKey) : null
   
-  // Pass clearCurrentSession as the third argument to handle RoomClosed event
-  const { messages, setMessages, sendMessage, joinRoom, isConnected } = useChatSignalR(
+  const { messages: signalRMessages, setMessages: setSignalRMessages, sendMessage, joinRoom, isConnected } = useChatSignalR(
     token, 
     initialRoomIdFromLocal,
     () => {
       console.log('[BubbleChat] Room was closed by server/admin')
-      clearCurrentSession()
+      setIsRoomClosed(true)
     }
   )
 
-  // Hàm kiểm tra room hiện tại có hợp lệ với user này không
+  // Đồng bộ messages từ SignalR và local state
+  useEffect(() => {
+    if (signalRMessages) {
+      setMessagesState(signalRMessages)
+    }
+  }, [signalRMessages])
+
+  const setMessages = (setter) => {
+    setSignalRMessages(setter)
+    setMessagesState(setter)
+  }
+
   const validateAndInitRoom = async () => {
     if (!token || !currentUserId) {
       clearCurrentSession()
@@ -67,13 +80,23 @@ export const useBubbleChatLogic = () => {
     }
 
     try {
-      // Thay vì dùng getMyRooms, ta dùng handleLoadHistory để check quyền truy cập room
-      // Nếu load được history -> room tồn tại và user có quyền
-      await handleLoadHistory(storedRoomId)
-      setRoomId(storedRoomId)
+      // 1. Kiểm tra xem trên server user thực sự đang có phòng nào active không
+      const activeRoom = await getActiveSupportRoom()
+      const activeRoomIdFromApi = typeof activeRoom === 'string' ? activeRoom : activeRoom?.id || activeRoom?.chatRoomId || null
+
+      // Nếu không có phòng active trên server, nhưng trong local vẫn có roomId
+      // thì ta vẫn load history để xem phòng đó đã đóng chưa (trường hợp User muốn xem lại)
+      const targetRoomId = activeRoomIdFromApi || storedRoomId
+
+      await handleLoadHistory(targetRoomId)
+      setRoomId(targetRoomId)
+      
+      // Nếu không có trong danh sách active của server -> chắc chắn đã đóng
+      if (!activeRoomIdFromApi) {
+        setIsRoomClosed(true)
+      }
     } catch (err) {
       console.error('Lỗi validate room:', err)
-      // Nếu lỗi 401, 403, 404 -> room không hợp lệ cho user này
       if (err.response && [401, 403, 404].includes(err.response.status)) {
         clearCurrentSession()
       }
@@ -86,10 +109,9 @@ export const useBubbleChatLogic = () => {
     validateAndInitRoom()
   }, [token, currentUserId])
 
-  // Join room SignalR khi roomId thay đổi
   useEffect(() => {
     const doJoinRoom = async () => {
-      if (roomId && isConnected) {
+      if (roomId && isConnected && !isRoomClosed) {
         try {
           await joinRoom(roomId)
         } catch (err) {
@@ -98,53 +120,56 @@ export const useBubbleChatLogic = () => {
       }
     }
     doJoinRoom()
-  }, [roomId, isConnected])
+  }, [roomId, isConnected, isRoomClosed])
 
-  // Auto scroll khi có tin mới
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isOpen, isQueueing])
 
-  // Khi có tin nhắn từ staff -> đánh dấu đã có người hỗ trợ, tắt trạng thái queue
   useEffect(() => {
     if (!currentUserId || !messages?.length) return
     
-    // Kiểm tra xem có tin nhắn nào thực sự từ staff (senderId khác mình) hoặc hệ thống không
     const hasActualStaffMessage = messages.some((m) => {
-      // Bỏ qua tin nhắn "Đang kết nối..."
       if (m.meta === 'queue-message') return false;
-      
-      // Nếu là tin nhắn từ người khác
       if (m.senderId && String(m.senderId) !== String(currentUserId)) return true;
-      
-      // Nếu là tin nhắn hệ thống (isSystem) nhưng không phải tin nhắn queue
       if (m.isSystem && m.meta !== 'queue-message') return true;
-
-      // Trường hợp tin nhắn từ staff nhưng senderId là null (nếu backend trả về format cũ)
       if (!m.isFromCurrentUser && m.senderId === null && !m.isSystem) return true;
-
       return false;
     });
 
     if (hasActualStaffMessage && !hasSupporter) {
-      console.log('[BubbleChat] Supporter detected! Removing queue message.');
       setHasSupporter(true);
       setIsQueueing(false);
-      // Xóa tin nhắn "Đang kết nối..." khỏi danh sách
       setMessages((prev) => prev.filter(m => m.meta !== 'queue-message'));
     }
-  }, [messages, currentUserId, hasSupporter])
+
+    // Kiểm tra tin nhắn đóng phòng (Type 9)
+    const hasClosedMsg = messages.some(m => 
+      m.type === 9 || 
+      (m.isSystem && m.content?.toUpperCase().includes('ĐÃ ĐƯỢC ĐÓNG'))
+    );
+
+    if (hasClosedMsg && !isRoomClosed) {
+      setIsRoomClosed(true);
+    }
+  }, [messages, currentUserId, hasSupporter, isRoomClosed])
 
   const handleLoadHistory = async (id) => {
     setLoadingHistory(true)
     try {
-      const data = await getChatHistory(id) // data là mảng message từ API
+      const data = await getChatHistory(id)
       if (Array.isArray(data)) {
         const formatted = data.map((m) => ({
           ...m,
           isFromCurrentUser: m.senderId === currentUserId,
         }))
         setMessages(formatted)
+
+        // Kiểm tra xem trong lịch sử đã có tin nhắn đóng phòng chưa
+        const hasClosedMsg = data.some(m => m.type === 9)
+        if (hasClosedMsg) {
+          setIsRoomClosed(true)
+        }
       }
     } catch (e) {
       console.error('Lỗi load history:', e)
@@ -156,13 +181,9 @@ export const useBubbleChatLogic = () => {
     }
   }
 
-  // Tạo room support: luôn trả về roomId string
   const createSupportRoom = async () => {
     const res = await requestSupport()
-    // API: { isSuccess, data: "RbKTS...", ... }
-    const roomIdFromApi = typeof res === 'string' ? res : res?.data ?? res?.chatRoomId ?? null
-
-    return roomIdFromApi
+    return typeof res === 'string' ? res : res?.data ?? res?.chatRoomId ?? null
   }
 
   const handleStartConsultation = async () => {
@@ -176,6 +197,7 @@ export const useBubbleChatLogic = () => {
         localStorage.setItem(chatStorageKey, newRoomId)
       }
       setMessages([])
+      setIsRoomClosed(false)
 
       if (isConnected) await joinRoom(newRoomId)
 
@@ -199,20 +221,13 @@ export const useBubbleChatLogic = () => {
   }
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return
-    if (!roomId) {
-      console.error('Chưa có Room ID')
-      return
-    }
-    if (!isConnected) {
-      console.warn('Socket chưa kết nối, không thể gửi tin.')
-      return
-    }
+    if (!inputMessage.trim() || isRoomClosed) return
+    if (!roomId) return
+    if (!isConnected) return
 
     const content = inputMessage.trim()
     setInputMessage('')
 
-    // Hiển thị tin nhắn ngay lập tức (Optimistic UI)
     const tempId = `temp-${Date.now()}`
     const newMessage = {
       id: tempId,
@@ -226,8 +241,6 @@ export const useBubbleChatLogic = () => {
     try {
       await sendMessage(roomId, content)
     } catch (err) {
-      console.error('Gửi tin thất bại:', err)
-      // Nếu lỗi, xóa tin nhắn tạm và khôi phục input
       setMessages((prev) => prev.filter(m => m.id !== tempId))
       setInputMessage(content)
     }
@@ -241,12 +254,12 @@ export const useBubbleChatLogic = () => {
   }
 
   return {
-    // state
     isOpen,
     setIsOpen,
     isQueueing,
     hasSupporter,
     roomId,
+    isRoomClosed,
     inputMessage,
     setInputMessage,
     loadingHistory,
@@ -255,7 +268,6 @@ export const useBubbleChatLogic = () => {
     isConnected,
     currentUserId,
     isInitializing,
-    // handlers
     clearCurrentSession,
     handleStartConsultation,
     handleSendMessage,

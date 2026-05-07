@@ -22,6 +22,12 @@ export const useChatSignalR = (token, initialRoomId = null, onRoomClosed = null)
     messagesRef.current = messages;
   }, [messages]);
 
+  // Ref để tránh stale closure cho callback onRoomClosed
+  const onRoomClosedRef = useRef(onRoomClosed);
+  useEffect(() => {
+    onRoomClosedRef.current = onRoomClosed;
+  }, [onRoomClosed]);
+
   // 1. Khởi tạo Connection
   useEffect(() => {
     if (!token) return;
@@ -126,9 +132,10 @@ export const useChatSignalR = (token, initialRoomId = null, onRoomClosed = null)
     // B. Lắng nghe thông báo đóng phòng
     connection.on(CHAT_HUB.EVENTS.ROOM_CLOSED, (closedRoomId) => {
       console.log('SignalR: Room closed -', closedRoomId);
-      if (roomIdRef.current === closedRoomId) {
+      // Nếu không có closedRoomId (backend không gửi) hoặc nó trùng với room hiện tại
+      if (!closedRoomId || !roomIdRef.current || roomIdRef.current === closedRoomId) {
         setRoomId(null);
-        if (onRoomClosed) onRoomClosed(closedRoomId);
+        if (onRoomClosedRef.current) onRoomClosedRef.current(closedRoomId);
       }
     });
 
