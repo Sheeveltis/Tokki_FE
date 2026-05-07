@@ -91,6 +91,7 @@ export const saveGameResult = async (gameId, topicId, score, gameDifficulty) => 
       topicId,
       score,
       gameDifficulty,
+      gameType: 1, // Matching Card
     })
     return response.data
   } catch (error) {
@@ -114,6 +115,7 @@ export const updateGameResult = async (gameId, topicId, score, gameDifficulty) =
       topicId,
       score,
       gameDifficulty,
+      gameType: 1, // Matching Card
     })
     return response.data
   } catch (error) {
@@ -133,11 +135,22 @@ export const updateGameResult = async (gameId, topicId, score, gameDifficulty) =
  */
 export const getAllUserResults = async (gameId, topicId, gameDifficulty, pageNumber = 1, pageSize = 10) => {
   try {
+    console.log('[getAllUserResults] Sending GET request to:', ENDPOINTS.GAMES.GET_ALL_USER_RESULTS, {
+      params: {
+        gameId,
+        topicId,
+        gameDifficulty,
+        gameType: 1,
+        pageNumber,
+        pageSize,
+      },
+    })
     const response = await apiClient.get(ENDPOINTS.GAMES.GET_ALL_USER_RESULTS, {
       params: {
         gameId,
         topicId,
         gameDifficulty,
+        gameType: 1, // Matching Card
         pageNumber,
         pageSize,
       },

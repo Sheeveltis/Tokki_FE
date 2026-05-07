@@ -82,6 +82,7 @@ export function MatchingCardResultLayout({
             topicId,
             score,
             gameDifficulty,
+            gameType: 1,
           })
           const response = await updateGameResult(gameId, topicId, score, gameDifficulty)
           console.log('[MatchingCardResultLayout] PUT API response:', response)
@@ -97,6 +98,7 @@ export function MatchingCardResultLayout({
             topicId,
             score,
             gameDifficulty,
+            gameType: 1,
           })
           const response = await saveGameResult(gameId, topicId, score, gameDifficulty)
           console.log('[MatchingCardResultLayout] POST API response:', response)

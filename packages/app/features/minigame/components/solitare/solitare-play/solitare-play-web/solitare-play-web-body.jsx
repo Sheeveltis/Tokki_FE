@@ -95,6 +95,7 @@ export function SolitarePlayWebBody({
     <div style={styles.bodyWrapper}>
       <div style={styles.board}>
         <div style={styles.topSection}>
+{/* 
         <div
           id="solitaire-draw"
           data-tour="solitaire-draw"
@@ -102,6 +103,7 @@ export function SolitarePlayWebBody({
         >
           <SolitarePlayWebDraw />
         </div>
+        */}
 
           <div style={styles.topicRow}>
             <div

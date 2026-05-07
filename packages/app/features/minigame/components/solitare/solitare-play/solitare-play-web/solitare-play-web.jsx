@@ -399,6 +399,11 @@ export function SolitarePlayWeb({ level = 'easy', onFinish }) {
       const timeBonus = Math.floor(timeLeft * TIME_BONUS_MULTIPLIER)
       const finalScore = score + timeBonus
       setScore(finalScore)
+
+      // Save game result to server
+      saveSolitareResult({ score: finalScore, level })
+        .then(() => console.log('[SolitarePlayWeb] Result saved successfully'))
+        .catch((err) => console.error('[SolitarePlayWeb] Failed to save result:', err))
   
       if (backgroundMusicRef.current) {
         backgroundMusicRef.current.pause()

@@ -124,10 +124,12 @@ export async function updateExamInfo({ examId, title, skillDurations, examTempla
 /**
  * Xuất đề thi ra PDF
  * @param {string} examId - ID của exam
+ * @param {boolean} showExplanation - Có hiển thị giải thích hay không (mặc định: true)
  * @returns {Promise<Blob>} - File PDF content
  */
-export async function exportExamPdf(examId) {
-  const res = await apiClient.get(ENDPOINTS.EXAMS.EXPORT_PDF(examId), {
+export async function exportExamPdf(examId, showExplanation = true) {
+  const res = await apiClient.post(ENDPOINTS.EXAMS.EXPORT_PDF(examId), null, {
+    params: { showExplanation },
     responseType: 'blob'
   })
   return res.data
