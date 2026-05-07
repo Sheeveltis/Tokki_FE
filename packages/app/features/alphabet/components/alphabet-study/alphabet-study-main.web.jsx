@@ -241,15 +241,43 @@ export function AlphabetStudyMain({
       return
     }
 
-    // 1. Kiểm tra độ bao phủ (Coverage)
-    const tolerance = 0.08
-    let insidePoints = 0
-    userPoints.forEach(pt => {
-      if (distanceToPolyline(pt, targetPoints) <= tolerance) insidePoints++
-    })
-    const coverageRatio = insidePoints / userPoints.length
+    // === STRICT SCORING ===
+    const tolerance = 0.06 // 6% canvas - rất strict
 
-    // 2. Kiểm tra điểm đầu và điểm cuối
+    // 1. User Coverage - bao nhiêu % điểm user nằm trong vùng cho phép
+    let insidePoints = 0
+    let totalDeviation = 0
+    userPoints.forEach(pt => {
+      const d = distanceToPolyline(pt, targetPoints)
+      totalDeviation += d
+      if (d <= tolerance) insidePoints++
+    })
+    const userCoverageRatio = insidePoints / userPoints.length
+    const avgDeviation = totalDeviation / userPoints.length // Độ lệch trung bình
+
+    // 2. Template Coverage - user có vẽ phủ hết đường mẫu không
+    const sampleCount = Math.max(targetPoints.length * 3, 15) // Nhiều sample hơn để chính xác
+    let coveredSamples = 0
+    for (let i = 0; i < sampleCount; i++) {
+      const t = i / (sampleCount - 1)
+      const segIdx = Math.min(Math.floor(t * (targetPoints.length - 1)), targetPoints.length - 2)
+      const segT = (t * (targetPoints.length - 1)) - segIdx
+      const samplePt = [
+        targetPoints[segIdx][0] + segT * (targetPoints[segIdx + 1][0] - targetPoints[segIdx][0]),
+        targetPoints[segIdx][1] + segT * (targetPoints[segIdx + 1][1] - targetPoints[segIdx][1])
+      ]
+      if (distanceToPolyline(samplePt, userPoints) <= tolerance) coveredSamples++
+    }
+    const templateCoverageRatio = coveredSamples / sampleCount
+
+    // Kết hợp coverage (trọng số cao hơn cho template coverage)
+    const coverageRatio = (userCoverageRatio * 0.4) + (templateCoverageRatio * 0.6)
+
+    // 3. Kiểm tra độ chính xác (Precision) - dựa trên độ lệch trung bình
+    // avgDeviation = 0 → perfect, avgDeviation >= tolerance → 0 điểm
+    const precisionScore = Math.max(0, 1 - (avgDeviation / tolerance))
+
+    // 4. Kiểm tra điểm đầu và điểm cuối
     const startTarget = targetPoints[0]
     const endTarget = targetPoints[targetPoints.length - 1]
     const startUser = userPoints[0]
@@ -257,33 +285,51 @@ export function AlphabetStudyMain({
 
     const startDist = Math.hypot(startUser[0] - startTarget[0], startUser[1] - startTarget[1])
     const endDist = Math.hypot(endUser[0] - endTarget[0], endUser[1] - endTarget[1])
-    const startEndScore = (startDist < 0.15 ? 0.5 : 0) + (endDist < 0.15 ? 0.5 : 0)
+    
+    const proximityThreshold = 0.12 // 12% - strict hơn
+    const startEndScore = (startDist < proximityThreshold ? 0.5 : 0) + (endDist < proximityThreshold ? 0.5 : 0)
 
-    // 3. Kiểm tra hướng vẽ
+    // 5. Kiểm tra hướng vẽ
     const targetVec = [endTarget[0] - startTarget[0], endTarget[1] - startTarget[1]]
     const userVec = [endUser[0] - startUser[0], endUser[1] - startUser[1]]
     const dotProduct = targetVec[0] * userVec[0] + targetVec[1] * userVec[1]
     const isCorrectDirection = dotProduct > 0
 
-    // Tính điểm tổng hợp (Weighted Score)
-    // 60% Coverage + 20% Start/End + 20% Direction
-    const strokeScore = (coverageRatio * 60) + (startEndScore * 20) + (isCorrectDirection ? 20 : 0)
-    const percent = Math.max(0, Math.min(100, Math.round(strokeScore)))
+    // Tính điểm thô (Raw Score)
+    // 40% Coverage + 30% Precision + 15% Start/End + 15% Direction
+    const rawScore = (coverageRatio * 40) + (precisionScore * 30) + (startEndScore * 15) + (isCorrectDirection ? 15 : 0)
     
-    // Tạo thông điệp phản hồi
+    // === PENALTY: Nếu điểm thô < 90%, nhân đôi độ lệch ===
+    let finalPercent
+    if (rawScore >= 90) {
+      finalPercent = Math.round(rawScore)
+    } else {
+      // Deviation từ 100, nhân đôi penalty
+      const deviation = 100 - rawScore
+      finalPercent = Math.max(0, Math.round(100 - deviation * 2))
+    }
+    const percent = Math.max(0, Math.min(100, finalPercent))
+    
+    // Tạo thông điệp phản hồi - strict hơn
     let message = ""
     let hasError = false
     if (!isCorrectDirection) {
       message = `Nét ${strokeCount + 1}: Vẽ ngược hướng!`
       hasError = true
-    } else if (startDist >= 0.15) {
+    } else if (startDist >= proximityThreshold) {
       message = `Nét ${strokeCount + 1}: Đặt bút chưa chuẩn.`
       hasError = true
-    } else if (endDist >= 0.15) {
+    } else if (endDist >= proximityThreshold) {
       message = `Nét ${strokeCount + 1}: Dừng bút chưa chuẩn.`
       hasError = true
     } else if (coverageRatio < 0.7) {
       message = `Nét ${strokeCount + 1}: Bị lệch nhiều quá.`
+      hasError = true
+    } else if (precisionScore < 0.5) {
+      message = `Nét ${strokeCount + 1}: Chưa đủ chính xác, vẽ mượt hơn.`
+      hasError = true
+    } else if (percent < 90) {
+      message = `Nét ${strokeCount + 1}: Tạm ổn, cần chính xác hơn.`
       hasError = true
     } else {
       message = `Nét ${strokeCount + 1}: Tốt!`

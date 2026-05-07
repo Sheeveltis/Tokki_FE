@@ -50,6 +50,9 @@ export function useAlphabetStudy(mode = 'letters') {
         // Sort by sortOrder if available
         mappedData.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
         
+        // Re-assign idx AFTER sorting so it matches the actual array position
+        mappedData.forEach((item, i) => { item.idx = i })
+        
         setData(mappedData)
       } catch (error) {
         console.error('Failed to fetch alphabet:', error)
@@ -62,6 +65,9 @@ export function useAlphabetStudy(mode = 'letters') {
 
   // Fetch details when current letter changes
   useEffect(() => {
+    // Reset currentDetails immediately when index changes to avoid showing stale data
+    setCurrentDetails(null)
+
     async function loadDetails() {
       const currentItem = data[index]
       if (!currentItem?.id) return
@@ -72,15 +78,24 @@ export function useAlphabetStudy(mode = 'letters') {
         
         if (details) {
           // Parse JSON strings from API
-          let displayData = []
-          let validationData = []
+          // API returns { strokes: [...] } object, need to extract .strokes array
+          let displayStrokes = []
+          let validationStrokes = []
           try {
-            displayData = typeof details.displayDataJson === 'string' 
+            const parsedDisplay = typeof details.displayDataJson === 'string' 
               ? JSON.parse(details.displayDataJson) 
-              : details.displayDataJson || []
-            validationData = typeof details.validationDataJson === 'string'
+              : details.displayDataJson
+            const parsedValidation = typeof details.validationDataJson === 'string'
               ? JSON.parse(details.validationDataJson)
-              : details.validationDataJson || []
+              : details.validationDataJson
+
+            // Handle both {strokes: [...]} object format and direct array format
+            displayStrokes = Array.isArray(parsedDisplay) 
+              ? parsedDisplay 
+              : (parsedDisplay?.strokes || [])
+            validationStrokes = Array.isArray(parsedValidation) 
+              ? parsedValidation 
+              : (parsedValidation?.strokes || [])
           } catch (e) {
             console.error('Error parsing stroke JSON:', e)
           }
@@ -88,10 +103,10 @@ export function useAlphabetStudy(mode = 'letters') {
           setCurrentDetails({
             ...currentItem,
             ...details,
-            strokes: displayData.map((d, i) => ({
+            strokes: displayStrokes.map((d, i) => ({
               ...d,
               hangulPoints: d.templatePoints, // Map templatePoints to hangulPoints for compatibility
-              validationPoints: validationData.find(v => v.order === d.order)?.validationPoints || d.templatePoints
+              validationPoints: validationStrokes.find(v => v.order === d.order)?.validationPoints || d.templatePoints
             }))
           })
         }
