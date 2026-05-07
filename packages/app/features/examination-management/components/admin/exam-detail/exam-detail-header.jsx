@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Space, Button, Typography, Tag, Tooltip, message } from 'antd';
+import { Space, Button, Typography, Tag, Tooltip, message, Modal } from 'antd';
 import {
   ArrowLeftOutlined,
   EyeOutlined,
@@ -19,14 +19,16 @@ export const ExamDetailHeader = ({ exam, statusLoading, onStatusClick }) => {
   const router = useRouter();
   const [downloading, setDownloading] = useState(false);
 
-  const handleExportPdf = async () => {
+  const [exportModalVisible, setExportModalVisible] = useState(false);
+
+  const handleExportPdf = async (showExplanation = true) => {
     try {
       setDownloading(true);
-      const blob = await exportExamPdf(exam.examId);
+      const blob = await exportExamPdf(exam.examId, showExplanation);
       const url = window.URL.createObjectURL(new Blob([blob]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `${exam.title || 'Exam'}.pdf`);
+      link.setAttribute('download', `${exam.title || 'Exam'}${showExplanation ? '_co_giai_thich' : ''}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
@@ -88,7 +90,7 @@ export const ExamDetailHeader = ({ exam, statusLoading, onStatusClick }) => {
           type="dashed"
           icon={<DownloadOutlined />}
           loading={downloading}
-          onClick={handleExportPdf}
+          onClick={() => setExportModalVisible(true)}
           style={{
             borderRadius: 20,
             height: 40,
@@ -98,6 +100,32 @@ export const ExamDetailHeader = ({ exam, statusLoading, onStatusClick }) => {
         >
           Xuất PDF
         </Button>
+
+        <Modal
+          title="Tùy chọn xuất PDF"
+          open={exportModalVisible}
+          onCancel={() => setExportModalVisible(false)}
+          centered
+          footer={[
+            <Button 
+              key="no" 
+              onClick={() => { setExportModalVisible(false); handleExportPdf(false); }}
+              style={{ borderRadius: 20 }}
+            >
+              Không kèm giải thích
+            </Button>,
+            <Button 
+              key="yes" 
+              type="primary" 
+              onClick={() => { setExportModalVisible(false); handleExportPdf(true); }}
+              style={{ borderRadius: 20 }}
+            >
+              Có kèm giải thích
+            </Button>,
+          ]}
+        >
+          <p>Bạn có muốn xuất đề thi bao gồm phần giải thích chi tiết cho các câu hỏi không?</p>
+        </Modal>
 
         <Button
           type="primary"
