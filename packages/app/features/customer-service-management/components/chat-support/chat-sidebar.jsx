@@ -137,7 +137,7 @@ export const ChatSidebar = ({
   ]
 
   return (
-    <div className="chat-sidebar-card" style={{ width: 350, flexShrink: 0, display: 'flex', flexDirection: 'column', background: '#fff', borderRight: '1px solid #f0f2f5' }}>
+    <div className="chat-sidebar-card" style={{ width: 350, height: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', background: '#fff', borderRight: '1px solid #f0f2f5' }}>
       <div style={{ padding: '24px 20px 16px' }}>
         {userRole === 1 && (
           <div className="mode-toggle-container">
