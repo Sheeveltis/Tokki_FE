@@ -331,7 +331,7 @@ export const ENDPOINTS = {
     GET_QUESTIONS_BY_PART: '/Exams/get-questions-by-part', // GET: Lấy danh sách câu hỏi theo templatePartId
     UPDATE_EXAM_QUESTION: '/Exams/update-exam-question', // PUT: Cập nhật 1 câu hỏi trong đề (body: { examId, questionBankId, questionNo })
     REGENERATE_PART: '/Exams/regenerate-part', // POST: Random/regenerate lại bộ câu hỏi của một phần (body: { examId, templatePartId })
-    EXPORT_PDF: (id) => `/Exams/${id}/export-pdf`, // GET: Xuất PDF
+    EXPORT_PDF: (id) => `/Exams/${id}/export-pdf`, // POST: Xuất PDF
     IMPORT: '/Exams/import',
     EXPORT: '/Exams/export',
     TRIAL_EXAMS: (pageNumber = 1, pageSize = 20, type) => `/Exams/trial-exams?PageNumber=${pageNumber}&PageSize=${pageSize}${type ? `&Type=${type}` : ''}`,
