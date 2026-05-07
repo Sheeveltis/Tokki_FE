@@ -386,7 +386,7 @@ export const ENDPOINTS = {
   ALPHABET: {
     GET_ALL: '/Alphabet',
     CREATE: '/Alphabet',
-    UPDATE: '/Alphabet',
+    UPDATE: (id) => `/Alphabet/${id}`,
     DELETE: (id) => `/Alphabet/${id}`,
     GET_BY_ID: (id) => `/Alphabet/${id}`,
     IMPORT: '/Alphabet/import',

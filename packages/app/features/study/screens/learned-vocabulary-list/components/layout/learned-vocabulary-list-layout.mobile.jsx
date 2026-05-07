@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, StyleSheet, Platform } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { NavbarMobile } from 'components/navbar-mobile'
 
 /**
@@ -7,29 +8,27 @@ import { NavbarMobile } from 'components/navbar-mobile'
  */
 export function LearnedVocabularyListLayout({ children }) {
   return (
-    <View style={styles.root}>
+    <LinearGradient colors={['#FEF7E6', '#FFFFFF']} locations={[0, 0.4]} style={styles.root}>
       <View style={styles.contentWrapper}>
         {children}
       </View>
       {Platform.OS !== 'web' && <NavbarMobile />}
-    </View>
+    </LinearGradient>
   )
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F5F0DD',
-    alignItems: 'center',
+    backgroundColor: 'transparent',
     justifyContent: 'flex-start',
-    paddingVertical: 24,
   },
   contentWrapper: {
+    flex: 1,
     width: '100%',
     paddingHorizontal: 16,
-    alignItems: 'center',
     backgroundColor: 'transparent',
-    paddingVertical: 24,
+    paddingTop: 12,
     paddingBottom: 100, // Thêm padding bottom để tránh bị che bởi navbar
     borderRadius: 0,
     gap: 16,

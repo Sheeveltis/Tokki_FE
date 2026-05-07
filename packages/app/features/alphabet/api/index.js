@@ -29,7 +29,7 @@ export async function fetchAlphabetById(id) {
  * Update an alphabet record
  */
 export async function updateAlphabet(payload) {
-  const res = await apiClient.put(ENDPOINTS.ALPHABET.UPDATE, payload)
+  const res = await apiClient.put(ENDPOINTS.ALPHABET.UPDATE(payload.id), payload)
   return res.data
 }
 
